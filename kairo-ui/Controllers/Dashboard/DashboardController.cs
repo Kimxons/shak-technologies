@@ -70,7 +70,7 @@ namespace kairo_ui.Controllers.Dashboard
                 {
                     // Try to fetch dashboard metrics from API
                     // Note: Adjust endpoint based on your actual API structure
-                    var dashboardData = await _apiService.GetSingleAsync<DashboardViewModel>("dashboard/metrics");
+                    var dashboardData = await _apiService.GetSingleAsync<DashboardViewModel>("SystemCoreApi", ApiEndpoints.GET_DASHBOARDMETRICS);
                     if (dashboardData != null)
                     {
                         viewModel.Stats = dashboardData.Stats;
@@ -232,7 +232,7 @@ namespace kairo_ui.Controllers.Dashboard
                     RequestTime = DateTime.UtcNow,
                     RequestData = new { RequestID = HttpContext.Connection.Id, Modules = lsmodules, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() }
                 };
-                var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<MainModule>>>("v1/SystemCore/main-modules", apiReq);
+                var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<MainModule>>>("SystemCoreApi", ApiEndpoints.GET_MAINMODULES, apiReq);
                 var mainModules = response!.Details?.ToList() ?? [];
                 _logger.LogInformation("Fetched {Count} main modules", mainModules.Count);
                 return mainModules;
@@ -259,9 +259,9 @@ namespace kairo_ui.Controllers.Dashboard
                     AppName = HttpContext.Session.GetString("appname")!,
                     RequestId = HttpContext.Connection.Id,
                     RequestTime = DateTime.UtcNow,
-                    RequestData = new { RequestID = HttpContext.Connection.Id,UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() }
+                    RequestData = new { RequestID = HttpContext.Connection.Id, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() }
                 };
-                var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<CBS.Entities.SystemCore.Module>>>("v1/SystemCore/modules", apiReq);
+                var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<CBS.Entities.SystemCore.Module>>>("SystemCoreApi", ApiEndpoints.GET_MODULES, apiReq);
 
                 //var response = await _apiService.GetAsync<CBS.Entities.SystemCore.Module>("modules");
                 var modules = response?.Details!.ToList() ?? [];
@@ -307,8 +307,8 @@ namespace kairo_ui.Controllers.Dashboard
             try
             {
                 _logger.LogInformation("Fetching branches for user {UserId}", userId);
-                var endpoint = $"BranchSetting?userId={userId}";
-                var response = await _apiService.GetAsync<BranchSetting>(endpoint);
+                //var endpoint = $"BranchSetting?userId={userId}";
+                var response = await _apiService.GetAsync<BranchSetting>("IdentityAccessManagentApi", "BranchSetting", new KeyValuePair<string,object>("userId",userId));
                 return response?.ToList() ?? [];
             }
             catch (Exception ex)
