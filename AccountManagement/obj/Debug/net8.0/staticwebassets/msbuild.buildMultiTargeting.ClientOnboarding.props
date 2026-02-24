@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\ClientOnboarding.props" />
-</Project>
