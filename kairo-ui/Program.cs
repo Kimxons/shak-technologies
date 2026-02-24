@@ -37,7 +37,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.Cookie.Expiration = TimeSpan.FromMinutes(cookieTimeoutMinutes);
+    //options.Cookie.Expiration = TimeSpan.FromMinutes(cookieTimeoutMinutes);
     // Use a unique session cookie name to avoid conflicts with old encrypted cookies
     options.Cookie.Name = "KAIRO-AUTH-SESSION";
 });
