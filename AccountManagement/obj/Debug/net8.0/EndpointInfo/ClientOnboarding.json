@@ -1,0 +1,166 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Account Management v1",
+    "description": "Maintain Account management details",
+    "contact": {
+      "name": "Account Management API",
+      "url": "www.craftsilicon.com",
+      "email": "demo@craftsilicon.com"
+    },
+    "license": {
+      "name": "Craft Silicon Ltd",
+      "url": "www.craftsilicon.com"
+    },
+    "version": "v1"
+  },
+  "paths": {
+    "/api/v1/AccountMaintenance/ExecuteProcedure": {
+      "post": {
+        "tags": [
+          "AccountMaintenance"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/Shared/GetSystemSearch": {
+      "post": {
+        "tags": [
+          "Shared"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/Shared/GetSystemCode": {
+      "post": {
+        "tags": [
+          "Shared"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InData": {
+        "required": [
+          "AppName",
+          "RequestData",
+          "RequestId",
+          "RequestTime"
+        ],
+        "type": "object",
+        "properties": {
+          "RequestId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "FormId": {
+            "type": "string",
+            "nullable": true
+          },
+          "RequestData": { },
+          "RequestTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "AppName": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "Checksum": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "oauth2": {
+        "type": "oauth2",
+        "description": "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://localhost:44324/Login",
+            "scopes": { }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "oauth2": [ ]
+    }
+  ]
+}

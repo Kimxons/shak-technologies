@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "98qxrlsig5/j51dNntE69bniEQVoPXmH0wY4S/CFM8Q=",
+  "Source": "ClientOnboarding",
+  "BasePath": "_content/ClientOnboarding",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
