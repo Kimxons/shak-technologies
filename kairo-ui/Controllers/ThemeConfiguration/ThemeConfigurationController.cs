@@ -92,7 +92,7 @@ namespace kairo_ui.Controllers.ThemeConfiguration
                     RequestTime = DateTime.UtcNow,
                     RequestData = requestData
                 };
-                var response = await _apiService.CreateAsync<ResponseDetail<object>>("v1/SystemCore/add-theme", apiReq);
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.ADD_THEME, apiReq);
 
 
                 return Ok(response);
@@ -159,7 +159,7 @@ namespace kairo_ui.Controllers.ThemeConfiguration
                 //    new (nameof(requestData.ThemeName),requestData.ThemeName!)
                 //};
 
-                var response = await _apiService.CreateAsync<ResponseDetail<object>>("v1/SystemCore/effective-theme", apiReq);
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.GET_EFFECTIVETHEME, apiReq);
 
 
                 return Ok(response);

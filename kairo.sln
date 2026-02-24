@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemCoreApi", "SystemCore
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CBS.Entities.SystemCore", "CBS.Entities.SystemCore\CBS.Entities.SystemCore.csproj", "{6DE8258C-ADB9-40B0-9278-8B7B1E076173}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountManagement", "AccountManagement\AccountManagement.csproj", "{801B28ED-A024-4619-900B-E9AFDDD843A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,18 @@ Global
 		{6DE8258C-ADB9-40B0-9278-8B7B1E076173}.Release|x64.Build.0 = Release|Any CPU
 		{6DE8258C-ADB9-40B0-9278-8B7B1E076173}.Release|x86.ActiveCfg = Release|Any CPU
 		{6DE8258C-ADB9-40B0-9278-8B7B1E076173}.Release|x86.Build.0 = Release|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Debug|x64.Build.0 = Debug|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Debug|x86.Build.0 = Debug|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Release|x64.ActiveCfg = Release|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Release|x64.Build.0 = Release|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Release|x86.ActiveCfg = Release|Any CPU
+		{801B28ED-A024-4619-900B-E9AFDDD843A7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

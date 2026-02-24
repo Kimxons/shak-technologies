@@ -6,5 +6,8 @@
         public static string GET_MAINMODULES = "v1/SystemCore/main-modules";
         public static string GET_MODULES = "v1/SystemCore/modules";
         public static string GET_DASHBOARDMETRICS = "v1/dashboard/metrics";
+
+        public static string ADD_THEME = "v1/SystemCore/add-theme";
+        public static string GET_EFFECTIVETHEME = "v1/SystemCore/effective-theme";
     }
 }
