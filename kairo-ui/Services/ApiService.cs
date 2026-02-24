@@ -20,7 +20,7 @@ namespace kairo_ui.Services
         /// <summary>
         /// Fetches a collection of items from the specified endpoint
         /// </summary>
-        Task<IEnumerable<T>> GetAsync<T>(string apiName,string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
+        Task<IEnumerable<T>> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
 
         /// <summary>
         /// Fetches a single item from the specified endpoint
@@ -58,10 +58,10 @@ namespace kairo_ui.Services
     /// </summary>
     public class ApiService : IApiService
     {
-        private HttpClient _httpClient;
+        private HttpClient _httpClient = new HttpClient();
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<ApiService> _logger;
-        private readonly string _apiBaseUrl;
+        //private readonly string _apiBaseUrl;
         //private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
         //{
         //    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -72,11 +72,11 @@ namespace kairo_ui.Services
             PropertyNamingPolicy = null
         };
 
-        public ApiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<ApiService> logger)
+        public ApiService(IHttpClientFactory httpClientFactory, ILogger<ApiService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _apiBaseUrl = string.Empty;
+            //_apiBaseUrl = string.Empty;
             //_apiBaseUrl = configuration?.GetValue<string>("ApiSettings:BaseUrl") ?? "http://localhost:5001/api";
         }
 
