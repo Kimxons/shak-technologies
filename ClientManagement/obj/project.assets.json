@@ -1682,6 +1682,19 @@
           }
         }
       },
+      "CBS.Entities.ClientManagement/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "CBS.Entities.Common": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/CBS.Entities.ClientManagement.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CBS.Entities.ClientManagement.dll": {}
+        }
+      },
       "CBS.Entities.Common/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -4861,6 +4874,11 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "CBS.Entities.ClientManagement/1.0.0": {
+      "type": "project",
+      "path": "../CBS.Entities.ClientManagement/CBS.Entities.ClientManagement.csproj",
+      "msbuildProject": "../CBS.Entities.ClientManagement/CBS.Entities.ClientManagement.csproj"
+    },
     "CBS.Entities.Common/1.0.0": {
       "type": "project",
       "path": "../CBS.COMMON/CBS.Entities.Common.csproj",
@@ -4872,8 +4890,8 @@
       "Asp.Versioning.Http >= 8.1.0",
       "Asp.Versioning.Mvc.ApiExplorer >= 8.1.0",
       "AspNetCore.HealthChecks.UI.Client >= 8.0.1",
+      "CBS.Entities.ClientManagement >= 1.0.0",
       "CBS.Entities.Common >= 1.0.0",
-      "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientOnboarding\\CBS.Entities.ClientManagement.csproj",
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.19",
       "Microsoft.EntityFrameworkCore >= 9.0.8",
       "Microsoft.EntityFrameworkCore.Relational >= 9.0.8",
@@ -4934,8 +4952,8 @@
             "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj": {
               "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj"
             },
-            "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientOnboarding\\CBS.Entities.ClientManagement.csproj": {
-              "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientOnboarding\\CBS.Entities.ClientManagement.csproj"
+            "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientManagement\\CBS.Entities.ClientManagement.csproj": {
+              "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientManagement\\CBS.Entities.ClientManagement.csproj"
             }
           }
         }
@@ -5067,16 +5085,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1104",
-      "level": "Error",
-      "message": "Unable to find project 'D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientOnboarding\\CBS.Entities.ClientManagement.csproj'. Check that the project reference is valid and that the project file exists.",
-      "libraryId": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientOnboarding\\CBS.Entities.ClientManagement.csproj",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  }
 }
