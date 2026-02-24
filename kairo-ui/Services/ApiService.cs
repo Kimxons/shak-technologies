@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using kairo_ui.Models;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -60,6 +61,7 @@ namespace kairo_ui.Services
     {
         private HttpClient _httpClient = new HttpClient();
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContext;
         private readonly ILogger<ApiService> _logger;
         //private readonly string _apiBaseUrl;
         //private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
@@ -72,10 +74,11 @@ namespace kairo_ui.Services
             PropertyNamingPolicy = null
         };
 
-        public ApiService(IHttpClientFactory httpClientFactory, ILogger<ApiService> logger)
+        public ApiService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<ApiService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
+            _httpContext = httpContextAccessor;
             //_apiBaseUrl = string.Empty;
             //_apiBaseUrl = configuration?.GetValue<string>("ApiSettings:BaseUrl") ?? "http://localhost:5001/api";
         }
@@ -257,6 +260,7 @@ namespace kairo_ui.Services
             }
         }
 
+
         /// <summary>
         /// Creates a new item at the specified endpoint
         /// </summary>
@@ -266,12 +270,19 @@ namespace kairo_ui.Services
             try
             {
                 _httpClient = _httpClientFactory.CreateClient(apiName);
-                var requestJson = JsonSerializer.Serialize(data);
+                InDataRequest<object> apiReq = new()
+                {
+                    AppName = _httpContext.HttpContext!.Session.GetString("appname")!,
+                    RequestId = _httpContext.HttpContext!.Connection.Id,
+                    RequestTime = DateTime.UtcNow,
+                    RequestData = data
+                };
+                var requestJson = JsonSerializer.Serialize(apiReq, _jsonSerializerOptions);
                 _logger.LogInformation("API POST Request: {Endpoint} | URL: {FullUrl} | Payload Size: {PayloadSize} bytes | Data: {RequestData}",
                     endpoint, fullUrl, requestJson.Length, requestJson);
 
                 var startTime = DateTime.UtcNow;
-                var response = await _httpClient.PostAsJsonAsync(fullUrl, data, _jsonSerializerOptions);
+                var response = await _httpClient.PostAsJsonAsync(fullUrl, apiReq, _jsonSerializerOptions);
                 var duration = DateTime.UtcNow - startTime;
 
                 _logger.LogInformation("API POST Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
@@ -303,12 +314,19 @@ namespace kairo_ui.Services
             try
             {
                 _httpClient = _httpClientFactory.CreateClient(apiName);
-                var requestJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
+                InDataRequest<object> apiReq = new()
+                {
+                    AppName = _httpContext.HttpContext!.Session.GetString("appname")!,
+                    RequestId = _httpContext.HttpContext!.Connection.Id,
+                    RequestTime = DateTime.UtcNow,
+                    RequestData = data
+                };
+                var requestJson = JsonSerializer.Serialize(apiReq, _jsonSerializerOptions);
                 _logger.LogInformation("API PUT Request: {Endpoint} | URL: {FullUrl} | ID: {Id} | Payload Size: {PayloadSize} bytes | Data: {RequestData}",
                     endpoint, fullUrl, id, requestJson.Length, requestJson);
 
                 var startTime = DateTime.UtcNow;
-                var response = await _httpClient.PutAsJsonAsync(fullUrl, data, _jsonSerializerOptions);
+                var response = await _httpClient.PutAsJsonAsync(fullUrl, apiReq, _jsonSerializerOptions);
                 var duration = DateTime.UtcNow - startTime;
 
                 _logger.LogInformation("API PUT Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",

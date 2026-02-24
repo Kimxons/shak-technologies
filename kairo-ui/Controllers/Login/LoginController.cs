@@ -1,4 +1,5 @@
-﻿using CBS.Entities.SystemCore;
+﻿using CBS.Entities.Common;
+using CBS.Entities.SystemCore;
 using kairo_ui.Models;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Http;
@@ -129,26 +130,29 @@ namespace kairo_ui.Controllers.login
 
                 if (tokenResponse?.Success == true)
                 {
+                    HttpContext.Session.SetString("appname", _conf["OAuth:ClientId"]!);
                     // Extract and store branchId from token response
                     if (tokenResponse.BranchId != 0)
                     {
                         HttpContext.Session.SetString("branch_id", Convert.ToString(tokenResponse.BranchId)!);
                         HttpContext.Session.SetString("roles", JsonSerializer.Serialize(tokenResponse.Roles)!);
-                        var branch = await _authService.GetByIdAsync<BranchSetting>("BranchSetting", tokenResponse.BranchId);
+                        var branch = await _authService.GetByIdAsync<BranchSetting>(ApiEndpoints.GET_BRANCHSETTINGS_IAM, tokenResponse.BranchId);
                         HttpContext.Session.SetString("branch_code", branch.BranchCode);
-                        IEnumerable<KeyValuePair<string, object>> lskvp = new List<KeyValuePair<string, object>>()
-                        {
-                            new ("BankID", "00"),
-                            new ("OurBranchID", branch.BranchCode),
-                            new ("OperatorID", tokenResponse.Username!)
-                        };
-                        var bank = await _apiService.GetAsync<SystemBankSetting>("SystemCoreApi", ApiEndpoints.GET_SYSTEMBANKSETTINGS, lskvp);
+                        //IEnumerable<KeyValuePair<string, object>> lskvp = new List<KeyValuePair<string, object>>()
+                        //{
+                        //    new ("BankID", "00"),
+                        //    new ("OurBranchID", branch.BranchCode),
+                        //    new ("OperatorID", tokenResponse.Username!)
+                        //};
 
-                        HttpContext.Session.SetString("bank_name", bank.FirstOrDefault()!.BankName!);
+                        object? apiReq = new { RequestID = HttpContext.Connection.Id, BankID = "00", OurBranchID = branch.BranchCode, OperatorID = tokenResponse.Username! };
+
+                        var respApi = await _apiService.CreateAsync<ResponseDetail<JsonDocument>>("SystemCoreApi", ApiEndpoints.GET_SYSTEMBANKSETTINGS, apiReq);
+                        SystemBankSetting? bank = JsonSerializer.Deserialize<SystemBankSetting?>(respApi.Details!.RootElement.GetProperty("SystemBankSettingData").GetRawText()!)!;
+                        HttpContext.Session.SetString("bank_name", bank!.BankName!);
 
                         _logger.LogInformation("BranchId,Roles extracted from token response and saved to session | BranchId: {BranchId}", tokenResponse.BranchId);
                     }
-                    HttpContext.Session.SetString("appname", _conf["OAuth:ClientId"]!);
                     _logger.LogInformation("OAuth token exchange successful | User: {UserId} | Email: {Email} | BranchId: {BranchId}",
                         tokenResponse.UserId, tokenResponse.Email, tokenResponse.BranchId);
 
