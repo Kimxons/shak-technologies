@@ -24,7 +24,7 @@ namespace SystemCoreApi.Modules.SystemBankSettings
             _repoSystemBankSetting = repoSystemBankSetting;
         }
 
-        [HttpPost("get-system-bank-settings")]
+        [HttpPost("GetSystemBankSetting")]
         public async Task<IActionResult> GetSystemBankSettings(
             [FromBody] InDataRequest<object?> reqDat,
             CancellationToken cancellationToken = default)
@@ -93,7 +93,7 @@ namespace SystemCoreApi.Modules.SystemBankSettings
             return StatusCode(httpStatusCode, resp);
         }
 
-        [HttpPost("create-system-bank-setting")]
+        [HttpPost("CreateSystemBankSetting")]
         public async Task<IActionResult> CreateSystemBankSetting(
             [FromBody] InDataRequest<SystemBankSetting?> reqDat,
             CancellationToken cancellationToken = default)
@@ -162,7 +162,7 @@ namespace SystemCoreApi.Modules.SystemBankSettings
             return StatusCode(httpStatusCode, resp);
         }
 
-        [HttpPost("update-system-bank-setting")]
+        [HttpPost("UpdateSystemBankSetting")]
         public async Task<IActionResult> UpdateSystemBankSetting(
             [FromBody] InDataRequest<SystemBankSetting?> reqDat,
             CancellationToken cancellationToken = default)
@@ -231,7 +231,7 @@ namespace SystemCoreApi.Modules.SystemBankSettings
             return StatusCode(httpStatusCode, resp);
         }
 
-        [HttpPost("delete-system-bank-setting")]
+        [HttpPost("DeleteSystemBankSetting")]
         public async Task<IActionResult> DeleteSystemBankSetting(
             [FromBody] InDataRequest<SystemBankSetting?> reqDat,
             CancellationToken cancellationToken = default)
