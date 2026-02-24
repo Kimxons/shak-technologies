@@ -142,7 +142,7 @@ namespace kairo_ui.Controllers.login
                             new ("OurBranchID", branch.BranchCode),
                             new ("OperatorID", tokenResponse.Username!)
                         };
-                        var bank = await _apiService.GetAsync<SystemBankSetting>("v1/SystemCore/get-system-bank-settings", lskvp);
+                        var bank = await _apiService.GetAsync<SystemBankSetting>("SystemCoreApi", ApiEndpoints.GET_SYSTEMBANKSETTINGS, lskvp);
 
                         HttpContext.Session.SetString("bank_name", bank.FirstOrDefault()!.BankName!);
 

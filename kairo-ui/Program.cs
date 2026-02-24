@@ -27,6 +27,7 @@ builder.Services.AddControllersWithViews();
 // Get timeout configurations
 var apiTimeoutSeconds = builder.Configuration.GetValue<int>("ApiSettings:HttpClientTimeoutSeconds", 30);
 var sessionTimeoutMinutes = builder.Configuration.GetValue<int>("Session:IdleTimeoutMinutes", 30);
+var cookieTimeoutMinutes = builder.Configuration.GetValue<int>("Session:CookieTimeoutMinutes", 60);
 
 // Add session support with configurable timeout
 builder.Services.AddSession(options =>
@@ -36,6 +37,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.Expiration = TimeSpan.FromMinutes(cookieTimeoutMinutes);
     // Use a unique session cookie name to avoid conflicts with old encrypted cookies
     options.Cookie.Name = "KAIRO-AUTH-SESSION";
 });
@@ -50,20 +52,40 @@ builder.Services.AddHttpContextAccessor();
 // Register Authentication Handler for automatic token attachment
 builder.Services.AddTransient<AuthenticationHandler>();
 
-// Register Generic ApiService with Authentication Handler and configurable timeout
-builder.Services.AddHttpClient<IApiService, ApiService>()
-    .AddHttpMessageHandler<AuthenticationHandler>()
-    .ConfigureHttpClient(client =>
-    {
-        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
-    });
-
+builder.Services.AddScoped<IApiService, ApiService>();
 // Register Authentication Service with configurable timeout
 builder.Services.AddHttpClient<IAuthService, AuthService>()
     .ConfigureHttpClient(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = new Uri(builder.Configuration.GetValue<Uri>("OAuth:TokenEndpoint")!.GetLeftPart(UriPartial.Authority));
     });
+
+// Register Generic ApiService with Authentication Handler and configurable timeout
+builder.Services.AddHttpClient("IdentityAccessManagentApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:IdentityAccessManagentBaseUrl");
+    });
+
+builder.Services.AddHttpClient("SystemCoreApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:SystemCoreBaseUrl");
+    });
+
+builder.Services.AddHttpClient("ClientManagementApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ClientManagementBaseUrl");
+    });
+
 
 // Add IConfiguration for injecting into services
 builder.Services.AddSingleton(builder.Configuration);

@@ -20,37 +20,37 @@ namespace kairo_ui.Services
         /// <summary>
         /// Fetches a collection of items from the specified endpoint
         /// </summary>
-        Task<IEnumerable<T>> GetAsync<T>(string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
+        Task<IEnumerable<T>> GetAsync<T>(string apiName,string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
 
         /// <summary>
         /// Fetches a single item from the specified endpoint
         /// </summary>
-        Task<T> GetSingleAsync<T>(string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
+        Task<T> GetSingleAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
 
         /// <summary>
         /// Fetches paginated items from the specified endpoint
         /// </summary>
-        Task<PaginatedResult<T>> GetPaginatedAsync<T>(string endpoint, int page, int pageSize);
+        Task<PaginatedResult<T>> GetPaginatedAsync<T>(string apiName, string endpoint, int page, int pageSize);
 
         /// <summary>
         /// Fetches a single item by ID from the specified endpoint
         /// </summary>
-        Task<T> GetByIdAsync<T>(string endpoint, int id);
+        Task<T> GetByIdAsync<T>(string apiName, string endpoint, int id);
 
         /// <summary>
         /// Creates a new item at the specified endpoint
         /// </summary>
-        Task<T> CreateAsync<T>(string endpoint, object data);
+        Task<T> CreateAsync<T>(string apiName, string endpoint, object data);
 
         /// <summary>
         /// Updates an existing item at the specified endpoint
         /// </summary>
-        Task<T> UpdateAsync<T>(string endpoint, int id, object data);
+        Task<T> UpdateAsync<T>(string apiName, string endpoint, int id, object data);
 
         /// <summary>
         /// Deletes an item from the specified endpoint
         /// </summary>
-        Task DeleteAsync(string endpoint, int id);
+        Task DeleteAsync(string apiName, string endpoint, int id);
     }
 
     /// <summary>
@@ -58,7 +58,8 @@ namespace kairo_ui.Services
     /// </summary>
     public class ApiService : IApiService
     {
-        private readonly HttpClient _httpClient;
+        private HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<ApiService> _logger;
         private readonly string _apiBaseUrl;
         //private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
@@ -71,21 +72,23 @@ namespace kairo_ui.Services
             PropertyNamingPolicy = null
         };
 
-        public ApiService(HttpClient httpClient, IConfiguration configuration, ILogger<ApiService> logger)
+        public ApiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<ApiService> logger)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _apiBaseUrl = configuration?.GetValue<string>("ApiSettings:BaseUrl") ?? "http://localhost:5001/api";
+            _apiBaseUrl = string.Empty;
+            //_apiBaseUrl = configuration?.GetValue<string>("ApiSettings:BaseUrl") ?? "http://localhost:5001/api";
         }
 
         /// <summary>
         /// Fetches a collection of items from the specified endpoint
         /// </summary>
-        public async Task<IEnumerable<T>> GetAsync<T>(string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
+        public async Task<IEnumerable<T>> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
         {
-            var fullUrl = $"{_apiBaseUrl}/{endpoint}";
+            var fullUrl = $"{endpoint}";
             try
             {
+                _httpClient = _httpClientFactory.CreateClient(apiName);
                 QueryBuilder qbuilder = [];
                 foreach (KeyValuePair<string, object> q in qparams)
                 {
@@ -128,11 +131,12 @@ namespace kairo_ui.Services
         /// <summary>
         /// Fetches a single item from the specified endpoint
         /// </summary>
-        public async Task<T> GetSingleAsync<T>(string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
+        public async Task<T> GetSingleAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
         {
             try
             {
-                var fullUrl = $"{_apiBaseUrl}/{endpoint}";
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var fullUrl = $"{endpoint}";
                 QueryBuilder qbuilder = [];
                 foreach (KeyValuePair<string, object> q in qparams)
                 {
@@ -166,11 +170,12 @@ namespace kairo_ui.Services
         /// <summary>
         /// Fetches paginated items from the specified endpoint
         /// </summary>
-        public async Task<PaginatedResult<T>> GetPaginatedAsync<T>(string endpoint, int page, int pageSize)
+        public async Task<PaginatedResult<T>> GetPaginatedAsync<T>(string apiName, string endpoint, int page, int pageSize)
         {
             try
             {
-                var fullUrl = $"{_apiBaseUrl}/{endpoint}?page={page}&pageSize={pageSize}";
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var fullUrl = $"{endpoint}?page={page}&pageSize={pageSize}";
                 _logger.LogInformation($"Fetching paginated data from: {fullUrl}");
 
                 var response = await _httpClient.GetAsync(fullUrl);
@@ -228,11 +233,12 @@ namespace kairo_ui.Services
         /// <summary>
         /// Fetches a single item by ID from the specified endpoint
         /// </summary>
-        public async Task<T> GetByIdAsync<T>(string endpoint, int id)
+        public async Task<T> GetByIdAsync<T>(string apiName, string endpoint, int id)
         {
             try
             {
-                var fullUrl = $"{_apiBaseUrl}/{endpoint}/{id}";
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var fullUrl = $"{endpoint}/{id}";
                 _logger.LogInformation($"Fetching item by ID from: {fullUrl}");
 
                 var response = await _httpClient.GetAsync(fullUrl);
@@ -254,11 +260,12 @@ namespace kairo_ui.Services
         /// <summary>
         /// Creates a new item at the specified endpoint
         /// </summary>
-        public async Task<T> CreateAsync<T>(string endpoint, object data)
+        public async Task<T> CreateAsync<T>(string apiName, string endpoint, object data)
         {
-            var fullUrl = $"{_apiBaseUrl}/{endpoint}";
+            var fullUrl = $"{endpoint}";
             try
             {
+                _httpClient = _httpClientFactory.CreateClient(apiName);
                 var requestJson = JsonSerializer.Serialize(data);
                 _logger.LogInformation("API POST Request: {Endpoint} | URL: {FullUrl} | Payload Size: {PayloadSize} bytes | Data: {RequestData}",
                     endpoint, fullUrl, requestJson.Length, requestJson);
@@ -290,11 +297,12 @@ namespace kairo_ui.Services
         /// <summary>
         /// Updates an existing item at the specified endpoint
         /// </summary>
-        public async Task<T> UpdateAsync<T>(string endpoint, int id, object data)
+        public async Task<T> UpdateAsync<T>(string apiName, string endpoint, int id, object data)
         {
-            var fullUrl = $"{_apiBaseUrl}/{endpoint}/{id}";
+            var fullUrl = $"{endpoint}/{id}";
             try
             {
+                _httpClient = _httpClientFactory.CreateClient(apiName);
                 var requestJson = JsonSerializer.Serialize(data, _jsonSerializerOptions);
                 _logger.LogInformation("API PUT Request: {Endpoint} | URL: {FullUrl} | ID: {Id} | Payload Size: {PayloadSize} bytes | Data: {RequestData}",
                     endpoint, fullUrl, id, requestJson.Length, requestJson);
@@ -333,11 +341,12 @@ namespace kairo_ui.Services
         /// <summary>
         /// Deletes an item from the specified endpoint
         /// </summary>
-        public async Task DeleteAsync(string endpoint, int id)
+        public async Task DeleteAsync(string apiName, string endpoint, int id)
         {
             try
             {
-                var fullUrl = $"{_apiBaseUrl}/{endpoint}/{id}";
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var fullUrl = $"{endpoint}/{id}";
                 _logger.LogInformation($"Deleting item at: {fullUrl}");
 
                 var response = await _httpClient.DeleteAsync(fullUrl);
