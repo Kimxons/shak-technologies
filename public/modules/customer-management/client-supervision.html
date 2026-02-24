@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Supervision</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <link rel="stylesheet" href="../../assets/css/components/TitleBar.css" />
+</head>
+<body>
+    <div class="window de-window" data-ktb-window>
+        <!-- KairoTitleBar Component -->
+        <div data-kairo-titlebar 
+             data-title="Client Supervision" 
+             data-icon="shield-check">
+        </div>
+
+        <!-- Main Container -->
+        <div class="main-container main-container--with-panel">
+            <!-- Main Content Area -->
+            <main class="form-content">
+                <!-- Message Panel -->
+                <div class="am-message-panel" id="messagePanel">
+                    <div class="am-message-panel__content">
+                        <i class="bi bi-info-circle"></i>
+                        <span id="messageText"></span>
+                    </div>
+                </div>
+
+                <!-- Central KYC Header (Filter Section) -->
+                <div class="form-card">
+                    <div class="form-section" data-section="central-kyc">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-shield-check"></i> Central KYC</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row two-col">
+                                <!-- Branch List -->
+                                <div class="form-group">
+                                    <label class="label-blue">Branch List</label>
+                                    <select id="branchFilter" class="form-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+
+                                <!-- Client ID with Search -->
+                                <div class="form-group">
+                                    <label class="label-blue">ClientID</label>
+                                    <div class="input-group">
+                                        <input type="text" id="clientIdSearch" class="form-control" placeholder="">
+                                        <button id="searchClientBtn" class="btn btn-outline-secondary" type="button">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Supervision Grid -->
+                <div class="form-card">
+                    <div class="form-section" data-section="pending-supervision">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-hourglass-split"></i> Pending Supervision <span id="recordCount" class="badge bg-warning ms-2">0 records</span></span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm" id="supervisionTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th></th>
+                                            <th>Client ID</th>
+                                            <th>Name</th>
+                                            <th>Module</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="supervisionTableBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                <i class="bi bi-inbox"></i> No pending supervisions found
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Details Tabs Section -->
+                <div class="form-card" id="clientDetailsSection">
+                    <div class="form-section" data-section="client-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-person-badge"></i> Client Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                        <!-- Tab Navigation -->
+                        <ul class="nav nav-tabs" id="clientDetailsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab">
+                                    Personal
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="corporate-tab" data-bs-toggle="tab" data-bs-target="#corporate" type="button" role="tab">
+                                    Corporate
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="address-tab" data-bs-toggle="tab" data-bs-target="#address" type="button" role="tab">
+                                    Address
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="employment-tab" data-bs-toggle="tab" data-bs-target="#employment" type="button" role="tab">
+                                    Employment
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="otherdetails-tab" data-bs-toggle="tab" data-bs-target="#otherdetails" type="button" role="tab">
+                                    Other Details
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images" type="button" role="tab">
+                                    Images
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="clientDetailsTabContent">
+                            <!-- Personal Tab -->
+                            <div class="tab-pane fade show active" id="personal" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">ClientID</label>
+                                            <input type="text" id="dtlClientID" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Client Type</label>
+                                            <input type="text" id="dtlClientType" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Title</label>
+                                            <input type="text" id="dtlTitle" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">First Name</label>
+                                            <input type="text" id="dtlFirstName" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Middle Name</label>
+                                            <input type="text" id="dtlMiddleName" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Last Name</label>
+                                            <input type="text" id="dtlLastName" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">DOB</label>
+                                            <input type="text" id="dtlDOB" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Gender</label>
+                                            <input type="text" id="dtlGender" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Resident</label>
+                                            <input type="text" id="dtlResident" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Nationality</label>
+                                            <input type="text" id="dtlNationality" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Literacy Level</label>
+                                            <input type="text" id="dtlLiteracyLevel" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">IssuedBy</label>
+                                            <input type="text" id="dtlIssuedBy" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Identification Type</label>
+                                            <input type="text" id="dtlIdType" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">IdentificationNo</label>
+                                            <input type="text" id="dtlIdNo" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Identification Issue Date</label>
+                                            <input type="text" id="dtlIdIssueDate" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Identification Expiry Date</label>
+                                            <input type="text" id="dtlIdExpiryDate" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Marital Status</label>
+                                            <input type="text" id="dtlMaritalStatus" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">LblMother Name</label>
+                                            <input type="text" id="dtlMotherName" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Corporate Tab -->
+                            <div class="tab-pane fade" id="corporate" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">ClientID</label>
+                                            <input type="text" id="dtlCorpClientID" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Client Type</label>
+                                            <input type="text" id="dtlCorpClientType" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Client Name</label>
+                                            <input type="text" id="dtlCorpClientName" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Company Name</label>
+                                            <input type="text" id="dtlCorpCompanyName" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Constitution</label>
+                                            <input type="text" id="dtlCorpConstitution" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Line Of Business</label>
+                                            <input type="text" id="dtlCorpLineOfBusiness" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">IdentificationType</label>
+                                            <input type="text" id="dtlCorpIdType" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">IdentificationNo</label>
+                                            <input type="text" id="dtlCorpIdNo" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Date Of Registration</label>
+                                            <input type="text" id="dtlCorpRegDate" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Issued By</label>
+                                            <input type="text" id="dtlCorpIssuedBy" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">IdentificationIssueDate</label>
+                                            <input type="text" id="dtlCorpIdIssueDate" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Identification Expiry Date</label>
+                                            <input type="text" id="dtlCorpIdExpiryDate" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">TIN Number</label>
+                                            <input type="text" id="dtlCorpTIN" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Country Of Incorporation</label>
+                                            <input type="text" id="dtlCorpCountry" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address Tab -->
+                            <div class="tab-pane fade" id="address" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">AddressType</label>
+                                            <input type="text" id="dtlAddrType" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Address1</label>
+                                            <input type="text" id="dtlAddress1" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Country</label>
+                                            <input type="text" id="dtlAddrCountry" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Region</label>
+                                            <input type="text" id="dtlAddrRegion" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">City</label>
+                                            <input type="text" id="dtlAddrCity" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Sub-City/Zone</label>
+                                            <input type="text" id="dtlAddrSubCity" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Wereda</label>
+                                            <input type="text" id="dtlAddrWereda" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Kebele</label>
+                                            <input type="text" id="dtlAddrKebele" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">HouseNumber</label>
+                                            <input type="text" id="dtlAddrHouseNo" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Mobile</label>
+                                            <input type="text" id="dtlAddrMobile" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Employment Tab -->
+                            <div class="tab-pane fade" id="employment" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Salaried/ Self Employed</label>
+                                            <input type="text" id="dtlEmpStatus" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">CompanyType</label>
+                                            <input type="text" id="dtlEmpCompanyType" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Occupation</label>
+                                            <input type="text" id="dtlEmpOccupation" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Position</label>
+                                            <input type="text" id="dtlEmpPosition" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Average Monthly Income</label>
+                                            <input type="text" id="dtlEmpMonthlyIncome" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">Average Annual Income</label>
+                                            <input type="text" id="dtlEmpAnnualIncome" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Other Details Tab -->
+                            <div class="tab-pane fade" id="otherdetails" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Politically Exposed Person</label>
+                                            <input type="text" id="dtlPEP" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="label-blue">US Person</label>
+                                            <input type="text" id="dtlUSPerson" class="form-control" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group">
+                                            <label class="label-blue">Data Cleansed</label>
+                                            <input type="text" id="dtlDataCleansed" class="form-control" readonly>
+                                        </div>
+                                        <div class="form-group"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Images Tab -->
+                            <div class="tab-pane fade" id="images" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="text-center">
+                                        <div id="imageContainer" class="mb-3">
+                                            <img id="clientImage" src="" alt="Client Image" class="img-thumbnail img-fluid d-none">
+                                            <p id="noImageText" class="text-muted">No images available</p>
+                                        </div>
+                                        <div id="imageNavigation">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="prevImageBtn" disabled>
+                                                <i class="bi bi-arrow-left"></i>
+                                            </button>
+                                            <span id="imageCounter" class="mx-2">0 / 0</span>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="nextImageBtn" disabled>
+                                                <i class="bi bi-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Action Panel (Right Rail) -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" id="viewBtn" class="btn-action" disabled>
+                        <i class="bi bi-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" id="approveBtn" class="btn-action btn-action--success" disabled>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Approve</span>
+                    </button>
+                    <button type="button" id="rejectBtn" class="btn-action btn-delete" disabled>
+                        <i class="bi bi-x-circle-fill"></i>
+                        <span>Reject</span>
+                    </button>
+                    <button type="button" id="closeBtn" class="btn-action">
+                        <i class="bi bi-door-open"></i>
+                        <span>Close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div class="modal fade" id="supervisionRejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle"></i> Reject Supervision
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="supervisionRejectForm">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-info-circle"></i>
+                            You are about to reject this supervision. Please provide a reason.
+                        </div>
+                        <div class="mb-3">
+                            <label for="supervisionRejectRemarks" class="form-label">Rejection Remarks <span class="text-danger">*</span></label>
+                            <textarea id="supervisionRejectRemarks" class="form-control" rows="4" required minlength="10" placeholder="Enter reason for rejection (minimum 10 characters)"></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a valid rejection reason (minimum 10 characters).
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmSupervisionRejectBtn">
+                        <i class="bi bi-check"></i> Confirm Rejection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../assets/js/components/TitleBar.js"></script>
+    <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../assets/js/shared/search-modal.js"></script>
+    <script src="../../assets/js/pages/customer-management/client-supervision.js"></script>
+</body>
+</html>

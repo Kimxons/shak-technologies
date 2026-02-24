@@ -1,0 +1,195 @@
+/* User Maintenance Module - CSS is now in global styles.css */
+/* This file is maintained as a module-specific override layer (currently empty) */
+
+/* All User Maintenance styling is now globally defined in public/assets/css/styles.css
+   This approach allows the styling to be reused across the entire application.
+
+   Classes are now mapped using the bs-* convention:
+   - bs-input-text for text inputs
+   - bs-input-email for email inputs
+   - bs-input-password for password inputs
+   - bs-input-tel for telephone inputs
+   - bs-input-url for URL inputs
+   - bs-input-search for search inputs
+   - bs-input-number for number inputs
+   - bs-input-date for date inputs
+   - bs-checkbox for checkboxes
+   - bs-radio for radio buttons
+   - bs-file for file inputs
+   - bs-image-button for image buttons
+   - bs-btn for buttons
+   - bs-textarea for textareas
+   - bs-select for select elements
+   - bs-label for labels
+   - bs-label-mand for mandatory labels
+   - bs-label-conmand for conditional mandatory labels
+   - bs-hidden for hidden inputs
+
+   Layout classes:
+   - form-row for row-based layouts
+   - form-row.two-col for two-column layouts
+   - form-row.three-col for three-column layouts
+   - section-header for section headers
+   - kairo-user-control, kairo-client-control for composite controls
+*/
+
+/* Override for kairo-user-control to align input and button with margin */
+.kairo-user-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kairo-user-control__id {
+  flex: 1;
+  border-radius: 3px;
+  border-right: 1px solid #b4c8de;
+}
+
+/* Override for kairo-client-control to make input fit like others */
+.kairo-client-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kairo-client-control__id {
+  flex: 1;
+  border-radius: 3px;
+  border-right: 1px solid #b4c8de;
+}
+
+.kairo-client-control__name {
+  display: none;
+}
+
+/* User Maintenance Title Bar */
+.um-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #4A90E2 0%, #357ABD 100%);
+  color: white;
+  padding: 8px 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.um-title-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.um-title-bar__icon {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.um-title-bar__text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.um-title-bar__right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.um-title-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.um-title-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.um-title-btn.close:hover {
+  background: rgba(220, 38, 38, 0.8);
+}
+
+/* User Maintenance Status Bar */
+.um-status-bar {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-top: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.um-message {
+  font-size: 12px;
+  color: #475569;
+  flex: 1;
+}
+
+/* Override main content background to white */
+.form-content {
+  background: white;
+  overflow-x: auto;
+}
+
+/* Lighten section header background */
+.section-header {
+  background: linear-gradient(90deg, #5BA3F5 0%, #4A90E2 100%) !important;
+  border: 1px solid #4A90E2 !important;
+}
+
+/* Lighten nav header to match section headers */
+.nav-header {
+  background: linear-gradient(90deg, #5BA3F5 0%, #4A90E2 100%) !important;
+  border: 1px solid #4A90E2 !important;
+}
+
+/* Add spacing between icon and text in nav-label */
+.nav-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 8px;
+}
+
+.nav-label i {
+  font-size: 12px;
+}
+
+/* Add icon spacing for action buttons */
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-action i {
+  font-size: 13px;
+}
+
+/* Better spacing for action button container */
+.action-buttons {
+  gap: 8px;
+}
+
+/* Consistent input widths */
+.form-row input[type="text"]:not(.kairo-user-control__id):not(.kairo-client-control__id),
+.form-row input[type="password"],
+.form-row input[type="email"],
+.form-row input[type="date"],
+.form-row select,
+.form-row textarea {
+  width: 100%;
+  max-width: 250px;
+}

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Accounts</title>
+    <!-- Use relative link to the base framework in account-maintenance -->
+    <link rel="stylesheet" href="DataEntry/dataentry-client-base.css?v=20250128" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <style>
+        /* Module specific overrides */
+        .de-card__header {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+            flex-shrink: 0;
+            color: white !important;
+        }
+
+        /* Force full height for embedded view */
+        html,
+        body,
+        .de-window {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .de-label--blue {
+            color: #4A7C95;
+            font-weight: 700;
+        }
+
+        /* Specialized input group for Lookup */
+        .de-input-group--lookup {
+            display: flex;
+            gap: 2px;
+            width: 100%;
+        }
+
+        /* Custom Table Height for Bank Accounts */
+        .de-card--grid {
+            flex: 1;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .de-card__body--table {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .de-table-wrap {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Highlighting selected row */
+        .de-table__body tr.selected-row td {
+            background-color: #e2e8f0 !important;
+            font-weight: 600;
+        }
+
+        /* BTS Toggle Button Styling Override */
+        .de-bts-toggle {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .de-bts-toggle:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        /* Darken input text and grid text to match Client Maintenance */
+        .de-input,
+        .de-select,
+        .bs-input-text,
+        .bs-select,
+        .de-table__body td {
+            color: #1e293b !important;
+            /* --de-text-primary */
+            font-size: 11px !important;
+            /* --de-font-size-sm */
+            font-weight: 800 !important;
+            /* Matches .de-audit-value */
+        }
+
+        .de-input::placeholder,
+        .bs-input-text::placeholder {
+            color: #9ca3af;
+            /* lighter placeholder */
+            font-weight: 400 !important;
+        }
+
+        /* Disabled Action Buttons Styling */
+        .de-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="de-window">
+        <main class="de-main de-main--with-panel">
+            <div class="de-form-shell" role="region" aria-label="Bank Accounts form">
+                <!-- Main Form Card -->
+                <section class="de-card de-card--grid">
+                    <header class="de-card__header">
+                        <span class="de-card__title"><i class="bi bi-bank"></i> Bank Account Information</span>
+                        <div class="de-card__actions">
+                            <button class="de-btn-icon" type="button" onclick="location.reload()" title="Reset Form">
+                                <i class="bi bi-eraser"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="de-card__body">
+                        <div class="de-form-grid">
+                            <div class="de-field de-field--span2">
+                                <label class="de-label de-label--blue" for="accountType">Account Type</label>
+                                <select id="accountType" name="accountType" class="de-select bs-select">
+                                    <option value="">--Select Account Type--</option>
+                                </select>
+                            </div>
+
+                            <div class="de-field de-field--span2">
+                                <label class="de-label de-label--blue" for="institutionType">Institution Type</label>
+                                <select id="institutionType" name="institutionType" class="de-select bs-select">
+                                    <option value="">--Select Institution Type--</option>
+                                </select>
+                            </div>
+
+                            <!-- Bank Selection -->
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="bankId">Bank ID</label>
+                                <div class="de-input-group--lookup">
+                                    <input type="text" id="bankId" name="bankId" placeholder="ID"
+                                        class="de-input bs-input-text">
+                                    <button class="de-btn-lookup" id="btnBankLookup" type="button" title="Search Banks">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="institutionName">Institution Name</label>
+                                <input type="text" id="institutionName" name="institutionName" placeholder="Bank Name"
+                                    class="de-input bs-input-text" readonly>
+                            </div>
+
+                            <!-- Branch Selection -->
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="branchId">Branch ID</label>
+                                <div class="de-input-group--lookup">
+                                    <input type="text" id="branchId" name="branchId" placeholder="ID"
+                                        class="de-input bs-input-text">
+                                    <button class="de-btn-lookup" id="btnBranchLookup" type="button"
+                                        title="Search Branches">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="branchName">Branch Name</label>
+                                <input type="text" id="branchName" name="branchName" placeholder="Branch Name"
+                                    class="de-input bs-input-text" readonly>
+                            </div>
+
+                            <!-- Account Details -->
+                            <div class="de-field">
+                                <label class="de-label" for="accountId">Account ID</label>
+                                <input type="text" id="accountId" name="accountId" placeholder="Account Number"
+                                    class="de-input bs-input-text">
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="balance">Balance</label>
+                                <input type="number" id="balance" name="balance" placeholder="0.00"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="advanceAmount">Advance Amount</label>
+                                <input type="number" id="advanceAmount" name="advanceAmount" placeholder="0.00"
+                                    class="de-input bs-input-text">
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="monthlyPayment">Monthly Payment</label>
+                                <input type="number" id="monthlyPayment" name="monthlyPayment" placeholder="0.00"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field de-field--full">
+                                <label class="de-label" for="terms">Terms</label>
+                                <input type="text" id="terms" name="terms" placeholder="Account Terms"
+                                    class="de-input bs-input-text">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Grid Section -->
+                <section class="de-card de-card--grid">
+                    <header class="de-card__header de-card__header--muted">
+                        <span class="de-card__title"><i class="bi bi-list-ul"></i> Existing Bank Accounts</span>
+                    </header>
+                    <div class="de-card__body de-card__body--table">
+                        <div class="de-table-wrap">
+                            <table class="de-table bank-table">
+                                <thead class="de-table__head">
+                                    <tr>
+                                        <th style="width: 25%;">Client ID</th>
+                                        <th style="width: 40%;">Institution Name</th>
+                                        <th style="width: 35%;">Account ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="de-table__body">
+                                    <tr>
+                                        <td colspan="3" class="de-table__empty-cell">
+                                            <div class="de-empty-state">
+                                                <i class="bi bi-inbox"></i>
+                                                <span>No records found. Click 'Add' to enter new details.</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                </section>
+            </div>
+
+            <!-- Right Action Panel -->
+            <aside class="de-action-panel">
+                <div class="de-action-group de-action-group--top">
+                    <!-- Top actions if needed -->
+                </div>
+                <div class="de-action-group de-action-group--bottom">
+                    <button class="de-action-btn btn-action action-add" type="button">
+                        <i class="bi bi-plus-circle"></i><span>Add</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-edit" type="button">
+                        <i class="bi bi-pencil-square"></i><span>Edit</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-delete de-action-btn--delete" type="button">
+                        <i class="bi bi-trash3"></i><span>Delete</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-save de-action-btn--save" type="button">
+                        <i class="bi bi-check-lg"></i><span>Save</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-cancel de-action-btn--cancel" type="button">
+                        <i class="bi bi-x-lg"></i><span>Cancel</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-back de-action-btn--cancel" type="button">
+                        <i class="bi bi-box-arrow-right"></i><span>Close</span>
+                    </button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../assets/js/services/shared/coreApi.js"></script>
+    <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../shared/toast-notification.js"></script>
+
+    <!-- Framework Utilities -->
+    <script src="../account-maintenance/DataEntry/dataentry-base.js?v=20250128"></script>
+
+    <!-- Page Logic -->
+    <script src="./bank-accounts.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Note: Bank accounts form didn't have BTS section visible in original, 
+            // but if it's added, this will handle it.
+            // Also need to add the BTS section markup if missing or verify it exists.
+
+            const toggleBtn = document.querySelector('.de-bts-toggle');
+            const btsSection = document.getElementById('btsSection'); // We need to check if this ID exists
+
+            if (toggleBtn) {
+                // If ID doesn't exist, try class
+                const targetSection = btsSection || document.querySelector('.de-card--bts');
+
+                if (targetSection) {
+                    const updateIcon = () => {
+                        const icon = toggleBtn.querySelector('i');
+                        if (icon) {
+                            icon.style.transform = targetSection.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+                        }
+                    };
+
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        targetSection.classList.toggle('collapsed');
+                        updateIcon();
+                    });
+
+                    updateIcon();
+                }
+            }
+        });
+    </script>
+    <style>
+        /* Ensure collapsed state works regardless of external CSS being loaded */
+        .de-card--bts.collapsed .de-card__body--bts {
+            display: none !important;
+        }
+
+        .de-card--bts.collapsed .de-bts-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .de-bts-toggle i {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</body>
+
+</html>

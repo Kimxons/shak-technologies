@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="documents-modal.css">
+</head>
+<body>
+    <!-- Documents Modal Container -->
+    <div class="documents-modal-container">
+        <div class="documents-content">
+            <div class="content-scroll">
+                <!-- Account Documents Section -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-file-earmark-text"></i> Account Documents</h3>
+                        <button class="btn-show-image" id="showImageBtn">
+                            <i class="bi bi-image"></i> ShowImage
+                        </button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="documentId"><i class="bi bi-hash"></i> Document ID</label>
+                            <div class="input-display-group">
+                                <input type="text" id="documentId" class="form-input-flex" placeholder="Enter document ID">
+                                <button class="search-icon-btn-inline" id="searchDocumentBtn" title="Search Document">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="documentType"><i class="bi bi-file-earmark"></i> Document Type</label>
+                            <select id="documentType" class="form-input">
+                                <option value="">--Select--</option>
+                                <option value="original">Original</option>
+                                <option value="copy">Copy</option>
+                                <option value="certified">Certified Copy</option>
+                                <option value="scanned">Scanned</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="documentClass"><i class="bi bi-folder"></i> Document Class</label>
+                            <select id="documentClass" class="form-input">
+                                <option value="">--Select--</option>
+                                <option value="identity">Identity Document</option>
+                                <option value="financial">Financial Statement</option>
+                                <option value="agreement">Agreement</option>
+                                <option value="collateral">Collateral Document</option>
+                                <option value="legal">Legal Document</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="receivedBy"><i class="bi bi-person"></i> Received By</label>
+                            <input type="text" id="receivedBy" class="form-input" placeholder="Enter received by">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="receivedDate"><i class="bi bi-calendar-check"></i> Received Date</label>
+                            <select id="receivedDate" class="form-input">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location"><i class="bi bi-geo-alt"></i> Location</label>
+                            <select id="location" class="form-input">
+                                <option value="">--Select--</option>
+                                <option value="head-office">Head Office</option>
+                                <option value="branch">Branch</option>
+                                <option value="archive">Archive</option>
+                                <option value="vault">Vault</option>
+                                <option value="digital">Digital Storage</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="documentImage"><i class="bi bi-image"></i> Document Image</label>
+                            <div class="file-input-group">
+                                <input type="text" id="documentImage" class="form-input-flex" placeholder="Select file" readonly>
+                                <input type="file" id="documentImageFile" accept="image/*,application/pdf" style="display: none;">
+                                <button class="btn-browse" id="browseBtn">
+                                    <i class="bi bi-folder2-open"></i> Browse
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="remarks"><i class="bi bi-chat-left-text"></i> Remarks</label>
+                            <textarea id="remarks" class="form-textarea" rows="3" placeholder="Enter remarks"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="scene-card">
+                    <div class="scene-header">
+                        <h3><i class="bi bi-info-circle"></i> Behind The Scene</h3>
+                    </div>
+                    <div class="scene-content">
+                        <div class="scene-grid-3col">
+                            <div class="form-group">
+                                <label for="createdBy"><i class="bi bi-person"></i> Created By</label>
+                                <input type="text" id="createdBy" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modifiedBy"><i class="bi bi-person-gear"></i> Modified By</label>
+                                <input type="text" id="modifiedBy" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="supervisedBy"><i class="bi bi-person-check"></i> Supervised By</label>
+                                <input type="text" id="supervisedBy" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="createdOn"><i class="bi bi-calendar-plus"></i> Created On</label>
+                                <input type="text" id="createdOn" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modifiedOn"><i class="bi bi-calendar-event"></i> Modified On</label>
+                                <input type="text" id="modifiedOn" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="supervisedOn"><i class="bi bi-calendar-check"></i> Supervised On</label>
+                                <input type="text" id="supervisedOn" class="form-input-readonly" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error/Status Message -->
+                <div id="statusMessage" class="status-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons Sidebar -->
+        <div class="action-sidebar">
+            <button class="btn-sidebar btn-view" id="viewBtn">
+                <i class="bi bi-eye-fill"></i> View
+            </button>
+            <button class="btn-sidebar btn-add" id="addBtn">
+                <i class="bi bi-plus-circle"></i> Add
+            </button>
+            <button class="btn-sidebar btn-edit" id="editBtn">
+                <i class="bi bi-pencil-fill"></i> Edit
+            </button>
+            <button class="btn-sidebar btn-delete" id="deleteBtn">
+                <i class="bi bi-trash-fill"></i> Delete
+            </button>
+            <button class="btn-sidebar btn-save" id="saveBtn">
+                <i class="bi bi-save-fill"></i> Save
+            </button>
+            <button class="btn-sidebar btn-cancel" id="cancelBtn">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <div class="action-divider"></div>
+            <button class="btn-sidebar btn-back" id="backBtn">
+                <i class="bi bi-arrow-left-circle"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imagePreviewModal" class="image-modal">
+        <div class="image-modal-content">
+            <div class="image-modal-header">
+                <h3><i class="bi bi-image"></i> Document Preview</h3>
+                <button class="image-modal-close" id="closeImagePreview">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="image-modal-body">
+                <img id="previewImage" src="" alt="Document Preview">
+            </div>
+        </div>
+    </div>
+
+    <script src="documents-modal.js"></script>
+</body>
+</html>

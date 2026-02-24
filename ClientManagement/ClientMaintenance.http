@@ -1,0 +1,25 @@
+@ClientOnboarding_HostAddress = http://localhost:5059
+
+POST {{ClientOnboarding_HostAddress}}/ClientMaintenance/GetClient
+Accept: application/json
+Content-Type: application/json
+{
+
+}
+###
+
+POST {{ClientOnboarding_HostAddress}}/ClientMaintenance/CreateClient
+Accept: application/json
+Content-Type: application/json
+{
+
+}
+
+
+
+POST {{ClientOnboarding_HostAddress}}/ClientMaintenance/UpdateClient
+Accept: application/json
+Content-Type: application/json
+{
+
+}

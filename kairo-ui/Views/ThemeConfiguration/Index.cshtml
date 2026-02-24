@@ -1,0 +1,350 @@
+@{
+    ViewData["Title"] = "Theme Configuration";
+    // Layout = "_Layout";
+    Layout = "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Configuration</title>
+    <link type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="/lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link type="text/css" rel="stylesheet" href="/css/styles.css">
+    <link type="text/css" rel="stylesheet" href="/css/theme-configuration.css">
+    @* <script type="text/javascript" src="/js/theme-bootstrap.js"></script> *@
+    @* <script type="text/javascript" src="/js/theme-bootstrap.js"></script> *@
+    @* <script type="text/javascript" src="/js/environment.js"></script> *@
+    <!-- App Core - Generic controller invocation with XSRF token support -->
+    <script type="text/javascript" src="/js/app/app-core.js"></script>
+    @* <script type="text/javascript" src="/js/services/shared/coreApi.js"></script> *@
+    <!-- Theme Service - Uses AppCore.invokeController for API calls -->
+    @* <script type="text/javascript" src="/js/services/theme/themeService.js"></script> *@
+    @* <script type="text/javascript" src="/js/services/account/accountservice.js"></script> *@
+    <script type="text/javascript" src="/js/theme-core.js"></script>
+    <script type="text/javascript" src="/js/theme.js"></script>
+</head>
+<body data-page="theme-configuration">
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span id="messagePanelText"></span>
+    </div>
+    <div class="window">
+        <div class="main-container theme-config-layout">
+            <!-- Left Sidebar -->
+            <aside class="theme-config-sidebar" aria-label="Theme configuration navigation" id="themeConfigSidebar">
+                <div class="theme-config-sidebar-header">
+                    <h6 class="theme-config-sidebar-title">Theme Settings</h6>
+                    <button type="button" class="theme-config-sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+                <div class="theme-config-scope-bar" aria-label="Theme apply scope">
+                    <label class="theme-config-scope-label">Apply to</label>
+                    <div class="theme-config-scope-options" role="group">
+                        <label class="theme-config-scope-option">
+                            <input type="radio" name="themeScope" value="USER" id="themeScopeUser" aria-describedby="themeScopeHint">
+                            <span>User <span class="theme-config-scope-user-id" id="themeScopeUserId"></span></span>
+                        </label>
+                        <label class="theme-config-scope-option">
+                            <input type="radio" name="themeScope" value="BANK" id="themeScopeBank" checked aria-describedby="themeScopeHint">
+                            <span>Bank</span>
+                        </label>
+                    </div>
+                    <p class="theme-config-scope-hint" id="themeScopeHint">Saves apply to the selected level. User scope saves for the specific logged-in user (shown above). Bank scope applies to all users.</p>
+                </div>
+                <nav class="theme-config-nav">
+                    <button type="button" class="theme-config-nav-item active" data-section="presets" role="tab" aria-selected="true" aria-controls="panel-presets" id="tab-presets" title="Preset Themes">
+                        <i class="bi bi-palette-fill theme-config-nav-icon"></i>
+                        <span class="theme-config-nav-label">Preset Themes</span>
+                    </button>
+                    <button type="button" class="theme-config-nav-item" data-section="label-typography" role="tab" aria-selected="false" aria-controls="panel-label-typography" id="tab-label-typography" title="Labels and Typography">
+                        <i class="bi bi-type theme-config-nav-icon"></i>
+                        <span class="theme-config-nav-label">Labels and Typography</span>
+                    </button>
+                    <button type="button" class="theme-config-nav-item" data-section="custom-theme" role="tab" aria-selected="false" aria-controls="panel-custom-theme" id="tab-custom-theme" title="Custom Theme">
+                        <i class="bi bi-palette theme-config-nav-icon"></i>
+                        <span class="theme-config-nav-label">Custom Theme</span>
+                    </button>
+                    <button type="button" class="theme-config-nav-item" data-section="branding-images" role="tab" aria-selected="false" aria-controls="panel-branding-images" id="tab-branding-images" title="Branding & Images">
+                        <i class="bi bi-image theme-config-nav-icon"></i>
+                        <span class="theme-config-nav-label">Branding & Images</span>
+                    </button>
+                </nav>
+            </aside>
+            <!-- Main Content -->
+            <div class="theme-config-main form-content">
+                <form id="theme-form" autocomplete="off" novalidate>
+                    @Html.AntiForgeryToken()
+                    <!-- SECTION 1: Preset Themes -->
+                    <div class="theme-config-section-card" id="section-presets">
+                        <div class="theme-section-header">
+                            <h5 class="theme-section-title">Preset Themes</h5>
+                            <p class="theme-section-description">Apply a curated visual identity across the platform.</p>
+                        </div>
+                        <div class="theme-section-body">
+                            <div class="theme-filter-tabs mb-4" role="tablist">
+                                <button type="button" class="theme-filter-tab active" data-filter="all">All</button>
+                                <button type="button" class="theme-filter-tab" data-filter="light">Light</button>
+                                <button type="button" class="theme-filter-tab" data-filter="dark">Dark</button>
+                                <button type="button" class="theme-filter-tab" data-filter="corporate">Corporate</button>
+                                <button type="button" class="theme-filter-tab" data-filter="creative">Creative</button>
+                            </div>
+
+                            <div class="row g-4" id="presetsContainer">
+                                <!-- Preset theme cards will be inserted here by JavaScript -->
+                            </div>
+
+                            <div class="theme-system-notice">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Theme changes apply instantly. Use �Apply to� in the sidebar to save for User or Bank.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: Visual Effects -->
+                    <div class="theme-config-section-card" id="section-visual-effects">
+                        <div class="theme-section-header">
+                            <h5 class="theme-section-title">Visual Effects</h5>
+                            <p class="theme-section-description">Optional enhancements applied on top of the selected theme.</p>
+                        </div>
+                        <div class="theme-section-body">
+                            <div class="theme-toggle-group">
+                                <label class="theme-toggle-item">
+                                    <input type="checkbox" id="formRowHoverEffect" data-option="formRowHover" checked>
+                                    <span class="theme-toggle-label">Enable Micro-Interactions</span>
+                                </label>
+                                <p class="theme-toggle-helper">Adds smooth transitions and hover effects for improved interaction feedback.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preset Themes Section (Legacy - for navigation compatibility) -->
+                    <div class="form-section theme-config-section" data-section="presets" id="panel-presets" role="tabpanel" aria-labelledby="tab-presets" style="display: none;">
+                        <div class="section-content section-content-modern" data-section-content>
+                        </div>
+                    </div>
+
+                    <!-- Label & Typography Section -->
+                    <div class="form-section theme-config-section" data-section="label-typography" id="panel-label-typography" role="tabpanel" aria-labelledby="tab-label-typography" style="display: none;">
+                        <div class="section-content section-content-modern" data-section-content>
+                            <p class="text-muted mb-4">Configure font and colors for form labels across the system. Changes apply immediately.</p>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Font Family</label>
+                                    <select id="labelFontFamily" class="form-select theme-label-control">
+                                        <option value="'Segoe UI', Tahoma, Arial, sans-serif">Segoe UI</option>
+                                        <option value="'Inter', system-ui, sans-serif">Inter</option>
+                                        <option value="'Open Sans', sans-serif">Open Sans</option>
+                                        <option value="'Roboto', sans-serif">Roboto</option>
+                                        <option value="system-ui, -apple-system, sans-serif">System UI</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="'Times New Roman', serif">Times New Roman</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Font Size</label>
+                                    <select id="labelFontSize" class="form-select theme-label-control">
+                                        <option value="11px">11px</option>
+                                        <option value="12px" selected>12px</option>
+                                        <option value="13px">13px</option>
+                                        <option value="14px">14px</option>
+                                        <option value="15px">15px</option>
+                                        <option value="16px">16px</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Font Weight</label>
+                                    <select id="labelFontWeight" class="form-select theme-label-control">
+                                        <option value="400">Normal</option>
+                                        <option value="500">Medium</option>
+                                        <option value="600">Semi-Bold</option>
+                                        <option value="700" selected>Bold</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <h6 class="mb-3">Label Colors</h6>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Labels</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="labelColorDefault" class="form-control form-control-color theme-label-color" data-css-var="--color-label-default" value="#000000">
+                                        <span class="theme-color-hex" id="labelColorDefaultHex">#000000</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Mandatory Labels</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="labelColorMandatory" class="form-control form-control-color theme-label-color" data-css-var="--color-label-mandatory" value="#2563eb">
+                                        <span class="theme-color-hex" id="labelColorMandatoryHex">#2563eb</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Conditional Mandatory Labels</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="labelColorConditional" class="form-control form-control-color theme-label-color" data-css-var="--color-label-conditional" value="#000000">
+                                        <span class="theme-color-hex" id="labelColorConditionalHex">#000000</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="theme-label-preview mt-4">
+                                <div class="form-label mb-2">Preview</div>
+                                <div class="theme-label-preview-row">
+                                    <span class="label label-default-preview">Label</span>
+                                </div>
+                                <div class="theme-label-preview-row">
+                                    <span class="label label-mandatory">* Mandatory Label</span>
+                                </div>
+                                <div class="theme-label-preview-row">
+                                    <span class="label label-conditional">* Conditional Mandatory Label</span>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary mt-4" id="applyLabelSettings">
+                                <i class="bi bi-check-circle me-1"></i>Apply & Save Label Settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Theme Section -->
+                    <div class="form-section theme-config-section" data-section="custom-theme" id="panel-custom-theme" role="tabpanel" aria-labelledby="tab-custom-theme" style="display: none;">
+                        <div class="section-content section-content-modern" data-section-content>
+                            <p class="text-muted mb-4">Create your own custom theme by selecting colors for Header, Primary, Border, and Text. Changes apply immediately.</p>
+
+                            <h6 class="mb-3">Theme Colors</h6>
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="customColorHeader">Header Color</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="customColorHeader" class="form-control form-control-color theme-custom-color" data-css-var="--color-header" value="#4a7c95" title="Choose header color">
+                                        <span class="theme-color-hex" id="customColorHeaderHex">#4a7c95</span>
+                                    </div>
+                                    <small class="form-text text-muted">Color used for headers and navigation</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="customColorPrimary">Primary Color</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="customColorPrimary" class="form-control form-control-color theme-custom-color" data-css-var="--color-primary" value="#4a7c95" title="Choose primary color">
+                                        <span class="theme-color-hex" id="customColorPrimaryHex">#4a7c95</span>
+                                    </div>
+                                    <small class="form-text text-muted">Main accent color for buttons and links</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="customColorBorder">Border Color</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="customColorBorder" class="form-control form-control-color theme-custom-color" data-css-var="--color-border" value="#e3e9ed" title="Choose border color">
+                                        <span class="theme-color-hex" id="customColorBorderHex">#e3e9ed</span>
+                                    </div>
+                                    <small class="form-text text-muted">Color for borders and dividers</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="customColorText">Text Color</label>
+                                    <div class="theme-color-row">
+                                        <input type="color" id="customColorText" class="form-control form-control-color theme-custom-color" data-css-var="--color-text" value="#1e293b" title="Choose text color">
+                                        <span class="theme-color-hex" id="customColorTextHex">#1e293b</span>
+                                    </div>
+                                    <small class="form-text text-muted">Main text color for content</small>
+                                </div>
+                            </div>
+
+                            <div class="theme-color-preview mb-4 p-3" style="background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <h6 class="mb-3">Preview</h6>
+                                <div class="d-flex gap-2 mb-3">
+                                    <div class="color-swatch" id="previewHeader" style="width: 40px; height: 40px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1);"></div>
+                                    <div class="color-swatch" id="previewPrimary" style="width: 40px; height: 40px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1);"></div>
+                                    <div class="color-swatch" id="previewBorder" style="width: 40px; height: 40px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1);"></div>
+                                    <div class="color-swatch" id="previewText" style="width: 40px; height: 40px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1);"></div>
+                                </div>
+                                <div class="p-2" style="border: 1px solid var(--color-border, #e3e9ed); border-radius: 4px; background: white;">
+                                    <div style="color: var(--color-text, #1e293b); font-size: 14px;">Sample text with your custom colors</div>
+                                    <button class="btn btn-sm mt-2" style="background: var(--color-primary, #4a7c95); color: white; border: none;">Sample Button</button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" id="applyCustomTheme">
+                                <i class="bi bi-check-circle me-1"></i>Apply & Save Custom Theme
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Branding & Images Section -->
+                    <div class="form-section theme-config-section" data-section="branding-images" id="panel-branding-images" role="tabpanel" aria-labelledby="tab-branding-images" style="display: none;">
+                        <div class="section-content section-content-modern" data-section-content>
+                            <p class="text-muted mb-4">Upload and configure branding images for Client Logo, Background Image, and Login Image. Changes apply immediately.</p>
+
+                            <div class="row g-4">
+                                <!-- Client Logo -->
+                                <div class="col-md-12">
+                                    <label class="form-label">Client Logo</label>
+                                    <div class="theme-image-upload-container mb-3">
+                                        <div class="theme-image-preview mb-2" id="clientLogoPreview" style="display: none;">
+                                            <img id="clientLogoPreviewImg" src="" alt="Client Logo Preview" style="max-width: 200px; max-height: 100px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px; background: #fff;">
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="file" id="clientLogoFile" class="form-control" accept="image/*" aria-label="Upload Client Logo">
+                                            <button type="button" class="btn btn-outline-secondary" id="clearClientLogo" style="display: none;">
+                                                <i class="bi bi-x-circle"></i> Clear
+                                            </button>
+                                        </div>
+                                        <small class="form-text text-muted">Recommended size: 200x100px. Formats: PNG, JPG, SVG</small>
+                                    </div>
+                                </div>
+
+                                <!-- Background Image -->
+                                <div class="col-md-12">
+                                    <label class="form-label">Background Image</label>
+                                    <div class="theme-image-upload-container mb-3">
+                                        <div class="theme-image-preview mb-2" id="backgroundImagePreview" style="display: none;">
+                                            <img id="backgroundImagePreviewImg" src="" alt="Background Image Preview" style="max-width: 300px; max-height: 150px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px; background: #fff;">
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="file" id="backgroundImageFile" class="form-control" accept="image/*" aria-label="Upload Background Image">
+                                            <button type="button" class="btn btn-outline-secondary" id="clearBackgroundImage" style="display: none;">
+                                                <i class="bi bi-x-circle"></i> Clear
+                                            </button>
+                                        </div>
+                                        <small class="form-text text-muted">Recommended size: 1920x1080px or larger. Formats: PNG, JPG</small>
+                                    </div>
+                                </div>
+
+                                <!-- Login Image -->
+                                <div class="col-md-12">
+                                    <label class="form-label">Login Image</label>
+                                    <div class="theme-image-upload-container mb-3">
+                                        <div class="theme-image-preview mb-2" id="loginImagePreview" style="display: none;">
+                                            <img id="loginImagePreviewImg" src="" alt="Login Image Preview" style="max-width: 300px; max-height: 200px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px; background: #fff;">
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="file" id="loginImageFile" class="form-control" accept="image/*" aria-label="Upload Login Image">
+                                            <button type="button" class="btn btn-outline-secondary" id="clearLoginImage" style="display: none;">
+                                                <i class="bi bi-x-circle"></i> Clear
+                                            </button>
+                                        </div>
+                                        <small class="form-text text-muted">Recommended size: 400x300px. Formats: PNG, JPG, SVG</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary mt-4" id="applyImageSettings">
+                                <i class="bi bi-check-circle me-1"></i>Apply & Save Image Settings
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Theme Configuration Module - MVC Pattern: View -> Controller -> Service -->
+    <script type="text/javascript" src="/js/modules/themeconfiguration/theme-configuration.js"></script>
+</body>
+</html>
+@* 
+@section Scripts {
+    <script src="~/js/modules/themeconfiguration/theme-configuration.js"></script>
+}
+ *@

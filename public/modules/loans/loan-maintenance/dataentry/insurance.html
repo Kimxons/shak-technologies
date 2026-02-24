@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Insurance · Data Entry</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css" />
+</head>
+
+<body class="loan-maintenance-sub copilot-theme" data-page="loan-maintenance-sub">
+  <main class="lm-subpage" aria-label="Loan Insurance">
+    <section class="card-surface lins-shell" aria-label="Loan Insurance">
+      <div class="lins-body">
+        <!-- Insurance Details Section -->
+        <section class="lins-content" aria-label="Insurance Details">
+          <div class="lins-panel">
+            <!-- Main Fields Grid -->
+            <div class="cbs-grid cbs-grid--three">
+              <div class="cbs-field">
+                <label class="cbs-label required" for="PolicyNo">Policy No</label>
+                <div class="input-group">
+                  <input class="form-control" id="PolicyNo" name="PolicyNo" type="text" title="Policy No" />
+                  <button class="btn btn-outline-primary" type="button" aria-label="Search policy" title="Search policy" data-lookup="policy">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="PolicyDate">Policy Date</label>
+                <input class="form-control" id="PolicyDate" name="PolicyDate" type="date" title="Policy Date" />
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="InsuranceType">Insurance Type</label>
+                <select class="form-select" id="InsuranceType" name="InsuranceType" title="Insurance Type">
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="CompanyID">Company</label>
+                <div class="input-group">
+                  <input class="form-control" id="CompanyID" name="CompanyID" type="text" title="Company" />
+                  <button class="btn btn-outline-primary" type="button" aria-label="Search company" title="Search company" data-lookup="company">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label" for="CompanyName">Company Name</label>
+                <input class="form-control" id="CompanyName" name="CompanyName" type="text" title="Company Name" readonly />
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="MaturityDate">Maturity Date</label>
+                <input class="form-control" id="MaturityDate" name="MaturityDate" type="date" title="Maturity Date" />
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="PolicyAmount">Policy Amount</label>
+                <input class="form-control" id="PolicyAmount" name="PolicyAmount" type="number" step="0.01" title="Policy Amount" />
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="PremiumType">Premium Type</label>
+                <select class="form-select" id="PremiumType" name="PremiumType" title="Premium Type">
+                  <option value="">--Select--</option>
+                  <option value="O">One Time</option>
+                  <option value="R">Recurring</option>
+                </select>
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label" for="PremiumFrequency">Premium Frequency</label>
+                <select class="form-select" id="PremiumFrequency" name="PremiumFrequency" title="Premium Frequency" disabled>
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label required" for="PremiumAmount">Premium Amount</label>
+                <input class="form-control" id="PremiumAmount" name="PremiumAmount" type="number" step="0.01" title="Premium Amount" />
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label" for="LastPremiumPaidDate">Last Premium Paid Date</label>
+                <input class="form-control" id="LastPremiumPaidDate" name="LastPremiumPaidDate" type="date" title="Last Premium Paid Date" disabled />
+              </div>
+
+              <div class="cbs-field">
+                <label class="cbs-label" for="NextPremiumDate">Next Premium Date</label>
+                <input class="form-control" id="NextPremiumDate" name="NextPremiumDate" type="date" title="Next Premium Date" />
+              </div>
+            </div>
+
+            <!-- Nominees Section (Grid-like) -->
+            <div class="lins-nominees" aria-label="Nominees">
+              <h6 class="mt-4 mb-3">Nominees</h6>
+              <div class="lins-nominees__head">
+                <div class="lins-nominees__h">#</div>
+                <div class="lins-nominees__h">Name</div>
+                <div class="lins-nominees__h">Relation</div>
+                <div class="lins-nominees__h">Share %</div>
+              </div>
+
+              <div class="lins-nominees__row nominee-row">
+                <div class="lins-nominees__idx">1</div>
+                <input class="form-control" type="text" data-nominee-name aria-label="Nominee 1 Name" title="Nominee 1 Name" />
+                <select class="form-select" data-nominee-relation aria-label="Nominee 1 Relation" title="Nominee 1 Relation">
+                  <option value="">--Select--</option>
+                </select>
+                <input class="form-control" type="number" data-nominee-share step="0.01" aria-label="Nominee 1 Share" title="Nominee 1 Share" />
+              </div>
+
+              <div class="lins-nominees__row nominee-row">
+                <div class="lins-nominees__idx">2</div>
+                <input class="form-control" type="text" data-nominee-name aria-label="Nominee 2 Name" title="Nominee 2 Name" />
+                <select class="form-select" data-nominee-relation aria-label="Nominee 2 Relation" title="Nominee 2 Relation">
+                  <option value="">--Select--</option>
+                </select>
+                <input class="form-control" type="number" data-nominee-share step="0.01" aria-label="Nominee 2 Share" title="Nominee 2 Share" />
+              </div>
+
+              <div class="lins-nominees__row nominee-row">
+                <div class="lins-nominees__idx">3</div>
+                <input class="form-control" type="text" data-nominee-name aria-label="Nominee 3 Name" title="Nominee 3 Name" />
+                <select class="form-select" data-nominee-relation aria-label="Nominee 3 Relation" title="Nominee 3 Relation">
+                  <option value="">--Select--</option>
+                </select>
+                <input class="form-control" type="number" data-nominee-share step="0.01" aria-label="Nominee 3 Share" title="Nominee 3 Share" />
+              </div>
+            </div>
+
+            <!-- Remarks Field -->
+            <div class="cbs-field lins-remarks">
+              <label class="cbs-label" for="InsuranceRemarks">Remarks</label>
+              <textarea class="form-control" id="InsuranceRemarks" name="InsuranceRemarks" rows="2" maxlength="254" title="Remarks"></textarea>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <section class="lins-bts" aria-label="Behind The Scene">
+            <div class="lm-section-header">Behind The Scene</div>
+            <div class="p-2">
+              <div class="cbs-grid cbs-grid--two">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="LoanAmount">Loan Amount</label>
+                  <input class="form-control" id="LoanAmount" name="LoanAmount" type="text" title="Loan Amount" readonly />
+                </div>
+                <div class="cbs-field">
+                  <label class="cbs-label" for="TotalPolicyAmount">Total Policy Amount</label>
+                  <input class="form-control" id="TotalPolicyAmount" name="TotalPolicyAmount" type="text" title="Total Policy Amount" readonly />
+                </div>
+              </div>
+
+              <div class="cbs-grid cbs-grid--three">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="CreatedBy">Created By</label>
+                  <input class="form-control" id="CreatedBy" name="CreatedBy" type="text" title="Created By" readonly />
+                </div>
+                <div class="cbs-field">
+                  <label class="cbs-label" for="ModifiedBy">Modified By</label>
+                  <input class="form-control" id="ModifiedBy" name="ModifiedBy" type="text" title="Modified By" readonly />
+                </div>
+                <div class="cbs-field">
+                  <label class="cbs-label" for="SupervisedBy">Supervised By</label>
+                  <input class="form-control" id="SupervisedBy" name="SupervisedBy" type="text" title="Supervised By" readonly />
+                </div>
+                <div class="cbs-field">
+                  <label class="cbs-label" for="CreatedOn">Created On</label>
+                  <input class="form-control" id="CreatedOn" name="CreatedOn" type="text" title="Created On" readonly />
+                </div>
+                <div class="cbs-field">
+                  <label class="cbs-label" for="ModifiedOn">Modified On</label>
+                  <input class="form-control" id="ModifiedOn" name="ModifiedOn" type="text" title="Modified On" readonly />
+                </div>
+                <div class="cbs-field">
+                  <label class="cbs-label" for="SupervisedOn">Supervised On</label>
+                  <input class="form-control" id="SupervisedOn" name="SupervisedOn" type="text" title="Supervised On" readonly />
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <!-- Action Buttons Sidebar -->
+        <aside class="lins-actions" aria-label="Actions">
+          <div class="lins-actions__top">
+            <button type="button" class="lins-navbtn" title="Previous" aria-label="Previous" data-action="prev">
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            <button type="button" class="lins-navbtn" title="Next" aria-label="Next" data-action="next">
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+
+          <div class="lins-actions__stack">
+            <button type="button" class="lins-action-btn lins-action-btn--primary" data-action="view">View</button>
+            <button type="button" class="lins-action-btn" data-action="add">Add</button>
+            <button type="button" class="lins-action-btn" data-action="edit" disabled>Edit</button>
+            <button type="button" class="lins-action-btn" data-action="delete" disabled>Delete</button>
+            <button type="button" class="lins-action-btn" data-action="save" disabled>Save</button>
+            <button type="button" class="lins-action-btn" data-action="cancel" disabled>Cancel</button>
+            <button type="button" class="lins-action-btn" data-action="back">Back</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- Core API and Dependencies -->
+  <script src="../../../../assets/js/environment.js"></script>
+  <script src="../../../../assets/js/services/shared/coreApi.js"></script>
+  <!-- Service Layer -->
+  <script src="../../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../../assets/js/services/loans/insurance-service.js"></script>
+  <!-- Shared Components -->
+  <script src="../../../../assets/js/shared/search-modal.js"></script>
+  <!-- Page Logic -->
+  <script src="../../../../assets/js/pages/loans/loan-maintenance/dataentry/loan-insurance.js"></script>
+</body>
+
+</html>

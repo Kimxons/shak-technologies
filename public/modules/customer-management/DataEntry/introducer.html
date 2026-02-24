@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introducer Details</title>
+    <!-- Use relative link to the base framework in account-maintenance -->
+    <link rel="stylesheet" href="./dataentry-client-base.css?v=20250128" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <style>
+        /* Module specific overrides to match "Documents" and "Address" exactly */
+        .de-card__header {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+            flex-shrink: 0;
+            color: white !important;
+        }
+
+        .de-card__header--muted,
+        .de-card__header--bts {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+            color: white !important;
+            cursor: default !important;
+        }
+
+        .de-card__header--bts:hover {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+        }
+
+        /* Force full height for embedded view */
+        html,
+        body,
+        .de-window {
+            height: 100% !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .de-label--blue {
+            color: #4A7C95;
+            font-weight: 700;
+        }
+
+        /* Specialized input group for ID + Name + Lookup */
+        .de-input-group--extended {
+            display: flex;
+            gap: 2px;
+            width: 100%;
+        }
+
+        .de-input--id {
+            width: 80px !important;
+            flex: 0 0 80px !important;
+        }
+
+        .de-input--name {
+            flex: 1 !important;
+        }
+
+        /* Section headers for better grouping within cards if needed */
+        .de-section-divider {
+            grid-column: 1 / -1;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        /* BTS Toggle Button Styling Override */
+        .de-bts-toggle {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .de-bts-toggle:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        /* Darken input text to match Client Maintenance */
+        .de-input,
+        .de-select,
+        .bs-input-text,
+        .bs-select {
+            color: #1e293b !important;
+            /* --de-text-primary */
+            font-size: 11px !important;
+            /* --de-font-size-sm */
+            font-weight: 800 !important;
+            /* Matches .de-audit-value */
+        }
+
+        .de-input::placeholder,
+        .bs-input-text::placeholder {
+            color: #9ca3af;
+            /* lighter placeholder */
+            font-weight: 400 !important;
+        }
+
+        /* Disabled action button styling to match Address form */
+        .de-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="de-window">
+        <!-- Title Bar removed to match modern embedded look in Client Maintenance -->
+        <main class="de-main de-main--with-panel">
+            <div class="de-form-shell" role="region" aria-label="Introducer form">
+                <!-- Main Form Card -->
+                <section class="de-card">
+                    <header class="de-card__header">
+                        <span class="de-card__title"><i class="bi bi-person-fill"></i> Introducer Information</span>
+                        <div class="de-card__actions">
+                            <button class="de-btn-icon" type="button" onclick="location.reload()" title="Reset Form">
+                                <i class="bi bi-eraser"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="de-card__body section-body-bordered">
+                        <div class="de-form-grid">
+                            <!-- Introducer Identification -->
+                            <div class="de-field de-field--span2">
+                                <label class="de-label de-label--blue" for="introducerClientId">Introducer Client
+                                    ID</label>
+                                <div class="de-input-group--extended">
+                                    <input type="text" id="introducerClientId" name="introducerClientId"
+                                        placeholder="ID" class="de-input bs-input-text de-input--id">
+                                    <input type="text" id="introducerClientName" name="introducerClientName"
+                                        placeholder="Introducer Name" class="de-input bs-input-text de-input--name"
+                                        readonly>
+                                    <button class="de-btn-lookup btn-lookup" type="button" title="Search Introducer">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="knownSince">Known Since (Months)</label>
+                                <input type="number" id="knownSince" name="knownSince" placeholder="Months"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field de-field--full">
+                                <label class="de-label de-label--blue" for="remarks">Remarks</label>
+                                <textarea id="remarks" name="remarks" placeholder="Enter any additional remarks..."
+                                    class="de-textarea bs-textarea" style="height: 60px; resize: none;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Detailed Info Card (Data currently in "Behind the Scene" but relevant for display) -->
+                <section class="de-card">
+                    <header class="de-card__header de-card__header--muted">
+                        <span class="de-card__title"><i class="bi bi-info-circle"></i> Behind the scene</span>
+                    </header>
+                    <div class="de-card__body">
+                        <div class="de-form-grid">
+                            <div class="de-field">
+                                <label class="de-label" for="baseBranchId">Base Branch ID</label>
+                                <input type="text" id="baseBranchId" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="gender">Gender</label>
+                                <input type="text" id="gender" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field de-field--span2">
+                                <label class="de-label" for="relation">Relation</label>
+                                <input type="text" id="relation" class="de-input bs-input-text" readonly>
+                            </div>
+
+                            <div class="de-field de-field--span2">
+                                <label class="de-label" for="address1">Address #1</label>
+                                <input type="text" id="address1" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field de-field--span2">
+                                <label class="de-label" for="address2">Address #2</label>
+                                <input type="text" id="address2" class="de-input bs-input-text" readonly>
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="city">City</label>
+                                <input type="text" id="city" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="country">Country</label>
+                                <input type="text" id="country" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="phone">Phone</label>
+                                <input type="tel" id="phone" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="mobile">Mobile</label>
+                                <input type="tel" id="mobile" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="emailId">Email Address</label>
+                                <input type="email" id="emailId" class="de-input bs-input-text" readonly>
+                            </div>
+                            <div class="de-field">
+                                <label class="de-label" for="faxNo">Fax No</label>
+                                <input type="text" id="faxNo" class="de-input bs-input-text" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Behind The Scene Section -->
+                <section class="de-card de-card--bts" id="btsSection">
+                    <header class="de-card__header de-card__header--bts" id="btsHeader">
+                        <span class="de-card__title"><i class="bi bi-gear"></i> Audit Information</span>
+                        <button type="button" class="de-bts-toggle" aria-label="Toggle Behind The Scene">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </header>
+                    <div class="de-card__body de-card__body--bts" id="btsBody">
+                        <div class="de-audit-grid">
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Created By</span>
+                                <span class="de-audit-value" id="createdBy">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Created On</span>
+                                <span class="de-audit-value" id="createdOn">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Modified By</span>
+                                <span class="de-audit-value" id="modifiedBy">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Modified On</span>
+                                <span class="de-audit-value" id="modifiedOn">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Supervised By</span>
+                                <span class="de-audit-value" id="supervisedBy">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Supervised On</span>
+                                <span class="de-audit-value" id="supervisedOn">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Action Panel -->
+            <aside class="de-action-panel">
+                <div class="de-action-group de-action-group--bottom">
+                    <button class="de-action-btn btn-action action-view de-action-btn--default" type="button">
+                        <i class="bi bi-eye"></i><span>View</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-add" type="button">
+                        <i class="bi bi-plus-circle"></i><span>Add</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-edit" type="button">
+                        <i class="bi bi-pencil-square"></i><span>Edit</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-delete de-action-btn--delete" type="button"
+                        style="display: none;">
+                        <i class="bi bi-trash3"></i><span>Delete</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-save de-action-btn--save" type="button">
+                        <i class="bi bi-check-lg"></i><span>Save</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-cancel de-action-btn--cancel" type="button">
+                        <i class="bi bi-x-lg"></i><span>Cancel</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-back de-action-btn--cancel" type="button">
+                        <i class="bi bi-box-arrow-right"></i><span>Close</span>
+                    </button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../../assets/js/services/shared/coreApi.js"></script>
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../shared/toast-notification.js"></script>
+
+    <!-- Framework Utilities -->
+    <script src="../../account-maintenance/DataEntry/dataentry-base.js?v=20250128"></script>
+    <script src="../../account-maintenance/DataEntry/dataentry-utils.js"></script>
+
+    <!-- Page Logic -->
+    <script src="introducer.js"></script>
+
+    <script>
+        const initializeBtsToggle = () => {
+            const toggleBtn = document.querySelector('.de-bts-toggle');
+            const btsBody = document.getElementById('btsBody');
+            const icon = toggleBtn?.querySelector('i');
+
+            if (toggleBtn && btsBody) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const body = document.getElementById('btsBody');
+                    const btn = document.querySelector('.de-bts-toggle');
+                    const ico = btn?.querySelector('i');
+
+                    const isHidden = body.style.display === 'none';
+
+                    // Toggle visibility
+                    body.style.display = isHidden ? 'block' : 'none';
+
+                    // Rotate icon
+                    if (ico) {
+                        ico.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+                    }
+                });
+            }
+        };
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeBtsToggle);
+        } else {
+            initializeBtsToggle();
+        }
+    </script>
+
+    <style>
+        .de-bts-toggle i {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</body>
+
+</html>

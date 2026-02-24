@@ -1,0 +1,199 @@
+@model kairo_ui.Models.StartMenuViewModel
+
+<!-- Switch Branch Modal -->
+<div class="modal fade" id="switchBranchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-diagram-2 me-2"></i>Switch Branch
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Select a branch to switch to:</p>
+                
+                <div id="branchListContainer" class="list-group list-group-flush">
+                    <!-- Branches will be loaded here by JavaScript -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading branches...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="branchError" class="alert alert-danger mt-3" style="display: none;">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <span id="branchErrorMessage"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Switch Branch Menu Item (to be added to start menu) -->
+<script type="text/template" id="switchBranchMenuItemTemplate">
+<div class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#switchBranchModal">
+    <i class="bi bi-diagram-2 me-3 text-primary"></i>
+    <div>
+        <strong>Switch Branch</strong>
+        <div class="small text-muted">Change your current branch</div>
+    </div>
+    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+</div>
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const switchBranchModal = document.getElementById('switchBranchModal');
+    const branchListContainer = document.getElementById('branchListContainer');
+    const branchError = document.getElementById('branchError');
+    const branchErrorMessage = document.getElementById('branchErrorMessage');
+
+    // Load branches when modal is shown
+    if (switchBranchModal) {
+        switchBranchModal.addEventListener('show.bs.modal', async function () {
+            await loadUserBranches();
+        });
+    }
+
+    async function loadUserBranches() {
+        try {
+            branchError.style.display = 'none';
+            branchListContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading branches...</span>
+                    </div>
+                </div>
+            `;
+
+            const response = await fetch('/api/user-branches');
+            if (!response.ok) {
+                throw new Error('Failed to fetch branches');
+            }
+
+            const data = await response.json();
+            if (!data.success || !data.branches) {
+                throw new Error(data.message || 'No branches found');
+            }
+
+            renderBranches(data.branches);
+        } catch (error) {
+            console.error('Error loading branches:', error);
+            branchErrorMessage.textContent = error.message || 'Failed to load branches. Please try again.';
+            branchError.style.display = 'block';
+            branchListContainer.innerHTML = '';
+        }
+    }
+
+    function renderBranches(branches) {
+        if (!branches || branches.length === 0) {
+            branchListContainer.innerHTML = '<div class="text-center py-4 text-muted">No branches available</div>';
+            return;
+        }
+
+        branchListContainer.innerHTML = branches.map(branch => `
+            <button type="button" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3 
+                ${branch.isCurrent ? 'active' : ''}" 
+                data-branch-id="${branch.id}" 
+                ${branch.isCurrent ? 'disabled' : ''}>
+                <div class="d-flex align-items-center">
+                    <i class="bi ${branch.isHeadOffice ? 'bi-building' : 'bi-diagram-2'} me-3"></i>
+                    <div class="text-start">
+                        <strong>${branch.name}</strong>
+                        <div class="small ${branch.isCurrent ? 'text-white-50' : 'text-muted'}">
+                            ${branch.code}${branch.description ? ' - ' + branch.description : ''}
+                        </div>
+                    </div>
+                </div>
+                ${branch.isCurrent ? '<span class="badge bg-light text-dark"><i class="bi bi-check-circle me-1"></i>Current</span>' : '<i class="bi bi-chevron-right text-muted"></i>'}
+            </button>
+        `).join('');
+
+        // Add click handlers to branch buttons
+        document.querySelectorAll('[data-branch-id]').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const branchId = parseInt(this.dataset.branchId);
+                if (!this.disabled) {
+                    await switchBranch(branchId);
+                }
+            });
+        });
+    }
+
+    async function switchBranch(branchId) {
+        try {
+            // Disable all buttons during switch
+            document.querySelectorAll('[data-branch-id]').forEach(btn => btn.disabled = true);
+
+            const response = await fetch('/api/switch-branch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ branchId: branchId })
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to switch branch');
+            }
+
+            // Show success message
+            showNotification('success', `Switched to ${data.branch.name}`, 'Branch switched successfully. Reloading page...');
+
+            // Reload page after 1.5 seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } catch (error) {
+            console.error('Error switching branch:', error);
+            showNotification('danger', 'Error switching branch', error.message);
+            
+            // Re-enable buttons on error
+            document.querySelectorAll('[data-branch-id]').forEach(btn => btn.disabled = false);
+        }
+    }
+
+    function showNotification(type, title, message) {
+        // Create Bootstrap alert
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <strong>${title}</strong> - ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+
+        // Insert at top of page
+        const alertContainer = document.createElement('div');
+        alertContainer.innerHTML = alertHtml;
+        document.body.insertBefore(alertContainer.firstElementChild, document.body.firstChild);
+    }
+});
+</script>
+
+<style>
+#switchBranchModal .list-group-item {
+    border-color: #dee2e6;
+    transition: all 0.2s ease;
+}
+
+#switchBranchModal .list-group-item:hover:not(.active):not([disabled]) {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+}
+
+#switchBranchModal .list-group-item.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+#switchBranchModal .list-group-item[disabled] {
+    opacity: 1;
+    cursor: not-allowed;
+}
+</style>

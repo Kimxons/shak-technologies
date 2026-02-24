@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terminal Restrictions</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="terminal-restrictions.css" />
+  <link rel="stylesheet" href="../../account-maintenance/DataEntry/dataentry-theme.css" />
+</head>
+<body>
+  <div class="ter-window" data-ter-window>
+    <div class="ter-title-bar" role="banner" aria-label="Window title bar">
+      <div class="ter-title-bar__left">
+        <span class="ter-title-bar__icon" aria-hidden="true"></span>
+        <span class="ter-title-bar__text">Terminal Restrictions</span>
+      </div>
+      <div class="ter-title-bar__right" aria-label="Window controls">
+        <button class="ter-title-btn" type="button" data-ter-refresh title="Refresh" aria-label="Refresh">🔄</button>
+        <button class="ter-title-btn" type="button" data-ter-minimize title="Minimize" aria-label="Minimize">—</button>
+        <button class="ter-title-btn close" type="button" data-ter-close title="Close" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="ter-main">
+      <div class="ter-content-shell" role="region" aria-label="Terminal Restrictions">
+        <div class="ter-scroll">
+          <!-- No Data Message -->
+          <div class="ter-no-data-message" data-ter-no-data style="display: none; padding: 16px; margin: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; text-align: center; font-size: 13px;">
+            <i style="font-size: 18px; vertical-align: middle;">ℹ️</i>
+            <span style="vertical-align: middle; margin-left: 8px;">No terminal restrictions found for this user</span>
+          </div>
+          
+          <div class="ter-top-box" role="group" aria-label="IP Address restrictions">
+            <!-- IP Address Restrictions Section -->
+            <div class="ter-section-header">IP Address Restrictions</div>
+            <div class="ter-ip-grid">
+              <div class="ter-ip-row">
+                <div class="ter-ip-number">1</div>
+                <input type="text" class="ter-input" placeholder="Enter IP address" data-ter-ip="1" />
+              </div>
+              <div class="ter-ip-row">
+                <div class="ter-ip-number">2</div>
+                <input type="text" class="ter-input" placeholder="Enter IP address" data-ter-ip="2" />
+              </div>
+              <div class="ter-ip-row">
+                <div class="ter-ip-number">3</div>
+                <input type="text" class="ter-input" placeholder="Enter IP address" data-ter-ip="3" />
+              </div>
+              <div class="ter-ip-row">
+                <div class="ter-ip-number">4</div>
+                <input type="text" class="ter-input" placeholder="Enter IP address" data-ter-ip="4" />
+              </div>
+              <div class="ter-ip-row">
+                <div class="ter-ip-number">5</div>
+                <input type="text" class="ter-input" placeholder="Enter IP address" data-ter-ip="5" />
+              </div>
+            </div>
+
+            <div class="ter-info">
+              Enter up to 5 IP addresses that are allowed to access this terminal.
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="ter-section-header">Behind the Scenes</div>
+
+          <div class="ter-audit" style="margin-top: 10px; margin-bottom: 10px;">
+            <!-- Created -->
+            <div style="display: flex; gap: 10px">
+              <div style="flex: 1;">
+                <label class="ter-label" for="createdBy">Created By</label>
+                <input id="createdBy" type="text" class="ter-input ter-input--short" readonly data-ter-created-by />
+              </div>
+              <div style="flex: 1;">
+                <label class="ter-label" for="createdOn">Created On</label>
+                <input id="createdOn" type="text" class="ter-input ter-input--short" readonly data-ter-created-on />
+              </div>
+            </div>
+            
+            <!-- Modified -->
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label class="ter-label" for="modifiedBy">Modified By</label>
+                <input id="modifiedBy" type="text" class="ter-input ter-input--short" readonly />
+              </div>
+              <div style="flex: 1;">
+                <label class="ter-label" for="modifiedOn">Modified On</label>
+                <input id="modifiedOn" type="text" class="ter-input ter-input--short" readonly />
+              </div>
+            </div>
+            
+            <!-- Supervised -->
+            <div style="display: flex; gap: 10px; ">
+              <div style="flex: 1;">
+                <label class="ter-label" for="supervisedBy">Supervised By</label>
+                <input id="supervisedBy" type="text" class="ter-input ter-input--short" readonly data-ter-supervised-by />
+              </div>
+              <div style="flex: 1;">
+                <label class="ter-label" for="supervisedOn">Supervised On</label>
+                <input id="supervisedOn" type="text" class="ter-input ter-input--short" readonly data-ter-supervised-on />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ter-action-panel">
+        <div class="ter-preview">
+          <!-- Preview area could show terminal restriction summary -->
+        </div>
+        <div class="ter-actions">
+          <button class="ter-action-btn" type="button" data-ter-edit>
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button class="ter-action-btn" type="button" data-ter-save>
+            <i class="bi bi-save2"></i>
+            <span>Save</span>
+          </button>
+          <button class="ter-action-btn" type="button" data-ter-cancel>
+            <i class="bi bi-x-circle"></i>
+            <span>Cancel</span>
+          </button>
+          <button class="ter-action-btn" type="button" data-ter-back>
+            <i class="bi bi-arrow-left"></i>
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ter-status-bar">
+      <div class="ter-message" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="../../../../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="terminal-restrictions.js"></script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find an Existing Account</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f8f9fa;
+    }
+    
+    .search-container {
+      padding: 20px;
+      max-width: 100%;
+    }
+    
+    .search-header {
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 12px 20px;
+      margin: -20px -20px 20px -20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .search-header .title-section {
+      flex: 1;
+    }
+    
+    .search-header h5 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .search-header small {
+      display: block;
+      opacity: 0.9;
+      font-size: 11px;
+    }
+    
+    .close-button {
+      border: 2px solid white;
+      background: transparent;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      padding: 0;
+      font-weight: bold;
+    }
+    
+    .close-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .search-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: end;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .input-group {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .input-group select {
+      width: 100px;
+      padding: 6px 8px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .input-group input {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .search-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 6px 16px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .results-table thead {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .results-table th {
+      padding: 10px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .results-table td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+    
+    .results-table tbody tr:hover {
+      background: #f8f9fa;
+      cursor: pointer;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+      font-size: 13px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="search-container">
+    <div class="search-header">
+      <div class="title-section">
+        <small>Account Maintenance</small>
+        <h5>Find an Existing Account</h5>
+      </div>
+      <button type="button" class="close-button" id="closeModal" aria-label="Close">&times;</button>
+    </div>
+    
+    <form id="searchForm" class="search-form">
+      <div class="form-group">
+        <label>Account ID</label>
+        <div class="input-group">
+          <select id="accountIDMode">
+            <option value="Contains">Contains</option>
+            <option value="Exact">Exact</option>
+          </select>
+          <input type="text" id="accountID" placeholder="e.g. 00100000" />
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Account Name</label>
+        <div class="input-group">
+          <select id="accountNameMode">
+            <option value="Contains">Contains</option>
+            <option value="Exact">Exact</option>
+          </select>
+          <input type="text" id="accountName" placeholder="Account name" />
+        </div>
+      </div>
+      
+      <div class="search-buttons">
+        <button type="button" class="btn btn-secondary" id="resetBtn">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+        <button type="submit" class="btn btn-primary" id="searchBtn">
+          <i class="bi bi-search"></i> Search
+        </button>
+      </div>
+    </form>
+    
+    <div id="resultsContainer">
+      <div class="empty-state">
+        Enter at least one filter above and click Search to query accounts.
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    (function() {
+      const searchForm = document.getElementById('searchForm');
+      const resultsContainer = document.getElementById('resultsContainer');
+      const closeBtn = document.getElementById('closeModal');
+      
+      // Close modal function
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          window.parent.postMessage({ type: 'closeAccountSearch' }, '*');
+        });
+      }
+      const resetBtn = document.getElementById('resetBtn');
+      
+      // Search function
+      async function performSearch(e) {
+        if (e) e.preventDefault();
+        
+        const accountID = document.getElementById('accountID').value.trim();
+        const accountName = document.getElementById('accountName').value.trim();
+        const accountIDMode = document.getElementById('accountIDMode').value;
+        const accountNameMode = document.getElementById('accountNameMode').value;
+        
+        if (!accountID && !accountName) {
+          alert('Please enter at least one search criterion');
+          return;
+        }
+        
+        // Show loading
+        resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching...</p></div>';
+        
+        try {
+          const Environment = window.Environment || {};
+          const BASE_URL = (Environment.baseUrlCommon || "http://172.16.2.31:3306").replace(/\/+$/, "");
+          
+          // Build search criteria
+          const searchCriteria = [];
+          if (accountID) {
+            if (accountIDMode === 'Contains') {
+              searchCriteria.push(`AccountID LIKE '%${accountID}%'`);
+            } else {
+              searchCriteria.push(`AccountID = '${accountID}'`);
+            }
+          }
+          if (accountName) {
+            if (accountNameMode === 'Contains') {
+              searchCriteria.push(`AccountName LIKE '%${accountName}%'`);
+            } else {
+              searchCriteria.push(`AccountName = '${accountName}'`);
+            }
+          }
+          
+          const requestData = {
+            RequestID: "p_GetSearchResult",
+            FormId: "p_GetSearchResult",
+            RequestData: {
+              TableID: "GLActiveID",
+              ModuleID: "2525",
+              WhereStmt: searchCriteria.join(' AND ')
+            },
+            RequestTime: new Date().toISOString(),
+            AppName: "PROJECT_KAIRO",
+            Checksum: ""
+          };
+          
+          const response = await fetch(`${BASE_URL}/api/OldAPI`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+          });
+          
+          const result = await response.json();
+          console.log('Search result:', result);
+          console.log('Search result structure:', {
+            hasDetails: !!result.Details,
+            hasDetails01: !!result.Details01,
+            hasData: !!result.data,
+            keys: Object.keys(result)
+          });
+          
+          // Check different possible response structures
+          let accountData = result.Details01 || result.Details || result.data || [];
+          console.log('Account data to display:', accountData);
+          
+          displayResults(accountData);
+        } catch (error) {
+          console.error('Search error:', error);
+          resultsContainer.innerHTML = `<div class="empty-state">Error: ${error.message}</div>`;
+        }
+      }
+      
+      // Display results
+      function displayResults(data) {
+        if (!data || data.length === 0) {
+          resultsContainer.innerHTML = '<div class="empty-state">No accounts found matching your criteria.</div>';
+          return;
+        }
+        
+        let html = '<table class="results-table"><thead><tr>';
+        html += '<th>Account ID</th><th>Account Name</th><th>Client Name</th><th>Action</th>';
+        html += '</tr></thead><tbody>';
+        
+        data.forEach(row => {
+          html += '<tr>';
+          html += `<td>${row.AccountID || row.accountID || ''}</td>`;
+          html += `<td>${row.AccountName || row.accountName || ''}</td>`;
+          html += `<td>${row.ClientName || row.clientName || ''}</td>`;
+          html += `<td><button class="btn btn-primary btn-select" data-account='${JSON.stringify(row).replace(/'/g, "&apos;")}'>Select</button></td>`;
+          html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        resultsContainer.innerHTML = html;
+        
+        // Attach select handlers
+        document.querySelectorAll('.btn-select').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const account = JSON.parse(this.getAttribute('data-account'));
+            window.parent.postMessage({
+              type: 'accountSelected',
+              account: account
+            }, '*');
+          });
+        });
+      }
+      
+      // Reset form
+      resetBtn.addEventListener('click', function() {
+        document.getElementById('accountID').value = '';
+        document.getElementById('accountName').value = '';
+        document.getElementById('accountIDMode').value = 'Contains';
+        document.getElementById('accountNameMode').value = 'Contains';
+        resultsContainer.innerHTML = '<div class="empty-state">Enter at least one filter above and click Search to query accounts.</div>';
+      });
+      
+      // Handle form submission
+      searchForm.addEventListener('submit', performSearch);
+    })();
+  </script>
+</body>
+</html>

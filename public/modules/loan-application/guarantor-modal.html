@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guarantor Details</title>
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=20260204">
+    <style>
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        .window { height: 100%; display: flex; flex-direction: column; }
+        .main-container { flex: 1; overflow: auto; }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="am-header" role="banner" aria-label="Window title bar">
+            <div class="am-header__left">
+                <i class="bi bi-person-badge am-header__icon" aria-hidden="true"></i>
+                <span class="am-header__title">Guarantor Details</span>
+            </div>
+            <div class="am-header__right" role="toolbar" aria-label="Window controls">
+                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+
+        <main class="main-container" aria-label="Guarantor form">
+            <div class="form-content" role="region" aria-label="Guarantor form">
+                <div class="form-card" data-main-form>
+                    <!-- Guarantor Details Section -->
+                    <div class="form-section" data-section="guarantor-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-person-badge"></i>Guarantor Details</span>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="guarantorType">Guarantor Type</label>
+                                    <select id="guarantorType" class="bs-input-text form-control">
+                                        <option value="">Select Guarantor Type</option>
+                                    </select>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="guarantorId">Guarantor ID</label>
+                                    <div class="input-group">
+                                        <input type="text" id="guarantorId" class="bs-input-text form-control">
+                                        <button class="btn btn-outline-secondary" type="button" id="btnSearchGuarantor" title="Search Guarantor">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="institutionClientId">Institution/Client ID</label>
+                                    <input type="text" id="institutionClientId" class="bs-input-text form-control" readonly>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="guaranteeAmount">Guarantee Amount</label>
+                                    <input type="number" id="guaranteeAmount" class="bs-input-text form-control" step="0.01">
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col" style="grid-column: 1 / -1;">
+                                    <label class="label-blue" for="remarks">Remarks</label>
+                                    <textarea id="remarks" class="bs-input-text form-control" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye-slash"></i>Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="guaranteedAmount">Guaranteed Amount</label>
+                                    <input type="number" id="guaranteedAmount" class="bs-input-text form-control" readonly step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="signedBy">Signed By</label>
+                                    <input type="text" id="signedBy" class="bs-input-text form-control" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="maxGuaranteeAmount">Max. Guarantee Amount</label>
+                                    <input type="number" id="maxGuaranteeAmount" class="bs-input-text form-control" readonly step="0.01">
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="loansAlreadyGuaranteed">No. Of Loans Already Guaranteed</label>
+                                    <input type="number" id="loansAlreadyGuaranteed" class="bs-input-text form-control" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="maxNoOfLoan">Max. No. Of Loan</label>
+                                    <input type="number" id="maxNoOfLoan" class="bs-input-text form-control" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="netWorth">Net Worth</label>
+                                    <input type="number" id="netWorth" class="bs-input-text form-control" readonly step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="liability">Liability</label>
+                                    <input type="number" id="liability" class="bs-input-text form-control" readonly step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Application Status Section -->
+                    <div class="form-section" data-section="application-status">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clock-history"></i>Application Status</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Application Status" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="applicationStatus">Status</label>
+                                    <input type="text" id="applicationStatus" class="bs-input-text form-control" readonly>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell">
+                                    <span class="audit-label">Created By</span>
+                                    <span class="audit-value" id="createdBy" data-field="createdBy"></span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Modified By</span>
+                                    <span class="audit-value" id="modifiedBy" data-field="modifiedBy"></span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Supervised By</span>
+                                    <span class="audit-value" id="supervisedBy" data-field="supervisedBy"></span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Created On</span>
+                                    <span class="audit-value" id="createdOn" data-field="createdOn"></span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Modified On</span>
+                                    <span class="audit-value" id="modifiedOn" data-field="modifiedOn"></span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Supervised On</span>
+                                    <span class="audit-value" id="supervisedOn" data-field="supervisedOn"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guarantor List Section -->
+                    <div class="form-section" data-section="guarantor-list">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-table"></i>Guarantor List</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Guarantor List" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="table-container">
+                                <table class="modern-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;"></th>
+                                            <th>Guarantor ID</th>
+                                            <th>Guarantor Name</th>
+                                            <th>Guarantee Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="guarantorTableBody">
+                                        <tr>
+                                            <td colspan="5" class="no-data">No records to display.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-panel" aria-label="Form actions">        
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-action="view" id="viewBtn"><i class="bi bi-eye me-1"></i>View</button>          
+                    <button class="btn-action" type="button" data-action="add" id="addBtn"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    <button class="btn-action" type="button" data-action="edit" id="editBtn"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn-action btn-save" type="button" data-action="save" id="saveBtn"><i class="bi bi-check-lg me-1"></i>Save</button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel" id="cancelBtn"><i class="bi bi-x-lg me-1"></i>Cancel</button>          
+                </div>
+            </div>
+        </main>
+
+        <div class="am-message-panel" role="alert" aria-live="polite">
+            <i class="bi bi-info-circle"></i>
+            <span></span>
+        </div>    
+
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+            <div class="loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div>
+        </div>
+    </div>
+
+    <!-- Include Guarantor Search Modal -->
+    <div id="guarantorSearchModalContainer"></div>
+
+    <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="guarantor-modal.js"></script>
+    <script>
+        // Load Guarantor Search Modal
+        fetch('guarantor-search-modal.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('guarantorSearchModalContainer').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading guarantor search modal:', error));
+
+        // Window Controls
+        function notifyParentFormOpened() {
+            window.parent.postMessage({ type: 'submoduleOpened', source: 'Guarantor Details' }, '*');
+        }
+        function closeChildForm() {
+            window.parent.postMessage({ type: 'submoduleClosed' }, '*');
+            window.close();
+        }
+        function handleWindowAction(action) {
+            if (action === 'refresh') {
+                location.reload();
+            } else if (action === 'maximize') {
+                window.parent.postMessage({ type: 'toggleSidebarForMaximize' }, '*');
+            } else if (action === 'close') {
+                closeChildForm();
+            }
+        }
+        function initWindowControls() {
+            document.querySelectorAll('.am-header__right [data-action]').forEach(btn => {
+                const action = btn.getAttribute('data-action');
+                if (['refresh', 'maximize', 'close'].includes(action)) {
+                    btn.addEventListener('click', () => handleWindowAction(action));
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            initWindowControls();
+            notifyParentFormOpened();
+        });
+    </script>
+</body>
+</html>

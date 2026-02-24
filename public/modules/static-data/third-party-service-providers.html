@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Third Party Service Providers · Static Data</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+
+<body class="third-party-service-providers">
+  <div class="window">
+    <div class="main-container">
+      <div class="form-content">
+        <div class="form-card" data-main-form>
+          <form id="third-party-service-providers-form" autocomplete="off" novalidate>
+            <div class="form-section" data-section="tpsp-details">
+              <div class="alert alert-danger d-flex align-items-center justify-content-between py-2 px-3 mb-3 d-none" role="alert" data-tpsp-alert>
+                <div class="d-flex align-items-center gap-2 small">
+                  <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                  <span data-tpsp-alert-text></span>
+                </div>
+                <button type="button" class="btn-close" aria-label="Close" data-tpsp-alert-close></button>
+              </div>
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-boxes"></i>Third Party Service Providers</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Third Party Service Providers" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="alert alert-danger d-flex align-items-center justify-content-between py-2 px-3 mb-3 d-none" role="alert" data-tpsp-alert>
+                  <div class="d-flex align-items-center gap-2 small">
+                    <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                    <span data-tpsp-alert-text></span>
+                  </div>
+                  <button type="button" class="btn-close" aria-label="Close" data-tpsp-alert-close></button>
+                </div>
+
+                <!-- Service Provider & Description -->
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue bs-label-mand" for="ServiceProvider">Service Provider</label>
+                    <div class="d-flex gap-0 w-100">
+                      <input type="text" class="bs-input-text form-control flex-grow-1 rounded-end-0" id="ServiceProvider" name="ServiceProvider" data-always-enabled />
+                      <button class="btn-lookup rounded-start-0" type="button" aria-label="Search service provider" data-always-enabled data-tpsp-action="search">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="Description">Description</label>
+                    <input type="text" class="bs-input-text form-control w-100" id="Description" name="Description" />
+                  </div>
+                  <div class="col"></div>
+                  <div class="col"></div>
+                </div>
+
+                <!-- Account ID & Web Service -->
+                <div class="form-row four-col">
+                  <div class="col col-span-2">
+                    <label class="label-blue bs-label-mand" for="AccountId">Account ID</label>
+                    <div class="d-flex align-items-stretch gap-0 flex-grow-1 w-100">
+                      <input type="text" id="AccountId" name="AccountId" class="bs-input-text flex-fill rounded-end-0" aria-label="Account ID">
+                      <input type="text" id="AccountName" name="AccountName" class="bs-input-text flex-fill rounded-0" aria-label="Account Name" placeholder="Account Name" readonly>
+                      <button type="button" class="btn-lookup rounded-start-0" aria-label="Search account" data-tpsp-action="search-account" disabled><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  <div class="col col-span-2">
+                    <label class="label-blue" for="WebService">Web Service</label>
+                    <input type="text" class="bs-input-text form-control w-100" id="WebService" name="WebService" />
+                  </div>
+                </div>
+
+                <!-- Is Live Validation & Validation Method -->
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="fw-bold text-dark" for="IsLiveValidation">Is Live Validation</label>
+                    <div class="d-flex align-items-center">
+                      <input class="bs-checkbox" type="checkbox" id="IsLiveValidation" name="IsLiveValidation" />
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="fw-bold text-dark" for="ValidationMethod">Validation Method</label>
+                    <input type="text" class="bs-input-text form-control w-100" id="ValidationMethod" name="ValidationMethod" />
+                  </div>
+                  <div class="col"></div>
+                  <div class="col"></div>
+                </div>
+
+                <!-- Posting Method -->
+                <div class="form-row four-col">
+                  <div class="col col-span-2">
+                    <label class="fw-bold text-dark" for="PostingMethod">Posting Method</label>
+                    <input type="text" class="bs-input-text form-control w-100" id="PostingMethod" name="PostingMethod" />
+                  </div>
+                  <div class="col"></div>
+                  <div class="col"></div>
+                </div>
+
+                <!-- Is Export & Export Format -->
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="fw-bold text-dark" for="IsExport">Is Export</label>
+                    <div class="d-flex align-items-center">
+                      <input class="bs-checkbox" type="checkbox" id="IsExport" name="IsExport" />
+                    </div>
+                  </div>
+                  <div class="col col-span-2">
+                    <label class="fw-bold text-dark" for="ExportFormat">Export Format</label>
+                    <div class="d-flex gap-0 w-100">
+                      <input type="text" class="bs-input-text form-control flex-grow-1 rounded-end-0" id="ExportFormat" name="ExportFormat" />
+                      <button class="btn-lookup rounded-start-0" type="button" aria-label="Search export format" data-always-enabled>
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col"></div>
+                </div>
+
+                <!-- Currency ID -->
+                <div class="form-row four-col">
+                  <div class="col col-span-2">
+                    <label class="fw-bold text-dark" for="CurrencyId">Currency ID</label>
+                    <div class="d-flex align-items-stretch gap-0 flex-grow-1 w-100">
+                      <input type="text" id="CurrencyId" name="CurrencyId" class="bs-input-text flex-fill rounded-end-0" aria-label="Currency ID">
+                      <input type="text" id="CurrencyName" name="CurrencyName" class="bs-input-text flex-fill rounded-0" aria-label="Currency Name" placeholder="Currency Name" readonly>
+                      <button type="button" class="btn-lookup rounded-start-0" aria-label="Search currency" data-tpsp-action="search-currency" disabled><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  <div class="col"></div>
+                  <div class="col"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-eye"></i>BEHIND THE SCENE</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="audit-section">
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Created By</label>
+                      <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Created On</label>
+                      <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Modified By</label>
+                      <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Modified On</label>
+                      <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          <div id="formToast"
+            class="toast align-items-center text-bg-success border-0 position-fixed bottom-0 end-0 m-4 d-none"
+            role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body" id="formToastBody"></div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+            </div>
+          </div>
+          </form>
+        </div>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action btn-view" data-shell-mode="View"><i class="bi bi-eye me-1" aria-hidden="true"></i>View</button>
+          <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Add</button>
+          <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Edit</button>
+          <button type="button" class="btn-action" data-tpsp-action="delete"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</button>
+          <button type="button" class="btn-action" data-tpsp-action="save"><i class="bi bi-save me-1" aria-hidden="true"></i>Save</button>
+          <button type="button" class="btn-action btn-cancel" data-tpsp-action="cancel"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>Cancel</button>
+        </div>
+      </aside>
+    </div>
+    <div class="am-message-panel"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/services/glAccountSearchService.js"></script>
+  <script src="../../assets/js/services/search/currencySearchService.js"></script>
+  <script src="../../assets/js/pages/static-data/third-party-service-providers.js"></script>
+</body>
+
+</html>

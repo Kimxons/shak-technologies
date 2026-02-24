@@ -1,0 +1,26 @@
+/* GL Budget: styled to match Client Maintenance shell */
+
+body[data-page="client-maintenance"].gl-budget {}
+
+/* Tighten the right rail and widen left content for this module */
+body[data-page="client-maintenance"].gl-budget .cm-shell-form {
+  grid-template-columns: 0 minmax(0, 1fr) clamp(92px, 7.5vw, 120px);
+}
+body[data-page="client-maintenance"].gl-budget .cm-legacy-content { grid-column: 1 / 3; }
+body[data-page="client-maintenance"].gl-budget .cm-legacy-actions { grid-column: 3; padding: .6rem .4rem; }
+body[data-page="client-maintenance"].gl-budget .cm-legacy-actions__group { gap: .25rem; }
+body[data-page="client-maintenance"].gl-budget .cm-shell__action { padding: .26rem .4rem; font-size: .7rem; }
+
+.gldb-main-form { padding: .75rem; }
+.gldb-header .cbs-field { margin-bottom: .25rem; }
+
+.gldb-grid { 
+  border: 1px dashed var(--cm-border, rgba(0,0,0,.08)); 
+  border-radius: 8px; 
+  padding: .35rem;
+  min-height: 500px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.gldb-footer { margin-top: .6rem; }
+.gldb-section-title { font-size: 1rem; margin: 0; }

@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reschedule - Trx Posting · Loans</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css?v=20260201" />
+</head>
+
+<body class="copilot-theme" data-page="reschedule-trx-posting">
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  
+  <!-- Page Loading Overlay -->
+  <div id="pageLoadingOverlay" class="page-loading-overlay" hidden>
+    <div class="page-loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+  </div>
+
+  <div class="window">
+    <div class="main-container">
+      <!-- Form Content -->
+      <div class="form-content">
+        <form id="rescheduleTrxForm" autocomplete="off" novalidate>
+          <div class="form-card">
+            <!-- Loan Identifiers Section -->
+            <div class="form-section" data-section="loan-identifiers">
+              <div class="section-header">
+                <span class="section-header__title"><i class="bi bi-card-text"></i>Loan Identifiers</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle section" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Branch ID</label>
+                  <div class="kairo-branch-control" data-kairo-branch-control>
+                    <input type="text" id="BranchID" name="BranchID" class="kairo-branch-control__id" aria-label="Branch ID">
+                    <input type="text" id="BranchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                    <button type="button" class="btn-lookup kairo-branch-control__lookup" data-target-input="BranchID" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue">Client ID</label>
+                  <div class="kairo-client-control" data-kairo-client-control>
+                    <input type="text" id="ClientID" name="ClientID" class="kairo-client-control__id" aria-label="Client ID">
+                    <input type="text" id="ClientName" class="kairo-client-control__name" aria-label="Client Name" placeholder="Client Name" readonly>
+                    <button type="button" class="btn-lookup kairo-client-control__lookup" data-target-input="ClientID" aria-label="Search Client"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Account ID</label>
+                  <div class="kairo-account-control" data-kairo-account-control>
+                    <input type="text" id="AccountID" name="AccountID" class="kairo-account-control__id" aria-label="Account ID">
+                    <input type="text" id="AccountName" class="kairo-account-control__name" aria-label="Account Name" placeholder="Account Name" readonly>
+                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-target-input="AccountID" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-muted">Loan Series</label>
+                  <input type="text" id="LoanSeries" name="LoanSeries" class="bs-input-text" aria-label="Loan Series" readonly>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction Details Section -->
+            <div class="form-section" data-section="transaction-details">
+              <div class="section-header">
+                <span class="section-header__title"><i class="bi bi-receipt"></i>Transaction Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle section" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="form-row four-col">
+                <div class="col">
+                  <label class="label-blue">Client Contribution</label>
+                  <input type="number" id="ClientContribution" name="ClientContribution" class="bs-input-text text-end" placeholder="0.00" step="0.01">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Local Amount</label>
+                  <input type="number" id="LocalAmount" name="LocalAmount" class="bs-input-text text-end" placeholder="0.00" step="0.01">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Exchange Rate</label>
+                  <input type="number" id="ExchangeRate" name="ExchangeRate" class="bs-input-text text-end" placeholder="1.00" step="0.0001">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Forex Gain / Loss</label>
+                  <input type="number" id="ForexGainLoss" name="ForexGainLoss" class="bs-input-text text-end" placeholder="0.00" step="0.01">
+                </div>
+              </div>
+
+              <div class="form-row four-col">
+                <div class="col">
+                  <label class="label-muted">Till</label>
+                  <input type="text" id="Till" name="Till" class="bs-input-text" placeholder="Till" readonly>
+                </div>
+                <div class="col">
+                  <label class="label-blue">Reference No.</label>
+                  <input type="text" id="ReferenceNo" name="ReferenceNo" class="bs-input-text" placeholder="Reference No.">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Transaction Type</label>
+                  <select id="TransactionType" name="TransactionType" class="bs-select" title="Transaction Type">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue">Account Type</label>
+                  <select id="AccountType" name="AccountType" class="bs-select" title="Account Type">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row four-col">
+                <div class="col">
+                  <label class="label-blue">Value Date</label>
+                  <input type="date" id="ValueDate" name="ValueDate" class="bs-input-text" title="Value Date">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Narration</label>
+                  <input type="text" id="Narration" name="Narration" class="bs-input-text" placeholder="Enter narration">
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Contra Account ID</label>
+                  <div class="kairo-account-control" data-kairo-account-control>
+                    <input type="text" id="ContraAccountID" name="ContraAccountID" class="kairo-account-control__id" aria-label="Contra Account ID">
+                    <input type="text" id="ContraAccountName" class="kairo-account-control__name" aria-label="Contra Account Name" placeholder="Contra Account Name" readonly>
+                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-target-input="ContraAccountID" aria-label="Search Contra Account"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn btn-primary" data-action="proceed" aria-label="Proceed with transaction">Proceed</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction Details Grid Section -->
+            <div class="form-section" data-section="transaction-grid">
+              <div class="section-header">
+                <span class="section-header__title"><i class="bi bi-list-ul"></i>Transaction Details Grid</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle section" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Account Type</th>
+                      <th>Our Branch ID</th>
+                      <th>Account ID</th>
+                      <th>Name</th>
+                      <th>TrxDescription</th>
+                      <th>Transaction Type</th>
+                      <th class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody data-trx-rows></tbody>
+                </table>
+              </div>
+              <div class="p-3 text-muted text-center" data-trx-empty>No records to display.</div>
+            </div>
+
+            <!-- Behind The Scene Section -->
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header">
+                <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle section" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="form-row four-col">
+                <div class="col">
+                  <label class="label-muted">Loan Amount</label>
+                  <input type="number" id="LoanAmount" name="LoanAmount" class="bs-input-text text-end" placeholder="0.00" readonly>
+                </div>
+                <div class="col">
+                  <label class="label-muted">Loan Balance</label>
+                  <input type="number" id="LoanBalance" name="LoanBalance" class="bs-input-text text-end" placeholder="0.00" readonly>
+                </div>
+                <div class="col">
+                  <label class="label-muted">Proposed Amount</label>
+                  <input type="number" id="ProposedAmount" name="ProposedAmount" class="bs-input-text text-end" placeholder="0.00" readonly>
+                </div>
+                <div class="col">
+                  <label class="label-muted">Net Amount</label>
+                  <input type="number" id="NetAmount" name="NetAmount" class="bs-input-text text-end" placeholder="0.00" readonly>
+                </div>
+              </div>
+
+              <div class="form-row four-col">
+                <div class="col">
+                  <label class="label-muted">Product ID</label>
+                  <input type="text" id="ProductID" name="ProductID" class="bs-input-text" placeholder="Product ID" readonly>
+                </div>
+                <div class="col">
+                  <label class="label-muted">Status</label>
+                  <input type="text" id="Status" name="Status" class="bs-input-text" placeholder="Status" readonly>
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-action="denomination"><i class="bi bi-cash-stack"></i>Denomination</button>
+          <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye"></i>View</button>
+          <button class="btn-action" type="button" data-action="add"><i class="bi bi-plus-circle"></i>Add</button>
+          <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg"></i>Save</button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-circle"></i>Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DENOMINATION MODAL (Legacy: frmCashDenomination.aspx equivalent) -->
+  <div class="modal fade" id="denominationModal" tabindex="-1" aria-labelledby="denominationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="denominationModalLabel">Denomination Breakdown</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Currency</th>
+                  <th>Denomination</th>
+                  <th>Quantity</th>
+                  <th class="text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="denominationTableBody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-3 p-3 bg-light rounded">
+            <div class="row">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Total Amount</label>
+                <input type="text" class="form-control" id="denominationTotalAmount" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Variance</label>
+                <input type="text" class="form-control" id="denominationVariance" readonly />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="denominationAcceptBtn">Accept</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../assets/js/shared/search-modal.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  
+  <script src="../../../assets/js/services/loans/reschedule-trx-posting-service.js"></script>
+  <script src="../../../assets/js/pages/loans/reschedule-trx-posting/reschedule-trx-posting.js"></script>
+</body>
+
+</html>

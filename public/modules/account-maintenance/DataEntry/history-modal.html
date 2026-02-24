@@ -1,0 +1,38 @@
+<!-- Transaction History Modal (reverted, blue header, no right panel) -->
+<div id="historyModal" class="modal" style="display: none;">
+  <div class="modal-content history-modal">
+    <div class="modal-header">
+      <h2>Transaction Information</h2>
+      <button type="button" class="close-modal" onclick="closeHistoryModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th>Client ID</th>
+            <th>Client Name</th>
+            <th>Account Name</th>
+            <th>Reference ID</th>
+            <th>Effective Date</th>
+            <th>Freezed Value</th>
+            <th>Freezed Reason</th>
+            <th>Released Date</th>
+            <th>Released Value</th>
+            <th>Released Reason</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <!-- History records will be populated here -->
+        </tbody>
+      </table>
+      <div class="history-loading" id="historyLoading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading transaction history...</p>
+      </div>
+      <div class="history-empty" id="historyEmpty" style="display: none;">
+        <p>No freeze/release history found for this account.</p>
+      </div>
+    </div>
+  </div>
+</div>

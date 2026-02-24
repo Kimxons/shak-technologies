@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Custodian · Static Data</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+
+<body class="custodian copilot-theme">
+  <div class="window">
+    <div class="main-container">
+      <!-- Form Content -->
+      <div class="form-content">
+        <form id="custodian-form" autocomplete="off" novalidate>
+          <div class="form-card">
+            <!-- Custodian Information Section -->
+            <div class="form-section" data-section="custodian-info">
+              <div class="section-header">
+                <h2 class="section-header__title"><i class="bi bi-shield-person"></i>Custodian Information</h2>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle section" aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+              <div class="section-content">
+                <!-- Row 1: Custodian ID and Name -->
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="CustodianID">Custodian ID <span class="text-danger">*</span></label>
+                    <div class="kairo-control" data-kairo-control>
+                      <input type="text" id="CustodianID" class="kairo-control__id" aria-label="Custodian ID" required data-always-enabled>
+                      <button type="button" class="btn-lookup kairo-control__lookup" data-custodian-action="search" aria-label="Search Custodian" data-always-enabled><i class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="CustodianName">Custodian Name <span class="text-danger">*</span></label>
+                    <input type="text" class="bs-input-text" id="CustodianName" name="CustodianName" data-always-enabled>
+                  </div>
+                </div>
+
+                <!-- Row 2: Department and Section -->
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="Department">Department <span class="text-danger">*</span></label>
+                    <select class="bs-select" id="Department" name="Department" required>
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <label for="Section">Section</label>
+                    <select class="bs-select" id="Section" name="Section">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Behind The Scene Section -->
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-clock-history"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle section" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="audit-section">
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Created By</label>
+                      <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Created On</label>
+                      <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Modified By</label>
+                      <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Modified On</label>
+                      <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Supervised By</label>
+                      <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Supervised On</label>
+                      <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Action Panel -->
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action btn-view" data-shell-mode="View"><i class="bi bi-eye"></i> View</button>
+          <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus-circle"></i> Add</button>
+          <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil-square"></i> Edit</button>
+          <button type="button" class="btn-action" data-custodian-action="delete"><i class="bi bi-trash"></i> Delete</button>
+          <button type="button" class="btn-action" data-custodian-action="save" disabled><i class="bi bi-save"></i> Save</button>
+          <button type="button" class="btn-action" data-custodian-action="cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../assets/js/services/static-data/staticDataService.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/pages/static-data/custodian.js"></script>
+</body>
+
+</html>

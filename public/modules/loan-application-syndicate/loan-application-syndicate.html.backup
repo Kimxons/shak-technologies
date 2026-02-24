@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application Syndicate</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="loan-application-syndicate.css">
+</head>
+<body>
+    <div class="syndicate-container">
+        <!-- Main Content -->
+        <div class="syndicate-content">
+            <div class="content-scroll">
+                <!-- Branch and Application Info -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-building-columns"></i> Loan Application Syndicate</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="branchId"><i class="bi bi-building"></i> Branch ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="branchId" class="form-input" placeholder="Enter Branch ID">
+                                <button class="search-icon-btn" id="searchBranchBtn" title="Search Branch">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="branchName"><i class="bi bi-building"></i> Branch Name</label>
+                            <input type="text" id="branchName" class="form-input" placeholder="Branch Name" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="applicationId"><i class="bi bi-hash"></i> Application ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="applicationId" class="form-input" placeholder="Enter Application ID">
+                                <button class="search-icon-btn" id="searchApplicationBtn" title="Search Application">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date"><i class="bi bi-calendar"></i> Date</label>
+                            <input type="date" id="date" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client and Product Details -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-person-badge"></i> Client and Product Details</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="clientBranchId"><i class="bi bi-building"></i> Client Branch ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="clientBranchId" class="form-input" placeholder="Enter Client Branch ID">
+                                <button class="search-icon-btn" id="searchClientBranchBtn" title="Search Client Branch">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="clientBranchName"><i class="bi bi-building"></i> Client Branch Name</label>
+                            <input type="text" id="clientBranchName" class="form-input" placeholder="Client Branch Name" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="clientId"><i class="bi bi-person-badge"></i> Client ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="clientId" class="form-input" placeholder="Enter Client ID">
+                                <button class="search-icon-btn" id="searchClientBtn" title="Search Client">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productId"><i class="bi bi-box"></i> Product ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="productId" class="form-input" placeholder="Enter Product ID">
+                                <button class="search-icon-btn" id="searchProductBtn" title="Search Product">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mainRepaymentAccountId"><i class="bi bi-wallet2"></i> Main Repayment AccountID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="mainRepaymentAccountId" class="form-input" placeholder="Enter Account ID">
+                                <button class="search-icon-btn" id="searchAccountBtn" title="Search Account">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="donorId"><i class="bi bi-gift"></i> Donor ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="donorId" class="form-input" placeholder="Enter Donor ID">
+                                <button class="search-icon-btn" id="searchDonorBtn" title="Search Donor">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loan Details -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-cash-stack"></i> Loan Details</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="loanPurpose"><i class="bi bi-clipboard-check"></i> Loan Purpose</label>
+                            <select id="loanPurpose" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lineOfBusiness"><i class="bi bi-briefcase"></i> Line Of Business</label>
+                            <select id="lineOfBusiness" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="officerId"><i class="bi bi-person-badge"></i> Officer ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="officerId" class="form-input" placeholder="Enter Officer ID">
+                                <button class="search-icon-btn" id="searchOfficerBtn" title="Search Officer">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loanAmount"><i class="bi bi-cash"></i> Loan Amount</label>
+                            <input type="text" id="loanAmount" class="form-input" placeholder="Enter Loan Amount">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="currencyId"><i class="bi bi-currency-exchange"></i> Currency ID</label>
+                            <input type="text" id="currencyId" class="form-input" placeholder="Currency ID">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="term"><i class="bi bi-calendar-range"></i> Term</label>
+                            <input type="text" id="term" class="form-input" placeholder="Enter Term">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="interestRate"><i class="bi bi-percent"></i> Interest Rate</label>
+                            <input type="text" id="interestRate" class="form-input" placeholder="Interest Rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="commissionRate"><i class="bi bi-percent"></i> Commission Rate</label>
+                            <input type="text" id="commissionRate" class="form-input" placeholder="Commission Rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taxRate"><i class="bi bi-percent"></i> Tax Rate</label>
+                            <input type="text" id="taxRate" class="form-input" placeholder="Tax Rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="effectiveRate"><i class="bi bi-graph-up"></i> Effective Rate</label>
+                            <input type="text" id="effectiveRate" class="form-input" placeholder="Effective Rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="disbursementDate"><i class="bi bi-calendar-check"></i> Disbursement Date</label>
+                            <select id="disbursementDate" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="monthlyProfit"><i class="bi bi-graph-up-arrow"></i> Monthly Profit</label>
+                            <input type="text" id="monthlyProfit" class="form-input" placeholder="Monthly Profit">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="monthlyTurnOver"><i class="bi bi-arrow-repeat"></i> Monthly TurnOver</label>
+                            <input type="text" id="monthlyTurnOver" class="form-input" placeholder="Monthly TurnOver">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="totalAssets"><i class="bi bi-piggy-bank"></i> Total Assets</label>
+                            <input type="text" id="totalAssets" class="form-input" placeholder="Total Assets">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessLocation"><i class="bi bi-geo-alt"></i> Business Location</label>
+                            <select id="businessLocation" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessStatus"><i class="bi bi-info-circle"></i> Business Status</label>
+                            <select id="businessStatus" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="startupCapitalCollateral"><i class="bi bi-shield-check"></i> StartUp Capital-Collatelar</label>
+                            <select id="startupCapitalCollateral" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="spread"><i class="bi bi-sliders"></i> Spread</label>
+                            <input type="text" id="spread" class="form-input" placeholder="Spread" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loanLimitType"><i class="bi bi-bar-chart"></i> Loan Limit Type</label>
+                            <select id="loanLimitType" class="form-select">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fileNumber"><i class="bi bi-file-earmark"></i> File Number</label>
+                            <input type="text" id="fileNumber" class="form-input" placeholder="File Number">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="applicationStatus"><i class="bi bi-info-circle"></i> Application Status</label>
+                            <input type="text" id="applicationStatus" class="form-input" placeholder="Application Status" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="salesOfficer"><i class="bi bi-person-badge"></i> Sales Officer</label>
+                            <div class="input-search-group">
+                                <input type="text" id="salesOfficer" class="form-input" placeholder="Enter Sales Officer">
+                                <button class="search-icon-btn" id="searchSalesOfficerBtn" title="Search Sales Officer">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Syndicate Details -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-bank"></i> Bank Syndicate Details</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="bankId"><i class="bi bi-building"></i> Bank ID</label>
+                            <div class="input-search-group">
+                                <input type="text" id="bankId" class="form-input" placeholder="Enter Bank ID">
+                                <button class="search-icon-btn" id="searchBankBtn" title="Search Bank">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="percentage"><i class="bi bi-percent"></i> Percentage</label>
+                            <input type="text" id="percentage" class="form-input" placeholder="Enter Percentage">
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-action btn-new" id="newBtn">New</button>
+                        <button class="btn-action btn-alter" id="alterBtn">Alter</button>
+                        <button class="btn-action btn-remove" id="removeBtn">Remove</button>
+                        <button class="btn-action btn-update" id="updateBtn">Update</button>
+                        <button class="btn-action btn-clear" id="clearBtn">Clear</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Bank ID</th>
+                                    <th>Bank Name</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bankTableBody">
+                                <tr class="no-records">
+                                    <td colspan="3">No records to display.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Status Message -->
+                <div id="statusMessage" class="status-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Right Action Sidebar -->
+        <div class="action-sidebar">
+            <button class="btn-sidebar btn-info" id="moreInfoBtn" title="More Info">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>More Info</span>
+            </button>
+            <button class="btn-sidebar btn-view" id="viewBtn" title="View Application">
+                <i class="bi bi-eye-fill"></i>
+                <span>View</span>
+            </button>
+            <button class="btn-sidebar btn-add" id="addBtn" title="Add New">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Add</span>
+            </button>
+            <button class="btn-sidebar btn-edit" id="editBtn" disabled title="Edit">
+                <i class="bi bi-pencil-fill"></i>
+                <span>Edit</span>
+            </button>
+            <button class="btn-sidebar btn-delete" id="deleteBtn" disabled title="Delete">
+                <i class="bi bi-trash-fill"></i>
+                <span>Delete</span>
+            </button>
+            <button class="btn-sidebar btn-save" id="saveBtn" disabled title="Save">
+                <i class="bi bi-save-fill"></i>
+                <span>Save</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/environment.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/services/shared/serviceLoader.js"></script>
+    <script src="loan-application-syndicate.js"></script>
+</body>
+</html>

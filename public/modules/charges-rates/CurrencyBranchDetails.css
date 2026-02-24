@@ -1,0 +1,99 @@
+/* Specific styles for Currency Branch Details */
+
+.audit-trail {
+    margin-top: 4rem;
+    background: rgba(240, 240, 245, 0.5);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* Glassmorphism for right panel */
+body[data-page="client-maintenance"].currency-branch-details .cm-legacy-actions {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+body[data-page="client-maintenance"].currency-branch-details .cm-legacy-actions__title {
+    color: #1e293b;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Force grid layout for audit trail */
+.cbs-grid--three {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+/* Responsive fallback */
+@media (max-width: 992px) {
+    .cbs-grid--three {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .cbs-grid--three {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cm-form-header {
+    background: rgba(59, 130, 246, 0.1);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #3b82f6;
+}
+
+.cbs-label {
+    font-weight: 600;
+    color: #1e293b;
+    text-align: right;
+    padding-right: 1rem;
+    align-self: center;
+}
+
+.cm-compact-field {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.cm-compact-field .input-group,
+.cm-compact-field .form-control {
+    width: 100%;
+}
+
+/* Specific styles for DataEntry toggle */
+body[data-page="client-maintenance"].currency-branch-details .cm-dataentry-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #5b9bd5 !important;
+    /* Solid blue matching screenshot */
+    border: 1px solid #4a8bc2 !important;
+    color: #ffffff !important;
+    /* White text */
+    border-radius: 0.4rem;
+    padding: 0.5rem 0.6rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+body[data-page="client-maintenance"].currency-branch-details .cm-dataentry-toggle:hover {
+    background: #4a8bc2 !important;
+}
+
+body[data-page="client-maintenance"].currency-branch-details .cm-dataentry-toggle .bi {
+    font-size: 0.9rem;
+    color: #ffffff !important;
+    /* White icon */
+    transition: transform 0.3s ease;
+}

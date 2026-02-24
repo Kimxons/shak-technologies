@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Appraisal Limit</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <style>
+    /* Hide sidebar for child form */
+    .sidebar {
+      display: none;
+    }
+
+    /* Adjust main container to remove sidebar space */
+    .main-container {
+      --sidebar-width: 0px;
+    }
+
+    .form-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-fields-section {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .form-section-container {
+      margin-bottom: 12px;
+    }
+
+    .form-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .form-field-group label {
+      font-weight: 700;
+      font-size: 10px;
+      color: #357abd;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .form-field-group input,
+    .form-field-group select {
+      padding: 6px 10px;
+      font-size: 10px;
+      border: 1px solid rgba(10, 107, 165, 0.2);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .form-field-group input:focus,
+    .form-field-group select:focus {
+      outline: none;
+      border-color: #357abd;
+      background: white;
+    }
+
+    .lookup-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .lookup-group input {
+      flex: 1;
+    }
+
+    .lookup-btn {
+      padding: 6px 10px;
+      font-size: 10px;
+      border: 1px solid #357abd;
+      background: white;
+      color: #357abd;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .lookup-btn:hover {
+      background: #357abd;
+      color: white;
+    }
+
+    .two-col-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .action-toolbar {
+      display: flex;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .action-toolbar button {
+      padding: 6px 14px;
+      font-size: 10px;
+      font-weight: 600;
+      border: 1px solid #357abd;
+      background: white;
+      color: #357abd;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .action-toolbar button:hover {
+      background: #357abd;
+      color: white;
+    }
+
+    .data-grid-section {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .data-grid-header {
+      background: linear-gradient(to bottom, #4a90e2, #357abd);
+      color: white;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 11px;
+      border-bottom: 2px solid #2b6199;
+    }
+
+    .data-grid-body {
+      padding: 12px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+    }
+
+    .data-table thead {
+      background: #f0f4f8;
+    }
+
+    .data-table th {
+      background: #f0f4f8;
+      color: #1e293b;
+      font-weight: 800;
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 2px solid #ddd;
+      border-right: 1px solid #e5e7eb;
+      font-size: 10px;
+    }
+
+    .data-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      border-right: 1px solid #e5e7eb;
+      color: #475569;
+      font-size: 10px;
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(10, 107, 165, 0.04);
+      cursor: pointer;
+    }
+
+    .behind-scene-section {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .behind-scene-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+      background: white;
+    }
+
+    .behind-scene-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .behind-scene-item label {
+      font-weight: 700;
+      font-size: 10px;
+      color: #357abd;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .behind-scene-item input {
+      padding: 6px 10px;
+      border: 1px solid rgba(10, 107, 165, 0.2);
+      border-radius: 4px;
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="window">
+    <div class="main-container">
+      <div class="sidebar"></div>
+
+      <div class="form-content">
+        <!-- Title -->
+        <div class="section-header">
+          <i class="bi bi-calculator"></i> LOAN APPRAISAL LIMIT
+        </div>
+
+        <!-- Input Fields Section -->
+        <div class="input-fields-section">
+          <div class="form-section-container">
+            <div class="form-field-group">
+              <label>Role ID</label>
+              <div class="lookup-group">
+                <input type="text" id="roleId" />
+                <button type="button" class="lookup-btn">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="two-col-row">
+            <div class="form-field-group">
+              <label>Lower Limit Amount</label>
+              <input type="text" id="lowerLimitAmount" />
+            </div>
+            <div class="form-field-group">
+              <label>Upper Limit Amount</label>
+              <input type="text" id="upperLimitAmount" />
+            </div>
+          </div>
+
+          <!-- Action Toolbar -->
+          <div class="action-toolbar">
+            <button type="button" id="newBtn"><i class="bi bi-plus-circle"></i> New</button>
+            <button type="button" id="alterBtn"><i class="bi bi-pencil"></i> Alter</button>
+            <button type="button" id="updateBtn"><i class="bi bi-arrow-repeat"></i> Update</button>
+            <button type="button" id="removeBtn"><i class="bi bi-trash"></i> Remove</button>
+            <button type="button" id="clearBtn"><i class="bi bi-x-circle"></i> Clear</button>
+          </div>
+
+          <!-- Data Grid (Inside the same container) -->
+          <div style="margin-top: 12px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>RoleID</th>
+                  <th>Lower Limit Amount</th>
+                  <th>Upper Limit Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="3" style="text-align: center; color: #d32f2f; padding: 20px;">No records to display.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="section-header">
+          <i class="bi bi-info-circle"></i> BEHIND THE SCENE
+        </div>
+        <div class="behind-scene-section">
+          <div class="behind-scene-grid">
+            <div class="behind-scene-item">
+              <label>Created By</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Modified By</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Supervised By</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Created On</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Modified On</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Supervised On</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button type="button" class="btn-action" id="viewBtn">
+            <i class="bi bi-eye me-1"></i>View
+          </button>
+          <button type="button" class="btn-action" id="editBtn">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </button>
+          <button type="button" class="btn-action" id="saveBtn">
+            <i class="bi bi-floppy me-1"></i>Save
+          </button>
+          <button type="button" class="btn-action" id="cancelBtn">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+          <button type="button" class="btn-action" id="backBtn">
+            <i class="bi bi-arrow-left me-1"></i>Back
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/pages/product-management/loan-appraisal-limit.embedded.js"></script>
+</body>
+
+</html>

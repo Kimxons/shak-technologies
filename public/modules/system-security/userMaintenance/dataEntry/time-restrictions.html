@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Restrictions</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="time-restrictions.css" />
+  <link rel="stylesheet" href="../../account-maintenance/DataEntry/dataentry-theme.css" />
+</head>
+<body>
+  <div class="tr-window" data-tr-window>
+    <div class="tr-title-bar" role="banner" aria-label="Window title bar">
+      <div class="tr-title-bar__left">
+        <span class="tr-title-bar__icon" aria-hidden="true"></span>
+        <span class="tr-title-bar__text">Time Restrictions </span>
+      </div>
+      <div class="tr-title-bar__right" aria-label="Window controls">
+        <button class="tr-title-btn" type="button" data-tr-refresh title="Refresh" aria-label="Refresh">🔄</button>
+        <button class="tr-title-btn" type="button" data-tr-minimize title="Minimize" aria-label="Minimize">—</button>
+        <button class="tr-title-btn close" type="button" data-tr-close title="Close" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="tr-main">
+      <div class="tr-content-shell" role="region" aria-label="Time Restrictions">
+        <div class="tr-scroll">
+          <div class="tr-top-box" role="group" aria-label="Time restrictions">
+            <!-- Time Period Legend -->
+            <div class="tr-legend">
+              <div class="tr-period-item">
+                <div class="tr-period-icon" style="background: linear-gradient(135deg, #87CEEB, #E0F6FF); color: #1e90ff;">
+                  ☀️
+                </div>
+                <span>Morning (12AM-12PM)</span>
+              </div>
+              <div class="tr-period-item">
+                <div class="tr-period-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #FF6B00;">
+                  ☀️
+                </div>
+                <span>Afternoon (12PM-6PM)</span>
+              </div>
+              <div class="tr-period-item">
+                <div class="tr-period-icon" style="background: linear-gradient(135deg, #2F4F4F, #1e3a3a); color: #FFFFFF;">
+                  🌙
+                </div>
+                <span>Evening (6PM-12AM)</span>
+              </div>
+            </div>
+
+            <!-- Time Grid -->
+            <div class="tr-time-grid-wrapper">
+              <table class="tr-time-grid">
+                <thead>
+                  <tr>
+                    <th style="width: 80px;"></th>
+                    <th>12</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th>
+                    <th>12</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="tr-day-label">All</td>
+                    <td class="tr-time-cell" data-day="all" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="all" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Sunday</td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="sunday" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Monday</td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="monday" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Tuesday</td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="tuesday" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Wednesday</td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="wednesday" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Thursday</td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="thursday" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Friday</td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="friday" data-hour="23"></td>
+                  </tr>
+                  <tr>
+                    <td class="tr-day-label">Saturday</td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="0"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="1"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="2"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="3"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="4"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="5"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="6"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="7"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="8"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="9"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="10"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="11"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="12"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="13"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="14"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="15"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="16"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="17"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="18"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="19"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="20"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="21"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="22"></td>
+                    <td class="tr-time-cell" data-day="saturday" data-hour="23"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class="tr-info">
+              Click cells to toggle time restrictions. Blue cells indicate permitted access times.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tr-action-panel">
+        <div class="tr-preview">
+          <!-- Preview area could show time restriction summary -->
+        </div>
+        <div class="tr-actions">
+          <button class="tr-action-btn" type="button" data-tr-edit>
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button class="tr-action-btn" type="button" data-tr-save>
+            <i class="bi bi-save2"></i>
+            <span>Save</span>
+          </button>
+          <button class="tr-action-btn" type="button" data-tr-cancel>
+            <i class="bi bi-x-circle"></i>
+            <span>Cancel</span>
+          </button>
+          <button class="tr-action-btn" type="button" data-tr-back>
+            <i class="bi bi-arrow-left"></i>
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tr-status-bar">
+      <div class="tr-message" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="time-restrictions.js"></script>
+</body>
+</html>

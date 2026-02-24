@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Center Member Maintenance · MicroFinance</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css?v=20260202_2" />
+
+  <style>
+    /* Center Member Maintenance: lookup modal styling (EXACT SearchModal colors used by Account Maintenance SearchService) */
+    body[data-page="center-member-maintenance"] {
+      --cmm-searchmodal-bar-bg: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+      --cmm-searchmodal-grid-head-bg: linear-gradient(to bottom, #4a90e2, #357abd);
+      --cmm-searchmodal-grid-head-border: #2868ab;
+      --cmm-searchmodal-row-even: #e8f4ff;
+      --cmm-searchmodal-row-hover: #d0e8ff;
+      --cmm-searchmodal-btn-bg: #e0e0e0;
+      --cmm-searchmodal-btn-border: #999;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .modal-header.bg-primary,
+    body[data-page="center-member-maintenance"] #lookupModal .modal-footer.bg-primary {
+      background: var(--cmm-searchmodal-bar-bg) !important;
+      border-color: #e0e0e0 !important;
+      color: #ffffff !important;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .modal-title {
+      color: #ffffff !important;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table thead tr {
+      background: var(--cmm-searchmodal-grid-head-bg) !important;
+      color: #ffffff !important;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table thead th {
+      background: transparent !important;
+      color: #ffffff !important;
+      border-color: var(--cmm-searchmodal-grid-head-border) !important;
+      font-weight: 600;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table thead th:first-child {
+      width: 40px;
+      text-align: center;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table tbody td:first-child {
+      text-align: center;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* Zebra striping: 1st row white, 2nd row blueish (match SearchModal) */
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table.table-striped > tbody > tr:nth-of-type(odd) > * {
+      background-color: #ffffff !important;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table.table-striped > tbody > tr:nth-of-type(even) > * {
+      background-color: var(--cmm-searchmodal-row-even) !important;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal .cmm-lookup__table tbody tr:hover > * {
+      background-color: var(--cmm-searchmodal-row-hover) !important;
+    }
+
+    /* Match SearchModal grey buttons (Search + OK) */
+    body[data-page="center-member-maintenance"] #lookupModal #lookupSearchBtn,
+    body[data-page="center-member-maintenance"] #lookupModal #lookupAdvancedSearchBtn,
+    body[data-page="center-member-maintenance"] #lookupModal .modal-footer.bg-primary .btn {
+      padding: 6px 28px !important;
+      background: var(--cmm-searchmodal-btn-bg) !important;
+      border: 1px solid var(--cmm-searchmodal-btn-border) !important;
+      border-radius: 3px !important;
+      cursor: pointer;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: #111827 !important;
+      box-shadow: none !important;
+    }
+
+    body[data-page="center-member-maintenance"] #lookupModal #lookupSearchBtn:hover,
+    body[data-page="center-member-maintenance"] #lookupModal #lookupAdvancedSearchBtn:hover {
+      background: #d5d5d5 !important;
+    }
+
+    /* Docked inline DataEntry (Account Maintenance-style; replaces modal popup) */
+    body.cmm-inline-open {
+      overflow: hidden;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline {
+      position: fixed;
+      left: var(--de-left, 0px);
+      top: var(--de-top, 0px);
+      width: var(--de-width, 800px);
+      height: var(--de-height, 600px);
+      z-index: 2000;
+      background: #ffffff;
+      border-left: 1px solid rgba(0, 0, 0, 0.12);
+      box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Submodule Title Bar (match main window title-bar look) */
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline {
+      --cmm-de-titlebar-height: 26px;
+      /* Match "Section Header" (Color 1) gradient from styles.css */
+      --cmm-de-titlebar-bg: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%);
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-titlebar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: var(--cmm-de-titlebar-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px;
+      color: #ffffff;
+      background: var(--cmm-de-titlebar-bg);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 3;
+      user-select: none;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-titlebar-icon {
+      font-size: 12px;
+      opacity: 0.95;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-titlebar-text {
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-titlebar-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      width: 24px;
+      height: 20px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    #centerMemberMaintenanceDataEntryModal.cmm-dataentry-inline .cmm-de-btn--close:hover {
+      background: rgba(220, 53, 69, 1);
+      border-color: rgba(220, 53, 69, 1);
+    }
+
+    #centerMemberMaintenanceDataEntryFrame {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: var(--cmm-de-titlebar-height);
+      width: 100%;
+      height: calc(100% - var(--cmm-de-titlebar-height));
+      border: 0;
+      background: #ffffff;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body data-page="center-member-maintenance">
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="window">
+    <div class="main-container">
+      <div class="sidebar" id="main-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-search">
+          <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules" aria-describedby="submoduleSearchClear">
+          <i class="bi bi-search sidebar-search__icon"></i>
+          <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-content">
+          <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
+            <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+              <div class="nav-header__content">
+                <i class="bi bi-folder-fill nav-header__icon"></i>
+                <span class="nav-label nav-label--card">Data Entry</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">1</span>
+                <button type="button" class="nav-arrow nav-arrow--card menu-arrow" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="menu-dataentry">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items nav-items--card menu-items" id="menu-dataentry">
+              <div class="sidebar-item sidebar-item--enhanced menu-item" data-cmm-open="dataEntry/center-member-scheme.html" data-tooltip="Center Member Scheme">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-people-fill sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Center Member Scheme</div>
+                    <div class="sidebar-item__description">Manage member schemes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-section nav-section--card" data-nav-section data-section-name="Recent Activities">
+            <div class="nav-header nav-header--card" data-tooltip="Recent Activities">
+              <div class="nav-header__content">
+                <i class="bi bi-clock-history nav-header__icon"></i>
+                <span class="nav-label nav-label--card">Recent Activities</span>
+              </div>
+              <div class="nav-header__badge">
+                <button type="button" class="nav-arrow nav-arrow--card menu-arrow" aria-label="Toggle Recent Activities" aria-expanded="false" aria-controls="menu-recent">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items nav-items--card menu-items" id="menu-recent" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-content">
+        <div class="form-card">
+          <div id="formToast" class="alert d-none mt-3" role="alert"></div>
+
+          <div class="form-section" data-section="member-search">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-search"></i>Center Member Search</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Center Member Search" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="row g-1">
+                <div class="col-12 col-lg-4">
+                  <label class="label-blue" for="ReferenceNo">Reference No.</label>
+                  <input type="text" class="form-control" id="ReferenceNo" name="ReferenceNo" />
+                </div>
+                <div class="col-12 col-lg-2">
+                  <label class="label-blue" for="Series">Series</label>
+                  <input type="text" class="form-control" id="Series" name="Series" />
+                </div>
+                <div class="col-12 col-lg-6">
+                  <label class="label-blue" for="ClientId">Client ID</label>
+                  <div class="kairo-client-control" data-kairo-client-control>
+                    <input type="text" id="ClientId" name="ClientId" class="kairo-client-control__id" aria-label="Client ID" />
+                    <input type="text" id="ClientName" name="ClientName" class="kairo-client-control__name" aria-label="Client Name" placeholder="Client Name" readonly />
+                    <button type="button" class="btn-lookup kairo-client-control__lookup" aria-label="Lookup Client" data-cmm-lookup="client">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row two-col split-50-50">
+                <div class="col">
+                  <label class="label-blue" for="CenterId">Center ID</label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="CenterId" name="CenterId" class="kairo-control__id" aria-label="Center ID" />
+                    <input type="text" id="CenterName" name="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly />
+                    <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Lookup Center" data-cmm-lookup="center">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="GroupId">Group ID</label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="GroupId" name="GroupId" class="kairo-control__id" aria-label="Group ID" />
+                    <input type="text" id="GroupName" name="GroupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly />
+                    <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Lookup Group" data-cmm-lookup="group">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section" data-section="member-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-person-vcard"></i>Center Member Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Center Member Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row four-col">
+                <div class="col">
+                  <label class="label-blue" for="JoinOn">Join On</label>
+                  <input type="date" class="form-control" id="JoinOn" name="JoinOn" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MaxGroupLoans">Maximum Group Loans</label>
+                  <input type="number" class="form-control" id="MaxGroupLoans" name="MaxGroupLoans" min="0" step="1" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MaxGroupLoanLimit">Maximum Group Loan Limit</label>
+                  <input type="number" class="form-control" id="MaxGroupLoanLimit" name="MaxGroupLoanLimit" min="0" step="0.01" />
+                </div>
+                <div class="col">
+                  <label for="MaxOtherLoans">Maximum Other Loans</label>
+                  <input type="number" class="form-control" id="MaxOtherLoans" name="MaxOtherLoans" min="0" step="1" />
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label for="MaxOtherLoanLimit">Maximum Other Loan Limit</label>
+                  <input type="number" class="form-control" id="MaxOtherLoanLimit" name="MaxOtherLoanLimit" min="0" step="0.01" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="CenterLeader">Center Leader</label>
+                  <select class="form-control" id="CenterLeader" name="CenterLeader">
+                    <option selected></option>
+                    <option>Yes</option>
+                    <option>No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-info-circle"></i>Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row four-col">
+                <div class="col">
+                  <label for="ClientType">Client Type</label>
+                  <input class="form-control" id="ClientType" name="ClientType" disabled />
+                </div>
+                <div class="col">
+                  <label for="SavingsAccountId">Savings A/C ID</label>
+                  <input class="form-control" id="SavingsAccountId" name="SavingsAccountId" disabled />
+                </div>
+                <div class="col">
+                  <label for="ClientStatus">Client Status</label>
+                  <input class="form-control" id="ClientStatus" name="ClientStatus" disabled />
+                </div>
+                <div class="col">
+                  <label for="SavingsAmount">Savings Amount</label>
+                  <input class="form-control" id="SavingsAmount" name="SavingsAmount" disabled />
+                </div>
+              </div>
+
+              <div class="form-row four-col">
+                <div class="col">
+                  <label for="RegistrationDate">Registration Date</label>
+                  <input class="form-control" id="RegistrationDate" name="RegistrationDate" disabled />
+                </div>
+                <div class="col">
+                  <label for="ClosedDate">Closed Date</label>
+                  <input class="form-control" id="ClosedDate" name="ClosedDate" disabled />
+                </div>
+                <div class="col">
+                  <label for="ExitDate">Exit Date</label>
+                  <input class="form-control" id="ExitDate" name="ExitDate" disabled />
+                </div>
+                <div class="col">
+                  <label for="ExitReason">Exit Reason</label>
+                  <input class="form-control" id="ExitReason" name="ExitReason" disabled />
+                </div>
+              </div>
+
+              <div class="audit-section">
+                <div class="audit-block">
+                  <div class="audit-item">
+                    <label for="CreatedBy">Created By</label>
+                    <input class="form-control" id="CreatedBy" name="CreatedBy" disabled />
+                  </div>
+                  <div class="audit-item">
+                    <label for="CreatedOn">Created On</label>
+                    <input class="form-control" id="CreatedOn" name="CreatedOn" disabled />
+                  </div>
+                </div>
+                <div class="audit-block">
+                  <div class="audit-item">
+                    <label for="ModifiedBy">Modified By</label>
+                    <input class="form-control" id="ModifiedBy" name="ModifiedBy" disabled />
+                  </div>
+                  <div class="audit-item">
+                    <label for="ModifiedOn">Modified On</label>
+                    <input class="form-control" id="ModifiedOn" name="ModifiedOn" disabled />
+                  </div>
+                </div>
+                <div class="audit-block">
+                  <div class="audit-item">
+                    <label for="SupervisedBy">Supervised By</label>
+                    <input class="form-control" id="SupervisedBy" name="SupervisedBy" disabled />
+                  </div>
+                  <div class="audit-item">
+                    <label for="SupervisedOn">Supervised On</label>
+                    <input class="form-control" id="SupervisedOn" name="SupervisedOn" disabled />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel">
+        <div class="nav-group">
+          <button class="btn-nav green" type="button" aria-label="Previous Record" data-cmm-nav="previous" disabled><i class="bi bi-chevron-left"></i></button>
+          <span>Record</span>
+          <button class="btn-nav green" type="button" aria-label="Next Record" data-cmm-nav="next" disabled><i class="bi bi-chevron-right"></i></button>
+        </div>
+
+        <button class="btn-action underline" type="button" data-cmm-action="reinstate" aria-label="Reinstate" disabled><i class="bi bi-arrow-counterclockwise me-1"></i>Reinstate</button>
+
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-cmm-action="view"><i class="bi bi-eye me-1"></i>View</button>
+          <button class="btn-action" type="button" data-cmm-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+          <button class="btn-action" type="button" data-cmm-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+          <button class="btn-action" type="button" data-cmm-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+          <button class="btn-action" type="button" data-cmm-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+          <button class="btn-action btn-cancel" type="button" data-cmm-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Docked inline popup (DataEntry) - replaces modal -->
+  <div class="cmm-dataentry-inline" id="centerMemberMaintenanceDataEntryModal" hidden>
+    <div class="cmm-de-titlebar" aria-label="Submodule title bar">
+      <div class="cmm-de-titlebar-left">
+        <i class="bi bi-window-stack cmm-de-titlebar-icon" aria-hidden="true"></i>
+        <span class="cmm-de-titlebar-text" data-cmm-de-title>Submodule</span>
+      </div>
+      <div class="cmm-de-titlebar-right" aria-label="Submodule actions">
+        <button type="button" class="cmm-de-btn cmm-de-btn--close" data-cmm-de-close aria-label="Close" title="Close">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    <iframe id="centerMemberMaintenanceDataEntryFrame" title="Center Member Maintenance Submodule" src="about:blank"></iframe>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../../../assets/js/pages/microfinance/centerMemberMaintenance/center-member-maintenance.embedded.js?v=20260129"></script>
+  <script src="../../../assets/js/pages/microfinance/centerMemberMaintenance/center-member-maintenance.js?v=20260129"></script>
+  <script>
+    (function () {
+      let closeDockedDataEntry = null;
+      let activeDockedFrameWindow = null;
+
+      // Allow embedded submodule pages to request closing (they send { type: 'kairo-dataentry-close' })
+      window.addEventListener('message', (evt) => {
+        try {
+          if (!evt || !evt.data || evt.data.type !== 'kairo-dataentry-close') return;
+          if (activeDockedFrameWindow && evt.source !== activeDockedFrameWindow) return;
+          closeDockedDataEntry?.();
+        } catch {
+          // ignore
+        }
+      });
+
+      function ensureCenterMemberSchemeMenuItem() {
+        const menu = document.getElementById('menu-dataentry');
+        if (!menu) return;
+        const existing = menu.querySelector('[data-cmm-open="dataEntry/center-member-scheme.html"]');
+        if (existing) return;
+
+        menu.insertAdjacentHTML(
+          'beforeend',
+          '<div class="sidebar-item sidebar-item--enhanced menu-item" data-cmm-open="dataEntry/center-member-scheme.html" data-tooltip="Center Member Scheme">' +
+            '<div class="sidebar-item__content">' +
+              '<i class="bi bi-people-fill sidebar-item__icon"></i>' +
+              '<div class="sidebar-item__text">' +
+                '<div class="sidebar-item__title">Center Member Scheme</div>' +
+                '<div class="sidebar-item__description">Manage member schemes</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+
+      function setSectionOpen(sectionEl, isOpen) {
+        if (!sectionEl) return;
+        sectionEl.classList.toggle('is-open', Boolean(isOpen));
+        sectionEl.classList.toggle('expanded', Boolean(isOpen));
+
+        const toggle = sectionEl.querySelector('.menu-arrow');
+        const items = sectionEl.querySelector('.menu-items');
+
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          const icon = toggle.querySelector('i');
+          if (icon) icon.className = isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+        }
+
+        if (items) {
+          if (items.id === 'menu-dataentry') ensureCenterMemberSchemeMenuItem();
+          items.hidden = !isOpen;
+          items.style.display = '';
+        }
+      }
+
+      function wireNavSections() {
+        const sections = Array.from(document.querySelectorAll('[data-nav-section]'));
+        if (!sections.length) return;
+
+        sections.forEach((section) => {
+          const header = section.querySelector('.nav-header--card');
+          if (!header) return;
+
+          header.addEventListener('click', (e) => {
+            if (e.target?.closest?.('.nav-badge')) return;
+
+            const sidebar = document.getElementById('main-sidebar');
+            const mainContainer = document.querySelector('.main-container');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const isCollapsed = sidebar && sidebar.classList.contains('collapsed');
+
+            // If sidebar is collapsed, expand it first and open this section
+            if (isCollapsed) {
+              sidebar.classList.remove('collapsed');
+              if (mainContainer) mainContainer.classList.remove('sidebar-collapsed');
+              if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+              // Restore submenu visibility based on current open state
+              sections.forEach((s) => setSectionOpen(s, false));
+              setSectionOpen(section, true);
+              return;
+            }
+
+            const willOpen = !section.classList.contains('is-open');
+            sections.forEach((s) => setSectionOpen(s, false));
+            setSectionOpen(section, willOpen);
+          });
+        });
+
+        // ensure initial state is consistent with markup
+        sections.forEach((section) => {
+          const toggle = section.querySelector('.menu-arrow');
+          const initialOpen = toggle?.getAttribute('aria-expanded') === 'true';
+          setSectionOpen(section, Boolean(initialOpen));
+        });
+      }
+
+      function wireSidebarToggle() {
+        const sidebar = document.getElementById('main-sidebar');
+        const toggle = document.getElementById('sidebarToggle');
+        const mainContainer = document.querySelector('.main-container');
+        const sections = Array.from(document.querySelectorAll('[data-nav-section]'));
+        if (!sidebar || !toggle) return;
+
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+
+          const isCollapsed = sidebar.classList.contains('collapsed');
+          if (isCollapsed) {
+            // Expanding
+            sidebar.classList.remove('collapsed');
+            if (mainContainer) mainContainer.classList.remove('sidebar-collapsed');
+            toggle.setAttribute('aria-expanded', 'true');
+
+            // Restore submenu visibility: only show for open section
+            sections.forEach((section) => {
+              const isOpen = section.classList.contains('is-open');
+              setSectionOpen(section, isOpen);
+            });
+          } else {
+            // Collapsing
+            sidebar.classList.add('collapsed');
+            if (mainContainer) mainContainer.classList.add('sidebar-collapsed');
+            toggle.setAttribute('aria-expanded', 'false');
+
+            // When collapsed, show all nav-items (icon-only mode) like Account Maintenance
+            document.querySelectorAll('.menu-items').forEach((items) => {
+              if (items.id === 'menu-dataentry') ensureCenterMemberSchemeMenuItem();
+              items.hidden = false;
+              items.style.display = '';
+            });
+          }
+        });
+      }
+
+      function wireSubmoduleSearch() {
+        const searchInput = document.getElementById('submoduleSearch');
+        const clearButton = document.getElementById('submoduleSearchClear');
+        if (!searchInput) return;
+
+        const toggleClearVisibility = () => {
+          if (!clearButton) return;
+          const hasValue = Boolean(String(searchInput.value || '').trim());
+          clearButton.classList.toggle('is-visible', hasValue);
+          clearButton.setAttribute('aria-hidden', hasValue ? 'false' : 'true');
+        };
+
+        const applySubmoduleFilter = () => {
+          const searchTerm = String(searchInput.value || '').toLowerCase().trim();
+          const allItems = document.querySelectorAll('.sidebar-item--enhanced[data-cmm-open]');
+          const sections = Array.from(document.querySelectorAll('[data-nav-section]'));
+
+          ensureCenterMemberSchemeMenuItem();
+
+          allItems.forEach((item) => {
+            const title = item.querySelector('.sidebar-item__title')?.textContent?.toLowerCase?.() || '';
+            const description = item.querySelector('.sidebar-item__description')?.textContent?.toLowerCase?.() || '';
+            const matches = !searchTerm || title.includes(searchTerm) || description.includes(searchTerm);
+            item.style.display = matches ? '' : 'none';
+          });
+
+          sections.forEach((section) => {
+            const items = section.querySelectorAll('.sidebar-item--enhanced[data-cmm-open]');
+            const visibleItems = Array.from(items).filter((item) => item.style.display !== 'none');
+            const navItems = section.querySelector('.menu-items');
+
+            if (!navItems) return;
+
+            if (searchTerm) {
+              if (visibleItems.length > 0) {
+                setSectionOpen(section, true);
+                navItems.style.display = '';
+              } else {
+                setSectionOpen(section, false);
+                navItems.style.display = 'none';
+              }
+            } else {
+              navItems.style.display = '';
+              // When search is cleared, collapse all sections (Account Maintenance behavior)
+              setSectionOpen(section, false);
+            }
+          });
+
+          toggleClearVisibility();
+        };
+
+        searchInput.addEventListener('input', applySubmoduleFilter);
+        if (clearButton) {
+          clearButton.addEventListener('click', () => {
+            if (!searchInput.value) return;
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            searchInput.focus();
+          });
+          toggleClearVisibility();
+        }
+      }
+
+      // Init sidebar behavior
+      ensureCenterMemberSchemeMenuItem();
+      wireNavSections();
+      wireSidebarToggle();
+      wireSubmoduleSearch();
+
+      // Section toggle (form sections)
+      document.querySelectorAll('[data-section-toggle]').forEach((header) => {
+        header.addEventListener('click', (e) => {
+          // prevent double-toggling when clicking the button inside
+          const isButton = e.target?.closest?.('.section-toggle-btn');
+          if (isButton && e.currentTarget !== header) return;
+          const section = header.closest('.form-section');
+          const content = section?.querySelector('[data-section-content]');
+          const toggle = header.querySelector('.section-toggle-btn');
+          if (!content || !toggle) return;
+          const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+          if (isExpanded) {
+            content.style.display = 'none';
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.querySelector('i').className = 'bi bi-chevron-down';
+          } else {
+            content.style.display = 'block';
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.querySelector('i').className = 'bi bi-chevron-up';
+          }
+        });
+      });
+
+      // DataEntry open (event delegation so dynamically inserted items also work)
+      document.querySelector('.sidebar-content')?.addEventListener('click', (e) => {
+        const item = e.target?.closest?.('[data-cmm-open]');
+        if (!item) return;
+        e.preventDefault();
+
+        function dockDataEntryModal(modalEl) {
+          try {
+            const sidebar = document.getElementById('main-sidebar') || document.querySelector('.sidebar');
+            const actionPanel = document.querySelector('.action-panel');
+            const windowEl = document.querySelector('.window') || document.body;
+            if (!sidebar || !actionPanel || !windowEl) return;
+
+            const sidebarRect = sidebar.getBoundingClientRect();
+            const actionRect = actionPanel.getBoundingClientRect();
+            const windowRect = windowEl.getBoundingClientRect();
+
+            // Left edge starts immediately after submenu ends
+            const left = Math.round(sidebarRect.right);
+            // Top/height aligns to the master window container
+            const top = Math.round(windowRect.top);
+            const height = Math.round(windowRect.height);
+            // Width spans: master center-data width + master button-bar width
+            const width = Math.max(320, Math.round(actionRect.right - sidebarRect.right));
+
+            modalEl.style.setProperty('--de-left', `${left}px`);
+            modalEl.style.setProperty('--de-top', `${top}px`);
+            modalEl.style.setProperty('--de-width', `${width}px`);
+            modalEl.style.setProperty('--de-height', `${height}px`);
+          } catch (err) {
+            console.warn('[CenterMemberMaintenance] Failed to dock DataEntry modal:', err);
+          }
+        }
+
+        // Check if user is in Add or Edit mode
+        const formState = window.currentFormState;
+        if (formState !== 'edit') {
+          window.showToast('Please load a record in View Mode before accessing this module.', 'warning');
+          return;
+        }
+
+        // Validate required fields before opening Center Member Scheme
+        const referenceNoInput = document.getElementById('ReferenceNo');
+        const seriesInput = document.getElementById('Series');
+        const clientIdInput = document.getElementById('ClientId');
+        const clientNameInput = document.getElementById('ClientName');
+
+        const referenceNo = String(referenceNoInput?.value || '').trim();
+        const series = String(seriesInput?.value || '').trim();
+        const clientId = String(clientIdInput?.value || '').trim();
+        const clientName = String(clientNameInput?.value || '').trim();
+
+        if (!referenceNo || !series || !clientId || !clientName) {
+          window.showToast('Please ensure all required fields (Reference No, Series, Client ID, and Client Name) are filled in the master screen before accessing this module.', 'warning');
+          return;
+        }
+
+        const url = item.getAttribute('data-cmm-open');
+        const modalEl = document.getElementById('centerMemberMaintenanceDataEntryModal');
+        const frame = document.getElementById('centerMemberMaintenanceDataEntryFrame');
+        if (!modalEl || !frame || !url) return;
+
+        // Close any previous docked submodule
+        if (typeof closeDockedDataEntry === 'function') {
+          closeDockedDataEntry();
+        }
+
+        dockDataEntryModal(modalEl);
+
+        // Set the overlay title like Account Maintenance (use sidebar item title)
+        const titleText = String(item.querySelector('.sidebar-item__title')?.textContent || '').trim() || 'Submodule';
+        const titleEl = modalEl.querySelector('[data-cmm-de-title]');
+        if (titleEl) titleEl.textContent = titleText;
+
+        frame.src = url;
+        modalEl.hidden = false;
+        document.body.classList.add('cmm-inline-open');
+        activeDockedFrameWindow = frame.contentWindow;
+
+        // Highlight current submodule in sidebar
+        document
+          .querySelectorAll('.sidebar-item--enhanced[data-cmm-open].active')
+          .forEach((el) => el.classList.remove('active'));
+        item.classList.add('active');
+
+        const onResize = () => dockDataEntryModal(modalEl);
+        const onKeyDown = (evt) => {
+          if (evt.key === 'Escape') {
+            evt.preventDefault();
+            closeDockedDataEntry?.();
+          }
+        };
+
+        const closeBtn = modalEl.querySelector('[data-cmm-de-close]');
+        const onCloseClick = (evt) => {
+          evt.preventDefault();
+          closeDockedDataEntry?.();
+        };
+
+        window.addEventListener('resize', onResize);
+        document.addEventListener('keydown', onKeyDown);
+        closeBtn?.addEventListener('click', onCloseClick);
+
+        closeDockedDataEntry = () => {
+          try {
+            window.removeEventListener('resize', onResize);
+            document.removeEventListener('keydown', onKeyDown);
+            closeBtn?.removeEventListener('click', onCloseClick);
+          } catch {
+            // ignore
+          }
+
+          // Clear submodule highlight so it's obvious we're back on master
+          document
+            .querySelectorAll('.sidebar-item--enhanced[data-cmm-open].active')
+            .forEach((el) => el.classList.remove('active'));
+
+          frame.src = 'about:blank';
+          modalEl.hidden = true;
+          document.body.classList.remove('cmm-inline-open');
+          closeDockedDataEntry = null;
+          activeDockedFrameWindow = null;
+        };
+      });
+    })();
+  </script>
+</body>
+</html>

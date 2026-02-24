@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collateral Vehicles Details · Kairo Banking</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../../../assets/css/styles.css">
+</head>
+<body class="collateral-vehicles-details">
+  <div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-truck am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Collateral Vehicles Details</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="minimize" title="Minimize" aria-label="Minimize"><i class="bi bi-dash-lg"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <!-- Form Content -->
+      <main class="form-content" role="region" aria-label="Collateral Vehicles Details form">
+        <div class="form-card" data-main-form>
+          <form id="collateralVehiclesDetailsForm" autocomplete="off" novalidate>
+            <div class="form-section" data-section="vehicle-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-ui-checks-grid"></i>Collateral Vehicles Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Collateral Vehicles Details" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="registrationNo">Registration No</label>
+                    <input type="text" id="registrationNo" name="registrationNo" class="bs-input-text">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="referenceNo">Reference No.</label>
+                    <input type="text" id="referenceNo" name="referenceNo" class="bs-input-text">
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="registrationDate">Registration Date</label>
+                    <input type="date" id="registrationDate" name="registrationDate" class="bs-input-date">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="plateNo">Plate No</label>
+                    <input type="text" id="plateNo" name="plateNo" class="bs-input-text">
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="model">Model</label>
+                    <input type="text" id="model" name="model" class="bs-input-text">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="noOfCylinder">No Of Cylinder</label>
+                    <input type="number" id="noOfCylinder" name="noOfCylinder" class="bs-input-number" min="0">
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="engineNo">Engine No</label>
+                    <input type="text" id="engineNo" name="engineNo" class="bs-input-text">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="countryOfManufacturing">Country Of Manufacturing</label>
+                    <select id="countryOfManufacturing" name="countryOfManufacturing" class="bs-select">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="chassisNo">Chassis No</label>
+                    <input type="text" id="chassisNo" name="chassisNo" class="bs-input-text">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="valuedBy">Valued By</label>
+                    <input type="text" id="valuedBy" name="valuedBy" class="bs-input-text">
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="manufacturedYear">Manufactured Year</label>
+                    <input type="number" id="manufacturedYear" name="manufacturedYear" class="bs-input-number" min="1900" max="2100">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="governmentTax">Government Tax</label>
+                    <input type="checkbox" id="governmentTax" name="governmentTax" class="bs-checkbox">
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="valuationDate">Valuation Date</label>
+                    <input type="date" id="valuationDate" name="valuationDate" class="bs-input-date">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="forcedSaleValue">Forced Sale Value</label>
+                    <input type="number" id="forcedSaleValue" name="forcedSaleValue" class="bs-input-number" step="0.01">
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="marketValue">Market Value</label>
+                    <input type="number" id="marketValue" name="marketValue" class="bs-input-number" step="0.01">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="invoiceValue">Invoice Value</label>
+                    <input type="number" id="invoiceValue" name="invoiceValue" class="bs-input-number" step="0.01">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="remarks">Remarks</label>
+                  <textarea id="remarks" name="remarks" rows="1" class="bs-textarea js-autogrow-textarea"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label for="collateralValue">Collateral Value</label>
+                    <input type="number" id="collateralValue" name="collateralValue" step="0.01" class="bs-input-number" readonly>
+                  </div>
+                  <div class="col">
+                    <label for="currencyId">Currency ID</label>
+                    <input type="text" id="currencyId" name="currencyId" class="bs-input-text" readonly>
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label for="usedCollateralValue">Used Collateral Value</label>
+                    <input type="number" id="usedCollateralValue" name="usedCollateralValue" step="0.01" class="bs-input-number" readonly>
+                  </div>
+                  <div class="col">
+                    <label for="withdrawnDate">Withdrawn Date</label>
+                    <input type="date" id="withdrawnDate" name="withdrawnDate" class="bs-input-date" readonly>
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label for="collateralStatus">Collateral Status</label>
+                    <input type="text" id="collateralStatus" name="collateralStatus" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label for="recordStatus">Record Status</label>
+                    <input type="text" id="recordStatus" name="recordStatus" class="bs-input-text" readonly>
+                  </div>
+                </div>
+
+                <div class="audit-section audit-section--summary">
+                  <div class="audit-cell">
+                    <span class="audit-label">Created By</span>
+                    <span class="audit-value"><input type="text" id="createdBy" name="createdBy" class="bs-input-text" readonly></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Created On</span>
+                    <span class="audit-value"><input type="text" id="createdOn" name="createdOn" class="bs-input-text" readonly></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Supervised By</span>
+                    <span class="audit-value"><input type="text" id="supervisedBy" name="supervisedBy" class="bs-input-text" readonly></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Supervised On</span>
+                    <span class="audit-value"><input type="text" id="supervisedOn" name="supervisedOn" class="bs-input-text" readonly></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </main>
+
+      <!-- Right Action Panel -->
+      <aside class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action" onclick="addVehicleDetail()"><i class="bi bi-plus-circle"></i>Add</button>
+          <button type="button" class="btn-action" onclick="editVehicleDetail()"><i class="bi bi-pencil"></i>Edit</button>
+          <button type="button" class="btn-action btn-delete" onclick="deleteVehicleDetail()"><i class="bi bi-trash"></i>Delete</button>
+          <button type="button" class="btn-action btn-save" id="saveVehicleBtn" onclick="saveVehicleDetail()" disabled><i class="bi bi-check-circle"></i>Save</button>
+          <button type="button" class="btn-action btn-cancel" id="cancelVehicleBtn" onclick="cancelVehicleDetail()" disabled><i class="bi bi-x-circle"></i>Cancel</button>
+        </div>
+
+        <div class="action-buttons">
+          <button type="button" class="btn-action btn-view" onclick="goBackToMain()"><i class="bi bi-arrow-left-circle"></i>Back</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="collateral-vehicles-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+/* Cash Payment Order - Modern Blue Theme */
+:root {
+    --primary: #4A90E2;
+    --primary-dark: #357ABD;
+    --secondary: #F5F7FA;
+    --border: #DDE6ED;
+    --text-dark: #2C3E50;
+    --text-gray: #5A6C7D;
+    --text-light: #8B98A5;
+    --white: #FFFFFF;
+    --success: #27AE60;
+    --warning: #F39C12;
+    --danger: #E74C3C;
+    --info: #3498DB;
+    --radius: 3px;
+    --shadow-sm: 0 6px 16px rgba(44, 62, 80, 0.06);
+    --transition: all 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    background: #F5F6F8;
+    color: var(--text-dark);
+}
+
+.window {
+    background: #F5F6F8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-container {
+    display: flex;
+    flex: 1;
+}
+
+.form-content {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.section-header {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    padding: 4px 8px;
+    font-weight: 700;
+    font-size: 10px;
+    margin: 10px 0 5px 0;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+
+.section-header:first-child {
+    margin-top: 0;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.form-row label {
+    min-width: 130px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.label-blue {
+    color: var(--primary) !important;
+    font-weight: 700 !important;
+}
+
+.form-row input[type="text"],
+.form-row input[type="number"],
+.form-row input[type="date"],
+.form-row select,
+.form-row textarea {
+    height: 18px;
+    padding: 0 5px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 10px;
+    font-family: inherit;
+    font-weight: 700;
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-row input[readonly] {
+    background: #F8FAFC;
+    color: var(--text-gray);
+}
+
+.form-row.two-col {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row.two-col .col {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 8px;
+}
+
+.input-full {
+    flex: 1;
+}
+
+/* Action Panel */
+.action-panel {
+    width: 135px;
+    background: var(--secondary);
+    border-left: 1px solid var(--border);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 60px;
+}
+
+.btn-action {
+    padding: 8px 10px;
+    border: 1px solid var(--primary);
+    background: var(--white);
+    color: var(--primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    text-align: center;
+}
+
+.btn-action:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-action.underline {
+    text-decoration: underline;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
+}
+
+/* Lookup Button */
+.btn-lookup {
+    width: 20px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid var(--primary);
+    background: var(--white);
+    color: var(--primary);
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.money-field {
+    text-align: right !important;
+}
+
+.audit-info {
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 11px;
+    font-weight: 700;
+}

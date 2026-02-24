@@ -1,0 +1,32 @@
+/* LG Messages page-specific styles extracted from public/assets/css/styles.css */
+
+body[data-page="lg-messages"] .cm-react-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body[data-page="lg-messages"] .cm-shell-form {
+  grid-template-columns: 90fr 10fr;
+}
+
+body[data-page="lg-messages"] .input-group .btn.btn-outline-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  min-height: 1.65rem;
+}
+
+body[data-page="lg-messages"] .form-control,
+body[data-page="lg-messages"] .form-select,
+body[data-page="lg-messages"] .input-group-text,
+body[data-page="lg-messages"] .btn.btn-outline-secondary,
+body[data-page="lg-messages"] .btn.btn-outline-primary {
+  min-height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+}

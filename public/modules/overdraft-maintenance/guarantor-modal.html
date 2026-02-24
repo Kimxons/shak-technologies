@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guarantor Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="guarantor-modal.css">
+</head>
+<body>
+    <!-- Guarantor Modal Container -->
+    <div class="guarantor-modal-container">
+        <div class="guarantor-content">
+            <div class="content-scroll">
+                <!-- Guarantor Details Section -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-person-check-fill"></i> Guarantor Details</h3>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="guarantorType"><i class="bi bi-tag-fill"></i> Guarantor Type</label>
+                            <select id="guarantorType" class="form-input">
+                                <option value="">--Select--</option>
+                                <option value="bank">Bank Guarantor</option>
+                                <option value="corporate">Corporate Guarantor</option>
+                                <option value="group">Group Client Guarantor</option>
+                                <option value="individual">Individual Guarantor</option>
+                                <option value="individual-non-client">Individual Non-Client Guarantor</option>
+                                <option value="employer">Employer Guarantor</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="guarantorId" class="required"><i class="bi bi-person-badge"></i> Guarantor ID</label>
+                            <div class="input-display-group">
+                                <input type="text" id="guarantorId" class="form-input-flex form-required" placeholder="Enter guarantor ID">
+                                <button class="search-icon-btn-inline" id="searchGuarantorBtn" title="Search Guarantor">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="institutionClientId"><i class="bi bi-building"></i> Institution/Client ID</label>
+                            <input type="text" id="institutionClientId" class="form-input" placeholder="Enter institution/client ID">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="guaranteeAmount"><i class="bi bi-cash-stack"></i> Guarantee Amount</label>
+                            <input type="number" id="guaranteeAmount" class="form-input" placeholder="Enter guarantee amount">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="remarks"><i class="bi bi-chat-left-text"></i> Remarks</label>
+                            <textarea id="remarks" class="form-textarea" rows="3" placeholder="Enter remarks"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guarantors Table -->
+                <div class="table-card">
+                    <table class="guarantors-table">
+                        <thead>
+                            <tr>
+                                <th>Guarantor ID</th>
+                                <th>Guarantor Name</th>
+                                <th>Guarantee Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guarantorsTableBody">
+                            <tr class="empty-row">
+                                <td colspan="3">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="scene-card">
+                    <div class="scene-header">
+                        <h3><i class="bi bi-info-circle"></i> Behind The Scene</h3>
+                    </div>
+                    <div class="scene-content">
+                        <div class="scene-row">
+                            <div class="form-group-inline">
+                                <label for="signedBy"><i class="bi bi-pen-fill"></i> Signed By</label>
+                                <input type="text" id="signedBy" class="form-input-inline" readonly>
+                            </div>
+                        </div>
+
+                        <div class="scene-grid-2col">
+                            <div class="form-group">
+                                <label for="totalGuaranteeAmount"><i class="bi bi-cash"></i> Guarantee Amount</label>
+                                <input type="number" id="totalGuaranteeAmount" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maxGuaranteeAmount"><i class="bi bi-shield-check"></i> Max. Guarantee Amount</label>
+                                <input type="number" id="maxGuaranteeAmount" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="loansGuaranteed"><i class="bi bi-list-check"></i> No. Of Loans Already Guaranteed</label>
+                                <input type="number" id="loansGuaranteed" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maxLoans"><i class="bi bi-hash"></i> Max. No. Of Loan</label>
+                                <input type="number" id="maxLoans" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="netWorth"><i class="bi bi-wallet2"></i> Net Worth</label>
+                                <input type="number" id="netWorth" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="liability"><i class="bi bi-exclamation-triangle"></i> Liability</label>
+                                <input type="number" id="liability" class="form-input-readonly" readonly>
+                            </div>
+                        </div>
+
+                        <div class="scene-separator"></div>
+
+                        <div class="scene-grid-3col">
+                            <div class="form-group">
+                                <label for="createdBy"><i class="bi bi-person"></i> Created By</label>
+                                <input type="text" id="createdBy" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modifiedBy"><i class="bi bi-person-gear"></i> Modified By</label>
+                                <input type="text" id="modifiedBy" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="supervisedBy"><i class="bi bi-person-check"></i> Supervised By</label>
+                                <input type="text" id="supervisedBy" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="createdOn"><i class="bi bi-calendar-plus"></i> Created On</label>
+                                <input type="text" id="createdOn" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modifiedOn"><i class="bi bi-calendar-event"></i> Modified On</label>
+                                <input type="text" id="modifiedOn" class="form-input-readonly" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="supervisedOn"><i class="bi bi-calendar-check"></i> Supervised On</label>
+                                <input type="text" id="supervisedOn" class="form-input-readonly" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error/Status Message -->
+                <div id="statusMessage" class="status-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons Sidebar -->
+        <div class="action-sidebar">
+            <button class="btn-sidebar btn-add" id="addBtn">
+                <i class="bi bi-plus-circle"></i> Add
+            </button>
+            <button class="btn-sidebar btn-edit" id="editBtn">
+                <i class="bi bi-pencil-fill"></i> Edit
+            </button>
+            <button class="btn-sidebar btn-save" id="saveBtn">
+                <i class="bi bi-save-fill"></i> Save
+            </button>
+            <button class="btn-sidebar btn-cancel" id="cancelBtn">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <div class="action-divider"></div>
+            <button class="btn-sidebar btn-back" id="backBtn">
+                <i class="bi bi-arrow-left-circle"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <script src="guarantor-modal.js"></script>
+</body>
+</html>

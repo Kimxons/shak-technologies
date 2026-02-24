@@ -1,0 +1,62 @@
+/* Availment (Settlement) page-specific styles extracted from public/assets/css/styles.css */
+
+body[data-page="availment-settlement"] .cm-react-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body[data-page="availment-settlement"] .cm-shell-form {
+  grid-template-columns: 90fr 10fr;
+  height: 100%;
+  max-height: 100%;
+}
+
+body[data-page="availment-settlement"],
+body[data-page="availment-settlement"] .cm-workspace {
+  height: 100%;
+}
+
+body[data-page="availment-settlement"] .cm-legacy-content {
+  min-height: 0;
+}
+
+body[data-page="availment-settlement"] .cm-content-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+body[data-page="availment-settlement"] .availment-documents-table tbody tr {
+  cursor: pointer;
+}
+
+body[data-page="availment-settlement"] .availment-documents-table tbody tr.is-selected {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+body[data-page="availment-settlement"] .input-group .btn.btn-outline-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  min-height: 1.65rem;
+}
+
+body[data-page="availment-settlement"] .form-control,
+body[data-page="availment-settlement"] .form-select,
+body[data-page="availment-settlement"] .input-group-text,
+body[data-page="availment-settlement"] .btn.btn-outline-secondary,
+body[data-page="availment-settlement"] .btn.btn-outline-primary {
+  border-radius: 0.5rem;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: all 0.15s ease;
+  min-height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+}

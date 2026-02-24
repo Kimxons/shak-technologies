@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPM Questionnaires</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+</head>
+
+<body data-page="other-modules-spm-questionnaires">
+  <div class="window">
+    <div class="am-header" hidden role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-ui-checks-grid am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Static Data · SPM Questionnaires</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container sidebar-collapsed" aria-label="SPM Questionnaires">
+      <!-- Left Sidebar (Submodules) -->
+      <div class="sidebar collapsed" hidden id="main-sidebar" aria-label="Options menu">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title"><i class="bi bi-folder-fill" aria-hidden="true"></i>Static Data</span>
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+            <i class="bi bi-list" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-content" role="navigation" aria-label="Submodules">
+          <div class="nav-section nav-section--card is-open" data-nav-section data-section-name="Static Data">
+            <div class="nav-header nav-header--card is-open" aria-expanded="true">
+              <div class="nav-header__content">
+                <i class="bi bi-folder-fill nav-header__icon" aria-hidden="true"></i>
+                <span class="nav-label nav-label--card">Static Data</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">0</span>
+                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Static Data" aria-expanded="true">
+                  <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items nav-items--card"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Content -->
+      <div class="form-content" role="region" aria-label="SPM Questionnaires content">
+        <div class="form-card" data-main-form>
+          <form autocomplete="off" novalidate>
+            <div class="form-section" data-section="questionnaire-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-clipboard-data" aria-hidden="true"></i>SPM Questionnaires</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle SPM Questionnaires" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col split-50-50" role="group" aria-label="Questionnaire details">
+                  <div class="col">
+                    <label class="label-blue bs-label-mand" for="questionnaireId">Questionnaire ID</label>
+                    <div class="kairo-control w-100">
+                      <input id="questionnaireId" type="text" class="kairo-control__id" maxlength="20" />
+                      <input id="questionnaireDepartmentName" type="text" class="kairo-control__name" maxlength="40" aria-label="Questionnaire Department/Name" />
+                      <button class="btn-lookup" type="button" aria-label="Search Questionnaire ID">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col">
+                    <label class="label-blue" for="questionTypeId">QuestionType ID</label>
+                    <div class="kairo-control w-100">
+                      <select id="questionTypeId" class="form-select form-select-sm kairo-control__id">
+                        <option value="">--Select--</option>
+                        <option value="Credit Score">Credit Score</option>
+                        <option value="SPM Score">SPM Score</option>
+                      </select>
+                      <span class="btn-lookup" aria-hidden="true">
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="productId">Product ID</label>
+                    <div class="kairo-control w-100">
+                      <input id="productId" type="text" class="kairo-control__id" maxlength="20" />
+                      <input id="productDepartmentName" type="text" class="kairo-control__name" maxlength="40" aria-label="Product Department/Name" />
+                      <button class="btn-lookup" type="button" aria-label="Search Product ID">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col">
+                    <label class="label-blue" for="workflowId">Workflow ID</label>
+                    <div class="kairo-control w-100">
+                      <input id="workflowId" type="text" class="kairo-control__id" />
+                      <button class="btn-lookup" type="button" aria-label="Search Workflow ID">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="wfStageId">WF Stage ID</label>
+                    <div class="kairo-control w-100">
+                      <input id="wfStageId" type="text" class="kairo-control__id" />
+                      <button class="btn-lookup" type="button" aria-label="Search WF Stage ID">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col">
+                    <label class="label-blue" for="rescoringPeriod">Rescoring Period</label>
+                    <div class="input-with-suffix">
+                      <input id="rescoringPeriod" type="text" class="bs-input-text" aria-describedby="rescoringPeriodSuffix" />
+                      <span id="rescoringPeriodSuffix" class="suffix">Month(s)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row two-col split-50-50">
+                  <div class="col">
+                    <label class="label-blue" for="formula">Formula</label>
+                    <input id="formula" type="text" class="bs-input-text form-control" />
+                  </div>
+
+                  <div class="col">
+                    <label class="label-blue" for="riskAcceptanceLevel">Risk Acceptance Level</label>
+                    <div class="kairo-control w-100">
+                      <input id="riskAcceptanceLevel" type="text" class="kairo-control__id" maxlength="20" />
+                      <input id="riskAcceptanceDepartmentName" type="text" class="kairo-control__name" maxlength="40" aria-label="Risk Acceptance Department/Name" />
+                      <button class="btn-lookup" type="button" aria-label="Search Risk Acceptance Level">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="question-list">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-list-check" aria-hidden="true"></i>Question List</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Question List" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="spmq__grid" role="region" aria-label="Question list">
+                  <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                      <thead>
+                        <tr>
+                          <th scope="col" aria-label="Select" class="text-center"></th>
+                          <th scope="col" class="text-nowrap">Question ID</th>
+                          <th scope="col">Question</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td colspan="3" class="text-muted">No records to display.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear" aria-hidden="true"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="audit-section audit-section--summary" aria-label="Audit summary">
+                  <div class="audit-cell">
+                    <span class="audit-label">Created By</span>
+                    <span class="audit-value"><input id="createdBy" type="text" class="bs-input-text" readonly aria-readonly="true" /></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Modified By</span>
+                    <span class="audit-value"><input id="modifiedBy" type="text" class="bs-input-text" readonly aria-readonly="true" /></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Supervised By</span>
+                    <span class="audit-value"><input id="supervisedBy" type="text" class="bs-input-text" readonly aria-readonly="true" /></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Created On</span>
+                    <span class="audit-value"><input id="createdOn" type="text" class="bs-input-text" readonly aria-readonly="true" /></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Modified On</span>
+                    <span class="audit-value"><input id="modifiedOn" type="text" class="bs-input-text" readonly aria-readonly="true" /></span>
+                  </div>
+                  <div class="audit-cell">
+                    <span class="audit-label">Supervised On</span>
+                    <span class="audit-value"><input id="supervisedOn" type="text" class="bs-input-text" readonly aria-readonly="true" /></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Action Panel (preserve cm-shell__action hooks for existing JS patterns) -->
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons cm-legacy-actions__group">
+          <div class="spmq__nav-arrows" aria-label="Record navigation">
+            <button type="button" class="btn-nav spmq__arrow-btn" aria-label="Previous record">
+              <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn-nav spmq__arrow-btn" aria-label="Next record">
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <span class="visually-hidden">Actions</span>
+          <button class="btn-action btn-view cm-shell__action" type="button"><i class="bi bi-eye me-1" aria-hidden="true"></i>View</button>
+          <button class="btn-action cm-shell__action" type="button" disabled><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Add</button>
+          <button class="btn-action cm-shell__action" type="button" disabled><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Edit</button>
+          <button class="btn-action cm-shell__action" type="button" disabled><i class="bi bi-trash3 me-1" aria-hidden="true"></i>Delete</button>
+          <button class="btn-action cm-shell__action cm-shell__action--success" type="button" disabled><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save</button>
+          <button class="btn-action btn-cancel cm-shell__action cm-shell__action--danger" type="button"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>Cancel</button>
+        </div>
+      </aside>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      <span></span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function initStandardShellBehavior() {
+      function closeChildForm() {
+        try {
+          window.parent.postMessage({ type: 'submoduleClosed', source: 'SPM Questionnaires' }, '*');
+        } catch (_) {}
+        try {
+          window.close();
+        } catch (_) {}
+      }
+
+      function handleWindowAction(action) {
+        if (action === 'refresh') {
+          location.reload();
+        } else if (action === 'maximize') {
+          try {
+            window.parent.postMessage({ type: 'toggleSidebarForMaximize' }, '*');
+          } catch (_) {}
+          document.querySelector('.window')?.classList.toggle('maximized');
+        } else if (action === 'close') {
+          closeChildForm();
+        }
+      }
+
+      document.querySelectorAll('.am-header [data-action]').forEach((btn) => {
+        const action = btn.getAttribute('data-action');
+        if (['refresh', 'maximize', 'close'].includes(action)) {
+          btn.addEventListener('click', () => handleWindowAction(action));
+        }
+      });
+
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      sidebarToggle?.addEventListener('click', () => {
+        const sidebar = document.getElementById('main-sidebar');
+        const isCollapsed = sidebar?.classList.toggle('collapsed');
+        sidebarToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        document.querySelector('.main-container')?.classList.toggle('sidebar-collapsed', !!isCollapsed);
+      });
+
+      document.querySelectorAll('[data-section-toggle]').forEach((header) => {
+        header.addEventListener('click', (e) => {
+          const target = e.target;
+          if (target && target.closest && target.closest('button') && !target.closest('.section-toggle-btn')) {
+            return;
+          }
+
+          const section = header.closest('.form-section');
+          if (!section) return;
+          const content = section.querySelector('[data-section-content]');
+          const btn = section.querySelector('.section-toggle-btn');
+          if (!content || !btn) return;
+          const isHidden = content.hasAttribute('hidden');
+          if (isHidden) {
+            content.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            btn.querySelector('i')?.classList.remove('bi-chevron-down');
+            btn.querySelector('i')?.classList.add('bi-chevron-up');
+          } else {
+            content.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.querySelector('i')?.classList.remove('bi-chevron-up');
+            btn.querySelector('i')?.classList.add('bi-chevron-down');
+          }
+        });
+      });
+    })();
+  </script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../../assets/js/services/otherModuleService/spmQuestionnairesService.js"></script>
+  <script src="../common/SPMQuestionnaires.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Reconciliation Manual - Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1>Bank Reconciliation Manual - Functionality Tests</h1>
+        
+        <div class="test-section">
+            <h3>Test Results</h3>
+            <div id="testResults"></div>
+            <button id="runTests" class="btn btn-primary mt-3">Run All Tests</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Manual Testing</h3>
+            <p>Use the form below to manually test the functionality:</p>
+            <div id="moduleContainer"></div>
+        </div>
+    </div>
+
+    <!-- Environment and Services -->
+    <script>
+        // Mock environment for testing
+        window.Environment = {
+            baseUrlCommon: 'http://localhost:8080'
+        };
+    </script>
+    <script src="../../assets/js/services/shared/coreApi.js"></script>
+    <script src="../../assets/js/services/otherModuleService/otherModuleService.js"></script>
+
+    <!-- Test Script -->
+    <script>
+        const TestRunner = {
+            results: [],
+            
+            log(message, type = 'info') {
+                const result = { message, type, timestamp: new Date() };
+                this.results.push(result);
+                this.updateUI();
+            },
+            
+            updateUI() {
+                const container = document.getElementById('testResults');
+                container.innerHTML = this.results.map(r => {
+                    const typeClass = r.type === 'pass' ? 'test-pass' : r.type === 'fail' ? 'test-fail' : 'test-info';
+                    const icon = r.type === 'pass' ? '✓' : r.type === 'fail' ? '✗' : 'ℹ';
+                    return `<div class="test-result ${typeClass}">${icon} ${r.message}</div>`;
+                }).join('');
+            },
+            
+            async runTests() {
+                this.results = [];
+                this.log('Starting Bank Reconciliation Manual Tests...', 'info');
+                
+                // Test 1: Check if services are loaded
+                this.log('Test 1: Checking services...', 'info');
+                if (window.CoreApi) {
+                    this.log('✓ CoreApi loaded', 'pass');
+                } else {
+                    this.log('✗ CoreApi not found', 'fail');
+                }
+                
+                if (window.OtherModuleService) {
+                    this.log('✓ OtherModuleService loaded', 'pass');
+                } else {
+                    this.log('✗ OtherModuleService not found', 'fail');
+                }
+                
+                // Test 2: Check module initialization
+                this.log('Test 2: Checking module initialization...', 'info');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                if (window.BankReconciliationManual) {
+                    this.log('✓ BankReconciliationManual module loaded', 'pass');
+                    
+                    // Test module properties
+                    if (window.BankReconciliationManual.state) {
+                        this.log('✓ Module state initialized', 'pass');
+                    } else {
+                        this.log('✗ Module state not found', 'fail');
+                    }
+                } else {
+                    this.log('✗ BankReconciliationManual module not found', 'fail');
+                }
+                
+                // Test 3: Check DOM elements
+                this.log('Test 3: Checking DOM elements...', 'info');
+                const requiredButtons = [
+                    '[data-action="view"]',
+                    '[data-action="edit"]',
+                    '[data-action="save"]',
+                    '[data-action="reconcile"]',
+                    '[data-action="cancel"]'
+                ];
+                
+                requiredButtons.forEach(selector => {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        this.log(`✓ Button found: ${selector}`, 'pass');
+                    } else {
+                        this.log(`✗ Button not found: ${selector}`, 'fail');
+                    }
+                });
+                
+                // Test 4: Check button states
+                this.log('Test 4: Checking initial button states...', 'info');
+                const saveBtn = document.querySelector('[data-action="save"]');
+                const editBtn = document.querySelector('[data-action="edit"]');
+                
+                if (saveBtn && saveBtn.disabled) {
+                    this.log('✓ Save button initially disabled', 'pass');
+                } else {
+                    this.log('✗ Save button should be disabled initially', 'fail');
+                }
+                
+                if (editBtn && editBtn.disabled) {
+                    this.log('✓ Edit button initially disabled', 'pass');
+                } else {
+                    this.log('✗ Edit button should be disabled initially', 'fail');
+                }
+                
+                // Test 5: Check tables
+                this.log('Test 5: Checking tables...', 'info');
+                const tables = document.querySelectorAll('.table tbody');
+                if (tables.length >= 2) {
+                    this.log(`✓ Found ${tables.length} tables`, 'pass');
+                } else {
+                    this.log(`✗ Expected 2 tables, found ${tables.length}`, 'fail');
+                }
+                
+                this.log('All tests completed!', 'info');
+            }
+        };
+        
+        document.getElementById('runTests').addEventListener('click', () => {
+            TestRunner.runTests();
+        });
+        
+        // Auto-run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(() => TestRunner.runTests(), 500);
+        });
+    </script>
+
+    <!-- Load the bank reconciliation module -->
+    <script>
+        // Load the HTML module
+        fetch('bank-reconciliation-manual.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('moduleContainer').innerHTML = html;
+                
+                // Load the JS module
+                const script = document.createElement('script');
+                script.src = 'bank-reconciliation-manual.js';
+                document.body.appendChild(script);
+            });
+    </script>
+</body>
+</html>

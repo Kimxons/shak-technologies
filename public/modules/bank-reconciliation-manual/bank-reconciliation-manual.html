@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bank Reconciliation - Manual · Other Modules</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <link rel="stylesheet" href="bank-reconciliation-manual.css?v=1737907600" />
+</head>
+
+<body class="bank-reconciliation-manual copilot-theme" data-page="bank-reconciliation-manual">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="bank-reconciliation-manual-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <section class="cm-legacy-content">
+        <div class="cm-scroll-region">
+          <!-- Query Form Section -->
+          <section class="card-surface brm-query-form">
+            <div class="cbs-grid cbs-grid--three cbs-grid--tight">
+              <!-- Branch ID -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="branchId">Branch ID</label>
+                <div class="input-group">
+                  <input id="branchId" data-field="branchId" type="text" class="form-control" placeholder="0101" />
+                  <input id="branchName" data-field="branchName" type="text" class="form-control" placeholder="Head Office" readonly />
+                  <button class="btn btn-outline-primary" type="button" data-action="searchBranch" aria-label="Lookup Branch">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- GL Account ID -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="glAccountId">GL Account ID</label>
+                <div class="input-group">
+                  <input id="glAccountId" data-field="glAccountId" type="text" class="form-control" />
+                  <button class="btn btn-outline-primary" type="button" data-action="searchGLAccount" aria-label="Lookup GL Account">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Batch No -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="batchNo">Batch No.</label>
+                <div class="input-group">
+                  <input id="batchNo" data-field="batchNo" type="text" class="form-control" />
+                  <button class="btn btn-outline-primary" type="button" data-action="searchBatch" aria-label="Lookup Batch">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Transaction Details Section -->
+          <section class="card-surface brm-tables-section">
+            <h3 class="brm-section-title">Transaction Details</h3>
+
+            <div class="brm-tables-grid">
+              <!-- GL Transaction Table -->
+              <div class="brm-table-container">
+                <div class="brm-table-header">GL Transaction</div>
+                <div class="table-responsive">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th style="width: 40px;"><input type="checkbox" /></th>
+                        <th>Cheque ID</th>
+                        <th>Date</th>
+                        <th>Clear Date</th>
+                        <th>Trx Type</th>
+                        <th>Amount</th>
+                        <th>Ref No.</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="8" class="text-muted text-center py-4">No records to display.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Bank Account Transaction Table -->
+              <div class="brm-table-container">
+                <div class="brm-table-header">Bank Account Transaction</div>
+                <div class="table-responsive">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th style="width: 40px;"><input type="checkbox" /></th>
+                        <th>Cheque ID</th>
+                        <th>Transaction</th>
+                        <th>Trx Type</th>
+                        <th>Amount</th>
+                        <th>Ref No.</th>
+                        <th>Narration</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="7" class="text-muted text-center py-4">No records to display.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Summary Section -->
+          <section class="card-surface brm-summary-section">
+            <h3 class="brm-section-title">Summary</h3>
+            <div class="cbs-grid cbs-grid--three cbs-grid--tight">
+              <div class="cbs-field">
+                <label class="cbs-label" for="glTrxAmount">GL Ac. Trx Amount</label>
+                <input type="text" class="form-control" data-field="glTrxAmount" readonly />
+              </div>
+              <div class="cbs-field">
+                <label class="cbs-label" for="bankTrxAmount">Bank Ac. Trx Amount</label>
+                <input type="text" class="form-control" data-field="bankTrxAmount" readonly />
+              </div>
+              <div class="cbs-field">
+                <label class="cbs-label" for="difference">Difference</label>
+                <input type="text" class="form-control" data-field="difference" readonly />
+              </div>
+            </div>
+          </section>
+
+          <!-- BR.Net Web Banking Section -->
+          <section class="card-surface brm-web-banking-section">
+            <h3 class="brm-section-title">BR.Net Web Banking</h3>
+            <div style="min-height: 40px;"></div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" data-action="view"><i class="bi bi-eye"></i> View</button>
+          <button type="button" class="cm-shell__action" data-action="edit"><i class="bi bi-pencil-square"></i> Edit</button>
+          <button type="button" class="cm-shell__action cm-shell__action--success" data-action="save"><i class="bi bi-save2"></i> Save</button>
+          <button type="button" class="cm-shell__action" data-action="reconcile"><i class="bi bi-check-circle"></i> Reconcile</button>
+          <button type="button" class="cm-shell__action" data-action="cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js?v=1737907800"></script>
+  <script src="../../assets/js/services/shared/coreApi.js?v=1737907800"></script>
+  <script src="../../assets/js/services/glAccountSearchService.js?v=1737907800"></script>
+  <script src="../../assets/js/services/batchSearchService.js?v=1737907800"></script>
+  <script src="../../assets/js/services/otherModuleService/otherModuleService.js?v=1737907800"></script>
+  <script src="bank-reconciliation-manual.js?v=1737907800"></script>
+</body>
+
+</html>

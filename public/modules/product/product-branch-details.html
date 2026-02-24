@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Branch Details · Product</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20260201" />
+</head>
+
+<body data-page="client-maintenance">
+  <div class="window">
+    <div class="main-container">
+      <!-- Form Content -->
+      <div class="form-content">
+        <form id="product-branch-details-form" autocomplete="off" novalidate data-pbd-mode="view">
+          <div class="form-card" data-main-form>
+            <!-- Branch & Product Search Section -->
+            <div class="form-section" data-section="branch-product-search">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-search"></i>Branch & Product Search</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Search" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row">
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <small class="text-muted">Mode: <span class="fw-semibold" data-pbd-mode-label>View</span></small>
+                  </div>
+                </div>
+
+                <div id="pbdFeedback" class="alert d-none mb-2" role="status"></div>
+
+                <div class="form-row two-col" data-always-enabled>
+                  <div class="col">
+                    <label class="label-blue" for="BranchId">Branch</label>
+                    <div class="kairo-branch-control" data-kairo-branch-control>
+                      <input
+                        type="text"
+                        class="kairo-branch-control__id"
+                        id="BranchId"
+                        name="BranchId"
+                        placeholder="Branch ID"
+                        aria-label="Branch ID"
+                      />
+                      <input
+                        type="text"
+                        class="kairo-branch-control__name"
+                        id="BranchName"
+                        name="BranchName"
+                        readonly
+                        placeholder="Branch Name"
+                        aria-label="Branch Name"
+                      />
+                      <button
+                        type="button"
+                        class="btn-lookup kairo-branch-control__lookup"
+                        data-pbd-search="branch"
+                        aria-label="Search branch"
+                      >
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col">
+                    <label class="label-blue" for="ProductId">Product ID</label>
+                    <div class="kairo-product-control" data-kairo-product-control>
+                      <input
+                        type="text"
+                        class="kairo-product-control__id"
+                        id="ProductId"
+                        name="ProductId"
+                        placeholder="Product ID"
+                        aria-label="Product ID"
+                      />
+                      <input
+                        type="text"
+                        class="kairo-product-control__name"
+                        id="ProductDescription"
+                        name="ProductDescription"
+                        readonly
+                        placeholder="Product Description"
+                        aria-label="Product Description"
+                      />
+                      <button
+                        type="button"
+                        class="btn-lookup kairo-product-control__lookup"
+                        data-pbd-search="product"
+                        aria-label="Search product"
+                      >
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Details Section -->
+            <div class="form-section" data-section="product-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-box-seam"></i>Product Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Product Details" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="ProductTypes">Product Types</label>
+                    <input type="text" class="bs-input-text" id="ProductTypes" name="ProductTypes" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="AccountPrefix">Account Prefix</label>
+                    <input type="text" class="bs-input-text" id="AccountPrefix" name="AccountPrefix" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="Currency">Currency</label>
+                    <input type="text" class="bs-input-text" id="Currency" name="Currency" />
+                  </div>
+                  <div class="col"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Branch Details Section -->
+            <div class="form-section" data-section="branch-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-building"></i>Branch Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Branch Details" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="ValidFrom">Valid From</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="ValidFrom"
+                      name="ValidFrom"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="ValidTo">Valid To</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="ValidTo"
+                      name="ValidTo"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="MaxActiveAccounts">Max. Active A/C</label>
+                    <input type="text" class="bs-input-text" id="MaxActiveAccounts" name="MaxActiveAccounts" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="MinimumBalance">Minimum Balance</label>
+                    <input type="text" class="bs-input-text" id="MinimumBalance" name="MinimumBalance" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label for="PrintPassbook">Print Passbook</label>
+                    <input class="bs-checkbox" type="checkbox" id="PrintPassbook" name="PrintPassbook" />
+                  </div>
+                  <div class="col">
+                    <label for="IsBlocked">Is Blocked</label>
+                    <input class="bs-checkbox" type="checkbox" id="IsBlocked" name="IsBlocked" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Credit Interest Procedure Section -->
+            <div class="form-section" data-section="credit-interest">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-percent"></i>Credit Interest Procedure</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Credit Interest" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="CrMinInterestPayable">Min Interest Payable</label>
+                    <input type="text" class="bs-input-text" id="CrMinInterestPayable" name="CrMinInterestPayable" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="CrMinInterestBearingBalance">Min Interest Bearing Balance</label>
+                    <input type="text" class="bs-input-text" id="CrMinInterestBearingBalance" name="CrMinInterestBearingBalance" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="CrNextInterestApplyOn">Next Interest Apply On</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="CrNextInterestApplyOn"
+                      name="CrNextInterestApplyOn"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="CrInterestStartDate">Interest Start Date</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="CrInterestStartDate"
+                      name="CrInterestStartDate"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col"></div>
+                  <div class="col">
+                    <label class="label-blue" for="CrNextAccrualOn">Next Accrual On</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="CrNextAccrualOn"
+                      name="CrNextAccrualOn"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                </div>
+
+                <hr class="my-3" />
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="CrInterestAppliedUpto">Interest Applied Upto</label>
+                    <input type="text" class="bs-input-text" id="CrInterestAppliedUpto" name="CrInterestAppliedUpto" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="CrInterestAccruedUpto">Interest Accrued Upto</label>
+                    <input type="text" class="bs-input-text" id="CrInterestAccruedUpto" name="CrInterestAccruedUpto" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Debit Interest Procedure Section -->
+            <div class="form-section" data-section="debit-interest">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-percent"></i>Debit Interest Procedure</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Debit Interest" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DrMinInterestChargeable">Min. Interest Chargeable</label>
+                    <input type="text" class="bs-input-text" id="DrMinInterestChargeable" name="DrMinInterestChargeable" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="DrMinPenalInterest">Min. Penal Interest</label>
+                    <input type="text" class="bs-input-text" id="DrMinPenalInterest" name="DrMinPenalInterest" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DrNextInterestApplyOn">Next Interest Apply On</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="DrNextInterestApplyOn"
+                      name="DrNextInterestApplyOn"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="DrInterestStartDate">Interest Start Date</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="DrInterestStartDate"
+                      name="DrInterestStartDate"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DrNextAccrualOn">Next Accrual On</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="DrNextAccrualOn"
+                      name="DrNextAccrualOn"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="DrNextLossProvisionOn">Next Loss Provision On</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="DrNextLossProvisionOn"
+                      name="DrNextLossProvisionOn"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DrEmiAccruedUpto">EMI Accrued Upto</label>
+                    <input type="text" class="bs-input-text" id="DrEmiAccruedUpto" name="DrEmiAccruedUpto" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="DrNextPenaltyApplyOn">Next Penalty Apply On</label>
+                    <input
+                      type="text"
+                      class="bs-input-text pbd-date"
+                      id="DrNextPenaltyApplyOn"
+                      name="DrNextPenaltyApplyOn"
+                      data-pbd-date
+                      placeholder="YYYY-MM-DD"
+                    />
+                  </div>
+                </div>
+
+                <hr class="my-3" />
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DrInterestAppliedUpto">Interest Applied Upto</label>
+                    <input type="text" class="bs-input-text" id="DrInterestAppliedUpto" name="DrInterestAppliedUpto" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="DrLossProvisionUpto">Loss Provision Upto</label>
+                    <input type="text" class="bs-input-text" id="DrLossProvisionUpto" name="DrLossProvisionUpto" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DrInterestAccruedUpto">Interest Accrued Upto</label>
+                    <input type="text" class="bs-input-text" id="DrInterestAccruedUpto" name="DrInterestAccruedUpto" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="DrPenaltyAppliedUpto">Penalty Applied Upto</label>
+                    <input type="text" class="bs-input-text" id="DrPenaltyAppliedUpto" name="DrPenaltyAppliedUpto" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Behind The Scene / Audit Fields -->
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="behind-scene">
+                  <div class="form-row two-col">
+                    <div class="col">
+                      <label class="label-blue" for="CreatedBy">Created By</label>
+                      <input type="text" class="bs-input-text" id="CreatedBy" name="CreatedBy" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="CreatedOn">Created On</label>
+                      <input type="text" class="bs-input-text" id="CreatedOn" name="CreatedOn" readonly />
+                    </div>
+                  </div>
+
+                  <div class="form-row two-col">
+                    <div class="col">
+                      <label class="label-blue" for="ModifiedBy">Modified By</label>
+                      <input type="text" class="bs-input-text" id="ModifiedBy" name="ModifiedBy" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="ModifiedOn">Modified On</label>
+                      <input type="text" class="bs-input-text" id="ModifiedOn" name="ModifiedOn" readonly />
+                    </div>
+                  </div>
+
+                  <div class="form-row two-col">
+                    <div class="col">
+                      <label class="label-blue" for="SupervisedBy">Supervised By</label>
+                      <input type="text" class="bs-input-text" id="SupervisedBy" name="SupervisedBy" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="SupervisedOn">Supervised On</label>
+                      <input type="text" class="bs-input-text" id="SupervisedOn" name="SupervisedOn" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-pbd-action="view">
+            <i class="bi bi-eye me-1"></i>View
+          </button>
+          <button class="btn-action" type="button" data-pbd-action="add">
+            <i class="bi bi-plus-circle me-1"></i>Add
+          </button>
+          <button class="btn-action" type="button" data-pbd-action="edit">
+            <i class="bi bi-pencil-square me-1"></i>Edit
+          </button>
+          <button class="btn-action btn-save" type="button" data-pbd-action="save">
+            <i class="bi bi-check-lg me-1"></i>Save
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-pbd-action="cancel">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+          <button class="btn-action btn-delete" type="button" data-pbd-action="delete">
+            <i class="bi bi-trash me-1"></i>Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Modal (replaces browser alert/confirm) -->
+  <div class="modal fade" id="pbdMessageModal" tabindex="-1" aria-labelledby="pbdMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="pbdMessageModalLabel">Message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="pbdMessageModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-pbd-message-cancel data-bs-dismiss="modal" hidden>Cancel</button>
+          <button type="button" class="btn btn-primary" data-pbd-message-ok>OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <!-- Search Services - load before page script so globals are available -->
+  <script src="../../assets/js/services/search/branchSearchService.js"></script>
+  <script src="../../assets/js/services/search/productSearchService.js"></script>
+  <script src="../../assets/js/pages/product/product-branch-details.js"></script>
+</body>
+
+</html>

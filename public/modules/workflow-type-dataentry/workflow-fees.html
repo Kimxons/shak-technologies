@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow Fees · Kairo Banking</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="workflow-fees.css">
+</head>
+<body>
+  <div class="kairo-container">
+    <!-- Main Content Area (No left sidebar) -->
+    <main class="kairo-content">
+      <div id="statusMessage" class="status-message"></div>
+      
+      <form id="workflowFeesForm" autocomplete="off" novalidate>
+        <!-- Stage Selection Section -->
+        <div class="kairo-card">
+          <div class="card-body">
+            <div class="form-grid-1col">
+              <div class="form-group">
+                <label for="stage">
+                  <i class="bi bi-diagram-3"></i>
+                  <span>Stage</span>
+                </label>
+                <select id="stage" name="stage" required>
+                  <option value="">--Select--</option>
+                  <option value="APPLICATION">Application</option>
+                  <option value="APPRAISAL">Appraisal</option>
+                  <option value="SANCTION">Sanction</option>
+                  <option value="DISBURSEMENT" selected>Disbursement</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow Fees Table Section -->
+        <div class="kairo-card">
+          <div class="card-body">
+            <div class="table-container">
+              <table class="kairo-table">
+                <thead>
+                  <tr>
+                    <th style="width: 200px;">Charge ID</th>
+                    <th>Description</th>
+                    <th style="width: 100px;">Apply</th>
+                  </tr>
+                </thead>
+                <tbody id="workflowFeesTableBody">
+                  <tr>
+                    <td colspan="3" class="no-records">No Records To Display</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="kairo-card">
+          <div class="card-header card-header-blue">
+            <i class="bi bi-eye-slash"></i>
+            <span>Behind The Scene</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-2col">
+              <div class="form-group">
+                <label for="createdBy">
+                  <i class="bi bi-person"></i>
+                  <span>Created By</span>
+                </label>
+                <input type="text" id="createdBy" name="createdBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedBy">
+                  <i class="bi bi-person-check"></i>
+                  <span>Supervised By</span>
+                </label>
+                <input type="text" id="supervisedBy" name="supervisedBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="createdOn">
+                  <i class="bi bi-calendar"></i>
+                  <span>Created On</span>
+                </label>
+                <input type="text" id="createdOn" name="createdOn" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedOn">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>Supervised On</span>
+                </label>
+                <input type="text" id="supervisedOn" name="supervisedOn" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <!-- Right Action Sidebar -->
+    <aside class="kairo-actions">
+      <button type="button" class="btn-action btn-view" onclick="handleView()" title="View (Alt+V)">
+        <i class="bi bi-eye"></i>
+        <span>View</span>
+      </button>
+
+      <button type="button" class="btn-action btn-edit" onclick="handleEdit()" title="Edit (Alt+E)">
+        <i class="bi bi-pencil"></i>
+        <span>Edit</span>
+      </button>
+
+      <button type="button" class="btn-action btn-save" onclick="handleSave()" title="Save (Ctrl+S)">
+        <i class="bi bi-save"></i>
+        <span>Save</span>
+      </button>
+
+      <button type="button" class="btn-action btn-cancel" onclick="handleCancel()" title="Cancel (ESC)">
+        <i class="bi bi-x-circle"></i>
+        <span>Cancel</span>
+      </button>
+
+      <button type="button" class="btn-action btn-back" onclick="handleBack()" title="Back (Alt+B)">
+        <i class="bi bi-arrow-left-circle"></i>
+        <span>Back</span>
+      </button>
+    </aside>
+  </div>
+
+  <!-- Modals Container -->
+  <div id="modalsContainer"></div>
+
+  <script src="workflow-fees.js"></script>
+</body>
+</html>

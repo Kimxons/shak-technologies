@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limit Client Details · Kairo Banking</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="limit-client-details.css">
+</head>
+<body>
+  <div class="kairo-container">
+    <!-- Left Sidebar Navigation -->
+    <aside class="kairo-sidebar">
+      <div class="sidebar-section">
+        <button type="button" class="sidebar-toggle" onclick="toggleSubmenu(this)">
+          <i class="bi bi-caret-down-fill"></i>
+          <span>DataEntry</span>
+        </button>
+        <div class="sidebar-submenu">
+          <button type="button" class="sidebar-subitem active">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Collateral Limit Details</span>
+          </button>
+          <button type="button" class="sidebar-subitem">
+            <i class="bi bi-clock-history"></i>
+            <span>Recent Activities</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="kairo-content">
+      <div id="statusMessage" class="status-message"></div>
+      
+      <form id="limitClientDetailsForm" autocomplete="off" novalidate>
+        <!-- Collateral Details Section -->
+        <div class="kairo-card">
+          <div class="card-header card-header-blue">
+            <i class="bi bi-building"></i>
+            <span>Collateral Details</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-3col">
+              <div class="form-group">
+                <label for="collateralId">
+                  <span class="text-blue">Collateral ID</span>
+                </label>
+                <div class="input-with-button">
+                  <input type="text" id="collateralId" name="collateralId">
+                  <button type="button" class="btn-search" onclick="searchCollateral()" title="Search Collateral">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="referenceNo">
+                  <span>Reference No.</span>
+                </label>
+                <input type="text" id="referenceNo" name="referenceNo">
+              </div>
+
+              <div class="form-group"></div>
+
+              <div class="form-group">
+                <label for="apportionedRatio">
+                  <span>Apportioned Ratio</span>
+                </label>
+                <input type="text" id="apportionedRatio" name="apportionedRatio">
+              </div>
+
+              <div class="form-group">
+                <label for="margin">
+                  <span class="text-blue">Margin</span>
+                </label>
+                <input type="text" id="margin" name="margin">
+              </div>
+
+              <div class="form-group"></div>
+
+              <div class="form-group">
+                <label for="apportionedValue">
+                  <span class="text-blue">Apportioned Value</span>
+                </label>
+                <input type="text" id="apportionedValue" name="apportionedValue">
+              </div>
+
+              <div class="form-group">
+                <label for="apportionedCollateralValue">
+                  <span class="text-blue">Apportioned Collateral Value</span>
+                </label>
+                <input type="text" id="apportionedCollateralValue" name="apportionedCollateralValue">
+              </div>
+
+              <div class="form-group"></div>
+
+              <div class="form-group">
+                <label for="assignedDate">
+                  <span class="text-blue">Assigned Date</span>
+                </label>
+                <select id="assignedDate" name="assignedDate">
+                  <option value="">--Select--</option>
+                  <option value="today">Today</option>
+                  <option value="custom">Custom Date</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collateral Details Table Section -->
+        <div class="kairo-card">
+          <div class="card-body">
+            <!-- Button Row -->
+            <div class="button-row">
+              <button type="button" class="btn-secondary" onclick="handleNew()">New</button>
+              <button type="button" class="btn-secondary" onclick="handleAlter()">Alter</button>
+              <button type="button" class="btn-secondary" onclick="handleUpdate()">Update</button>
+              <button type="button" class="btn-secondary" onclick="handleRemove()">Remove</button>
+              <button type="button" class="btn-secondary" onclick="handleClear()">Clear</button>
+              <button type="button" class="btn-secondary" onclick="handleWithdraw()">Withdraw</button>
+            </div>
+
+            <!-- Collateral Details Table -->
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Collateral ID</th>
+                    <th>Reference No.</th>
+                    <th>Apportioned Ratio</th>
+                    <th>Apportioned Value</th>
+                    <th>Margin</th>
+                    <th>Net Collateral Value</th>
+                  </tr>
+                </thead>
+                <tbody id="collateralTableBody">
+                  <tr>
+                    <td colspan="6" class="no-records">No records to display.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Details Section -->
+        <div class="kairo-card">
+          <div class="card-body">
+            <div class="form-grid-3col">
+              <div class="form-group">
+                <label for="owner">
+                  <span>Owner</span>
+                </label>
+                <input type="text" id="owner" name="owner">
+              </div>
+
+              <div class="form-group"></div>
+
+              <div class="form-group">
+                <label for="limitCollateralValue">
+                  <span>Limit Collateral Value</span>
+                </label>
+                <input type="text" id="limitCollateralValue" name="limitCollateralValue">
+              </div>
+
+              <div class="form-group">
+                <label for="collateralType">
+                  <span>Collateral Type</span>
+                </label>
+                <input type="text" id="collateralType" name="collateralType">
+              </div>
+
+              <div class="form-group">
+                <label for="collateralValue">
+                  <span>Collateral Value</span>
+                </label>
+                <input type="text" id="collateralValue" name="collateralValue">
+              </div>
+
+              <div class="form-group">
+                <label for="usedCollateralValue">
+                  <span>Used Collateral Value</span>
+                </label>
+                <input type="text" id="usedCollateralValue" name="usedCollateralValue">
+              </div>
+
+              <div class="form-group">
+                <label for="status">
+                  <span>Status</span>
+                </label>
+                <input type="text" id="status" name="status">
+              </div>
+
+              <div class="form-group">
+                <label for="withdrawnReason">
+                  <span>Withdrawn Reason</span>
+                </label>
+                <input type="text" id="withdrawnReason" name="withdrawnReason">
+              </div>
+
+              <div class="form-group">
+                <label for="withdrawnDate">
+                  <span>Withdrawn Date</span>
+                </label>
+                <input type="text" id="withdrawnDate" name="withdrawnDate">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="kairo-card">
+          <div class="card-header card-header-blue">
+            <i class="bi bi-eye-slash"></i>
+            <span>Behind The Scene</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-3col">
+              <div class="form-group">
+                <label for="createdBy">
+                  <i class="bi bi-person"></i>
+                  <span>Created By</span>
+                </label>
+                <input type="text" id="createdBy" name="createdBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="modifiedBy">
+                  <i class="bi bi-person-gear"></i>
+                  <span>Modified By</span>
+                </label>
+                <input type="text" id="modifiedBy" name="modifiedBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedBy">
+                  <i class="bi bi-person-check"></i>
+                  <span>Supervised By</span>
+                </label>
+                <input type="text" id="supervisedBy" name="supervisedBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="createdOn">
+                  <i class="bi bi-calendar"></i>
+                  <span>Created On</span>
+                </label>
+                <input type="text" id="createdOn" name="createdOn" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="modifiedOn">
+                  <i class="bi bi-calendar-event"></i>
+                  <span>Modified On</span>
+                </label>
+                <input type="text" id="modifiedOn" name="modifiedOn" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedOn">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>Supervised On</span>
+                </label>
+                <input type="text" id="supervisedOn" name="supervisedOn" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <!-- Right Action Sidebar -->
+    <aside class="kairo-actions">
+      <div class="actions-bottom">
+        <button type="button" class="btn-action btn-add" onclick="handleAdd()" title="Add (Alt+A)">
+          <i class="bi bi-plus-circle"></i>
+          <span>Add</span>
+        </button>
+
+        <button type="button" class="btn-action btn-edit" onclick="handleEdit()" title="Edit (Alt+E)">
+          <i class="bi bi-pencil-fill"></i>
+          <span>Edit</span>
+        </button>
+
+        <button type="button" class="btn-action btn-save" onclick="handleSave()" title="Save (Ctrl+S)">
+          <i class="bi bi-save-fill"></i>
+          <span>Save</span>
+        </button>
+
+        <button type="button" class="btn-action btn-cancel" onclick="handleCancel()" title="Cancel (ESC)">
+          <i class="bi bi-x-circle"></i>
+          <span>Cancel</span>
+        </button>
+
+        <button type="button" class="btn-action btn-back" onclick="handleBack()" title="Back (Alt+B)">
+          <i class="bi bi-arrow-left-circle"></i>
+          <span>Back</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modals Container -->
+  <div id="modalsContainer"></div>
+
+  <script src="limit-client-details.js"></script>
+</body>
+</html>

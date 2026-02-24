@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LC Settlement Charges</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        .charges-container {
+            background: white;
+            border-radius: 4px;
+            padding: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .charges-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .charges-table thead {
+            background: #e8eef5;
+            border-bottom: 2px solid #d0d7de;
+        }
+        .charges-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            white-space: nowrap;
+        }
+        .charges-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #e8eef5;
+            color: #2c3e50;
+        }
+        .charges-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .charges-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .text-right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="charges-container">
+        <table class="charges-table">
+            <thead>
+                <tr>
+                    <th>Currency ID</th>
+                    <th>Description</th>
+                    <th class="text-right">EffectiveRate</th>
+                    <th class="text-right">TrxAmount</th>
+                    <th class="text-right">LocalAmount</th>
+                    <th class="text-right">ChargeAmount</th>
+                    <th class="text-right">LocalChargeAmount</th>
+                    <th class="text-right">TaxAmount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ETB</td>
+                    <td>Exchange Commision On ETB Account</td>
+                    <td class="text-right">2.50</td>
+                    <td class="text-right">50.0</td>
+                    <td class="text-right">5,876.32</td>
+                    <td class="text-right">178.58</td>
+                    <td class="text-right">178.58</td>
+                    <td class="text-right">0</td>
+                </tr>
+                <tr>
+                    <td>ETB</td>
+                    <td>LC SWIFT Charge On ETB Account</td>
+                    <td class="text-right"></td>
+                    <td class="text-right">50.0</td>
+                    <td class="text-right">5,876.32</td>
+                    <td class="text-right">700.00</td>
+                    <td class="text-right">700.00</td>
+                    <td class="text-right">0</td>
+                </tr>
+                <tr>
+                    <td>ETB</td>
+                    <td>LC SWIFT Charge On USD Account</td>
+                    <td class="text-right"></td>
+                    <td class="text-right">50.0</td>
+                    <td class="text-right">7,143.39</td>
+                    <td class="text-right">5.04</td>
+                    <td class="text-right">714.34</td>
+                    <td class="text-right">0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,370 @@
+[
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientAddress",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientAddress",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientMultipleAddress, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientBasicDetails",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientBasicDetails",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientBasicDetails, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientCorporate",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientCorporate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientCorporate, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientDocuments",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientDocuments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientDocuments, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientEmployment",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientEmployment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientEmployment, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientIndividual",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientIndividual",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientIndividual, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "CreateClientRelations",
+    "RelativePath": "api/v1/ClientMaintenance/CreateClientRelations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientRelations, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientAddress",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientAddress",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientMultipleAddress, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientBasicDetails",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientBasicDetails",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientBasicDetails, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientCorporate",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientCorporate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientCorporate, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientDocuments",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientDocuments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientDocuments, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientEmployment",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientEmployment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientEmployment, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientIndividual",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientIndividual",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientIndividual, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "UpdateClientRelations",
+    "RelativePath": "api/v1/ClientMaintenance/EditClientRelations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientRelations, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientAddress",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientAddress",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientMultipleAddress, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientBasicDetails",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientBasicDetails",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientBasicDetails, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientCorporate",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientCorporate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientCorporate, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientDocuments",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientDocuments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientDocuments, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientEmployment",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientEmployment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientEmployment, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientIndividual",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientIndividual",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientIndividual, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.ClientMaintenance.ClientMaintenanceController",
+    "Method": "GetClientRelations",
+    "RelativePath": "api/v1/ClientMaintenance/GetClientRelations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InDataRequest\u00601[[CBS.Entities.ClientMaintenance.ClientRelations, CBS.Entities.ClientMaintenance, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.Shared.SharedController",
+    "Method": "GetSystemCode",
+    "RelativePath": "api/v1/Shared/GetSystemCode",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InData",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ClientMaintenance.Modules.Shared.SharedController",
+    "Method": "GetSystemSearchResult",
+    "RelativePath": "api/v1/Shared/GetSystemSearch",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reqDat",
+        "Type": "CBS.Entities.Common.InData",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

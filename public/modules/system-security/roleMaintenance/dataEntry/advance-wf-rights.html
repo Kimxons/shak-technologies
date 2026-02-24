@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advance WF Rights · Data Entry</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="advance-wf-rights.css" />
+  <link rel="stylesheet" href="../../../account-maintenance/DataEntry/dataentry-theme.css" />
+</head>
+
+<body>
+  <div class="cu-window" data-cu-window>
+    <div class="cu-title-bar" role="banner" aria-label="Window title bar">
+      <div class="cu-title-bar__left">
+        <span class="cu-title-bar__icon" aria-hidden="true"></span>
+        <span class="cu-title-bar__text">Advance WF Rights</span>
+      </div>
+      <div class="cu-title-bar__right" aria-label="Window controls">
+        <button class="cu-title-btn close" type="button" data-cu-close title="Close" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="cu-main">
+      <div class="cu-content-shell" role="region" aria-label="Advance WF Rights">
+        <div class="cu-scroll">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <section class="card">
+              <div class="card-body">
+                <div class="data-table" style="max-height: 36vh; overflow-y: auto;">
+                  <table class="advance-type-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                      <tr style="background: var(--primary); color: var(--white); position: sticky; top: 0;">
+                        <th style="padding: 8px; border: 1px solid var(--border);">Advance Type</th>
+                        <th style="padding: 8px; border: 1px solid var(--border); text-align: center; width: 120px;">Is Selected</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Populated dynamically by JavaScript -->
+                      <tr>
+                        <td colspan="2" style="padding: 30px; text-align: center; color: var(--text-gray);">
+                          <i class="bi bi-hourglass-split" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                          Loading...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-body">
+                <h6 style="margin-bottom: 10px; font-weight: 600; color: var(--text-dark);">Workflow Stages</h6>
+                <div class="data-table" style="max-height: 30vh; overflow-y: auto;">
+                  <table class="workflow-stages-table" style="width: 100%; border-collapse: collapse;">
+                    <tbody>
+                      <!-- Populated dynamically by JavaScript -->
+                      <tr><td style="padding: 6px; border: 1px solid var(--border);">Application</td></tr>
+                      <tr><td style="padding: 6px; border: 1px solid var(--border);">CRB Enquiry</td></tr>
+                      <tr><td style="padding: 6px; border: 1px solid var(--border);">Appraisal</td></tr>
+                      <tr><td style="padding: 6px; border: 1px solid var(--border);">Sanction</td></tr>
+                      <tr><td style="padding: 6px; border: 1px solid var(--border);">Cheque Printing</td></tr>
+                      <tr><td style="padding: 6px; border: 1px solid var(--border);">Disbursement</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p style="font-size: 12px; color: var(--text-gray); margin-top: 8px;">* All Limits Are In Local Currency</p>
+              </div>
+            </section>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; grid-row: 1 / 3;">
+            <section class="card">
+              <div class="card-body form-grid two-col">
+                <div class="form-control-group">
+                  <label for="AllowAdd" class="form-label"><i class="bi bi-plus-circle" aria-hidden="true"></i><span>Allow Add</span></label>
+                  <input type="checkbox" id="AllowAdd" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="AllowEdit" class="form-label"><i class="bi bi-pencil" aria-hidden="true"></i><span>Allow Edit</span></label>
+                  <input type="checkbox" id="AllowEdit" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="AllowDelete" class="form-label"><i class="bi bi-trash" aria-hidden="true"></i><span>Allow Delete</span></label>
+                  <input type="checkbox" id="AllowDelete" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="AllowOverrideRule" class="form-label"><i class="bi bi-lightning" aria-hidden="true"></i><span>Allow Override Rule</span></label>
+                  <input type="checkbox" id="AllowOverrideRule" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="AllowRejection" class="form-label"><i class="bi bi-x-circle" aria-hidden="true"></i><span>Allow Rejection</span></label>
+                  <input type="checkbox" id="AllowRejection" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="AllowCancel" class="form-label"><i class="bi bi-x-square" aria-hidden="true"></i><span>Allow Cancel</span></label>
+                  <input type="checkbox" id="AllowCancel" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="AllowClose" class="form-label"><i class="bi bi-door-closed" aria-hidden="true"></i><span>Allow Close</span></label>
+                  <input type="checkbox" id="AllowClose" class="form-check-input" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="LimitDetails" class="form-label"><i class="bi bi-cash-stack" aria-hidden="true"></i><span>Limit Details</span></label>
+                  <input type="text" id="LimitDetails" class="form-control" placeholder="Enter limit" disabled />
+                </div>
+                <div class="form-control-group">
+                  <label for="JointLimit" class="form-label"><i class="bi bi-people" aria-hidden="true"></i><span>Joint Limit</span></label>
+                  <input type="text" id="JointLimit" class="form-control" placeholder="Enter joint limit" disabled />
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div style="grid-column: 1 / 3;">
+            <section class="card">
+              <div class="card-body form-grid three-col">
+                <div class="form-control-group">
+                  <label for="CreatedBy" class="form-label"><i class="bi bi-person-badge" aria-hidden="true"></i><span>Created By</span></label>
+                  <input type="text" id="CreatedBy" class="form-control" readonly />
+                </div>
+                <div class="form-control-group">
+                  <label for="ModifiedBy" class="form-label"><i class="bi bi-person-gear" aria-hidden="true"></i><span>Modified By</span></label>
+                  <input type="text" id="ModifiedBy" class="form-control" readonly />
+                </div>
+                <div class="form-control-group">
+                  <label for="SupervisedBy" class="form-label"><i class="bi bi-person-check" aria-hidden="true"></i><span>Supervised By</span></label>
+                  <input type="text" id="SupervisedBy" class="form-control" readonly />
+                </div>
+                <div class="form-control-group">
+                  <label for="CreatedOn" class="form-label"><i class="bi bi-calendar-event" aria-hidden="true"></i><span>Created On</span></label>
+                  <input type="text" id="CreatedOn" class="form-control" readonly />
+                </div>
+                <div class="form-control-group">
+                  <label for="ModifiedOn" class="form-label"><i class="bi bi-calendar-range" aria-hidden="true"></i><span>Modified On</span></label>
+                  <input type="text" id="ModifiedOn" class="form-control" readonly />
+                </div>
+                <div class="form-control-group">
+                  <label for="SupervisedOn" class="form-label"><i class="bi bi-calendar2-check" aria-hidden="true"></i><span>Supervised On</span></label>
+                  <input type="text" id="SupervisedOn" class="form-control" readonly />
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="cu-action-panel">
+        <div class="cu-preview">
+          <!-- Preview area could show role details -->
+        </div>
+        <div class="cu-actions">
+          <button class="cu-action-btn" type="button" data-cu-edit>
+            <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+            <span>Edit</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-save disabled>
+            <i class="bi bi-save-fill" aria-hidden="true"></i>
+            <span>Save</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-cancel>
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            <span>Cancel</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-back>
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cu-status-bar">
+      <div class="cu-message" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="../../../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script>
+    (function () {
+      // ═══════════════════════════════════════════════════════════════
+      // PARENT WINDOW ACCESS HELPERS
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Get role data from parent window
+       * @returns {Object|null} The current role or null if not available
+       */
+      function getRoleFromParent() {
+        try {
+          if (window.parent && window.parent.currentRole) {
+            console.log('Parent role found:', window.parent.currentRole);
+            return window.parent.currentRole;
+          }
+        } catch (error) {
+          console.error('Cannot access parent role data:', error);
+        }
+        return null;
+      }
+
+      /**
+       * Get RoleService from parent window
+       * @returns {Object|null} The RoleService instance or null
+       */
+      function getParentRoleService() {
+        try {
+          if (window.parent && window.parent.RoleService) {
+            return window.parent.RoleService;
+          }
+        } catch (error) {
+          console.error('Cannot access parent RoleService:', error);
+        }
+        return null;
+      }
+
+      /**
+       * Get environment config from parent window
+       * @returns {Object} Environment configuration
+       */
+      function getEnvironment() {
+        try {
+          return window.parent?.Environment || {
+            defaultBranchId: '0101',
+            operatorId: 'CSADM'
+          };
+        } catch (error) {
+          return { defaultBranchId: '0101', operatorId: 'CSADM' };
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // STATE MANAGEMENT
+      // ═══════════════════════════════════════════════════════════════
+      
+      let currentRoleData = null;
+      let allRightsData = [];           // All rights from Details02
+      let advanceTypesData = [];        // Unique advance types (grouped from Details02)
+      let currentStagesData = [];       // Stages for currently selected advance type
+      let selectedAdvanceType = null;   // Currently selected WFAdvTypeID
+      let selectedStageData = null;     // Currently selected stage data (full record)
+      let isEditMode = false;
+      let dataLoaded = false;           // Track if data was successfully loaded
+
+      // ═══════════════════════════════════════════════════════════════
+      // UI HELPERS
+      // ═══════════════════════════════════════════════════════════════
+      
+      const close = () => window.parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
+
+      /**
+       * Show notification message (toast style)
+       */
+      function showNotification(message, type = 'info') {
+        // Remove existing notification
+        const existing = document.querySelector('.de-notification');
+        if (existing) existing.remove();
+        
+        const notification = document.createElement('div');
+        notification.className = `de-notification de-notification-${type}`;
+        
+        const icons = {
+          success: 'bi-check-circle-fill',
+          error: 'bi-x-circle-fill',
+          warning: 'bi-exclamation-triangle-fill',
+          info: 'bi-info-circle-fill'
+        };
+        
+        notification.innerHTML = `
+          <i class="bi ${icons[type] || icons.info}"></i>
+          <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+          notification.classList.add('show');
+        });
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      }
+
+      /**
+       * Show or hide loading indicator
+       */
+      function showLoading(show = true) {
+        const advanceTypeTbody = document.querySelector('.advance-type-table tbody');
+        if (show && advanceTypeTbody) {
+          advanceTypeTbody.innerHTML = `
+            <tr>
+              <td colspan="2" style="padding: 40px; text-align: center; color: var(--text-gray);">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                  <div style="width: 30px; height: 30px; border: 3px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                  <span>Loading advance types...</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      /**
+       * Show message when no role is selected
+       */
+      function showNoRoleMessage() {
+        const advanceTypeTbody = document.querySelector('.advance-type-table tbody');
+        if (advanceTypeTbody) {
+          advanceTypeTbody.innerHTML = `
+            <tr>
+              <td colspan="2" style="padding: 30px; text-align: center; color: var(--warning);">
+                <i class="bi bi-exclamation-triangle" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                No role selected in parent window.
+                <br><small>Please select a role first.</small>
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      /**
+       * Show empty state when no data returned
+       */
+      function showEmptyState() {
+        dataLoaded = false;
+        updateButtonStates();
+        const advanceTypeTbody = document.querySelector('.advance-type-table tbody');
+        if (advanceTypeTbody) {
+          advanceTypeTbody.innerHTML = `
+            <tr>
+              <td colspan="2" style="padding: 30px; text-align: center; color: var(--text-gray);">
+                <i class="bi bi-inbox" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                No advance types found for this role.
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      /**
+       * Show error message
+       */
+      function showErrorMessage(message) {
+        dataLoaded = false;
+        updateButtonStates();
+        const advanceTypeTbody = document.querySelector('.advance-type-table tbody');
+        if (advanceTypeTbody) {
+          advanceTypeTbody.innerHTML = `
+            <tr>
+              <td colspan="2" style="padding: 30px; text-align: center; color: var(--danger);">
+                <i class="bi bi-x-circle" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                ${message}
+                <br><small>Please try again later.</small>
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // DATA FETCHING
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Fetch advance workflow rights from API
+       */
+      async function fetchAdvanceWFRights() {
+        currentRoleData = getRoleFromParent();
+        
+        if (!currentRoleData) {
+          console.warn('No role selected in parent window');
+          showNoRoleMessage();
+          return;
+        }
+
+        const RoleService = getParentRoleService();
+        if (!RoleService) {
+          console.error('RoleService not available from parent');
+          showErrorMessage('Service not available');
+          return;
+        }
+
+        const env = getEnvironment();
+        const roleId = currentRoleData.RoleID || currentRoleData.id;
+
+        console.log('Fetching advance WF rights for role:', roleId);
+        showLoading(true);
+
+        try {
+          const requestData = {
+            RoleID: roleId,
+            OurBranchID: env.defaultBranchId || '0101',
+            OperatorID: env.operatorId || 'CSADM'
+          };
+
+          console.log('Request data:', requestData);
+          const response = await RoleService.getRoleAdvanceWFRights(requestData);
+          console.log('Advance WF Rights response:', response);
+
+          if (!response.success) {
+            throw new Error(response.message || 'Failed to fetch advance WF rights');
+          }
+
+          // Parse response - rights data is in Details02
+          const rightsData = response.data?.Details02 || [];
+
+          console.log('Rights data:', rightsData);
+
+          if (!rightsData || rightsData.length === 0) {
+            showEmptyState();
+            return;
+          }
+
+          // Store all rights data
+          allRightsData = rightsData;
+          
+          // Group by WFAdvTypeID to get unique advance types
+          advanceTypesData = groupByAdvanceType(rightsData);
+          
+          console.log('Grouped advance types:', advanceTypesData);
+          
+          populateAdvanceTypesTable(advanceTypesData);
+          
+          // Select first advance type by default
+          if (advanceTypesData.length > 0) {
+            selectAdvanceType(advanceTypesData[0].WFAdvTypeID, 0);
+          }
+          
+          // Data loaded successfully - activate Edit button
+          dataLoaded = true;
+          updateButtonStates();
+
+        } catch (error) {
+          console.error('Failed to fetch advance WF rights:', error);
+          showErrorMessage(error.message || 'Failed to load data');
+        }
+      }
+
+      /**
+       * Group rights data by WFAdvTypeID to get unique advance types
+       */
+      function groupByAdvanceType(rightsData) {
+        const typeMap = new Map();
+        
+        rightsData.forEach(item => {
+          const typeId = item.WFAdvTypeID;
+          if (!typeMap.has(typeId)) {
+            typeMap.set(typeId, {
+              WFAdvTypeID: typeId,
+              stages: []
+            });
+          }
+          typeMap.get(typeId).stages.push(item);
+        });
+        
+        return Array.from(typeMap.values());
+      }
+
+      /**
+       * Get human-readable stage name from stage ID
+       */
+      function getStageName(stageId) {
+        const stageNames = {
+          '10APPL': 'Application',
+          '15CRBE': 'CRB Enquiry',
+          '20APPR': 'Appraisal',
+          '30SANC': 'Sanction',
+          '40CHQP': 'Cheque Printing',
+          '50SECU': 'Security',
+          '60DISB': 'Disbursement'
+        };
+        return stageNames[stageId] || stageId;
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // TABLE POPULATION
+      // ═══════════════════════════════════════════════════════════════
+      
+      /**
+       * Populate advance types table with unique advance type IDs
+       */
+      function populateAdvanceTypesTable(advanceTypes) {
+        const tbody = document.querySelector('.advance-type-table tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = advanceTypes.map((item, index) => `
+          <tr class="advance-type-row" data-index="${index}" data-type-id="${item.WFAdvTypeID}" style="cursor: pointer;">
+            <td style="padding: 6px; border: 1px solid var(--border);">${item.WFAdvTypeID}</td>
+            <td style="padding: 6px; border: 1px solid var(--border); text-align: center;">
+              <input type="checkbox" checked disabled />
+            </td>
+          </tr>
+        `).join('');
+
+        // Add click handlers for row selection
+        tbody.querySelectorAll('.advance-type-row').forEach(row => {
+          row.addEventListener('click', () => {
+            const index = parseInt(row.dataset.index);
+            const typeId = row.dataset.typeId;
+            selectAdvanceType(typeId, index);
+          });
+        });
+      }
+
+      /**
+       * Populate workflow stages table for the selected advance type
+       */
+      function populateWorkflowStagesTable(stages) {
+        const tbody = document.querySelector('.workflow-stages-table tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = stages.map((item, index) => `
+          <tr class="workflow-stage-row" data-index="${index}" data-stage-id="${item.WFAdvStageID}" style="cursor: pointer;">
+            <td style="padding: 6px; border: 1px solid var(--border);">${getStageName(item.WFAdvStageID)}</td>
+          </tr>
+        `).join('');
+
+        // Add click handlers for row selection
+        tbody.querySelectorAll('.workflow-stage-row').forEach(row => {
+          row.addEventListener('click', () => {
+            const index = parseInt(row.dataset.index);
+            selectWorkflowStage(currentStagesData[index], index);
+          });
+        });
+      }
+
+      /**
+       * Select an advance type and show its stages
+       */
+      function selectAdvanceType(typeId, index) {
+        selectedAdvanceType = typeId;
+        
+        // Highlight selected row
+        document.querySelectorAll('.advance-type-row').forEach((row, i) => {
+          row.style.backgroundColor = i === index ? 'var(--primary-light, #e3f2fd)' : '';
+        });
+
+        // Find the advance type data and get its stages
+        const advType = advanceTypesData.find(t => t.WFAdvTypeID === typeId);
+        if (advType && advType.stages.length > 0) {
+          currentStagesData = advType.stages;
+          populateWorkflowStagesTable(advType.stages);
+          
+          // Select first stage by default
+          selectWorkflowStage(advType.stages[0], 0);
+        } else {
+          // Clear stages table if no stages found
+          const tbody = document.querySelector('.workflow-stages-table tbody');
+          if (tbody) {
+            tbody.innerHTML = `
+              <tr>
+                <td style="padding: 20px; text-align: center; color: var(--text-gray);">
+                  No stages configured for this type.
+                </td>
+              </tr>
+            `;
+          }
+          clearRightsForm();
+        }
+      }
+
+      /**
+       * Select a workflow stage and show its details
+       */
+      function selectWorkflowStage(stageData, index) {
+        selectedStageData = stageData;
+        
+        // Highlight selected row
+        document.querySelectorAll('.workflow-stage-row').forEach((row, i) => {
+          row.style.backgroundColor = i === index ? 'var(--primary-light, #e3f2fd)' : '';
+        });
+
+        // Populate form with stage data
+        populateRightsForm(stageData);
+        
+        // Update button states since we now have a selection
+        updateButtonStates();
+      }
+
+      /**
+       * Populate rights form with data from selected stage
+       */
+      function populateRightsForm(data) {
+        // Permissions - using exact field names from API
+        setCheckbox('AllowAdd', data.AllowAdd);
+        setCheckbox('AllowEdit', data.AllowEdit);
+        setCheckbox('AllowDelete', data.AllowDelete);
+        setCheckbox('AllowOverrideRule', data.AllowOverrideRule);
+        setCheckbox('AllowRejection', data.AllowReject);  // API uses AllowReject
+        setCheckbox('AllowCancel', data.AllowCancel);
+        setCheckbox('AllowClose', data.AllowClose);
+
+        // Limits - format as currency
+        setValue('LimitDetails', formatNumber(data.Limit));
+        setValue('JointLimit', formatNumber(data.JointLimit));
+
+        // Audit fields
+        setValue('CreatedBy', data.CreatedBy || '-');
+        setValue('CreatedOn', formatDateTime(data.CreatedOn));
+        setValue('ModifiedBy', data.ModifiedBy || '-');
+        setValue('ModifiedOn', formatDateTime(data.ModifiedOn));
+        setValue('SupervisedBy', data.SupervisedBy || '-');
+        setValue('SupervisedOn', formatDateTime(data.SupervisedOn));
+      }
+
+      /**
+       * Clear rights form
+       */
+      function clearRightsForm() {
+        setCheckbox('AllowAdd', false);
+        setCheckbox('AllowEdit', false);
+        setCheckbox('AllowDelete', false);
+        setCheckbox('AllowOverrideRule', false);
+        setCheckbox('AllowRejection', false);
+        setCheckbox('AllowCancel', false);
+        setCheckbox('AllowClose', false);
+        setValue('LimitDetails', '');
+        setValue('JointLimit', '');
+        setValue('CreatedBy', '-');
+        setValue('CreatedOn', '-');
+        setValue('ModifiedBy', '-');
+        setValue('ModifiedOn', '-');
+        setValue('SupervisedBy', '-');
+        setValue('SupervisedOn', '-');
+      }
+
+      /**
+       * Helper to set checkbox value
+       */
+      function setCheckbox(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.checked = !!value;
+      }
+
+      /**
+       * Helper to set input value
+       */
+      function setValue(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value || '';
+      }
+
+      /**
+       * Format number with commas
+       */
+      function formatNumber(num) {
+        if (num === null || num === undefined) return '';
+        return Number(num).toLocaleString();
+      }
+
+      /**
+       * Format datetime for display
+       */
+      function formatDateTime(dateStr) {
+        if (!dateStr) return '-';
+        try {
+          const date = new Date(dateStr);
+          return date.toLocaleString();
+        } catch {
+          return dateStr;
+        }
+      }
+
+      /**
+       * Build XML string for DetailRecords
+       * @param {Array} records - Array of stage records to include
+       * @returns {string} XML string for DetailRecords
+       */
+      function buildDetailRecordsXml(records) {
+        if (!records || records.length === 0) return '<DetailRecords />';
+        
+        const recordsXml = records.map(record => `
+    <Record>
+      <WFAdvTypeID>${escapeXml(record.WFAdvTypeID || '')}</WFAdvTypeID>
+      <WFAdvStageID>${escapeXml(record.WFAdvStageID || '')}</WFAdvStageID>
+      <AllowAdd>${record.AllowAdd ? 1 : 0}</AllowAdd>
+      <AllowEdit>${record.AllowEdit ? 1 : 0}</AllowEdit>
+      <AllowDelete>${record.AllowDelete ? 1 : 0}</AllowDelete>
+      <AllowOverrideRule>${record.AllowOverrideRule ? 1 : 0}</AllowOverrideRule>
+      <AllowReject>${record.AllowReject ? 1 : 0}</AllowReject>
+      <AllowClose>${record.AllowClose ? 1 : 0}</AllowClose>
+      <AllowCancel>${record.AllowCancel ? 1 : 0}</AllowCancel>
+      <Limit>${record.Limit || 0}</Limit>
+      <JointLimit>${record.JointLimit || 0}</JointLimit>
+    </Record>`).join('');
+        
+        return `<DetailRecords>${recordsXml}\n</DetailRecords>`;
+      }
+
+      /**
+       * Escape special XML characters
+       */
+      function escapeXml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // EDIT MODE MANAGEMENT
+      // ═══════════════════════════════════════════════════════════════
+      
+      const editBtn = document.querySelector('[data-cu-edit]');
+      const saveBtn = document.querySelector('[data-cu-save]');
+      const cancelBtn = document.querySelector('[data-cu-cancel]');
+      
+      const editableSelectors = [
+        '#AllowAdd',
+        '#AllowEdit',
+        '#AllowDelete',
+        '#AllowOverrideRule',
+        '#AllowRejection',
+        '#AllowCancel',
+        '#AllowClose',
+        '#LimitDetails',
+        '#JointLimit',
+      ];
+
+      const editableEls = editableSelectors
+        .map((sel) => document.querySelector(sel))
+        .filter(Boolean);
+
+      /**
+       * Update button states based on current state
+       */
+      function updateButtonStates() {
+        if (isEditMode) {
+          // Edit mode: Save and Cancel active, Edit inactive
+          if (editBtn) editBtn.style.opacity = '0.5';
+          if (saveBtn) saveBtn.style.opacity = '1';
+          if (cancelBtn) cancelBtn.style.opacity = '1';
+        } else if (dataLoaded && selectedStageData) {
+          // Data loaded with selection: Edit and Cancel active, Save inactive
+          if (editBtn) editBtn.style.opacity = '1';
+          if (saveBtn) saveBtn.style.opacity = '0.5';
+          if (cancelBtn) cancelBtn.style.opacity = '1';
+        } else {
+          // No data or no selection: Only Cancel active
+          if (editBtn) editBtn.style.opacity = '0.5';
+          if (saveBtn) saveBtn.style.opacity = '0.5';
+          if (cancelBtn) cancelBtn.style.opacity = '1';
+        }
+      }
+
+      const setEditing = (enabled) => {
+        isEditMode = enabled;
+        editableEls.forEach((el) => {
+          el.toggleAttribute('disabled', !enabled);
+          // Visual feedback for editable state
+          if (el.type === 'checkbox') {
+            el.style.cursor = enabled ? 'pointer' : 'not-allowed';
+          } else {
+            el.style.backgroundColor = enabled ? '#fff' : '';
+            el.style.cursor = enabled ? 'text' : 'not-allowed';
+          }
+        });
+
+        // Also enable checkboxes in the advance type table
+        document.querySelectorAll('.advance-type-table input[type="checkbox"]').forEach(cb => {
+          cb.toggleAttribute('disabled', !enabled);
+          cb.style.cursor = enabled ? 'pointer' : 'not-allowed';
+        });
+
+        updateButtonStates();
+      };
+
+      const resetReadonly = () => {
+        setEditing(false);
+      };
+
+      // ═══════════════════════════════════════════════════════════════
+      // EVENT HANDLERS
+      // ═══════════════════════════════════════════════════════════════
+      
+      document.querySelectorAll('[data-cu-close], [data-cu-cancel], [data-cu-back]').forEach((btn) => {
+        btn.addEventListener('click', () => close());
+      });
+
+      if (editBtn) {
+        editBtn.addEventListener('click', () => {
+          if (!dataLoaded || !currentRoleData) {
+            showNotification('No data loaded. Cannot edit.', 'warning');
+            return;
+          }
+          if (!selectedStageData) {
+            showNotification('Please select a workflow stage first.', 'warning');
+            return;
+          }
+          if (isEditMode) {
+            showNotification('Already in edit mode.', 'info');
+            return;
+          }
+          setEditing(true);
+          showNotification('Edit mode enabled. Make your changes and click Save.', 'success');
+        });
+      }
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+          if (!isEditMode) {
+            showNotification('Please click Edit first to enable editing.', 'warning');
+            return;
+          }
+          
+          if (!selectedStageData) {
+            showNotification('No stage selected. Cannot save.', 'error');
+            return;
+          }
+          
+          const RoleService = getParentRoleService();
+          if (!RoleService) {
+            showNotification('Service not available. Cannot save.', 'error');
+            return;
+          }
+          
+          const env = getEnvironment();
+          const now = new Date();
+          const formattedDate = now.toISOString();
+          
+          // Collect form data for the current stage
+          const stageData = {
+            WFAdvTypeID: selectedAdvanceType,
+            WFAdvStageID: selectedStageData.WFAdvStageID,
+            AllowAdd: document.getElementById('AllowAdd')?.checked ? 1 : 0,
+            AllowEdit: document.getElementById('AllowEdit')?.checked ? 1 : 0,
+            AllowDelete: document.getElementById('AllowDelete')?.checked ? 1 : 0,
+            AllowOverrideRule: document.getElementById('AllowOverrideRule')?.checked ? 1 : 0,
+            AllowReject: document.getElementById('AllowRejection')?.checked ? 1 : 0,
+            AllowClose: document.getElementById('AllowClose')?.checked ? 1 : 0,
+            AllowCancel: document.getElementById('AllowCancel')?.checked ? 1 : 0,
+            Limit: parseFloat(document.getElementById('LimitDetails')?.value.replace(/,/g, '')) || 0,
+            JointLimit: parseFloat(document.getElementById('JointLimit')?.value.replace(/,/g, '')) || 0,
+          };
+          
+          // Build DetailRecords XML
+          const detailRecordsXml = buildDetailRecordsXml([stageData]);
+          
+          // Build request data
+          const requestData = {
+            OurBranchID: env.defaultBranchId || '0101',
+            RoleID: currentRoleData?.RoleID || currentRoleData?.id,
+            OperatedBy: env.operatorId || 'CSADM',
+            OperatedOn: formattedDate,
+            SupervisedBy: env.operatorId || 'CSADM',
+            UpdateCount: 1,
+            DetailRecords: detailRecordsXml
+          };
+          
+          console.log('Save request data:', requestData);
+          
+          try {
+            showNotification('Saving changes...', 'info');
+            
+            const response = await RoleService.editAdvanceWFRights(requestData);
+            console.log('Save response:', response);
+            
+            if (!response.success) {
+              showNotification(response.message || 'Failed to save changes.', 'error');
+              return;
+            }
+            
+            // Update local state with saved values
+            selectedStageData.AllowAdd = stageData.AllowAdd;
+            selectedStageData.AllowEdit = stageData.AllowEdit;
+            selectedStageData.AllowDelete = stageData.AllowDelete;
+            selectedStageData.AllowOverrideRule = stageData.AllowOverrideRule;
+            selectedStageData.AllowReject = stageData.AllowReject;
+            selectedStageData.AllowClose = stageData.AllowClose;
+            selectedStageData.AllowCancel = stageData.AllowCancel;
+            selectedStageData.Limit = stageData.Limit;
+            selectedStageData.JointLimit = stageData.JointLimit;
+            
+            showNotification('Changes saved successfully!', 'success');
+            resetReadonly();
+            
+          } catch (error) {
+            console.error('Save failed:', error);
+            showNotification('Failed to save. Please try again.', 'error');
+          }
+        });
+      }
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          if (isEditMode) {
+            // Reload data to discard changes
+            if (currentRoleData) {
+              fetchAdvanceWFRights();
+              showNotification('Changes discarded.', 'warning');
+            }
+            resetReadonly();
+          } else {
+            close();
+          }
+        });
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // INITIALIZATION
+      // ═══════════════════════════════════════════════════════════════
+      
+      // Add spinner animation and notification styles
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .advance-type-row:hover, .workflow-stage-row:hover {
+          background-color: var(--hover-bg, #f5f5f5) !important;
+        }
+        
+        /* Notification Toast Styles */
+        .de-notification {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 9999;
+          padding: 12px 20px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transform: translateX(120%);
+          transition: transform 0.3s ease-out;
+        }
+        .de-notification.show {
+          transform: translateX(0);
+        }
+        .de-notification i {
+          font-size: 18px;
+        }
+        .de-notification-success {
+          background: #28a745;
+          color: white;
+        }
+        .de-notification-error {
+          background: #dc3545;
+          color: white;
+        }
+        .de-notification-warning {
+          background: #ffc107;
+          color: #212529;
+        }
+        .de-notification-info {
+          background: #17a2b8;
+          color: white;
+        }
+        
+        /* Button disabled state styling */
+        .action-btn {
+          transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+        .action-btn:active:not([style*="opacity: 0.5"]) {
+          transform: scale(0.95);
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Initialize
+      resetReadonly();
+      updateButtonStates();  // Set initial button states
+      
+      // Fetch data when page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        fetchAdvanceWFRights();
+      });
+
+      // Also fetch when iframe becomes visible (in case DOM already loaded)
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        fetchAdvanceWFRights();
+      }
+    })();
+
+    // Handle close button
+    document.addEventListener('DOMContentLoaded', function() {
+      const closeBtn = document.querySelector('[data-cu-close]');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          window.parent.postMessage({ type: 'kairo-dataentry-close' }, '*');
+        });
+      }
+
+      // Handle back button
+      const backBtn = document.querySelector('[data-cu-back]');
+      if (backBtn) {
+        backBtn.addEventListener('click', function() {
+          window.parent.postMessage({ type: 'kairo-dataentry-close' }, '*');
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

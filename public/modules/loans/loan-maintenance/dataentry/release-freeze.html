@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Release Freeze Instruction · Data Entry</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css" />
+  <style>
+    /* Grid specific styles for Release Freeze - aligned with Loan Collaterals */
+    .lrf-grid .table-responsive {
+      max-height: 200px;
+      overflow: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+    .lrf-grid table {
+      margin-bottom: 0;
+    }
+    .lrf-grid thead {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8f9fa;
+    }
+    .lrf-grid tbody tr {
+      cursor: pointer;
+    }
+    .lrf-grid tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    .lrf-grid tbody tr.table-active {
+      background-color: #cfe2ff !important;
+    }
+    .lrf-grid .form-check-input {
+      cursor: pointer;
+    }
+    .lrf-grid .form-check-input:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    .lrf-status {
+      padding: 0.5rem;
+      font-size: 0.875rem;
+      min-height: 1.5rem;
+    }
+    .cbs-label--mandatory::after {
+      content: " *";
+      color: #dc3545;
+    }
+    .lrf-grid th.col-checkbox,
+    .lrf-grid td.col-checkbox {
+      width: 40px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body class="loan-maintenance-sub copilot-theme" data-page="loan-maintenance-sub">
+  <main class="lm-subpage" aria-label="Release Freeze Instruction">
+    <section class="card-surface lrf-shell" data-lrf-root aria-label="Release Freeze Instruction">
+      <div class="lrf-body">
+        <section class="lrf-content" aria-label="Release Freeze Details">
+          <section class="lrf-panel" aria-label="Release Details">
+            <div class="lm-section-header">Release Details</div>
+            <div class="p-2">
+              <div class="container-fluid px-0">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="cbs-label cbs-label--mandatory" for="ReleaseReason">Release Reason</label>
+                    <textarea class="form-control form-control-sm" id="ReleaseReason" name="ReleaseReason" 
+                      rows="2" maxlength="255" disabled placeholder="Enter release reason..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="lrf-grid" aria-label="Freeze Records Grid">
+            <div class="lm-section-header d-flex justify-content-between align-items-center">
+              <span>Freeze Records</span>
+              <div class="form-check form-check-inline mb-0">
+                <input type="checkbox" id="SelectAll" class="form-check-input" disabled 
+                  aria-label="Select all freeze records" title="Select all" />
+                <label class="form-check-label small" for="SelectAll">Select All</label>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0 table-bordered table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th class="col-checkbox"><span class="visually-hidden">Select</span></th>
+                    <th>Reference ID</th>
+                    <th>Branch ID</th>
+                    <th>Account ID</th>
+                    <th>Description</th>
+                    <th>Freeze Category</th>
+                    <th class="text-end">Freeze Value</th>
+                  </tr>
+                </thead>
+                <tbody data-lrf-rows></tbody>
+              </table>
+              <div class="p-3 text-muted text-center" data-lrf-empty>No freeze records to display.</div>
+            </div>
+          </section>
+
+          <section class="lrf-bts" aria-label="Behind The Scene">
+            <div class="lm-section-header">Behind The Scene</div>
+            <div class="p-2">
+              <div class="container-fluid px-0">
+                <!-- Row 1: Reason (full width) -->
+                <div class="row g-2 mb-2">
+                  <div class="col-12">
+                    <label class="cbs-label" for="Reason">Freeze Reason</label>
+                    <input class="form-control form-control-sm" id="Reason" name="Reason" type="text" readonly />
+                  </div>
+                </div>
+
+                <!-- Row 2: Account ID, Reference ID, Freeze Value -->
+                <div class="row g-2 mb-2">
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="AccountID">Account ID</label>
+                    <input class="form-control form-control-sm" id="AccountID" name="AccountID" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="ReferenceID">Reference ID</label>
+                    <input class="form-control form-control-sm" id="ReferenceID" name="ReferenceID" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="FreezeValue">Freeze Value</label>
+                    <input class="form-control form-control-sm text-end" id="FreezeValue" name="FreezeValue" type="text" readonly />
+                  </div>
+                </div>
+
+                <!-- Row 3: Freeze Date, Effective Date, Freeze Category -->
+                <div class="row g-2 mb-2">
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="FreezeDate">Freeze Date</label>
+                    <input class="form-control form-control-sm" id="FreezeDate" name="FreezeDate" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="EffectiveDate">Effective Date</label>
+                    <input class="form-control form-control-sm" id="EffectiveDate" name="EffectiveDate" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="FreezeCategory">Freeze Category</label>
+                    <input class="form-control form-control-sm" id="FreezeCategory" name="FreezeCategory" type="text" readonly />
+                  </div>
+                </div>
+
+                <!-- Row 4: Description -->
+                <div class="row g-2 mb-2">
+                  <div class="col-12">
+                    <label class="cbs-label" for="Description">Description</label>
+                    <input class="form-control form-control-sm" id="Description" name="Description" type="text" readonly />
+                  </div>
+                </div>
+
+                <!-- Audit Separator -->
+                <div class="lmg-audit-sep my-2" aria-hidden="true"></div>
+
+                <!-- Audit Fields -->
+                <div class="row g-2">
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="CreatedBy">Created By</label>
+                    <input class="form-control form-control-sm" id="CreatedBy" name="CreatedBy" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="ModifiedBy">Modified By</label>
+                    <input class="form-control form-control-sm" id="ModifiedBy" name="ModifiedBy" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="SupervisedBy">Supervised By</label>
+                    <input class="form-control form-control-sm" id="SupervisedBy" name="SupervisedBy" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="CreatedOn">Created On</label>
+                    <input class="form-control form-control-sm" id="CreatedOn" name="CreatedOn" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="ModifiedOn">Modified On</label>
+                    <input class="form-control form-control-sm" id="ModifiedOn" name="ModifiedOn" type="text" readonly />
+                  </div>
+                  <div class="col-md-4 col-6">
+                    <label class="cbs-label" for="SupervisedOn">Supervised On</label>
+                    <input class="form-control form-control-sm" id="SupervisedOn" name="SupervisedOn" type="text" readonly />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="lrf-status" data-lrf-status></div>
+          <div class="lrf-footer" aria-label="Footer">Nimble 1.0 Banking</div>
+        </section>
+
+        <aside class="lrf-actions" aria-label="Actions">
+          <div class="lrf-actions__stack">
+            <button type="button" class="lrf-action-btn lrf-action-btn--primary" data-action="view">View</button>
+            <button type="button" class="lrf-action-btn" data-action="edit" disabled>Edit</button>
+            <button type="button" class="lrf-action-btn" data-action="save" disabled>Save</button>
+            <button type="button" class="lrf-action-btn" data-action="cancel" disabled>Cancel</button>
+            <button type="button" class="lrf-action-btn" data-action="back">Back</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Core Dependencies -->
+  <script src="../../../../assets/js/environment.js"></script>
+  <script src="../../../../assets/js/config.js"></script>
+  <script src="../../../../assets/js/services/shared/coreApi.js"></script>
+  
+  <!-- Services -->
+  <script src="../../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../../assets/js/shared/search-modal.js"></script>
+  
+  <!-- Auth -->
+  <script src="../../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../../assets/js/app.js"></script>
+  
+  <!-- Release Freeze Service -->
+  <script src="../../../../assets/js/services/loans/loan-release-freeze-service.js"></script>
+  
+  <!-- Page Scripts -->
+  <script src="../../../../assets/js/pages/loans/loan-maintenance/dataentry/release-freeze.js"></script>
+</body>
+
+</html>

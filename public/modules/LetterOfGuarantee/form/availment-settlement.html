@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Availment (Settlement) · Letter of Guarantee</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+  <link rel="stylesheet" href="../css/availment-settlement.css" />
+</head>
+
+<body class="availment-settlement copilot-theme" data-page="availment-settlement">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="availment-settlement-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <section class="cm-legacy-content">
+        <div class="cm-content-scroll">
+          <section id="availment-settlement-main" class="cm-section cm-section--active" data-step="availment-settlement-main">
+            <div class="card-surface p-3">
+              <div class="cbs-grid cbs-grid--quad">
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ApplicationID">Application ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="ApplicationID" name="ApplicationID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" aria-label="Search application" data-availment-lookup="application">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ReferenceNo">Reference No.</label>
+                  <input type="text" class="form-control" id="ReferenceNo" name="ReferenceNo" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="ClientID">Client ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="ClientID" name="ClientID" data-editable="true" />
+                    <input type="text" class="form-control" id="ClientName" name="ClientName" placeholder="" readonly />
+                    <button class="btn btn-outline-primary" type="button" aria-label="Search client" data-availment-lookup="client">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="AccountID">Account ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="AccountID" name="AccountID" data-editable="true" />
+                    <input type="text" class="form-control" id="AccountName" name="AccountName" placeholder="" readonly />
+                    <button class="btn btn-outline-primary" type="button" aria-label="Search account" data-availment-lookup="account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="nav nav-tabs mt-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="settlement-tab" data-bs-toggle="tab" data-bs-target="#settlement-pane" type="button" role="tab"
+                    aria-controls="settlement-pane" aria-selected="true">Settlement Details</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents-pane" type="button" role="tab"
+                    aria-controls="documents-pane" aria-selected="false">Documents</button>
+                </li>
+              </ul>
+
+              <div class="tab-content pt-3">
+                <div class="tab-pane fade show active" id="settlement-pane" role="tabpanel" aria-labelledby="settlement-tab" tabindex="0">
+                  <div class="card-surface p-3">
+                    <h3 class="section-title mb-3">Settlement Details</h3>
+
+                    <div class="cbs-grid cbs-grid--quad">
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="TrxCurrencyID">Trx CurrencyID</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control cbs-lookup-id" id="TrxCurrencyID" name="TrxCurrencyID" data-editable="true" />
+                          <input type="text" class="form-control cbs-lookup-desc" id="TrxCurrencyName" name="TrxCurrencyName" placeholder="" readonly />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search currency" data-availment-lookup="currency">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="AvailmentType">Availment Type</label>
+                        <select class="form-select" id="AvailmentType" name="AvailmentType" data-editable="true">
+                          <option value="">--Select--</option>
+                          <option value="settlement">Settlement</option>
+                          <option value="partial">Partial</option>
+                        </select>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="NostroAccount">Nostro Account</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control cbs-lookup-id" id="NostroAccount" name="NostroAccount" data-editable="true" />
+                          <input type="text" class="form-control cbs-lookup-desc" id="NostroAccountName" name="NostroAccountName" placeholder="" readonly />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search nostro account" data-availment-lookup="nostro">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 1;">
+                        <label class="cbs-label" for="Amount">Amount</label>
+                        <input type="number" class="form-control" id="Amount" name="Amount" data-editable="true" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 1;">
+                        <label class="cbs-label" for="ExchangeRate">Exchange Rate</label>
+                        <input type="number" class="form-control" id="ExchangeRate" name="ExchangeRate" data-editable="true" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 1;">
+                        <label class="cbs-label" for="LocalAmount">Local Amount</label>
+                        <input type="number" class="form-control" id="LocalAmount" name="LocalAmount" data-editable="true" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 1;">
+                        <label class="cbs-label" for="InterestRate">Interest Rate</label>
+                        <input type="number" class="form-control" id="InterestRate" name="InterestRate" data-editable="true" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="LiabilityAmount">Liability Amount</label>
+                        <input type="number" class="form-control" id="LiabilityAmount" name="LiabilityAmount" data-editable="true" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="FXPermitNumber">FX Permit Number</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="FXPermitNumber" name="FXPermitNumber" data-editable="true" />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search FX Permit" data-availment-lookup="fx-permit">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="AccountType">Account Type</label>
+                        <select class="form-select" id="AccountType" name="AccountType" data-editable="true">
+                          <option value="">--Select--</option>
+                          <option value="current">Current</option>
+                          <option value="savings">Savings</option>
+                          <option value="gl">GL</option>
+                        </select>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="SettlementAccountID">Settlement AccountID</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control cbs-lookup-id" id="SettlementAccountID" name="SettlementAccountID" data-editable="true" />
+                          <input type="text" class="form-control cbs-lookup-desc" id="SettlementAccountName" name="SettlementAccountName" placeholder="" readonly />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search settlement account" data-availment-lookup="settlement-account">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="Remarks">Remarks</label>
+                        <textarea class="form-control" id="Remarks" name="Remarks" rows="2" data-editable="true"></textarea>
+                      </div>
+                    </div>
+
+                    <div class="card-surface p-3 mt-3">
+                      <h3 class="section-title mb-3">Transaction Details</h3>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0">
+                          <thead>
+                            <tr>
+                              <th>Component</th>
+                              <th>CR AccountID</th>
+                              <th>CrAccountName</th>
+                              <th>DR AccountID</th>
+                              <th>DrAccountName</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td colspan="5">No records to display.</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div class="card-surface p-3 mt-3">
+                      <div id="formToast" class="alert alert-success d-none" role="alert"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tab-pane fade" id="documents-pane" role="tabpanel" aria-labelledby="documents-tab" tabindex="0">
+                  <div class="card-surface p-3">
+                    <h3 class="section-title mb-3">Document Details</h3>
+
+                    <div class="cbs-grid cbs-grid--quad">
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="DocumentID">Document ID</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control cbs-lookup-id" id="DocumentID" name="DocumentID" data-editable="true" />
+                          <input type="text" class="form-control cbs-lookup-desc" id="DocumentName" name="DocumentName" placeholder="" readonly />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search document" data-availment-lookup="document">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="DocumentType">Document Type</label>
+                        <select class="form-select" id="DocumentType" name="DocumentType" data-editable="true">
+                          <option value="">--Select--</option>
+                        </select>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="Location">Location</label>
+                        <select class="form-select" id="Location" name="Location" data-editable="true">
+                          <option value="">--Select--</option>
+                        </select>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="DocumentImageName">Document Image</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="DocumentImageName" name="DocumentImageName" readonly />
+                          <button class="btn btn-outline-secondary" type="button" data-availment-doc-action="browse-image">Browse</button>
+                        </div>
+                        <input type="file" id="DocumentImageFile" class="d-none" accept="image/*" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="DocumentRemarks">Remarks</label>
+                        <textarea class="form-control" id="DocumentRemarks" name="DocumentRemarks" rows="2" data-editable="true"></textarea>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 4;">
+                        <label class="cbs-label" for="ReceivedBy">Received By</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control cbs-lookup-id" id="ReceivedBy" name="ReceivedBy" data-editable="true" />
+                          <input type="text" class="form-control cbs-lookup-desc" id="ReceivedByName" name="ReceivedByName" placeholder="" readonly />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search received by" data-availment-lookup="received-by">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;">
+                        <label class="cbs-label" for="ReceivedDate">Received Date</label>
+                        <input type="date" class="form-control" id="ReceivedDate" name="ReceivedDate" value="0001-01-01" data-editable="true" />
+                      </div>
+
+                      <div class="cbs-field" style="grid-column: span 2;"></div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-center my-2">
+                      <button type="button" class="btn btn-outline-secondary btn-sm" data-availment-doc-action="new" disabled>New</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" data-availment-doc-action="alter" disabled>Alter</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" data-availment-doc-action="remove" disabled>Remove</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" data-availment-doc-action="update" disabled>Update</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" data-availment-doc-action="clear" disabled>Clear</button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table id="availmentDocumentsTable" class="table table-sm table-bordered mb-0 availment-documents-table" data-availment-documents-table>
+                        <thead>
+                          <tr>
+                            <th>DocumentID</th>
+                            <th>Document Type Name</th>
+                            <th>LocationID Name</th>
+                            <th>Remarks</th>
+                            <th>Received By</th>
+                            <th>Received Date</th>
+                          </tr>
+                        </thead>
+                        <tbody id="availmentDocumentsTableBody">
+                          <tr>
+                            <td colspan="6">No records to display.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div class="card-surface p-3 mt-3">
+                      <h3 class="section-title section-title--full mb-3">Behind The Scene</h3>
+                      <div class="row g-3">
+                        <div class="col-12 col-md-6 col-lg-3">
+                          <label class="cbs-label" for="BehindAmount">Amount</label>
+                          <input type="number" class="form-control" id="BehindAmount" name="BehindAmount" readonly />
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                          <label class="cbs-label" for="BehindSettledAmount">Settled Amount</label>
+                          <input type="number" class="form-control" id="BehindSettledAmount" name="BehindSettledAmount" readonly />
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                          <label class="cbs-label" for="OutstandingSettlementAmount">Outstanding Settlement Amount</label>
+                          <input type="number" class="form-control" id="OutstandingSettlementAmount" name="OutstandingSettlementAmount" readonly />
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                          <label class="cbs-label" for="BehindMarginAmountPercentage">Margin Amount/Percentage</label>
+                          <input type="text" class="form-control" id="BehindMarginAmountPercentage" name="BehindMarginAmountPercentage" readonly />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" data-availment-action="approve" disabled>Approve</button>
+          <button type="button" class="cm-shell__action" data-availment-action="reject" disabled>Reject</button>
+          <button type="button" class="cm-shell__action" data-availment-action="charges">Charges</button>
+          <button type="button" class="cm-shell__action" data-availment-action="swift-message">Swift Message</button>
+        </div>
+
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" data-availment-action="view">View</button>
+          <button type="button" class="cm-shell__action" data-availment-action="add">Add</button>
+          <button type="button" class="cm-shell__action" data-availment-action="edit">Edit</button>
+          <button type="button" class="cm-shell__action" data-availment-action="save">Save</button>
+          <button type="button" class="cm-shell__action cm-shell__action--danger" data-availment-action="cancel">Cancel</button>
+          <button type="button" class="cm-shell__action" data-availment-action="back">Back</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../js/availment-settlement.js"></script>
+</body>
+
+</html>

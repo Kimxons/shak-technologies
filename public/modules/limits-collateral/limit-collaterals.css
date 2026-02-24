@@ -1,0 +1,66 @@
+/* Limit Collaterals Styles */
+/* Inherits from collateral-types.css styling patterns */
+
+.limit-collaterals .ct-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--cm-text-primary, #1a1a1a);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--cm-border-accent, #0066cc);
+}
+
+.limit-collaterals .ct-section-title--muted {
+  color: var(--cm-text-secondary, #666);
+  border-bottom-color: var(--cm-border-light, #e0e0e0);
+}
+
+.limit-collaterals .ct-form-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem 1.5rem;
+  align-items: center;
+}
+
+.limit-collaterals .ct-label {
+  font-weight: 500;
+  color: var(--cm-text-secondary, #666);
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.limit-collaterals .ct-label--primary {
+  color: var(--cm-text-primary, #1a1a1a);
+  font-weight: 600;
+}
+
+.limit-collaterals .ct-control {
+  max-width: 400px;
+}
+
+.limit-collaterals .ct-control--sm {
+  max-width: 300px;
+}
+
+.limit-collaterals .ct-behind-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.limit-collaterals .cbs-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.limit-collaterals .cbs-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--cm-text-secondary, #666);
+}
+
+.limit-collaterals textarea.ct-control {
+  resize: vertical;
+  min-height: 80px;
+}

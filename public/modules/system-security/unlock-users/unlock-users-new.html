@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock User</title>
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="unlock-users-new.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Main Content Area -->
+            <div class="content">
+                <div id="statusMsg" class="status-message"></div>
+
+                <!-- Branch Selection Card -->
+                <div class="card">
+                    <div class="card-header">Branch Selection</div>
+                    <div class="card-body">
+                        <div class="form-grid form-grid-2col">
+                            <div class="field-row">
+                                <label class="field-label" for="branchId">Branch ID</label>
+                                <div class="field-control">
+                                    <input type="text" id="branchId" maxlength="3" placeholder="001">
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label" for="branchName">Branch Name</label>
+                                <div class="field-control">
+                                    <input type="text" id="branchName" readonly placeholder="Head Office">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <button class="action-button view" onclick="handleSearchBranch()" style="width: 100%; font-size: 12px;">
+                                <i class="bi bi-search"></i> Search Branch
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logged In Operators Card -->
+                <div class="card">
+                    <div class="card-header">Logged In Operators</div>
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table id="operatorsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;">
+                                            <input type="checkbox" id="selectAll" onchange="handleSelectAll()">
+                                        </th>
+                                        <th>Operator ID</th>
+                                        <th>Time Logged In</th>
+                                        <th>IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="operatorTableBody">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-gray);">
+                                            No records to display
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="action-button view" onclick="handleView()" title="View">View</button>
+                <button class="action-button process" onclick="handleProcess()" title="Process" disabled>Process</button>
+                <button class="action-button cancel" onclick="handleCancel()" title="Cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="unlock-users-new.js"></script>
+</body>
+</html>

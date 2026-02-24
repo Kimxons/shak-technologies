@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Center</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+<body>
+    <!-- Toast Message (match Exit Types) -->
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+        <div id="statusToastContainer" class="toast-container position-fixed top-0 end-0 p-3">
+            <div id="statusToast" class="toast align-items-center text-bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i><span class="status-text">Status message appears here</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window" data-module="cost-center">
+        <div class="am-header" hidden role="banner" aria-label="Window title bar">
+            <div class="am-header__left">
+                <i class="bi bi-diagram-3 am-header__icon" aria-hidden="true"></i>
+                <span class="am-header__title">Cost Center</span>
+            </div>
+            <div class="am-header__right" role="toolbar" aria-label="Window controls">
+                <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+                <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="minimize" title="Minimize" aria-label="Minimize window"><i class="bi bi-dash-lg" aria-hidden="true"></i></button>
+                <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square" aria-hidden="true"></i></button>
+                <button class="de-title-btn am-btn am-btn-secondary am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <!-- Left Sidebar -->
+            <div class="sidebar collapsed">
+                <div class="sidebar-header">
+                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>SUBMODULES</span>
+                    <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true">
+                        <i class="bi bi-list" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <div class="sidebar-content">
+                    <div class="nav-section nav-section--card" data-nav-section data-section-name="View">
+                        <div class="nav-header nav-header--card" data-tooltip="View">
+                            <div class="nav-header__content">
+                                <i class="bi bi-eye-fill nav-header__icon" aria-hidden="true"></i>
+                                <span class="nav-label nav-label--card">View</span>
+                            </div>
+                            <div class="nav-header__badge">
+                                <span class="nav-badge">2</span>
+                                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle View" aria-expanded="false" aria-controls="nav-view">
+                                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav-items nav-items--card" id="nav-view" hidden>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="main" data-tooltip="Cost Center">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-ui-checks-grid sidebar-item__icon" aria-hidden="true"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Cost Center</div>
+                                        <div class="sidebar-item__description">Maintain cost center</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="statement" data-tooltip="Cost Center Statement">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-file-earmark-bar-graph sidebar-item__icon" aria-hidden="true"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Cost Center Statement</div>
+                                        <div class="sidebar-item__description">View statement</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Content -->
+            <div class="form-content">
+                <div class="form-card" data-main-form>
+
+                    <div class="alert alert-danger d-flex align-items-center justify-content-between py-2 px-3 mb-3 d-none" role="alert" data-cost-center-alert hidden>
+                        <div class="d-flex align-items-center gap-2 small">
+                            <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                            <span data-cost-center-alert-text></span>
+                        </div>
+                        <button type="button" class="btn-close" aria-label="Close" data-cost-center-alert-close></button>
+                    </div>
+
+                    <div id="ccTabDetails">
+                        <div class="form-section" data-section="cost-center-details">
+                            <div class="section-header">
+                                <span class="section-header__title"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i>Cost Center Details</span>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <form autocomplete="off">
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <div class="d-flex flex-column gap-2">
+                                                <label class="label-blue">Branch ID / Branch Name</label>
+                                                <div class="d-flex align-items-stretch gap-0 flex-grow-1 w-100">
+                                                    <input type="text" class="bs-input-text form-control rounded-end-0" style="flex: 0 1 calc((100% - 28px) * 0.4); min-width: 0;" id="BranchID" name="BranchID" title="Branch ID" placeholder="Enter Branch ID">
+                                                    <input type="text" class="bs-input-text form-control rounded-0 border-start-0 border-end-0" style="flex: 0 1 calc((100% - 28px) * 0.6); min-width: 0;" id="BranchName" readonly aria-readonly="true" title="Branch Name" aria-label="Branch Name" placeholder="Branch Name">
+                                                    <button class="btn-lookup rounded-start-0" type="button" style="flex: 0 0 28px;" aria-label="Lookup Branch" title="Lookup Branch"><i class="bi bi-search" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col">
+                                            <div class="d-flex flex-column gap-2">
+                                                <label class="label-blue">CostCenter ID / Name</label>
+                                                <div class="d-flex align-items-stretch gap-0 flex-grow-1 w-100">
+                                                    <input type="text" class="bs-input-text form-control rounded-end-0" style="flex: 0 1 calc((100% - 28px) * 0.4); min-width: 0;" id="CostCenterID" name="CostCenterID" title="CostCenter ID" placeholder="Enter CostCenter ID">
+                                                    <input type="text" class="bs-input-text form-control rounded-0 border-start-0 border-end-0" style="flex: 0 1 calc((100% - 28px) * 0.6); min-width: 0;" id="Name" name="Name" title="Name" placeholder="Enter Name">
+                                                    <button class="btn-lookup rounded-start-0" type="button" style="flex: 0 0 28px;" aria-label="Lookup CostCenter" title="Lookup CostCenter"><i class="bi bi-search" aria-hidden="true"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="Status">Status</label>
+                                            <select class="bs-select form-select w-100" style="max-width: 40%;" id="Status" name="Status" title="Status">
+                                                <option value="">~Select Status~</option>
+                                                <option value="Active">Active</option>
+                                                <option value="Inactive">Inactive</option>
+                                            </select>
+                                        </div>
+                                        <div class="col"></div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="form-section" data-section="behind-scene">
+                            <div class="section-header">
+                                <span class="section-header__title"><i class="bi bi-info-circle" aria-hidden="true"></i>Behind The Scene</span>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="behind-scene p-4 p-lg-5">
+                                    <div class="row gx-5 gy-4">
+                                        <div class="col-12 col-md-4 d-flex flex-column gap-4">
+                                            <div>
+                                                <label class="label-blue mb-2" for="CreatedBy">Created By</label>
+                                                <input type="text" class="bs-input-text w-100 d-block" id="CreatedBy" readonly aria-readonly="true" title="Created By">
+                                            </div>
+                                            <div>
+                                                <label class="label-blue mb-2" for="CreatedOn">Created On</label>
+                                                <input type="text" class="bs-input-text w-100 d-block" id="CreatedOn" readonly aria-readonly="true" title="Created On">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-4 d-flex flex-column gap-4">
+                                            <div>
+                                                <label class="label-blue mb-2" for="ModifiedBy">Modified By</label>
+                                                <input type="text" class="bs-input-text w-100 d-block" id="ModifiedBy" readonly aria-readonly="true" title="Modified By">
+                                            </div>
+                                            <div>
+                                                <label class="label-blue mb-2" for="ModifiedOn">Modified On</label>
+                                                <input type="text" class="bs-input-text w-100 d-block" id="ModifiedOn" readonly aria-readonly="true" title="Modified On">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-4 d-flex flex-column gap-4">
+                                            <div>
+                                                <label class="label-blue mb-2" for="SupervisedBy">Supervised By</label>
+                                                <input type="text" class="bs-input-text w-100 d-block" id="SupervisedBy" readonly aria-readonly="true" title="Supervised By">
+                                            </div>
+                                            <div>
+                                                <label class="label-blue mb-2" for="SupervisedOn">Supervised On</label>
+                                                <input type="text" class="bs-input-text w-100 d-block" id="SupervisedOn" readonly aria-readonly="true" title="Supervised On">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="ccTabStatement" hidden>
+                        <div class="form-section" data-section="cost-center-statement">
+                            <div class="section-header">
+                                <span class="section-header__title"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i>Cost Center Statement</span>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <form autocomplete="off" id="statementForm">
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="StatementFor">Statement For</label>
+                                            <select class="bs-select form-select" id="StatementFor" name="StatementFor">
+                                                <option value="">~Select Cost Center~</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <label class="label-blue" for="ReportCurrency">Report Currency</label>
+                                            <select class="bs-select form-select" id="ReportCurrency" name="ReportCurrency">
+                                                <option value="">~Select Currency~</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="FromDate">From Date</label>
+                                            <input type="date" class="bs-input-text form-control" id="FromDate" name="FromDate">
+                                        </div>
+                                        <div class="col">
+                                            <label class="label-blue" for="ToDate">To Date</label>
+                                            <input type="date" class="bs-input-text form-control" id="ToDate" name="ToDate">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row mt-3 mb-4 d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary btn-sm" id="fetchStatementBtn">
+                                            <i class="bi bi-search me-1" aria-hidden="true"></i>Fetch Statement
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2" id="resetStatementBtn">
+                                            <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Reset
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm mb-0" id="statementTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tx Date</th>
+                                                <th>Particulars</th>
+                                                <th class="text-end">Debit</th>
+                                                <th class="text-end">Credit</th>
+                                                <th class="text-end">Balance</th>
+                                                <th>Tr.Ref</th>
+                                                <th>OperatorID</th>
+                                                <th>SupervisorID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="statementTableBody">
+                                            <tr>
+                                                <td colspan="8" class="text-center text-muted">Select filters and click "Fetch Statement" to view records.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="statementLoading" class="text-center py-3 d-none">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span class="ms-2 text-muted">Fetching statement...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1" aria-hidden="true"></i>View</button>
+                    <button class="btn-action" type="button" data-action="add"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Add</button>
+                    <button class="btn-action" type="button" data-action="edit"><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Edit</button>
+                    <button class="btn-action" type="button" data-action="delete"><i class="bi bi-trash3 me-1" aria-hidden="true"></i>Delete</button>
+                    <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save</button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>Cancel</button>
+                    <button class="btn-action" type="button" data-action="activate"><i class="bi bi-play-circle me-1" aria-hidden="true"></i>Activate</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="am-message-panel" role="alert" aria-live="polite">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <span></span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/services/shared/serviceLoader.js?v=20260122"></script>
+    <script src="cost-center.js?v=20260122"></script>
+
+    <!-- Branch Lookup Modal -->
+    <div class="modal fade" id="branchLookupModal" tabindex="-1" aria-labelledby="branchLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0 small">Branch</p>
+                        <h5 class="modal-title" id="branchLookupModalLabel">Find a Branch</h5>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-light" id="branchSearchRefresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form class="row g-3 align-items-end mb-3" id="branchLookupForm">
+                        <div class="col-md-3">
+                            <label class="form-label">Branch ID</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="branchSearchModeId">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="branchSearchId" placeholder="e.g. 001" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Branch Name</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="branchSearchModeName">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="branchSearchName" placeholder="Branch name" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="branchSearchReset"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Reset</button>
+                            <button type="submit" class="btn btn-sm btn-primary" id="branchSearchSubmit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="branchSearchCancel"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>Cancel</button>
+                        </div>
+                    </form>
+
+                    <div class="position-relative">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Branch ID</th>
+                                        <th scope="col">Branch Name</th>
+                                        <th scope="col" class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="branchSearchResults"></tbody>
+                            </table>
+                        </div>
+                        <div id="branchSearchEmpty" class="text-center py-5 text-muted">
+                            Enter at least one filter above and click Search to query branches.
+                        </div>
+                        <div id="branchSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cost Center Lookup Modal -->
+    <div class="modal fade" id="costCenterLookupModal" tabindex="-1" aria-labelledby="costCenterLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0 small">Cost Center</p>
+                        <h5 class="modal-title" id="costCenterLookupModalLabel">Find a Cost Center</h5>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-light" id="costCenterSearchRefresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form class="row g-3 align-items-end mb-3" id="costCenterLookupForm">
+                        <div class="col-md-3">
+                            <label class="form-label">Cost Center ID</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="costCenterSearchModeId">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="costCenterSearchId" placeholder="e.g. CC001" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cost Center Name</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="costCenterSearchModeName">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="costCenterSearchName" placeholder="Cost center name" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="costCenterSearchReset"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Reset</button>
+                            <button type="submit" class="btn btn-sm btn-primary" id="costCenterSearchSubmit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="costCenterSearchCancel"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>Cancel</button>
+                        </div>
+                    </form>
+
+                    <div class="position-relative">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">CostCenterID</th>
+                                        <th scope="col">CostCenter</th>
+                                        <th scope="col">OurBranchID</th>
+                                        <th scope="col" class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="costCenterSearchResults"></tbody>
+                            </table>
+                        </div>
+                        <div id="costCenterSearchEmpty" class="text-center py-5 text-muted">
+                            Enter at least one filter above and click Search to query cost centers.
+                        </div>
+                        <div id="costCenterSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // Initialize sidebar navigation (robust delegated handler)
+    (function initSidebarNavigation() {
+        const sections = Array.from(document.querySelectorAll('[data-nav-section]'));
+        if (!sections.length) return;
+
+        const setArrowState = (arrowBtn, expanded) => {
+            if (!arrowBtn) return;
+            arrowBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        };
+
+        const collapseAllExcept = (keepSection) => {
+            sections.forEach(sec => {
+                if (sec === keepSection) return;
+                const secItems = sec.querySelector('.nav-items');
+                const secArrow = sec.querySelector('.nav-arrow[aria-controls]');
+                if (secItems) secItems.hidden = true;
+                setArrowState(secArrow, false);
+                sec.classList.remove('is-open');
+            });
+        };
+
+        // Use capture phase so other scripts can't block the click.
+        document.addEventListener('click', (event) => {
+            const header = event.target.closest('.nav-header');
+            const arrow = event.target.closest('.nav-arrow[aria-controls]');
+            const trigger = header || arrow;
+            if (!trigger) return;
+
+            const section = trigger.closest('[data-nav-section]');
+            if (!section) return;
+
+            const items = section.querySelector('.nav-items');
+            const arrowBtn = section.querySelector('.nav-arrow[aria-controls]');
+            if (!items) return;
+
+            const willExpand = items.hidden;
+            collapseAllExcept(section);
+            items.hidden = !willExpand;
+            setArrowState(arrowBtn, willExpand);
+            section.classList.toggle('is-open', willExpand);
+
+            event.preventDefault();
+        }, true);
+    })();
+
+    // Sidebar collapse/expand
+    (function initSidebarToggle() {
+        const sidebar = document.querySelector('.sidebar');
+        const btn = document.querySelector('.sidebar-toggle');
+        if (!sidebar || !btn) return;
+
+        const syncAria = () => {
+            btn.setAttribute('aria-expanded', sidebar.classList.contains('collapsed') ? 'false' : 'true');
+        };
+
+        syncAria();
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            sidebar.classList.toggle('collapsed');
+            syncAria();
+        });
+    })();
+
+    // Tab switching logic
+    const ccTabDetails = document.getElementById('ccTabDetails');
+    const ccTabStatement = document.getElementById('ccTabStatement');
+
+    // Sidebar item click handlers
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            
+            // Remove active class from all items
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Handle tab switching
+            if (action === 'statement') {
+                ccTabDetails.hidden = true;
+                ccTabStatement.hidden = false;
+            } else if (action === 'main') {
+                // Cost Center Main Screen - show details tab
+                ccTabDetails.hidden = false;
+                ccTabStatement.hidden = true;
+            }
+        });
+    });
+
+    // Set default active item
+    document.querySelector('.sidebar-item[data-action="main"]').classList.add('active');
+    </script>
+</body>
+</html>

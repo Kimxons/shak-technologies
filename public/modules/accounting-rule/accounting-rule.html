@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Rule</title>
+    <!-- <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css"> -->
+    
+
+    <script src="accounting-rule.js" defer></script>
+</head>
+<body>
+    <!-- Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-left">
+            <span class="title-text">Accounting Rule</span>
+        </div>
+        <div class="title-bar-right">
+            <button class="title-btn refresh" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="title-btn" title="Minimize"><i class="bi bi-dash"></i></button>
+            <button class="title-btn" title="Maximize"><i class="bi bi-square"></i></button>
+            <button class="title-btn close" title="Close"><i class="bi bi-x"></i></button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="nav-section is-open">
+                <div class="nav-header">
+                    <span class="nav-label"><i class="bi bi-grid-3x3-gap-fill"></i> SUBMODULES</span>
+                    <button class="nav-arrow"><i class="bi bi-chevron-down"></i></button>
+                </div>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text" placeholder="Search submodules...">
+            </div>
+
+            <div class="nav-items">
+                <button class="sidebar-item" onclick="toggleDataEntryMenu()">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                        <i class="bi bi-folder-fill"></i>
+                        <span>Data Entry</span>
+                    </div>
+                    <span class="sidebar-badge">22</span>
+                </button>
+
+                <button class="sidebar-item" onclick="toggleViewMenu()">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                        <i class="bi bi-eye-fill"></i>
+                        <span>View</span>
+                    </div>
+                    <span class="sidebar-badge">6</span>
+                </button>
+
+                <button class="sidebar-item" onclick="toggleRecentMenu()">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Recent Activities</span>
+                    </div>
+                </button>
+            </div>
+
+            <div id="dataEntrySubmenu" style="display: none; padding: 10px 12px;">
+                <button class="sidebar-item" onclick="openRuleDetailsModal()" style="background-color: #f5f5f5;">
+                    <span>Rule Details</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="form-content">
+            <!-- Search Panel -->
+            <div class="search-panel">
+                <i class="bi bi-search"></i>
+                <span class="search-panel-title">ACCOUNT SEARCH</span>
+                <button class="search-panel-collapse"><i class="bi bi-chevron-up"></i></button>
+            </div>
+
+            <!-- Search Form -->
+            <div style="background-color: white; padding: 15px; border-bottom: 1px solid #ddd;">
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Branch</label>
+                        <input type="text" value="0101" placeholder="Branch">
+                        <input type="text" value="Head Office" placeholder="Branch Name" style="margin-left: 5px; flex: 1;">
+                        <button class="btn-lookup" style="margin-left: 5px;"><i class="bi bi-search"></i></button>
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Client ID</label>
+                        <input type="text" placeholder="Client ID" style="flex: 1;">
+                        <input type="text" placeholder="Client Name" style="margin-left: 5px; flex: 1;">
+                        <button class="btn-lookup" style="margin-left: 5px;"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Product ID</label>
+                        <input type="text" placeholder="Product ID" style="flex: 1;">
+                        <input type="text" placeholder="Product Name" style="margin-left: 5px; flex: 1;">
+                        <button class="btn-lookup" style="margin-left: 5px;"><i class="bi bi-search"></i></button>
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Account ssssID</label>
+                        <input type="text" placeholder="Account ID" style="flex: 1;">
+                        <input type="text" placeholder="Account Name" style="margin-left: 5px; flex: 1;">
+                        <button class="btn-lookup" style="margin-left: 5px;"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Passbook Serial ID</label>
+                        <input type="text" placeholder="Passbook Serial ID" style="flex: 1;">
+                        <input type="text" placeholder="Passbook Name" style="margin-left: 5px; flex: 1;">
+                        <button class="btn-lookup" style="margin-left: 5px;"><i class="bi bi-search"></i></button>
+                    </div>
+                    <div class="col">
+                        <label style="color: #555;">Exempt Passbook</label>
+                        <input type="checkbox" style="margin-left: auto; margin-right: 0;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Details Section -->
+            <div class="section-header">
+                <i class="bi bi-bookmark-fill"></i> ACCOUNT DETAILS
+                <button class="search-panel-collapse" style="margin-left: auto;"><i class="bi bi-chevron-up"></i></button>
+            </div>
+
+            <div style="background-color: white; padding: 0;">
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Short Name</label>
+                        <input type="text" placeholder="Short Name" style="flex: 1;">
+                    </div>
+                    <div class="col" style="border-right: none;">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Address 1</label>
+                        <input type="text" placeholder="Address 1" style="flex: 1;">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Address 2</label>
+                        <input type="text" placeholder="Address 2" style="flex: 1;">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">City</label>
+                        <select style="flex: 1;">
+                            <option>Select City</option>
+                            <option>New York</option>
+                            <option>Los Angeles</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Country</label>
+                        <select style="flex: 1;">
+                            <option>Select Country</option>
+                            <option>USA</option>
+                            <option>UK</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Phone (Home)</label>
+                        <input type="text" placeholder="Phone (Home)" style="flex: 1;">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Phone (Work)</label>
+                        <input type="text" placeholder="Phone (Work)" style="flex: 1;">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Email Address</label>
+                        <input type="text" placeholder="example@email.com" style="flex: 1;">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Contact Person</label>
+                        <input type="text" placeholder="Enter contact name" style="flex: 1;">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Fax No</label>
+                        <input type="text" placeholder="Fax No" style="flex: 1;">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Mobile</label>
+                        <input type="text" placeholder="Mobile" style="flex: 1;">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Operating Mode</label>
+                        <select style="flex: 1;">
+                            <option>Select Operating Mode</option>
+                            <option>Mode 1</option>
+                            <option>Mode 2</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Operating Instructions</label>
+                        <input type="text" placeholder="Operating Instructions" style="flex: 1;">
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Account Class</label>
+                        <select style="flex: 1;">
+                            <option>Select Account Class</option>
+                            <option>Class A</option>
+                            <option>Class B</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Account Officer</label>
+                        <select style="flex: 1;">
+                            <option>Select Account Officer</option>
+                            <option>Officer 1</option>
+                            <option>Officer 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue">Liquidation Account</label>
+                        <div style="display: flex; gap: 5px; flex: 1;">
+                            <input type="text" placeholder="Account Name" style="flex: 1;">
+                            <button class="btn-lookup"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label class="label-blue">Sales Officer</label>
+                        <div style="display: flex; gap: 5px; flex: 1;">
+                            <input type="text" placeholder="Officer Name" style="flex: 1;">
+                            <button class="btn-lookup"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Panel (Fixed) -->
+    <div class="action-panel">
+        <div class="action-buttons">
+            <button class="btn-action"><i class="bi bi-eye-fill"></i> View</button>
+            <button class="btn-action"><i class="bi bi-plus-circle"></i> Add</button>
+            <button class="btn-action"><i class="bi bi-pencil-fill"></i> Edit</button>
+            <button class="btn-action"><i class="bi bi-save-fill"></i> Save</button>
+            <button class="btn-action"><i class="bi bi-x-circle"></i> Cancel</button>
+        </div>
+    </div>
+
+    <!-- Modal Popup -->
+    <div id="ruleDetailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+        <div style="background-color: white; width: 90%; max-width: 1200px; height: 80%; margin: 50px auto; border: 1px solid #ddd; border-radius: 3px; display: flex; flex-direction: column;">
+            <div class="section-header" style="margin: 0; border-radius: 0;">
+                <i class="bi bi-card-text"></i> Rule Details
+                <button onclick="closeRuleDetailsModal()" style="margin-left: auto; background: none; border: none; color: white; cursor: pointer; font-size: 18px;">✕</button>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                <p style="text-align: center; color: #999;">Modal content area</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+                        <!-- Applicable Events Section -->
+                        <div class="section-header">
+                            <i class="bi bi-caret-down-fill"></i> APPLICABLE EVENTS
+                        </div>
+                        
+                        <div class="data-table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Event ID</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="2" style="text-align: center; color: #999; padding: 20px;">No records to display.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Behind The Scene Section -->
+                        <div class="section-header">
+                            <i class="bi bi-caret-down-fill"></i> BEHIND THE SCENE
+                        </div>
+                        
+                        <div class="behind-scene">
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Created By</label>
+                                    <input type="text" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label>Modified By</label>
+                                    <input type="text" class="bs-input-text" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Supervised By</label>
+                                    <input type="text" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label>Created On</label>
+                                    <input type="text" class="bs-input-text" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Modified On</label>
+                                    <input type="text" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label>Supervised On</label>
+                                    <input type="text" class="bs-input-text" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rule Details Modal Popup -->
+    <div id="ruleDetailsModal" class="child-overlay">
+        <div class="child-frame">
+            <div class="card-surface" style="height: 100%; display: flex; flex-direction: column;">
+                <!-- Modal Header -->
+                <div class="section-header" style="margin: 0 0 10px 0; display: flex; justify-content: space-between;">
+                    <span>Rule Details</span>
+                    <button onclick="closeRuleDetailsModal()" style="background: none; border: none; color: white; cursor: pointer; font-size: 18px;">✕</button>
+                </div>
+
+                <!-- Modal Body -->
+                <div style="flex: 1; overflow-y: auto; position: relative;">
+                    <!-- Button Panel -->
+                    <div class="action-panel" style="position: absolute; right: 0; top: 0;">
+                        <div class="action-buttons">
+                            <button class="btn-action"><i class="bi bi-eye-fill"></i> View</button>
+                            <button class="btn-action"><i class="bi bi-plus-circle"></i> Add</button>
+                            <button class="btn-action"><i class="bi bi-pencil-fill"></i> Edit</button>
+                            <button class="btn-action"><i class="bi bi-save-fill"></i> Save</button>
+                            <button class="btn-action"><i class="bi bi-x-circle"></i> Cancel</button>
+                            <button class="btn-action" onclick="closeRuleDetailsModal()"><i class="bi bi-x-lg"></i> Close</button>
+                        </div>
+                    </div>
+
+                    <!-- Top Section -->
+                    <div class="form-row two-col" style="margin-right: 130px;">
+                        <div class="col">
+                            <label>Event</label>
+                            <select class="bs-select">
+                                <option>-- Select Event --</option>
+                                <option>Event 1</option>
+                                <option>Event 2</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label>Product Types</label>
+                            <select class="bs-select">
+                                <option>-- Select Product Type --</option>
+                                <option>Deposit</option>
+                                <option>Loan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Rule Details Section -->
+                    <div class="section-header">
+                        <i class="bi bi-caret-down-fill"></i> RULE DETAILS
+                    </div>
+                    
+                    <div class="card-surface" style="margin-right: 130px;">
+                        <div class="form-row">
+                            <label>Component</label>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <select class="bs-select" style="flex: 1;">
+                                    <option>-- Select Component --</option>
+                                    <option>Component 1</option>
+                                    <option>Component 2</option>
+                                </select>
+                                <span style="font-size: 11px; color: #666;">Component details</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <label>Debit Account Tag</label>
+                            <select class="bs-select">
+                                <option>-- Select Tag --</option>
+                                <option>Tag 1</option>
+                                <option>Tag 2</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <label>Credit Account Tag</label>
+                            <select class="bs-select">
+                                <option>-- Select Tag --</option>
+                                <option>Tag 1</option>
+                                <option>Tag 2</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <label>Narration</label>
+                            <input type="text" class="bs-input-text" placeholder="Enter narration">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 8px; margin: 10px 130px 10px 0;">
+                        <button class="btn-action" style="flex: 1;">New</button>
+                        <button class="btn-action" style="flex: 1;">Alter</button>
+                        <button class="btn-action" style="flex: 1;">Remove</button>
+                        <button class="btn-action" style="flex: 1;">Update</button>
+                        <button class="btn-action" style="flex: 1;">Clear</button>
+                    </div>
+
+                    <!-- Rule Details Table -->
+                    <div class="data-table-wrapper" style="margin-right: 130px;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Debit Account Tag</th>
+                                    <th>Credit Account Tag</th>
+                                    <th>Debit Trx ID</th>
+                                    <th>Credit Trx ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #999; padding: 20px;">No Records To Display</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Direct Debit Maintenance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+<body>
+  <div class="window">
+    <!-- Header -->
+    <div class="am-header" role="banner">
+      <div class="am-header__left">
+        <i class="bi bi-credit-card-2-front am-header__icon"></i>
+        <span class="am-header__title">Direct Debit Maintenance</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="de-title-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="de-title-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="de-title-btn" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container">
+      <div class="form-content" role="region" aria-label="Direct Debit Maintenance form">
+        <div class="form-card">
+          <!-- Top Filter Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <span class="section-header__title">Debit Type</span>
+            </div>
+            <div class="section-content">
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label-blue" for="directDebitType">Direct Debit Type</label>
+                  <select id="directDebitType" class="form-control">
+                    <option value="">--Select--</option>
+                    <option>Outgoing Direct Debit</option>
+                    <option>Incoming Direct Debit</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Branch & Account Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <span class="section-header__title">Account Details</span>
+            </div>
+            <div class="section-content">
+              <div class="row g-3 mb-3">
+                <!-- Branch ID using kairo-branch-control -->
+                <div class="col-md-6">
+                  <label class="label" for="branchId">Branch ID</label>
+                  <div class="kairo-input-group">
+                    <input id="branchId" type="text" class="form-control kairo-control-id" readonly placeholder="Branch ID" />
+                    <input id="branchName" type="text" class="form-control kairo-control-name" readonly placeholder="Branch Name" />
+                    <button type="button" class="btn btn-outline-secondary kairo-control-lookup" data-lookup="branch"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+
+                <!-- Account ID using kairo-account-control -->
+                <div class="col-md-6">
+                  <label class="label-blue" for="accountId">Account ID</label>
+                  <div class="kairo-input-group">
+                    <input id="accountId" type="text" class="form-control kairo-control-id" placeholder="Account ID" />
+                    <input id="accountName" type="text" class="form-control kairo-control-name" readonly placeholder="Account Name" />
+                    <button type="button" class="btn btn-outline-secondary kairo-control-lookup" data-lookup="account"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Direct Debit Instruction -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label-blue" for="directDebitInstructionId">Direct Debit Instruction ID</label>
+                  <div class="kairo-input-group">
+                    <input id="directDebitInstructionId" type="text" class="form-control" placeholder="Instruction ID" />
+                    <button type="button" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="label" for="referenceNo">Reference No.</label>
+                  <input id="referenceNo" type="text" class="form-control" />
+                </div>
+              </div>
+
+              <!-- Currency & Dates -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label-blue" for="transactionCurrencyId">Transaction Currency</label>
+                  <div class="kairo-input-group">
+                    <input id="transactionCurrencyId" type="text" class="form-control" placeholder="Currency ID" />
+                    <button type="button" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="label-blue" for="effectiveDate">Effective Date</label>
+                  <input id="effectiveDate" type="date" class="form-control" />
+                </div>
+              </div>
+
+              <!-- Amount & Frequency -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label" for="fixedAmount">Fixed Amount</label>
+                  <input id="fixedAmount" type="text" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="label" for="transferFrequency">Transfer Frequency</label>
+                  <select id="transferFrequency" class="form-control">
+                    <option value="">--Select--</option>
+                    <option>Daily</option>
+                    <option>Weekly</option>
+                    <option>Monthly</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Execution Details -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <label class="label" for="noOfExecution">No. of Executions</label>
+                  <input id="noOfExecution" type="number" class="form-control" value="1" />
+                </div>
+                <div class="col-md-4">
+                  <label class="label" for="firstExecutionDate">First Execution Date</label>
+                  <input id="firstExecutionDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="label" for="lastExecutionDate">Last Execution Date</label>
+                  <input id="lastExecutionDate" type="date" class="form-control" />
+                </div>
+              </div>
+
+              <!-- Value Date & Charge Recovery -->
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="label-blue" for="valueDate">Value Date</label>
+                  <input id="valueDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="label-blue" for="chargeRecovery">Charge Recovery</label>
+                  <select id="chargeRecovery" class="form-control">
+                    <option value="">--Select--</option>
+                    <option>None</option>
+                    <option>Immediate</option>
+                    <option>Deferred</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contra Details Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <span class="section-header__title">Contra Details</span>
+            </div>
+            <div class="section-content">
+              <div class="row g-3 mb-3">
+                <div class="col-md-12">
+                  <label class="label-blue" for="contraAccountId">Account ID</label>
+                  <input id="contraAccountId" type="text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label-blue" for="bankId">Bank ID</label>
+                  <div class="kairo-input-group">
+                    <input id="bankId" type="text" class="form-control" />
+                    <button type="button" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="label-blue" for="contraBranchId">Branch ID</label>
+                  <div class="kairo-input-group">
+                    <input id="contraBranchId" type="text" class="form-control" />
+                    <button type="button" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label-blue" for="originatorCode">Originator Code</label>
+                  <input id="originatorCode" type="text" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="label-blue" for="originatorRef">Originator Reference</label>
+                  <input id="originatorRef" type="text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label" for="policyNumber1">Policy Number 1</label>
+                  <input id="policyNumber1" type="text" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="label" for="policyNumber2">Policy Number 2</label>
+                  <input id="policyNumber2" type="text" class="form-control" />
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="label" for="voucherCode">Voucher Code</label>
+                  <input id="voucherCode" type="text" class="form-control" value="40" />
+                </div>
+                <div class="col-md-6">
+                  <label class="label" for="returnCode">Return Code</label>
+                  <input id="returnCode" type="text" class="form-control" value="00" />
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-12">
+                  <label class="label" for="remarks">Remarks</label>
+                  <textarea id="remarks" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle behind the scene" aria-expanded="true">
+                <i class="bi bi-chevron-down"></i>
+              </button>
+            </div>
+            <div class="section-content">
+              <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                  <label class="label" for="nextExecutionDate">Next Execution Date</label>
+                  <input id="nextExecutionDate" type="date" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="standingInstructionStatus">Standing Instruction Status</label>
+                  <input id="standingInstructionStatus" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="lastRunDate">Last Run Date</label>
+                  <input id="lastRunDate" type="date" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="lastRunStatus">Last Run Status</label>
+                  <input id="lastRunStatus" type="text" class="form-control" readonly />
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                  <label class="label" for="noOfTimesFailed">No Of Times Failed</label>
+                  <input id="noOfTimesFailed" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="stoppedReason">Stopped Reason</label>
+                  <input id="stoppedReason" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="createdBy">Created By</label>
+                  <input id="createdBy" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="createdOn">Created On</label>
+                  <input id="createdOn" type="text" class="form-control" readonly />
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                  <label class="label" for="modifiedBy">Modified By</label>
+                  <input id="modifiedBy" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="modifiedOn">Modified On</label>
+                  <input id="modifiedOn" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="stoppedBy">Stopped By</label>
+                  <input id="stoppedBy" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="stoppedOn">Stopped On</label>
+                  <input id="stoppedOn" type="text" class="form-control" readonly />
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="label" for="supervisedBy">Supervised By</label>
+                  <input id="supervisedBy" type="text" class="form-control" readonly />
+                </div>
+                <div class="col-md-3">
+                  <label class="label" for="supervisedOn">Supervised On</label>
+                  <input id="supervisedOn" type="text" class="form-control" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit Trail Section -->
+          <div class="form-section" data-section="audit">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">Audit Trail</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle audit trail" aria-expanded="true">
+                <i class="bi bi-chevron-down"></i>
+              </button>
+            </div>
+            <div class="section-content">
+              <div class="audit-section">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <div class="audit-item">
+                      <span class="audit-label">Created By</span>
+                      <span class="audit-value" id="createdBy">-</span>
+                    </div>
+                    <div class="audit-item">
+                      <span class="audit-label">Stopped By</span>
+                      <span class="audit-value" id="stoppedBy">-</span>
+                    </div>
+                    <div class="audit-item">
+                      <span class="audit-label">Supervised By</span>
+                      <span class="audit-value" id="supervisedBy">-</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="audit-item">
+                      <span class="audit-label">Created On</span>
+                      <span class="audit-value" id="createdOn">-</span>
+                    </div>
+                    <div class="audit-item">
+                      <span class="audit-label">Stopped On</span>
+                      <span class="audit-value" id="stoppedOn">-</span>
+                    </div>
+                    <div class="audit-item">
+                      <span class="audit-label">Supervised On</span>
+                      <span class="audit-value" id="supervisedOn">-</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="de-status-bar" role="status">Ready</footer>
+
+    <!-- Loading Overlay -->
+    <div class="de-loading-overlay" hidden>
+      <div class="de-loading-spinner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Loading...</span>
+      </div>
+    </div>
+
+    <!-- Message Bar -->
+    <div class="de-message-bar" hidden role="alert"></div>
+  </div>
+
+  <!-- Action Buttons at Bottom -->
+  <div class="form-footer">
+    <button class="btn btn-primary" type="button" data-action="view"><i class="bi bi-eye"></i> View</button>
+    <button class="btn btn-secondary" type="button" data-action="add"><i class="bi bi-plus-circle"></i> Add</button>
+    <button class="btn btn-secondary" type="button" data-action="edit"><i class="bi bi-pencil"></i> Edit</button>
+    <button class="btn btn-secondary" type="button" data-action="delete"><i class="bi bi-trash"></i> Delete</button>
+    <button class="btn btn-success" type="button" data-action="save"><i class="bi bi-check-circle"></i> Save</button>
+    <button class="btn btn-warning" type="button" data-action="print"><i class="bi bi-printer"></i> Print</button>
+    <button class="btn btn-danger" type="button" data-action="cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+  </div>
+
+  <script src="direct-debit-maintenance.js"></script>
+</body>
+</html>
+</head>

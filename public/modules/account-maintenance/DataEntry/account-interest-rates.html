@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interest Rates</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css?v=20260201" />
+  <style>
+    .rate-tab {
+      transition: all 0.2s;
+    }
+    .rate-tab:hover {
+      background: #f0f0f0 !important;
+      color: #2c5f7d !important;
+    }
+    .rate-tab.active {
+      background: white !important;
+      color: #2c5f7d !important;
+      border-bottom: 3px solid #2c5f7d;
+      margin-bottom: -2px;
+    }
+    .main-container.main-container--with-panel {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: flex-start;
+      height: calc(100vh - 80px) !important;
+      overflow: hidden !important;
+      position: relative;
+    }
+    .form-content {
+      flex: 1 1 0%;
+      min-width: 0;
+      max-width: 100%;
+      padding: 16px;
+      overflow-y: auto !important;
+      overflow-x: auto !important;
+      height: 100% !important;
+      max-height: calc(100vh - 80px) !important;
+      margin-right: 140px !important; /* Prevent overlap with sidebar */
+    }
+    aside.action-panel {
+      position: fixed;
+      right: 0;
+      width: 120px;
+      min-width: 100px;
+      max-width: 160px;
+      height: calc(100vh - 80px);
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding: 16px 8px 16px 0;
+      box-shadow: -2px 0 8px rgba(44,95,125,0.04);
+      z-index: 100;
+      border-radius: 8px 0 0 8px;
+      justify-content: flex-end;
+      /* Push buttons to bottom */
+    }
+    .action-panel .d-flex {
+      width: 100%;
+      align-items: flex-end;
+      justify-content: flex-end;
+      flex-direction: column;
+      gap: 8px;
+    }
+    @media (max-width: 900px) {
+      aside.action-panel {
+        position: static;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .action-panel .d-flex {
+        flex-direction: row;
+        gap: 8px;
+      }
+      .btn-action {
+        width: auto;
+        margin-bottom: 0;
+      }
+    }
+    /* Collapsible section styles */
+    .collapsible-header {
+      user-select: none;
+    }
+    .collapsible-content {
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+      max-height: 1000px;
+      opacity: 1;
+      display: block;
+    }
+    .collapsible-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+      display: none;
+    }
+    .collapse-icon {
+      transition: transform 0.3s;
+    }
+    .collapsible-header.collapsed .collapse-icon {
+      transform: rotate(-90deg);
+    }
+    /* Align action panel buttons with form buttons */
+    aside.action-panel {
+      top: 160px !important;
+    }
+    @media (max-width: 900px) {
+      aside.action-panel {
+        top: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="window am-form">
+    <div class="am-header" role="banner">
+      <div class="am-header__left">
+        <i class="bi bi-percent am-header__icon"></i>
+        <span class="am-header__title">Interest Rates</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container main-container--with-panel" style="display: flex !important; height: calc(100vh - 80px) !important; overflow: hidden !important;">
+      <div class="form-content" role="region" style="padding: 16px; overflow-y: scroll !important; overflow-x: auto !important; flex: 1 !important; height: 100% !important; max-height: calc(100vh - 80px) !important;">
+        <div style="display: flex; flex-direction: column; width: 100%; min-height: 1000px;">
+        <form autocomplete="off" style="background: white; padding: 16px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; width: 100%;">
+          <!-- Two column layout -->
+          <div class="row g-3">
+            <!-- Left Column -->
+            <div class="col-6">
+              <div class="mb-3">
+                <label class="label-blue" for="rateType" style="font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">Rate Type</label>
+                <select id="rateType" name="rateType" class="bs-select form-control" style="height: 32px; font-size: 13px;"><option>--Select--</option></select>
+              </div>
+              <div class="mb-3">
+                <label class="label" for="baseRate" style="font-size: 13px; font-weight: 500; margin-bottom: 4px; display: block;">Base Rate</label>
+                <input id="baseRate" name="baseRate" type="text" class="bs-input-text form-control" value="0.0000" style="height: 32px; font-size: 13px; text-align: right;" readonly />
+              </div>
+              <div>
+                <label class="label-blue" for="expiryDate" style="font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">Expiry Date</label>
+                <div class="d-flex gap-1">
+                  <input id="expiryDate" name="expiryDate" type="date" class="bs-input-text form-control" style="height: 32px; font-size: 13px;" />
+                  <button class="btn-lookup" type="button" data-open-date="expiryDate" title="Calendar Lookup" style="height: 32px; width: 32px; padding: 0; flex-shrink: 0;"><i class="bi bi-search"></i></button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-6">
+              <div class="mb-3">
+                <label class="label-blue" for="effectiveDate" style="font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">Effective Date</label>
+                <div class="d-flex gap-1">
+                  <input id="effectiveDate" name="effectiveDate" type="date" class="bs-input-text form-control" style="height: 32px; font-size: 13px;" />
+                  <button class="btn-lookup" type="button" data-open-date="effectiveDate" title="Calendar Lookup" style="height: 32px; width: 32px; padding: 0; flex-shrink: 0;"><i class="bi bi-search"></i></button>
+                </div>
+              </div>
+              <div>
+                <label class="label-blue" for="refId" style="font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">Ref ID</label>
+                <input id="refId" name="refId" type="text" class="bs-input-text form-control" style="height: 32px; font-size: 13px;" />
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Amount Slab Wise Rate Of Interest Section -->
+        <div class="form-section" style="background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px; width: 100%;">
+          <div class="section-header collapsible-header" style="background: #457895; color: white; padding: 8px 16px; border-bottom: 2px solid #2d5568; text-align: left; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 6px 6px 0 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="bi bi-list-ul" style="font-size: 18px;"></i>
+              <span style="font-weight: bold; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">Amount Slab Wise Rate Of Interest</span>
+            </div>
+            <i class="bi bi-chevron-down collapse-icon" style="font-size: 18px;"></i>
+          </div>
+          <div class="section-content collapsible-content" style="padding: 16px; display: block;">
+            <div style="overflow-x: auto; width: 100%;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;">
+              <colgroup>
+                <col style="width: 10%;">
+                <col style="width: 16%;">
+                <col style="width: 16%;">
+                <col style="width: 22%;">
+                <col style="width: 16%;">
+                <col style="width: 20%;">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;"></th>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;">From</th>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;">To</th>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;"></th>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;">Mark Up / Down</th>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;">%</th>
+                  <th style="text-align: left; padding: 8px; background: #e8f4f8; border: 1px solid #b8d4e0; font-weight: 600; color: #2c5f7d;">Effective Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background: white;">
+                  <td style="padding: 6px 8px; border: 1px solid #d0d0d0; text-align: center; font-weight: 600; color: #333;">Amount</td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amountFrom" name="amountFrom" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amountTo" name="amountTo" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><select id="markUpDown" name="markUpDown" class="bs-select form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;"><option>--Select--</option></select></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="markValue" name="markValue" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="effectiveRate" name="effectiveRate" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; text-align: right; width: 100%;" /></td>
+                </tr>
+                <tr style="background: white;">
+                  <td style="padding: 6px 8px; border: 1px solid #d0d0d0; text-align: center; font-weight: 600; color: #333;">2.</td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount2From" name="amount2From" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount2To" name="amount2To" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><select id="markUpDown2" name="markUpDown2" class="bs-select form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;"><option>--Select--</option></select></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="markValue2" name="markValue2" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="effectiveRate2" name="effectiveRate2" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; text-align: right; width: 100%;" /></td>
+                </tr>
+                <tr style="background: white;">
+                  <td style="padding: 6px 8px; border: 1px solid #d0d0d0; text-align: center; font-weight: 600; color: #333;">3.</td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount3From" name="amount3From" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount3To" name="amount3To" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><select id="markUpDown3" name="markUpDown3" class="bs-select form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;"><option>--Select--</option></select></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="markValue3" name="markValue3" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="effectiveRate3" name="effectiveRate3" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; text-align: right; width: 100%;" /></td>
+                </tr>
+                <tr style="background: white;">
+                  <td style="padding: 6px 8px; border: 1px solid #d0d0d0; text-align: center; font-weight: 600; color: #333;">4.</td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount4From" name="amount4From" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount4To" name="amount4To" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><select id="markUpDown4" name="markUpDown4" class="bs-select form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;"><option>--Select--</option></select></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="markValue4" name="markValue4" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="effectiveRate4" name="effectiveRate4" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; text-align: right; width: 100%;" /></td>
+                </tr>
+                <tr style="background: white;">
+                  <td style="padding: 6px 8px; border: 1px solid #d0d0d0; text-align: center; font-weight: 600; color: #333;">5.</td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount5From" name="amount5From" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="amount5To" name="amount5To" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><select id="markUpDown5" name="markUpDown5" class="bs-select form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;"><option>--Select--</option></select></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="markValue5" name="markValue5" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;" /></td>
+                  <td style="padding: 3px; border: 1px solid #d0d0d0;"><input type="text" id="effectiveRate5" name="effectiveRate5" class="bs-input-text form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; text-align: right; width: 100%;" /></td>
+                </tr>
+                <tr style="background: white;">
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td style="text-align: right; font-weight: 600; color: #2c5f7d;">Penalty Rate</td>
+                  <td><select id="penaltyRate" name="penaltyRate" class="bs-select form-control" style="height: 28px; font-size: 13px; border: 1px solid #b8d4e0; width: 100%;"><option value="">--Select--</option><option value="+">+</option><option value="-">-</option></select></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Interest Rates List with Tabs -->
+        <div class="form-section" style="background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 16px;">
+          <div class="section-content" style="padding: 0;">
+            <!--Tab Headers -->
+            <div style="display: flex; border-bottom: 2px solid #b8d4e0; background: #f5f5f5;">
+              <div class="rate-tab active" data-tab="reference" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #2c5f7d; cursor: pointer; border-right: 1px solid #d0d0d0; background: white;">Reference No.</div>
+              <div class="rate-tab" data-tab="amount1" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Amount 1</div>
+              <div class="rate-tab" data-tab="rate1" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Rate 1</div>
+              <div class="rate-tab" data-tab="amount2" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Amount 2</div>
+              <div class="rate-tab" data-tab="rate2" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Rate 2</div>
+              <div class="rate-tab" data-tab="amount3" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Amount 3</div>
+              <div class="rate-tab" data-tab="rate3" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Rate 3</div>
+              <div class="rate-tab" data-tab="amount4" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Amount 4</div>
+              <div class="rate-tab" data-tab="rate4" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Rate 4</div>
+              <div class="rate-tab" data-tab="amount5" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-right: 1px solid #d0d0d0;">Amount 5</div>
+              <div class="rate-tab" data-tab="rate5" style="padding: 8px 16px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer;">Rate 5</div>
+            </div>
+            <!-- Tab Content Area - Grid for Data Display -->
+            <div id="rateListContent" style="padding: 16px; min-height: 200px; background: white; overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed;">
+                <colgroup>
+                  <col style="width: 120px;">
+                  <col style="width: 150px;">
+                  <col style="width: 100px;">
+                  <col style="width: 150px;">
+                  <col style="width: 100px;">
+                  <col style="width: 150px;">
+                  <col style="width: 100px;">
+                  <col style="width: 150px;">
+                  <col style="width: 100px;">
+                  <col style="width: 150px;">
+                  <col style="width: 100px;">
+                </colgroup>
+                <tbody>
+                  <tr>
+                    <td colspan="11" style="padding: 32px; text-align: center; color: #666;">No records to display.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="form-section" style="background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; width: 100%;">
+          <div class="section-header collapsible-header" style="background: #457895; color: white; padding: 8px 16px; border-bottom: 2px solid #2d5568; text-align: left; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 6px 6px 0 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="bi bi-gear" style="font-size: 18px;"></i>
+              <span style="font-weight: bold; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">Behind The Scene</span>
+            </div>
+            <i class="bi bi-chevron-down collapse-icon" style="font-size: 18px;"></i>
+          </div>
+          <div class="section-content collapsible-content" style="padding: 16px; background: linear-gradient(to bottom, #f8fafc, #ffffff); display: block;">
+            <div class="row g-3">
+              <div class="col-4">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Created By</label>
+                  <input type="text" id="createdBy" readonly class="form-control" style="height: 32px; font-size: 13px; background: white; border: 1px solid #d0d0d0;" value="" />
+                </div>
+              </div>
+              <div class="col-4">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Created On</label>
+                  <input type="text" id="createdOn" readonly class="form-control" style="height: 32px; font-size: 13px; background: white; border: 1px solid #d0d0d0;" value="" />
+                </div>
+              </div>
+              <div class="col-4">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Modified By</label>
+                  <input type="text" id="modifiedBy" readonly class="form-control" style="height: 32px; font-size: 13px; background: white; border: 1px solid #d0d0d0;" value="" />
+                </div>
+              </div>
+              <div class="col-4">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Modified On</label>
+                  <input type="text" id="modifiedOn" readonly class="form-control" style="height: 32px; font-size: 13px; background: white; border: 1px solid #d0d0d0;" value="" />
+                </div>
+              </div>
+              <div class="col-4">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Supervised By</label>
+                  <input type="text" id="supervisedBy" readonly class="form-control" style="height: 32px; font-size: 13px; background: white; border: 1px solid #d0d0d0;" value="" />
+                </div>
+              </div>
+              <div class="col-4">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Supervised On</label>
+                  <input type="text" id="supervisedOn" readonly class="form-control" style="height: 32px; font-size: 13px; background: white; border: 1px solid #d0d0d0;" value="" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <aside class="action-panel">
+        <div class="d-flex flex-column gap-2">
+          <button class="btn-action" type="button" data-action="view"><i class="bi bi-eye"></i><span>View</span></button>
+          <button class="btn-action" type="button" data-action="add" disabled><i class="bi bi-plus-circle"></i><span>Add</span></button>
+          <button class="btn-action" type="button" data-action="edit"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
+          <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg"></i><span>Save</span></button>
+          <button class="btn-action" type="button" data-action="delete"><i class="bi bi-trash3"></i><span>Delete</span></button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-lg"></i><span>Cancel</span></button>
+          <button class="btn-action" type="button" data-action="back"><i class="bi bi-arrow-left"></i><span>Back</span></button>
+        </div>
+      </aside>
+    </main>
+
+    <div class="de-message-bar am-message-panel" role="alert"><i class="bi bi-info-circle"></i><span></span></div>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+  </div>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/utils/global-utils.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/Account/AccountService.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-interest-rates.js?v=20250128"></script>
+  <script>
+    // Collapsible section logic
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.collapsible-header').forEach(function(header) {
+        header.addEventListener('click', function() {
+          const content = header.nextElementSibling;
+          if (!content) return;
+          const isCollapsed = content.classList.contains('collapsed');
+          content.classList.toggle('collapsed', !isCollapsed);
+          header.classList.toggle('collapsed', !isCollapsed);
+        });
+      });
+      // Back button handler
+      var btnBack = document.querySelector('[data-action="back"]');
+      if (btnBack) {
+        btnBack.addEventListener('click', function() {
+          // Go back to main form
+          window.parent.postMessage({ type: 'accountMaintenanceChildClose' }, '*');
+        });
+      }
+    });
+  </script>
+  <script>
+function notifyParentFormOpened(){window.parent.postMessage({type:'submoduleOpened',source:'Interest Rates'},'*');}
+function closeChildForm(){window.parent.postMessage({type:'submoduleClosed'},'*');window.close();}
+function handleWindowAction(action){if(action==='refresh'){location.reload();}else if(action==='maximize'){window.parent.postMessage({type:'toggleSidebarForMaximize'},'*');}else if(action==='close'){closeChildForm();}}
+function initWindowControls(){document.querySelectorAll('[data-action]').forEach(btn=>{const action=btn.getAttribute('data-action');if(['refresh','maximize','close'].includes(action)){btn.addEventListener('click',()=>handleWindowAction(action));}});}
+window.addEventListener('DOMContentLoaded',()=>{initWindowControls();notifyParentFormOpened();});
+  </script>
+</body>
+</html>
+
+
+
+
+
+

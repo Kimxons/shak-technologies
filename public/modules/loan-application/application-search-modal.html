@@ -1,0 +1,141 @@
+<!-- Application Search Modal -->
+<div class="modal fade kairo-search-modal" id="applicationSearchModal" tabindex="-1" aria-labelledby="applicationSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="applicationSearchModalLabel">
+                    <i class="bi bi-search"></i>
+                    WF Loan Application Individual
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Search Criteria Section -->
+                <div class="search-section">
+                    <div class="search-row">
+                        <div class="search-field">
+                            <label class="search-label">Application ID</label>
+                            <div class="search-input-group">
+                                <select class="search-select" id="appIdOperator">
+                                    <option value="like">Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="starts">Starts With</option>
+                                </select>
+                                <input type="text" class="search-input" id="appIdSearch" placeholder="Enter Application ID">
+                            </div>
+                        </div>
+
+                        <div class="search-field">
+                            <label class="search-label">Client ID</label>
+                            <div class="search-input-group">
+                                <select class="search-select" id="appClientIdOperator">
+                                    <option value="like">Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="starts">Starts With</option>
+                                </select>
+                                <input type="text" class="search-input" id="appClientIdSearch" placeholder="Enter Client ID">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-row">
+                        <div class="search-field">
+                            <label class="search-label">Name</label>
+                            <div class="search-input-group">
+                                <select class="search-select" id="appNameOperator">
+                                    <option value="like">Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="starts">Starts With</option>
+                                </select>
+                                <input type="text" class="search-input" id="appNameSearch" placeholder="Enter Name">
+                            </div>
+                        </div>
+
+                        <div class="search-field">
+                            <label class="search-label">ID Number</label>
+                            <div class="search-input-group">
+                                <select class="search-select" id="appIdNumberOperator">
+                                    <option value="like">Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="starts">Starts With</option>
+                                </select>
+                                <input type="text" class="search-input" id="appIdNumberSearch" placeholder="Enter ID Number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Action Buttons -->
+                    <div class="search-actions">
+                        <button type="button" class="search-btn search-btn-primary" id="appSearchBtn">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </button>
+                        <button type="button" class="search-btn search-btn-secondary" id="appClearBtn">
+                            <i class="bi bi-x-circle"></i>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Results Section -->
+                <div class="results-header">
+                    <i class="bi bi-list-ul"></i>
+                    Search Results
+                </div>
+                <div class="results-table-wrapper">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>ApplicationID</th>
+                                <th>ClientID</th>
+                                <th>Client Name</th>
+                                <th>ProductID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicationResultsBody">
+                            <tr>
+                                <td colspan="5" class="no-results">
+                                    <i class="bi bi-inbox"></i>
+                                    No results. Click "Search" to find applications.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-bar">
+                    <div class="pagination-buttons">
+                        <button type="button" class="pagination-btn" id="appPrevPageBtn" disabled>
+                            <i class="bi bi-chevron-left"></i>
+                            Previous
+                        </button>
+                        <button type="button" class="pagination-btn" id="appNextPageBtn" disabled>
+                            Next
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="pagination-info">
+                        <span id="appPageInfo">Page 0 of 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i>
+                    Cancel
+                </button>
+                <button type="button" class="modal-btn modal-btn-success" id="appSelectBtn" disabled>
+                    <i class="bi bi-check-circle"></i>
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

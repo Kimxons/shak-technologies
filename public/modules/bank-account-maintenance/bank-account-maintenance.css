@@ -1,0 +1,863 @@
+/* Account Maintenance - Overdraft-style theme (keep all controls intact) */
+:root {
+    --primary: var(--copilot-primary, #4A90E2);
+    --primary-dark: var(--copilot-primary-hover, #357ABD);
+    --secondary: var(--kairo-form-actions-bg, #F5F7FA);
+    --border: var(--kairo-border-color, #DDE6ED);
+    --text-dark: var(--copilot-text-main, #2C3E50);
+    --text-gray: var(--copilot-text-muted, #5A6C7D);
+    --text-light: #8B98A5;
+    --white: #FFFFFF;
+    --success: #27AE60;
+    --warning: #F39C12;
+    --danger: #E74C3C;
+    --info: #3498DB;
+    --radius: 3px;
+    --shadow-sm: 0 6px 16px rgba(44, 62, 80, 0.06);
+    --transition: all 0.2s ease;
+    --title-bar-height: 22px;
+    /* Client Maintenance theme variables */
+    --cm-primary-900: #0f172a;
+    --cm-primary-800: #1e3a8a;
+    --cm-primary-700: #1d4ed8;
+    --cm-primary-500: #5b9fd9;
+    --cm-secondary-500: #8b5cf6;
+    --cm-accent-500: #10b981;
+    --cm-surface: rgba(255, 255, 255, 0.92);
+    --cm-border: rgba(91, 159, 217, 0.18);
+    --cm-shadow: 0 40px 90px rgba(15, 23, 42, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: radial-gradient(circle at 20% 20%, #e8f0fa, #f7fbff 35%, #eef4fb 60%, #f5f7fa 100%);
+    color: var(--text-dark);
+}
+
+/* Prevent upstream layout CSS (e.g., modern-account-maintenance.css) from overriding this module's backdrop */
+.window {
+    background: transparent;
+}
+
+/* Validation */
+
+.kairo-invalid {
+    border-color: var(--danger, #E74C3C) !important;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.18) !important;
+}
+
+.kairo-invalid:focus {
+    outline: none;
+}
+
+/* Toasts */
+
+.kairo-toast-container {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: min(420px, calc(100vw - 28px));
+    pointer-events: none;
+}
+
+.kairo-toast {
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 10px;
+    box-shadow: 0 14px 28px rgba(44, 62, 80, 0.18);
+    padding: 10px 12px;
+    color: var(--text-dark);
+    transform: translateY(-6px);
+    opacity: 0;
+    transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.kairo-toast.is-show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.kairo-toast.kairo-toast--danger {
+    border-left-color: var(--danger, #E74C3C);
+}
+
+.kairo-toast.kairo-toast--danger .kairo-toast__title {
+    color: var(--danger, #E74C3C);
+}
+
+.kairo-toast.kairo-toast--danger .kairo-toast__body {
+    color: var(--danger, #E74C3C);
+}
+
+.kairo-toast.kairo-toast--success {
+    border-left-color: var(--success, #1F8A5B);
+}
+
+.kairo-toast.kairo-toast--success .kairo-toast__title {
+    color: var(--success, #1F8A5B);
+}
+
+.kairo-toast__title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.kairo-toast__close {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--text-gray);
+    cursor: pointer;
+}
+
+.kairo-toast__close:hover {
+    background: rgba(10, 107, 165, 0.06);
+    color: var(--text-dark);
+}
+
+.kairo-toast__body {
+    color: var(--text-gray);
+    white-space: pre-line;
+    line-height: 1.35;
+}
+
+/* Snackbar notifications */
+@keyframes snackbarIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(40px); }
+    to { opacity: 0.98; transform: translateX(-50%) translateY(0); }
+}
+@keyframes snackbarOut {
+    from { opacity: 0.98; transform: translateX(-50%) translateY(0); }
+    to { opacity: 0; transform: translateX(-50%) translateY(40px); }
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    background: transparent;
+    position: relative;
+    min-height: 100vh;
+}
+
+
+/* Form Content */
+.form-content {
+    flex: 1;
+    padding: 12px 32px 24px;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    margin: 12px 0 24px;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+/* Form Row */
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.form-row label {
+    min-width: 120px;
+    text-align: right;
+    padding-right: 8px;
+    font-size: 10px;
+    color: var(--text-gray);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.label-blue {
+    color: var(--primary) !important;
+    font-weight: 800;
+}
+
+.form-row input[type="text"],
+.form-row input[type="date"],
+.form-row select {
+    height: 20px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: inherit;
+    font-weight: 600;
+    background: var(--white);
+    color: var(--text-dark);
+    transition: var(--transition);
+    width: 200px;
+    max-width: 200px;
+}
+
+.input-full {
+    width: 300px;
+}
+
+/* Input Group for lookups */
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+}
+
+.input-group input {
+    flex: 1;
+    border-radius: 4px 0 0 4px;
+    border-right: none;
+}
+
+.input-group .btn-lookup {
+    border-radius: 0 4px 4px 0;
+    border-left: none;
+}
+
+/* Input with separate lookup button */
+.input-with-lookup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.input-with-lookup input {
+    flex: 1;
+    border-radius: 4px;
+    border-right: 1px solid var(--border);
+}
+
+.input-with-lookup .btn-lookup {
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* Client Maintenance theme styles for form fields */
+.cbs-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+}
+
+.cbs-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: none !important;
+}
+
+.cbs-label.required::after {
+    content: '*';
+    color: var(--danger);
+}
+
+.form-control {
+    padding: 0.2rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.72rem;
+    color: var(--text-dark);
+    background: var(--white);
+    min-height: 1.65rem;
+    transition: var(--transition);
+}
+
+.cbs-field .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18);
+}
+
+.small-input .form-control {
+    width: 200px;
+    max-width: 200px;
+    text-align: left !important;
+}
+
+/* Date picker button placed beside the date input */
+.window[data-module="bank-account-maintenance"] .bam-date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.window[data-module="bank-account-maintenance"] .bam-date-row .form-control {
+    flex: 1 1 auto;
+}
+
+.window[data-module="bank-account-maintenance"] .bam-date-row .form-control[readonly] {
+    background: var(--white);
+    color: var(--text-dark);
+    cursor: default;
+}
+
+/* Flatpickr calendar popup (smaller) - scoped to this module via appendTo */
+.window[data-module="bank-account-maintenance"] .flatpickr-calendar {
+    width: 230px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+    padding: 6px 6px 8px !important;
+    box-shadow: 0 10px 26px rgba(44, 62, 80, 0.16) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-months {
+    margin-bottom: 4px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-months .flatpickr-month,
+.window[data-module="bank-account-maintenance"] .flatpickr-current-month {
+    font-size: 12px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-current-month {
+    padding-top: 2px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-prev-month,
+.window[data-module="bank-account-maintenance"] .flatpickr-next-month {
+    padding: 2px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-weekdays {
+    height: 22px !important;
+}
+
+.window[data-module="bank-account-maintenance"] span.flatpickr-weekday {
+    font-size: 10px !important;
+    line-height: 22px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-days {
+    width: 218px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .dayContainer {
+    min-width: 218px !important;
+    max-width: 218px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .flatpickr-day {
+    width: 28px !important;
+    max-width: 28px !important;
+    height: 26px !important;
+    line-height: 26px !important;
+    margin: 1px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+}
+
+.window[data-module="bank-account-maintenance"] .bam-date-btn {
+    padding: 0 0.5rem;
+    min-height: 1.65rem;
+    height: 1.65rem;
+    border-radius: var(--radius);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--primary);
+}
+
+.window[data-module="bank-account-maintenance"] .bam-date-btn:hover {
+    background: rgba(74, 144, 226, 0.08);
+    border-color: rgba(74, 144, 226, 0.35);
+}
+
+.input-group .btn {
+    padding: 0 0.35rem !important;
+    background-color: var(--white);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.72rem;
+    min-height: 1.65rem;
+    max-height: 1.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.input-group .btn:hover {
+    background-color: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.25);
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+}
+
+.input-group .form-control {
+    flex: 1;
+    border-radius: 4px 0 0 4px;
+    border-right: none;
+}
+
+.input-group .btn {
+    border-radius: 0 4px 4px 0;
+    border-left: none;
+}
+
+.form-grid {
+    display: grid;
+    row-gap: 12px;
+    column-gap: 18px;
+}
+.form-grid.two-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.form-grid.three-col {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Split Input */
+.split-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--white);
+    overflow: hidden;
+    flex: 1;
+}
+
+.split-part {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    flex: 1;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.72rem;
+    color: var(--text-dark);
+    min-height: 1.65rem;
+}
+
+.split-part:focus {
+    outline: none;
+    background: rgba(74, 144, 226, 0.05);
+}
+
+.separator {
+    border-left: 1px solid var(--border);
+    height: 60%;
+    margin: 0 2px;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+}
+
+.checkbox-item label {
+    font-size: 10px;
+    color: var(--text-gray);
+    margin: 0;
+}
+
+/* Two Column Layout */
+.form-row.two-col {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.form-row.two-col .col {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 8px;
+}
+
+.form-row.two-col .col label {
+    min-width: 120px;
+    text-align: right;
+    padding-right: 8px;
+    font-size: 10px;
+    color: var(--text-gray);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.form-row.two-col .col input,
+.form-row.two-col .col select {
+    height: 20px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: inherit;
+    font-weight: 600;
+    background: var(--white);
+    color: var(--text-dark);
+    flex: 0 0 180px;
+    max-width: 180px;
+}
+
+/* Section Header */
+.section-header {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    padding: 4px 8px;
+    font-weight: 700;
+    font-size: 10.5px;
+    margin: 0 0 6px 0;
+    border: 1px solid var(--primary-dark);
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.section-header i {
+    font-size: 12px;
+}
+
+/* Buttons */
+.btn-lookup {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--primary);
+    background: var(--white);
+    color: var(--primary);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.btn-lookup:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+/* Action Panel */
+.action-panel {
+    width: 110px;
+    background: var(--secondary);
+    border-left: 1px solid var(--border);
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: calc(100vh - var(--title-bar-height));
+    overflow-y: auto;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: auto;
+}
+
+.btn-action {
+    padding: 8px 10px;
+    border: 1px solid var(--primary);
+    background: var(--white);
+    color: var(--primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.btn-action:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.btn-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-action.underline {
+    text-decoration: underline;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
+}
+
+/* Action button color mapping */
+.action-buttons .btn-action:nth-child(1) {
+    border-color: var(--info);
+    color: var(--info);
+}
+
+.action-buttons .btn-action:nth-child(1):hover:not(:disabled) {
+    background: var(--info);
+    color: var(--white);
+}
+
+.action-buttons .btn-action:nth-child(2) {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.action-buttons .btn-action:nth-child(2):hover:not(:disabled) {
+    background: var(--success);
+    color: var(--white);
+}
+
+.action-buttons .btn-action:nth-child(3) {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.action-buttons .btn-action:nth-child(3):hover:not(:disabled) {
+    background: var(--warning);
+    color: var(--white);
+}
+
+.action-buttons .btn-action:nth-child(4) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.action-buttons .btn-action:nth-child(4):hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.action-buttons .btn-action:nth-child(5) {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.action-buttons .btn-action:nth-child(5):hover:not(:disabled) {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.action-buttons .btn-action:nth-child(6) {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.action-buttons .btn-action:nth-child(6):hover:not(:disabled) {
+    background: var(--success);
+    color: var(--white);
+}
+
+.action-buttons .btn-action:nth-child(7) {
+    border-color: var(--text-gray);
+    color: var(--text-gray);
+}
+
+.action-buttons .btn-action:nth-child(7):hover:not(:disabled) {
+    background: var(--text-gray);
+    color: var(--white);
+}
+
+/* Scrollbar */
+.form-content::-webkit-scrollbar,
+.action-panel::-webkit-scrollbar {
+    width: 16px;
+}
+
+.form-content::-webkit-scrollbar-track,
+.action-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.form-content::-webkit-scrollbar-thumb,
+.action-panel::-webkit-scrollbar-thumb {
+    background: rgba(90, 108, 125, 0.28);
+    border: 1px solid rgba(90, 108, 125, 0.12);
+    border-radius: 10px;
+}
+
+.form-content::-webkit-scrollbar-button,
+.action-panel::-webkit-scrollbar-button {
+    background: transparent;
+    border: none;
+    height: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Collision overrides (scoped)
+   - public/assets/css/styles.css applies .form-control/.form-select with !important
+   - account-maintenance/modern-account-maintenance.css applies .action-panel .btn-action with !important
+   These rules restore this module's intended compact sizing/visuals.
+----------------------------------------------------------------------------*/
+
+.window[data-module="bank-account-maintenance"] .form-control,
+.window[data-module="bank-account-maintenance"] .form-select {
+    height: auto !important;
+    min-height: 1.65rem !important;
+    padding: 0.2rem 0.45rem !important;
+    border: 1px solid var(--border) !important;
+    background: var(--white) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    outline: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.window[data-module="bank-account-maintenance"] .cbs-field .form-control:focus,
+.window[data-module="bank-account-maintenance"] .cbs-field .form-select:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18) !important;
+}
+
+/* Split-input pieces should stay borderless inside the outer split-input shell */
+.window[data-module="bank-account-maintenance"] .split-part.form-control {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Keep input-group seam rules despite global .form-control !important border */
+.window[data-module="bank-account-maintenance"] .input-group .form-control {
+    border-right: none !important;
+}
+
+.window[data-module="bank-account-maintenance"] .input-group .btn {
+    border-left: none !important;
+}
+
+/* Action buttons: override modern-account-maintenance's tile buttons */
+.window[data-module="bank-account-maintenance"] .action-panel .btn-action {
+    padding: 8px 10px !important;
+    background: var(--white) !important;
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+    border-radius: var(--radius) !important;
+    cursor: pointer;
+    font-size: 11px !important;
+    font-family: inherit;
+    transition: var(--transition) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    line-height: 1.2 !important;
+    box-shadow: none !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel .btn-action:hover:not(:disabled) {
+    background: var(--primary) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel .btn-action.underline {
+    text-decoration: underline;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16) !important;
+}
+
+/* Action button color mapping (ID-based, defeats upstream !important rules) */
+.window[data-module="bank-account-maintenance"] .action-panel #viewBtn.btn-action {
+    border-color: var(--info) !important;
+    color: var(--info) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #viewBtn.btn-action:hover:not(:disabled) {
+    background: var(--info) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel #addBtn.btn-action {
+    border-color: var(--success) !important;
+    color: var(--success) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #addBtn.btn-action:hover:not(:disabled) {
+    background: var(--success) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel #synchronizeBtn.btn-action {
+    border-color: var(--warning) !important;
+    color: var(--warning) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #synchronizeBtn.btn-action:hover:not(:disabled) {
+    background: var(--warning) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel #editBtn.btn-action {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #editBtn.btn-action:hover:not(:disabled) {
+    background: var(--primary) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel #deleteBtn.btn-action {
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #deleteBtn.btn-action:hover:not(:disabled) {
+    background: var(--danger) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel #saveBtn.btn-action {
+    border-color: var(--success) !important;
+    color: var(--success) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #saveBtn.btn-action:hover:not(:disabled) {
+    background: var(--success) !important;
+    color: var(--white) !important;
+}
+
+.window[data-module="bank-account-maintenance"] .action-panel #cancelBtn.btn-action {
+    border-color: var(--text-gray) !important;
+    color: var(--text-gray) !important;
+}
+.window[data-module="bank-account-maintenance"] .action-panel #cancelBtn.btn-action:hover:not(:disabled) {
+    background: var(--text-gray) !important;
+    color: var(--white) !important;
+}

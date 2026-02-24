@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BR Gateway Formats · Out Field Details</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+  <link rel="stylesheet" href="../overdraft-application/overdraft-application.css" />
+</head>
+
+<body class="br-gateway-formats module-shell" data-page="br-gateway-formats" style="background:transparent;">
+  <div class="cm-react-orbs d-none" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form class="cm-shell-form" autocomplete="off" novalidate>
+      <aside class="cm-legacy-nav card-surface" aria-label="BR Gateway Formats navigation">
+        <div class="cm-nav-section">
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item brgf-nav-parent" data-brgf-toggle="dataentry-menu"
+              aria-expanded="true">
+              <span>DataEntry</span>
+              <i class="bi bi-caret-right-fill brgf-nav-caret" aria-hidden="true"></i>
+            </button>
+
+            <div class="brgf-subnav" data-brgf-subnav="dataentry-menu">
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="../views/BRGatewayFormats.html"
+                onclick="location.href='../views/BRGatewayFormats.html'"><span>Format Details</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsInFieldDetails.html"
+                onclick="location.href='BRGatewayFormatsInFieldDetails.html'"><span>In Field Details</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item is-active"
+                aria-current="page"><span>Out Field Details</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsContraAccountInfo.html"
+                onclick="location.href='BRGatewayFormatsContraAccountInfo.html'"><span>Contra Account
+                  Info</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsInvalidAccountInfo.html"
+                onclick="location.href='BRGatewayFormatsInvalidAccountInfo.html'"><span>Invalid Account
+                  Info</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsFolderInfo.html"
+                onclick="location.href='BRGatewayFormatsFolderInfo.html'"><span>Folder Info</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item" disabled><span>Recent
+                  Activities</span></button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="cm-legacy-content">
+        <div class="brgf-layout">
+          <div>
+            <div class="brgf-window-title card-surface" aria-label="Out Field Details header">
+              <div class="brgf-window-title__bar">
+                <i class="bi bi-card-list" aria-hidden="true"></i>
+                <span>Out Field Details ::</span>
+              </div>
+            </div>
+
+            <section class="brgf-panel card-surface mt-2" aria-label="Field details">
+              <div class="brgf-panel__header">Field Details</div>
+              <div class="brgf-panel__body">
+                <div class="row g-3 align-items-start">
+                  <div class="col-12 col-lg-8">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="outFieldName">Field Name</label>
+                          <select id="outFieldName" class="form-select">
+                            <option value="">--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="outFieldPosition">Field Position</label>
+                          <input type="text" id="outFieldPosition" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="outFieldType">Field Type</label>
+                          <select id="outFieldType" class="form-select">
+                            <option value="">--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <div class="brgf-mandatory">
+                          <span class="brgf-mandatory__label">Is Mandatory</span>
+                          <div class="form-check m-0">
+                            <input class="form-check-input" type="checkbox" id="outIsMandatory" />
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="outFieldLength">Field Length</label>
+                          <input type="text" id="outFieldLength" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="outDefaultValue">Default Value</label>
+                          <input type="text" id="outDefaultValue" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="brgf-inline-actions" aria-label="Field actions">
+                  <button type="button" class="btn btn-outline-secondary">New</button>
+                  <button type="button" class="btn btn-outline-secondary" disabled>Alter</button>
+                  <button type="button" class="btn btn-outline-secondary" disabled>Remove</button>
+                  <button type="button" class="btn btn-outline-secondary" disabled>Update</button>
+                  <button type="button" class="btn btn-outline-secondary">Clear</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="brgf-panel card-surface mt-3" aria-label="List of fields">
+              <div class="brgf-panel__header">List Of Fields</div>
+              <div class="brgf-panel__body">
+                <div class="brgf-grid" role="region" aria-label="List of fields grid">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Field Name</th>
+                        <th scope="col">Field Position</th>
+                        <th scope="col">Format</th>
+                        <th scope="col">Length</th>
+                        <th scope="col">Default Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="5" class="text-muted">No records to display.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <section class="brgf-panel card-surface mt-3" aria-label="Behind the scene">
+              <div class="brgf-panel__header">Behind The Scene</div>
+              <div class="brgf-panel__body">
+                <div class="row g-3">
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="ofdCreatedBy">Created By</label>
+                          <input type="text" id="ofdCreatedBy" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="ofdCreatedOn">Created On</label>
+                          <input type="text" id="ofdCreatedOn" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="ofdModifiedBy">Modified By</label>
+                          <input type="text" id="ofdModifiedBy" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="ofdModifiedOn">Modified On</label>
+                          <input type="text" id="ofdModifiedOn" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="ofdSupervisedBy">Supervised By</label>
+                          <input type="text" id="ofdSupervisedBy" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="ofdSupervisedOn">Supervised On</label>
+                          <input type="text" id="ofdSupervisedOn" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="brgf-actions" aria-label="Actions">
+            <button type="button" class="btn btn-outline-secondary brgf-action">Edit</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action" disabled>Save</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action" disabled>Cancel</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action" data-brgf-back>Back</button>
+          </aside>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/pages/other-modules/data-entry/BRGatewayFormatsOutFieldDetails.embedded.js"></script>
+</body>
+
+</html>

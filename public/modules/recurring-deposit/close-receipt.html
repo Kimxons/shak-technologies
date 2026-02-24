@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Close Receipt · Recurring Deposit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <link rel="stylesheet" href="./recurring-deposit.css" />
+</head>
+
+<body class="client-maintenance recurring-deposit recurring-close-receipt copilot-theme" data-page="client-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="rd-close-receipt-form" class="cm-shell-form cm-shell-form--two-column" autocomplete="off" novalidate>
+      <section class="cm-legacy-content">
+        <section class="card-surface p-0">
+          <header class="modal-header d-flex align-items-center justify-content-between rd-inner-heading">
+            <div class="d-flex align-items-center gap-3">
+              <h4 class="modal-title mb-0">Close Receipt</h4>
+              <span class="badge bg-light text-primary fw-semibold">Entry</span>
+            </div>
+            <span class="cm-summary-pill">Mode · View</span>
+          </header>
+
+          <div class="p-3">
+            <div class="card-surface p-0" aria-label="Close receipt workspace">
+              <div class="rd-app-canvas">
+                <ul class="nav nav-tabs rd-close-tabs" role="tablist" aria-label="Close receipt tabs">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="RdCloseInterestTab" data-bs-toggle="tab" data-bs-target="#RdCloseInterest" type="button" role="tab" aria-controls="RdCloseInterest" aria-selected="true">
+                      Interest Payment
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="RdCloseTxnTab" data-bs-toggle="tab" data-bs-target="#RdCloseTxn" type="button" role="tab" aria-controls="RdCloseTxn" aria-selected="false">
+                      Transaction Details
+                    </button>
+                  </li>
+                </ul>
+
+                <div class="tab-content">
+                  <div class="tab-pane fade show active" id="RdCloseInterest" role="tabpanel" aria-labelledby="RdCloseInterestTab" tabindex="0">
+                    <section class="rd-block rd-close-receipt-details mt-2" aria-label="Receipt Details">
+                      <header class="rd-block__header">
+                        <i class="bi bi-receipt" aria-hidden="true"></i>
+                        <span>Receipt Details</span>
+                      </header>
+                      <div class="rd-block__body">
+                        <div class="rd-close-receipt-grid">
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseReceiptAmount"><span>Receipt Amount</span></label>
+                            <div class="rd-close-stack">
+                              <input type="text" class="form-control" id="RdCloseReceiptAmount" />
+                              <label class="rd-label visually-hidden" for="RdCloseReceiptOption"><span>Receipt Option</span></label>
+                              <select class="form-select" id="RdCloseReceiptOption">
+                                <option value="" selected>--Select--</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseCurrencyId"><span>Currency ID</span></label>
+                            <div class="rd-close-stack">
+                              <input type="text" class="form-control" id="RdCloseCurrencyId" />
+                              <label class="rd-label visually-hidden" for="RdCloseCurrencyOption"><span>Currency</span></label>
+                              <select class="form-select" id="RdCloseCurrencyOption">
+                                <option value="" selected>--Select--</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div class="rd-close-proceed-row">
+                            <button type="button" class="rd-close-proceed" disabled>Proceed</button>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+
+                  <div class="tab-pane fade" id="RdCloseTxn" role="tabpanel" aria-labelledby="RdCloseTxnTab" tabindex="0">
+                    <section class="rd-block mt-2" aria-label="Transaction Information">
+                      <header class="rd-block__header">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                        <span>Transaction Information</span>
+                      </header>
+                      <div class="rd-block__body">
+                        <div class="rd-close-grid">
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseTransactionType"><span>Transaction Type</span></label>
+                            <select class="form-select" id="RdCloseTransactionType">
+                              <option value="" selected></option>
+                            </select>
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseUnpostedAmount"><span>Unposted Amount</span></label>
+                            <input type="text" class="form-control" id="RdCloseUnpostedAmount" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseTill"><span>Till</span></label>
+                            <select class="form-select" id="RdCloseTill">
+                              <option value="" selected></option>
+                            </select>
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseBalanceAmount"><span>Balance Amount</span></label>
+                            <input type="text" class="form-control" id="RdCloseBalanceAmount" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseTypeOfService"><span>Type Of Service</span></label>
+                            <select class="form-select" id="RdCloseTypeOfService">
+                              <option value="" selected></option>
+                            </select>
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseReferenceNo"><span>Reference No</span></label>
+                            <input type="text" class="form-control" id="RdCloseReferenceNo" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseAccountType"><span>Account Type</span></label>
+                            <select class="form-select" id="RdCloseAccountType">
+                              <option value="" selected></option>
+                            </select>
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseCurrencyId2"><span>Currency ID</span></label>
+                            <input type="text" class="form-control" id="RdCloseCurrencyId2" />
+                          </div>
+
+                          <div class="rd-field rd-close-span-2">
+                            <label class="rd-label" for="RdCloseAccountId"><span>Account ID</span></label>
+                            <div class="input-group">
+                              <input type="text" class="form-control" id="RdCloseAccountId" />
+                              <input type="text" class="form-control" id="RdCloseAccountName" />
+                              <button class="btn btn-outline-primary" type="button" aria-label="Lookup account" data-rd-action="lookup-account">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseProductId"><span>Product ID</span></label>
+                            <input type="text" class="form-control" id="RdCloseProductId" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseChequeId"><span>Cheque ID</span></label>
+                            <input type="text" class="form-control" id="RdCloseChequeId" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdClosePayableAt"><span>Payable At</span></label>
+                            <div class="input-group">
+                              <input type="text" class="form-control" id="RdClosePayableAt" />
+                              <button class="btn btn-outline-primary" type="button" aria-label="Lookup payable at" data-rd-action="lookup-payable">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="rd-field rd-close-span-2">
+                            <label class="rd-label" for="RdCloseBeneficiaryName"><span>Beneficiary Name</span></label>
+                            <input type="text" class="form-control" id="RdCloseBeneficiaryName" />
+                          </div>
+
+                          <div class="rd-field rd-close-span-2">
+                            <label class="rd-label" for="RdCloseTransactionId"><span>Transaction ID</span></label>
+                            <div class="input-group">
+                              <input type="text" class="form-control" id="RdCloseTransactionId" />
+                              <input type="text" class="form-control" id="RdCloseTransactionId2" />
+                              <button class="btn btn-outline-primary" type="button" aria-label="Lookup transaction" data-rd-action="search">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="rd-field rd-close-span-2">
+                            <label class="rd-label" for="RdCloseNarration"><span>Narration</span></label>
+                            <input type="text" class="form-control" id="RdCloseNarration" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseTransactionAmount"><span>Transaction Amount</span></label>
+                            <input type="text" class="form-control" id="RdCloseTransactionAmount" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseExchangeRate"><span>Exchange Rate</span></label>
+                            <input type="text" class="form-control" id="RdCloseExchangeRate" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseLocalAmount"><span>Local Amount</span></label>
+                            <input type="text" class="form-control" id="RdCloseLocalAmount" />
+                          </div>
+
+                          <div class="rd-field">
+                            <label class="rd-label" for="RdCloseForexGainLoss"><span>Forex Gain/Loss</span></label>
+                            <input type="text" class="form-control" id="RdCloseForexGainLoss" />
+                          </div>
+                        </div>
+
+                        <div class="rd-close-toolbar" aria-label="Inline actions">
+                          <button type="button" class="rd-close-tool" disabled>New</button>
+                          <button type="button" class="rd-close-tool" disabled>Alter</button>
+                          <button type="button" class="rd-close-tool" disabled>Remove</button>
+                          <button type="button" class="rd-close-tool" disabled>Update</button>
+                          <button type="button" class="rd-close-tool" disabled>Clear</button>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="rd-block mt-3" aria-label="Transaction Details">
+                      <header class="rd-block__header">
+                        <i class="bi bi-list-check" aria-hidden="true"></i>
+                        <span>Transaction Details</span>
+                      </header>
+                      <div class="rd-block__body">
+                        <div class="rd-close-details" aria-label="Details area"></div>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+
+                <div id="rdToast" class="alert alert-info mt-3 d-none" role="alert"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface" aria-label="Actions">
+        <div class="rd-maint-rail">
+          <div class="rd-maint-actions" aria-label="Close receipt actions">
+            <div class="cp-actions">
+              <button type="button" class="cm-shell__action rd-action--add" data-rd-action="add" disabled>
+                <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                <span>Add</span>
+              </button>
+              <button type="button" class="cm-shell__action rd-action--save" data-rd-action="save" disabled>
+                <i class="bi bi-save" aria-hidden="true"></i>
+                <span>Save</span>
+              </button>
+              <button type="button" class="cm-shell__action rd-action--cancel" data-rd-action="cancel" disabled>
+                <i class="bi bi-x-circle" aria-hidden="true"></i>
+                <span>Cancel</span>
+              </button>
+              <button type="button" class="cm-shell__action rd-action--view" data-rd-action="back">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                <span>Back</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/pages/recurring-deposit/recurring-deposit.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,254 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\WORK\\SOURCES\\KAIRO\\kairo\\kairo-ui\\kairo-ui.csproj": {}
+  },
+  "projects": {
+    "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj",
+        "projectName": "CBS.Entities.Common",
+        "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj",
+        "packagesPath": "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages\\",
+        "outputPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Daniel.Gichuhi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages": {},
+          "https://www.nuget.org/api/v2/": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "System.Text.Json": {
+              "target": "Package",
+              "version": "[9.0.8, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.SystemCore\\CBS.Entities.SystemCore.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.SystemCore\\CBS.Entities.SystemCore.csproj",
+        "projectName": "CBS.Entities.SystemCore",
+        "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.SystemCore\\CBS.Entities.SystemCore.csproj",
+        "packagesPath": "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages\\",
+        "outputPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.SystemCore\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Daniel.Gichuhi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages": {},
+          "https://www.nuget.org/api/v2/": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\WORK\\SOURCES\\KAIRO\\kairo\\kairo-ui\\kairo-ui.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\kairo-ui\\kairo-ui.csproj",
+        "projectName": "kairo-ui",
+        "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\kairo-ui\\kairo-ui.csproj",
+        "packagesPath": "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages\\",
+        "outputPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\kairo-ui\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Daniel.Gichuhi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages": {},
+          "https://www.nuget.org/api/v2/": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj": {
+                "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.COMMON\\CBS.Entities.Common.csproj"
+              },
+              "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.SystemCore\\CBS.Entities.SystemCore.csproj": {
+                "projectPath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.SystemCore\\CBS.Entities.SystemCore.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[5.0.1, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.16.0, )"
+            },
+            "bootstrap": {
+              "target": "Package",
+              "version": "[5.3.8, )"
+            },
+            "font-awesome": {
+              "target": "Package",
+              "version": "[4.7.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

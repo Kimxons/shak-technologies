@@ -1,0 +1,22 @@
+/* LG Account Application submenu (Guarantor Details) page-specific styles extracted from public/assets/css/styles.css */
+
+body[data-page="lg-guarantors"] .cm-react-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body[data-page="lg-guarantors"] .cm-shell-form {
+  grid-template-columns: 90fr 10fr;
+}
+
+body[data-page="lg-guarantors"] .form-control,
+body[data-page="lg-guarantors"] .form-select,
+body[data-page="lg-guarantors"] .input-group-text,
+body[data-page="lg-guarantors"] .btn.btn-outline-secondary,
+body[data-page="lg-guarantors"] .btn.btn-outline-primary {
+  min-height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+}

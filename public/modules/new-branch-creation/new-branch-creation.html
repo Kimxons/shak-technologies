@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Branch Creation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+<body>
+    <div class="window">
+        <div class="main-container">
+            <!-- Form Content -->
+            <div class="form-content">
+                <form id="branch-form" autocomplete="off" novalidate>
+                    <div class="form-card">
+                        <!-- Branch Details Section -->
+                        <div class="form-section" data-section="branch-details">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-building"></i>Branch Details</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Bank ID</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="bankId" class="kairo-branch-control__id" value="00" aria-label="Bank ID" readonly>
+                                            <input type="text" id="bankName" class="kairo-branch-control__name" value="DEMO BANK LTD" aria-label="Bank Name" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">New Branch ID</label>
+                                        <input type="text" class="bs-input-text" id="newBranchId" name="newBranchId" placeholder="Enter branch ID">
+                                    </div>
+                                    <div class="col">
+                                        <label>Branch Prefix</label>
+                                        <input type="text" class="bs-input-text" id="branchPrefix" name="branchPrefix" placeholder="Enter prefix">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Branch Name</label>
+                                        <input type="text" class="bs-input-text" id="branchName" name="branchName" placeholder="Enter branch name">
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>Short Name</label>
+                                        <input type="text" class="bs-input-text" id="shortName" name="shortName" placeholder="Enter short name">
+                                    </div>
+                                    <div class="col">
+                                        <label>Local Currency ID</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="localCurrencyId" class="kairo-branch-control__id" placeholder="Currency ID" aria-label="Currency ID">
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchCurrencyBtn"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label>Is Head Office</label>
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="isHeadOffice" name="isHeadOffice">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label>Is Clearing Centre</label>
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="isClearingCentre" name="isClearingCentre">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col" style="grid-column: span 2;">
+                                        <label>Address</label>
+                                        <input type="text" class="bs-input-text" id="address" name="address" placeholder="Enter branch address">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location & Contact Information Section -->
+                        <div class="form-section" data-section="location-contact">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-telephone"></i>Location & Contact Information</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>City</label>
+                                        <select class="bs-input-text" id="city" name="city">
+                                            <option value="">--Select--</option>
+                                            <option value="Nairobi">Nairobi</option>
+                                            <option value="Mombasa">Mombasa</option>
+                                            <option value="Kisumu">Kisumu</option>
+                                            <option value="Nakuru">Nakuru</option>
+                                            <option value="Eldoret">Eldoret</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label>Country</label>
+                                        <select class="bs-input-text" id="country" name="country">
+                                            <option value="">--Select--</option>
+                                            <option value="Kenya">Kenya</option>
+                                            <option value="Uganda">Uganda</option>
+                                            <option value="Tanzania">Tanzania</option>
+                                            <option value="Rwanda">Rwanda</option>
+                                            <option value="Ethiopia">Ethiopia</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label>Zip Code</label>
+                                        <input type="text" class="bs-input-text" id="zipCode" name="zipCode" placeholder="Enter zip code">
+                                    </div>
+                                    <div class="col">
+                                        <label>Email ID</label>
+                                        <input type="email" class="bs-input-text" id="emailId" name="emailId" placeholder="Enter email address">
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>Phone 1</label>
+                                        <input type="tel" class="bs-input-text" id="phone1" name="phone1" placeholder="Enter phone number">
+                                    </div>
+                                    <div class="col">
+                                        <label>Phone 2</label>
+                                        <input type="tel" class="bs-input-text" id="phone2" name="phone2" placeholder="Enter phone number">
+                                    </div>
+                                    <div class="col">
+                                        <label>Mobile</label>
+                                        <input type="tel" class="bs-input-text" id="mobile" name="mobile" placeholder="Enter mobile number">
+                                    </div>
+                                    <div class="col">
+                                        <label>Fax No</label>
+                                        <input type="text" class="bs-input-text" id="faxNo" name="faxNo" placeholder="Enter fax number">
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>Time Zone Diff. (hh.mm)</label>
+                                        <input type="text" class="bs-input-text" id="timeZoneDiff" name="timeZoneDiff" placeholder="00.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Branch Configuration Section -->
+                        <div class="form-section" data-section="branch-config">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-gear"></i>Branch Configuration</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>Clearing Days</label>
+                                        <input type="number" class="bs-input-text" id="clearingDays" name="clearingDays" placeholder="Enter clearing days" min="0">
+                                    </div>
+                                    <div class="col">
+                                        <label>Reporting Branch ID</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="reportingBranchId" class="kairo-branch-control__id" placeholder="Branch ID" aria-label="Branch ID">
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchBranchBtn"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label>Branch Cash Limit</label>
+                                        <input type="number" class="bs-input-text" id="branchCashLimit" name="branchCashLimit" placeholder="Enter cash limit" step="0.01">
+                                    </div>
+                                    <div class="col">
+                                        <label>Largest Allowable Trx Amt</label>
+                                        <input type="number" class="bs-input-text" id="largestAllowableTrxAmt" name="largestAllowableTrxAmt" placeholder="Enter max transaction amount" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>Holiday Processing Type ID</label>
+                                        <select class="bs-input-text" id="holidayProcessingTypeId" name="holidayProcessingTypeId">
+                                            <option value="">--Select--</option>
+                                            <option value="Same Day" selected>Same Day</option>
+                                            <option value="Next Working Day">Next Working Day</option>
+                                            <option value="Previous Working Day">Previous Working Day</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Branch Status Section -->
+                        <div class="form-section" data-section="branch-status">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-flag"></i>Branch Status</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>System Start Date</label>
+                                        <input type="date" class="bs-input-text" id="systemStartDate" name="systemStartDate">
+                                    </div>
+                                    <div class="col">
+                                        <label>Copy Branch Parameter</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="sourceBranchId" class="kairo-branch-control__id" value="0101" aria-label="Source Branch ID">
+                                            <input type="text" id="sourceBranchName" class="kairo-branch-control__name" value="Head Office" aria-label="Source Branch Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchSourceBranchBtn"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-action--add" id="addBtn">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--success" id="createBtn">
+                        <i class="bi bi-file-earmark-plus"></i>
+                        <span>Create</span>
+                    </button>
+                    <button type="button" class="btn-action btn-delete" id="cancelBtn">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="new-branch-creation.js"></script>
+</body>
+</html>

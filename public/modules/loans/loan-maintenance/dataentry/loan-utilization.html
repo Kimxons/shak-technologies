@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loan Utilization · Data Entry</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css" />
+</head>
+
+<body class="loan-maintenance-sub copilot-theme" data-page="loan-maintenance-sub">
+  <main class="lm-subpage" aria-label="Loan Utilization">
+    <section class="card-surface lutil-shell" data-lutil-root aria-label="Loan Utilization">
+      <div class="lutil-body">
+        <section class="lutil-content" aria-label="Content">
+          <section class="lutil-top" aria-label="Account Information">
+            <div class="lutil-top__bar" aria-hidden="true"></div>
+            
+            <div class="container-fluid px-0">
+              <div class="row g-2">
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="BranchID">Branch ID</label>
+                  <input class="form-control" id="BranchID" name="BranchID" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="BranchName">Branch Name</label>
+                  <input class="form-control" id="BranchName" name="BranchName" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="ClientID">Client ID</label>
+                  <input class="form-control" id="ClientID" name="ClientID" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="ClientName">Client Name</label>
+                  <input class="form-control" id="ClientName" name="ClientName" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="AccountID">Account ID</label>
+                  <input class="form-control" id="AccountID" name="AccountID" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="AccountName">Account Name</label>
+                  <input class="form-control" id="AccountName" name="AccountName" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="LoanSeries">Loan Series</label>
+                  <input class="form-control" id="LoanSeries" name="LoanSeries" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="GroupID">Group ID</label>
+                  <input class="form-control" id="GroupID" name="GroupID" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="DisbursedAmount">Disbursed Amount</label>
+                  <input class="form-control" id="DisbursedAmount" name="DisbursedAmount" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="FirstDisbursementDate">First Disbursement Date</label>
+                  <input class="form-control" id="FirstDisbursementDate" name="FirstDisbursementDate" type="text" readonly />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="lutil-box" aria-label="Utilization Entry">
+            <div class="lm-section-header">Utilization Entry</div>
+            <div class="container-fluid px-0">
+              <div class="row g-2">
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="SLNo">SL No</label>
+                  <input class="form-control" id="SLNo" name="SLNo" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="UtilizeDate">Utilize Date <span class="text-danger">*</span></label>
+                  <input class="form-control" id="UtilizeDate" name="UtilizeDate" type="date" disabled />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="VerifiedBy">Verified By</label>
+                  <div class="input-group input-group-sm">
+                    <input class="form-control" id="VerifiedBy" name="VerifiedBy" type="text" disabled />
+                    <button class="btn btn-outline-primary" type="button" aria-label="Lookup officer" data-lookup="officer" disabled>
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="OfficerName">Officer Name</label>
+                  <input class="form-control" id="OfficerName" name="OfficerName" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="UtilizationType">Utilization Type <span class="text-danger">*</span></label>
+                  <select class="form-select" id="UtilizationType" name="UtilizationType" disabled>
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="UtilizationAmount">Utilization Amount <span class="text-danger">*</span></label>
+                  <input class="form-control" id="UtilizationAmount" name="UtilizationAmount" type="number" step="0.01" min="0" disabled />
+                </div>
+                <div class="col-md-4 col-12">
+                  <label class="cbs-label" for="Description">Description</label>
+                  <input class="form-control" id="Description" name="Description" type="text" disabled />
+                </div>
+              </div>
+            </div>
+            
+            <!-- Action Buttons (Legacy Style) -->
+            <div class="lutil-form-buttons">
+              <button type="button" class="lutil-action-btn" data-action="new" title="New">New</button>
+              <button type="button" class="lutil-action-btn" data-action="alter" disabled title="Alter">Alter</button>
+              <button type="button" class="lutil-action-btn lutil-action-btn--danger" data-action="remove" disabled title="Remove">Remove</button>
+              <button type="button" class="lutil-action-btn lutil-action-btn--primary" data-action="update" disabled title="Update">Update</button>
+              <button type="button" class="lutil-action-btn" data-action="clear" disabled title="Clear">Clear</button>
+            </div>
+          </section>
+
+          <section class="lutil-grid" aria-label="Utilization Records">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0 table-bordered table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>SL No</th>
+                    <th>Utilize Date</th>
+                    <th>Verified By</th>
+                    <th>Officer Name</th>
+                    <th>Utilize Type</th>
+                    <th class="text-end">Amount</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody data-lutil-rows></tbody>
+              </table>
+              <div class="p-3 text-center text-muted" data-lutil-empty style="display: none;">
+                <i class="bi bi-inbox fs-3"></i>
+                <p class="mb-0">No records to display.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="lutil-bts" aria-label="Behind The Scene">
+            <div class="lm-section-header">Behind The Scene</div>
+            <div class="container-fluid">
+              <div class="row g-2">
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="CreatedBy">Created By</label>
+                  <input class="form-control" id="CreatedBy" name="CreatedBy" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="CreatedOn">Created On</label>
+                  <input class="form-control" id="CreatedOn" name="CreatedOn" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="ModifiedBy">Modified By</label>
+                  <input class="form-control" id="ModifiedBy" name="ModifiedBy" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="ModifiedOn">Modified On</label>
+                  <input class="form-control" id="ModifiedOn" name="ModifiedOn" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="SupervisedBy">Supervised By</label>
+                  <input class="form-control" id="SupervisedBy" name="SupervisedBy" type="text" readonly />
+                </div>
+                <div class="col-md-2 col-6">
+                  <label class="cbs-label" for="SupervisedOn">Supervised On</label>
+                  <input class="form-control" id="SupervisedOn" name="SupervisedOn" type="text" readonly />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="lutil-footer" aria-label="Footer">Nimble 1.0 Banking</div>
+        </section>
+
+        <!-- Right Side Buttons (Legacy Style) -->
+        <aside class="lutil-actions" aria-label="Actions">
+          <div class="lutil-actions__stack">
+            <button type="button" class="lutil-action-btn" data-action="view" title="View">View</button>
+            <button type="button" class="lutil-action-btn" data-action="add" disabled title="Add">Add</button>
+            <button type="button" class="lutil-action-btn" data-action="edit" disabled title="Edit">Edit</button>
+            <button type="button" class="lutil-action-btn" data-action="delete" disabled title="Delete">Delete</button>
+            <button type="button" class="lutil-action-btn" data-action="save" disabled title="Save">Save</button>
+            <button type="button" class="lutil-action-btn lutil-action-btn--primary" data-action="cancel" title="Cancel">Cancel</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Core Dependencies -->
+  <script src="../../../../../assets/js/environment.js"></script>
+  <script src="../../../../../assets/js/config.js"></script>
+  <script src="../../../../../assets/js/services/shared/coreApi.js"></script>
+  
+  <!-- Services -->
+  <script src="../../../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../../../assets/js/shared/search-modal.js"></script>
+  
+  <!-- Auth -->
+  <script src="../../../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../../../assets/js/app.js"></script>
+  
+  <!-- Page Scripts -->
+  <script src="../../../../../assets/js/services/loans/loanUtilizationService.js"></script>
+  <script src="../../../../../assets/js/pages/loans/loan-maintenance/dataentry/loan-utilization.js"></script>
+</body>
+
+</html>

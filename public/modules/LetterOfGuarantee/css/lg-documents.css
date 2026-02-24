@@ -1,0 +1,22 @@
+/* LG Account Application submenu (Documents) page-specific styles extracted from public/assets/css/styles.css */
+
+body[data-page="lg-documents"] .cm-react-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body[data-page="lg-documents"] .cm-shell-form {
+  grid-template-columns: 90fr 10fr;
+}
+
+body[data-page="lg-documents"] .form-control,
+body[data-page="lg-documents"] .form-select,
+body[data-page="lg-documents"] .input-group-text,
+body[data-page="lg-documents"] .btn.btn-outline-secondary,
+body[data-page="lg-documents"] .btn.btn-outline-primary {
+  min-height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+}

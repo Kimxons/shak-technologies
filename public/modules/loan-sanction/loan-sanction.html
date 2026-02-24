@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Sanction</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <link rel="stylesheet" href="loan-sanction.css">
+</head>
+<body>
+    <div class="window">
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Sidebar -->
+            <div class="sidebar collapsed" id="main-sidebar">
+                <!-- SECTIONS Header -->
+                <div class="sidebar-header">
+                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i><span>SECTIONS</span></span>
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="false">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="sidebar-search">
+                    <input type="text" class="sidebar-search__input" id="sectionSearch" placeholder="Search sections..." aria-label="Search sections">
+                    <i class="bi bi-search sidebar-search__icon"></i>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="sidebar-content">
+                    <!-- Sections Navigation -->
+                    <div class="nav-section nav-section--card expanded" data-nav-section data-section-name="Sections">
+                        <div class="nav-header nav-header--card" data-tooltip="Sections">
+                            <div class="nav-header__content">
+                                <i class="bi bi-layers nav-header__icon"></i>
+                                <span class="nav-label nav-label--card">Sections</span>
+                            </div>
+                            <div class="nav-header__badge">
+                                <span class="nav-badge">5</span>
+                                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Sections" aria-expanded="true" aria-controls="nav-sections">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav-items nav-items--card is-visible" id="nav-sections">
+                            <div class="sidebar-item sidebar-item--enhanced active" data-section="dataentry" data-tooltip="DataEntry">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-pencil-square sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">DataEntry</div>
+                                        <div class="sidebar-item__description">Main application data</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="schedule" data-tooltip="Schedule">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-calendar3 sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Schedule</div>
+                                        <div class="sidebar-item__description">Repayment schedule</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="charges" data-tooltip="Charges">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-cash-coin sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Charges</div>
+                                        <div class="sidebar-item__description">Fees and charges</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="collateral" data-tooltip="Collateral">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-shield-check sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Collateral</div>
+                                        <div class="sidebar-item__description">Security details</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="guarantor" data-tooltip="Guarantor">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-people-fill sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Guarantor</div>
+                                        <div class="sidebar-item__description">Guarantor information</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End sidebar-content -->
+            </div>
+
+            <!-- Form Content -->
+            <div class="form-content">
+                <div class="form-card" data-main-form>
+                    <form id="loanSanctionForm" novalidate>
+                        <!-- Sanction Details Section -->
+                        <div class="form-section" data-section="sanction-details">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-file-earmark-check"></i> Sanction Details</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Sanction Details" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Branch ID</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="branchId" class="kairo-branch-control__id" value="0101" readonly>
+                                            <input type="text" id="branchName" class="kairo-branch-control__name" value="Head Office" placeholder="Branch Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Application Date</label>
+                                        <input type="text" id="applicationDate" class="bs-input-text" placeholder="dd mmm yyyy" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">WorkFlow Type ID</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="workflowTypeId" class="kairo-branch-control__id" readonly>
+                                            <input type="text" id="workflowTypeName" class="kairo-branch-control__name" placeholder="Workflow Type" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Workflow"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Application ID</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="applicationId" class="kairo-branch-control__id" readonly>
+                                            <input type="text" id="applicationName" class="kairo-branch-control__name" placeholder="Application Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Application"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Approved Amount</label>
+                                        <input type="text" id="approvedAmount" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Mode Of Disbursement</label>
+                                        <select id="modeOfDisbursement" class="bs-select">
+                                            <option value="">--Select--</option>
+                                            <option value="transfer" selected>Transfer</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="cheque">Cheque</option>
+                                            <option value="mobile-money">Mobile Money</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">No. Of Disbursements</label>
+                                        <input type="number" id="noOfDisbursements" class="bs-input-text" placeholder="0">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">First Disbursement Date</label>
+                                        <select id="firstDisbursementDate" class="bs-select">
+                                            <option value="">--Select--</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <div class="form-check">
+                                            <input type="checkbox" id="collectInterestDuringGrace" class="form-check-input">
+                                            <label class="form-check-label" for="collectInterestDuringGrace">Collect Interest During Grace Period</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Repayment Term</label>
+                                        <input type="text" id="repaymentTerm" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Grace Period</label>
+                                        <input type="number" id="gracePeriod" class="bs-input-text" placeholder="0">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Installment Start Date</label>
+                                        <input type="date" id="installmentStartDate" class="bs-input-text">
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Template Schedule</label>
+                                        <select id="templateSchedule" class="bs-select">
+                                            <option value="">--Select--</option>
+                                            <option value="standard">Standard</option>
+                                            <option value="custom">Custom</option>
+                                            <option value="flexible">Flexible</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Marking Rate</label>
+                                        <input type="text" id="markingRate" class="bs-input-text" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Interest Rate Type</label>
+                                        <input type="text" id="interestRateType" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Interest Rate</label>
+                                        <input type="text" id="interestRate" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Base Rate</label>
+                                        <input type="text" id="baseRate" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Main Repayment Account</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="mainRepaymentAccountId" class="kairo-branch-control__id" readonly>
+                                            <input type="text" id="mainRepaymentAccountName" class="kairo-branch-control__name" placeholder="Account Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Approved By</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="approvedBy" class="kairo-branch-control__id" readonly>
+                                            <input type="text" id="approvedByName" class="kairo-branch-control__name" placeholder="Approver Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Approver"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Approved Date</label>
+                                        <select id="approvedDate" class="bs-select">
+                                            <option value="">--Select--</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Application Details Section -->
+                        <div class="form-section" data-section="application-details">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-file-earmark-text"></i> Application Details</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Application Details" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Client ID</label>
+                                        <input type="text" id="clientId" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col" style="grid-column: span 2">
+                                        <label class="label-blue">Mailing Address</label>
+                                        <input type="text" id="mailingAddress" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">City</label>
+                                        <input type="text" id="city" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Phone</label>
+                                        <input type="text" id="phone" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Loan Type</label>
+                                        <input type="text" id="loanType" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Account ID</label>
+                                        <input type="text" id="accountId" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Loan Series</label>
+                                        <input type="text" id="loanSeries" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Product ID</label>
+                                        <input type="text" id="productId" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Currency ID</label>
+                                        <input type="text" id="currencyId" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Sanction Amount</label>
+                                        <input type="text" id="sanctionAmount" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Applied Amount</label>
+                                        <input type="text" id="appliedAmount" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Term</label>
+                                        <input type="text" id="term" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Repayment Term</label>
+                                        <input type="text" id="repaymentTermDetails" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Marking Rate</label>
+                                        <input type="text" id="markingRateDetails" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Interest Rate</label>
+                                        <input type="text" id="interestRateDetails" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Installment Amount</label>
+                                        <input type="text" id="installmentAmount" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Calculation Method</label>
+                                        <input type="text" id="calculationMethod" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Net Collateral Value</label>
+                                        <input type="text" id="netCollateralValue" class="bs-input-text" placeholder="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">No Of Guarantors</label>
+                                        <input type="text" id="noOfGuarantors" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Application Status</label>
+                                        <input type="text" id="applicationStatus" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-action--success" id="chargesBtn">
+                        <i class="bi bi-receipt"></i>
+                        <span>Charges</span>
+                    </button>
+                    <button type="button" class="btn-action" id="viewBtn">
+                        <i class="bi bi-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--warning" id="deviateBtn">
+                        <i class="bi bi-shuffle"></i>
+                        <span>Deviate</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--success" id="sanctionBtn">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Sanction</span>
+                    </button>
+                    <button type="button" class="btn-action" id="cancelBtn">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <iframe src="../loan-application/manual-schedule-modal.html" style="width: 100%; height: 600px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charges Modal -->
+    <div class="modal fade" id="chargesModal" tabindex="-1" aria-labelledby="chargesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <iframe src="../loan-application/charge-rates-modal.html" style="width: 100%; height: 600px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collateral Modal -->
+    <div class="modal fade" id="collateralModal" tabindex="-1" aria-labelledby="collateralModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <iframe src="../loan-application/collateral-modal.html" style="width: 100%; height: 600px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guarantor Modal -->
+    <div class="modal fade" id="guarantorModal" tabindex="-1" aria-labelledby="guarantorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <iframe src="../loan-application/guarantor-modal.html" style="width: 100%; height: 600px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="loan-sanction.js"></script>
+</body>
+</html>

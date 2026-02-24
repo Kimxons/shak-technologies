@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill Contract Maintenance · Trade Finance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../../assets/css/styles.css">
+  <link rel="stylesheet" href="bill-discounting.css">
+  <link rel="stylesheet" href="trade-finance-modern.css?v=10">
+</head>
+
+<body data-page="bill-contract-maintenance" class="tf-modern">
+  <div class="window">
+    <!-- Title Bar -->
+    <div class="tf-title-bar" role="banner" style="pointer-events: auto; user-select: none;">
+      <div class="tf-title-bar-left">
+        <span class="tf-title-text"><i class="bi bi-file-earmark-check me-2"></i>Bill Contract Maintenance / Liquidation
+          / Cancellation</span>
+      </div>
+      <div class="tf-title-bar-right" aria-label="Window controls">
+        <button type="button" class="tf-title-btn" data-action="refresh" title="Refresh"><i
+            class="bi bi-arrow-clockwise"></i></button>
+        <button type="button" class="tf-title-btn" data-action="minimize" title="Minimize"><i
+            class="bi bi-dash-lg"></i></button>
+        <button type="button" class="tf-title-btn" data-action="maximize" title="Maximize"><i
+            class="bi bi-square"></i></button>
+        <button type="button" class="tf-title-btn" data-action="close" title="Close" style="color: #dc3545;"><i
+            class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <!-- Left Sidebar -->
+      <div class="sidebar" id="main-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>Submodules</span>
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-search">
+          <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules...">
+          <i class="bi bi-search sidebar-search__icon"></i>
+        </div>
+
+        <nav class="sidebar-nav mt-3">
+          <div class="nav-section nav-section--card">
+            <div class="nav-header nav-header--card active">
+              <i class="bi bi-folder nav-header__icon"></i>
+              <span class="nav-label nav-label--card">Data Entry</span>
+              <button class="nav-arrow nav-arrow--card ms-auto"><i class="bi bi-chevron-down"></i></button>
+            </div>
+            <div class="nav-items nav-items--card">
+              <button type="button" class="nav-item active">
+                <i class="bi bi-circle-fill" style="font-size: 6px;"></i>
+                <span>Bill Discounting</span>
+              </button>
+              <button type="button" class="nav-item">
+                <i class="bi bi-circle-fill" style="font-size: 6px;"></i>
+                <span>Bill Charge Waiver</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-header">
+              <i class="bi bi-cpu nav-header__icon"></i>
+              <span class="nav-label">Transaction</span>
+              <i class="bi bi-chevron-right ms-auto"></i>
+            </div>
+            <div class="nav-items">
+              <button type="button" class="nav-item" data-open-inline-modal="advanceLiquidationInline">
+                <i class="bi bi-circle" style="font-size: 6px;"></i>
+                <span>Advance Liquidation</span>
+              </button>
+              <button type="button" class="nav-item" data-open-inline-modal="discrepanciesMenuInline">
+                <i class="bi bi-circle" style="font-size: 6px;"></i>
+                <span>Discrepancies Menu</span>
+              </button>
+              <button type="button" class="nav-item" data-open-inline-modal="messagesAdvisesInline">
+                <i class="bi bi-circle" style="font-size: 6px;"></i>
+                <span>Messages And Advises</span>
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Form Content -->
+      <div class="form-content"
+        style="position: relative !important; height: 100% !important; overflow: hidden !important; padding-right: 90px !important; display: block !important;">
+        <div class="form-card" style="height: 100% !important; overflow-y: auto !important; padding: 8px !important;">
+          <form id="bill-contract-form" novalidate>
+            <!-- Contract Details Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <span class="section-header__title">Contract Details</span>
+                <i class="bi bi-chevron-up ms-auto section-toggle"></i>
+              </div>
+              <div class="section-content">
+                <!-- Row 1: Branch and Product (Wider for names) -->
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Branch ID <span class="text-danger">*</span></label>
+                    <div class="kairo-branch-control">
+                      <input type="text" id="BranchID" name="BranchID" class="kairo-branch-control__id bs-input-text">
+                      <input type="text" name="BranchName" class="kairo-branch-control__name bs-input-text" readonly>
+                      <button type="button" class="btn-lookup kairo-branch-control__lookup" data-branch-search><i
+                          class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Product ID</label>
+                    <div class="kairo-product-control">
+                      <input type="text" name="ProductID" class="kairo-product-control__id bs-input-text" readonly>
+                      <input type="text" name="ProductName" class="kairo-product-control__name bs-input-text" readonly>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 2: Basic IDs and Rates -->
+                <div class="form-row three-col">
+                  <div class="col">
+                    <label class="label-blue">Contract ID <span class="text-danger">*</span></label>
+                    <div class="kairo-control">
+                      <input type="text" id="ContractID" name="ContractID" class="kairo-control__id bs-input-text">
+                      <button type="button" class="btn-lookup kairo-control__lookup" data-contract-search><i
+                          class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Agreement Type</label>
+                    <select name="AgreementType" class="bs-select">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Interest Rate</label>
+                    <input type="text" name="InterestRate" class="bs-input-text text-end" data-format-rate>
+                  </div>
+                </div>
+
+                <!-- Row 3: Client and Currency (Wider for codes and names) -->
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Client ID</label>
+                    <div class="kairo-client-control">
+                      <input type="text" name="ClientID" class="kairo-client-control__id bs-input-text" readonly>
+                      <input type="text" name="ClientName" class="kairo-client-control__name bs-input-text" readonly>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Currency</label>
+                    <div class="kairo-currency-control" data-kairo-currency-control>
+                      <input type="text" name="CurrencyID" class="kairo-currency-control__id bs-input-text">
+                      <input type="text" name="CurrencyName" class="kairo-currency-control__name bs-input-text"
+                        readonly>
+                      <button type="button" class="btn-lookup kairo-currency-control__lookup" data-currency-search><i
+                          class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 4: Single fields -->
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">CAD/LC Ref ID</label>
+                    <input type="text" name="CADLCRefID" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">LC Type</label>
+                    <input type="text" name="LCType" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Amount</label>
+                    <input type="text" name="Amount" class="bs-input-text text-end" data-format-amount readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Bill No</label>
+                    <input type="text" name="BillNo" class="bs-input-text" readonly>
+                  </div>
+                </div>
+
+                <!-- Row 5: Dates and Periods -->
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Bill Date</label>
+                    <input type="text" name="BillDate" class="bs-input-text" data-format-date readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Due Date</label>
+                    <input type="text" name="DueDate" class="bs-input-text" data-format-date readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Expiry Date</label>
+                    <input type="text" name="ExpiryDate" class="bs-input-text" data-format-date readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Grace Period</label>
+                    <input type="text" name="GracePeriod" class="bs-input-text" readonly>
+                  </div>
+                </div>
+
+                <!-- Row 6: Drawer and Outstanding -->
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Drawer</label>
+                    <div class="kairo-control">
+                      <input type="text" name="DrawerID" class="kairo-control__id bs-input-text">
+                      <input type="text" name="DrawerName" class="kairo-control__name bs-input-text" readonly>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-row two-col" style="gap: 8px;">
+                      <div class="col">
+                        <label class="label-blue">Outstanding Amount</label>
+                        <input type="text" name="OutStandingAmount" class="bs-input-text text-end" placeholder="0.00"
+                          data-format-amount readonly>
+                      </div>
+                      <div class="col"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settlement Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <span class="section-header__title">Settlement Details</span>
+                <i class="bi bi-chevron-up ms-auto section-toggle"></i>
+              </div>
+              <div class="section-content">
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Debit Account</label>
+                    <div class="kairo-account-control">
+                      <input type="text" name="DebitAccount" class="kairo-account-control__id bs-input-text">
+                      <input type="text" name="DebitAccountName" class="kairo-account-control__name bs-input-text"
+                        readonly>
+                      <button type="button" class="btn-lookup kairo-account-control__lookup"
+                        data-debit-account-search><i class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Settlement Date</label>
+                    <input type="date" name="SettlementDate" class="bs-input-date">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Settlement Option</label>
+                    <select name="SettlementOption" class="bs-select">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Settlement Ref</label>
+                    <input type="text" name="SettlementRef" class="bs-input-text">
+                  </div>
+                </div>
+
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Loan Account</label>
+                    <div class="kairo-account-control">
+                      <input type="text" name="LoanAccountID" class="kairo-account-control__id bs-input-text">
+                      <input type="text" name="LoanAccountName" class="kairo-account-control__name bs-input-text"
+                        readonly>
+                      <button type="button" class="btn-lookup kairo-control__lookup" data-loan-account-search><i
+                          class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Loan Amount</label>
+                    <input type="text" name="LoanAmount" class="bs-input-text text-end" data-format-amount>
+                  </div>
+                  <div class="col"></div>
+                  <div class="col"></div>
+                </div>
+                <div class="form-row">
+                  <div class="col">
+                    <label class="label-blue">Remarks</label>
+                    <textarea name="Remarks" class="bs-textarea" rows="1"
+                      placeholder="Enter settlement remarks..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Margins Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <span class="section-header__title">Margin Details</span>
+                <i class="bi bi-chevron-up ms-auto section-toggle"></i>
+              </div>
+              <div class="section-content">
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Margin Type</label>
+                    <select name="MarginTypeID" class="bs-select">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Margin Currency</label>
+                    <div class="kairo-currency-control" data-kairo-currency-control>
+                      <input type="text" name="MarginCurrency" class="kairo-currency-control__id bs-input-text">
+                      <input type="text" name="MarginCurrencyName" class="kairo-currency-control__name bs-input-text"
+                        readonly>
+                      <button type="button" class="btn-lookup kairo-currency-control__lookup"
+                        data-margin-currency-search><i class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Margin Amount</label>
+                    <input type="text" name="MarginAmount" class="bs-input-text text-end" data-format-amount>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Unpaid Margin</label>
+                    <input type="text" name="UnpaidMargin" class="bs-input-text text-end" data-format-amount readonly>
+                  </div>
+                </div>
+
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Margin Account</label>
+                    <div class="kairo-account-control">
+                      <input type="text" name="MarginAccount" class="kairo-account-control__id bs-input-text">
+                      <input type="text" name="MarginAccountName" class="kairo-account-control__name bs-input-text"
+                        readonly>
+                      <button type="button" class="btn-lookup kairo-account-control__lookup"
+                        data-margin-account-search><i class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Account Margin Amount</label>
+                    <input type="text" name="AccountMarginAmount" class="bs-input-text text-end" data-format-amount
+                      readonly>
+                  </div>
+                  <div class="col"></div>
+                  <div class="col"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audit Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <span class="section-header__title">Audit & Behind The Scene</span>
+                <i class="bi bi-chevron-up ms-auto section-toggle"></i>
+              </div>
+              <div class="section-content">
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Application Status</label>
+                    <input type="text" name="ApplicationStatus" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Outstanding Contract Amount</label>
+                    <input type="text" name="OutstandingContractAmount" class="bs-input-text text-end"
+                      data-format-amount readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Created By</label>
+                    <input type="text" name="CreatedBy" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Modified By</label>
+                    <input type="text" name="ModifiedBy" class="bs-input-text" readonly>
+                  </div>
+                </div>
+
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Approved By</label>
+                    <input type="text" name="ApprovedBy" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Approved On</label>
+                    <input type="text" name="ApprovedOn" class="bs-input-text" data-format-date
+                      placeholder="DD/MMM/YYYY" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Created On</label>
+                    <input type="text" name="CreatedOn" class="bs-input-text" data-format-date placeholder="DD/MMM/YYYY"
+                      readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Modified On</label>
+                    <input type="text" name="ModifiedOn" class="bs-input-text" data-format-date
+                      placeholder="DD/MMM/YYYY" readonly>
+                  </div>
+                </div>
+
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Rejected By</label>
+                    <input type="text" name="RejectedBy" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Rejected On</label>
+                    <input type="text" name="RejectedOn" class="bs-input-text" data-format-date
+                      placeholder="DD/MMM/YYYY" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Reject Reason</label>
+                    <input type="text" name="RejectReason" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col"></div>
+                </div>
+
+                <div class="form-row four-col">
+                  <div class="col">
+                    <label class="label-blue">Cancelled By</label>
+                    <input type="text" name="CancelledBy" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Cancellation Date</label>
+                    <input type="text" name="CancellationDate" class="bs-input-text" data-format-date
+                      placeholder="DD/MMM/YYYY" readonly>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Cancel Reason</label>
+                    <input type="text" name="CancelReason" class="bs-input-text" readonly>
+                  </div>
+                  <div class="col"></div>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="action-panel"
+          style="position: absolute !important; right: 0 !important; top: 0 !important; bottom: 0 !important; width: 90px !important; display: flex !important; flex-direction: column !important; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important; border-left: 1px solid #cbd5e1 !important; z-index: 10 !important;">
+          <div class="nav-group">
+            <button class="btn-nav green" type="button" data-stepper-action="prev"><i
+                class="bi bi-chevron-left"></i></button>
+            <span>NAVIGATION</span>
+            <button class="btn-nav green" type="button" data-stepper-action="next"><i
+                class="bi bi-chevron-right"></i></button>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn-action" type="button" data-shell-mode="View"><i class="bi bi-eye me-1"></i>VIEW</button>
+            <button class="btn-action" type="button" data-shell-mode="Add"><i
+                class="bi bi-plus-circle me-1"></i>ADD</button>
+            <button class="btn-action" type="button" data-submit-action="delete"><i
+                class="bi bi-trash3 me-1"></i>DELETE</button>
+            <button class="btn-action" type="button" data-submit-action="save"><i
+                class="bi bi-check-lg me-1"></i>SAVE</button>
+            <button class="btn-action btn-cancel" type="button" data-submit-action="cancel"><i
+                class="bi bi-x-circle me-1"></i>CANCEL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="billChargeWaiverInline" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable tf-inline-modal--md">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Bill Charge Waiver</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <iframe src="bill-charge-waiver.html" title="Bill Charge Waiver"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="billSanctionDetailsInline" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable tf-inline-modal--md">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Account Sanction Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <iframe src="bill-sanction-details.html" title="Account Sanction Details"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="advanceLiquidationInline" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable tf-inline-modal--md">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Advance Liquidation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <iframe src="advance-liquidation.html" title="Advance Liquidation"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="discrepanciesMenuInline" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable tf-inline-modal--md">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Discrepancies Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <iframe src="discrepancies-menu.html" title="Discrepancies Menu"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="messagesAdvisesInline" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable tf-inline-modal--md">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Messages And Advises</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <iframe src="messages-advises.html" title="Messages And Advises"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="trade-finance-titlebar.js"></script>
+    <script src="trade-finance-collapsible.js?v=3"></script>
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../js/bill-discounting-auto-load.js"></script>
+    <script src="../../../assets/js/ui/date-pickers.js"></script>
+    <script src="../../../assets/js/services/search/currencySearchService.js"></script>
+    <script src="../js/bill-contract-maintenance.js"></script>
+    <script src="date-formatter.js"></script>
+    <script src="amount-formatter.js"></script>
+    <script src="rate-formatter.js"></script>
+</body>
+
+</html>

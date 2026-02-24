@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        html { height: 100%; }
+
+        .address-container {
+            display: grid;
+            grid-template-columns: 1fr 140px;
+            gap: 16px;
+            padding: 16px;
+            height: 100%;
+            background-color: #ffffff;
+        }
+
+        .address-content {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 12px 24px;
+        }
+
+        .address-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .address-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .address-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Sidebar */
+        .address-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #f8fafc;
+            padding: 16px;
+            border-radius: 0.5rem;
+            height: fit-content;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            position: sticky;
+            top: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .address-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row.two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .address-sidebar {
+                flex-direction: row;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="address-container">
+        <div class="address-content">
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">Address Type</label>
+                    <select class="bs-select">
+                        <option>Residential Address</option>
+                        <option>Business Address</option>
+                        <option>Correspondence Address</option>
+                    </select>
+                </div>
+                <div class="col"></div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col" style="grid-column: 1 / -1;">
+                    <label class="bs-label">Address #1</label>
+                    <input type="text" class="bs-input-text" style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col" style="grid-column: 1 / -1;">
+                    <label class="bs-label">Address #2</label>
+                    <input type="text" class="bs-input-text" style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col" style="grid-column: 1 / -1;">
+                    <label class="bs-label">Land Mark</label>
+                    <input type="text" class="bs-input-text" style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">Country</label>
+                    <input type="text" class="bs-input-text">
+                    <button class="btn-lookup" aria-label="Search Country"><i class="bi bi-search"></i></button>
+                </div>
+                <div class="col">
+                    <label class="bs-label">City</label>
+                    <input type="text" class="bs-input-text">
+                    <button class="btn-lookup" aria-label="Search City"><i class="bi bi-search"></i></button>
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">Phone(Home)</label>
+                    <input type="tel" class="bs-input-tel">
+                </div>
+                <div class="col">
+                    <label class="bs-label">Phone(Work)</label>
+                    <input type="tel" class="bs-input-tel">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">Mobile</label>
+                    <input type="tel" class="bs-input-tel">
+                </div>
+                <div class="col">
+                    <label class="bs-label">Fax No</label>
+                    <input type="text" class="bs-input-text">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col" style="grid-column: 1 / -1;">
+                    <label class="bs-label">Email ID</label>
+                    <input type="email" class="bs-input-email" style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">Sub-City/Zone</label>
+                    <select class="bs-select">
+                        <option>--Select--</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="bs-label">Region</label>
+                    <select class="bs-select">
+                        <option>--Select--</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">Wereda</label>
+                    <input type="text" class="bs-input-text">
+                </div>
+                <div class="col">
+                    <label class="bs-label">Kebele</label>
+                    <input type="text" class="bs-input-text">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="bs-label">House Number</label>
+                    <input type="text" class="bs-input-text">
+                </div>
+                <div class="col">
+                    <label class="bs-label">TIN Number</label>
+                    <input type="text" class="bs-input-text">
+                </div>
+            </div>
+
+            <div class="form-row two-col">
+                <div class="col" style="grid-column: 1 / -1;">
+                    <label class="bs-label">Communication Address</label>
+                    <input type="text" class="bs-input-text" style="width: 100%;">
+                </div>
+            </div>
+
+            <!-- Behind The Scene Section -->
+            <div class="section-header">Behind The Scene</div>
+
+            <div class="audit-section">
+                <div class="audit-row">
+                    <div class="audit-item">
+                        <label>Created By</label>
+                        <input type="text" class="bs-input-text" readonly>
+                    </div>
+                    <div class="audit-item">
+                        <label>Modified By</label>
+                        <input type="text" class="bs-input-text" readonly>
+                    </div>
+                    <div class="audit-item">
+                        <label>Supervised By</label>
+                        <input type="text" class="bs-input-text" readonly>
+                    </div>
+                </div>
+                <div class="audit-row">
+                    <div class="audit-item">
+                        <label>Created On</label>
+                        <input type="text" class="bs-input-text" readonly>
+                    </div>
+                    <div class="audit-item">
+                        <label>Modified On</label>
+                        <input type="text" class="bs-input-text" readonly>
+                    </div>
+                    <div class="audit-item">
+                        <label>Supervised On</label>
+                        <input type="text" class="bs-input-text" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="address-sidebar">
+            <button class="btn-action">View</button>
+            <button class="btn-action">Add</button>
+            <button class="btn-action btn-action--primary">Edit</button>
+            <button class="btn-action btn-action--danger">Delete</button>
+            <button class="btn-action btn-action--primary">Save</button>
+            <button class="btn-action">Cancel</button>
+            <button class="btn-action">Back</button>
+        </div>
+    </div>
+</body>
+</html>

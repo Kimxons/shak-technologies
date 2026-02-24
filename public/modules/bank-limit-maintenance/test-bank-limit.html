@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Limit Maintenance - Test</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <link rel="stylesheet" href="bank-limit-maintenance.css">
+  <style>
+    .test-panel {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #fff;
+      border: 2px solid #007bff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      max-width: 300px;
+      z-index: 10000;
+    }
+    .test-panel h3 {
+      margin-top: 0;
+      color: #007bff;
+      font-size: 16px;
+    }
+    .test-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 8px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .test-btn:hover {
+      background: #0056b3;
+    }
+    .test-input {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .test-log {
+      margin-top: 10px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-success { color: #28a745; }
+    .log-error { color: #dc3545; }
+    .log-info { color: #17a2b8; }
+  </style>
+</head>
+<body>
+  <!-- Test Panel -->
+  <div class="test-panel">
+    <h3>🧪 Test Controls</h3>
+    <label>Bank ID:</label>
+    <input type="text" class="test-input" id="testBankId" value="BNK001">
+    <label>Client ID:</label>
+    <input type="text" class="test-input" id="testClientId" value="CLI001">
+    <label>Branch ID:</label>
+    <input type="text" class="test-input" id="testBranchId" value="BRN001">
+    <label>Operator ID:</label>
+    <input type="text" class="test-input" id="testOperatorId" value="OPR001">
+    
+    <button class="test-btn" onclick="testSetContext()">Set Context</button>
+    <button class="test-btn" onclick="testFetchData()">Test Fetch</button>
+    <button class="test-btn" onclick="testSaveData()">Test Save</button>
+    <button class="test-btn" onclick="testDeleteData()">Test Delete</button>
+    <button class="test-btn" onclick="clearLog()">Clear Log</button>
+    
+    <div class="test-log" id="testLog"></div>
+  </div>
+
+  <!-- Main Form -->
+  <div class="limit-container">
+    <div class="limit-content">
+      <!-- Bank Details Section -->
+      <div class="bank-details-section">
+        <div class="section-header">Bank Details</div>
+        <div class="form-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="type">Type</label>
+              <select id="type" class="form-control">
+                <option value="">--Select--</option>
+                <option value="CREDIT">Credit Limit</option>
+                <option value="DEBIT">Debit Limit</option>
+                <option value="OVERDRAFT">Overdraft</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="currencyId">Currency ID</label>
+              <input type="text" id="currencyId" class="form-control">
+              <button type="button" class="search-btn" aria-label="Search Currency">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="limit">Limit</label>
+              <input type="text" id="limit" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="expiryDate">Expiry Date</label>
+              <input type="text" id="expiryDate" class="form-control date-field" value="01/Jan/0001">
+              <button type="button" class="calendar-btn" aria-label="Pick Date">
+                <i class="bi bi-calendar"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="remarks">Remarks</label>
+              <input type="text" id="remarks" class="form-control">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid-actions">
+        <button type="button" class="grid-btn">New</button>
+        <button type="button" class="grid-btn">Alter</button>
+        <button type="button" class="grid-btn">Remove</button>
+        <button type="button" class="grid-btn">Update</button>
+        <button type="button" class="grid-btn">Clear</button>
+      </div>
+
+      <!-- Data Grid -->
+      <div class="data-grid-section">
+        <table class="data-grid">
+          <thead>
+            <tr>
+              <th>Limit Type Name</th>
+              <th>CurrencyName</th>
+              <th>Limit</th>
+              <th>Expiry Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="no-data">
+              <td colspan="4">No records to display.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Behind The Scene Section -->
+      <div class="behind-scene-section">
+        <div class="section-header">Behind The Scene</div>
+        <div class="behind-scene-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createdBy">Created By</label>
+              <input type="text" id="createdBy" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="modifiedBy">Modified By</label>
+              <input type="text" id="modifiedBy" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="supervisedBy">Supervised By</label>
+              <input type="text" id="supervisedBy" class="form-control" readonly>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createdOn">Created On</label>
+              <input type="text" id="createdOn" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="modifiedOn">Modified On</label>
+              <input type="text" id="modifiedOn" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="supervisedOn">Supervised On</label>
+              <input type="text" id="supervisedOn" class="form-control" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Scripts -->
+  <script src="../../assets/js/services/shared/environment.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="bank-limit-maintenance.js"></script>
+
+  <script>
+    // Test functions
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('testLog');
+      const timestamp = new Date().toLocaleTimeString();
+      const className = `log-${type}`;
+      logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('testLog').innerHTML = '';
+    }
+
+    function testSetContext() {
+      window.currentBankID = document.getElementById('testBankId').value;
+      window.currentClientID = document.getElementById('testClientId').value;
+      window.currentBranchID = document.getElementById('testBranchId').value;
+      window.currentOperatorID = document.getElementById('testOperatorId').value;
+      
+      log('✅ Context set successfully', 'success');
+      log(`Bank: ${window.currentBankID}, Client: ${window.currentClientID}`, 'info');
+    }
+
+    async function testFetchData() {
+      try {
+        log('📥 Testing data fetch...', 'info');
+        if (window.BankLimitMaintenanceDebug) {
+          await window.BankLimitMaintenanceDebug.loadData();
+          log('✅ Fetch completed - check console for details', 'success');
+        } else {
+          log('❌ Debug interface not available', 'error');
+        }
+      } catch (error) {
+        log('❌ Fetch failed: ' + error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    async function testSaveData() {
+      try {
+        log('💾 Testing save...', 'info');
+        // Fill in test data
+        document.getElementById('type').value = 'CREDIT';
+        document.getElementById('currencyId').value = 'USD';
+        document.getElementById('limit').value = '100000';
+        document.getElementById('expiryDate').value = '31/Dec/2026';
+        document.getElementById('remarks').value = 'Test limit entry';
+        
+        // Click New button to enable form
+        document.querySelector('.grid-actions .grid-btn:nth-child(1)').click();
+        
+        // Click Update to save
+        setTimeout(() => {
+          document.querySelector('.grid-actions .grid-btn:nth-child(4)').click();
+          log('✅ Save initiated - check console for results', 'success');
+        }, 500);
+      } catch (error) {
+        log('❌ Save test failed: ' + error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    async function testDeleteData() {
+      try {
+        log('🗑️ Testing delete...', 'info');
+        const selectedRow = document.querySelector('.data-grid tbody tr.selected');
+        if (!selectedRow || selectedRow.classList.contains('no-data')) {
+          log('⚠️ Please select a row first', 'error');
+          return;
+        }
+        
+        document.querySelector('.grid-actions .grid-btn:nth-child(3)').click();
+        log('✅ Delete initiated', 'success');
+      } catch (error) {
+        log('❌ Delete test failed: ' + error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    // Auto-set context on load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        testSetContext();
+        log('🚀 Bank Limit Maintenance Test Page Ready', 'success');
+        log('Use the test buttons above to verify functionality', 'info');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

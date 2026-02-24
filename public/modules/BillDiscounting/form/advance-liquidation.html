@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advance Liquidation · Trade Finance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="bill-discounting.css">
+    <link rel="stylesheet" href="trade-finance-modern.css">
+</head>
+
+<body data-page="bill-advance-liquidation" class="tf-modern">
+    <div class="tf-title-bar" role="banner">
+        <div class="tf-title-bar-left">
+            <span class="tf-title-text">Advance Liquidation</span>
+        </div>
+        <div class="tf-title-bar-right" aria-label="Window controls">
+            <button type="button" class="tf-title-btn" data-action="refresh" title="Refresh" aria-label="Refresh">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="tf-title-btn" data-action="minimize" title="Minimize" aria-label="Minimize">
+                <i class="bi bi-dash-lg" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="tf-title-btn" data-action="maximize" title="Maximize" aria-label="Maximize">
+                <i class="bi bi-square" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="tf-title-btn close" data-action="close" title="Close" aria-label="Close">
+                <i class="bi bi-x-circle" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+    <div class="cm-react-orbs" aria-hidden="true">
+        <span class="cm-react-orb cm-react-orb--primary"></span>
+        <span class="cm-react-orb cm-react-orb--secondary"></span>
+        <span class="cm-react-orb cm-react-orb--accent"></span>
+    </div>
+
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-title">Advance Liquidation</div>
+                <div class="nav-section">
+                    <button type="button" class="nav-toggle">
+                        <i class="bi bi-pencil-square"></i>
+                        <span class="nav-toggle-label">DataEntry</span>
+                        <i class="bi bi-chevron-down nav-chevron"></i>
+                    </button>
+                    <div class="nav-items">
+                        <button type="button" class="nav-item active">
+                            <i class="bi bi-cash-coin"></i>
+                            <span>Liquidation Main</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <button type="button" class="nav-toggle">
+                        <i class="bi bi-eye"></i>
+                        <span class="nav-toggle-label">View</span>
+                        <i class="bi bi-chevron-down nav-chevron"></i>
+                    </button>
+                    <div class="nav-items">
+                        <button type="button" class="nav-item" data-bs-toggle="modal" data-bs-target="#billSanctionDetailsInline">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Sanction Details</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-3 border-top">
+                    <button type="button" class="nav-item text-danger w-100" data-advance-liquidation-action="cancel">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <span>Close Window</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="content">
+                <div id="formToast" class="alert d-none mb-3" role="alert"></div>
+                <form id="advance-liquidation-form" class="form" novalidate>
+                    <!-- Header Identifiers Card -->
+                    <section class="card">
+                        <div class="card-header">
+                            <span>Reference Details</span>
+                        </div>
+                        <div class="card-body form-grid two-col">
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Branch ID</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="BranchID" value="0101"
+                                        readonly>
+                                    <input type="text" class="form-control segment-desc" name="BranchName"
+                                        value="Head Office" readonly>
+                                    <button type="button" class="btn-inline-search" data-branch-search><i
+                                            class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Application ID</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="ApplicationID">
+                                    <button type="button" class="btn-inline-search" data-application-search><i
+                                            class="bi bi-search"></i></button>
+                                    <input type="text" class="form-control segment-desc" name="ApplicationName"
+                                        placeholder="Application Name" readonly>
+                                </div>
+                            </div>
+                            <div class="form-control-group full-row">
+                                <label class="form-label"><span>Debit Account ID</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="DebitAccountID"
+                                        placeholder="Account ID">
+                                    <input type="text" class="form-control segment-desc" name="DebitAccountName"
+                                        placeholder="Account Name" readonly>
+                                    <button type="button" class="btn-inline-search" data-debit-account-search><i
+                                            class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Loan Details Card -->
+                    <section class="card">
+                        <div class="card-header">
+                            <span>Loan & Settlement Details</span>
+                        </div>
+                        <div class="card-body form-grid two-col">
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Loan Product</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="LoanProductID">
+                                    <input type="text" class="form-control segment-desc" name="LoanProductName"
+                                        readonly>
+                                    <button type="button" class="btn-inline-search" data-product-search><i
+                                            class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Loan Account</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="LoanAccountID">
+                                    <input type="text" class="form-control segment-desc" name="LoanAccountName"
+                                        readonly>
+                                    <button type="button" class="btn-inline-search" data-loan-account-search><i
+                                            class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Loan Amount</span></label>
+                                <input type="text" class="form-control text-end" name="LoanAmount" placeholder="0.00">
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Interest Rate (%)</span></label>
+                                <input type="text" class="form-control text-end" name="InterestRate" placeholder="0.00">
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Accrued Interest</span></label>
+                                <input type="text" class="form-control text-end" name="AccruedInterest"
+                                    placeholder="0.00">
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Penalty Amount</span></label>
+                                <input type="text" class="form-control text-end" name="PenaltyAmount"
+                                    placeholder="0.00">
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Expiry Date</span></label>
+                                <select class="form-control professional-select" name="ExpiryDate">
+                                    <option>01/Jan/0001</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Settlement Date</span></label>
+                                <select class="form-control professional-select" name="SettlementDate">
+                                    <option>01/Jan/0001</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group full-row">
+                                <label class="form-label"><span>Settlement Amount</span></label>
+                                <input type="text" class="form-control text-end" name="SettlementAmount"
+                                    placeholder="0.00"
+                                    style="font-weight: bold; font-size: 14px; color: var(--primary);">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Components Card -->
+                    <section class="card">
+                        <div class="card-header">
+                            <span>Transaction Components</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="data-table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Component</th>
+                                            <th>CR Account ID</th>
+                                            <th>CR Account Name</th>
+                                            <th>DR Account Type</th>
+                                            <th>DR Account ID</th>
+                                            <th>DR Account Name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">No records to display.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Behind The Scene Card -->
+                    <section class="card shadow-sm mb-1">
+                        <div class="card-header">
+                            <span>Audit & Behind The Scene</span>
+                        </div>
+                        <div class="card-body form-grid three-col p-2">
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Created By</label>
+                                <input type="text" name="CreatedBy" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Created On</label>
+                                <input type="text" name="CreatedOn" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Modified By</label>
+                                <input type="text" name="ModifiedBy" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Modified On</label>
+                                <input type="text" name="ModifiedOn" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Supervised By</label>
+                                <input type="text" name="SupervisedBy" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Supervised On</label>
+                                <input type="text" name="SupervisedOn" class="form-control form-control-sm" readonly>
+                            </div>
+                        </div>
+                    </section>
+                </form>
+            </main>
+
+            <!-- Action Bar -->
+            <aside class="action-bar border-start">
+                <div class="navigation-group mb-4">
+                    <p class="small fw-bold text-muted mb-2 px-2">Navigation</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="action-btn" data-stepper-action="prev">
+                            <i class="bi bi-chevron-double-left"></i>
+                            <span>Previous</span>
+                        </button>
+                        <button type="button" class="action-btn" data-stepper-action="next">
+                            <i class="bi bi-chevron-double-right"></i>
+                            <span>Next</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="navigation-group mb-4">
+                    <p class="small fw-bold text-muted mb-2 px-2">Approval</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="action-btn" data-advance-liquidation-action="approve"
+                            style="color: var(--success); border-color: var(--success);">
+                            <i class="bi bi-check-lg"></i>
+                            <span>Approve</span>
+                        </button>
+                        <button type="button" class="action-btn" data-advance-liquidation-action="reject"
+                            style="color: var(--danger); border-color: var(--danger);">
+                            <i class="bi bi-x-lg"></i>
+                            <span>Reject</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-auto d-flex flex-column gap-2">
+                    <p class="small fw-bold text-muted mb-2 px-2">Workflow</p>
+                    <button type="button" class="action-btn view" data-advance-liquidation-action="view">
+                        <i class="bi bi-eye-fill"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="action-btn add" data-advance-liquidation-action="add">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Add</span>
+                    </button>
+                    <button type="button" class="action-btn edit" data-advance-liquidation-action="edit">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button type="button" class="action-btn save" data-advance-liquidation-action="save">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Save</span>
+                    </button>
+                    <button type="button" class="action-btn cancel" data-advance-liquidation-action="cancel">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" class="action-btn" data-advance-liquidation-action="clear">
+                        <i class="bi bi-eraser-fill"></i>
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../assets/js/environment.js"></script>
+    <script src="../../../assets/js/config.js"></script>
+    <script src="../../../assets/js/app.js"></script>
+    <script src="trade-finance-titlebar.js"></script>
+    <script src="../js/bill-discounting-auto-load.js"></script>
+    <script src="../js/bill-advance-liquidation.js"></script>
+
+    <script src="../../../assets/js/pages/BillDiscounting/form/advance-liquidation.embedded.js"></script>
+</body>
+
+<!-- Inline Sanction Details Modal -->
+<div class="modal fade tf-inline-modal--md" id="billSanctionDetailsInline" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Account Sanction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe src="bill-sanction-details.html" title="Account Sanction Details" class="w-100 h-100 border-0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

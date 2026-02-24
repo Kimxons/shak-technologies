@@ -1,0 +1,78 @@
+﻿@model LoginViewModel
+
+@{
+    ViewData["Title"] = "NIMBLE 6.2.2 · Sign in";
+    Layout = null;
+}
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" type="text/css" href="/fonts/montserrat/montserrat.css">
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    @* <link rel="stylesheet" href="@Url.Content("~/css/styles.css")" /> *@
+    <link rel="stylesheet" href="/css/styles.css" />
+    <!-- Global Theme Manager - Load before any scripts -->
+    <script src="@Url.Content("~/js/theme-manager.js")"></script>
+</head>
+
+<body data-page="login" class="auth-page">
+    <main class="authBackground">
+        <div class="container auth-container">
+            <div class="row auth-main justify-content-center">
+                <div class="col-12">
+                    <div class="form-box mx-auto">
+                        <div class="auth-wrapper text-center">
+                            <div class="mb-4">
+                                <img src="@Url.Content("~/images/silvicon.png")" class="brand-logo" alt="Craft Silicon" />
+                            </div>
+                            <h2 class="brand-title">NIMBLE 6.2.2</h2>
+                            <h3 class="brand-subtitle">Sign in</h3>
+
+                            <p class="text-muted small mt-3">Authenticating with OAuth 2.0...</p>
+
+                            <p class="login-footer mt-5 text-muted small">
+                                Powered by <span class="fw-bold">Craft Silicon</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    c
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+    <!-- Environment Configuration -->
+    <script src="@Url.Content("~/js/environment.js")"></script>
+    <!-- Auth Services -->
+    <script src="@Url.Content("~/js/auth/auth.config.js")"></script>
+    <script src="@Url.Content("~/js/auth/auth.service.js")"></script>
+    <!-- Main App -->
+    <script src="@Url.Content("~/js/app.js?v=20260114-11")"></script>
+    <script>
+        // Simple password toggle logic
+        document.addEventListener("DOMContentLoaded", function () {
+          document.querySelectorAll("[data-toggle-password]").forEach(function (button) {
+            button.addEventListener("click", function () {
+              const targetId = button.getAttribute("data-toggle-password");
+              const input = document.getElementById(targetId);
+              if (!input) return;
+              const isMasked = input.type === "password";
+              input.type = isMasked ? "text" : "password";
+              const icon = button.querySelector("i");
+              if (icon) {
+                icon.classList.toggle("bi-eye");
+                icon.classList.toggle("bi-eye-slash");
+              }
+            });
+          });
+        });
+    </script>
+</body>
+
+</html>

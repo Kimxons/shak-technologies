@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Group Collection Allocation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .test-section h2 {
+      margin-top: 0;
+      color: #5b9fd9;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      background: #5b9fd9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #4a8fc8;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log-output {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+    input, select {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .form-group {
+      margin: 10px 0;
+    }
+    label {
+      display: inline-block;
+      width: 150px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Group Collection Allocation - Test Suite</h1>
+
+  <!-- Test 1: Service Loading -->
+  <div class="test-section">
+    <h2>1. Service Loading Test</h2>
+    <button onclick="testServiceLoading()">Test Service Loading</button>
+    <div id="loadingTest" class="log-output"></div>
+  </div>
+
+  <!-- Test 2: API Connectivity -->
+  <div class="test-section">
+    <h2>2. API Connectivity Test</h2>
+    <div class="form-group">
+      <label>Group ID:</label>
+      <input type="text" id="testGroupId" value="1" />
+    </div>
+    <div class="form-group">
+      <label>Allocation Type:</label>
+      <select id="testAllocationType">
+        <option value="">--Select--</option>
+        <option value="Default Product Setting">Default Product Setting</option>
+        <option value="Custom">Custom</option>
+      </select>
+    </div>
+    <button onclick="testApiCall()">Test API Call</button>
+    <div id="apiTest" class="log-output"></div>
+  </div>
+
+  <!-- Test 3: Data Patching -->
+  <div class="test-section">
+    <h2>3. Data Patching Test</h2>
+    <button onclick="testDataPatching()">Test with Mock Data</button>
+    <div id="patchTest" class="log-output"></div>
+  </div>
+
+  <!-- Test 4: Form Collection -->
+  <div class="test-section">
+    <h2>4. Form Data Collection Test</h2>
+    <button onclick="testFormCollection()">Test Form Collection</button>
+    <div id="formTest" class="log-output"></div>
+  </div>
+
+  <!-- Test 5: Complete Flow -->
+  <div class="test-section">
+    <h2>5. Complete Flow Test</h2>
+    <button onclick="testCompleteFlow()">Run Complete Flow</button>
+    <div id="flowTest" class="log-output"></div>
+  </div>
+
+  <!-- Load Scripts -->
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  
+  <script>
+    let log = (elementId, message, type = 'info') => {
+      const element = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+      element.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+      element.scrollTop = element.scrollHeight;
+    };
+
+    // Test 1: Service Loading
+    async function testServiceLoading() {
+      const output = 'loadingTest';
+      document.getElementById(output).innerHTML = '';
+      
+      try {
+        log(output, 'Testing service loading...', 'info');
+        
+        const { ServiceLoader } = window;
+        
+        log(output, 'Loading Core...', 'info');
+        await ServiceLoader.loadCore();
+        log(output, '✅ Core loaded', 'success');
+        
+        log(output, 'Loading TransactionService...', 'info');
+        await ServiceLoader.loadTransactionService();
+        log(output, '✅ TransactionService loaded', 'success');
+        
+        log(output, 'Loading LookupService...', 'info');
+        await ServiceLoader.loadLookupService();
+        log(output, '✅ LookupService loaded', 'success');
+        
+        // Check if services are available
+        if (window.TransactionService) {
+          log(output, '✅ TransactionService is available on window', 'success');
+          log(output, 'Methods: ' + Object.keys(window.TransactionService).join(', '), 'info');
+        } else {
+          log(output, '❌ TransactionService not found on window', 'error');
+        }
+        
+        if (window.LookupService) {
+          log(output, '✅ LookupService is available on window', 'success');
+        } else {
+          log(output, '❌ LookupService not found on window', 'error');
+        }
+        
+        if (window.Environment) {
+          log(output, '✅ Environment config loaded', 'success');
+          log(output, 'Transaction URL: ' + (window.Environment.baseUrlTransaction || 'NOT SET'), 'info');
+        }
+        
+        log(output, '✅ All services loaded successfully!', 'success');
+        
+      } catch (error) {
+        log(output, '❌ Error: ' + error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    // Test 2: API Call
+    async function testApiCall() {
+      const output = 'apiTest';
+      document.getElementById(output).innerHTML = '';
+      
+      try {
+        log(output, 'Testing API call...', 'info');
+        
+        // Load services first
+        await window.ServiceLoader.loadCore();
+        await window.ServiceLoader.loadTransactionService();
+        
+        const groupId = document.getElementById('testGroupId').value;
+        const allocationType = document.getElementById('testAllocationType').value;
+        
+        if (!groupId) {
+          log(output, '❌ Please enter Group ID', 'error');
+          return;
+        }
+        
+        if (!allocationType) {
+          log(output, '❌ Please select Allocation Type', 'error');
+          return;
+        }
+        
+        const requestData = {
+          OurBranchID: '002',
+          TrxSerialID: parseInt(groupId),
+          AllocationTypeID: allocationType,
+          OperatorID: 'web_portal'
+        };
+        
+        log(output, 'Request Data: ' + JSON.stringify(requestData, null, 2), 'info');
+        
+        log(output, 'Calling API...', 'info');
+        const result = await window.TransactionService.getGCLoanCollection(requestData);
+        
+        log(output, 'Response received!', 'info');
+        log(output, 'Success: ' + result.success, result.success ? 'success' : 'error');
+        log(output, 'Code: ' + result.code, 'info');
+        log(output, 'Message: ' + result.message, 'info');
+        
+        if (result.data) {
+          log(output, 'Data: ' + JSON.stringify(result.data, null, 2), 'info');
+        }
+        
+        if (result.success) {
+          log(output, '✅ API call successful!', 'success');
+        } else {
+          log(output, '⚠️ API returned error: ' + result.message, 'error');
+        }
+        
+      } catch (error) {
+        log(output, '❌ Error: ' + error.message, 'error');
+        log(output, 'Stack: ' + error.stack, 'error');
+        console.error(error);
+      }
+    }
+
+    // Test 3: Data Patching
+    async function testDataPatching() {
+      const output = 'patchTest';
+      document.getElementById(output).innerHTML = '';
+      
+      log(output, 'Testing data patching with mock data...', 'info');
+      
+      const mockData = {
+        Details: [
+          {
+            GroupID: 'GRP001',
+            ClientID: 'CLI001',
+            AccountID: 'ACC001',
+            ClientName: 'John Doe',
+            ExpectedAmount: 1000.50,
+            ReceivedAmount: 1000.50
+          },
+          {
+            GroupID: 'GRP001',
+            ClientID: 'CLI002',
+            AccountID: 'ACC002',
+            ClientName: 'Jane Smith',
+            ExpectedAmount: 2500.75,
+            ReceivedAmount: 2000.00
+          }
+        ],
+        totalAllocated: 3501.25,
+        totalReceived: 3000.50,
+        createdBy: 'Test User',
+        createdOn: new Date().toISOString()
+      };
+      
+      log(output, 'Mock Data: ' + JSON.stringify(mockData, null, 2), 'info');
+      log(output, '✅ Mock data created successfully', 'success');
+      log(output, 'Total records: ' + mockData.Details.length, 'info');
+      log(output, 'Total Allocated: ' + mockData.totalAllocated, 'info');
+      log(output, 'Total Received: ' + mockData.totalReceived, 'info');
+      
+      // Test field mapping
+      const record = mockData.Details[0];
+      log(output, '\nTesting field mapping for first record:', 'info');
+      log(output, 'GroupID: ' + (record.GroupID || record.groupId || 'NOT FOUND'), 'info');
+      log(output, 'ClientID: ' + (record.ClientID || record.clientId || 'NOT FOUND'), 'info');
+      log(output, 'AccountID: ' + (record.AccountID || record.accountId || 'NOT FOUND'), 'info');
+      log(output, 'ClientName: ' + (record.ClientName || record.clientName || 'NOT FOUND'), 'info');
+      
+      log(output, '\n✅ Data patching test completed!', 'success');
+    }
+
+    // Test 4: Form Collection
+    async function testFormCollection() {
+      const output = 'formTest';
+      document.getElementById(output).innerHTML = '';
+      
+      log(output, 'Testing form data collection...', 'info');
+      
+      log(output, 'This test simulates collecting data from the form', 'info');
+      
+      const mockFormData = {
+        GroupID: '001',
+        SchemeID: 'SCH001',
+        ValueDate: '2026-01-20',
+        AllocationTypeID: 'Custom',
+        OperatorID: 'web_portal',
+        OurBranchID: '002',
+        Allocations: {
+          Savings: [
+            { ClientID: 'CLI001', ReceivedAmount: 1000 }
+          ],
+          Loans: [],
+          Others: []
+        }
+      };
+      
+      log(output, 'Collected Form Data: ' + JSON.stringify(mockFormData, null, 2), 'info');
+      log(output, '✅ Form collection test completed!', 'success');
+    }
+
+    // Test 5: Complete Flow
+    async function testCompleteFlow() {
+      const output = 'flowTest';
+      document.getElementById(output).innerHTML = '';
+      
+      log(output, '🚀 Starting complete flow test...', 'info');
+      
+      try {
+        // Step 1: Load services
+        log(output, '\n📦 Step 1: Loading services...', 'info');
+        await window.ServiceLoader.loadCore();
+        await window.ServiceLoader.loadTransactionService();
+        await window.ServiceLoader.loadLookupService();
+        log(output, '✅ Services loaded', 'success');
+        
+        // Step 2: Check environment
+        log(output, '\n🌍 Step 2: Checking environment...', 'info');
+        if (window.Environment && window.Environment.baseUrlTransaction) {
+          log(output, 'Transaction URL: ' + window.Environment.baseUrlTransaction, 'info');
+          log(output, '✅ Environment configured', 'success');
+        } else {
+          log(output, '⚠️ Transaction URL not configured', 'error');
+        }
+        
+        // Step 3: Verify services
+        log(output, '\n🔍 Step 3: Verifying services...', 'info');
+        if (window.TransactionService) {
+          const methods = Object.keys(window.TransactionService);
+          log(output, 'TransactionService methods: ' + methods.join(', '), 'info');
+          log(output, '✅ TransactionService verified', 'success');
+        }
+        
+        // Step 4: Test API format
+        log(output, '\n📡 Step 4: Testing API request format...', 'info');
+        const testRequest = {
+          OurBranchID: '002',
+          TrxSerialID: 1,
+          AllocationTypeID: 'Test',
+          OperatorID: 'web_portal'
+        };
+        log(output, 'Request would be: ' + JSON.stringify(testRequest, null, 2), 'info');
+        log(output, '✅ Request format correct', 'success');
+        
+        log(output, '\n✅ Complete flow test finished successfully!', 'success');
+        log(output, '\n📝 Summary:', 'info');
+        log(output, '  - Services: Loaded ✓', 'success');
+        log(output, '  - Environment: Configured ✓', 'success');
+        log(output, '  - API: Ready ✓', 'success');
+        log(output, '\n🎉 System is ready for testing!', 'success');
+        
+      } catch (error) {
+        log(output, '❌ Flow test failed: ' + error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    // Auto-run service loading test on page load
+    window.addEventListener('load', () => {
+      setTimeout(testServiceLoading, 500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product (SB,CA,CS,SH)</title>
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <style>
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10000;
+      opacity: 0;
+      transform: translateX(400px);
+      transition: all 0.3s ease;
+    }
+    .toast-notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .toast-success {
+      background-color: #28a745;
+      color: white;
+    }
+    .toast-error {
+      background-color: #dc3545;
+      color: white;
+    }
+    .toast-notification i {
+      font-size: 18px;
+    }
+
+    /* Submodules Section */
+    .sidebar-submodules-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0 8px 0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .submodules-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1e293b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .submodules-menu-btn {
+      background: none;
+      border: none;
+      color: #1e293b;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .submodules-menu-btn:hover {
+      color: #357abd;
+    }
+
+    /* Submodules Search */
+    .submodules-search-wrapper {
+      margin-bottom: 12px;
+    }
+
+    .submodules-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .submodules-search:focus-within {
+      background: #fff;
+      border-color: #357abd;
+      box-shadow: 0 0 0 2px rgba(53, 122, 189, 0.1);
+    }
+
+    .submodules-search i {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .submodules-search-input {
+      flex: 1;
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 11px;
+      color: #1e293b;
+      font-family: inherit;
+    }
+
+    .submodules-search-input::placeholder {
+      color: #cbd5e1;
+    }
+
+    /* Data Entry Section - Removed blue background */
+    .nav-section {
+      margin-bottom: 10px;
+    }
+
+    .nav-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      padding: 8px 12px;
+      min-height: 30px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e293b;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .nav-header:hover {
+      background: #f8f9fa;
+      border-color: #cbd5e1;
+    }
+
+    .nav-label {
+      flex: 1;
+      padding: 7px 10px;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .nav-section.is-open .nav-header {
+      border-color: #cbd5e1;
+      background: #f8f9fa;
+    }
+
+    .nav-section.is-open .nav-label {
+      color: #1e293b;
+    }
+
+    /* Count badge styling */
+    .nav-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 8px;
+      background: white;
+      color: #357abd;
+      font-size: 11px;
+      font-weight: 700;
+      border: 2px solid #357abd;
+      border-radius: 50%;
+      margin-left: auto;
+    }
+
+    .nav-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      margin-top: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Sidebar collapse state */
+    .sidebar.sidebar-collapsed {
+      width: 50px !important;
+      padding: 12px 0 !important;
+      border: none !important;
+      overflow: visible;
+      transition: width 0.3s ease, padding 0.3s ease;
+    }
+
+    .sidebar.sidebar-collapsed > div:not(.sidebar-submodules-header) {
+      display: none !important;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-submodules-header {
+      display: flex !important;
+      padding: 0 8px !important;
+      margin-bottom: 0 !important;
+      border-bottom: none !important;
+      justify-content: center !important;
+    }
+
+    .sidebar.sidebar-collapsed .submodules-label {
+      display: none !important;
+    }
+
+    .sidebar.sidebar-collapsed .submodules-menu-btn {
+      margin: 0 auto !important;
+      display: flex !important;
+    }
+
+    .main-container.sidebar-collapsed {
+      gap: 0 !important;
+      padding: 0 !important;
+    }
+
+    .main-container.sidebar-collapsed .form-content {
+      width: 100%;
+      flex: 1;
+    }
+    .nav-items.collapsed {
+      display: none !important;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      color: #475569;
+      white-space: nowrap;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(10, 107, 165, 0.10);
+      border-radius: 0;
+      transition: all 0.2s ease;
+    }
+
+    .nav-items .sidebar-item:last-child {
+      border-bottom: none;
+    }
+
+    .sidebar-item:hover {
+      color: #357abd;
+      background: rgba(10, 107, 165, 0.06);
+      transform: none;
+    }
+
+    .sidebar-item.active {
+      background: linear-gradient(90deg, #357abd 0%, #2b6199 100%);
+      color: #fff;
+      border-color: transparent;
+      transform: none;
+    }
+
+    .sidebar-item i {
+      font-size: 12px;
+    }
+
+    /* Label color matching Account Maintenance */
+    label {
+      color: #1e293b !important;
+    }
+
+    /* Multi-select dropdown styles */
+    .multi-select-dropdown {
+      position: relative;
+      width: 100%;
+    }
+
+    .multi-select-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: var(--bs-input-height);
+      padding: var(--bs-input-padding);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--bs-input-radius);
+      font-size: var(--bs-input-font-size);
+      font-family: var(--kairo-font-family);
+      font-weight: var(--bs-input-font-weight);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--glass-shadow);
+      color: var(--kairo-text-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .multi-select-trigger:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border-hover);
+      box-shadow: var(--glass-shadow-hover);
+    }
+
+    .multi-select-trigger .bi {
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .multi-select-trigger.active .bi {
+      transform: rotate(180deg);
+    }
+
+    .multi-select-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--kairo-text-color);
+    }
+
+    .multi-select-options {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--bs-input-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .multi-select-option {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      margin: 0 !important;
+      color: var(--kairo-text-color) !important;
+    }
+
+    .multi-select-option:hover {
+      background: rgba(10, 107, 165, 0.08);
+    }
+
+    .multi-select-option input[type="checkbox"] {
+      margin-right: 8px;
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    .multi-select-option span {
+      font-size: 11px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="window">
+    <!-- Window Controls -->
+    <div class="window-controls" style="position: absolute; top: 8px; right: 50px; z-index: 1000; display: flex; gap: 8px;">
+      <button id="refreshBtn" class="btn-window-control" style="
+        background: rgba(10, 107, 165, 0.1);
+        border: 1px solid rgba(10, 107, 165, 0.3);
+        color: var(--primary);
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      " title="Refresh">
+        <i class="bi bi-arrow-clockwise" style="font-size: 16px;"></i>
+      </button>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Left Sidebar -->
+      <aside class="sidebar card-surface" aria-label="Options menu">
+        <!-- Submodules Header -->
+        <div class="sidebar-submodules-header">
+          <div class="submodules-label">
+            <i class="bi bi-columns-gap"></i> SUBMODULES
+          </div>
+          <button type="button" class="submodules-menu-btn" title="Menu">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <!-- Submodules Search -->
+        <div class="submodules-search-wrapper">
+          <div class="submodules-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search submodules..." class="submodules-search-input">
+          </div>
+        </div>
+
+        <div class="nav-section is-open">
+          <div class="nav-header">
+            <span class="nav-label">
+              <i class="bi bi-folder me-2"></i>Data Entry
+            </span>
+            <span class="nav-count-badge">6</span>
+          </div>
+          <div class="nav-items">
+            <button type="button" class="sidebar-item" data-child-form="product-gl-interface">
+              <i class="bi bi-file-text"></i><span>Product GL Interface</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-documents">
+              <i class="bi bi-file-earmark"></i><span>Product Documents</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="dormant-account">
+              <i class="bi bi-gear"></i><span>Dormant Account Settings</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="user-defined-fields">
+              <i class="bi bi-list-ul"></i><span>User Defined Fields</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-charges">
+              <i class="bi bi-currency-dollar"></i><span>Product Charges</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-notification">
+              <i class="bi bi-bell"></i><span>Product Notification</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-header">
+            <span class="nav-label">
+              <i class="bi bi-clock-history me-2"></i>Recent Activities
+            </span>
+          </div>
+          <div class="nav-items collapsed">
+          </div>
+        </div>
+      </aside>
+
+      <!-- Form Content -->
+      <div class="form-content">
+        <!-- Product Details Section -->
+        <div class="section-header">
+          <i class="bi bi-file-text"></i> PRODUCT DETAILS
+        </div>
+
+        <div class="kairo-grid-4">
+          <div class="kairo-field">
+            <label class="label-blue">Product ID</label>
+            <div class="kairo-product-control" data-kairo-product-control>
+              <input type="text" id="ProductID" name="ProductID" class="kairo-product-control__id" aria-label="Product ID">
+              <input type="text" id="ProductName" class="kairo-product-control__name" aria-label="Product Name" placeholder="Product Name" readonly>
+              <button type="button" class="btn-lookup kairo-product-control__lookup" data-target-input="ProductID" aria-label="Search Product"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Product Types</label>
+            <select id="ProductTypes" name="ProductTypes" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Product Category</label>
+            <select id="ProductCategory" name="ProductCategory" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Currency</label>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" id="Currency" name="Currency" class="bs-input-text" style="flex: 1;">
+              <button class="btn-lookup" aria-label="Lookup Currency"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Valid From</label>
+            <input type="text" id="ValidFrom" name="ValidFrom" class="bs-input-text" data-date-picker placeholder="dd mmm yyyy">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Valid To</label>
+            <input type="text" id="ValidTo" name="ValidTo" class="bs-input-text" data-date-picker placeholder="dd mmm yyyy">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Product Code</label>
+            <input type="text" id="ProductCode" name="ProductCode" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Customer Restriction</label>
+            <div class="multi-select-dropdown">
+              <div class="multi-select-trigger" id="customerRestrictionTrigger">
+                <span class="multi-select-text">--Select--</span>
+                <i class="bi bi-chevron-down"></i>
+              </div>
+              <div class="multi-select-options" id="customerRestrictionOptions" style="display: none;">
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Bank" class="customer-restriction-checkbox">
+                  <span>Bank</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Corporate Client" class="customer-restriction-checkbox">
+                  <span>Corporate Client</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Employee" class="customer-restriction-checkbox">
+                  <span>Employee</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Group Client" class="customer-restriction-checkbox">
+                  <span>Group Client</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Individual Client" class="customer-restriction-checkbox">
+                  <span>Individual Client</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Non Resident" class="customer-restriction-checkbox">
+                  <span>Non Resident</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Minor" class="customer-restriction-checkbox">
+                  <span>Minor</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Individual Non-Client" class="customer-restriction-checkbox">
+                  <span>Individual Non-Client</span>
+                </label>
+                <label class="multi-select-option">
+                  <input type="checkbox" value="Corporate Non-Client" class="customer-restriction-checkbox">
+                  <span>Corporate Non-Client</span>
+                </label>
+              </div>
+            </div>
+            <input type="hidden" id="CustomerRestriction" name="CustomerRestriction">
+          </div>
+
+          <div class="kairo-field">
+            <label>Accounting Rule</label>
+            <select id="AccountingRule" name="AccountingRule" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Account Class ID</label>
+            <select id="AccountClassID" name="AccountClassID" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="isCardAllowed" name="IsCardAllowed" class="bs-checkbox">
+              <label for="isCardAllowed">Is Card Allowed</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credit Interest Procedure Section -->
+        <div class="section-header">
+          <input type="checkbox" id="enableCreditInterest" class="bs-checkbox me-2">
+          <label for="enableCreditInterest" style="cursor: pointer; margin: 0;"><i class="bi bi-percent"></i> CREDIT INTEREST PROCEDURE</label>
+        </div>
+
+        <div class="kairo-grid-4">
+          <div class="kairo-field">
+            <label>Interest Type</label>
+            <select id="CreditInterestType" name="CreditInterestType" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Rate ID</label>
+            <select id="CreditInterestRateID" name="CreditInterestRateID" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Calculation Rule</label>
+            <select id="CreditInterestCalcRule" name="CreditInterestCalcRule" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Rounding</label>
+            <select id="CreditInterestRounding" name="CreditInterestRounding" class="bs-select">
+              <option>Nearest 0.01</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Int. Appl. Frequency</label>
+            <select id="CreditIntApplFreq" name="CreditIntApplFreq" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Start Month</label>
+            <input type="text" id="CreditInterestStartMonth" name="CreditInterestStartMonth" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Int. Accrual Frequency</label>
+            <select id="CreditIntAccrualFreq" name="CreditIntAccrualFreq" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Tax Rule</label>
+            <select id="CreditTaxRule" name="CreditTaxRule" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="isInterestTaxableCredit" name="isInterestTaxableCredit" class="bs-checkbox">
+              <label for="isInterestTaxableCredit">Is Interest Taxable</label>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="accrueInterestCredit" name="accrueInterestCredit" class="bs-checkbox">
+              <label for="accrueInterestCredit">Accrue Interest</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Debit Interest Procedure Section -->
+        <div class="section-header">
+          <input type="checkbox" id="enableDebitInterest" class="bs-checkbox me-2">
+          <label for="enableDebitInterest" style="cursor: pointer; margin: 0;"><i class="bi bi-calculator"></i> DEBIT INTEREST PROCEDURE</label>
+        </div>
+
+        <div class="kairo-grid-4">
+          <div class="kairo-field">
+            <label>Interest Type</label>
+            <select id="DebitInterestType" name="DebitInterestType" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Rate ID</label>
+            <select id="DebitInterestRateID" name="DebitInterestRateID" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Calculation Rule</label>
+            <select id="DebitInterestCalcRule" name="DebitInterestCalcRule" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Rounding</label>
+            <select id="DebitInterestRounding" name="DebitInterestRounding" class="bs-select">
+              <option>Nearest 0.01</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Int. Appl. Frequency</label>
+            <select id="DebitIntApplFreq" name="DebitIntApplFreq" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Start Month</label>
+            <input type="text" id="DebitInterestStartMonth" name="DebitInterestStartMonth" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Int. Accrual Frequency</label>
+            <select id="DebitIntAccrualFreq" name="DebitIntAccrualFreq" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Tax Rule</label>
+            <select id="DebitTaxRule" name="DebitTaxRule" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Penalty Rule</label>
+            <select id="PenaltyRule" name="PenaltyRule" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Penalty Grace Days</label>
+            <input type="text" id="PenaltyGraceDays" name="PenaltyGraceDays" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="isInterestTaxableDebit" name="isInterestTaxableDebit" class="bs-checkbox">
+              <label for="isInterestTaxableDebit">Is Interest Taxable</label>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="chargePenalty" name="chargePenalty" class="bs-checkbox">
+              <label for="chargePenalty">Charge Penalty</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allow Swapping Section -->
+        <div class="section-header">
+          <input type="checkbox" id="enableSwapping" class="bs-checkbox me-2">
+          <label for="enableSwapping" style="cursor: pointer; margin: 0;"><i class="bi bi-arrow-left-right"></i> ALLOW SWAPPING</label>
+        </div>
+
+        <div class="kairo-grid-4">
+          <div class="kairo-field">
+            <label>Swap Product ID</label>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" id="SwapProductID" name="SwapProductID" class="bs-input-text" style="flex: 1;">
+              <button class="btn-lookup" aria-label="Lookup Swap Product"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label>Ceiling Amount</label>
+            <input type="text" id="CeilingAmount" name="CeilingAmount" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Multiplier</label>
+            <input type="text" id="Multiplier" name="Multiplier" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Min. Period (Days)</label>
+            <input type="text" id="MinPeriod" name="MinPeriod" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Swap Order</label>
+            <select id="SwapOrder" name="SwapOrder" class="bs-select">
+              <option>First In First Out</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>TOD Rate ID</label>
+            <select id="TODRateID" name="TODRateID" class="bs-select">
+              <option>--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Max. No. Of TOD</label>
+            <input type="text" id="MaxNoOfTOD" name="MaxNoOfTOD" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Max. TOD Limit</label>
+            <input type="text" id="MaxTODLimit" name="MaxTODLimit" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="autoSwapping" name="autoSwapping" class="bs-checkbox">
+              <label for="autoSwapping">Auto Swapping</label>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="allowTOD" name="allowTOD" class="bs-checkbox">
+              <label for="allowTOD">Allow TOD</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button class="btn-action underline" id="viewBtn" data-shell-mode="View"><i
+              class="bi bi-eye me-1"></i>View</button>
+          <button class="btn-action underline" id="addBtn" data-shell-mode="Add"><i
+              class="bi bi-plus-circle me-1"></i>Add</button>
+          <button class="btn-action" id="editBtn" data-shell-mode="Update"><i
+              class="bi bi-pencil-square me-1"></i>Edit</button>
+          <button class="btn-action" id="saveBtn" data-submit-action="save"><i
+              class="bi bi-save2 me-1"></i>Save</button>
+          <button class="btn-action" id="cancelBtn" data-submit-action="cancel"><i
+              class="bi bi-x-circle me-1"></i>Cancel</button>
+        </div>
+      </div>
+
+      <!-- DataEntry Child Form Overlay (iframe host) -->
+      <div class="child-overlay" data-child-overlay aria-hidden="true">
+        <div class="child-frame" role="dialog" aria-modal="true" aria-label="DataEntry window">
+          <iframe class="child-iframe" data-child-iframe title="DataEntry"></iframe>
+        </div>
+      </div>
+
+      <!-- Product Lookup Modal -->
+      <div class="modal fade" id="productLookupModal" tabindex="-1" aria-labelledby="productLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <div>
+                <p class="mb-0 small">Product Maintenance (SB,CA,CS,SH)</p>
+                <h5 class="modal-title" id="productLookupModalLabel">Find a Product</h5>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-light" id="productSearchRefresh" aria-label="Refresh">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+            </div>
+            <div class="modal-body">
+              <form class="row g-3 align-items-end mb-3" id="productLookupForm">
+                <div class="col-md-4">
+                  <label class="form-label">Product ID</label>
+                  <div class="input-group input-group-sm">
+                    <select class="form-select" id="productSearchModeId">
+                      <option value="Like">Contains</option>
+                      <option value="Exact">Exact</option>
+                    </select>
+                    <input type="text" class="form-control" id="productSearchId" placeholder="e.g. SAV001" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Product Name</label>
+                  <div class="input-group input-group-sm">
+                    <select class="form-select" id="productSearchModeName">
+                      <option value="Like">Contains</option>
+                      <option value="Exact">Exact</option>
+                    </select>
+                    <input type="text" class="form-control" id="productSearchName" placeholder="Product name" />
+                  </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="productSearchReset"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+                  <button type="submit" class="btn btn-primary btn-sm" id="productSearchSubmit">
+                    <i class="bi bi-search"></i> Search
+                  </button>
+                </div>
+              </form>
+
+              <div class="position-relative" style="min-height: 300px;">
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th scope="col">Product ID</th>
+                        <th scope="col">Product Name</th>
+                        <th scope="col" class="text-end">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="productSearchResults"></tbody>
+                  </table>
+                </div>
+                <div id="productSearchEmpty" class="text-center py-5 text-muted">
+                  Enter at least one filter above and click Search to query products.
+                </div>
+                <div id="productSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <small class="text-muted me-auto">Results powered by the Shared/GetSystemSearch endpoint.</small>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/pages/products/product-maintenance.js"></script>
+  <script src="product-maintenance.js"></script>
+  <script>
+    // Refresh button functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) {
+        // Add hover effect
+        refreshBtn.addEventListener('mouseenter', function() {
+          this.style.background = 'rgba(10, 107, 165, 0.2)';
+          this.style.borderColor = 'rgba(10, 107, 165, 0.5)';
+        });
+        refreshBtn.addEventListener('mouseleave', function() {
+          this.style.background = 'rgba(10, 107, 165, 0.1)';
+          this.style.borderColor = 'rgba(10, 107, 165, 0.3)';
+        });
+        
+        // Add click handler
+        refreshBtn.addEventListener('click', function() {
+          console.log('[Product Maintenance] Refresh button clicked');
+          // Reload the page
+          window.location.reload();
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

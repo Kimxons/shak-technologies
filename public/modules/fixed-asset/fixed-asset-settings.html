@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fixed Asset Settings · Fixed Asset</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <link rel="stylesheet" href="../../assets/css/pages/fixed-asset/fixed-asset-premium.css" />
+</head>
+
+<body class="client-maintenance fixed-asset fixed-asset-settings copilot-theme" data-page="client-maintenance">
+  <div class="cm-workspace">
+    <!-- Main Content -->
+    <div class="fa-main-content">
+      <form id="fa-settings-form" autocomplete="off" novalidate>
+        <!-- Settings Section -->
+        <div class="fa-section card-surface">
+          <header data-toggle="fa-settings-content">
+            <h3 class="section-title">Fixed Asset Settings</h3>
+          </header>
+          <div class="fa-section-body" id="fa-settings-content">
+            <div class="fa-grid">
+              <div class="fa-form-group">
+                <label>Auto Asset ID</label>
+                <label class="fa-form-group checkbox" style="margin-bottom: 0;">
+                  <input type="checkbox" id="AutoAssetId" name="AutoAssetId" />
+                  <span>Enable Auto Generation</span>
+                </label>
+              </div>
+
+              <div class="fa-form-group">
+                <label for="AssetIdLength">Asset ID Length</label>
+                <input type="number" class="form-control" id="AssetIdLength" name="AssetIdLength"
+                  placeholder="e.g., 10" />
+              </div>
+
+              <div class="fa-form-group">
+                <label for="FinancialYearStart">Financial Year Start</label>
+                <input type="text" class="form-control" id="FinancialYearStart" name="FinancialYearStart"
+                  placeholder="MM/DD/YYYY" />
+              </div>
+
+              <div class="fa-form-group">
+                <label for="DepreciationPeriod">Depreciation Period</label>
+                <select class="form-control" id="DepreciationPeriod" name="DepreciationPeriod">
+                  <option value="">Select Depreciation Period</option>
+                  <option value="M">Monthly</option>
+                  <option value="Q">Quarterly</option>
+                  <option value="Y">Yearly</option>
+                </select>
+              </div>
+
+              <div class="fa-form-group">
+                <label for="EligibilityPeriod">Eligibility Period (Days)</label>
+                <input type="number" class="form-control" id="EligibilityPeriod" name="EligibilityPeriod"
+                  placeholder="e.g., 30" />
+              </div>
+
+              <div class="fa-form-group">
+                <label for="CutoffDate">Cutoff Date</label>
+                <input type="text" class="form-control" id="CutoffDate" name="CutoffDate" placeholder="MM/DD/YYYY" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="fa-section card-surface mt-3">
+          <header data-toggle="fa-bts-content">
+            <h3 class="section-title">Behind The Scene</h3>
+          </header>
+          <div class="fa-section-body" id="fa-bts-content">
+            <div class="fa-bts-grid">
+              <div class="fa-bts-col">
+                <div class="fa-bts-row">
+                  <label class="fa-bts-label" for="CreatedBy">Created By</label>
+                  <input type="text" id="CreatedBy" name="CreatedBy" readonly />
+                </div>
+                <div class="fa-bts-row">
+                  <label class="fa-bts-label" for="CreatedOn">Created On</label>
+                  <input type="text" id="CreatedOn" name="CreatedOn" readonly />
+                </div>
+              </div>
+
+              <div class="fa-bts-col">
+                <div class="fa-bts-row">
+                  <label class="fa-bts-label" for="ModifiedBy">Modified By</label>
+                  <input type="text" id="ModifiedBy" name="ModifiedBy" readonly />
+                </div>
+                <div class="fa-bts-row">
+                  <label class="fa-bts-label" for="ModifiedOn">Modified On</label>
+                  <input type="text" id="ModifiedOn" name="ModifiedOn" readonly />
+                </div>
+              </div>
+
+              <div class="fa-bts-col">
+                <div class="fa-bts-row">
+                  <label class="fa-bts-label" for="SupervisedBy">Supervised By</label>
+                  <input type="text" id="SupervisedBy" name="SupervisedBy" readonly />
+                </div>
+                <div class="fa-bts-row">
+                  <label class="fa-bts-label" for="SupervisedOn">Supervised On</label>
+                  <input type="text" id="SupervisedOn" name="SupervisedOn" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="fsToast" class="fa-alert"></div>
+      </form>
+    </div>
+
+    <aside class="cm-legacy-actions card-surface" aria-label="Actions">
+      <div class="cm-legacy-actions__group">
+        <p class="cm-legacy-actions__title">Actions</p>
+        <div class="cp-actions">
+          <button type="button" class="cm-shell__action btn-view" data-fa-action="view" title="View">
+            <i class="bi bi-eye"></i>
+            <span>View</span>
+          </button>
+          <button type="button" class="cm-shell__action btn-add" data-fa-action="add" title="Add">
+            <i class="bi bi-plus-lg"></i>
+            <span>Add</span>
+          </button>
+          <button type="button" class="cm-shell__action btn-edit" data-fa-action="edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button type="button" class="cm-shell__action btn-delete" data-fa-action="delete" title="Delete">
+            <i class="bi bi-trash"></i>
+            <span>Delete</span>
+          </button>
+          <button type="button" class="cm-shell__action cm-shell__action--success btn-save" data-fa-action="save"
+            disabled title="Save">
+            <i class="bi bi-check-lg"></i>
+            <span>Save</span>
+          </button>
+          <button type="button" class="cm-shell__action cm-shell__action--danger btn-cancel" data-fa-action="cancel"
+            title="Cancel">
+            <i class="bi bi-x-lg"></i>
+            <span>Cancel</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/pages/fixed-asset/fixed-asset-settings.js"></script>
+
+  <script>
+    // Collapsible section toggle
+    document.querySelectorAll('header[data-toggle]').forEach(header => {
+      header.addEventListener('click', function () {
+        const contentId = this.getAttribute('data-toggle');
+        const content = document.getElementById(contentId);
+        if (!content) return;
+        const isCollapsed = content.style.display === 'none';
+
+        // Toggle display
+        content.style.display = isCollapsed ? 'block' : 'none';
+        this.classList.toggle('collapsed', !isCollapsed);
+
+        // Save state to localStorage
+        localStorage.setItem('fa-section-' + contentId, isCollapsed ? 'open' : 'closed');
+      });
+
+      // Restore previous state
+      const contentId = header.getAttribute('data-toggle');
+      const state = localStorage.getItem('fa-section-' + contentId);
+      if (state === 'closed') {
+        const content = document.getElementById(contentId);
+        if (content) {
+          content.style.display = 'none';
+          header.classList.add('collapsed');
+        }
+      }
+    });
+
+    // Show alert
+    function showAlert(message, type = 'info') {
+      const alertEl = document.getElementById('fsToast');
+      if (!alertEl) return;
+      alertEl.textContent = message;
+      alertEl.className = 'fa-alert show ' + type;
+      setTimeout(() => {
+        alertEl.classList.remove('show');
+      }, 5000);
+    }
+  </script>
+</body>
+
+</html>

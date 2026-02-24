@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintain Banks</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <!-- Global Kairo Styles -->
+    <link rel="stylesheet" href="../../../assets/css/styles.css">
+    <style>
+        /* Maximized form content state */
+        .form-content.maximized {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            background: #fff;
+        }
+        .form-content.maximized iframe {
+            height: calc(100vh - 40px) !important;
+        }
+        .form-content.maximized .form-card {
+            height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        /* Title bar fix - ensure it's above blur layer */
+        .title-bar {
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
+        }
+        .main-container {
+            position: relative;
+            z-index: 1;
+        }
+        /* Ensure action panel shows all buttons */
+        .action-panel {
+            width: 120px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        .action-buttons {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+        .btn-action {
+            width: 100% !important;
+            white-space: nowrap !important;
+            font-size: 11px !important;
+        }
+        
+        /* When child form (data entry) is open - hide action panel and expand form-content */
+        .main-container.child-form-open > .action-panel {
+            display: none !important;
+        }
+        .main-container.child-form-open > .form-content {
+            flex: 1 !important;
+            max-width: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="main-container">
+            <!-- Left Sidebar -->
+            <div class="sidebar" id="main-sidebar">
+                <!-- SUBMODULES Header -->
+                <div class="sidebar-header">
+                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="sidebar-search">
+                    <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules" aria-describedby="submoduleSearchClear">
+                    <i class="bi bi-search sidebar-search__icon"></i>
+                    <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="sidebar-content">
+                <!-- DataEntry Dropdown -->
+                <div class="nav-section nav-section--card is-open" data-nav-section data-section-name="Data Entry">
+                    <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+                        <div class="nav-header__content">
+                            <i class="bi bi-folder-fill nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">Data Entry</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <span class="nav-badge">3</span>
+                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="nav-dataentry">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card" id="nav-dataentry">
+                        <div class="sidebar-item sidebar-item--enhanced" data-section="bank-limit" data-tooltip="Bank Limit Maintenance">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-cash-stack sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Bank Limit Maintenance</div>
+                                    <div class="sidebar-item__description">Manage bank limits</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-section="clearing-bank" data-tooltip="Clearing Bank Signatories">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-pen-fill sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Clearing Bank Signatories</div>
+                                    <div class="sidebar-item__description">Manage signatories</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-section="clearing-branches" data-tooltip="Clearing Branches">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-building sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Clearing Branches</div>
+                                    <div class="sidebar-item__description">Manage branches</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div><!-- End sidebar-content -->
+            </div>
+
+            <div class="form-content">
+                <!-- Bank Details Form (Main DataEntry Section) -->
+                <div id="bankDetailsSection" class="section-content">
+                    <form class="form" id="bankDetailsForm">
+                        <div class="form-card">
+                            <!-- Bank Details Section -->
+                            <div class="form-section" data-section="bank-details">
+                                <div class="section-header" style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+                                    <h2 class="section-header__title" style="color: #fff;"><i class="bi bi-building" style="color: #fff;"></i>Bank Details</h2>
+                                    <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle section" aria-expanded="true">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
+                                <div class="section-content">
+                                    <!-- Row 1: Bank ID and Short Name -->
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue">Bank ID</label>
+                                            <div class="kairo-control" data-kairo-control>
+                                                <input type="text" id="bankId" class="kairo-control__id" aria-label="Bank ID">
+                                                <input type="text" id="bankName" class="kairo-control__name" aria-label="Bank Name" placeholder="Bank Name" readonly>
+                                                <button type="button" class="btn-lookup kairo-control__lookup" data-target-input="bankId" aria-label="Search Bank"><i class="bi bi-search"></i></button>
+                                            </div>
+                                        </div>
+
+                                        <div class="col">
+                                            <label for="shortName" class="label-blue">Short Name</label>
+                                            <input type="text" id="shortName" class="form-control">
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 2: Type and Client ID -->
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label for="type" class="label-blue">Type</label>
+                                            <select id="type" class="form-control">
+                                                <option value="">Select Type</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col">
+                                            <label for="clientId" class="label-blue">Client ID</label>
+                                            <input type="text" id="clientId" class="form-control">
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 3: Credit Rating -->
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="creditRating" class="label-blue">Credit Rating</label>
+                                            <input type="text" id="creditRating" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Is Clearing Bank Section -->
+                            <div class="form-section" data-section="clearing-bank-options">
+                                <div class="section-header" style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+                                    <h2 class="section-header__title" style="color: #fff;"><i class="bi bi-check-square" style="color: #fff;"></i>Is Clearing Bank</h2>
+                                    <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle section" aria-expanded="true">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
+                                <div class="section-content">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="label-blue">Clearing Options</label>
+                                            <div style="display: flex; gap: 24px;">
+                                                <div class="checkbox-group">
+                                                    <input type="checkbox" id="isLocalClearing" class="form-checkbox">
+                                                    <label for="isLocalClearing" class="checkbox-label">Is Local Clearing</label>
+                                                </div>
+                                                <div class="checkbox-group">
+                                                    <input type="checkbox" id="isForeignClearing" class="form-checkbox">
+                                                    <label for="isForeignClearing" class="checkbox-label">Is Foreign Clearing</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="clearingThrough" class="label-blue">Clearing Through</label>
+                                            <input type="text" id="clearingThrough" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Behind The Scene Section -->
+                            <div class="form-section" data-section="behind-scene">
+                                <div class="section-header" style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+                                    <h2 class="section-header__title" style="color: #fff;"><i class="bi bi-info-circle" style="color: #fff;"></i>Behind The Scene</h2>
+                                    <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle section" aria-expanded="true">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
+                                <div class="section-content">
+                                    <div class="audit-section">
+                                        <div class="audit-item">
+                                            <label class="audit-label">Created By</label>
+                                            <input type="text" class="audit-value" readonly>
+                                        </div>
+                                        <div class="audit-item">
+                                            <label class="audit-label">Created On</label>
+                                            <input type="text" class="audit-value" readonly>
+                                        </div>
+                                        <div class="audit-item">
+                                            <label class="audit-label">Modified By</label>
+                                            <input type="text" class="audit-value" readonly>
+                                        </div>
+                                        <div class="audit-item">
+                                            <label class="audit-label">Modified On</label>
+                                            <input type="text" class="audit-value" readonly>
+                                        </div>
+                                        <div class="audit-item">
+                                            <label class="audit-label">Supervised By</label>
+                                            <input type="text" class="audit-value" readonly>
+                                        </div>
+                                        <div class="audit-item">
+                                            <label class="audit-label">Supervised On</label>
+                                            <input type="text" class="audit-value" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Bank Limit Maintenance Section -->
+                <div id="bankLimitSection" class="section-content" style="display: none;">
+                    <iframe src="dataEntry/bank-limit-maintenance.html" 
+                            style="width: 100%; height: calc(100vh - 30px); border: none;" 
+                            title="Bank Limit Maintenance"
+                            frameborder="0"></iframe>
+                </div>
+
+                <!-- Clearing Bank Signatories Section -->
+                <div id="clearingBankSignatoriesSection" class="section-content" style="display: none;">
+                    <iframe src="dataEntry/clearing-bank-signatories.html" 
+                            style="width: 100%; height: calc(100vh - 30px); border: none;" 
+                            title="Clearing Bank Signatories"
+                            frameborder="0"></iframe>
+                </div>
+
+                <!-- Clearing Branches Section -->
+                <div id="clearingBranchesSection" class="section-content" style="display: none;">
+                    <iframe src="dataEntry/clearing-branches.html" 
+                            style="width: 100%; height: calc(100vh - 30px); border: none;" 
+                            title="Clearing Branches"
+                            frameborder="0"></iframe>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action" id="btnShow" title="Show" style="display: none !important;">
+                        <i class="bi bi-table me-1"></i>Show
+                    </button>
+                    <button type="button" class="btn-action btn-view" id="btnView" title="View">
+                        <i class="bi bi-eye me-1"></i>View
+                    </button>
+                    <button type="button" class="btn-action" id="btnAdd" title="Add">
+                        <i class="bi bi-plus-circle me-1"></i>Add
+                    </button>
+                    <button type="button" class="btn-action" id="btnEdit" title="Edit">
+                        <i class="bi bi-pencil-square me-1"></i>Edit
+                    </button>
+                    <button type="button" class="btn-action" id="btnDelete" title="Delete">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                    <button type="button" class="btn-action" id="btnSave" title="Save" data-action="save">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <button type="button" class="btn-action btn-cancel" id="btnCancel" title="Cancel" data-action="cancel">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn-action" id="btnBack" title="Back">
+                        <i class="bi bi-arrow-left me-1"></i>Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Upload Modal -->
+    <div class="modal fade" id="imageUploadModal" tabindex="-1" aria-labelledby="imageUploadModalLabel" aria-hidden="true" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1060; overflow: auto; display: none;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 500px; margin: 1.75rem auto; display: flex; align-items: center; min-height: calc(100% - 3.5rem);">
+            <div class="modal-content" style="background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; position: relative; width: 100%;">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary, #4A90E2) 0%, var(--primary-dark, #357ABD) 100%); color: white; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding: 12px 20px; border-radius: 8px 8px 0 0;">
+                    <h5 class="modal-title mb-0" id="imageUploadModalLabel" style="font-size: 15px; font-weight: 700;">
+                        Image Upload
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1); opacity: 0.8; font-size: 12px;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></button>
+                </div>
+                <div class="modal-body" style="padding: 30px 25px; background: rgba(248, 249, 250, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-3">
+                            <label for="imageFileInput" class="form-label mb-0" style="font-weight: 600; color: var(--text-dark, #2C3E50); font-size: 13px;">
+                                Image
+                            </label>
+                        </div>
+                        <div class="col-9">
+                            <input type="file" class="form-control" id="imageFileInput" accept="image/*,.pdf" style="
+                                height: 42px;
+                                padding: 8px 12px;
+                                border: 2px solid rgba(255, 255, 255, 0.4);
+                                border-radius: 6px;
+                                background: rgba(255, 255, 255, 0.3);
+                                backdrop-filter: blur(8px);
+                                -webkit-backdrop-filter: blur(8px);
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                                color: var(--text-dark, #2C3E50);
+                                font-size: 12px;
+                                font-weight: 500;
+                                transition: all 0.3s ease;
+                                cursor: pointer;
+                            " onfocus="this.style.borderColor='var(--primary, #4A90E2)'; this.style.boxShadow='0 0 0 3px rgba(74, 144, 226, 0.15)'; this.style.background='rgba(255, 255, 255, 0.5)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)'; this.style.background='rgba(255, 255, 255, 0.3)'" onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.6)'; this.style.background='rgba(255, 255, 255, 0.4)'" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.background='rgba(255, 255, 255, 0.3)'">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-text" style="font-size: 11px; color: var(--text-gray, #5A6C7D); padding-left: 0; display: flex; align-items: center; gap: 6px;">
+                                <i class="bi bi-info-circle" style="font-size: 13px; color: var(--info, #3498DB);"></i>
+                                <span>Accepted formats: Images (PNG, JPG, GIF) or PDF files</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="imagePreviewContainer" class="mt-3" style="display: none;">
+                        <div style="border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 6px; padding: 15px; text-align: center; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);">
+                            <img id="imagePreview" src="" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: rgba(248, 249, 250, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.3); padding: 12px 20px; border-radius: 0 0 8px 8px; display: flex; justify-content: center; gap: 12px;">
+                    <button type="button" class="btn btn-primary" id="btnUploadImage" style="
+                        padding: 8px 28px;
+                        height: 38px;
+                        border: none;
+                        border-radius: 5px;
+                        background: linear-gradient(135deg, var(--primary, #4A90E2) 0%, var(--primary-dark, #357ABD) 100%);
+                        color: white;
+                        font-weight: 600;
+                        font-size: 13px;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                        box-shadow: 0 3px 10px rgba(74, 144, 226, 0.3);
+                        min-width: 90px;
+                        pointer-events: auto;
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(74, 144, 226, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(74, 144, 226, 0.3)'">
+                        OK
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="
+                        padding: 8px 28px;
+                        height: 38px;
+                        border: 2px solid var(--border, #DDE6ED);
+                        border-radius: 5px;
+                        background: rgba(255, 255, 255, 0.8);
+                        backdrop-filter: blur(5px);
+                        -webkit-backdrop-filter: blur(5px);
+                        color: var(--text-gray, #5A6C7D);
+                        font-weight: 600;
+                        font-size: 13px;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                        min-width: 90px;
+                        pointer-events: auto;
+                    " onmouseover="this.style.background='rgba(255, 255, 255, 1)'; this.style.borderColor='var(--text-gray, #5A6C7D)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 3px 10px rgba(0, 0, 0, 0.1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.8)'; this.style.borderColor='var(--border, #DDE6ED)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prevent flatpickr errors from parent scripts -->
+    <!-- <script>
+        console.log('🧪 HTML inline script executing...');
+        
+        // This page doesn't use date pickers, so prevent initialization errors
+        (function() {
+            const originalError = console.error;
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('formatDate') || message.includes('flatpickr')) {
+                    console.warn('⚠️ Date picker error suppressed (not used on this page)');
+                    return;
+                }
+                originalError.apply(console, args);
+            };
+            
+            window.addEventListener('error', function(e) {
+                if (e.message && (e.message.includes('formatDate') || e.message.includes('flatpickr'))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.warn('⚠️ Date picker initialization skipped (not needed on this page)');
+                    return true;
+                }
+            }, true);
+            
+            console.log('✅ Error handlers installed');
+        })();
+    </script> -->
+
+    <!-- Load Environment Configuration -->
+    <script src="../../../assets/js/environment.js"></script>
+    <script src="../../../assets/js/services/shared/coreApi.js"></script>
+    <!-- Load Service Loader (which loads CoreApi and other services) -->
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    
+    <!-- Load Page Script -->
+    <script src="maintain-banks.js"></script>
+</body>
+</html>

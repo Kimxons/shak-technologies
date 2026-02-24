@@ -1,0 +1,105 @@
+/* GL Financial Format: match Client Maintenance shell */
+
+body[data-page="client-maintenance"].gl-financial-format {
+  /* Reuse shell variables/colors from styles.css */
+}
+
+/* Layout overrides: widen the form area and tighten the right rail */
+body[data-page="client-maintenance"].gl-financial-format .cm-shell-form {
+  grid-template-columns: 0 minmax(0, 1fr) clamp(92px, 7.5vw, 120px);
+}
+
+body[data-page="client-maintenance"].gl-financial-format .cm-legacy-content {
+  grid-column: 1 / 3;
+}
+
+body[data-page="client-maintenance"].gl-financial-format .cm-legacy-actions {
+  grid-column: 3;
+  padding: 0.6rem 0.4rem 0.6rem;
+}
+
+body[data-page="client-maintenance"].gl-financial-format .cm-legacy-actions__group {
+  gap: 0.25rem;
+}
+
+body[data-page="client-maintenance"].gl-financial-format .cm-shell__action {
+  padding: 0.26rem 0.4rem;
+  font-size: 0.7rem;
+}
+
+.gff-main-form {
+  padding: 1rem 1rem 0.5rem;
+}
+
+.gff-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.gff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.gff-toolbar {
+  display: flex;
+  align-items: center;
+}
+
+.gff-report-select {
+  min-width: 220px;
+}
+
+.gff-canvases {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.gff-canvas {
+  border: 1px solid var(--cm-border, rgba(0,0,0,.08));
+  border-radius: 8px;
+  background: var(--cm-card, rgba(255,255,255,.72));
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.gff-canvas-title {
+  font-size: .9rem;
+  padding: .5rem .75rem;
+  color: #556070;
+  border-bottom: 1px solid var(--cm-border, rgba(0,0,0,.06));
+  background: linear-gradient(180deg, rgba(255,255,255,.8), rgba(255,255,255,.6));
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.gff-canvas-body {
+  flex: 1;
+  padding: .75rem;
+}
+
+.gff-empty {
+  color: #98a2b3;
+  font-size: .9rem;
+}
+
+.gff-grid {
+  border: 1px dashed var(--cm-border, rgba(0,0,0,.08));
+  border-radius: 8px;
+  padding: .5rem;
+}
+
+.gff-footer {
+  margin-top: .75rem;
+}
+
+.gff-section-title { 
+  font-size: 1rem; 
+  margin: 0; 
+}
+
+/* Actions rail spacing to mirror classic screen */
+.gff-actions-top { margin-bottom: .5rem; }
+.gff-actions-bottom { gap: .25rem; }

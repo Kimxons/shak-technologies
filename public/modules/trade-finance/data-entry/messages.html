@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages And Advises Menu</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../overdraft-application/overdraft-application.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout" style="grid-template-columns: 1fr 120px;">
+            <main class="content" role="main" style="padding: 16px;">
+                <section class="card">
+                    <div class="card-header" style="background: #2b7abf; color: white; padding: 8px 12px;">
+                        <span>Messages And Advises Menu</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div class="form-control-group" style="grid-column: span 1;">
+                                <label for="messageId" class="form-label" style="color: #0000FF; font-weight: 600;"><span>MessageID</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" id="messageId" name="messageId" class="form-control">
+                                    <button type="button" class="btn-search" aria-label="Search Message ID">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-control-group"></div>
+
+                            <div class="form-control-group">
+                                <label for="messageType" class="form-label"><span>Message Type</span></label>
+                                <select id="messageType" name="messageType" class="form-control">
+                                    <option value="" selected>--Select--</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group">
+                                <label for="medium" class="form-label"><span>Medium</span></label>
+                                <select id="medium" name="medium" class="form-control">
+                                    <option value="" selected>--Select--</option>
+                                </select>
+                            </div>
+
+                            <div class="form-control-group">
+                                <label for="language" class="form-label"><span>Language</span></label>
+                                <select id="language" name="language" class="form-control">
+                                    <option value="English" selected>English</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group">
+                                <label for="swiftMessage" class="form-label"><span>Swift Message</span></label>
+                                <select id="swiftMessage" name="swiftMessage" class="form-control">
+                                    <option value="" selected>--Select--</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" style="margin-top: 16px;">
+                    <div class="card-body">
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <button class="action-btn" style="padding: 6px 16px; background: #f0f4f8; border: 1px solid #cbd5e0; border-radius: 3px; cursor: pointer; font-size: 13px; color: #2c3e50;">New</button>
+                            <button class="action-btn" style="padding: 6px 16px; background: #f0f4f8; border: 1px solid #cbd5e0; border-radius: 3px; cursor: pointer; font-size: 13px; color: #2c3e50;">Alter</button>
+                            <button class="action-btn" style="padding: 6px 16px; background: #f0f4f8; border: 1px solid #cbd5e0; border-radius: 3px; cursor: pointer; font-size: 13px; color: #2c3e50;">Remove</button>
+                            <button class="action-btn" style="padding: 6px 16px; background: #f0f4f8; border: 1px solid #cbd5e0; border-radius: 3px; cursor: pointer; font-size: 13px; color: #2c3e50;">Update</button>
+                            <button class="action-btn" style="padding: 6px 16px; background: #f0f4f8; border: 1px solid #cbd5e0; border-radius: 3px; cursor: pointer; font-size: 13px; color: #2c3e50;">Clear</button>
+                        </div>
+
+                        <table class="data-table" style="width: 100%; font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>MessageID</th>
+                                    <th>MessageType</th>
+                                    <th>Medium</th>
+                                    <th>Language</th>
+                                    <th>SwiftMessage</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="empty-row">
+                                    <td colspan="6" style="text-align: left; padding: 12px;">No records to display.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="card" style="margin-top: 16px;">
+                    <div class="card-header" style="background: #2b7abf; color: white; padding: 8px 12px;">
+                        <span>Behind The Scene</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-grid">
+                            <div class="form-control-group">
+                                <label for="status" class="form-label"><span>Status</span></label>
+                                <input type="text" id="status" name="status" class="form-control" readonly>
+                            </div>
+                            <div class="form-control-group"></div>
+
+                            <div class="form-control-group">
+                                <label for="createdBy" class="form-label"><span>Created By</span></label>
+                                <input type="text" id="createdBy" name="createdBy" class="form-control" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label for="createdOn" class="form-label"><span>Created On</span></label>
+                                <input type="text" id="createdOn" name="createdOn" class="form-control" readonly>
+                            </div>
+
+                            <div class="form-control-group">
+                                <label for="modifiedBy" class="form-label"><span>Modified By</span></label>
+                                <input type="text" id="modifiedBy" name="modifiedBy" class="form-control" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label for="modifiedOn" class="form-label"><span>Modified On</span></label>
+                                <input type="text" id="modifiedOn" name="modifiedOn" class="form-control" readonly>
+                            </div>
+
+                            <div class="form-control-group">
+                                <label for="deletedBy" class="form-label"><span>Deleted By</span></label>
+                                <input type="text" id="deletedBy" name="deletedBy" class="form-control" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label for="deletedOn" class="form-label"><span>Deleted On</span></label>
+                                <input type="text" id="deletedOn" name="deletedOn" class="form-control" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div style="margin-top: 16px; padding: 8px 12px; color: #ff0000; font-weight: 600;">
+                    No details found, please add [No:994801]
+                </div>
+            </main>
+
+            <aside class="action-bar" aria-label="Actions">
+                <button class="action-btn view" data-action="back">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    <span>Back</span>
+                </button>
+                <button class="action-btn view" data-action="generate">
+                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                    <span>Generate</span>
+                </button>
+                <button class="action-btn view" data-action="preview">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                    <span>Preview</span>
+                </button>
+                <button class="action-btn view" data-action="approve">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
+                    <span>Approve</span>
+                </button>
+                <button class="action-btn cancel" data-action="reject">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                    <span>Reject</span>
+                </button>
+                <button class="action-btn view" data-action="view">
+                    <i class="bi bi-eye-fill" aria-hidden="true"></i>
+                    <span>View</span>
+                </button>
+                <button class="action-btn add" data-action="add">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                    <span>Add</span>
+                </button>
+                <button class="action-btn edit" data-action="edit">
+                    <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </button>
+                <button class="action-btn delete" data-action="delete">
+                    <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                    <span>Delete</span>
+                </button>
+                <button class="action-btn save" data-action="save">
+                    <i class="bi bi-save-fill" aria-hidden="true"></i>
+                    <span>Save</span>
+                </button>
+                <button class="action-btn cancel" data-action="cancel">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                    <span>Cancel</span>
+                </button>
+            </aside>
+        </div>
+    </div>
+
+    <script src="../../../assets/js/pages/trade-finance/data-entry/messages.embedded.js"></script>
+</body>
+</html>

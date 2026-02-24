@@ -1,0 +1,45 @@
+/* LG Portfolio page-specific styles extracted from public/assets/css/styles.css */
+
+body[data-page="lg-portfolio"] .cm-react-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body[data-page="lg-portfolio"] .cm-workspace {
+  max-width: min(1880px, 100%);
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  padding-inline: clamp(0.1rem, 0.4vw, 0.4rem);
+}
+
+body[data-page="lg-portfolio"] .cm-shell-form {
+  grid-template-columns: 85fr 15fr;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+}
+
+body[data-page="lg-portfolio"] .lg-portfolio-footer {
+  grid-column: 1 / -1;
+}
+
+body[data-page="lg-portfolio"] .cm-legacy-content {
+  min-height: 0;
+}
+
+body[data-page="lg-portfolio"] .cm-content-scroll {
+  height: 100%;
+}
+
+body[data-page="lg-portfolio"] .cm-section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-page="lg-portfolio"] .cm-section .card-surface {
+  flex: 1 1 auto;
+}

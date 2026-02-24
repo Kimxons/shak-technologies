@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflow Stage Setting · Kairo Banking</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20260204">
+</head>
+<body>
+  <div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-diagram-3 am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Workflow Stage Setting</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container" aria-label="Workflow Stage Setting form">
+      <div class="form-content" role="region" aria-label="Workflow Stage Setting form">
+        <div class="form-card" data-main-form>
+          <div id="statusMessage" class="status-message"></div>
+          
+          <form id="workflowStageSettingForm" autocomplete="off" novalidate>
+            <!-- Stage Settings Table Section -->
+            <div class="form-section" data-section="stage-settings">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-diagram-3"></i>Stage Settings</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Stage Settings" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="table-container">
+                  <table class="kairo-table">
+                <thead>
+                  <tr>
+                    <th style="width: 80px;">Apply</th>
+                    <th style="width: 150px;">WF Stage ID</th>
+                    <th style="width: 250px;">Workflow Stage</th>
+                    <th style="width: 120px;">Is System</th>
+                    <th>Order</th>
+                  </tr>
+                </thead>
+                <tbody id="stageSettingTableBody">
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>16CRB</td>
+                    <td>CRB Enquiry</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>20APPR</td>
+                    <td>Appraisal</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>70GRT</td>
+                    <td>Guarantors</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>80COLLAT</td>
+                    <td>Collateral</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>SCORING</td>
+                    <td>SCORING</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>CHECK1</td>
+                    <td>Check List 1</td>
+                    <td>false</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>CHECK2</td>
+                    <td>Check List 2</td>
+                    <td>false</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox">
+                    </td>
+                    <td>SCORING</td>
+                    <td>SCORING</td>
+                    <td>false</td>
+                    <td>
+                      <input type="text" class="order-input" value="">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox" checked>
+                    </td>
+                    <td>10APPL</td>
+                    <td>Application</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="10">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox" checked>
+                    </td>
+                    <td>29PRVW</td>
+                    <td>Pre-Sanction</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="29">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox" checked>
+                    </td>
+                    <td>30SANC</td>
+                    <td>Sanction</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="30">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align: center;">
+                      <input type="checkbox" checked>
+                    </td>
+                    <td>60DISB</td>
+                    <td>Disbursement</td>
+                    <td>true</td>
+                    <td>
+                      <input type="text" class="order-input" value="60">
+              
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised By</span>
+                  <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised On</span>
+                  <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+        </div>
+      </div>
+
+      <div class="action-panel" aria-label="Form actions">        
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>          
+          <button class="btn-action" type="button" data-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+          <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-lg me-1"></i>Cancel</button>          
+        </div>
+      </div>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>    
+
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div>
+    </div>
+  </div>
+
+  <!-- Modals Container -->
+  <div id="modalsContainer"></div>
+
+  <script src="workflow-stage-setting.js"></script>
+  <script>
+    // Window Controls
+    function notifyParentFormOpened() {
+      window.parent.postMessage({ type: 'submoduleOpened', source: 'Workflow Stage Setting' }, '*');
+    }
+    function closeChildForm() {
+      window.parent.postMessage({ type: 'submoduleClosed' }, '*');
+      window.close();
+    }
+    function handleWindowAction(action) {
+      if (action === 'refresh') {
+        location.reload();
+      } else if (action === 'maximize') {
+        window.parent.postMessage({ type: 'toggleSidebarForMaximize' }, '*');
+      } else if (action === 'close') {
+        closeChildForm();
+      }
+    }
+    function initWindowControls() {
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        const action = btn.getAttribute('data-action');
+        if (['refresh', 'maximize', 'close'].includes(action)) {
+          btn.addEventListener('click', () => handleWindowAction(action));
+        }
+      });
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      initWindowControls();
+      notifyParentFormOpened();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NGO Search</title>
+  <link rel="stylesheet" href="../search-styles.css" />
+  <style>
+    /* Base styles for standalone search dialog */
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-size: 13px;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="search-container">
+    <!-- Header - Blue Gradient Bar -->
+    <div class="search-header"></div>
+
+    <!-- Criteria Section -->
+    <div class="search-criteria">
+      <div class="search-criteria-grid" id="ngo-criteria">
+        <div class="search-field-group">
+          <label>NGO ID</label>
+          <div class="input-row">
+            <select data-search-mode="ngoId">
+              <option value="Like">Like</option>
+              <option value="Exact">Exact</option>
+            </select>
+            <input type="text" data-search-field="ngoId" data-search-column="NGOID" placeholder="Enter NGO ID" />
+          </div>
+        </div>
+        <div class="search-field-group">
+          <label>NGO Name</label>
+          <div class="input-row">
+            <select data-search-mode="ngoName">
+              <option value="Like">Like</option>
+              <option value="Exact">Exact</option>
+            </select>
+            <input type="text" data-search-field="ngoName" data-search-column="NGOName" placeholder="Enter NGO Name" />
+          </div>
+        </div>
+      </div>
+      <div class="search-actions">
+        <button type="button" class="btn-search" id="ngo-search-btn">Search</button>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="search-results-container">
+      <div class="search-loading" id="ngo-loading">Loading...</div>
+      <div class="search-results" id="ngo-results"></div>
+      <div class="search-empty" id="ngo-empty">No results found</div>
+    </div>
+  </div>
+
+  <script src="../search-utils.js"></script>
+  <script src="../../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="ngo-search-modal.js"></script>
+</body>
+</html>

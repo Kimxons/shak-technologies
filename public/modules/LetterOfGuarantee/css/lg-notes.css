@@ -1,0 +1,53 @@
+/* LG Account Application submenu (Notes) page-specific styles.
+   Notes did not have page-scoped selectors in public/assets/css/styles.css, so this file provides matching layout defaults. */
+
+body[data-page="lg-notes"] {
+  --cm-primary-900: #0f172a;
+  --cm-primary-800: #1e3a8a;
+  --cm-primary-700: #1d4ed8;
+  --cm-primary-500: #5b9fd9;
+  --cm-secondary-500: #8b5cf6;
+  --cm-accent-500: #10b981;
+  --cm-surface: rgba(255, 255, 255, 0.92);
+  --cm-border: rgba(91, 159, 217, 0.18);
+  --cm-shadow: 0 40px 90px rgba(15, 23, 42, 0.15);
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(91, 159, 217, 0.15), transparent),
+  radial-gradient(900px 600px at 110% 10%, rgba(139, 92, 246, 0.12), transparent),
+  radial-gradient(800px 500px at 50% 80%, rgba(16, 185, 129, 0.08), transparent),
+  linear-gradient(180deg, #f3f6ff 0%, #f9fbff 60%, #ffffff 100%);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  padding: clamp(0.2rem, 0.5vw, 0.6rem);
+  position: relative;
+  color: var(--cm-primary-900);
+}
+
+body[data-page="lg-notes"] .cm-react-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body[data-page="lg-notes"] .cm-workspace {
+  max-width: min(1880px, 100%);
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  padding-inline: clamp(0.1rem, 0.4vw, 0.4rem);
+}
+
+body[data-page="lg-notes"] .cm-shell-form {
+  grid-template-columns: 90fr 10fr;
+}
+
+body[data-page="lg-notes"] .form-control,
+body[data-page="lg-notes"] .form-select,
+body[data-page="lg-notes"] .input-group-text,
+body[data-page="lg-notes"] .btn.btn-outline-secondary,
+body[data-page="lg-notes"] .btn.btn-outline-primary {
+  min-height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+}

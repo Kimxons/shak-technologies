@@ -1,0 +1,262 @@
+/* Branch Search Styling - Similar to Deal Search */
+
+:root {
+  --primary: #4A90E2;
+  --primary-dark: #357ABD;
+  --secondary: #F5F7FA;
+  --border: #DDE6ED;
+  --text-dark: #2C3E50;
+  --text-gray: #5A6C7D;
+  --text-light: #8B98A5;
+  --white: #FFFFFF;
+  --success: #27AE60;
+  --warning: #F39C12;
+  --danger: #E74C3C;
+  --info: #3498DB;
+  --radius: 3px;
+  --shadow-sm: 0 6px 16px rgba(44, 62, 80, 0.06);
+  --transition: all 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--secondary);
+  color: var(--text-dark);
+  line-height: 1.4;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Data Entry Container */
+.dataentry-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  background: var(--secondary);
+}
+
+.dataentry-main {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+
+.dataentry-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--white);
+}
+
+.dataentry-sidebar {
+  width: 120px;
+  background: var(--secondary);
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dataentry-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Form Styling */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--white);
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+.form-grid {
+  display: grid;
+  row-gap: 12px;
+  column-gap: 16px;
+}
+
+.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.input-with-action {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.form-control {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: var(--text-dark);
+  background: var(--white);
+  transition: var(--transition);
+  flex: 1;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18);
+}
+
+.filter-op {
+  width: 70px !important;
+  flex-shrink: 0;
+}
+
+/* Table Styling */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+}
+
+.data-table thead tr {
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--white);
+}
+
+.data-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dark);
+}
+
+.data-table tbody tr:hover {
+  background: var(--secondary);
+}
+
+.data-table tbody tr.selected {
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.action-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-btn.search {
+  color: var(--info);
+  border-color: var(--info);
+}
+
+.action-btn.search:hover {
+  background: var(--info);
+  color: var(--white);
+}
+
+.action-btn.cancel {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.action-btn.cancel:hover {
+  background: var(--danger);
+  color: var(--white);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dataentry-main {
+    flex-direction: column;
+  }
+
+  .dataentry-sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table {
+    max-height: 300px;
+  }
+}

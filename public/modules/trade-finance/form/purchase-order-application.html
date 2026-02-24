@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Purchase Order Application (PO) · Trade Finance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/trade-finance.css" />
+</head>
+
+<body class="purchase-order-application copilot-theme" data-page="purchase-order-application">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="po-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <section class="cm-legacy-content" aria-label="Purchase Order Application (PO)">
+        <div class="po-layout">
+          <aside class="po-left-rail cm-legacy-nav card-surface" aria-label="View menu">
+            <div class="cm-nav-section">
+              <button type="button" class="cm-nav-toggle"
+                onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-caret-up-fill'); this.querySelector('.bi').classList.toggle('bi-caret-down-fill');">
+                <span class="cm-nav-toggle__label">View</span>
+                <i class="bi bi-caret-down-fill" aria-hidden="true"></i>
+              </button>
+              <div class="cm-nav-items is-collapsed">
+                <button type="button" class="po-nav-item" data-po-view="amendment-extension-history">
+                  Amendment/Extension History
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <section class="card-surface elc-surface">
+          <div class="elc-header-block" role="region" aria-label="Header identifiers">
+            <div class="elc-header-grid">
+              <div class="elc-header-row">
+                <label class="elc-label" for="BranchID">Branch ID</label>
+                <div class="elc-control elc-control--span-all">
+                  <div class="input-group elc-input-group" aria-label="Branch lookup">
+                    <input id="BranchID" name="BranchID" type="text" class="form-control elc-id" value="" required data-editable="true" />
+                    <input id="BranchName" name="BranchName" type="text" class="form-control elc-desc" value="" readonly aria-label="Branch name" />
+                    <button class="btn btn-outline-secondary" type="button" data-lookup="branch" aria-label="Search branch">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="elc-header-row">
+                <label class="elc-label" for="PurchaseOrderNumber">PurchaseOrderNumber</label>
+                <div class="elc-control">
+                  <div class="input-group elc-input-group elc-input-group--single" aria-label="Application number lookup">
+                    <input id="PurchaseOrderNumber" name="PurchaseOrderNumber" type="text" class="form-control" required data-editable="true" />
+                    <button class="btn btn-outline-secondary" type="button" data-lookup="purchaseOrderNumber" aria-label="Search purchase order number">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <label class="elc-label" for="ClientID">Client ID</label>
+                <div class="elc-control">
+                  <div class="input-group elc-input-group" aria-label="Client lookup">
+                    <input id="ClientID" name="ClientID" type="text" class="form-control elc-code" required data-editable="true" />
+                    <input id="ClientName" name="ClientName" type="text" class="form-control elc-desc" readonly aria-label="Client name" />
+                    <button class="btn btn-outline-secondary" type="button" data-lookup="client" aria-label="Search client">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="elc-header-row">
+                <label class="elc-label" for="AccountID">Account ID</label>
+                <div class="elc-control">
+                  <div class="input-group elc-input-group" aria-label="Account lookup">
+                    <input id="AccountID" name="AccountID" type="text" class="form-control elc-code" data-editable="true" />
+                    <input id="AccountName" name="AccountName" type="text" class="form-control elc-desc" readonly aria-label="Account name" />
+                    <button class="btn btn-outline-secondary" type="button" data-lookup="account" aria-label="Search account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <label class="elc-label" for="AgreementType">Agreement Type</label>
+                <div class="elc-control">
+                  <select id="AgreementType" name="AgreementType" class="form-select" data-editable="true">
+                    <option value="Purchase Order" selected>Purchase Order</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="elc-header-row">
+                <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                <div class="elc-control" aria-hidden="true"></div>
+
+                <label class="elc-label" for="CustomerGroup">Customer Group</label>
+                <div class="elc-control">
+                  <select id="CustomerGroup" name="CustomerGroup" class="form-select" data-editable="true">
+                    <option value="Individual Client" selected>Individual Client</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <nav class="elc-tabs" aria-label="Purchase order tabs">
+            <ul class="nav nav-tabs elc-tablist" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="po-tab-application" data-bs-toggle="tab" data-bs-target="#po-pane-application" type="button" role="tab" aria-controls="po-pane-application" aria-selected="true">Application</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="po-tab-participants" data-bs-toggle="tab" data-bs-target="#po-pane-participants" type="button" role="tab" aria-controls="po-pane-participants" aria-selected="false">Participants</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="po-tab-terms" data-bs-toggle="tab" data-bs-target="#po-pane-terms" type="button" role="tab" aria-controls="po-pane-terms" aria-selected="false">Terms</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="po-tab-documents" data-bs-toggle="tab" data-bs-target="#po-pane-documents" type="button" role="tab" aria-controls="po-pane-documents" aria-selected="false">Documents Required</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="po-tab-shipping" data-bs-toggle="tab" data-bs-target="#po-pane-shipping" type="button" role="tab" aria-controls="po-pane-shipping" aria-selected="false">Shipping</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="po-tab-internal" data-bs-toggle="tab" data-bs-target="#po-pane-internal" type="button" role="tab" aria-controls="po-pane-internal" aria-selected="false">Internal Instructions</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="po-tab-additional" data-bs-toggle="tab" data-bs-target="#po-pane-additional" type="button" role="tab" aria-controls="po-pane-additional" aria-selected="false">Additional Information</button>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="tab-content elc-tabcontent" id="po-tabcontent">
+            <div class="tab-pane fade show active" id="po-pane-application" role="tabpanel" aria-labelledby="po-tab-application" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Application</div>
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="ProductID">Product ID</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="Product lookup">
+                      <input id="ProductID" name="ProductID" type="text" class="form-control" data-editable="true" />
+                      <input id="ProductName" name="ProductName" type="text" class="form-control elc-desc" readonly aria-label="Product name" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="product" aria-label="Search product">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="CurrencyID">Currency ID</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Currency lookup">
+                      <input id="CurrencyID" name="CurrencyID" type="text" class="form-control elc-code" data-editable="true" />
+                      <input id="CurrencyName" name="CurrencyName" type="text" class="form-control elc-desc" readonly aria-label="Currency name" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="currency" aria-label="Search currency">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="ContractType">Contract Type</label>
+                  <div class="elc-control">
+                    <select id="ContractType" name="ContractType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ApplicationID">Application ID</label>
+                  <div class="elc-control">
+                    <input id="ApplicationID" name="ApplicationID" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="POType">PO Type</label>
+                  <div class="elc-control">
+                    <select id="POType" name="POType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="IDFNumber">IDF Number</label>
+                  <div class="elc-control">
+                    <input id="IDFNumber" name="IDFNumber" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="LCLGReference">LC/LG Reference</label>
+                  <div class="elc-control">
+                    <input id="LCLGReference" name="LCLGReference" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="IssueDate">Issue Date</label>
+                  <div class="elc-control">
+                    <select id="IssueDate" name="IssueDate" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="EffectiveDate">Effective Date</label>
+                  <div class="elc-control">
+                    <select id="EffectiveDate" name="EffectiveDate" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="Tenor">Tenor</label>
+                  <div class="elc-control">
+                    <input id="Tenor" name="Tenor" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ExpiryDate">Expiry Date</label>
+                  <div class="elc-control">
+                    <select id="ExpiryDate" name="ExpiryDate" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ContractAmount">Contract Amount</label>
+                  <div class="elc-control">
+                    <input id="ContractAmount" name="ContractAmount" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="PlaceOfExpiry">Place Of Expiry</label>
+                  <div class="elc-control">
+                    <input id="PlaceOfExpiry" name="PlaceOfExpiry" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="LocalAmount">Local Amount</label>
+                  <div class="elc-control">
+                    <input id="LocalAmount" name="LocalAmount" type="text" class="form-control" readonly inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="ExchangeRate">Exchange Rate</label>
+                  <div class="elc-control">
+                    <input id="ExchangeRate" name="ExchangeRate" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="FreightCost">Freight Cost</label>
+                  <div class="elc-control">
+                    <input id="FreightCost" name="FreightCost" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="PermitAmount">Permit Amount</label>
+                  <div class="elc-control">
+                    <input id="PermitAmount" name="PermitAmount" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="Consignee">Consignee</label>
+                  <div class="elc-control">
+                    <input id="Consignee" name="Consignee" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DebitBranchID">Debit BranchID</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Debit branch lookup">
+                      <input id="DebitBranchID" name="DebitBranchID" type="text" class="form-control" data-editable="true" />
+                      <input id="DebitBranchName" name="DebitBranchName" type="text" class="form-control elc-desc" readonly aria-label="Debit branch name" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="debitBranch" aria-label="Search debit branch">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+
+                  <label class="elc-label" for="DebitAccount">Debit Account</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="Debit account lookup">
+                      <input id="DebitAccount" name="DebitAccount" type="text" class="form-control" data-editable="true" />
+                      <input id="DebitAccountName" name="DebitAccountName" type="text" class="form-control elc-desc" readonly aria-label="Debit account name" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="debitAccount" aria-label="Search debit account">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="UpperTolerance">Upper Tolerance</label>
+                  <div class="elc-control">
+                    <input id="UpperTolerance" name="UpperTolerance" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="LowerTolerance">Lower Tolerance</label>
+                  <div class="elc-control">
+                    <input id="LowerTolerance" name="LowerTolerance" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+                </div>
+
+                <div class="elc-sectionbar mt-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <input id="IsMarginRequired" name="IsMarginRequired" type="checkbox" class="form-check-input" data-editable="true" />
+                    <label class="mb-0" for="IsMarginRequired">Is Margin Required</label>
+                  </div>
+                </div>
+
+                <div class="elc-form-grid elc-form-grid--two mt-2">
+                  <label class="elc-label" for="MarginType">Margin Type</label>
+                  <div class="elc-control">
+                    <select id="MarginType" name="MarginType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+
+                  <label class="elc-label" for="MarginAccount">Margin Account</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="Margin account lookup">
+                      <input id="MarginAccount" name="MarginAccount" type="text" class="form-control" data-editable="true" />
+                      <input id="MarginAccountName" name="MarginAccountName" type="text" class="form-control elc-desc" readonly aria-label="Margin account name" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="marginAccount" aria-label="Search margin account">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="MarginAmountPercentage">Margin Amount/Percentage</label>
+                  <div class="elc-control">
+                    <input id="MarginAmountPercentage" name="MarginAmountPercentage" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="AccountMarginAmount">Account Margin Amount</label>
+                  <div class="elc-control">
+                    <input id="AccountMarginAmount" name="AccountMarginAmount" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="MarginCurrency">Margin Currency</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="Margin currency lookup">
+                      <input id="MarginCurrency" name="MarginCurrency" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="marginCurrency" aria-label="Search margin currency">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="po-pane-participants" role="tabpanel" aria-labelledby="po-tab-participants" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Participants</div>
+
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="ParticipantType">Participant Type</label>
+                  <div class="elc-control">
+                    <select id="ParticipantType" name="ParticipantType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+
+                  <label class="elc-label" for="ParticipantClientID">Client ID</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="Participant client lookup">
+                      <input id="ParticipantClientID" name="ParticipantClientID" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="participantClient" aria-label="Search participant client">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="ParticipantClientName">Client Name</label>
+                  <div class="elc-control elc-control--span-all">
+                    <input id="ParticipantClientName" name="ParticipantClientName" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantAddress1">Address1</label>
+                  <div class="elc-control">
+                    <input id="ParticipantAddress1" name="ParticipantAddress1" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantAddress2">Address2</label>
+                  <div class="elc-control">
+                    <input id="ParticipantAddress2" name="ParticipantAddress2" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantAddress3">Address3</label>
+                  <div class="elc-control">
+                    <input id="ParticipantAddress3" name="ParticipantAddress3" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantReferenceNo">Reference No.</label>
+                  <div class="elc-control">
+                    <input id="ParticipantReferenceNo" name="ParticipantReferenceNo" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantCountryID">Country ID</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Participant country lookup">
+                      <input id="ParticipantCountryID" name="ParticipantCountryID" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="participantCountry" aria-label="Search participant country">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="ParticipantDate">Date</label>
+                  <div class="elc-control">
+                    <select id="ParticipantDate" name="ParticipantDate" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ParticipantSwiftCode">SWIFT Code</label>
+                  <div class="elc-control">
+                    <input id="ParticipantSwiftCode" name="ParticipantSwiftCode" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantLanguage">Language</label>
+                  <div class="elc-control">
+                    <select id="ParticipantLanguage" name="ParticipantLanguage" class="form-select" data-editable="true">
+                      <option value="English" selected>English</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ParticipantAccountID">Account ID</label>
+                  <div class="elc-control">
+                    <input id="ParticipantAccountID" name="ParticipantAccountID" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ParticipantBankID">Bank ID</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Participant bank lookup">
+                      <input id="ParticipantBankID" name="ParticipantBankID" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="participantBank" aria-label="Search participant bank">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="elc-toolbar" role="toolbar" aria-label="Participant actions">
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-participant-action="new" disabled>New</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-participant-action="alter" disabled>Alter</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-participant-action="remove" disabled>Remove</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-participant-action="update" disabled>Update</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-participant-action="clear" disabled>Clear</button>
+                </div>
+
+                <div class="elc-tablewrap" aria-label="Participants list">
+                  <table class="table table-sm table-bordered mb-0 elc-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Participants</th>
+                        <th scope="col">Participant Name</th>
+                        <th scope="col">SwiftCode</th>
+                        <th scope="col">ClientID</th>
+                        <th scope="col">Address1</th>
+                        <th scope="col">Address2</th>
+                        <th scope="col">Address3</th>
+                        <th scope="col">RefNo</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">LanguageID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="10" class="text-muted">No records to display.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="po-pane-terms" role="tabpanel" aria-labelledby="po-tab-terms" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Terms And Payments</div>
+
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="BankCharges">Bank Charges</label>
+                  <div class="elc-control">
+                    <select id="BankCharges" name="BankCharges" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="IncoTerms">Inco Terms</label>
+                  <div class="elc-control">
+                    <select id="IncoTerms" name="IncoTerms" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ConfirmationType">Confirmation Type</label>
+                  <div class="elc-control">
+                    <select id="ConfirmationType" name="ConfirmationType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="POPaymentTerms">PO PaymentTerms</label>
+                  <div class="elc-control">
+                    <select id="POPaymentTerms" name="POPaymentTerms" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="POConditions">PO Conditions</label>
+                  <div class="elc-control">
+                    <select id="POConditions" name="POConditions" class="form-select" data-editable="true">
+                      <option value="Irrevocable LC" selected>Irrevocable LC</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="RuleDescription">Rule Description</label>
+                  <div class="elc-control">
+                    <input id="RuleDescription" name="RuleDescription" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ICCApplicableRules">ICC Applicable Rules</label>
+                  <div class="elc-control">
+                    <select id="ICCApplicableRules" name="ICCApplicableRules" class="form-select" data-editable="true">
+                      <option value="UCP Latest Version" selected>UCP Latest Version</option>
+                    </select>
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+
+                  <label class="elc-label" for="CreditAvailableWith">Credit Available With</label>
+                  <div class="elc-control elc-control--span-all">
+                    <select id="CreditAvailableWith" name="CreditAvailableWith" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="BankName">Bank Name</label>
+                  <div class="elc-control">
+                    <input id="BankName" name="BankName" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="BankCountryCode">Bank Country Code</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Bank country lookup">
+                      <input id="BankCountryCode" name="BankCountryCode" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="bankCountry" aria-label="Search bank country">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="BankSwiftCode">Bank Swift Code</label>
+                  <div class="elc-control">
+                    <input id="BankSwiftCode" name="BankSwiftCode" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+
+                  <label class="elc-label" for="CollateralAccountID">Collateral AccountID</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Collateral account lookup">
+                      <input id="CollateralAccountID" name="CollateralAccountID" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="collateralAccount" aria-label="Search collateral account">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="ExchangeRateTerms">Exchange Rate</label>
+                  <div class="elc-control">
+                    <input id="ExchangeRateTerms" name="ExchangeRateTerms" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="CollateralCurrency">Collateral Currency</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Collateral currency lookup">
+                      <input id="CollateralCurrency" name="CollateralCurrency" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="collateralCurrency" aria-label="Search collateral currency">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="CollateralDescription">Collateral Description</label>
+                  <div class="elc-control">
+                    <input id="CollateralDescription" name="CollateralDescription" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="CollateralPercentage">Collateral Percentage</label>
+                  <div class="elc-control">
+                    <input id="CollateralPercentage" name="CollateralPercentage" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="LocalCurrencyEquivalent">Local Currency Equivalent</label>
+                  <div class="elc-control">
+                    <input id="LocalCurrencyEquivalent" name="LocalCurrencyEquivalent" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="CollateralAmount">Collateral Amount</label>
+                  <div class="elc-control">
+                    <input id="CollateralAmount" name="CollateralAmount" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="po-pane-documents" role="tabpanel" aria-labelledby="po-tab-documents" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Document Details</div>
+
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="DocumentID">Document ID</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="Document lookup">
+                      <input id="DocumentID" name="DocumentID" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="document" aria-label="Search document">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="SwiftDescription">Swift Description</label>
+                  <div class="elc-control elc-control--span-all">
+                    <textarea id="SwiftDescription" name="SwiftDescription" class="form-control elc-textarea" rows="2" data-editable="true"></textarea>
+                  </div>
+
+                  <label class="elc-label" for="NoOfOriginal">No. Of Original</label>
+                  <div class="elc-control">
+                    <input id="NoOfOriginal" name="NoOfOriginal" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="NoOfCopy">No. Of Copy</label>
+                  <div class="elc-control">
+                    <input id="NoOfCopy" name="NoOfCopy" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DocAmount">Document Amount</label>
+                  <div class="elc-control">
+                    <input id="DocAmount" name="DocAmount" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DocCurrencyID">Document Currency</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group elc-input-group--single" aria-label="Document currency lookup">
+                      <input id="DocCurrencyID" name="DocCurrencyID" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="documentCurrency" aria-label="Search document currency">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="DocLocalAmount">Document Local Amount</label>
+                  <div class="elc-control">
+                    <input id="DocLocalAmount" name="DocLocalAmount" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DocLocation">Location</label>
+                  <div class="elc-control">
+                    <select id="DocLocation" name="DocLocation" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="DocImage">Document Image</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group">
+                      <input id="DocImage" name="DocImage" type="text" class="form-control" readonly aria-label="Document image path" />
+                      <button class="btn btn-outline-secondary" type="button" data-po-browse-image>Browse</button>
+                    </div>
+                    <input id="DocImageFile" name="DocImageFile" type="file" class="d-none" accept="image/*" />
+                  </div>
+
+                  <label class="elc-label" for="DocRemarks">Remarks</label>
+                  <div class="elc-control elc-control--span-all">
+                    <textarea id="DocRemarks" name="DocRemarks" class="form-control elc-textarea" rows="2" data-editable="true"></textarea>
+                  </div>
+
+                  <label class="elc-label" for="RequestedBy">Requested By</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="Requested by lookup">
+                      <input id="RequestedBy" name="RequestedBy" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="requestedBy" aria-label="Search requested by">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="RequestedDate">Requested Date</label>
+                  <div class="elc-control">
+                    <input id="RequestedDate" name="RequestedDate" type="date" class="form-control" data-editable="true" />
+                  </div>
+                </div>
+
+                <div class="elc-toolbar" role="toolbar" aria-label="Document actions">
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-doc-action="new" disabled>New</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-doc-action="alter" disabled>Alter</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-doc-action="remove" disabled>Remove</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-doc-action="update" disabled>Update</button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-po-doc-action="clear" disabled>Clear</button>
+                </div>
+
+                <div class="elc-tablewrap" aria-label="Documents list">
+                  <table class="table table-sm table-bordered mb-0 elc-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">DocumentID</th>
+                        <th scope="col">Document</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Received By</th>
+                        <th scope="col">Received Date</th>
+                        <th scope="col">Document Amount</th>
+                        <th scope="col">Document CurrencyID</th>
+                        <th scope="col">Document LocalAmount</th>
+                        <th scope="col">Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="9" class="text-muted">No records to display.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="po-pane-shipping" role="tabpanel" aria-labelledby="po-tab-shipping" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Shipping</div>
+
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="FromCountry">From Country</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="From country lookup">
+                      <input id="FromCountry" name="FromCountry" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="fromCountry" aria-label="Search from country">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="ToCountry">To Country</label>
+                  <div class="elc-control">
+                    <div class="input-group elc-input-group" aria-label="To country lookup">
+                      <input id="ToCountry" name="ToCountry" type="text" class="form-control" data-editable="true" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="toCountry" aria-label="Search to country">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="ShipmentType">Shipment Type</label>
+                  <div class="elc-control">
+                    <select id="ShipmentType" name="ShipmentType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="FirstShipmentDate">First Shipment Date</label>
+                  <div class="elc-control">
+                    <select id="FirstShipmentDate" name="FirstShipmentDate" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="PortOfLoading">Port Of Loading</label>
+                  <div class="elc-control">
+                    <input id="PortOfLoading" name="PortOfLoading" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="PortOfDischarge">Port Of Discharge</label>
+                  <div class="elc-control">
+                    <input id="PortOfDischarge" name="PortOfDischarge" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="LatestDays">Latest Days:</label>
+                  <div class="elc-control">
+                    <input id="LatestDays" name="LatestDays" type="text" class="form-control" data-editable="true" inputmode="numeric" />
+                  </div>
+
+                  <label class="elc-label" for="TranshipmentAllowed">Transhipment Allowed</label>
+                  <div class="elc-control elc-control--checkbox">
+                    <input id="TranshipmentAllowed" name="TranshipmentAllowed" type="checkbox" class="form-check-input" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ShipmentPeriod">Shipment Period</label>
+                  <div class="elc-control">
+                    <input id="ShipmentPeriod" name="ShipmentPeriod" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="LatestDateOfShipment">Latest Date Of Shipment</label>
+                  <div class="elc-control">
+                    <select id="LatestDateOfShipment" name="LatestDateOfShipment" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ProductTypes">Product Types</label>
+                  <div class="elc-control">
+                    <select id="ProductTypes" name="ProductTypes" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="GoodsType">Goods Type</label>
+                  <div class="elc-control">
+                    <select id="GoodsType" name="GoodsType" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="GrossWeight">Gross Weight</label>
+                  <div class="elc-control">
+                    <input id="GrossWeight" name="GrossWeight" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="QuantityOfGoods">Quantity Of Goods</label>
+                  <div class="elc-control">
+                    <input id="QuantityOfGoods" name="QuantityOfGoods" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="UnitPrice">Unit Price</label>
+                  <div class="elc-control">
+                    <input id="UnitPrice" name="UnitPrice" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="NetWeight">Net Weight</label>
+                  <div class="elc-control">
+                    <input id="NetWeight" name="NetWeight" type="text" class="form-control" data-editable="true" inputmode="decimal" />
+                  </div>
+
+                  <label class="elc-label" for="Mark">Mark</label>
+                  <div class="elc-control">
+                    <input id="Mark" name="Mark" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="NumberOfPackage">Number Of Package</label>
+                  <div class="elc-control">
+                    <input id="NumberOfPackage" name="NumberOfPackage" type="text" class="form-control" data-editable="true" inputmode="numeric" />
+                  </div>
+
+                  <label class="elc-label" for="FinalDestination">Final Destination</label>
+                  <div class="elc-control">
+                    <input id="FinalDestination" name="FinalDestination" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="QueueNo">Queue No.</label>
+                  <div class="elc-control">
+                    <input id="QueueNo" name="QueueNo" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="OriginOfGoods">Origin Of Goods</label>
+                  <div class="elc-control">
+                    <input id="OriginOfGoods" name="OriginOfGoods" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ModeOfTransport">Mode Of Transport</label>
+                  <div class="elc-control">
+                    <select id="ModeOfTransport" name="ModeOfTransport" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="ShippingGoodsDescription">Goods Description</label>
+                  <div class="elc-control elc-control--span-all">
+                    <textarea id="ShippingGoodsDescription" name="ShippingGoodsDescription" class="form-control elc-textarea" rows="3" data-editable="true"></textarea>
+                  </div>
+
+                  <label class="elc-label" for="SupplierNameAddress">Supplier Name And Address</label>
+                  <div class="elc-control elc-control--span-all">
+                    <textarea id="SupplierNameAddress" name="SupplierNameAddress" class="form-control elc-textarea" rows="3" data-editable="true"></textarea>
+                  </div>
+
+                  <label class="elc-label" for="ManufactureNameAddress">Manufacture Name And Address</label>
+                  <div class="elc-control elc-control--span-all">
+                    <textarea id="ManufactureNameAddress" name="ManufactureNameAddress" class="form-control elc-textarea" rows="3" data-editable="true"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="po-pane-internal" role="tabpanel" aria-labelledby="po-tab-internal" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Internal Instructions</div>
+                <p class="small mb-2">Instructions Entered Here Are For Internal Purposes Only, And Will Not Be Sent To The Bank.</p>
+                <textarea id="InternalInstructions" name="InternalInstructions" class="form-control elc-textarea" rows="8" data-editable="true"></textarea>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="po-pane-additional" role="tabpanel" aria-labelledby="po-tab-additional" tabindex="0">
+              <div class="elc-section">
+                <div class="elc-sectionbar">Additional Information</div>
+
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="SourceOfFCYsFunds">Source Of FCYs Funds</label>
+                  <div class="elc-control">
+                    <select id="SourceOfFCYsFunds" name="SourceOfFCYsFunds" class="form-select" data-editable="true">
+                      <option value="Bank Source" selected>Bank Source</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="HSCode">HS Code</label>
+                  <div class="elc-control">
+                    <input id="HSCode" name="HSCode" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="NBEAccountID">NBE AccountID</label>
+                  <div class="elc-control">
+                    <input id="NBEAccountID" name="NBEAccountID" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="TinNo">Tin No</label>
+                  <div class="elc-control">
+                    <input id="TinNo" name="TinNo" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="BusinessLicenseNo">Business License No</label>
+                  <div class="elc-control">
+                    <input id="BusinessLicenseNo" name="BusinessLicenseNo" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="ReceiverRef">Receiver Ref</label>
+                  <div class="elc-control">
+                    <input id="ReceiverRef" name="ReceiverRef" type="text" class="form-control" data-editable="true" />
+                  </div>
+                </div>
+
+                <div class="elc-sectionbar mt-3">Drawer Information</div>
+                <div class="elc-form-grid elc-form-grid--two">
+                  <label class="elc-label" for="DrawerAddress1">Address 1</label>
+                  <div class="elc-control">
+                    <input id="DrawerAddress1" name="DrawerAddress1" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerWereda">Wereda</label>
+                  <div class="elc-control">
+                    <input id="DrawerWereda" name="DrawerWereda" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerAddress2">Address 2</label>
+                  <div class="elc-control">
+                    <input id="DrawerAddress2" name="DrawerAddress2" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerCity">City</label>
+                  <div class="elc-control">
+                    <input id="DrawerCity" name="DrawerCity" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerKebele">Kebele</label>
+                  <div class="elc-control">
+                    <input id="DrawerKebele" name="DrawerKebele" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerFaxNo">Fax No</label>
+                  <div class="elc-control">
+                    <input id="DrawerFaxNo" name="DrawerFaxNo" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerCountry">Country</label>
+                  <div class="elc-control">
+                    <input id="DrawerCountry" name="DrawerCountry" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerPhoneWork">Phone(Work)</label>
+                  <div class="elc-control">
+                    <input id="DrawerPhoneWork" name="DrawerPhoneWork" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerMobile">Mobile</label>
+                  <div class="elc-control">
+                    <input id="DrawerMobile" name="DrawerMobile" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerZipCode">Zip Code</label>
+                  <div class="elc-control">
+                    <input id="DrawerZipCode" name="DrawerZipCode" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerPhoneHome">Phone(Home)</label>
+                  <div class="elc-control">
+                    <input id="DrawerPhoneHome" name="DrawerPhoneHome" type="text" class="form-control" data-editable="true" />
+                  </div>
+
+                  <label class="elc-label" for="DrawerRegion">Region</label>
+                  <div class="elc-control">
+                    <select id="DrawerRegion" name="DrawerRegion" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <label class="elc-label" for="DrawerEmailID">Email ID</label>
+                  <div class="elc-control">
+                    <input id="DrawerEmailID" name="DrawerEmailID" type="email" class="form-control" data-editable="true" />
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+
+                  <label class="elc-label" for="DrawerSubCityZone">Sub-City/Zone</label>
+                  <div class="elc-control">
+                    <select id="DrawerSubCityZone" name="DrawerSubCityZone" class="form-select" data-editable="true">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+
+                  <div class="elc-label elc-label--muted" aria-hidden="true"></div>
+                  <div class="elc-control" aria-hidden="true"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <section class="elc-bts" aria-label="Behind the scene">
+            <div class="elc-sectionbar">Behind The Scene</div>
+            <div class="elc-form-grid elc-form-grid--two elc-form-grid--bts">
+              <label class="elc-label" for="POOutstandingBalance">PO Outstanding Balance</label>
+              <div class="elc-control">
+                <input id="POOutstandingBalance" name="POOutstandingBalance" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="POSettledAmount">PO Settled Amount</label>
+              <div class="elc-control">
+                <input id="POSettledAmount" name="POSettledAmount" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="AvailableLimit">Available Limit</label>
+              <div class="elc-control">
+                <input id="AvailableLimit" name="AvailableLimit" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="AccountLimit">Account Limit</label>
+              <div class="elc-control">
+                <input id="AccountLimit" name="AccountLimit" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="LimitExpiryDate">Limit Expiry Date</label>
+              <div class="elc-control">
+                <select id="LimitExpiryDate" name="LimitExpiryDate" class="form-select" disabled>
+                  <option value="" selected>--Select--</option>
+                </select>
+              </div>
+
+              <label class="elc-label" for="Status">Status</label>
+              <div class="elc-control">
+                <input id="Status" name="Status" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="RejectedBy">Rejected By</label>
+              <div class="elc-control">
+                <input id="RejectedBy" name="RejectedBy" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="RejectedOn">Rejected On</label>
+              <div class="elc-control">
+                <input id="RejectedOn" name="RejectedOn" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="RejectReason">Reject Reason</label>
+              <div class="elc-control elc-control--span-all">
+                <input id="RejectReason" name="RejectReason" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="ApprovedBy">Approved By</label>
+              <div class="elc-control">
+                <input id="ApprovedBy" name="ApprovedBy" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="ApprovedOn">Approved On</label>
+              <div class="elc-control">
+                <input id="ApprovedOn" name="ApprovedOn" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="CreatedBy">Created By</label>
+              <div class="elc-control">
+                <input id="CreatedBy" name="CreatedBy" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="CreatedOn">Created On</label>
+              <div class="elc-control">
+                <input id="CreatedOn" name="CreatedOn" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="ModifiedBy">Modified By</label>
+              <div class="elc-control">
+                <input id="ModifiedBy" name="ModifiedBy" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="ModifiedOn">Modified On</label>
+              <div class="elc-control">
+                <input id="ModifiedOn" name="ModifiedOn" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="SupervisedBy">Supervised By</label>
+              <div class="elc-control">
+                <input id="SupervisedBy" name="SupervisedBy" type="text" class="form-control" readonly />
+              </div>
+
+              <label class="elc-label" for="SupervisedOn">Supervised On</label>
+              <div class="elc-control">
+                <input id="SupervisedOn" name="SupervisedOn" type="text" class="form-control" readonly />
+              </div>
+            </div>
+
+            <div id="poToast" class="alert alert-info mt-2 d-none" role="status" aria-live="polite"></div>
+          </section>
+          </section>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface" aria-label="Actions">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="elc-legacy-action" data-po-action="show-image" disabled>ShowImage</button>
+          <button type="button" class="elc-legacy-action" data-po-action="charges" disabled>Charges</button>
+          <button type="button" class="elc-legacy-action" data-po-action="print" disabled>Print</button>
+        </div>
+
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="elc-legacy-action" data-po-action="view">View</button>
+          <button type="button" class="elc-legacy-action" data-po-action="add">Add</button>
+          <button type="button" class="elc-legacy-action" data-po-action="edit" disabled>Edit</button>
+          <button type="button" class="elc-legacy-action" data-po-action="delete" disabled>Delete</button>
+          <button type="button" class="elc-legacy-action" data-po-action="save" disabled>Save</button>
+          <button type="button" class="elc-legacy-action" data-po-action="cancel" disabled>Cancel</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <div class="modal fade" id="poAmendmentExtensionHistoryModal" tabindex="-1" aria-labelledby="poAmendmentExtensionHistoryTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered po-history-dialog">
+      <div class="modal-content po-history-modal">
+        <div class="modal-header">
+          <h2 class="modal-title fs-6" id="poAmendmentExtensionHistoryTitle">Amendment/Extension History</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="po-history-layout">
+            <div class="po-history-main">
+              <div class="elc-header-block mb-2" role="region" aria-label="Amendment/Extension history filters">
+                <div class="elc-form-grid elc-form-grid--two" style="margin-top: 0;">
+                  <label class="elc-label" for="HistoryBranchID">Branch ID</label>
+                  <div class="elc-control elc-control--span-all">
+                    <div class="input-group elc-input-group" aria-label="History branch lookup">
+                      <input id="HistoryBranchID" name="HistoryBranchID" type="text" class="form-control elc-id" data-editable="true" />
+                      <input id="HistoryBranchName" name="HistoryBranchName" type="text" class="form-control elc-desc" readonly aria-label="Branch name" />
+                      <button class="btn btn-outline-secondary" type="button" data-lookup="historyBranch" aria-label="Search branch">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <label class="elc-label" for="HistoryApplicationID">Application ID</label>
+                  <div class="elc-control">
+                    <input id="HistoryApplicationID" name="HistoryApplicationID" type="text" class="form-control" data-editable="true" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="elc-tablewrap" aria-label="Amendment/Extension history list">
+                <table class="table table-sm table-bordered mb-0 elc-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">AmendmentNumber</th>
+                      <th scope="col">LCNumber</th>
+                      <th scope="col">Application</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Series</th>
+                      <th scope="col">Created By</th>
+                      <th scope="col">Created On</th>
+                      <th scope="col">Approved By</th>
+                      <th scope="col">Approved On</th>
+                      <th scope="col">ViewDetails</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="10" class="text-muted">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+            <div class="po-history-actions" aria-label="History actions">
+              <button type="button" class="elc-legacy-action" data-po-history-action="view" disabled>View</button>
+              <button type="button" class="elc-legacy-action" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/purchase-order-application.js"></script>
+</body>
+
+</html>

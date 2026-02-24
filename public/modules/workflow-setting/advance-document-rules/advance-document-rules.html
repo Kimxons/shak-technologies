@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advance Document Rules · Kairo Banking</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="advance-document-rules.css">
+</head>
+<body>
+  <div class="kairo-container">
+    <!-- Main Content Area -->
+    <main class="kairo-content">
+      <div id="statusMessage" class="status-message"></div>
+      
+      <form id="advanceDocumentForm" autocomplete="off" novalidate>
+        <!-- Rule Details Section -->
+        <div class="kairo-card">
+          <div class="card-header">
+            <i class="bi bi-file-earmark-ruled"></i>
+            <span>Rule Details</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-2col">
+              <div class="form-group">
+                <label for="ruleId">
+                  <i class="bi bi-hash"></i>
+                  <span>Rule ID</span>
+                </label>
+                <div class="input-with-search">
+                  <input type="text" id="ruleId" name="ruleId" required>
+                  <button type="button" class="btn-search" onclick="searchRule()">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="description">
+                  <i class="bi bi-file-text"></i>
+                  <span>Description</span>
+                </label>
+                <input type="text" id="description" name="description" required>
+              </div>
+
+              <div class="form-group">
+                <label for="advanceModule">
+                  <i class="bi bi-grid"></i>
+                  <span>Advance Module</span>
+                </label>
+                <select id="advanceModule" name="advanceModule">
+                  <option value="">--Select--</option>
+                  <option value="loans">Loans Module</option>
+                  <option value="accounts">Accounts Module</option>
+                  <option value="deposits">Deposits Module</option>
+                  <option value="standing_orders">Standing Orders</option>
+                  <option value="charges">Charges Module</option>
+                  <option value="customers">Customers Module</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="documentType">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Document Type</span>
+                </label>
+                <select id="documentType" name="documentType">
+                  <option value="">--Select--</option>
+                  <option value="loan_application">Loan Application</option>
+                  <option value="account_opening">Account Opening</option>
+                  <option value="deposit_form">Deposit Form</option>
+                  <option value="withdrawal_form">Withdrawal Form</option>
+                  <option value="transfer_form">Transfer Form</option>
+                  <option value="kyc_document">KYC Document</option>
+                  <option value="agreement">Agreement</option>
+                  <option value="statement">Statement</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="documentClass">
+                  <i class="bi bi-folder"></i>
+                  <span>Document Class</span>
+                </label>
+                <select id="documentClass" name="documentClass">
+                  <option value="">--Select--</option>
+                  <option value="mandatory">Mandatory</option>
+                  <option value="optional">Optional</option>
+                  <option value="conditional">Conditional</option>
+                  <option value="regulatory">Regulatory</option>
+                  <option value="internal">Internal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="kairo-card">
+          <div class="card-header collapsed" onclick="toggleCard(this)">
+            <i class="bi bi-caret-down-fill"></i>
+            <span>Behind The Scene</span>
+          </div>
+          <div class="card-body collapsed">
+            <div class="form-grid-3col">
+              <div class="form-group">
+                <label for="createdBy">
+                  <i class="bi bi-person-plus"></i>
+                  <span>Created By</span>
+                </label>
+                <input type="text" id="createdBy" name="createdBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="modifiedBy">
+                  <i class="bi bi-person-check"></i>
+                  <span>Modified By</span>
+                </label>
+                <input type="text" id="modifiedBy" name="modifiedBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedBy">
+                  <i class="bi bi-person-badge"></i>
+                  <span>Supervised By</span>
+                </label>
+                <input type="text" id="supervisedBy" name="supervisedBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="createdOn">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>Created On</span>
+                </label>
+                <input type="text" id="createdOn" name="createdOn" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="modifiedOn">
+                  <i class="bi bi-calendar-event"></i>
+                  <span>Modified On</span>
+                </label>
+                <input type="text" id="modifiedOn" name="modifiedOn" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedOn">
+                  <i class="bi bi-calendar-plus"></i>
+                  <span>Supervised On</span>
+                </label>
+                <input type="text" id="supervisedOn" name="supervisedOn" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <!-- Right Action Panel -->
+    <aside class="kairo-actions">
+      <button type="button" class="action-btn" onclick="handleView()">
+        <i class="bi bi-eye"></i>
+        <span>View</span>
+      </button>
+      <button type="button" class="action-btn" onclick="handleAdd()">
+        <i class="bi bi-plus-circle"></i>
+        <span>Add</span>
+      </button>
+      <button type="button" class="action-btn" onclick="handleEdit()">
+        <i class="bi bi-pencil-square"></i>
+        <span>Edit</span>
+      </button>
+      <button type="button" class="action-btn" onclick="handleDelete()">
+        <i class="bi bi-trash"></i>
+        <span>Delete</span>
+      </button>
+      <button type="button" class="action-btn action-save" id="saveBtn" onclick="handleSave()" disabled>
+        <i class="bi bi-floppy"></i>
+        <span>Save</span>
+      </button>
+      <button type="button" class="action-btn action-cancel" id="cancelBtn" onclick="handleCancel()" disabled>
+        <i class="bi bi-x-circle"></i>
+        <span>Cancel</span>
+      </button>
+    </aside>
+  </div>
+
+  <script src="advance-document-rules.js"></script>
+</body>
+</html>

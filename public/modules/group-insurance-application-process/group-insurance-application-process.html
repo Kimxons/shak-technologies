@@ -1,0 +1,229 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Group Insurance Application Process</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="group-insurance-application-process.css">
+</head>
+<body style="margin: 0; padding: 0; background: transparent;">
+
+<div class="group-insurance-app-process">
+  <div style="display: grid; grid-template-columns: 1fr 160px; gap: 8px; height: 100%; padding: 8px;">
+    <!-- Main Content Area -->
+    <div style="display: flex; flex-direction: column; overflow: hidden; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(91, 159, 217, 0.18); border-radius: 1.5rem; padding: 12px;">
+      <div style="overflow-y: auto; flex: 1;">
+        <!-- Query Form Section -->
+        <div style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+          <!-- Row 1: Insurance Type ID and Insurance ID -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #5b9fd9; font-size: 0.75rem; display: block; margin-bottom: 4px;">Insurance Type ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="insuranceTypeIdField" />
+                <button class="btn" type="button" data-search="insuranceTypeId">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #5b9fd9; font-size: 0.75rem; display: block; margin-bottom: 4px;">Insurance ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="insuranceIdField" />
+                <button class="btn" type="button" data-search="insuranceId">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: From Branch ID and To Branch ID -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #5b9fd9; font-size: 0.75rem; display: block; margin-bottom: 4px;">From Branch ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="fromBranchIdField" />
+                <button class="btn" type="button" data-search="fromBranchId">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #5b9fd9; font-size: 0.75rem; display: block; margin-bottom: 4px;">To Branch ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="toBranchIdField" />
+                <button class="btn" type="button" data-search="toBranchId">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Application From Date and Application To Date -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #5b9fd9; font-size: 0.75rem; display: block; margin-bottom: 4px;">Application From Date</label>
+              <select class="form-select" id="applicationFromDateSelect">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #5b9fd9; font-size: 0.75rem; display: block; margin-bottom: 4px;">Application To Date</label>
+              <select class="form-select" id="applicationToDateSelect">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proceed Button Section -->
+        <div style="padding: 12px 12px 0 12px; text-align: right; margin-bottom: 12px;">
+          <button class="giap-action-btn" id="proceedBtn">Proceed</button>
+        </div>
+
+        <!-- Results Table Section -->
+        <div style="padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
+          <div style="flex: 1; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 0.375rem;">
+            <table class="table" style="margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th style="width: 30px;"><input type="checkbox" id="selectAllCheckbox" /></th>
+                  <th>Client ID</th>
+                  <th>Client Name</th>
+                  <th>Insured Name</th>
+                  <th>Branch ID</th>
+                  <th>Application Date</th>
+                  <th>Premium Paid</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody">
+                <tr style="text-align: center; color: #64748b; font-size: 0.8rem;">
+                  <td colspan="7" style="padding: 20px;">No records to display.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Total Premium Section -->
+        <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+          <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center;">
+            <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; white-space: nowrap;">Total Premium</label>
+            <input type="text" class="form-control" id="totalPremiumField" readonly style="background-color: #f9fafb;" />
+          </div>
+        </div>
+
+        <!-- Policy Details Section -->
+        <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+          <!-- Row 1: Policy No and Policy Date -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Policy No</label>
+              <input type="text" class="form-control" id="policyNoField" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Policy Date</label>
+              <select class="form-select" id="policyDateSelect">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 2: Start Date and Expiry Date -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Start Date</label>
+              <select class="form-select" id="startDateSelect">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Expiry Date</label>
+              <select class="form-select" id="expiryDateSelect">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 3: Insured Amount and Premium -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Insured Amount</label>
+              <input type="text" class="form-control" id="insuredAmountField" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Premium</label>
+              <input type="text" class="form-control" id="premiumField" />
+            </div>
+          </div>
+
+          <!-- Row 4: Description -->
+          <div style="margin-bottom: 0;">
+            <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Description</label>
+            <textarea class="form-control" id="descriptionField" style="height: 60px; resize: none;"></textarea>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+          <div style="background: #5b9fd9; color: white; padding: 6px 8px; border-radius: 0.375rem; margin-bottom: 8px; font-weight: 600; font-size: 0.8rem;">
+            Behind The Scene
+          </div>
+          <!-- Row 1: Created By, Modified By, Supervised By -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Created By</label>
+              <input type="text" class="form-control" id="createdByField" readonly style="background-color: #f9fafb;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Modified By</label>
+              <input type="text" class="form-control" id="modifiedByField" readonly style="background-color: #f9fafb;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Supervised By</label>
+              <input type="text" class="form-control" id="supervisedByField" readonly style="background-color: #f9fafb;" />
+            </div>
+          </div>
+
+          <!-- Row 2: Created On, Modified On, Supervised On -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Created On</label>
+              <input type="text" class="form-control" id="createdOnField" readonly style="background-color: #f9fafb;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Modified On</label>
+              <input type="text" class="form-control" id="modifiedOnField" readonly style="background-color: #f9fafb;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Supervised On</label>
+              <input type="text" class="form-control" id="supervisedOnField" readonly style="background-color: #f9fafb;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BR.Net Web Banking Section -->
+        <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+          <div style="background: #5b9fd9; color: white; padding: 6px 8px; border-radius: 0.375rem; font-weight: 600; font-size: 0.8rem;">
+            BR.Net Web Banking
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Action Buttons -->
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <button class="giap-action-btn" id="viewBtn">View</button>
+      <button class="giap-action-btn" id="addBtn">Add</button>
+      <button class="giap-action-btn" id="editBtn">Edit</button>
+      <button class="giap-action-btn" id="deleteBtn">Delete</button>
+      <button class="giap-action-btn" id="saveBtn">Save</button>
+      <button class="giap-action-btn" id="cancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="group-insurance-application-process.js"></script>
+</body>
+</html>

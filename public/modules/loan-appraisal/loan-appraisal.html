@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Appraisal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+<body>
+    <div class="window">
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Form Content -->
+            <div class="form-content">
+                <div class="form-card" data-main-form>
+                    <!-- Application Information Section -->
+                    <div class="form-section" data-section="application-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-info-circle"></i> Application Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Application Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Branch ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-branch-control" data-kairo-branch-control>
+                                        <input type="text" id="branchId" class="kairo-branch-control__id" aria-label="Branch ID">
+                                        <input type="text" id="branchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                        <button type="button" id="searchBranchBtn" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">WorkFlow Type ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="workflowTypeId" class="kairo-control__id" aria-label="WorkFlow Type ID">
+                                        <input type="text" id="workflowTypeName" class="kairo-control__name" aria-label="WorkFlow Type Name" placeholder="WorkFlow Type" readonly>
+                                        <button type="button" id="searchWorkflowTypeBtn" class="btn-lookup kairo-control__lookup" aria-label="Search Workflow Type"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Application ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="applicationId" class="kairo-control__id" aria-label="Application ID">
+                                        <input type="text" id="applicationName" class="kairo-control__name" aria-label="Application Name" placeholder="Application Name" readonly>
+                                        <button type="button" id="searchApplicationBtn" class="btn-lookup kairo-control__lookup" aria-label="Search Application"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Application Date</label>
+                                    <input type="date" id="applicationDate" class="bs-input-text" aria-label="Application Date" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Details Section -->
+                    <div class="form-section" data-section="recommendation">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clipboard-check"></i> Recommendation Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Recommendation Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">
+                                        <input type="checkbox" id="createNewAccount" class="me-2">
+                                        Create New Account
+                                    </label>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Existing Account ID</label>
+                                    <div class="kairo-account-control" data-kairo-account-control>
+                                        <input type="text" id="existingAccountId" class="kairo-account-control__id" aria-label="Existing Account ID" readonly>
+                                        <input type="text" id="existingAccountName" class="kairo-account-control__name" aria-label="Existing Account Name" placeholder="Account Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-account-control__lookup" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comparison Grid -->
+                            <div class="table-responsive mt-3">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 30%;"></th>
+                                            <th style="width: 35%;">Applied</th>
+                                            <th style="width: 35%;">Recommended</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Loan Amount</strong></td>
+                                            <td><input type="number" id="loanAmountApplied" class="bs-input-text" placeholder="0.00" step="0.01" readonly></td>
+                                            <td><input type="number" id="loanAmountRecommended" class="bs-input-text" placeholder="0.00" step="0.01"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Term</strong></td>
+                                            <td><input type="number" id="termApplied" class="bs-input-text" placeholder="0" readonly></td>
+                                            <td><input type="number" id="termRecommended" class="bs-input-text" placeholder="0"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Repayment Frequency</strong></td>
+                                            <td><input type="text" id="repaymentFrequencyApplied" class="bs-input-text" readonly></td>
+                                            <td>
+                                                <select id="repaymentFrequencyRecommended" class="bs-select">
+                                                    <option value="">--Select--</option>
+                                                    <option value="daily">Daily</option>
+                                                    <option value="weekly">Weekly</option>
+                                                    <option value="bi-weekly">Bi-Weekly</option>
+                                                    <option value="monthly">Monthly</option>
+                                                    <option value="quarterly">Quarterly</option>
+                                                    <option value="semi-annually">Semi-Annually</option>
+                                                    <option value="yearly">Yearly</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Repayment Term</strong></td>
+                                            <td><input type="text" id="repaymentTermApplied" class="bs-input-text" readonly></td>
+                                            <td><input type="number" id="repaymentTermRecommended" class="bs-input-text" placeholder="0"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Approved Amount</strong></td>
+                                            <td><input type="number" id="approvedAmountApplied" class="bs-input-text" placeholder="0.00" step="0.01" readonly></td>
+                                            <td><input type="number" id="approvedAmountRecommended" class="bs-input-text" placeholder="0.00" step="0.01"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Marking Rate</strong></td>
+                                            <td><input type="number" id="markingRateApplied" class="bs-input-text" placeholder="0.00" step="0.01" readonly></td>
+                                            <td><input type="number" id="markingRateRecommended" class="bs-input-text" placeholder="0.00" step="0.01"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Interest Rate</strong></td>
+                                            <td><input type="number" id="interestRateApplied" class="bs-input-text" placeholder="0.00" step="0.01" readonly></td>
+                                            <td><input type="number" id="interestRateRecommended" class="bs-input-text" placeholder="0.00" step="0.01"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Account Class</strong></td>
+                                            <td><input type="text" id="accountClassApplied" class="bs-input-text" readonly></td>
+                                            <td>
+                                                <select id="accountClassRecommended" class="bs-select">
+                                                    <option value="">--Select--</option>
+                                                    <option value="normal">Normal</option>
+                                                    <option value="special">Special Mention</option>
+                                                    <option value="substandard">Substandard</option>
+                                                    <option value="doubtful">Doubtful</option>
+                                                    <option value="loss">Loss</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="form-row two-col mt-3">
+                                <div class="col">
+                                    <label class="label-blue">Remarks</label>
+                                    <textarea id="remarks" class="bs-input-text" rows="3" placeholder="Enter remarks"></textarea>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Interest Rate Type</label>
+                                    <input type="text" id="interestRateType" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Base Rate</label>
+                                    <input type="number" id="baseRate" class="bs-input-text" placeholder="0.00" step="0.01" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Loan Type</label>
+                                    <input type="text" id="loanType" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye-slash"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Client ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="clientId" class="kairo-control__id" aria-label="Client ID" readonly>
+                                        <input type="text" id="clientName" class="kairo-control__name" aria-label="Client Name" placeholder="Client Name" readonly>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">City</label>
+                                    <input type="text" id="city" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Phone</label>
+                                    <input type="text" id="phone" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Product ID</label>
+                                    <input type="text" id="productId" class="bs-input-text" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Mailing Address</label>
+                                    <input type="text" id="mailingAddress" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Currency ID</label>
+                                    <input type="text" id="currencyId" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Collateral Value</label>
+                                    <input type="number" id="collateralValue" class="bs-input-text" placeholder="0.00" step="0.01" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">No Of Guarantors</label>
+                                    <input type="number" id="noOfGuarantors" class="bs-input-text" readonly>
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Calculation Method</label>
+                                    <input type="text" id="calculationMethod" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Application Status</label>
+                                    <input type="text" id="applicationStatus" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Appraised By</label>
+                                    <input type="text" id="appraisedBy" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Appraised On</label>
+                                    <input type="text" id="appraisedOn" class="bs-input-text" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="nav-group">
+                    <span>Actions</span>
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-view" id="viewBtn">
+                        <i class="bi bi-eye-fill"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="btn-action" id="editBtn">
+                        <i class="bi bi-pencil-fill"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button type="button" class="btn-action btn-cancel" id="rejectBtn">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Reject</span>
+                    </button>
+
+                    <hr style="margin: 4px 0; border-color: #e2e8f0; opacity: 0.5;">
+
+                    <button type="button" class="btn-action btn-save" id="approveBtn">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Approve</span>
+                    </button>
+                    <button type="button" class="btn-action" id="cancelBtn">
+                        <i class="bi bi-x-lg"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/environment.js"></script>
+    <script src="../../assets/js/auth/auth.config.js"></script>
+    <script src="../../assets/js/auth/auth.service.js"></script>
+    <script src="../../assets/js/app.js"></script>
+    <script src="../../assets/js/services/shared/coreApi.js"></script>
+    <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../assets/js/services/search/branchSearchService.js"></script>
+    <script src="loan-appraisal.js"></script>
+</body>
+</html>

@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Maintenance - Professional Banking Solution</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20260204">
+</head>
+
+<body data-page="client-maintenance">
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Page Loading Overlay -->
+  <div id="pageLoadingOverlay" class="page-loading-overlay" hidden>
+    <div class="page-loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+  </div>
+
+  <div class="window">
+    <div class="main-container">
+      <!-- Left Sidebar -->
+      <div class="sidebar" id="main-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"
+            aria-expanded="true">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-search">
+          <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..."
+            aria-label="Search submodules">
+          <i class="bi bi-search sidebar-search__icon"></i>
+          <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-content">
+          <!-- Data Entry Section -->
+          <div class="nav-section nav-section--card is-open expanded" data-nav-section data-section-name="Data Entry">
+            <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+              <div class="nav-header__content">
+                <i class="bi bi-folder-fill nav-header__icon"></i>
+                <span class="nav-label nav-label--card">Data Entry</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">8</span>
+                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry"
+                  aria-expanded="true" aria-controls="nav-dataentry">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items nav-items--card" id="nav-dataentry">
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="address">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-geo-alt sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Address</div>
+                    <div class="sidebar-item__description">Manage client addresses</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="introducer">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-person-vcard sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Introducer Details</div>
+                    <div class="sidebar-item__description">Reference details</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="bank-accounts">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-bank2 sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Bank Accounts</div>
+                    <div class="sidebar-item__description">External banking info</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="relation">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-people sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Relation</div>
+                    <div class="sidebar-item__description">Linked clients/parties</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="client-profile">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-person-gear sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Client Profile Change</div>
+                    <div class="sidebar-item__description">Modify core profile</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="demise">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-person-x sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Demise Details</div>
+                    <div class="sidebar-item__description">Deceased status management</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="udf1">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-sliders sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">User Defined Fields 1</div>
+                    <div class="sidebar-item__description">Custom data group 1</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="udf2">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-sliders sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">User Defined Fields 2</div>
+                    <div class="sidebar-item__description">Custom data group 2</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="udf3">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-sliders sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">User Defined Fields 3</div>
+                    <div class="sidebar-item__description">Custom data group 3</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="identity">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-person-badge sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Client Identity Types</div>
+                    <div class="sidebar-item__description">Manage ID documents</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Section -->
+          <div class="nav-section nav-section--card" data-nav-section data-section-name="View">
+            <div class="nav-header nav-header--card" data-tooltip="View">
+              <div class="nav-header__content">
+                <i class="bi bi-eye-fill nav-header__icon"></i>
+                <span class="nav-label nav-label--card">View</span>
+              </div>
+              <div class="nav-header__badge">
+                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle View" aria-expanded="false"
+                  aria-controls="nav-view">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items nav-items--card" id="nav-view" hidden>
+              <div class="sidebar-item sidebar-item--enhanced" data-child-form="signature-photo">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-image sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Signature and Photograph</div>
+                    <div class="sidebar-item__description">KYC media assets</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activities Section -->
+          <div class="nav-section nav-section--card" data-nav-section data-section-name="Recent Activities">
+            <div class="nav-header nav-header--card" data-tooltip="Recent Activities">
+              <div class="nav-header__content">
+                <i class="bi bi-clock-history nav-header__icon"></i>
+                <span class="nav-label nav-label--card">Recent Activities</span>
+              </div>
+              <div class="nav-header__badge">
+                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Recent Activities"
+                  aria-expanded="false" aria-controls="nav-recent">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items nav-items--card" id="nav-recent" hidden data-recent-activities-container>
+              <!-- Recent activities will be dynamically populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-content">
+        <!-- Inline Child Form (hidden by default) -->
+        <div class="child-inline" data-child-inline hidden>
+          <button type="button" class="btn-maximize-child" id="maximizeChildBtn" aria-label="Maximize" title="Maximize">
+            <i class="bi bi-square"></i>
+          </button>
+          <iframe class="child-iframe-inline" data-child-iframe title="DataEntry Submodule"></iframe>
+        </div>
+
+        <form id="client-form" class="w-100" autocomplete="off" novalidate>
+          <div class="form-card w-100">
+            <!-- CLIENT SEARCH Section - Collapsible -->
+            <div class="form-section" data-section="client-search">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-search"></i>Client Search</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Client Search" aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="ClientID">Client ID</label>
+                    <div class="kairo-client-control" data-kairo-client-control>
+                      <input type="text" id="ClientID" name="ClientID" placeholder="e.g. CSK00092" required />
+                      <input type="text" id="ClientNameDisplay" placeholder="Client Name" readonly />
+                      <button type="button" class="btn-lookup" data-client-search aria-label="Search client">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="memberType">Client Type</label>
+                    <select id="memberType" name="ClientTypeID" class="bs-select" data-lookup="clientTypes"
+                      data-placeholder="Select type" required aria-label="Client Type" title="Client Type"></select>
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label for="ApplicationID">Application ID</label>
+                    <div class="kairo-control" data-kairo-control>
+                      <input type="text" id="ApplicationID" name="ApplicationID" placeholder="" readonly />
+                      <input type="text" id="ApplicationNameDisplay" placeholder="Application Description" readonly />
+                      <button type="button" class="btn-lookup" data-application-search aria-label="Search application">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label for="ClientGroup">Client Group</label>
+                    <select id="ClientGroup" name="ClientGroupID" class="bs-select" data-lookup="clientGroups"
+                      data-placeholder="Select group"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- CLIENT DETAILS Section - Collapsible (Stepper) -->
+            <div class="form-section" data-section="client-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-person-vcard"></i>Client Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Client Details"
+                  aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <section class="cm-stepper" data-stepper>
+                  <div class="cm-stepper__nav" data-stepper-nav>
+                    <button type="button" class="cm-stepper__trigger is-active" data-step-id="personal"
+                      data-step-index="1" data-step-default data-step-scope="individual,minor,employee"
+                      data-client-scope="individual,minor,employee" data-step-order="individual:1;minor:1;employee:1">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">1</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Personal</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="corporate" data-step-index="2"
+                      data-step-scope="corporate,bank" data-client-scope="corporate,bank"
+                      data-step-order="corporate:1;bank:1">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">2</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Corporate</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="address" data-step-index="3"
+                      data-client-scope="all"
+                      data-step-order="individual:2;group:2;minor:2;employee:2;corporate:2;bank:2">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">3</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Address</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="relations" data-step-index="4"
+                      data-client-scope="all" data-step-order="all:4">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">4</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Client Relations</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="employment" data-step-index="6"
+                      data-step-scope="individual,employee" data-client-scope="individual,employee"
+                      data-step-order="individual:3;employee:3">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">5</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Employment</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="offers" data-step-index="7"
+                      data-client-scope="all" data-step-order="individual:4;group:4;corporate:3;bank:3">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">6</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Special Offers</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="groupDetail" data-step-index="10"
+                      data-step-scope="group" data-client-scope="group" data-step-order="group:5">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">7</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Group Detail</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="kyc" data-step-index="8"
+                      data-client-scope="all" data-step-order="all:5">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">8</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Other Details</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="products" data-step-index="9"
+                      data-client-scope="all" data-step-order="all:6">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">9</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Products &amp; Services</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="photo-signature"
+                      data-step-index="10" data-client-scope="all" data-step-order="all:7">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">10</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Photo And Signature</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="documents" data-step-index="11"
+                      data-client-scope="all" data-step-order="all:8">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">11</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Documents</span>
+                      </div>
+                    </button>
+                    <button type="button" class="cm-stepper__trigger" data-step-id="submit" data-step-index="12"
+                      data-client-scope="all" data-step-order="all:9">
+                      <div class="cm-stepper__number">
+                        <span class="cm-stepper__number-text">12</span>
+                        <i class="bi bi-check-lg cm-stepper__check-icon"></i>
+                      </div>
+                      <div class="cm-stepper__text">
+                        <span class="cm-stepper__label">Submit</span>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div class="cm-stepper__panels">
+                    <!-- PERSONAL PANEL -->
+                    <article class="cm-stepper__panel is-active" data-step-panel="personal"
+                      data-step-scope="individual,minor,employee" data-client-scope="individual,minor,employee">
+                      <div class="section-content">
+                        <!-- ROW 1: Title, First Name, Middle Name, Last Name -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="title">Title</label>
+                            <select id="title" name="TitleID" class="bs-select" data-lookup="titles"
+                              data-placeholder="Select title" required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="FirstName" class="bs-input-text" maxlength="100" required />
+                          </div>
+                          <div class="col">
+                            <label for="middleName">Middle Name</label>
+                            <input type="text" id="middleName" name="MiddleName" class="bs-input-text" maxlength="100" />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="LastName" class="bs-input-text" maxlength="100" required />
+                          </div>
+                        </div>
+
+                        <!-- ROW 2: Gender, DOB, Age, Age As On -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="gender">Gender</label>
+                            <select id="gender" name="GenderID" class="bs-select" data-lookup="genders"
+                              data-placeholder="Select gender" required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="dob">Date Of Birth</label>
+                            <input type="date" id="dob" name="DateOfBirth" class="bs-input-text" max="2008-02-06" required />
+                          </div>
+                          <div class="col">
+                            <label for="age">Age</label>
+                            <input type="text" id="age" name="Age" class="bs-input-text" placeholder="Auto" readonly />
+                          </div>
+                          <div class="col">
+                            <label for="ageAsOn">Age As On</label>
+                            <input type="text" id="ageAsOn" name="AgeAsOn" class="bs-input-text" placeholder="Derived"
+                              readonly />
+                          </div>
+                        </div>
+
+                        <!-- ROW 3: Nationality, Resident Status, ID Type, ID Number -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="nationality">Nationality</label>
+                            <select id="nationality" name="NationalityID" class="bs-select" data-lookup="countries"
+                              data-placeholder="Select country"></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="residentStatus">Resident Status</label>
+                            <select id="residentStatus" name="ResidentID" class="bs-select"
+                              data-lookup="residentStatuses" required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="idType">Identification Type</label>
+                            <select id="idType" name="IdentificationTypeID" class="bs-select"
+                              data-lookup="identificationTypes" required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="idNumber">Identification No</label>
+                            <div class="kairo-control" data-kairo-control>
+                              <input type="text" id="idNumber" name="NationalId" class="bs-input-text" maxlength="50" required />
+                              <span class="bs-input-text d-none"></span> <!-- Placeholder for grid -->
+                              <button type="button" class="btn-lookup" data-id-lookup aria-label="ID Lookup"><i
+                                  class="bi bi-search"></i></button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- ROW 4: Issue Date, Issued By, Expiry Date, Literacy Level -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="issueDate">Issue Date</label>
+                            <input type="date" id="issueDate" name="IDIssueDate" class="bs-input-text" max="2026-02-06" />
+                          </div>
+                          <div class="col">
+                            <label for="issuedBy">Issued By</label>
+                            <input type="text" id="issuedBy" name="IssuedBy" class="bs-input-text" />
+                          </div>
+                          <div class="col">
+                            <label for="expiryDate">Expiry Date</label>
+                            <input type="date" id="expiryDate" name="IDExpiryDate" class="bs-input-text" min="2026-02-06" />
+                          </div>
+                          <div class="col">
+                            <label for="literacyLevel">Literacy Level</label>
+                            <select id="literacyLevel" name="LiteracyLevel" class="bs-select"
+                              data-lookup="literacyLevels" data-placeholder="Select..."></select>
+                          </div>
+                        </div>
+
+                        <!-- ROW 5: Marital Status, House Members, Children, Dependents -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="maritalStatus">Marital Status</label>
+                            <select id="maritalStatus" name="MaritalStatus" class="bs-select"
+                              data-lookup="maritalStatuses" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="houseMembers">No. Of House Members</label>
+                            <input type="number" id="houseMembers" name="NumberOfHouseMembers" class="bs-input-text"
+                              min="0" max="65000" required />
+                          </div>
+                          <div class="col">
+                            <label for="children">No. Of Children</label>
+                            <input type="number" id="children" name="NumberOfChildren" class="bs-input-text" min="0" max="65000" />
+                          </div>
+                          <div class="col">
+                            <label for="dependents">No. Of Dependents</label>
+                            <input type="number" id="dependents" name="NumberOfDependents" class="bs-input-text" min="0" max="65000" />
+                          </div>
+                        </div>
+
+                        <!-- ROW 6: Mother Name, Blood Group, Can Donate Blood, Opened By -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="motherName">Mother Name</label>
+                            <input type="text" id="motherName" name="MotherName" class="bs-input-text" maxlength="100" required />
+                          </div>
+                          <div class="col">
+                            <label for="bloodGroup">Blood Group</label>
+                            <select id="bloodGroup" name="BloodGroup" class="bs-select" data-lookup="bloodGroups"
+                              data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <div class="bs-field bs-inline">
+                              <label class="bs-label" for="canDonateBlood">Can Donate Blood</label>
+                              <input type="checkbox" class="bs-checkbox" id="canDonateBlood" name="CanDonateBlood" />
+                            </div>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="openedBy">Opened By</label>
+                            <div class="kairo-user-control" data-kairo-user-control>
+                              <input type="text" id="openedBy" name="CreatedBy" class="bs-input-text uppercase"
+                                readonly />
+                              <input type="text" id="openedByName" class="bs-input-text" placeholder="User Name"
+                                readonly />
+                              <button type="button" class="btn-lookup" data-user-lookup aria-label="User Lookup"><i
+                                  class="bi bi-search"></i></button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- ROW 7: Relationship Manager, Opened On -->
+                        <div class="form-row two-col">
+                          <div class="col">
+                            <label class="label-blue" for="relationshipManager">Relationship Manager</label>
+                            <select id="relationshipManager" name="RelationshipManagerID" class="bs-select"
+                              data-lookup="relationshipManagers" data-placeholder="Select an option" required></select>
+                          </div>
+                          <div class="col">
+                            <label for="openedOn">Opened On</label>
+                            <input type="date" id="openedOn" name="OpenedOn" class="bs-input-text" readonly />
+                          </div>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- CORPORATE PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="corporate" data-step-scope="corporate,bank"
+                      data-client-scope="corporate,bank">
+                      <div class="section-content">
+                        <!-- ROW 1: Company Name, Constitution, Line of Business, Description -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="corpCompanyName">Company Name</label>
+                            <input type="text" id="corpCompanyName" name="CompanyName" class="bs-input-text"
+                              data-corporate-field required />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="corpConstitution">Constitution</label>
+                            <select id="corpConstitution" name="BusinessOwnershipID" class="bs-select"
+                              data-lookup="businessOwnerships" data-corporate-field data-placeholder="Select..."
+                              required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="corpLineOfBusiness">Line Of Business</label>
+                            <select id="corpLineOfBusiness" name="BusinessLineID" class="bs-select"
+                              data-lookup="businessLines" data-corporate-field data-placeholder="Select..."
+                              required></select>
+                          </div>
+                          <div class="col">
+                            <label for="corpDescription">Description</label>
+                            <input type="text" id="corpDescription" name="BusinessDescription" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                        </div>
+
+                        <!-- ROW 2: ID Type, Registration Date, Registration No, Registered Office -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="corpIdentificationType">Identification Type</label>
+                            <select id="corpIdentificationType" name="IdentificationTypeID" class="bs-select"
+                              data-lookup="identificationTypes" data-corporate-field data-placeholder="Select..."
+                              required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="corpRegistrationDate">Reg. Date</label>
+                            <input type="date" id="corpRegistrationDate" name="RegistrationDate" class="bs-input-text"
+                              max="2026-02-06" data-corporate-field required />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="corpRegistrationNumber">Reg. No.</label>
+                            <input type="text" id="corpRegistrationNumber" name="RegistrationNumber"
+                              class="bs-input-text" data-corporate-field required />
+                          </div>
+                          <div class="col">
+                            <label for="corpRegisteredOffice">Registered Office</label>
+                            <input type="text" id="corpRegisteredOffice" name="RegisteredOffice" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                        </div>
+
+                        <!-- ROW 3: Registered At, TIN Number, Business Started Year, Employees -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="corpRegisteredAt">Registered At</label>
+                            <input type="text" id="corpRegisteredAt" name="RegistratedAt" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label for="corpTinNumber">TIN Number</label>
+                            <input type="text" id="corpTinNumber" name="TinNumber" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label for="corpYearStarted">Year Started</label>
+                            <input type="text" id="corpYearStarted" name="BusinessStartedYear" class="bs-input-text"
+                              pattern="[0-9]{4}" maxlength="4" placeholder="YYYY" data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label for="corpEmployees">No. Employees</label>
+                            <input type="number" id="corpEmployees" name="NumberOfEmployees" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                        </div>
+
+                        <!-- ROW 4: Country of Incorporation -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="corpCountryOfIncorporation">Country of Incorporation</label>
+                            <select id="corpCountryOfIncorporation" name="CountryOfIncorporation" class="bs-select"
+                              data-lookup="countries" data-corporate-field></select>
+                          </div>
+                          <div class="col"></div>
+                          <div class="col"></div>
+                          <div class="col"></div>
+                        </div>
+
+                        <!-- ROW 5: ID Issue Date, Issued By, ID Expiry Date, VAT Reg No -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="corpIssueDate">ID Issue Date</label>
+                            <input type="date" id="corpIssueDate" name="CorporateIssueDate" class="bs-input-text"
+                              max="2026-02-06" data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label for="corpIssuedBy">Issued By</label>
+                            <input type="text" id="corpIssuedBy" name="CorporateIssueBy" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label for="corpExpiryDate">ID Expiry Date</label>
+                            <input type="date" id="corpExpiryDate" name="CorporateExpireDate" class="bs-input-text"
+                              min="2026-02-06" data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label for="corpVatRegNo">VAT Reg. No</label>
+                            <input type="text" id="corpVatRegNo" name="VATRegNumber" class="bs-input-text"
+                              data-corporate-field />
+                          </div>
+                        </div>
+
+                        <!-- ROW 6: VAT Reg. Date, Reporting GL Account, Website -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="corpVatRegDate">VAT Reg. Date</label>
+                            <input type="date" id="corpVatRegDate" name="VATRegDate" class="bs-input-text"
+                              max="2026-02-06" data-corporate-field />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="corpReportingGLAccountID">Reporting GL Account</label>
+                            <div class="kairo-control" data-kairo-control>
+                              <input type="text" id="corpReportingGLAccountID" name="ReportingGLID"
+                                class="bs-input-text" data-corporate-field />
+                              <button type="button" class="btn-lookup" data-gl-search aria-label="GL Lookup"><i
+                                  class="bi bi-search"></i></button>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <label for="corpWebsite">Website</label>
+                            <input type="url" id="corpWebsite" name="Website" class="bs-input-text"
+                              placeholder="https://example.com" data-corporate-field />
+                          </div>
+                          <div class="col"></div>
+                        </div>
+
+                        <!-- ROW 7: Comments -->
+                        <div class="form-row one-col">
+                          <div class="col">
+                            <label for="corpComments">Comments</label>
+                            <textarea id="corpComments" name="Comments" class="bs-input-text" rows="2"
+                              data-corporate-field></textarea>
+                          </div>
+                        </div>
+
+                        <!-- ROW 8: Opened By, Relationship Manager, Opened On -->
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="corpOpenedBy">Opened By</label>
+                            <input type="text" id="corpOpenedBy" name="OpenedBy" class="bs-input-text uppercase"
+                              readonly />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="corpRelationshipManager">Relationship Manager</label>
+                            <select id="corpRelationshipManager" name="RelationshipManagerID" class="bs-select"
+                              data-lookup="relationshipManagers" data-corporate-field required></select>
+                          </div>
+                          <div class="col">
+                            <label for="corpOpenedOn">Opened On</label>
+                            <input type="date" id="corpOpenedOn" name="OpenedOn" class="bs-input-text" readonly />
+                          </div>
+                          <div class="col"></div>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- ADDRESS PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="address" data-client-scope="all">
+                      <div class="section-content" data-address-form>
+                        <!-- Step Title -->
+                        <h5 class="mb-4">Physical & Mailing Addresses</h5>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="addressType">Address Type</label>
+                            <select id="addressType" class="bs-select" data-address-field="AddressTypeID"
+                              data-lookup="addressTypes" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="addressIsMailing">Mailing Address?</label>
+                            <div class="bs-field bs-inline pt-1">
+                              <input type="checkbox" class="bs-checkbox" id="addressIsMailing"
+                                data-address-field="IsMailingAddress" />
+                              <label class="bs-label" for="addressIsMailing">Use for Mailing</label>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="address1">Address 1</label>
+                            <input type="text" id="address1" class="bs-input-text" data-address-field="Address1" />
+                          </div>
+                          <div class="col">
+                            <label for="address2">Address 2</label>
+                            <input type="text" id="address2" class="bs-input-text" data-address-field="Address2" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="addressCity">City</label>
+                            <select id="addressCity" class="bs-select" data-address-field="CityID" data-lookup="cities"
+                              data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="addressCountry">Country</label>
+                            <select id="addressCountry" class="bs-select" data-address-field="CountryID"
+                              data-lookup="countries" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="addressRegion">Region</label>
+                            <select id="addressRegion" class="bs-select" data-address-field="Region"
+                              data-lookup="regions" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="addressSubCity">Sub-City / Zone</label>
+                            <select id="addressSubCity" class="bs-select" data-address-field="SubCityZone"
+                              data-lookup="subCityZones" data-placeholder="Select..."></select>
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="addressWereda">Wereda</label>
+                            <input type="text" id="addressWereda" class="bs-input-text" data-address-field="Wereda" />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="addressKebele">Kebele</label>
+                            <input type="text" id="addressKebele" class="bs-input-text" data-address-field="Kebele" />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="addressHouseNo">House Number</label>
+                            <input type="text" id="addressHouseNo" class="bs-input-text"
+                              data-address-field="HouseNumber" />
+                          </div>
+                          <div class="col">
+                            <label for="addressZipCode">Zip Code</label>
+                            <input type="text" id="addressZipCode" class="bs-input-text" data-address-field="ZipCode" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="addressLanguage">Language</label>
+                            <select id="addressLanguage" class="bs-select" data-address-field="Language"
+                              data-lookup="languages" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label for="addressLandMark">Landmark</label>
+                            <input type="text" id="addressLandMark" class="bs-input-text"
+                              data-address-field="LandMark" />
+                          </div>
+                          <div class="col">
+                            <label for="addressPhoneWork">Phone (Work)</label>
+                            <input type="text" id="addressPhoneWork" class="bs-input-text" maxlength="15"
+                              data-address-field="PhoneWork" />
+                          </div>
+                          <div class="col">
+                            <label for="addressPhoneHome">Phone (Home)</label>
+                            <input type="text" id="addressPhoneHome" class="bs-input-text" maxlength="15"
+                              data-address-field="PhoneHome" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="addressMobile">Mobile</label>
+                            <input type="text" id="addressMobile" class="bs-input-text" maxlength="15" data-address-field="Mobile" />
+                          </div>
+                          <div class="col">
+                            <label for="addressEmail">Email</label>
+                            <input type="email" id="addressEmail" class="bs-input-text" data-address-field="Email" />
+                          </div>
+                          <div class="col"></div>
+                          <div class="col"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2 my-4">
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-address-action="new"><i
+                              class="bi bi-plus-lg me-1"></i>New</button>
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-address-action="alter"><i
+                              class="bi bi-pencil-square me-1"></i>Alter</button>
+                          <button type="button" class="btn btn-sm btn-outline-danger" data-address-action="remove"><i
+                              class="bi bi-trash me-1"></i>Remove</button>
+                          <button type="button" class="btn btn-sm btn-primary" data-address-action="update"><i
+                              class="bi bi-check2-circle me-1"></i>Update</button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary"
+                            data-address-action="clear">Clear</button>
+                        </div>
+
+                        <div class="section-header py-1 mb-2 bg-light border">
+                          <span class="small fw-bold px-2">ADDRESSES</span>
+                        </div>
+                        <div class="table-responsive border rounded bg-white mb-4">
+                          <table class="table table-sm table-hover mb-0" data-table="addresses">
+                            <thead class="table-light">
+                              <tr>
+                                <th class="ps-2">Type</th>
+                                <th>Address</th>
+                                <th>City</th>
+                                <th>Region</th>
+                                <th>Mobile</th>
+                                <th class="text-center">Mailing</th>
+                              </tr>
+                            </thead>
+                            <tbody data-address-body></tbody>
+                          </table>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- RELATIONS PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="relations" data-client-scope="all">
+                      <div class="section-content" data-relations-form>
+                        <!-- Step Title -->
+                        <h5 class="mb-4">Client Relations & Beneficiaries</h5>
+
+                        <div class="form-row two-col">
+                          <div class="col">
+                            <label class="label-blue" for="relationRelatedClientId">Client Relation</label>
+                            <div class="kairo-control" data-kairo-control>
+                              <input type="text" id="relationRelatedClientId" data-relation-field="RelatedClientID" />
+                              <input type="text" id="relationRelatedClientName" placeholder="Search Client..."
+                                readonly />
+                              <button type="button" class="btn-lookup" data-relation-action="lookup"
+                                aria-label="Find client">
+                                <i class="bi bi-search"></i>
+                              </button>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <label for="relationType">Relation Type</label>
+                            <select id="relationType" class="bs-select" data-relation-field="RelationTypeID"
+                              data-lookup="relationTypes" data-placeholder="Select type..."></select>
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="relationTitle">Title</label>
+                            <select id="relationTitle" class="bs-select" data-relation-field="TitleID"
+                              data-lookup="titles" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label for="relationFirstName">First Name</label>
+                            <input type="text" id="relationFirstName" class="bs-input-text"
+                              data-relation-field="FirstName" />
+                          </div>
+                          <div class="col">
+                            <label for="relationMiddleName">Middle Name</label>
+                            <input type="text" id="relationMiddleName" class="bs-input-text"
+                              data-relation-field="MiddleName" />
+                          </div>
+                          <div class="col">
+                            <label for="relationLastName">Last Name</label>
+                            <input type="text" id="relationLastName" class="bs-input-text"
+                              data-relation-field="LastName" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="relationGender">Gender</label>
+                            <select id="relationGender" class="bs-select" data-relation-field="GenderID"
+                              data-lookup="genders" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="relationRelation">Relation</label>
+                            <select id="relationRelation" class="bs-select" data-relation-field="RelationID"
+                              data-lookup="relations" data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label for="relationShare">Share %</label>
+                            <input type="number" min="0" max="100" step="0.01" id="relationShare" class="bs-input-text"
+                              data-relation-field="SharePercent" />
+                          </div>
+                          <div class="col">
+                            <label for="relationMobile">Mobile</label>
+                            <input type="tel" id="relationMobile" class="bs-input-text" maxlength="15" data-relation-field="Mobile" />
+                          </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2 my-4">
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-relation-action="new"><i
+                              class="bi bi-plus-lg me-1"></i>New</button>
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-relation-action="alter"><i
+                              class="bi bi-pencil-square me-1"></i>Alter</button>
+                          <button type="button" class="btn btn-sm btn-outline-danger" data-relation-action="remove"><i
+                              class="bi bi-trash me-1"></i>Remove</button>
+                          <button type="button" class="btn btn-sm btn-primary" data-relation-action="update"><i
+                              class="bi bi-check2-circle me-1"></i>Update</button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary"
+                            data-relation-action="clear">Clear</button>
+                        </div>
+
+                        <div class="section-header py-1 mb-2 bg-light border">
+                          <span class="small fw-bold px-2">RELATED PARTIES</span>
+                        </div>
+                        <div class="table-responsive border rounded bg-white mb-4">
+                          <table class="table table-sm table-hover mb-0" data-table="relations">
+                            <thead class="table-light">
+                              <tr>
+                                <th class="ps-2">Name</th>
+                                <th>Relation</th>
+                                <th>ID Type/No</th>
+                                <th>Share (%)</th>
+                                <th>Mobile</th>
+                              </tr>
+                            </thead>
+                            <tbody data-relations-body></tbody>
+                          </table>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- EMPLOYMENT PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="employment"
+                      data-step-scope="individual,employee" data-client-scope="individual,employee">
+                      <div class="section-content">
+                        <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>All figures are monthly
+                          based.</p>
+
+                        <div class="form-row two-col mb-3">
+                          <div class="col">
+                            <label class="bs-label">Income Type</label>
+                            <div class="d-flex align-items-center gap-4">
+                              <label class="d-flex align-items-center gap-2">
+                                <input class="bs-radio" type="radio" name="IsSalaried" id="incomeSalaried" value="true"
+                                  checked />
+                                <span>Salaried</span>
+                              </label>
+                              <label class="d-flex align-items-center gap-2">
+                                <input class="bs-radio" type="radio" name="IsSalaried" id="incomeSelf" value="false" />
+                                <span>Self Employed</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="Occupation">Occupation</label>
+                            <select id="Occupation" name="Occupation" class="bs-select" data-lookup="occupations"
+                              data-placeholder="Select..." required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="Designation">Position</label>
+                            <select id="Designation" name="Designation" class="bs-select" data-lookup="designations"
+                              data-placeholder="Select..." required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="CompanyType">Company Type</label>
+                            <select id="CompanyType" name="CompanyType" class="bs-select" data-lookup="companyTypes"
+                              data-placeholder="Select..." required></select>
+                          </div>
+                          <div class="col">
+                            <label for="WorkingSince">Working Since</label>
+                            <input type="date" id="WorkingSince" name="WorkingSince" class="bs-input-text" max="2026-02-06" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="EmploymentCompanyName">Company Name</label>
+                            <input type="text" id="EmploymentCompanyName" name="EmploymentCompanyName"
+                              class="bs-input-text" />
+                          </div>
+                          <div class="col">
+                            <label for="EmploymentCompanyCode">Company Code</label>
+                            <input type="text" id="EmploymentCompanyCode" name="EmploymentCompanyCode"
+                              class="bs-input-text" />
+                          </div>
+                          <div class="col">
+                            <label for="WorkPermitNo">Work Permit No</label>
+                            <input type="text" id="WorkPermitNo" name="WorkPermitNo" class="bs-input-text" />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="MonthlyIncome">Avg Monthly Income</label>
+                            <input type="text" id="MonthlyIncome" name="MonthlyIncome" class="bs-input-text text-end"
+                              required />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="AverageAnnualIncome">Avg Annual Income</label>
+                            <input type="text" id="AverageAnnualIncome" name="AverageAnnualIncome"
+                              class="bs-input-text text-end" readonly />
+                          </div>
+                          <div class="col">
+                            <label for="OtherIncome">Other Income</label>
+                            <input type="text" id="OtherIncome" name="OtherIncome" class="bs-input-text text-end" />
+                          </div>
+                          <div class="col">
+                            <label for="TotalIncome">Total Income</label>
+                            <input type="text" id="TotalIncome" name="TotalIncome" class="bs-input-text text-end"
+                              readonly />
+                          </div>
+                          <div class="col">
+                            <label for="RentExpenses">Rent Expenses</label>
+                            <input type="text" id="RentExpenses" name="RentExpenses" class="bs-input-text text-end" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="OtherExpenses">Other Expenses</label>
+                            <input type="text" id="OtherExpenses" name="OtherExpenses" class="bs-input-text text-end" />
+                          </div>
+                          <div class="col">
+                            <label for="TotalExpenses">Total Expenses</label>
+                            <input type="text" id="TotalExpenses" name="TotalExpenses" class="bs-input-text text-end"
+                              readonly />
+                          </div>
+                          <div class="col">
+                            <label for="NetSavings">Net Savings</label>
+                            <input type="text" id="NetSavings" name="NetSavings" class="bs-input-text text-end"
+                              readonly />
+                          </div>
+                        </div>
+
+                        <!-- Self Employed Section -->
+                        <div id="selfEmployedSection" class="mt-4 pt-3 border-top d-none"
+                          data-employment-for="self-employed">
+                          <h6 class="mb-3 text-primary">Self Employment Details</h6>
+                          <div class="form-row four-col">
+                            <div class="col">
+                              <label class="label-blue" for="BusinessOwnership">Business Ownership</label>
+                              <select id="BusinessOwnership" name="BusinessOwnership" class="bs-select"
+                                data-lookup="businessOwnerships" data-placeholder="Select..."></select>
+                            </div>
+                            <div class="col">
+                              <label class="label-blue" for="BusinessLine">Business Line</label>
+                              <select id="BusinessLine" name="BusinessLine" class="bs-select"
+                                data-lookup="businessLines" data-placeholder="Select..."></select>
+                            </div>
+                            <div class="col">
+                              <label for="BusinessStartedYear">Year Started</label>
+                              <input type="number" id="BusinessStartedYear" name="BusinessStartedYear"
+                                class="bs-input-text" min="1900" max="2100" />
+                            </div>
+                            <div class="col">
+                              <label for="NumberOfEmployees">No. Employees</label>
+                              <input type="number" id="NumberOfEmployees" name="NumberOfEmployees" class="bs-input-text"
+                                min="0" />
+                            </div>
+                          </div>
+                          <div class="form-row">
+                            <div class="col">
+                              <label for="EmploymentComments">Comments</label>
+                              <textarea id="EmploymentComments" name="EmploymentComments" class="bs-input-text"
+                                rows="2"></textarea>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- SPECIAL OFFERS PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="offers" data-client-scope="all">
+                      <div class="section-content">
+                        <div class="form-row two-col">
+                          <div class="col">
+                            <div class="bs-field bs-inline mb-3">
+                              <label class="bs-label" for="CanSendGreetings">Can Send Greetings</label>
+                              <input type="checkbox" class="bs-checkbox" id="CanSendGreetings"
+                                name="CanSendGreetings" />
+                            </div>
+                            <div class="bs-field bs-inline mb-3">
+                              <label class="bs-label" for="CanSendAssociateSpecialOffer">Can Send Associate Special
+                                Offer</label>
+                              <input type="checkbox" class="bs-checkbox" id="CanSendAssociateSpecialOffer"
+                                name="CanSendAssociateSpecialOffer" />
+                            </div>
+                            <div class="bs-field bs-inline mb-3">
+                              <label class="bs-label" for="CanSendOurSpecialOffers">Can Send Our Special Offers</label>
+                              <input type="checkbox" class="bs-checkbox" id="CanSendOurSpecialOffers"
+                                name="CanSendOurSpecialOffers" />
+                            </div>
+                          </div>
+                          <div class="col">
+                            <div class="bs-field bs-inline mb-3">
+                              <label class="bs-label" for="eStatementRequired">Statement Online</label>
+                              <input type="checkbox" class="bs-checkbox" id="eStatementRequired"
+                                name="eStatementRequired" />
+                            </div>
+                            <div class="bs-field bs-inline mb-3">
+                              <label class="bs-label" for="MobileAlertRequired">Mobile Alert</label>
+                              <input type="checkbox" class="bs-checkbox" id="MobileAlertRequired"
+                                name="MobileAlertRequired" />
+                            </div>
+                          </div>
+                        </div>
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- OTHER DETAILS (KYC) PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="kyc" data-client-scope="all">
+                      <div class="section-content">
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <div class="bs-field bs-inline">
+                              <label class="bs-label" for="blackList">Black List</label>
+                              <input type="checkbox" class="bs-checkbox" id="blackList" name="BlackList" />
+                            </div>
+                          </div>
+                          <div class="col">
+                            <div class="bs-field bs-inline">
+                              <label class="bs-label" for="underLawSuit">Under Law suit</label>
+                              <input type="checkbox" class="bs-checkbox" id="underLawSuit" name="UnderLawSuit" />
+                            </div>
+                          </div>
+                          <div class="col">
+                            <label for="clientArea">Client Area</label>
+                            <select id="clientArea" name="ClientArea" class="bs-select" data-lookup="clientAreas"
+                              data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label for="personalStatus">Personal Status</label>
+                            <select id="personalStatus" name="PersonalStatus" class="bs-select"
+                              data-lookup="personalStatuses" data-placeholder="Select..."></select>
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="closeLawSuit">Close Law suit</label>
+                            <select id="closeLawSuit" name="CloseLawSuit" class="bs-select" data-lookup="closeLawSuits"
+                              data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label for="cnfso">CNFSO</label>
+                            <select id="cnfso" name="CNFSO" class="bs-select" data-lookup="cnfsoStatuses"
+                              data-placeholder="Select..."></select>
+                          </div>
+                          <div class="col">
+                            <label for="nbeImportAccount">NBE Import Account</label>
+                            <input type="text" id="nbeImportAccount" name="NBEImportAccountID" class="bs-input-text" />
+                          </div>
+                          <div class="col">
+                            <label for="nbeExportAccount">NBE Export Account</label>
+                            <input type="text" id="nbeExportAccount" name="NBEExportAccountID" class="bs-input-text" />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="tradeLicenseNo">Trade License No</label>
+                            <input type="text" id="tradeLicenseNo" name="TradeLicenseNo" class="bs-input-text" />
+                          </div>
+                        </div>
+
+                        <!-- PEP Section -->
+                        <div class="mt-4 pt-3 border-top">
+                          <div class="form-row two-col align-items-center">
+                            <div class="col">
+                              <label class="mb-0 fw-semibold">Politically Exposed Person</label>
+                            </div>
+                            <div class="col">
+                              <div class="d-flex gap-4">
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="IsPEP" id="pepYes" value="Y" />
+                                  <label class="form-check-label" for="pepYes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="IsPEP" id="pepNo" value="N" />
+                                  <label class="form-check-label" for="pepNo">No</label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="d-none mt-3" data-kyc-section="pep-details">
+                            <div class="form-row four-col">
+                              <div class="col"><label for="pepOrg">Organization Name</label><input type="text"
+                                  id="pepOrg" name="PEPOrganization" class="bs-input-text" /></div>
+                              <div class="col"><label for="pepPosition">Position</label><input type="text"
+                                  id="pepPosition" name="PEPPosition" class="bs-input-text" /></div>
+                              <div class="col"><label for="pepSpouse">Spouse Name</label><input type="text"
+                                  id="pepSpouse" name="PEPSpouseName" class="bs-input-text" /></div>
+                              <div class="col"><label for="pepChild">Child's Name</label><input type="text"
+                                  id="pepChild" name="PEPChildName" class="bs-input-text" /></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- US Person Section -->
+                        <div class="mt-4 pt-3 border-top">
+                          <div class="form-row two-col align-items-center">
+                            <div class="col"><label class="mb-0 fw-semibold">US Person</label></div>
+                            <div class="col">
+                              <div class="d-flex gap-4">
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="IsUSPerson" id="usPersonYes"
+                                    value="Y" />
+                                  <label class="form-check-label" for="usPersonYes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="IsUSPerson" id="usPersonNo"
+                                    value="N" />
+                                  <label class="form-check-label" for="usPersonNo">No</label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="d-none mt-3" data-kyc-section="us-details">
+                            <div class="form-row three-col">
+                              <div class="col"><label for="ssn">Social Security No</label><input type="text" id="ssn"
+                                  name="SSN" class="bs-input-text" /></div>
+                              <div class="col"><label for="eid">Employee ID</label><input type="text" id="eid"
+                                  name="EID" class="bs-input-text" /></div>
+                              <div class="col"><label for="ustin">US TIN</label><input type="text" id="ustin"
+                                  name="USTIN" class="bs-input-text" /></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                          <div class="form-row two-col align-items-center">
+                            <div class="col"><label class="mb-0 fw-semibold">Data Cleansed</label></div>
+                            <div class="col">
+                              <div class="d-flex gap-4">
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="IsDataCleansed"
+                                    id="dataCleansedYes" value="Y" />
+                                  <label class="form-check-label" for="dataCleansedYes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="IsDataCleansed" id="dataCleansedNo"
+                                    value="N" />
+                                  <label class="form-check-label" for="dataCleansedNo">No</label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- GROUP DETAIL PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="groupDetail" data-step-scope="group"
+                      data-client-scope="group">
+                      <div class="section-content">
+                        <div class="form-row two-col">
+                          <div class="col">
+                            <label for="centerId">Center ID</label>
+                            <div class="kairo-control" data-kairo-control>
+                              <input type="text" id="centerId" name="CenterID" />
+                              <input type="text" id="centerName" placeholder="Center Name" readonly />
+                              <button type="button" class="btn-lookup" data-search-trigger="center"><i
+                                  class="bi bi-search"></i></button>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="groupId">Group ID</label>
+                            <div class="kairo-control" data-kairo-control>
+                              <input type="text" id="groupId" name="GroupID" required />
+                              <input type="text" id="groupName" placeholder="Group Name" readonly />
+                              <button type="button" class="btn-lookup" data-search-trigger="group"><i
+                                  class="bi bi-search"></i></button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="joinOn">Join On</label>
+                            <select id="joinOn" name="JoinOn" class="bs-select" data-placeholder="Select..."
+                              required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="maxGroupLoans">Max Group Loans</label>
+                            <input type="number" id="maxGroupLoans" name="MaxGroupLoans" class="bs-input-text" min="0"
+                              required />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="maxGroupLoanLimit">Max Group Loan Limit</label>
+                            <input type="number" id="maxGroupLoanLimit" name="MaxGroupLoanLimit" class="bs-input-text"
+                              step="0.01" required />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label for="maxOtherLoans">Max Other Loans</label>
+                            <input type="number" id="maxOtherLoans" name="MaxOtherLoans" class="bs-input-text"
+                              min="0" />
+                          </div>
+                          <div class="col">
+                            <label for="maxOtherLoanLimit">Max Other Loan Limit</label>
+                            <input type="number" id="maxOtherLoanLimit" name="MaxOtherLoanLimit" class="bs-input-text"
+                              step="0.01" />
+                          </div>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="cm-stepper__panel" data-step-panel="products" data-client-scope="all">
+                      <div class="section-content">
+                        <div class="form-row two-col">
+                          <div class="col">
+                            <div class="section-header py-1 mb-2 bg-light border">
+                              <span class="small fw-bold px-2">ELIGIBLE PRODUCTS</span>
+                            </div>
+                            <div class="table-responsive border rounded bg-white" data-products-container>
+                              <table class="table table-sm mb-0" data-table="products">
+                                <thead class="table-light">
+                                  <tr>
+                                    <th class="ps-2">Product</th>
+                                    <th>Type</th>
+                                    <th class="text-center">Select</th>
+                                  </tr>
+                                </thead>
+                                <tbody data-products-body></tbody>
+                              </table>
+                              <div
+                                class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 py-2 border-top"
+                                data-pager="products">
+                                <div class="small text-muted" data-pager-info>—</div>
+                                <div class="d-flex align-items-center gap-2">
+                                  <div class="btn-group btn-group-sm" role="group" aria-label="Products Pagination">
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-prev
+                                      disabled>Prev</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-next
+                                      disabled>Next</button>
+                                  </div>
+                                  <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted">Show</span>
+                                    <select class="form-select form-select-sm" style="width:auto" data-pager-size>
+                                      <option value="10">10</option>
+                                      <option value="25">25</option>
+                                      <option value="50">50</option>
+                                      <option value="100">100</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col">
+                            <div class="section-header py-1 mb-2 bg-light border">
+                              <span class="small fw-bold px-2">SERVICE CHANNELS</span>
+                            </div>
+                            <div class="table-responsive border rounded bg-white" data-services-container>
+                              <table class="table table-sm mb-0" data-table="services">
+                                <thead class="table-light">
+                                  <tr>
+                                    <th class="ps-2">Service</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Active</th>
+                                  </tr>
+                                </thead>
+                                <tbody data-services-body></tbody>
+                              </table>
+                              <div
+                                class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 py-2 border-top"
+                                data-pager="services">
+                                <div class="small text-muted" data-pager-info>—</div>
+                                <div class="d-flex align-items-center gap-2">
+                                  <div class="btn-group btn-group-sm" role="group" aria-label="Services Pagination">
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-prev
+                                      disabled>Prev</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-next
+                                      disabled>Next</button>
+                                  </div>
+                                  <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted">Show</span>
+                                    <select class="form-select form-select-sm" style="width:auto" data-pager-size>
+                                      <option value="10">10</option>
+                                      <option value="25">25</option>
+                                      <option value="50">50</option>
+                                      <option value="100">100</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- PHOTO AND SIGNATURE PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="photo-signature" data-client-scope="all">
+                      <div class="section-content" data-photo-signature-form>
+                        <h5 class="mb-3">Photo & Signature Management</h5>
+
+                        <!-- Image Type Selection and Action Buttons -->
+                        <div class="form-row mb-3">
+                          <label class="label-blue" for="imageType">Image Type</label>
+                          <select id="imageType" class="bs-select" data-photo-field="ImageTypeID"
+                            data-placeholder="Select Type..."></select>
+                        </div>
+
+                        <div class="d-flex gap-2 mb-4">
+                          <button type="button" class="btn btn-outline-primary" data-photo-action="file">
+                            <i class="bi bi-folder2-open me-1"></i>Browse File...
+                          </button>
+                          <button type="button" class="btn btn-outline-primary" data-photo-action="capture">
+                            <i class="bi bi-camera me-1"></i>Capture from Camera
+                          </button>
+                          <button type="button" class="btn btn-primary ms-auto" data-photo-action="upload">
+                            <i class="bi bi-cloud-upload me-1"></i>Upload Current Image
+                          </button>
+                          <button type="button" class="btn btn-outline-secondary" data-photo-action="clear">
+                            <i class="bi bi-trash me-1"></i>Clear Selection
+                          </button>
+                        </div>
+
+                        <!-- Preview Area -->
+                        <div class="form-row mb-4">
+                          <div
+                            class="preview-box border rounded bg-light d-flex align-items-center justify-content-center position-relative">
+                            <img id="photoPreview" class="img-fluid" alt="Preview" style="display: none;" />
+                            <video id="photoCameraVideo" autoplay style="display: none;"></video>
+                            <canvas id="photoCameraCanvas" style="display: none;"></canvas>
+                            <div class="text-center p-4" data-photo-placeholder>
+                              <i class="bi bi-image text-muted fs-1"></i>
+                              <p class="text-muted small mt-2">No image selected or captured.</p>
+                            </div>
+                            
+                            <!-- Validation Overlay -->
+                            <div id="validationOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="display: none !important; background: rgba(0,0,0,0.7); z-index: 10; border-radius: 0.375rem;">
+                              <!-- Spinner -->
+                              <div id="validationSpinner" class="text-center" style="display: none;">
+                                <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                                  <span class="visually-hidden">Processing...</span>
+                                </div>
+                                <p class="text-white mt-3 fw-semibold">Processing...</p>
+                              </div>
+                              <!-- Success Tick -->
+                              <div id="validationSuccess" class="text-center" style="display: none;">
+                                <div class="validation-tick-circle">
+                                  <i class="bi bi-check-lg text-white" style="font-size: 3rem;"></i>
+                                </div>
+                                <p class="text-white mt-3 fw-semibold" id="validationSuccessMessage">Validated!</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Camera Controls (shown only when camera is active) -->
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                          <button type="button" class="btn btn-sm btn-success" data-photo-action="snapshot" disabled><i
+                              class="bi bi-camera-fill me-1"></i>Take Snapshot</button>
+                          <button type="button" class="btn btn-sm btn-outline-danger"
+                            data-photo-action="cancel-snapshot" disabled><i class="bi bi-x-circle me-1"></i>Cancel
+                            Camera</button>
+                        </div>
+
+                        <div class="section-header py-1 mb-2 bg-light border">
+                          <span class="small fw-bold px-2">RECENTLY UPLOADED</span>
+                        </div>
+                        <div class="table-responsive border rounded bg-white mb-4">
+                          <table class="table table-sm table-hover mb-0" data-table="photo-signature">
+                            <thead class="table-light">
+                              <tr>
+                                <th class="ps-2">Type</th>
+                                <th>Description</th>
+                                <th>Uploaded On</th>
+                                <th class="text-center">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody data-photo-signature-body></tbody>
+                          </table>
+                        </div>
+
+                        <input type="file" id="photoFileInput" class="d-none" accept="image/*"
+                          data-photo-field="File" />
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <!-- DOCUMENTS PANEL -->
+                    <article class="cm-stepper__panel" data-step-panel="documents" data-client-scope="all">
+                      <div class="section-content" data-documents-form>
+                        <h5 class="mb-4">Document Management</h5>
+
+                        <div class="form-row four-col">
+                          <div class="col">
+                            <label class="label-blue" for="documentDocumentId">Document ID</label>
+                            <select id="documentDocumentId" class="bs-select" data-document-field="DocumentID"
+                              data-lookup="documents" data-placeholder="Select..." required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="documentDocumentType">Document Type</label>
+                            <select id="documentDocumentType" class="bs-select" data-document-field="DocumentTypeID"
+                              data-lookup="documentTypes" data-placeholder="Select..." required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="documentLocation">Location</label>
+                            <select id="documentLocation" class="bs-select" data-document-field="LocationID"
+                              data-lookup="documentLocations" data-placeholder="Select..." required></select>
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="documentImage">Document Image</label>
+                            <input type="file" id="documentImage" class="bs-input-text" data-document-field="Image"
+                              accept="image/*,.pdf,.doc,.docx" required />
+                          </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                          <div class="col-6">
+                            <label for="documentRemarks">Remarks</label>
+                            <input type="text" id="documentRemarks" class="bs-input-text"
+                              data-document-field="Remarks" />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="documentReceivedBy">Received By</label>
+                            <input type="text" id="documentReceivedBy" class="bs-input-text"
+                              data-document-field="ReceivedBy" required />
+                          </div>
+                          <div class="col">
+                            <label class="label-blue" for="documentReceivedDate">Received Date</label>
+                            <input type="date" id="documentReceivedDate" class="bs-input-text" max="2026-02-06"
+                              data-document-field="ReceivedDate" required />
+                          </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2 my-4">
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-document-action="new">
+                            <i class="bi bi-plus-lg me-1"></i>New
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-primary" data-document-action="alter">
+                            <i class="bi bi-pencil-square me-1"></i>Alter
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-danger" data-document-action="remove">
+                            <i class="bi bi-trash me-1"></i>Remove
+                          </button>
+                          <button type="button" class="btn btn-sm btn-primary" data-document-action="update">
+                            <i class="bi bi-check2-circle me-1"></i>Update
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary" data-document-action="clear">
+                            Clear
+                          </button>
+                        </div>
+
+                        <div class="section-header py-1 mb-2 bg-light border">
+                          <span class="small fw-bold px-2">UPLOADED DOCUMENTS</span>
+                        </div>
+                        <div class="table-responsive border rounded bg-white mb-4">
+                          <table class="table table-sm table-hover mb-0" data-table="documents">
+                            <thead class="table-light">
+                              <tr>
+                                <th class="ps-2">Document</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Received By</th>
+                                <th>Date</th>
+                                <th class="text-center">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody data-documents-body></tbody>
+                          </table>
+                        </div>
+
+                        <div class="cm-stepper__actions">
+                          <button type="button" class="btn btn-outline-secondary"
+                            data-stepper-action="prev">Back</button>
+                          <button type="button" class="btn btn-primary" data-stepper-action="next">Next</button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="cm-stepper__panel" data-step-panel="submit" data-client-scope="all">
+                      <header class="cm-summary-header d-flex justify-content-between gap-3 flex-wrap">
+                        <div>
+                          <p class="cm-summary-eyebrow">Workflow summary</p>
+                          <h3 class="cm-summary-title" data-client-name>Choose a client to begin</h3>
+                          <p class="text-muted mb-0" data-client-summary>Capture the essentials, validate
+                            lookup data,
+                            then
+                            proceed with workflow actions on the right rail.</p>
+                        </div>
+                        <div class="cm-summary-status d-flex flex-column align-items-end">
+                          <span class="badge text-bg-primary" data-client-status>Draft</span>
+                          <span class="badge text-bg-secondary mt-1" data-client-workflow>Pending</span>
+                        </div>
+                      </header>
+                      <div class="cm-summary-badges">
+                        <span class="cm-summary-pill" data-summary="mode">Add</span>
+                        <span class="cm-summary-pill" data-summary="clientId">—</span>
+                        <span class="cm-summary-pill" data-summary="clientType">—</span>
+                        <span class="cm-summary-pill" data-summary="relationshipManager">—</span>
+                        <span class="cm-summary-pill" data-page-function-pill>Mode · Add</span>
+                      </div>
+                      <div class="cm-summary-grid">
+                        <article class="summary-card">
+                          <p class="summary-label">Client Name</p>
+                          <p class="summary-value" data-client-segment>Segment · —</p>
+                        </article>
+                        <article class="summary-card">
+                          <p class="summary-label">Client ID</p>
+                          <p class="summary-value" data-summary="clientId">—</p>
+                        </article>
+                        <article class="summary-card">
+                          <p class="summary-label">Relationship Manager</p>
+                          <p class="summary-value" data-client-rm>—</p>
+                        </article>
+                        <article class="summary-card">
+                          <p class="summary-label">Opened On</p>
+                          <p class="summary-value" data-client-opened>—</p>
+                        </article>
+                        <article class="summary-card">
+                          <p class="summary-label">Last Modified</p>
+                          <p class="summary-value" data-client-modified>—</p>
+                        </article>
+                      </div>
+                      <p class="cm-submit-hint">Review the summary above. When ready, click Save to complete the final save and harmonize all changes.</p>
+                      <div class="cm-stepper__actions">
+                        <button type="button" class="btn btn-outline-secondary" data-stepper-action="prev">Back</button>
+                        <button type="button" class="btn btn-primary btn-save" data-submit-action="save">
+                          <i class="bi bi-check-lg me-1"></i>Save
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+              </div>
+            </div><!-- End Client Details form-section -->
+
+            <!-- BEHIND THE SCENE Section -->
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene"
+                  aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="behind-scene">
+                  <div class="behind-scene-grid">
+                    <div class="behind-scene-item">
+                      <label>Status</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditStatus" data-field="status"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Open Date</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditOpenDate" data-field="openDate"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Closed Date</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditClosedDate" data-field="closedDate"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Created By</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditCreatedBy" data-field="createdBy"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Modified By</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditModifiedBy" data-field="modifiedBy"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Supervised By</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditSupervisedBy" data-field="supervisedBy"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Created On</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditCreatedOn" data-field="createdOn"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Modified On</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditModifiedOn" data-field="modifiedOn"></span>
+                      </div>
+                    </div>
+                    <div class="behind-scene-item">
+                      <label>Supervised On</label>
+                      <div class="value-row">
+                        <span class="behind-scene-value" id="auditSupervisedOn" data-field="supervisedOn"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div><!-- End Behind the Scene Section -->
+
+          </div> <!-- End form-card -->
+        </form> <!-- End client-form -->
+      </div> <!-- End form-content -->
+
+      <!-- Right Action Panel -->
+      <div class="action-panel" id="action-panel">
+        <div class="nav-group">
+          <button class="btn-nav green" type="button" data-record-nav="prev" disabled aria-label="Previous Record">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span>Client</span>
+          <button class="btn-nav green" type="button" data-record-nav="next" disabled aria-label="Next Record">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="spacer"></div>
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action-btn="view" data-shell-mode="View">
+            <i class="bi bi-eye me-1"></i>View
+          </button>
+          <button class="btn-action" type="button" data-action-btn="new" data-shell-mode="Add">
+            <i class="bi bi-plus-circle me-1"></i>Add
+          </button>
+          <button class="btn-action" type="button" data-action-btn="edit" data-shell-mode="Update" disabled>
+            <i class="bi bi-pencil-square me-1"></i>Edit
+          </button>
+          <button class="btn-action btn-supervision" type="button" data-action-btn="supervise" disabled>
+            <i class="bi bi-shield-check me-1"></i>Supervision
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-submit-action="cancel">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+        </div>
+      </div>
+    </div> <!-- End main-container -->
+  </div> <!-- End window -->
+
+
+  <!-- GL Account Lookup Modal -->
+  <div class="modal fade kairo-search-modal" id="glAccountLookupModal" tabindex="-1"
+    aria-labelledby="glAccountLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+          <h6 class="modal-title mb-0" id="glAccountLookupModalLabel">Find GL Account</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-light" data-gl-lookup-refresh aria-label="Refresh">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <form class="row g-3 align-items-end mb-3" data-gl-lookup-form>
+            <div class="col-md-4">
+              <label class="form-label">Account ID</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" data-gl-lookup-mode="AccountID">
+                  <option value="Like">Contains</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" data-gl-lookup-field="AccountID" placeholder="e.g. 53000000" />
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Description</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" data-gl-lookup-mode="Description">
+                  <option value="Like">Contains</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" data-gl-lookup-field="Description"
+                  placeholder="Account description" />
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-gl-lookup-reset><i
+                  class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+              <button type="submit" class="btn btn-primary btn-sm" data-gl-lookup-submit>
+                <i class="bi bi-search"></i> Search
+              </button>
+            </div>
+          </form>
+
+          <div class="position-relative">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Account ID</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Short Name</th>
+                    <th scope="col">Type</th>
+                  </tr>
+                </thead>
+                <tbody data-gl-lookup-results></tbody>
+              </table>
+            </div>
+            <div data-gl-lookup-empty class="text-center py-5 text-muted">
+              Click Search to query GL accounts.
+            </div>
+            <div data-gl-lookup-loading class="d-none position-absolute top-50 start-50 translate-middle">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><i
+              class="bi bi-x-lg me-1"></i>Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Lookup Modal (Reusable) -->
+  <div class="modal fade kairo-search-modal" id="clientLookupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <h6 class="modal-title mb-0">Client Search</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="p-3 bg-light border-bottom">
+            <form data-lookup-form>
+              <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                  <label class="form-label small mb-1">Client ID</label>
+                  <input type="text" class="form-control form-control-sm" data-lookup-field="clientId"
+                    placeholder="Contains">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small mb-1">Name</label>
+                  <input type="text" class="form-control form-control-sm" data-lookup-field="Name"
+                    placeholder="Contains">
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small mb-1">National ID</label>
+                  <input type="text" class="form-control form-control-sm" data-lookup-field="IDNumber"
+                    placeholder="Contains">
+                </div>
+                <div class="col-md-3 text-end">
+                  <button type="button" class="btn btn-sm btn-outline-secondary me-1" data-lookup-reset>Reset</button>
+                  <button type="submit" class="btn btn-sm btn-primary" data-lookup-submit>Search</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="position-relative" style="min-height: 200px;">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="bg-light">
+                  <tr>
+                    <th>Client ID</th>
+                    <th>Name</th>
+                    <th>ID Number</th>
+                    <th>Mobile</th>
+                    <th>Legacy</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody data-lookup-results></tbody>
+              </table>
+            </div>
+            <div data-lookup-empty class="text-center py-5 text-muted">
+              Enter filters and click Search.
+            </div>
+            <div data-lookup-loading class="d-none position-absolute top-50 start-50 translate-middle">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-1 bg-light">
+          <small class="text-muted me-auto">Double-click a row to select.</small>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Lookup Modal (WFClientID) -->
+  <div class="modal fade kairo-search-modal" id="applicationLookupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <h6 class="modal-title mb-0">Find a Pipeline Application</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="p-3 bg-light border-bottom">
+            <form data-app-lookup-form>
+              <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Request ID</label>
+                  <input type="text" class="form-control form-control-sm" data-app-lookup-field="ClientID"
+                    placeholder="Contains">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small mb-1">Name</label>
+                  <input type="text" class="form-control form-control-sm" data-app-lookup-field="Name"
+                    placeholder="Contains">
+                </div>
+                <div class="col-md-4 text-end">
+                  <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                    data-app-lookup-reset>Reset</button>
+                  <button type="submit" class="btn btn-sm btn-primary" data-app-lookup-submit>Search</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="position-relative" style="min-height: 200px;">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="bg-light">
+                  <tr>
+                    <th>Request ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Created By</th>
+                    <th>Created On</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody data-app-lookup-results></tbody>
+              </table>
+            </div>
+            <div data-app-lookup-empty class="text-center py-5 text-muted">
+              Enter filters and click Search.
+            </div>
+            <div data-app-lookup-loading class="d-none position-absolute top-50 start-50 translate-middle">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-1 bg-light">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Rejection Modal -->
+  <div class="modal fade" id="clientRejectionModal" tabindex="-1" aria-labelledby="clientRejectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title" id="clientRejectionModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Reject Client</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning" role="alert">
+            <strong>Warning:</strong> You are about to reject this client. Please provide a reason for rejection.
+          </div>
+          <form id="clientRejectionForm">
+            <input type="hidden" id="rejectClientID" name="ClientID">
+            <input type="hidden" id="rejectRequestID" name="RequestID">
+            <input type="hidden" id="rejectWFStageID" name="WFStageID">
+            
+            <div class="mb-3">
+              <label for="rejectRemarks" class="form-label"><strong>Rejection Remarks <span class="text-danger">*</span></strong></label>
+              <textarea 
+                class="form-control" 
+                id="rejectRemarks" 
+                name="RejectRemarks" 
+                rows="4" 
+                placeholder="Please provide detailed reason for rejection..."
+                required
+                minlength="10"></textarea>
+              <div class="form-text">Minimum 10 characters required</div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-warning" id="confirmRejectBtn">
+            <i class="bi bi-x-circle me-1"></i>Confirm Rejection
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/pages/customer-management/client-maintenance.js?v=20260206Y"></script>
+
+  <style>
+    /* Validation animation styles */
+    .validation-tick-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #28a745;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: scaleIn 0.5s ease-out;
+      box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+    }
+    
+    @keyframes scaleIn {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+
+  <script>
+    // Date field tooltips (T key handler is defined in <head>)
+    document.addEventListener('DOMContentLoaded', function () {
+      // Add title/tooltip to existing date fields
+      const dateInputs = document.querySelectorAll('.bs-input-date, [data-date-format]');
+      dateInputs.forEach(input => {
+        input.setAttribute('title', 'Press T for today\'s date');
+      });
+
+      // Also observe for new date inputs added dynamically
+      const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          mutation.addedNodes.forEach(function (node) {
+            if (node.nodeType === 1) { // Element node
+              if (node.classList?.contains('bs-input-date') || node.hasAttribute?.('data-date-format')) {
+                node.setAttribute('title', 'Press T for today\'s date');
+              }
+              // Also check children
+              const childDateInputs = node.querySelectorAll?.('.bs-input-date, [data-date-format]');
+              childDateInputs?.forEach(input => {
+                input.setAttribute('title', 'Press T for today\'s date');
+              });
+            }
+          });
+        });
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  </script>
+</body>
+
+</html>

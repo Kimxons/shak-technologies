@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premature Clear Effect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <link rel="stylesheet" href="premature-clear-effect.css">
+</head>
+<body>
+    <div class="window">
+        <div class="main-container">
+            <!-- Form Content -->
+            <div class="form-content">
+                <form id="clear-effect-form" autocomplete="off" novalidate>
+                    <div class="form-card">
+                        <!-- Account Details Section -->
+                        <div class="form-section" data-section="account-details">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-building"></i>Account Details</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Branch ID</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="branchId" class="kairo-branch-control__id" aria-label="Branch ID">
+                                            <input type="text" id="branchName" class="kairo-branch-control__name" aria-label="Branch Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchBranchBtn"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Account ID</label>
+                                        <div class="kairo-branch-control" data-kairo-branch-control>
+                                            <input type="text" id="accountId" class="kairo-branch-control__id" placeholder="Enter Account ID" aria-label="Account ID">
+                                            <input type="text" id="accountName" class="kairo-branch-control__name" aria-label="Account Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchAccountBtn"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cheques Table Section -->
+                        <div class="form-section" data-section="cheques-table">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-cash-stack"></i>Cheques</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Cheque ID</th>
+                                                <th>Cheque Date</th>
+                                                <th>Value Date</th>
+                                                <th>Amount</th>
+                                                <th>Account ID</th>
+                                                <th>Bank Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="chequesTableBody">
+                                            <tr class="empty-row">
+                                                <td colspan="6" class="text-center text-muted py-4">
+                                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                                    No records to display.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-action--view" id="viewBtn">
+                        <i class="bi bi-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--edit" id="editBtn">
+                        <i class="bi bi-pencil"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--success" id="saveBtn">
+                        <i class="bi bi-save"></i>
+                        <span>Save</span>
+                    </button>
+                    <button type="button" class="btn-action btn-delete" id="cancelBtn">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="premature-clear-effect.js"></script>
+</body>
+</html>

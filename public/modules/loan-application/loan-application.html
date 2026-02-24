@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=20260206">
+    <!-- DEPRECATED: Individual CSS file - Use styles.css only per UI_STANDARDIZATION_CHEATSHEET -->
+    <!-- <link rel="stylesheet" href="loan-application.css"> -->
+</head>
+<body>
+    <div class="window">
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Left Sidebar - Account Maintenance Style -->
+            <div class="sidebar collapsed" id="main-sidebar">
+                <!-- SUBMODULES Header -->
+                <div class="sidebar-header">
+                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i><span>SUBMODULES</span></span>
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="sidebar-search">
+                    <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules">
+                    <i class="bi bi-search sidebar-search__icon"></i>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="sidebar-content">
+                    <!-- Data Entry Section -->
+                    <div class="nav-section nav-section--card expanded" data-nav-section data-section-name="Data Entry">
+                        <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+                            <div class="nav-header__content">
+                                <i class="bi bi-pencil-square nav-header__icon"></i>
+                                <span class="nav-label nav-label--card">Data Entry</span>
+                            </div>
+                            <div class="nav-header__badge">
+                                <span class="nav-badge">10</span>
+                                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="nav-dataentry">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav-items nav-items--card is-visible" id="nav-dataentry">
+                            <div class="sidebar-item sidebar-item--enhanced active" data-section="dataentry" data-tooltip="Main Form">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-file-earmark-text-fill sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Main Form</div>
+                                        <div class="sidebar-item__description">Application details</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="charge-rates" data-tooltip="Charge Rates">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-cash-coin sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Charge Rates</div>
+                                        <div class="sidebar-item__description">Manage fees and charges</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="loan-utilization" data-tooltip="Loan Utilization">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-pie-chart-fill sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Loan Utilization</div>
+                                        <div class="sidebar-item__description">Utilization breakdown</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="collateral" data-tooltip="Collateral">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-shield-check sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Collateral</div>
+                                        <div class="sidebar-item__description">Manage collateral</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="guarantor" data-tooltip="Guarantor">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-people-fill sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Guarantor</div>
+                                        <div class="sidebar-item__description">Manage guarantors</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="document" data-tooltip="Document">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-folder2-open sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Document</div>
+                                        <div class="sidebar-item__description">Manage documents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="user-defined-loan" data-tooltip="User Defined - Loan">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-ui-checks sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">User Defined Fields - Loan</div>
+                                        <div class="sidebar-item__description">Custom loan fields</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="user-defined" data-tooltip="User Defined Fields">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-sliders2 sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">User Defined Fields</div>
+                                        <div class="sidebar-item__description">Custom fields</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="manual-schedule" data-tooltip="Manual Schedule">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-calendar3 sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Manual Schedule</div>
+                                        <div class="sidebar-item__description">Custom schedules</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-section="repayment-accounts" data-tooltip="Repayment Accounts">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-wallet2 sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Repayment Accounts</div>
+                                        <div class="sidebar-item__description">Linked accounts</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End sidebar-content -->
+            </div>
+
+            <!-- Form Content -->
+            <div class="form-content">
+                <div class="form-card" data-main-form>
+                    <!-- Account Identification Section -->
+                    <div class="form-section" data-section="account-identification">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-search"></i>Account Identification</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Account Identification" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Branch ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-branch-control" data-kairo-branch-control>
+                                        <input type="text" id="branchId" class="kairo-branch-control__id" aria-label="Branch ID">
+                                        <input type="text" id="branchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchBranchBtn" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Center ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID" readonly>
+                                        <input type="text" id="centerName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="searchCenterBtn" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Group ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="groupId" class="kairo-control__id" aria-label="Group ID" readonly>
+                                        <input type="text" id="groupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="searchGroupBtn" aria-label="Search Group"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Application ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="applicationId" class="kairo-control__id" aria-label="Application ID">
+                                        <input type="text" id="applicationName" class="kairo-control__name" aria-label="Application Name" placeholder="Application Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="searchApplicationBtn" aria-label="Search Application"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Application Date</label>
+                                    <input type="date" id="applicationDate" class="bs-input-text">
+                                </div>
+                                <div class="col"></div>
+                                <div class="col"></div>
+                                <div class="col"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client & Loan Details Section -->
+                    <div class="form-section" data-section="client-loan-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-person-vcard"></i>Client & Loan Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Client & Loan Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Client Branch ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-branch-control" data-kairo-branch-control>
+                                        <input type="text" id="clientBranchId" class="kairo-branch-control__id" aria-label="Client Branch ID">
+                                        <input type="text" id="clientBranchName" class="kairo-branch-control__name" aria-label="Client Branch Name" placeholder="Branch Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-branch-control__lookup" id="searchClientBranchBtn" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Client ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-client-control" data-kairo-client-control>
+                                        <input type="text" id="clientId" class="kairo-client-control__id" aria-label="Client ID" readonly>
+                                        <input type="text" id="clientName" class="kairo-client-control__name" aria-label="Client Name" placeholder="Client Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-client-control__lookup" id="searchClientBtn" aria-label="Search Client"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Product ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-product-control" data-kairo-product-control>
+                                        <input type="text" id="productId" class="kairo-product-control__id" aria-label="Product ID" readonly>
+                                        <input type="text" id="productName" class="kairo-product-control__name" aria-label="Product Name" placeholder="Product Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-product-control__lookup" id="searchProductBtn" aria-label="Search Product"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label>Repayment Account</label>
+                                    <div class="kairo-account-control" data-kairo-account-control>
+                                        <input type="text" id="repaymentAccountId" class="kairo-account-control__id" aria-label="Repayment Account ID" readonly>
+                                        <input type="text" id="repaymentAccountName" class="kairo-account-control__name" aria-label="Repayment Account Name" placeholder="Account Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-account-control__lookup" id="searchRepaymentAccountBtn" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Donor ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="donorId" class="kairo-control__id" aria-label="Donor ID" readonly>
+                                        <input type="text" id="donorName" class="kairo-control__name" aria-label="Donor Name" placeholder="Donor Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="searchDonorBtn" aria-label="Search Donor"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Line Of Business <span class="text-danger">*</span></label>
+                                    <select id="lineOfBusiness" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Loan Purpose <span class="text-danger">*</span></label>
+                                    <select id="loanPurpose" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Officer ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-user-control" data-kairo-user-control>
+                                        <input type="text" id="officerId" class="kairo-user-control__id" aria-label="Officer ID" readonly>
+                                        <input type="text" id="officerName" class="kairo-user-control__name" aria-label="Officer Name" placeholder="Officer Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-user-control__lookup" id="searchOfficerBtn" aria-label="Search Officer"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loan Terms Section -->
+                    <!-- Loan Terms Section -->
+                    <div class="form-section" data-section="loan-terms">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-currency-dollar"></i>Loan Terms</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Loan Terms" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Loan Amount <span class="text-danger">*</span></label>
+                                    <div class="input-with-action input-with-info">
+                                        <input type="number" id="loanAmount" class="bs-input-text hide-spinner" aria-label="Loan Amount" step="1">
+                                        <button type="button" class="btn-info-action btn-info-inside" id="productInfoBtn" aria-label="View Product Rate Details" title="View Product Rate Details"><i class="bi bi-info-circle-fill"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Currency <span class="text-danger">*</span></label>
+                                    <input type="text" id="currencyId" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Term <span class="text-danger">*</span></label>
+                                    <input type="number" id="term" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Interest Rate <span class="text-danger">*</span></label>
+                                    <input type="number" id="interestRate" class="bs-input-text" step="0.01">
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Commission Rate</label>
+                                    <input type="number" id="commissionRate" class="bs-input-text" step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Tax Rate</label>
+                                    <input type="number" id="taxRate" class="bs-input-text" step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Effective Rate</label>
+                                    <input type="number" id="effectiveRate" class="bs-input-text" step="0.01" readonly>
+                                </div>
+                                <div class="col">
+                                    <label>Disbursement Date</label>
+                                    <input type="date" id="disbursementDate" class="bs-input-text">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Information Section -->
+                    <div class="form-section" data-section="business-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-briefcase"></i>Business Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Business Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Monthly Profit</label>
+                                    <input type="number" id="monthlyProfit" class="bs-input-text" step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Monthly TurnOver</label>
+                                    <input type="number" id="monthlyTurnOver" class="bs-input-text" step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label>Total Assets</label>
+                                    <input type="number" id="totalAssets" class="bs-input-text" step="0.01">
+                                </div>
+                                <div class="col">
+                                    <label>Business Location</label>
+                                    <select id="businessLocation" class="bs-select">
+                                        <option value="">--Select--</option>
+                                        <option value="urban">Urban</option>
+                                        <option value="rural">Rural</option>
+                                        <option value="semi-urban">Semi-Urban</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue">Business Status</label>
+                                    <select id="businessStatus" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">StartUp Capital-Collateral</label>
+                                    <select id="startupCapital" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>Collateral Type</label>
+                                    <select id="collateralType" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>Spread</label>
+                                    <input type="number" id="spread" class="bs-input-text" step="0.01">
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Loan Limit Type</label>
+                                    <select id="loanLimitType" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>File Number</label>
+                                    <input type="text" id="fileNumber" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label>Application Status</label>
+                                    <input type="text" id="applicationStatus" class="bs-input-text" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Sales Officer</label>
+                                    <div class="kairo-user-control" data-kairo-user-control>
+                                        <input type="text" id="salesOfficerId" class="kairo-user-control__id" aria-label="Sales Officer ID" readonly>
+                                        <input type="text" id="salesOfficerName" class="kairo-user-control__name" aria-label="Sales Officer Name" placeholder="Officer Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-user-control__lookup" id="searchSalesOfficerBtn" aria-label="Search Sales Officer"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Action Buttons (Alter/Update) -->
+                            <div class="form-action-buttons form-action-buttons--right">
+                                <button type="button" class="btn-form-action" id="alterBtn"><i class="bi bi-pencil-square"></i> Alter</button>
+                                <button type="button" class="btn-form-action" id="updateBtn"><i class="bi bi-arrow-repeat"></i> Update</button>
+                            </div>
+
+                            <!-- Applications Table -->
+                            <div class="form-section-table">
+                                <table class="data-table" id="applicationsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Apply</th>
+                                            <th>Client ID</th>
+                                            <th>Client Name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="applicationsTableBody">
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">No records to display.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action" id="moreInfoBtn">
+                        <i class="bi bi-info-circle"></i>
+                        <span>More Info</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--view" id="viewBtn">
+                        <i class="bi bi-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--add" id="addBtn">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--edit" id="editBtn">
+                        <i class="bi bi-pencil"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button type="button" class="btn-action btn-delete" id="deleteBtn">
+                        <i class="bi bi-trash"></i>
+                        <span>Delete</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charge Rates Modal -->
+    <div class="modal fade submodule-modal" id="chargeRatesModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe src="charge-rates-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loan Utilization Modal -->
+    <div class="modal fade submodule-modal" id="loanUtilizationModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe src="loan-utilization-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guarantor Modal -->
+    <div class="modal fade submodule-modal" id="guarantorModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe src="guarantor-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collateral Modal -->
+    <div class="modal fade submodule-modal" id="collateralModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe src="collateral-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div class="modal fade submodule-modal" id="documentModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe src="document-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Defined Fields Modal -->
+    <div class="modal fade submodule-modal" id="userDefinedFieldsModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe src="user-defined-fields-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Schedule Modal -->
+    <div class="modal fade submodule-modal" id="manualScheduleModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe id="manualScheduleIframe" src="manual-schedule-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repayment Accounts Modal -->
+    <div class="modal fade submodule-modal" id="repaymentAccountsModal" tabindex="-1" data-bs-backdrop="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <iframe id="repaymentAccountsIframe" src="repayment-accounts-modal.html" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Search Modal -->
+    <div id="clientSearchModalContainer"></div>
+
+    <!-- Application Search Modal -->
+    <div id="applicationSearchModalContainer"></div>
+
+    <!-- Center Search Modal -->
+    <div id="centerSearchModalContainer"></div>
+
+    <!-- Group Search Modal -->
+    <div id="groupSearchModalContainer"></div>
+
+    <!-- Product Search Modal -->
+    <div id="productSearchModalContainer"></div>
+
+    <!-- Repayment Account Search Modal -->
+    <div id="repaymentAccountSearchModalContainer"></div>
+
+    <!-- Officer Search Modal -->
+    <div id="officerSearchModalContainer"></div>
+
+    <!-- Branch Search Modal -->
+    <div id="branchSearchModalContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Delete Confirmation Modal (Modern Kairo Style) -->
+    <div class="modal fade" id="rejectLoanModal" tabindex="-1" aria-labelledby="rejectLoanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content kairo-delete-modal">
+                <div class="modal-header kairo-delete-header">
+                    <div class="kairo-header-icon">
+                        <i class="bi bi-trash3-fill"></i>
+                    </div>
+                    <h5 class="modal-title" id="rejectLoanModalLabel">Delete Application</h5>
+                    <button type="button" class="kairo-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body kairo-delete-body">
+                    <div class="kairo-warning-box">
+                        <div class="kairo-warning-icon">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <div class="kairo-warning-text">
+                            <h6>This action cannot be undone</h6>
+                            <p>This will permanently delete the loan application <strong id="deleteAppIdDisplay"></strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="kairo-info-box">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Please review carefully before proceeding with deletion.</span>
+                    </div>
+                    
+                    <div class="kairo-form-group">
+                        <label for="rejectionReasonInput">
+                            Reason for Deletion <span class="required">*</span>
+                        </label>
+                        <textarea id="rejectionReasonInput" rows="2" placeholder="e.g., Customer request, Duplicate entry, Data error..."></textarea>
+                        <div class="kairo-error-msg" id="reasonError">Please provide a reason for deletion.</div>
+                    </div>
+                    
+                    <div class="kairo-form-group">
+                        <label for="confirmDeleteInput">
+                            To confirm, type <strong id="confirmDeleteText"></strong> below:
+                        </label>
+                        <input type="text" id="confirmDeleteInput" placeholder="Type the Application ID to confirm" autocomplete="off">
+                        <div class="kairo-error-msg" id="confirmError">Please type the Application ID exactly to confirm.</div>
+                    </div>
+                </div>
+                <div class="modal-footer kairo-delete-footer">
+                    <button type="button" class="kairo-btn kairo-btn-cancel" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="kairo-btn kairo-btn-delete" id="confirmRejectBtn" disabled>
+                        <i class="bi bi-trash3"></i> Delete Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Confirmation Modal (Modern Kairo Style) -->
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content kairo-action-modal">
+                <div class="modal-header kairo-action-header" id="confirmActionHeader">
+                    <div class="kairo-header-icon" id="confirmActionIconWrapper">
+                        <i class="bi bi-question-circle-fill" id="confirmActionIcon"></i>
+                    </div>
+                    <h5 class="modal-title" id="confirmActionModalLabel"><span id="confirmActionTitle">Confirm Action</span></h5>
+                    <button type="button" class="kairo-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body kairo-action-body">
+                    <div class="kairo-action-message">
+                        <div class="kairo-action-icon-lg" id="confirmActionBodyIconWrapper">
+                            <i class="bi bi-info-circle-fill" id="confirmActionBodyIcon"></i>
+                        </div>
+                        <div class="kairo-action-text">
+                            <h6 id="confirmActionHeading">Confirm Action</h6>
+                            <p id="confirmActionMessage">Are you sure you want to proceed?</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer kairo-action-footer">
+                    <button type="button" class="kairo-btn kairo-btn-cancel" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="kairo-btn kairo-btn-confirm" id="confirmActionBtn">
+                        <i class="bi bi-check-circle" id="confirmActionBtnIcon"></i> <span id="confirmActionBtnText">Confirm</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Loan Application Modal (Unique Theme) -->
+    <div class="modal fade" id="submitLoanModal" tabindex="-1" aria-labelledby="submitLoanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content kairo-submit-modal">
+                <div class="modal-header kairo-submit-header">
+                    <div class="kairo-submit-icon">
+                        <i class="bi bi-send-fill"></i>
+                    </div>
+                    <h5 class="modal-title" id="submitLoanModalLabel">Submit Loan Application</h5>
+                    <button type="button" class="kairo-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body kairo-submit-body">
+                    <div class="kairo-submit-app-info">
+                        <div class="kairo-submit-app-icon">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        </div>
+                        <div class="kairo-submit-app-details">
+                            <span class="kairo-submit-label" id="submitAppLabel">Application ID</span>
+                            <span class="kairo-submit-value" id="submitAppIdDisplay">New Application</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Loan Details Summary -->
+                    <div class="kairo-submit-details-summary" id="submitDetailsSummary">
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Branch:</span>
+                            <span class="kairo-detail-value" id="submitBranchName">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Client:</span>
+                            <span class="kairo-detail-value" id="submitClientName">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Product:</span>
+                            <span class="kairo-detail-value" id="submitProductName">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Loan Amount:</span>
+                            <span class="kairo-detail-value" id="submitLoanAmount">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Term:</span>
+                            <span class="kairo-detail-value" id="submitTerm">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Interest Rate:</span>
+                            <span class="kairo-detail-value" id="submitInterestRate">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="kairo-submit-message">
+                        <div class="kairo-submit-message-icon">
+                            <i class="bi bi-question-circle-fill"></i>
+                        </div>
+                        <div class="kairo-submit-message-text">
+                            <h6 id="submitHeading">Submit Application</h6>
+                            <p id="submitMessage">Are you sure you want to apply for this new loan?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kairo-submit-info-box">
+                        <i class="bi bi-shield-check-fill"></i>
+                        <span>Your application will be reviewed by the credit team.</span>
+                    </div>
+                </div>
+                <div class="modal-footer kairo-submit-footer">
+                    <button type="button" class="kairo-btn kairo-btn-cancel" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="kairo-btn kairo-btn-submit" id="confirmSubmitBtn">
+                        <i class="bi bi-send-fill"></i> <span id="submitBtnText">Apply for Loan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal - Displays New Application ID -->
+    <div class="modal fade" id="successLoanModal" tabindex="-1" aria-labelledby="successLoanModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content kairo-submit-modal success-modal">
+                <div class="modal-header kairo-success-header">
+                    <div class="kairo-success-icon">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h5 class="modal-title" id="successLoanModalLabel">Application Submitted Successfully!</h5>
+                </div>
+                <div class="modal-body kairo-submit-body">
+                    <div class="kairo-success-app-id-container">
+                        <div class="kairo-success-message">
+                            <i class="bi bi-award-fill"></i>
+                            <span>The Applied New Loan ID is:</span>
+                        </div>
+                        <div class="kairo-new-app-id" id="newApplicationIdDisplay">
+                            <!-- Application ID will be displayed here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Success Details Summary -->
+                    <div class="kairo-submit-details-summary" id="successDetailsSummary">
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Branch:</span>
+                            <span class="kairo-detail-value" id="successBranchName">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Client:</span>
+                            <span class="kairo-detail-value" id="successClientName">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Product:</span>
+                            <span class="kairo-detail-value" id="successProductName">-</span>
+                        </div>
+                        <div class="kairo-detail-row">
+                            <span class="kairo-detail-label">Loan Amount:</span>
+                            <span class="kairo-detail-value" id="successLoanAmount">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="kairo-submit-info-box success-info">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Please note this Application ID for your records. The application will be reviewed by the credit team.</span>
+                    </div>
+                </div>
+                <div class="modal-footer kairo-submit-footer">
+                    <button type="button" class="kairo-btn kairo-btn-success" data-bs-dismiss="modal" id="successOkBtn">
+                        <i class="bi bi-check-lg"></i> OK - Clear Form
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Rate Details Modal -->
+    <div class="modal fade kairo-search-modal" id="productRateDetailsModal" tabindex="-1" aria-labelledby="productRateDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productRateDetailsModalLabel">
+                        <i class="bi bi-graph-up-arrow"></i> Product Rate Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Product Info Summary -->
+                    <div class="search-section mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label">Product ID</label>
+                                <input type="text" class="form-control form-control-sm" id="rateDetailProductId" readonly>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-control form-control-sm" id="rateDetailProductName" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rate Slabs Table -->
+                    <div class="results-header">
+                        <h6><i class="bi bi-table"></i> Rate Slabs & Terms</h6>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover results-table" id="rateDetailsTable">
+                            <thead>
+                                <tr>
+                                    <th>Amount From</th>
+                                    <th>Amount To</th>
+                                    <th>Term From</th>
+                                    <th>Term To</th>
+                                    <th>Min Variance</th>
+                                    <th>Max Variance</th>
+                                    <th>Effective Rate From</th>
+                                    <th>Effective Rate</th>
+                                    <th>Effective Rate To</th>
+                                    <th>Penalty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rateDetailsTableBody">
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">No rate details available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="modal-btn modal-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Configuration -->
+    <script>
+        window.Environment = window.Environment || {};
+        window.Environment.baseUrlCommon = 'http://172.16.2.31:3306';
+        window.Environment.baseUrlSystemCodes = 'http://172.16.2.31:3306';
+        window.Environment.baseUrlClient = 'http://172.16.2.31:3306';
+    </script>
+
+    <!-- Services -->
+    <script src="../../assets/js/services/workflow/notificationService.js"></script>
+    <script src="../../assets/js/services/shared/coreApi.js"></script>
+    <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../assets/js/services/shared/lookupService.js"></script>
+    <script src="centerSearchService.js"></script>
+    <script src="officerSearchService.js"></script>
+    <script src="salesOfficerSearchService.js"></script>
+    <script src="groupSearchService.js"></script>
+    <script src="productSearchService.js"></script>
+    <script src="repaymentAccountSearchService.js"></script>
+
+    <!-- Modals -->
+    <script src="client-search-modal.js"></script>
+    <script src="application-search-modal.js"></script>
+    <script src="center-search-modal.js"></script>
+    <script src="group-search-modal.js"></script>
+    <script src="product-search-modal.js"></script>
+    <script src="repayment-account-search-modal.js"></script>
+    <script src="officer-search-modal.js"></script>
+    <script src="branch-search-modal.js"></script>
+
+    <!-- Main App -->
+    <script src="loan-application.js"></script>
+    
+    <!-- Fallback sidebar and navigation (in case main script fails) -->
+    <script>
+    (function() {
+        console.log('[Fallback] Sidebar toggle fallback script loaded');
+        
+        function setupSidebarToggle() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('main-sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                console.log('[Fallback] Setting up sidebar toggle...');
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Fallback] Sidebar toggle clicked!');
+                    sidebar.classList.toggle('collapsed');
+                });
+            } else {
+                console.log('[Fallback] Elements not found, retrying in 500ms...');
+                setTimeout(setupSidebarToggle, 500);
+            }
+        }
+        
+        function setupSidebarNavigation() {
+            console.log('[Fallback] Setting up sidebar navigation...');
+            
+            // Setup nav header clicks (to expand/collapse sections)
+            document.querySelectorAll('.nav-header--card').forEach(function(header) {
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('[Fallback] Nav header clicked');
+                    
+                    const sidebar = document.getElementById('main-sidebar');
+                    if (sidebar && sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.remove('collapsed');
+                    }
+                    
+                    const section = this.closest('.nav-section--card');
+                    const navItems = section ? section.querySelector('.nav-items--card') : null;
+                    
+                    if (section && navItems) {
+                        if (section.classList.contains('expanded')) {
+                            section.classList.remove('expanded');
+                            navItems.classList.remove('is-visible');
+                            navItems.hidden = true;
+                        } else {
+                            section.classList.add('expanded');
+                            navItems.classList.add('is-visible');
+                            navItems.hidden = false;
+                        }
+                    }
+                });
+            });
+            
+            // Setup sidebar item clicks (to open modals)
+            document.querySelectorAll('.sidebar-item--enhanced[data-section]').forEach(function(item) {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const section = this.getAttribute('data-section');
+                    console.log('[Fallback] Sidebar item clicked, section:', section);
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar-item--enhanced').forEach(function(i) {
+                        i.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Open the appropriate modal
+                    openSectionModal(section);
+                });
+            });
+            
+            console.log('[Fallback] Sidebar navigation setup complete');
+        }
+        
+        function openSectionModal(section) {
+            console.log('[Fallback] Opening modal for section:', section);
+            
+            var modalId = null;
+            switch(section) {
+                case 'guarantor':
+                    modalId = 'guarantorModal';
+                    break;
+                case 'charge-rates':
+                    modalId = 'chargeRatesModal';
+                    break;
+                case 'loan-utilization':
+                    modalId = 'loanUtilizationModal';
+                    break;
+                case 'collateral':
+                    modalId = 'collateralModal';
+                    break;
+                case 'document':
+                    modalId = 'documentModal';
+                    break;
+                case 'user-defined':
+                case 'user-defined-loan':
+                    modalId = 'userDefinedFieldsModal';
+                    break;
+                case 'manual-schedule':
+                    modalId = 'manualScheduleModal';
+                    break;
+                case 'repayment-accounts':
+                    modalId = 'repaymentAccountsModal';
+                    break;
+                case 'dataentry':
+                    console.log('[Fallback] Main form selected, no modal to open');
+                    return;
+                default:
+                    console.log('[Fallback] Unknown section:', section);
+                    return;
+            }
+            
+            if (modalId) {
+                var modalElement = document.getElementById(modalId);
+                if (modalElement) {
+                    console.log('[Fallback] Found modal element:', modalId);
+                    try {
+                        var modal = new bootstrap.Modal(modalElement);
+                        modal.show();
+                        console.log('[Fallback] Modal opened successfully');
+                    } catch (err) {
+                        console.error('[Fallback] Error opening modal:', err);
+                    }
+                } else {
+                    console.error('[Fallback] Modal element not found:', modalId);
+                }
+            }
+        }
+        
+        // Run after a short delay to ensure DOM is ready
+        if (document.readyState === 'complete') {
+            setupSidebarToggle();
+            setupSidebarNavigation();
+        } else {
+            window.addEventListener('load', function() {
+                setupSidebarToggle();
+                setupSidebarNavigation();
+            });
+        }
+    })();
+    </script>
+</body>
+</html>

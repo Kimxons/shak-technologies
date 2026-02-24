@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Renew Receipt · Deposit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/treasury.css" />
+  <style>
+    /* When rendered inside Deposit Maintenance's iframe modal, keep it feeling like one popup window. */
+    body.is-embedded .cm-react-orbs {
+      display: none !important;
+    }
+
+    body.is-embedded .p-2 {
+      padding: 0.75rem !important;
+    }
+
+    body.is-embedded .cm-workspace {
+      min-height: 0;
+    }
+  </style>
+</head>
+
+<body class="deposit-maintenance copilot-theme" data-page="client-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+  <div class="cm-workspace">
+    <div class="p-2">
+      <div class="d-flex gap-2 align-items-stretch">
+        <div class="flex-grow-1 min-w-0">
+          <section class="card-surface p-0 overflow-hidden tr-panel" aria-label="Renew receipt">
+            <div class="tr-panel__header">Renew Receipt</div>
+            <div class="tr-panel__body">
+              <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                <div class="d-flex align-items-center gap-2" style="min-width: min(42rem, 100%);">
+                  <label class="tr-label tr-label--strong" for="DepositStatus" style="min-width: 9rem;">Deposit Status</label>
+                  <select class="form-select" id="DepositStatus" name="DepositStatus">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-outline-secondary" style="min-width: 8rem;">Proceed</button>
+              </div>
+
+              <div class="cbs-grid cbs-grid--two cbs-grid--tight">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="ReceiptAmount">Receipt Amount</label>
+                  <input type="text" class="form-control" id="ReceiptAmount" name="ReceiptAmount" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="CurrencyId">Currency ID</label>
+                  <input type="text" class="form-control" id="CurrencyId" name="CurrencyId" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="FromDate">From Date</label>
+                  <input type="text" class="form-control" id="FromDate" name="FromDate" data-date-picker placeholder="dd/mmm/yyyy" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="ToDate">To Date</label>
+                  <input type="text" class="form-control" id="ToDate" name="ToDate" data-date-picker placeholder="dd/mmm/yyyy" />
+                </div>
+              </div>
+
+              <hr class="my-3" />
+
+              <div class="cbs-grid cbs-grid--two cbs-grid--tight">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="Interest">Interest</label>
+                  <input type="text" class="form-control" id="Interest" name="Interest" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="InterestDays">Interest Days</label>
+                  <input type="text" class="form-control" id="InterestDays" name="InterestDays" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="WithholdingTax">Withholding Tax</label>
+                  <input type="text" class="form-control" id="WithholdingTax" name="WithholdingTax" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="ExcessInterestCredited">Excess Interest Credited</label>
+                  <input type="text" class="form-control" id="ExcessInterestCredited" name="ExcessInterestCredited" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="NetInterestPayable">Net Interest Payable</label>
+                  <input type="text" class="form-control" id="NetInterestPayable" name="NetInterestPayable" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="NetMaturityPayable">Net Maturity Payable</label>
+                  <input type="text" class="form-control" id="NetMaturityPayable" name="NetMaturityPayable" />
+                </div>
+              </div>
+
+              <hr class="my-3" />
+
+              <div class="table-responsive">
+                <table class="table tr-table mb-0" aria-label="Maturity posting entries">
+                  <thead>
+                    <tr>
+                      <th scope="col">CrAccountTypeID</th>
+                      <th scope="col">CR AccountID</th>
+                      <th scope="col">CrAccountName</th>
+                      <th scope="col">DrAccountTypeID</th>
+                      <th scope="col">DR AccountID</th>
+                      <th scope="col">DrAccountName</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Component ID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="8" class="py-2">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <hr class="my-3" />
+
+              <div class="row g-2">
+                <div class="col-lg-4">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-12 col-sm-5 text-sm-end"><label class="tr-label" for="CreatedBy">Created By</label></div>
+                    <div class="col"><input type="text" class="form-control" id="CreatedBy" name="CreatedBy" readonly /></div>
+                  </div>
+                  <div class="row g-2 align-items-center mt-1">
+                    <div class="col-12 col-sm-5 text-sm-end"><label class="tr-label" for="CreatedOn">Created On</label></div>
+                    <div class="col"><input type="text" class="form-control" id="CreatedOn" name="CreatedOn" readonly /></div>
+                  </div>
+                </div>
+
+                <div class="col-lg-4">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-12 col-sm-5 text-sm-end"><label class="tr-label" for="ModifiedBy">Modified By</label></div>
+                    <div class="col"><input type="text" class="form-control" id="ModifiedBy" name="ModifiedBy" readonly /></div>
+                  </div>
+                  <div class="row g-2 align-items-center mt-1">
+                    <div class="col-12 col-sm-5 text-sm-end"><label class="tr-label" for="ModifiedOn">Modified On</label></div>
+                    <div class="col"><input type="text" class="form-control" id="ModifiedOn" name="ModifiedOn" readonly /></div>
+                  </div>
+                </div>
+
+                <div class="col-lg-4">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-12 col-sm-5 text-sm-end"><label class="tr-label" for="SupervisedBy">Supervised By</label></div>
+                    <div class="col"><input type="text" class="form-control" id="SupervisedBy" name="SupervisedBy" readonly /></div>
+                  </div>
+                  <div class="row g-2 align-items-center mt-1">
+                    <div class="col-12 col-sm-5 text-sm-end"><label class="tr-label" for="SupervisedOn">Supervised On</label></div>
+                    <div class="col"><input type="text" class="form-control" id="SupervisedOn" name="SupervisedOn" readonly /></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="cm-legacy-actions card-surface" aria-label="Renew receipt actions" style="width: clamp(170px, 14vw, 240px);">
+          <div class="cm-legacy-actions__group">
+            <button type="button" class="cm-shell__action">View</button>
+            <button type="button" class="cm-shell__action">Add</button>
+            <button type="button" class="cm-shell__action" disabled>Edit</button>
+          </div>
+
+          <div class="cm-legacy-actions__group">
+            <button type="button" class="cm-shell__action" disabled>Delete</button>
+            <button type="button" class="cm-shell__action cm-shell__action--success" disabled>Save</button>
+            <button type="button" class="cm-shell__action cm-shell__action--danger">Cancel</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function () {
+      try {
+        if (window.self !== window.top) {
+          document.body.classList.add("is-embedded");
+        }
+      } catch (e) {
+        // Ignore cross-origin edge cases.
+      }
+    })();
+  </script>
+</body>
+
+</html>

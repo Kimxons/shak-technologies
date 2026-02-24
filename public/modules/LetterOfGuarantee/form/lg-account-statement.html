@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Statement</title>
+  <link rel="stylesheet" href="lg-account-statement.css" />
+</head>
+<body>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <span class="title-icon">☰</span>
+        <span class="title-text">Account Statement</span>
+      </div>
+      <div class="title-bar-right">
+        <button class="title-btn" type="button" aria-label="Refresh">🔄</button>
+        <button class="title-btn" type="button" aria-label="Minimize">─</button>
+        <button class="title-btn" type="button" aria-label="Maximize">☐</button>
+        <button class="title-btn close" type="button" aria-label="Close" id="closeX">✕</button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="content">
+        <div class="filters" aria-label="Filters">
+          <select class="filter" id="filter1" aria-label="Filter 1">
+            <option value="">--Select--</option>
+          </select>
+          <select class="filter" id="filter2" aria-label="Filter 2">
+            <option value="">--Select--</option>
+          </select>
+        </div>
+
+        <div class="grid-panel" aria-label="Account statement list">
+          <table class="data-table" id="statementTable">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Select</th>
+                <th style="width: 110px;">Date</th>
+                <th style="width: 120px;">Value Date</th>
+                <th>Particulars</th>
+                <th style="width: 110px; text-align:right;">Debit</th>
+                <th style="width: 110px; text-align:right;">Credit</th>
+                <th style="width: 120px; text-align:right;">Closing</th>
+              </tr>
+            </thead>
+            <tbody id="statementTbody">
+              <tr>
+                <td colspan="7" class="no-records">No records to display.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" id="viewBtn">View</button>
+          <button class="btn-action" type="button" id="printBtn">Print</button>
+          <button class="btn-action" type="button" id="representBtn">Represent Chq</button>
+          <button class="btn-action underline" type="button" id="unpayBtn">Unpay Trx</button>
+          <button class="btn-action underline" type="button" id="imageBtn">Image</button>
+          <button class="btn-action underline" type="button" id="reverseBtn">Reverse</button>
+          <button class="btn-action" type="button" id="cancelBtn">Cancel</button>
+          <button class="btn-action" type="button" id="backBtn">Back</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="status-bar" aria-label="Status">
+      <span id="statusText"></span>
+    </div>
+  </div>
+
+  <script src="lg-account-statement.js"></script>
+</body>
+</html>

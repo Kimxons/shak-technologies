@@ -1,0 +1,324 @@
+/* Fund Source Premium Look - Matches Fixed Asset Design System */
+
+:root {
+    --fs-premium-blue: #4a6a8a;
+    --fs-premium-border: #dde6ed;
+    --fs-premium-success: #d1f7e4;
+    --fs-premium-success-text: #1a5c2e;
+}
+
+.fund-source .cm-workspace {
+    background: #f0f2f5;
+    padding: 1.5rem;
+    height: 100vh;
+    display: flex;
+    gap: 1.5rem;
+    overflow: hidden;
+}
+
+.fund-source .fs-main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.fund-source form {
+    max-width: 1200px;
+    /* Constrain width of inputs */
+    margin: 0 auto;
+}
+
+/* Section Header Styling */
+.fund-source .card-surface>header,
+.fund-source .section-header {
+    background: var(--fs-premium-blue) !important;
+    margin: -1rem -1rem 1rem -1rem !important;
+    /* Counteract parent padding */
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 8px 8px 0 0 !important;
+    color: white !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: none !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fund-source .section-header {
+    margin: 1.5rem -1rem 1rem -1rem !important;
+}
+
+/* Action Panel & Buttons */
+.fund-source .cm-legacy-actions,
+.fund-source .action-panel {
+    width: 120px !important;
+    min-width: 120px !important;
+    flex-shrink: 0;
+    padding: 12px 8px !important;
+    background: white !important;
+    border-left: 1px solid var(--fs-premium-border) !important;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.02) !important;
+    height: 100%;
+    border-radius: 10px !important;
+}
+
+.fund-source .cp-actions,
+.fund-source .action-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+.fund-source .cm-shell__action {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 75px !important;
+    background: white !important;
+    border: 1px solid var(--fs-premium-border) !important;
+    border-radius: 10px !important;
+    color: var(--fs-premium-blue) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    padding: 8px 4px !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    text-decoration: none !important;
+}
+
+.fund-source .cm-shell__action i {
+    font-size: 22px !important;
+    margin-bottom: 4px !important;
+}
+
+.fund-source .cm-shell__action--success,
+.fund-source .btn-save {
+    background-color: var(--fs-premium-success) !important;
+    border-color: #a8e6cf !important;
+    color: var(--fs-premium-success-text) !important;
+}
+
+.fund-source .cm-shell__action--danger,
+.fund-source .btn-cancel,
+.fund-source .btn-delete {
+    color: #e53e3e !important;
+}
+
+.fund-source .btn-cancel {
+    border-color: #feb2b2 !important;
+}
+
+.fund-source .cm-shell__action:hover:not(:disabled) {
+    background-color: #f7fafc !important;
+    border-color: var(--fs-premium-blue) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.fund-source .cm-shell__action:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background-color: #f1f5f9 !important;
+    border-color: var(--fs-premium-border) !important;
+}
+
+/* Layout Grids */
+.fund-source .fs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 2.5rem;
+    padding: 1rem 0.5rem;
+}
+
+.fund-source .fs-bts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem 1.5rem;
+    background: #f8fafc;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 1px solid #edf2f7;
+}
+
+.fund-source .fs-bts-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.fund-source .fs-bts-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+/* Form Groups & Labels */
+.fund-source .fs-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.fund-source .fs-form-group label,
+.fund-source .bs-label {
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: #4a5568 !important;
+    margin-bottom: 2px !important;
+    display: block !important;
+}
+
+.fund-source input:not([type="checkbox"]),
+.fund-source select,
+.fund-source textarea {
+    height: 40px !important;
+    border: 1px solid var(--fs-premium-border) !important;
+    border-radius: 6px !important;
+    background: white !important;
+    font-size: 0.9rem !important;
+    padding: 0.5rem 0.75rem !important;
+    color: #2d3748 !important;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.fund-source textarea {
+    height: auto !important;
+    min-height: 80px;
+}
+
+.fund-source input:focus,
+.fund-source select:focus,
+.fund-source textarea:focus {
+    border-color: var(--fs-premium-blue) !important;
+    box-shadow: 0 0 0 3px rgba(74, 106, 138, 0.1) !important;
+    outline: none;
+}
+
+.fund-source input:disabled,
+.fund-source select:disabled,
+.fund-source textarea:disabled {
+    background-color: #f1f5f9 !important;
+    color: #718096 !important;
+    cursor: not-allowed;
+}
+
+.fund-source .audit-input {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    color: #4a5568;
+}
+
+/* Button with Icons (Lookup/Search) */
+.fund-source .bs-btn,
+.fund-source .btn-lookup {
+    background-color: var(--fs-premium-blue) !important;
+    color: white !important;
+    border: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    padding: 0 !important;
+}
+
+.fund-source .bs-btn-large {
+    width: auto !important;
+    padding: 0 1rem !important;
+}
+
+/* Premium Floating Toast */
+.fa-alert {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    min-width: 300px;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-left: 4px solid var(--fs-premium-blue);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    z-index: 10000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: block !important;
+    pointer-events: none;
+}
+
+.fa-alert.show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.fa-alert.success {
+    border-left-color: #28a745;
+    background: #f6fffa;
+}
+
+.fa-alert.danger {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.fa-alert.warning {
+    border-left-color: #ffc107;
+    background: #fffdf2;
+}
+
+.fa-alert.info {
+    border-left-color: var(--fs-premium-blue);
+    background: #f0f7ff;
+}
+
+/* Responsiveness */
+@media (max-width: 992px) {
+    .fund-source .fs-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .fund-source .fs-bts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .fund-source .cm-workspace {
+        flex-direction: column;
+        padding: 1rem;
+        height: auto;
+        overflow: auto;
+    }
+
+    .fund-source .action-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-top: 1px solid var(--fs-premium-border);
+        border-left: none !important;
+        order: 2;
+    }
+
+    .fund-source .action-buttons {
+        flex-direction: row !important;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        justify-content: center;
+    }
+
+    .fund-source .cm-shell__action {
+        min-width: 100px;
+        min-height: 70px !important;
+    }
+}

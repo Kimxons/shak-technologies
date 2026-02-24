@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LC/PO Approval · Trade Finance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../overdraft-application/overdraft-application.css" />
+
+  <style>
+    .tf-shell {
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    .tf-layout {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .tf-frame {
+      border: 1px solid #9fb9d6;
+      background: #f3f8ff;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tf-frame-bar {
+      height: 18px;
+      background: var(--primary);
+    }
+
+    .tf-form {
+      padding: 10px 12px;
+    }
+
+    .tf-row {
+      display: grid;
+      grid-template-columns: 130px 1fr 28px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .tf-row.tf-row--branch {
+      grid-template-columns: 130px 80px 1fr 28px;
+    }
+
+    .tf-row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+
+    .tf-group {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tf-group.tf-group--lookup {
+      grid-template-columns: 130px 1fr 28px;
+    }
+
+    .tf-label {
+      color: #0d4f9a;
+      font-weight: 700;
+      font-size: 13px;
+      text-align: right;
+      padding-right: 6px;
+      white-space: nowrap;
+    }
+
+    .tf-input,
+    .tf-select {
+      height: 26px;
+      border: 1px solid #b9c9dc;
+      border-radius: 2px;
+      padding: 2px 8px;
+      background: #ffffff;
+      font-size: 13px;
+    }
+
+    .tf-lookup {
+      height: 26px;
+      width: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #b9c9dc;
+      background: #ffffff;
+      border-radius: 2px;
+      color: #0d4f9a;
+      padding: 0;
+    }
+
+    .tf-lookup:hover {
+      background: #eaf3ff;
+    }
+
+    .tf-tabs {
+      margin-top: 10px;
+      background: #ffffff;
+      border-top: 1px solid #c7d5e6;
+    }
+
+    .tf-tabs .nav-tabs {
+      border-bottom: 1px solid #c7d5e6;
+      padding-left: 0;
+      background: #f7fbff;
+      flex-wrap: nowrap;
+      overflow: hidden;
+      white-space: nowrap;
+      gap: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    .tf-tabs .nav-item {
+      flex: 1 1 0;
+      margin: 0 !important;
+    }
+
+    .tf-tabs .nav-link {
+      border: 1px solid #c7d5e6;
+      border-bottom: none;
+      border-radius: 0;
+      font-size: 13px;
+      padding: 4px 6px;
+      color: #0f2e4f;
+      background: #eef5ff;
+      margin: 0 !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    .tf-tabs .nav-item + .nav-item .nav-link {
+      border-left: 0;
+    }
+
+    .tf-tabs .nav-link.active {
+      background: #ffffff;
+      color: #0d4f9a;
+      font-weight: 700;
+    }
+
+    .tf-table-wrap {
+      padding: 10px;
+      background: #ffffff;
+      min-height: 340px;
+    }
+
+    .tf-empty-row {
+      height: 360px;
+      vertical-align: top;
+      padding-top: 12px !important;
+    }
+
+    .tf-table {
+      border-color: #d9e3ef;
+      font-size: 13px;
+    }
+
+    .tf-table thead th {
+      background: #f3f7fd;
+      font-weight: 400;
+      color: #40556f;
+    }
+
+    .tf-actions {
+      padding: 10px;
+      background: #f3f8ff;
+      border: 1px solid #9fb9d6;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 520px;
+    }
+
+    .tf-action-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tf-action {
+      height: 34px;
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      font-weight: 600;
+      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .tf-action:hover {
+      transform: translateY(-1px);
+    }
+
+    .tf-action--green {
+      border-color: #22c55e;
+      color: #16a34a;
+    }
+
+    .tf-action--green:hover {
+      background: #f0fdf4;
+      border-color: #16a34a;
+      color: #15803d;
+    }
+
+    .tf-action--green-solid {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #ffffff;
+    }
+
+    .tf-action--green-solid:hover {
+      background: #16a34a;
+      border-color: #16a34a;
+    }
+
+    .tf-action--orange {
+      border-color: #f59e0b;
+      color: #d97706;
+    }
+
+    .tf-action--orange:hover {
+      background: #fffbeb;
+      border-color: #d97706;
+      color: #b45309;
+    }
+
+    .tf-action--blue {
+      border-color: #3b82f6;
+      color: #2563eb;
+    }
+
+    .tf-action--blue:hover {
+      background: #eff6ff;
+      border-color: #2563eb;
+      color: #1d4ed8;
+    }
+
+    .tf-action--red {
+      border-color: #ef4444;
+      color: #dc2626;
+    }
+
+    .tf-action--red:hover {
+      background: #fef2f2;
+      border-color: #dc2626;
+      color: #b91c1c;
+    }
+
+    .tf-action[disabled] {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .tf-action .bi {
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="tf-shell" aria-label="LC/PO Approval">
+    <div class="tf-layout">
+      <section class="tf-frame" aria-label="LC/PO Approval details">
+        <div class="tf-frame-bar" aria-hidden="true"></div>
+
+        <div class="tf-form">
+          <div class="tf-row tf-row--branch">
+            <div class="tf-label">Branch ID</div>
+            <input class="tf-input" value="0101" aria-label="Branch ID" />
+            <input class="tf-input" value="Head Office" aria-label="Branch name" />
+            <button type="button" class="tf-lookup" aria-label="Search branch">
+              <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="tf-row2">
+            <div class="tf-group tf-group--lookup">
+              <div class="tf-label">Application ID</div>
+              <input class="tf-input" aria-label="Application ID" />
+              <button type="button" class="tf-lookup" aria-label="Search application">
+                <i class="bi bi-search" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <div class="tf-group">
+              <div class="tf-label">Amendment Ref</div>
+              <input class="tf-input" aria-label="Amendment Ref" />
+            </div>
+          </div>
+
+          <div class="tf-row">
+            <div class="tf-label">Client ID</div>
+            <input class="tf-input" aria-label="Client ID" />
+            <button type="button" class="tf-lookup" aria-label="Search client">
+              <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="tf-row">
+            <div class="tf-label">Account ID</div>
+            <input class="tf-input" aria-label="Account ID" />
+            <button type="button" class="tf-lookup" aria-label="Search account">
+              <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="tf-row">
+            <div class="tf-label">Product ID</div>
+            <input class="tf-input" aria-label="Product ID" />
+            <button type="button" class="tf-lookup" aria-label="Search product">
+              <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="tf-row2">
+            <div class="tf-group">
+              <div class="tf-label">Amendment Type</div>
+              <select class="tf-select" aria-label="Amendment Type">
+                <option selected>--Select--</option>
+              </select>
+            </div>
+
+            <div class="tf-group">
+              <div class="tf-label">Agreement Type</div>
+              <select class="tf-select" aria-label="Agreement Type">
+                <option selected>--Select--</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="tf-tabs">
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-transaction" data-bs-toggle="tab" data-bs-target="#pane-transaction"
+                type="button" role="tab" aria-controls="pane-transaction" aria-selected="true">TransactionDetails</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-application" data-bs-toggle="tab" data-bs-target="#pane-application" type="button"
+                role="tab" aria-controls="pane-application" aria-selected="false">Application</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-terms" data-bs-toggle="tab" data-bs-target="#pane-terms" type="button" role="tab"
+                aria-controls="pane-terms" aria-selected="false">Terms</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-shiping" data-bs-toggle="tab" data-bs-target="#pane-shiping" type="button" role="tab"
+                aria-controls="pane-shiping" aria-selected="false">Shiping</button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="pane-transaction" role="tabpanel" aria-labelledby="tab-transaction" tabindex="0">
+              <div class="tf-table-wrap">
+                <table class="table table-bordered tf-table mb-0" aria-label="Transaction details">
+                  <thead>
+                    <tr>
+                      <th scope="col">FieldName</th>
+                      <th scope="col">OldValue</th>
+                      <th scope="col">NewValue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="3" class="tf-empty-row">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="pane-application" role="tabpanel" aria-labelledby="tab-application" tabindex="0">
+              <div class="tf-table-wrap">
+                <table class="table table-bordered tf-table mb-0" aria-label="Application">
+                  <thead>
+                    <tr>
+                      <th scope="col">FieldName</th>
+                      <th scope="col">OldValue</th>
+                      <th scope="col">NewValue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="3" class="tf-empty-row">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="pane-terms" role="tabpanel" aria-labelledby="tab-terms" tabindex="0">
+              <div class="tf-table-wrap">
+                <table class="table table-bordered tf-table mb-0" aria-label="Terms">
+                  <thead>
+                    <tr>
+                      <th scope="col">FieldName</th>
+                      <th scope="col">OldValue</th>
+                      <th scope="col">NewValue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="3" class="tf-empty-row">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="pane-shiping" role="tabpanel" aria-labelledby="tab-shiping" tabindex="0">
+              <div class="tf-table-wrap">
+                <table class="table table-bordered tf-table mb-0" aria-label="Shiping">
+                  <thead>
+                    <tr>
+                      <th scope="col">FieldName</th>
+                      <th scope="col">OldValue</th>
+                      <th scope="col">NewValue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="3" class="tf-empty-row">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="tf-actions" aria-label="LC/PO Approval actions">
+        <div class="tf-action-stack" aria-label="Top actions">
+          <button type="button" class="tf-action tf-action--green" data-tf-action="charges">
+            <i class="bi bi-plus-circle" aria-hidden="true"></i>
+            Charges
+          </button>
+          <button type="button" class="tf-action tf-action--orange" disabled>
+            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+            Swift Message
+          </button>
+        </div>
+
+        <div class="tf-action-stack" aria-label="Bottom actions">
+          <button type="button" class="tf-action tf-action--blue">
+            <i class="bi bi-eye" aria-hidden="true"></i>
+            View
+          </button>
+          <button type="button" class="tf-action tf-action--green-solid" disabled>
+            <i class="bi bi-save" aria-hidden="true"></i>
+            Approve
+          </button>
+          <button type="button" class="tf-action tf-action--red" disabled>
+            <i class="bi bi-trash" aria-hidden="true"></i>
+            Reject
+          </button>
+          <button type="button" class="tf-action tf-action--red" disabled>
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            Cancel
+          </button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/pages/trade-finance/lcpo-approval.embedded.js"></script>
+</body>
+
+</html>

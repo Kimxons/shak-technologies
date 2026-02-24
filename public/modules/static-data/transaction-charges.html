@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transaction Charges</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    /* Override grid to remove left sidebar and adjust for this screen */
+    body[data-page="client-maintenance"] .cm-shell-form {
+      grid-template-columns: minmax(0, 1fr) clamp(110px, 9vw, 150px);
+    }
+
+    /* Custom styles for Transaction Charges screen */
+    .charge-header-label {
+        color: var(--copilot-primary);
+        font-weight: bold;
+        white-space: nowrap;
+        margin-right: 1rem;
+    }
+
+    .table-container {
+        height: 100%;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid var(--bs-border-color);
+    }
+
+    .behind-the-scene-header {
+        background-color: #0b5ed7; /* Bootstrap primary roughly */
+        color: white;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+    }
+
+    .behind-the-scene-body {
+        padding: 1rem;
+    }
+
+    .footer-input-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .footer-input-row label {
+        width: 100px;
+        text-align: right;
+        margin-right: 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .footer-input-row .form-control {
+        background-color: #fff;
+    }
+
+    /* Match layout of footer inputs */
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    /* Match Right Sidebar Buttons */
+    .cm-shell__action {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background: #e2e8f0;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.25rem;
+        color: #334155;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .cm-shell__action:hover {
+        background: #cbd5e1;
+    }
+    .cm-shell__action strong {
+        font-weight: 800;
+        text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body class="client-maintenance copilot-theme" data-page="client-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+  <div class="cm-workspace">
+    <form id="transaction-charges-form" class="cm-shell-form" autocomplete="off">
+
+      <!-- Main Content Area -->
+      <section class="cm-legacy-content">
+
+        <!-- Header / Search -->
+        <div class="card-surface p-3 mb-2">
+            <div class="d-flex align-items-center">
+                <label class="charge-header-label">Charge ID</label>
+                <div class="input-group">
+                    <input type="text" class="form-control fw-bold" value="ATM01" readonly>
+                    <input type="text" class="form-control fw-bold" value="ATM Commission Off Us">
+                    <button class="btn btn-outline-secondary border-start-0 border bg-white" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Grid -->
+        <div class="card-surface p-2 mb-2 flex-grow-1 d-flex flex-column">
+            <div class="table-container">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th scope="col"><input class="form-check-input" type="checkbox" disabled></th>
+                            <th scope="col">Transaction ID</th>
+                            <th scope="col">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>001</td><td>L Cash Deposit</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>002</td><td>L Cash Withdrawal</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>003</td><td>INWARD CREDIT</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>004</td><td>INWARD DEBIT</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>005</td><td>OUTWARD CREDIT</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>006</td><td>Bulk Credit Transfer</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>007</td><td>TRANSFER CREDIT</td></tr>
+                        <tr><td><input class="form-check-input" type="checkbox"></td><td>015</td><td>InterBranch Cash Deposit</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer: Behind The Scene -->
+        <div class="card-surface p-0 overflow-hidden">
+            <div class="behind-the-scene-header">
+                Behind The Scene
+            </div>
+            <div class="behind-the-scene-body">
+                <div class="footer-grid">
+                    <div>
+                        <div class="footer-input-row">
+                            <label>Created By</label>
+                            <input type="text" class="form-control" value="GETENEH" readonly>
+                        </div>
+                        <div class="footer-input-row">
+                            <label>Created On</label>
+                            <input type="text" class="form-control" value="02/Jan/2024" readonly>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="footer-input-row">
+                            <label>Supervised By</label>
+                            <input type="text" class="form-control" readonly>
+                        </div>
+                        <div class="footer-input-row">
+                            <label>Supervised On</label>
+                            <input type="text" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      </section>
+
+      <!-- Right Actions Sidebar -->
+      <aside class="cm-legacy-actions card-surface p-2">
+         <button type="button" class="cm-shell__action">View</button>
+         <button type="button" class="cm-shell__action"><strong>Edit</strong></button>
+         <button type="button" class="cm-shell__action">Save</button>
+         <button type="button" class="cm-shell__action">Cancel</button>
+      </aside>
+
+    </form>
+  </div>
+</body>
+</html>
+

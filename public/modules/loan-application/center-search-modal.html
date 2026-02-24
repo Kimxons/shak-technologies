@@ -1,0 +1,113 @@
+<!-- Center Search Modal -->
+<div class="modal fade kairo-search-modal" id="centerSearchModal" tabindex="-1" aria-labelledby="centerSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="centerSearchModalLabel">
+                    <i class="bi bi-search"></i>
+                    Center Search
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Search Criteria Section -->
+                <div class="search-section">
+                    <div class="search-row">
+                        <div class="search-field">
+                            <label class="search-label">Center ID</label>
+                            <div class="search-input-group">
+                                <select class="search-select" id="centerIdOperator">
+                                    <option value="like">Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="starts">Starts With</option>
+                                </select>
+                                <input type="text" class="search-input" id="centerIdSearch" placeholder="Enter Center ID">
+                            </div>
+                        </div>
+
+                        <div class="search-field">
+                            <label class="search-label">Center Name</label>
+                            <div class="search-input-group">
+                                <select class="search-select" id="centerNameOperator">
+                                    <option value="like">Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="starts">Starts With</option>
+                                </select>
+                                <input type="text" class="search-input" id="centerNameSearch" placeholder="Enter Center Name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search Action Buttons -->
+                    <div class="search-actions">
+                        <button type="button" class="search-btn search-btn-primary" id="centerSearchBtn">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </button>
+                        <button type="button" class="search-btn search-btn-secondary" id="centerClearBtn">
+                            <i class="bi bi-x-circle"></i>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Results Section -->
+                <div class="results-header">
+                    <i class="bi bi-list-ul"></i>
+                    Search Results
+                </div>
+                <div class="results-table-wrapper">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Center ID</th>
+                                <th>Center Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="centerResultsBody">
+                            <tr>
+                                <td colspan="3" class="no-results">
+                                    <i class="bi bi-inbox"></i>
+                                    No results. Click "Search" to find centers.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-bar">
+                    <div class="pagination-buttons">
+                        <button type="button" class="pagination-btn" id="centerPrevPageBtn" disabled>
+                            <i class="bi bi-chevron-left"></i>
+                            Previous
+                        </button>
+                        <button type="button" class="pagination-btn" id="centerNextPageBtn" disabled>
+                            Next
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="pagination-info">
+                        <span id="centerPageInfo">Page 0 of 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i>
+                    Cancel
+                </button>
+                <button type="button" class="modal-btn modal-btn-success" id="centerSelectBtn" disabled>
+                    <i class="bi bi-check-circle"></i>
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

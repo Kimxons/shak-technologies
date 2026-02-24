@@ -1,0 +1,90 @@
+<!-- Branch Search Modal -->
+<div class="modal fade kairo-search-modal" id="branchSearchModal" tabindex="-1" aria-labelledby="branchSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="branchSearchModalLabel">
+                    <i class="bi bi-building"></i> Search Branch
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Criteria -->
+                <div class="search-section">
+                    <div class="search-row">
+                        <div class="search-field">
+                            <label class="search-label">Branch ID</label>
+                            <select id="searchBranchIdOperator" class="search-operator">
+                                <option value="like" selected>Like</option>
+                                <option value="equals">Equals</option>
+                                <option value="startswith">Starts With</option>
+                            </select>
+                            <input type="text" id="searchBranchIdFilter" class="search-input" placeholder="Enter Branch ID">
+                        </div>
+                        <div class="search-field">
+                            <label class="search-label">Branch Name</label>
+                            <select id="searchBranchNameOperator" class="search-operator">
+                                <option value="like" selected>Like</option>
+                                <option value="equals">Equals</option>
+                                <option value="startswith">Starts With</option>
+                            </select>
+                            <input type="text" id="searchBranchNameFilter" class="search-input" placeholder="Enter Branch Name">
+                        </div>
+                    </div>
+                    
+                    <div class="search-actions">
+                        <button type="button" class="search-btn search-btn-primary" id="btnSearchBranches">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                        <button type="button" class="search-btn search-btn-secondary" id="btnClearBranchSearch">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div class="results-section">
+                    <div class="results-container">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th style="width: 120px;">Branch ID</th>
+                                    <th>Branch Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="branchSearchResults">
+                                <tr>
+                                    <td colspan="3" class="no-results">
+                                        <i class="bi bi-hourglass-split"></i> Loading branches...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-section">
+                    <span class="page-info" id="branchPageInfo">Page 1 of 1 (0 results)</span>
+                    <div class="pagination-btns">
+                        <button type="button" class="page-btn" id="btnPrevBranchPage" disabled>
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button type="button" class="page-btn" id="btnNextBranchPage" disabled>
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="modal-btn modal-btn-primary" id="btnSelectBranch" disabled>
+                    <i class="bi bi-check-circle"></i> OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product (FD,RD,SC)</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/maincss.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+
+<body>
+  <div class="window">
+    <!-- Header -->
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <!-- <div class="am-header__left">
+        <i class="bi bi-box-seam am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Product (FD, RD, SC)</span>
+      </div> -->
+      <!-- <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window">
+          <i class="bi bi-square"></i>
+        </button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div> -->
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Sidebar Navigation -->
+      <div class="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+          <span class="sidebar-header__title">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>SUBMODULES</span>
+          </span>
+          <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="sidebar-search">
+          <i class="bi bi-search sidebar-search__icon"></i>
+          <input type="text" class="sidebar-search__input" placeholder="Search submodules..." />
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="sidebar-content">
+          <!-- Data Entry Section -->
+          <div class="nav-section--card expanded" data-nav-section>
+            <div class="nav-header--card" data-tooltip="Data Entry">
+              <div class="nav-header__content">
+                <i class="bi bi-folder nav-header__icon"></i>
+                <span class="nav-label--card">Data Entry</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">5</span>
+                <button type="button" class="nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items--card" id="nav-dataentry">
+              <div class="sidebar-item--enhanced" data-child-form="product-gl-interface" data-tooltip="Product GL Interface">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-file-text sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">Product GL Interface</span>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item--enhanced" data-child-form="product-documents" data-tooltip="Product Documents">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-file-earmark sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">Product Documents</span>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item--enhanced" data-child-form="user-defined-fields" data-tooltip="User Defined Fields">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-list-ul sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">User Defined Fields</span>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item--enhanced" data-child-form="product-charges" data-tooltip="Product Charges">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-currency-dollar sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">Product Charges</span>
+                  </div>
+                </div>
+              </div>
+              <div class="sidebar-item--enhanced" data-child-form="product-notification" data-tooltip="Product Notification">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-bell sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">Product Notification</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Section -->
+          <div class="nav-section--card" data-nav-section>
+            <div class="nav-header--card" data-tooltip="View">
+              <div class="nav-header__content">
+                <i class="bi bi-eye nav-header__icon"></i>
+                <span class="nav-label--card">View</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">0</span>
+                <button type="button" class="nav-arrow--card" aria-label="Toggle View" aria-expanded="false">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items--card" id="nav-view" hidden></div>
+          </div>
+
+          <!-- Recent Activities Section -->
+          <div class="nav-section--card" data-nav-section>
+            <div class="nav-header--card" data-tooltip="Recent Activities">
+              <div class="nav-header__content">
+                <i class="bi bi-clock-history nav-header__icon"></i>
+                <span class="nav-label--card">Recent Activities</span>
+              </div>
+              <div class="nav-header__badge">
+                <button type="button" class="nav-arrow--card" aria-label="Toggle Recent Activities" aria-expanded="false">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items--card" id="nav-recent" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Content -->
+      <div class="form-content">
+        <div class="form-card" data-main-form>
+          <!-- Product Section -->
+          <div class="form-section" data-section="product">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-search"></i>Product Search</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Product Section" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="ProductID">Product</label>
+                  <div class="input-with-lookup">
+                    <input type="text" class="bs-input" id="ProductID" name="ProductID" />
+                    <button type="button" class="btn-lookup" aria-label="Search Product">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col"></div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="ProductTypes">Product Types</label>
+                  <select class="bs-select" id="ProductTypes" name="ProductTypes">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="ProductCategory">Product Category</label>
+                  <select class="bs-select" id="ProductCategory" name="ProductCategory">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="Currency">Currency</label>
+                  <div class="input-with-lookup">
+                    <input type="text" class="bs-input" id="Currency" name="Currency" />
+                    <button type="button" class="btn-lookup" aria-label="Search Currency">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col"></div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="ValidFrom">Valid From</label>
+                  <input type="date" class="bs-input" id="ValidFrom" name="ValidFrom" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="ValidTo">Valid To</label>
+                  <input type="date" class="bs-input" id="ValidTo" name="ValidTo" />
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="ProductCode">Product Code</label>
+                  <input type="text" class="bs-input" id="ProductCode" name="ProductCode" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="CustomerRestriction">Customer Restriction</label>
+                  <select class="bs-select" id="CustomerRestriction" name="CustomerRestriction">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="AccountingRule">Accounting Rule</label>
+                  <select class="bs-select" id="AccountingRule" name="AccountingRule">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="DepositType">Deposit Type</label>
+                  <select class="bs-select" id="DepositType" name="DepositType">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="AccountClassID">Account Class ID</label>
+                  <select class="bs-select" id="AccountClassID" name="AccountClassID">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Credit Interest Setting Section -->
+          <div class="form-section" data-section="credit-interest">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <input type="checkbox" id="isCreditInterestApplicable" class="section-checkbox">
+                <i class="bi bi-percent"></i>Credit Interest Setting
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Credit Interest Setting" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="PeriodType">Period Type</label>
+                  <select class="bs-select" id="PeriodType" name="PeriodType">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="DayCountBasis">Day Count Basis</label>
+                  <select class="bs-select" id="DayCountBasis" name="DayCountBasis">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="InterestType">Interest Type</label>
+                  <select class="bs-select" id="InterestType" name="InterestType">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="InterestMenuID">Interest Menu ID</label>
+                  <select class="bs-select" id="InterestMenuID" name="InterestMenuID">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue checkbox-label">
+                    <input type="checkbox" id="IsInterestTaxable" class="bs-checkbox">
+                    Is Interest Taxable
+                  </label>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="TaxRule">Tax Rule</label>
+                  <select class="bs-select" id="TaxRule" name="TaxRule">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="CalculationMethod">Calculation Method</label>
+                  <select class="bs-select" id="CalculationMethod" name="CalculationMethod">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="InterestRounding">Interest Rounding</label>
+                  <select class="bs-select" id="InterestRounding" name="InterestRounding">
+                    <option>Nearest 0.01</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="CompoundingFrequency">Compounding Frequency</label>
+                  <select class="bs-select" id="CompoundingFrequency" name="CompoundingFrequency">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MinPeriodForCompounding">Min. Period For Compounding</label>
+                  <input type="text" class="bs-input" id="MinPeriodForCompounding" name="MinPeriodForCompounding" />
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue checkbox-label">
+                    <input type="checkbox" id="AccrueInterest" class="bs-checkbox">
+                    Accrue Interest
+                  </label>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="AccrualFrequency">Accrual Frequency</label>
+                  <select class="bs-select" id="AccrualFrequency" name="AccrualFrequency">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parameter Settings Section -->
+          <div class="form-section" data-section="parameter-settings">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <input type="checkbox" id="isParameterSettingsApplicable" class="section-checkbox">
+                <i class="bi bi-sliders"></i>Parameter Settings In
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Parameter Settings" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="MinDepositAmount">Min. Deposit Amount</label>
+                  <input type="text" class="bs-input" id="MinDepositAmount" name="MinDepositAmount" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MaxDepositAmount">Max. Deposit Amount</label>
+                  <input type="text" class="bs-input" id="MaxDepositAmount" name="MaxDepositAmount" />
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="MinTerm">Min. Term</label>
+                  <input type="text" class="bs-input" id="MinTerm" name="MinTerm" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MaxTerm">Max. Term</label>
+                  <input type="text" class="bs-input" id="MaxTerm" name="MaxTerm" />
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue checkbox-label">
+                    <input type="checkbox" id="AllowInterestWithdrawal" class="bs-checkbox">
+                    Allow Interest Withdrawal
+                  </label>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="InterestPayoutMode">Interest Payout Mode</label>
+                  <select class="bs-select" id="InterestPayoutMode" name="InterestPayoutMode">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue checkbox-label">
+                    <input type="checkbox" id="AccrueInterestAfterMaturity" class="bs-checkbox">
+                    Accrue Interest After Maturity
+                  </label>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MinWithdrawalFrequency">Min. Withdrawal Frequency</label>
+                  <select class="bs-select" id="MinWithdrawalFrequency" name="MinWithdrawalFrequency">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="RenewalRateType">Renewal Rate Type</label>
+                  <select class="bs-select" id="RenewalRateType" name="RenewalRateType">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MaxDaysAllowedForRenewal">Max Days Allowed For Renewal From Maturity Date</label>
+                  <input type="text" class="bs-input" id="MaxDaysAllowedForRenewal" name="MaxDaysAllowedForRenewal" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="SavingsRateMenu">Savings Rate Menu</label>
+                  <select class="bs-select" id="SavingsRateMenu" name="SavingsRateMenu">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pay Interest After Maturity Section -->
+          <div class="form-section" data-section="pay-interest-maturity">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <input type="checkbox" id="isPayInterestAfterMaturity" class="section-checkbox">
+                <i class="bi bi-calendar-check"></i>Pay Interest After Maturity
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Pay Interest After Maturity" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="ROIAfterMaturity">ROI After Maturity</label>
+                  <select class="bs-select" id="ROIAfterMaturity" name="ROIAfterMaturity">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="MinDaysAfterMaturity">Min. Days</label>
+                  <input type="text" class="bs-input" id="MinDaysAfterMaturity" name="MinDaysAfterMaturity" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Product On Maturity Section -->
+          <div class="form-section" data-section="change-product-maturity">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <input type="checkbox" id="isChangeProductOnMaturity" class="section-checkbox">
+                <i class="bi bi-arrow-repeat"></i>Change Product On Maturity
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Change Product On Maturity" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="AfterNoOfDays">After No. Of Days</label>
+                  <input type="text" class="bs-input" id="AfterNoOfDays" name="AfterNoOfDays" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="ChangeProductID">Product ID</label>
+                  <div class="input-with-lookup">
+                    <input type="text" class="bs-input" id="ChangeProductID" name="ChangeProductID" />
+                    <button type="button" class="btn-lookup" aria-label="Search Product">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Premature Closure Allowed Section -->
+          <div class="form-section" data-section="premature-closure">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <input type="checkbox" id="isPrematureClosureApplicable" class="section-checkbox">
+                <i class="bi bi-door-open"></i>Premature Closure Allowed
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Premature Closure" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="MinDaysForInterest">Min. Days For Interest</label>
+                  <input type="text" class="bs-input" id="MinDaysForInterest" name="MinDaysForInterest" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="PenaltyApplicable">Penalty Applicable</label>
+                  <select class="bs-select" id="PenaltyApplicable" name="PenaltyApplicable">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delayed Payment Section -->
+          <div class="form-section" data-section="delayed-payment">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <input type="checkbox" id="isDelayedPaymentApplicable" class="section-checkbox">
+                <i class="bi bi-hourglass-split"></i>Delayed Payment
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Delayed Payment" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="PenaltyGraceDays">Penalty Grace Days</label>
+                  <input type="text" class="bs-input" id="PenaltyGraceDays" name="PenaltyGraceDays" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="PenaltyRule">Penalty Rule</label>
+                  <select class="bs-select" id="PenaltyRule" name="PenaltyRule">
+                    <option>--Select--</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised By</span>
+                  <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised On</span>
+                  <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <!-- Navigation Groups -->
+        <div class="nav-group">
+          <button type="button" class="btn-nav" aria-label="Previous Product">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span>Product</span>
+          <button type="button" class="btn-nav" aria-label="Next Product">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button type="button" class="btn-action btn-view" id="viewBtn" data-shell-mode="View">
+            <i class="bi bi-eye"></i>View
+          </button>
+          <button type="button" class="btn-action" id="addBtn" data-shell-mode="Add">
+            <i class="bi bi-plus-lg"></i>Add
+          </button>
+          <button type="button" class="btn-action" id="editBtn" data-shell-mode="Edit">
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button type="button" class="btn-action btn-save" id="saveBtn" data-submit-action="save">
+            <i class="bi bi-check-lg"></i>Save
+          </button>
+          <button type="button" class="btn-action btn-cancel" id="cancelBtn" data-submit-action="cancel">
+            <i class="bi bi-x-lg"></i>Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- DataEntry Child Form Overlay -->
+      <div class="child-overlay" data-child-overlay aria-hidden="true">
+        <div class="child-frame" role="dialog" aria-modal="true" aria-label="DataEntry window">
+          <iframe class="child-iframe" data-child-iframe title="DataEntry"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" id="messagePanel" hidden></div>
+  </div>
+
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/pages/modules/product-management/product-fd-rd-sc.js"></script>
+  <script>
+    console.warn('=== Product FD/RD/SC Script Starting ===');
+    
+    // Section toggle functionality
+    document.querySelectorAll('[data-section-toggle]').forEach(header => {
+      header.addEventListener('click', (e) => {
+        // Don't toggle if clicking the checkbox
+        if (e.target.type === 'checkbox') return;
+        
+        const section = header.closest('.form-section');
+        const toggleBtn = header.querySelector('.section-toggle-btn');
+        const isCollapsed = section.classList.toggle('collapsed');
+        
+        if (toggleBtn) {
+          toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+        }
+      });
+    });
+
+    // Sidebar nav section toggle
+    document.querySelectorAll('.nav-header--card').forEach(header => {
+      header.addEventListener('click', () => {
+        const section = header.closest('.nav-section--card');
+        const arrow = header.querySelector('.nav-arrow--card');
+        const navItems = section.querySelector('.nav-items--card');
+        const isExpanded = section.classList.toggle('expanded');
+        
+        if (arrow) {
+          arrow.setAttribute('aria-expanded', isExpanded);
+          const icon = arrow.querySelector('i');
+          icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+        }
+        
+        if (navItems) {
+          if (isExpanded) {
+            navItems.removeAttribute('hidden');
+            navItems.classList.add('is-visible');
+          } else {
+            navItems.classList.remove('is-visible');
+            setTimeout(() => navItems.setAttribute('hidden', ''), 300);
+          }
+        }
+      });
+    });
+
+    // Window control actions
+    document.querySelectorAll('[data-action]').forEach(btn => {
+      const action = btn.getAttribute('data-action');
+      btn.addEventListener('click', () => {
+        if (action === 'refresh') {
+          window.location.reload();
+        } else if (action === 'maximize') {
+          const windowEl = document.querySelector('.window');
+          const isMaximized = windowEl.classList.toggle('maximized');
+          const icon = btn.querySelector('i');
+          icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
+          btn.title = isMaximized ? 'Restore' : 'Maximize';
+        } else if (action === 'close') {
+          window.close();
+        }
+      });
+    });
+    
+    // Wait for DOM to be fully loaded
+    function initializeForm() {
+      console.warn('[FD/RD/SC] DOM ready, initializing...');
+      
+      // Setup sidebar clicks
+      const sidebarItems = document.querySelectorAll('.sidebar-item--enhanced[data-child-form]');
+      console.warn('[FD/RD/SC] Found sidebar items:', sidebarItems.length);
+      
+      sidebarItems.forEach((item, index) => {
+        const formKey = item.getAttribute('data-child-form');
+        console.warn('[FD/RD/SC] Wiring item', index, ':', formKey);
+        
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.warn('[FD/RD/SC] *** CLICK EVENT FIRED ***', formKey);
+          
+          // Remove active from all items, add to clicked
+          sidebarItems.forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          
+          handleDataEntryClick(formKey);
+        });
+      });
+      
+      console.warn('[FD/RD/SC] Sidebar initialization complete');
+    }
+    
+    function handleDataEntryClick(childKey) {
+      console.warn('[FD/RD/SC] handleDataEntryClick called with:', childKey);
+      
+      if (childKey === 'product-gl-interface') {
+        const productID = document.getElementById('ProductID').value;
+        console.warn('[FD/RD/SC] Product ID:', productID);
+        
+        if (!productID) {
+          alert('Please enter a Product ID first');
+          return;
+        }
+        
+        const requestData = {
+          RequestID: 'dbo.p_GetGLInterface',
+          FormId: 'dbo.p_GetGLInterface',
+          RequestData: {
+            OurBranchID: '0101',
+            BankID: '00',
+            RelevantID: productID,
+            ModuleID: 2525,
+            OperatorID: 'ADMIN'
+          },
+          RequestTime: new Date().toLocaleString(),
+          AppName: 'PROJECT_KAIRO',
+          Checksum: ''
+        };
+        
+        console.warn('[FD/RD/SC] Request Data:', requestData);
+        
+        // Store and open overlay
+        window.childFormRequestData = requestData;
+        openChildForm(childKey);
+      } else {
+        openChildForm(childKey);
+      }
+    }
+    
+    function openChildForm(childKey) {
+      console.warn('[FD/RD/SC] Opening child form:', childKey);
+      
+      const CHILD_FORMS = {
+        'product-gl-interface': 'product-gl-interface.html',
+        'product-documents': 'product-documents.html',
+        'user-defined-fields': 'user-defined-fields.html',
+        'product-charges': 'product-charges.html',
+        'product-notification': 'product-notification.html'
+      };
+      
+      const path = CHILD_FORMS[childKey];
+      const overlay = document.querySelector('[data-child-overlay]');
+      const iframe = document.querySelector('[data-child-iframe]');
+      
+      if (!path || !iframe) {
+        console.error('[FD/RD/SC] Path or iframe not found');
+        return;
+      }
+      
+      iframe.src = path;
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      
+      console.warn('[FD/RD/SC] Overlay opened, iframe src set to:', path);
+      
+      setTimeout(() => {
+        console.warn('[FD/RD/SC] Attempting postMessage...');
+        try {
+          iframe.contentWindow.postMessage({
+            type: 'init',
+            data: window.childFormRequestData
+          }, '*');
+          console.warn('[FD/RD/SC] PostMessage sent successfully');
+        } catch (error) {
+          console.error('[FD/RD/SC] Error sending postMessage:', error);
+        }
+      }, 500);
+    }
+    
+    // Sidebar toggle (hamburger menu)
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
+        const icon = sidebarToggle.querySelector('i');
+        icon.className = isCollapsed ? 'bi bi-list' : 'bi bi-x-lg';
+      });
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeForm);
+    } else {
+      initializeForm();
+    }
+    
+    console.warn('=== Product FD/RD/SC Script Loaded ===');
+  </script>
+</body>
+
+</html>

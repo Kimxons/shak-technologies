@@ -1,0 +1,286 @@
+:root {
+  --od-primary: #4a90e2;
+  --od-primary-dark: #357abd;
+  --od-secondary: #f5f7fa;
+  --od-border: #dde6ed;
+  --od-text-dark: #2c3e50;
+  --od-text-gray: #5a6c7d;
+  --od-white: #ffffff;
+  --od-success: #27ae60;
+  --od-warning: #f39c12;
+  --od-danger: #e74c3c;
+  --od-info: #3498db;
+  --od-radius: 3px;
+  --od-shadow-sm: 0 6px 16px rgba(44, 62, 80, 0.08);
+  --od-transition: all 0.2s ease;
+}
+
+body.bank-process-setting.copilot-theme {
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--od-text-dark);
+  background: #ffffff !important;
+}
+
+/* Remove tinted/orb background so the page stays OD-white */
+body.bank-process-setting.copilot-theme .cm-react-orbs {
+  display: none !important;
+}
+
+/* Layout: mimic Overdraft Application grid (sidebar space + content + docked action bar) */
+body.bank-process-setting.copilot-theme .cm-shell-form {
+  grid-template-columns: 200px minmax(0, 1fr) 120px;
+  align-items: start;
+}
+
+body.bank-process-setting.copilot-theme .cm-legacy-content {
+  grid-column: 2;
+  min-width: 0;
+}
+
+body.bank-process-setting.copilot-theme .cm-legacy-actions {
+  grid-column: 3;
+  align-self: flex-start;
+  justify-self: stretch;
+  position: sticky;
+  top: 0.6rem;
+  width: 120px;
+  background: var(--od-secondary);
+  border-left: 1px solid var(--od-border);
+  padding: 10px 6px;
+  border-radius: var(--od-radius);
+  box-shadow: none;
+}
+
+@media (max-width: 991.98px) {
+  body.bank-process-setting.copilot-theme .cm-shell-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.bank-process-setting.copilot-theme .cm-legacy-content {
+    grid-column: 1;
+  }
+
+  body.bank-process-setting.copilot-theme .cm-legacy-actions {
+    grid-column: 1;
+    position: static;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    border-left: none;
+  }
+
+  body.bank-process-setting.copilot-theme .cm-shell__action {
+    min-width: 90px;
+    flex: 1 1 30%;
+  }
+}
+
+/* Cards + OD-like title bars */
+body.bank-process-setting.copilot-theme .card-surface {
+  border: 1px solid var(--od-border);
+  box-shadow: var(--od-shadow-sm);
+}
+
+body.bank-process-setting.copilot-theme .bps-card-titlebar {
+  background: linear-gradient(90deg, var(--od-primary) 0%, var(--od-primary-dark) 100%);
+  color: var(--od-white);
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--od-radius) var(--od-radius) 0 0;
+}
+
+body.bank-process-setting.copilot-theme .bps-card-titlebar > i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Remove the decorative blue band at the top of the form */
+body.bank-process-setting.copilot-theme .bps-form-band {
+  display: none !important;
+}
+
+/* Form controls */
+body.bank-process-setting.copilot-theme .form-control {
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid var(--od-border);
+  border-radius: var(--od-radius);
+  color: var(--od-text-dark);
+  background: var(--od-white);
+  transition: var(--od-transition);
+}
+
+body.bank-process-setting.copilot-theme .form-control:focus {
+  outline: none;
+  border-color: var(--od-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18);
+}
+
+/* Input groups (OD segmented look) */
+body.bank-process-setting.copilot-theme .input-group {
+  border: 1px solid var(--od-border);
+  border-radius: var(--od-radius);
+  overflow: hidden;
+  background: var(--od-white);
+}
+
+body.bank-process-setting.copilot-theme .input-group .form-control {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.bank-process-setting.copilot-theme .input-group .form-control + .form-control {
+  border-left: 1px solid var(--od-border);
+}
+
+body.bank-process-setting.copilot-theme .input-group:focus-within {
+  border-color: var(--od-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18);
+}
+
+/* Lookup/search buttons (solid primary like OD) */
+body.bank-process-setting.copilot-theme .input-group .btn.btn-outline-secondary[data-bps-lookup] {
+  border: none !important;
+  border-left: 1px solid var(--od-border) !important;
+  border-radius: 0 !important;
+  background: var(--od-primary) !important;
+  color: var(--od-white) !important;
+  padding: 5px 10px !important;
+  font-size: 11px;
+  transition: var(--od-transition);
+}
+
+body.bank-process-setting.copilot-theme .input-group .btn.btn-outline-secondary[data-bps-lookup]:hover {
+  background: var(--od-primary-dark) !important;
+  transform: scale(1.02);
+}
+
+/* Right-side action buttons: outline-by-default, hover-fill (Overdraft-like) */
+body.bank-process-setting.copilot-theme .cm-shell__action {
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: var(--od-radius) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  border: 1px solid var(--od-border) !important;
+  background: var(--od-white) !important;
+  color: var(--od-text-dark) !important;
+  cursor: pointer;
+  transition: var(--od-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action > i {
+  font-size: 12px;
+  line-height: 1;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--od-shadow-sm);
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="view"] {
+  color: var(--od-info) !important;
+  border-color: var(--od-info) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="view"]:hover {
+  background: var(--od-info) !important;
+  color: var(--od-white) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="edit"] {
+  color: var(--od-warning) !important;
+  border-color: var(--od-warning) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="edit"]:hover {
+  background: var(--od-warning) !important;
+  color: var(--od-white) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="delete"] {
+  color: var(--od-danger) !important;
+  border-color: var(--od-danger) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="delete"]:hover {
+  background: var(--od-danger) !important;
+  color: var(--od-white) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="save"] {
+  color: var(--od-success) !important;
+  border-color: var(--od-success) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="save"]:hover {
+  background: var(--od-success) !important;
+  color: var(--od-white) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="cancel"],
+body.bank-process-setting.copilot-theme .cm-shell__action.cm-shell__action--danger {
+  color: var(--od-danger) !important;
+  border-color: var(--od-danger) !important;
+}
+
+body.bank-process-setting.copilot-theme .cm-shell__action[data-bps-action="cancel"]:hover,
+body.bank-process-setting.copilot-theme .cm-shell__action.cm-shell__action--danger:hover {
+  background: var(--od-danger) !important;
+  color: var(--od-white) !important;
+}
+
+/* Keep labels compact */
+body.bank-process-setting.copilot-theme .cbs-label {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.bank-process-setting.copilot-theme .cbs-label > i {
+  color: var(--od-primary-dark);
+  font-size: 12px;
+}
+
+/* Tables */
+body.bank-process-setting.copilot-theme .bps-table thead th {
+  background: linear-gradient(90deg, rgba(74, 144, 226, 0.12) 0%, rgba(53, 122, 189, 0.06) 100%);
+  border-bottom: 1px solid var(--od-border);
+  color: var(--od-text-dark);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+body.bank-process-setting.copilot-theme .bps-table thead th > i {
+  color: var(--od-primary-dark);
+  margin-right: 6px;
+}
+
+body.bank-process-setting.copilot-theme .bps-table tbody tr:hover {
+  background: var(--od-secondary);
+}

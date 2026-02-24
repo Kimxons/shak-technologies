@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Capturing Photo and Signature</title>
+  <link rel="stylesheet" href="capturing-photo-signature.css" />
+</head>
+<body>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <span class="title-icon">☰</span>
+        <span class="title-text">Capturing Photo and Signature</span>
+      </div>
+      <div class="title-bar-right">
+        <button class="title-btn" type="button" aria-label="Refresh">🔄</button>
+        <button class="title-btn" type="button" aria-label="Minimize">─</button>
+        <button class="title-btn" type="button" aria-label="Maximize">☐</button>
+        <button class="title-btn close" type="button" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="form-content">
+        <div class="form-box" aria-label="Capture form">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="label-blue">Branch ID</label>
+              <input type="text" id="branchId" class="input-small" value="0101" />
+              <input type="text" id="branchName" class="input-large" value="Head Office" />
+              <button class="btn-lookup" type="button" aria-label="Lookup branch">🔍</button>
+            </div>
+
+            <div class="form-row">
+              <label class="label-blue">Image Type</label>
+              <select id="imageType" class="input-medium">
+                <option value="">--Select--</option>
+                <option value="photo">Photo</option>
+                <option value="signature">Signature</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label>Is Existing Client</label>
+              <input type="checkbox" id="isExistingClient" class="checkbox" />
+            </div>
+
+            <div class="form-row">
+              <label class="label-blue">Client ID</label>
+              <input type="text" id="clientId" class="input-full" />
+              <button class="btn-lookup" type="button" aria-label="Lookup client">🔍</button>
+            </div>
+
+            <div class="form-row">
+              <label class="label-blue">Temp Client ID</label>
+              <input type="text" id="tempClientId" class="input-full" />
+              <button class="btn-lookup" type="button" aria-label="Lookup temp client">🔍</button>
+            </div>
+
+            <div class="form-row">
+              <label>Description</label>
+              <input type="text" id="description" class="input-full" />
+            </div>
+
+            <div class="form-row">
+              <label>Status</label>
+              <input type="text" id="status" class="input-full" readonly />
+            </div>
+          </div>
+
+          <div class="snapshot-row" aria-label="Snapshot controls">
+            <button class="btn-snapshot" type="button" id="snapshotBtn" disabled>Snapshot</button>
+            <button class="btn-snapshot" type="button" id="cancelSnapshotBtn" disabled>Cancel Snapshot</button>
+          </div>
+        </div>
+
+        <div class="section-header">Image</div>
+        <div class="image-panel" aria-label="Image preview">
+          <div class="image-stage" id="imageStage">
+            <div class="image-placeholder" id="imagePlaceholder">
+              <div class="placeholder-icon" aria-hidden="true">🖼️</div>
+            </div>
+            <video id="cameraVideo" class="camera" autoplay playsinline muted hidden></video>
+            <canvas id="snapshotCanvas" class="snapshot" hidden></canvas>
+            <img id="filePreview" class="file-preview" alt="Captured image preview" hidden />
+          </div>
+        </div>
+
+        <input type="file" id="filePicker" accept="image/*" hidden />
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons action-buttons--top">
+          <button class="btn-action underline" type="button" id="viewAllBtn">View All</button>
+          <button class="btn-action" type="button" id="scanBtn">Scan</button>
+          <button class="btn-action" type="button" id="fileBtn">File</button>
+          <button class="btn-action" type="button" id="captureBtn">Capture</button>
+        </div>
+
+        <div class="action-buttons action-buttons--bottom">
+          <button class="btn-action" type="button" id="addBtn">Add</button>
+          <button class="btn-action" type="button" id="saveBtn">Save</button>
+          <button class="btn-action" type="button" id="cancelBtn">Cancel</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="status-bar">
+      <span></span>
+    </div>
+  </div>
+
+  <div class="cbs-modal-overlay" id="viewAllOverlay" hidden>
+    <div class="cbs-child-window" role="dialog" aria-modal="true" aria-label="View All Images">
+      <div class="title-bar">
+        <div class="title-bar-left">
+          <span class="title-icon">☰</span>
+          <span class="title-text">View All</span>
+        </div>
+        <div class="title-bar-right">
+          <button class="title-btn" type="button" aria-label="Minimize">─</button>
+          <button class="title-btn" type="button" aria-label="Maximize">☐</button>
+          <button class="title-btn close" type="button" aria-label="Close" data-viewall-close>✕</button>
+        </div>
+      </div>
+
+      <div class="viewall-body">
+        <div class="viewall-left">
+          <div class="viewall-grid" aria-label="Images list">
+            <table class="viewall-table" id="viewAllTable">
+              <thead>
+                <tr>
+                  <th>Image Type</th>
+                  <th>Client ID</th>
+                  <th>Client Name</th>
+                  <th>Account ID</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody id="viewAllTbody">
+                <tr>
+                  <td colspan="5" class="no-records">No records to display.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-header">Image</div>
+          <div class="image-panel" aria-label="Selected image preview">
+            <div class="image-stage" id="viewAllImageStage">
+              <div class="image-placeholder" id="viewAllImagePlaceholder">
+                <div class="placeholder-icon" aria-hidden="true">🖼️</div>
+              </div>
+              <img id="viewAllImage" class="file-preview" alt="Selected image preview" hidden />
+            </div>
+          </div>
+        </div>
+
+        <aside class="action-panel viewall-actions" aria-label="View All actions">
+          <div class="action-buttons">
+            <button class="btn-action" type="button" id="showImageBtn">ShowImage</button>
+            <button class="btn-action" type="button" id="deleteImageBtn">Delete</button>
+            <button class="btn-action" type="button" id="cancelViewAllBtn">Cancel</button>
+            <button class="btn-action" type="button" id="backViewAllBtn">Back</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script src="capturing-photo-signature.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "fH9hjafhNys=",
+  "success": true,
+  "projectFilePath": "D:\\WORK\\SOURCES\\KAIRO\\kairo\\CBS.Entities.ClientManagement\\CBS.Entities.ClientManagement.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages\\system.io.pipelines\\9.0.8\\system.io.pipelines.9.0.8.nupkg.sha512",
+    "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages\\system.text.encodings.web\\9.0.8\\system.text.encodings.web.9.0.8.nupkg.sha512",
+    "C:\\Users\\Daniel.Gichuhi\\.nuget\\packages\\system.text.json\\9.0.8\\system.text.json.9.0.8.nupkg.sha512"
+  ],
+  "logs": []
+}

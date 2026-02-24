@@ -1,0 +1,1511 @@
+@model DashboardViewModel
+@using System.Text.Json;
+@using System.Text.RegularExpressions
+@{
+    ViewData["Title"] = "Enterprise Core Banking";
+    Layout = null;
+}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Enterprise Core Banking</title>
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+    <!-- Global Theme Manager - Load before any scripts -->
+    <script type="text/javascript" src="/js/theme-manager.js"></script>
+    <!-- Modal Theme Enforcement - Apply theme when modals open -->
+    @* <script type="text/javascript"  src="js/modal-theme-enforcement.js"></script> *@
+    <!-- Environment Configuration -->
+    <script type="text/javascript" src="/js/environment.js"></script>
+    <!-- Auth Scripts -->
+    <script type="text/javascript" src="/js/auth/auth.config.js"></script>
+    <script type="text/javascript" src="/js/auth/auth.service.js"></script>
+    <script type="text/javascript" src="/js/services/shared/serviceLoader.js"></script>
+    <script type="text/javascript" src="/js/services/ai/aiService.js"></script>
+    <script type="text/javascript" src="/js/app/app-core.js"></script>
+    <style>
+        /* Demo Branch: Eliminate ghost sidebar and anchor group to bottom */
+        .legacy-shell.nav-visible .legacy-workspace {
+            margin-left: 0 !important;
+        }
+
+        [data-nav-panel] {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-end !important;
+            height: 100vh !important;
+            width: 0 !important;
+            overflow: visible !important;
+            pointer-events: none !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+            [data-nav-panel].is-visible {
+                opacity: 1 !important;
+                pointer-events: none !important;
+                /* Keep none so top area doesn't block */
+            }
+
+        .nav-header {
+            display: none !important;
+        }
+
+        .legacy-nav__layout {
+            pointer-events: auto !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: flex-end !important;
+            justify-content: flex-start !important;
+            padding: 0 0 18px 25px !important;
+            /* Reduced bottom clearance to sit near Start button */
+            gap: 25px !important;
+            background: transparent !important;
+            width: 850px !important;
+        }
+
+        .nav-tree {
+            flex: 0 0 auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            /* Clip hover effects to block shape */
+            /* Block Styling - Unified */
+            background: linear-gradient(145deg, rgba(15, 64, 131, 0.12), rgba(255, 255, 255, 0.95)) !important;
+            backdrop-filter: blur(25px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+            border: 1.5px solid rgba(15, 64, 131, 0.3) !important;
+            min-width: 240px !important;
+            max-height: calc(100vh - 140px) !important;
+            /* Extend closer to bottom while staying safe */
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(15, 64, 131, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: rgba(15, 64, 131, 0.2) transparent !important;
+        }
+
+            .nav-tree::-webkit-scrollbar {
+                width: 4px !important;
+            }
+
+            .nav-tree::-webkit-scrollbar-thumb {
+                background: rgba(15, 64, 131, 0.2) !important;
+                border-radius: 10px !important;
+            }
+
+        .nav-item {
+            font-weight: 800 !important;
+            padding: 14px 24px !important;
+            font-size: 14px !important;
+            background: transparent !important;
+            border: none !important;
+            color: #0c3d6d !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            width: 100% !important;
+            text-align: left !important;
+            position: relative !important;
+        }
+
+            /* Internal Dividers */
+            .nav-item:not(:first-child) {
+                border-top: 1px solid rgba(15, 64, 131, 0.1) !important;
+            }
+
+            .nav-item i {
+                font-size: 18px !important;
+                color: #1a6fb3 !important;
+                width: 24px !important;
+                text-align: center !important;
+            }
+
+            .nav-item:hover,
+            .nav-item.is-highlight {
+                background: rgba(255, 255, 255, 0.7) !important;
+                color: #084080 !important;
+            }
+
+                .nav-item.is-highlight::after {
+                    content: '' !important;
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 10% !important;
+                    bottom: 10% !important;
+                    width: 4px !important;
+                    background: #4a90e2 !important;
+                    border-radius: 0 4px 4px 0 !important;
+                }
+
+                .nav-item.is-highlight i {
+                    color: #084080 !important;
+                    transform: scale(1.1);
+                }
+
+        .nav-sub-panel {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transform: translateX(-15px) !important;
+            transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            height: auto !important;
+            max-height: 55vh !important;
+            min-width: 380px !important;
+            border-radius: 24px !important;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.15) !important;
+            background: rgba(255, 255, 255, 0.995) !important;
+            border: 1px solid rgba(15, 64, 131, 0.2) !important;
+            padding: 1.75rem !important;
+            margin-left: 10px !important;
+        }
+
+            .legacy-nav__layout:hover .nav-sub-panel,
+            .nav-sub-panel:hover {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: translateX(0) !important;
+            }
+
+        .nav-sub-list {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+        }
+    </style>
+</head>
+
+<body class="copilot-theme" data-page="module-dashboard">
+    <header class="legacy-status-bar"
+            style="background: transparent !important; border: none !important; padding: 0.75rem 2rem !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 1.5rem !important; box-shadow: none !important;">
+        <div class="status-pill" data-current-date
+             style="background: rgba(0,0,0,0.04) !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #4b5563 !important; padding: 0.5rem 1rem !important; border-radius: 20px !important; font-weight: 800 !important; font-size: 0.95rem !important;">
+            Date: @Model.CurrentDate.ToString("dd/MM/yyyy")
+        </div>
+        <div class="status-pill"
+             style="background: rgba(0,0,0,0.04) !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #4b5563 !important; padding: 0.5rem 1rem !important; border-radius: 20px !important; font-weight: 800 !important; font-size: 0.95rem !important;">
+            Bank Name: @Model.BankName
+        </div>
+        <div class="status-pill" data-branch-name
+             style="background: rgba(0,0,0,0.04) !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #4b5563 !important; padding: 0.5rem 1rem !important; border-radius: 20px !important; font-weight: 800 !important; font-size: 0.95rem !important;">
+            Branch: @Model.BranchCode · @Model.BranchName
+        </div>
+        <div class="status-pill"
+             style="background: rgba(0,0,0,0.04) !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #4b5563 !important; padding: 0.5rem 1rem !important; border-radius: 20px !important; font-weight: 800 !important; font-size: 0.95rem !important;">
+            User: <span data-user-name>@Model.UserName</span>
+        </div>
+    </header>
+
+    <div class="legacy-shell" data-shell>
+        <aside class="legacy-nav glass-effect" data-nav-panel>
+            <div class="nav-header">000-<span data-user-name>CSADM</span></div>
+            <div class="legacy-nav__layout">
+                <div class="nav-tree" data-nav-tree>
+                    <button class="nav-item" data-module="customer">
+                        <i class="fas fa-address-card"></i>
+                        <span>Identities</span>
+                    </button>
+                    <button class="nav-item" data-module="account">
+                        <i class="fas fa-wallet"></i>
+                        <span>Account</span>
+                    </button>
+                    <button class="nav-item" data-module="deposit">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Deposit</span>
+                    </button>
+                    <button class="nav-item" data-module="recurring-deposit">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Recurring Deposit</span>
+                    </button>
+                    <button class="nav-item" data-module="limits-collateral">
+                        <i class="fas fa-scale-balanced"></i>
+                        <span>Limits & Collateral</span>
+                    </button>
+                    <button class="nav-item" data-module="workflow-setting">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>Workflow Setting</span>
+                    </button>
+                    <button class="nav-item" data-module="workflow-loan">
+                        <i class="fas fa-file-signature"></i>
+                        <span>Workflow Loan</span>
+                    </button>
+                    <button class="nav-item" data-module="accounts">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Accounts Suite</span>
+                    </button>
+                    <button class="nav-item" data-module="loans">
+                        <i class="fas fa-coins"></i>
+                        <span>Loans</span>
+                    </button>
+                    <button class="nav-item" data-module="overdrafts">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Overdrafts</span>
+                    </button>
+                    <button class="nav-item" data-module="images">
+                        <i class="fas fa-camera"></i>
+                        <span>Images</span>
+                    </button>
+                    <button class="nav-item" data-module="transaction">
+                        <i class="fas fa-money-bill-transfer"></i>
+                        <span>Transaction</span>
+                    </button>
+                    <button class="nav-item" data-module="microfinance">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                        <span>MicroFinance</span>
+                    </button>
+                    <button class="nav-item" data-module="process">
+                        <i class="fas fa-gears"></i>
+                        <span>Process</span>
+                    </button>
+                    <button class="nav-item" data-module="treasury">
+                        <i class="fas fa-building-columns"></i>
+                        <span>Treasury</span>
+                    </button>
+                    <button class="nav-item" data-module="trade-finance">
+                        <i class="fas fa-globe"></i>
+                        <span>Trade Finance</span>
+                    </button>
+                    <button class="nav-item" data-module="fixed-asset">
+                        <i class="fas fa-tags"></i>
+                        <span>FixedAsset</span>
+                    </button>
+                    <button class="nav-item" data-module="other-modules">
+                        <i class="fas fa-ellipsis"></i>
+                        <span>Other Modules</span>
+                    </button>
+                    <button class="nav-item" data-module="general-ledger">
+                        <i class="fas fa-book"></i>
+                        <span>General Ledger</span>
+                    </button>
+                    <button class="nav-item" data-module="product">
+                        <i class="fas fa-cube"></i>
+                        <span>Product</span>
+                    </button>
+                    <button class="nav-item" data-module="charges-rates">
+                        <i class="fas fa-percent"></i>
+                        <span>Charges & Rates</span>
+                    </button>
+                    <button class="nav-item" data-module="static-data">
+                        <i class="fas fa-database"></i>
+                        <span>Static Data</span>
+                    </button>
+                    <button class="nav-item" data-module="system-security">
+                        <i class="fas fa-user-shield"></i>
+                        <span>System Security</span>
+                    </button>
+                    <button class="nav-item" data-module="security">
+                        <i class="fas fa-shield-halved"></i>
+                        <span>Security Access</span>
+                    </button>
+                    <button class="nav-item" data-module="utilities">
+                        <i class="fas fa-screwdriver-wrench"></i>
+                        <span>Utilities</span>
+                    </button>
+                    <button class="nav-item" data-module="system-audit">
+                        <i class="fas fa-history"></i>
+                        <span>System Audit</span>
+                    </button>
+                    <button class="nav-item" data-module="clearing">
+                        <i class="fas fa-check-double"></i>
+                        <span>Clearing</span>
+                    </button>
+                    <button class="nav-item" data-module="swift-rtgs">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>SWIFT & RTGS</span>
+                    </button>
+                    <button class="nav-item" data-module="system-utilities">
+                        <i class="fas fa-gear"></i>
+                        <span>System Utilities</span>
+                    </button>
+                    <button class="nav-item" data-module="system-brnet">
+                        <i class="fas fa-info-circle"></i>
+                        <span>System BR.NET</span>
+                    </button>
+                    <button class="nav-item" data-module="workflow">
+                        <i class="fas fa-route"></i>
+                        <span>Workflow Desk</span>
+                    </button>
+                    <button class="nav-item" data-module="reports">
+                        <i class="fas fa-list-check"></i>
+                        <span>Reports Center</span>
+                    </button>
+                    <div class="nav-divider" aria-hidden="true"></div>
+                    <button class="nav-item" onclick="window.open('http://172.16.2.42:9794/', '_blank')">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Report Writer</span>
+                    </button>
+                </div>
+                <div class="nav-sub-panel bg-transparent">
+                    <p class="nav-subtitle" data-nav-subtitle>Sub Modules</p>
+                    <div class="nav-sub-list" data-nav-sub-list>
+                        <p class="nav-sub-placeholder">Hover over a main module to preview shortcuts.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="legacy-workspace glass-effect" data-workspace
+                 style="padding: 1.25rem 2rem; max-width: 1800px; margin: 0 auto; height: calc(100vh - 140px - 48px); overflow-y: auto; overflow-x: hidden;">
+
+            <!-- Gradient Hero with Dynamic Stats -->
+            <!-- Gradient Hero with Dynamic Stats -->
+            <div class="workspace-hero text-center"
+                 style="position: sticky; top: 0; z-index: 100; background: var(--dash-accent-gradient); padding: 0.75rem 1rem; border-radius: 16px; color: white; margin-bottom: 1rem; box-shadow: 0 5px 20px rgba(0,0,0,0.15);">
+                <div class="workspace-pill"
+                     style="background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); display: inline-flex; padding: 0.25rem 1rem; border-radius: 50px; margin-bottom: 0.5rem; border: 1px solid rgba(255,255,255,0.3); font-size: 0.8rem;">
+                    <span class="pill-icon"><i class="fa-solid fa-bolt" style="color: #fbbf24;"></i></span>
+                    <span style="margin-left: 0.5rem; font-weight: 600;">Nimble 6.2.2 · Command Center</span>
+                </div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; letter-spacing: -0.02em;">
+                    Welcome back,
+                    <span style="background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">@Model.UserName</span>!
+                </h1>
+                <p style="font-size: 0.85rem; opacity: 0.95; max-width: 700px; margin: 0 auto 0.75rem; font-weight: 400;">
+                    Your
+                    cooperative achieved <strong>@Model.OperationalEfficiency operational efficiency</strong> this month.
+                </p>
+
+                <!-- Quick Stats Row -->
+                <div class="row g-3" style="max-width: 900px; margin: 0 auto;">
+                    <div class="col-3">
+                        <div style="background: rgba(255,255,255,0.15); padding: 0.6rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.15rem;">254</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9;">Members</div>
+                            <div style="margin-top: 0.35rem;">
+                                <i class="fas fa-arrow-up"
+                                   style="color: #10b981; font-size: 0.75rem;"></i> <span style="font-size: 0.75rem;">+18</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div style="background: rgba(255,255,255,0.15); padding: 0.6rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.15rem;">70.68M</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9;">Total Assets</div>
+                            <div style="margin-top: 0.35rem;">
+                                <i class="fas fa-arrow-up"
+                                   style="color: #10b981; font-size: 0.75rem;"></i> <span style="font-size: 0.75rem;">+4.3%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div style="background: rgba(255,255,255,0.15); padding: 0.6rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.15rem;">482</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9;">Transactions</div>
+                            <div style="margin-top: 0.35rem;">
+                                <i class="fas fa-chart-line"
+                                   style="color: #10b981; font-size: 0.75rem;"></i> <span style="font-size: 0.75rem;">Peak 11AM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div style="background: rgba(255,255,255,0.15); padding: 0.6rem; border-radius: 12px; backdrop-filter: blur(10px);">
+                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.15rem;">20.00K</div>
+                            <div style="font-size: 0.75rem; opacity: 0.9;">Today's Volume</div>
+                            <div style="margin-top: 0.35rem;">
+                                <i class="fas fa-clock" style="color: #fbbf24; font-size: 0.75rem;"></i>
+                                <span style="font-size: 0.75rem;">1h 12m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Grid -->
+            <div class="row g-4">
+
+                <!-- LEFT COLUMN: Portfolio & Activity -->
+                <div class="col-lg-8">
+
+                    <!-- Financial Overview Panel -->
+                    <div class="feature-panel" style="margin-bottom: 1rem; border-radius: 16px; padding: 1.25rem;">
+                        <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 1rem;">
+                            <div>
+                                <p class="panel-eyebrow"
+                                   style="color: var(--dash-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                    Financial Overview
+                                </p>
+                                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dash-text); margin: 0;">
+                                    Portfolio
+                                    Performance
+                                </h3>
+                            </div>
+                            <div class="btn-group" role="group" style="background: #f3f4f6; padding: 0.25rem; border-radius: 10px;">
+                                <button type="button" class="btn btn-sm"
+                                        style="background: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                    Today
+                                </button>
+                                <button type="button" class="btn btn-sm"
+                                        style="background: transparent; border: none; padding: 0.5rem 1rem; color: #6b7280; font-weight: 600; font-size: 0.875rem;">
+                                    Week
+                                </button>
+                                <button type="button" class="btn btn-sm"
+                                        style="background: transparent; border: none; padding: 0.5rem 1rem; color: #6b7280; font-weight: 600; font-size: 0.875rem;">
+                                    Month
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div style="padding: 0.875rem; border-radius: 12px; background: linear-gradient(135deg, #667eea15 0%, #764ba220 100%); border: 1px solid #667eea30;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                        <span style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Loan Portfolio</span>
+                                        <i class="fas fa-coins" style="color: var(--color-primary, #6366f1); font-size: 1.25rem;"></i>
+                                    </div>
+                                    <div style="font-size: 1.35rem; font-weight: 700; color: #1f2937; margin-bottom: 0.35rem;">45.2M</div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="background: #10b98120; color: #059669; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                                            <i class="fas fa-arrow-up"></i> 2.8%
+                                        </span>
+                                        <span style="color: #9ca3af; font-size: 0.75rem;">vs last month</span>
+                                    </div>
+                                    <!-- Mini trend line -->
+                                    <div style="margin-top: 0.65rem; height: 30px; background: linear-gradient(to right, #667eea30, #667eea10); border-radius: 6px; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: linear-gradient(to top, #667eea50, transparent);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="padding: 1.25rem; border-radius: 14px; background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.1); border: 1px solid var(--dash-card-border);">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                        <span style="color: var(--dash-muted); font-size: 0.875rem; font-weight: 600;">Deposits</span>
+                                        <i class="fas fa-piggy-bank" style="color: var(--dash-accent); font-size: 1.25rem;"></i>
+                                    </div>
+                                    <div style="font-size: 1.75rem; font-weight: 700; color: var(--dash-text); margin-bottom: 0.5rem;">
+                                        62.1M
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="background: #10b98120; color: #059669; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                                            <i class="fas fa-arrow-up"></i> 5.1%
+                                        </span>
+                                        <span style="color: #9ca3af; font-size: 0.75rem;">vs last month</span>
+                                    </div>
+                                    <div style="margin-top: 1rem; height: 40px; background: linear-gradient(to right, #10b98130, #10b98110); border-radius: 8px; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 85%; background: linear-gradient(to top, #10b98150, transparent);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="padding: 1.25rem; border-radius: 14px; background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.1); border: 1px solid var(--dash-card-border);">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                        <span style="color: var(--dash-muted); font-size: 0.875rem; font-weight: 600;">NPL Ratio</span>
+                                        <i class="fas fa-chart-pie" style="color: var(--dash-accent); font-size: 1.25rem;"></i>
+                                    </div>
+                                    <div style="font-size: 1.75rem; font-weight: 700; color: var(--dash-text); margin-bottom: 0.5rem;">
+                                        2.4%
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="background: #10b98120; color: #059669; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                                            <i class="fas fa-arrow-down"></i> 0.3%
+                                        </span>
+                                        <span style="color: #9ca3af; font-size: 0.75rem;">improvement</span>
+                                    </div>
+                                    <div style="margin-top: 1rem; height: 40px; background: linear-gradient(to right, #f59e0b30, #f59e0b10); border-radius: 8px; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 30%; background: linear-gradient(to top, #f59e0b50, transparent);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div style="padding: 1.25rem; border-radius: 14px; background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.1); border: 1px solid var(--dash-card-border);">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                        <span style="color: var(--dash-muted); font-size: 0.875rem; font-weight: 600;">
+                                            Active
+                                            Accounts
+                                        </span>
+                                        <i class="fas fa-users" style="color: var(--dash-accent); font-size: 1.25rem;"></i>
+                                    </div>
+                                    <div style="font-size: 1.75rem; font-weight: 700; color: var(--dash-text); margin-bottom: 0.5rem;">
+                                        1,248
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="background: #3b82f620; color: #2563eb; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                                            <i class="fas fa-minus"></i> Stable
+                                        </span>
+                                        <span style="color: #9ca3af; font-size: 0.75rem;">no change</span>
+                                    </div>
+                                    <div style="margin-top: 1rem; height: 40px; background: linear-gradient(to right, #3b82f630, #3b82f610); border-radius: 8px; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, #3b82f650, transparent);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed & Transaction Heatmap -->
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <div class="feature-panel"
+                                 style="height: 340px; border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column;">
+                                <div style="margin-bottom: 0.875rem;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="panel-eyebrow"
+                                               style="color: var(--dash-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                                Real-time Updates
+                                            </p>
+                                            <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--dash-text); margin: 0;">
+                                                Activity
+                                                Stream
+                                            </h4>
+                                        </div>
+                                        <span style="background: #10b98120; color: #059669; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                            <span style="display: inline-block; width: 6px; height: 6px; background: #10b981; border-radius: 50%; margin-right: 0.5rem; animation: pulse 2s infinite;"></span>
+                                            Live
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto;">
+                                    <div style="display: flex; gap: 1rem; padding: 1rem; border-radius: 12px; background: #f9fafb; margin-bottom: 0.75rem; border-left: 3px solid #10b981;">
+                                        <div style="flex-shrink: 0; width: 40px; height: 40px; background: #10b98120; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-check-circle" style="color: #10b981; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                                Maker-checker queue cleared
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 0.8125rem; margin: 0;">
+                                                08:45 AM · Treasury Desk · 9
+                                                approvals
+                                                processed
+                                            </p>
+                                        </div>
+                                        <span style="color: #9ca3af; font-size: 0.75rem; white-space: nowrap;">2m ago</span>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; padding: 1rem; border-radius: 12px; background: #f9fafb; margin-bottom: 0.75rem; border-left: 3px solid #3b82f6;">
+                                        <div style="flex-shrink: 0; width: 40px; height: 40px; background: #3b82f620; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-users" style="color: #3b82f6; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                                New
+                                                group onboarding complete
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 0.8125rem; margin: 0;">
+                                                10:12 AM · Sunrise Sacco · 38
+                                                members
+                                                imported successfully
+                                            </p>
+                                        </div>
+                                        <span style="color: #9ca3af; font-size: 0.75rem; white-space: nowrap;">15m ago</span>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; padding: 1rem; border-radius: 12px; background: #f9fafb; margin-bottom: 0.75rem; border-left: 3px solid #f59e0b;">
+                                        <div style="flex-shrink: 0; width: 40px; height: 40px; background: #f59e0b20; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                                Limit
+                                                review pending attention
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 0.8125rem; margin: 0;">
+                                                11:03 AM · Wholesale credit · SLA
+                                                compliance at 78%
+                                            </p>
+                                        </div>
+                                        <span style="color: #9ca3af; font-size: 0.75rem; white-space: nowrap;">28m ago</span>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; padding: 1rem; border-radius: 12px; background: #f9fafb; margin-bottom: 0.75rem; border-left: 3px solid #06b6d4;">
+                                        <div style="flex-shrink: 0; width: 40px; height: 40px; background: #06b6d420; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-sync" style="color: #06b6d4; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                                Cash
+                                                reconciliation complete
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 0.8125rem; margin: 0;">
+                                                09:30 AM · Branch 0105 · Zero
+                                                variance
+                                                detected
+                                            </p>
+                                        </div>
+                                        <span style="color: #9ca3af; font-size: 0.75rem; white-space: nowrap;">45m ago</span>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; padding: 1rem; border-radius: 12px; background: #f9fafb; margin-bottom: 0.75rem; border-left: 3px solid #8b5cf6;">
+                                        <div style="flex-shrink: 0; width: 40px; height: 40px; background: #8b5cf620; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-bolt" style="color: #8b5cf6; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <p style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                                Batch
+                                                processing finished
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 0.8125rem; margin: 0;">
+                                                07:15 AM · Interest posting · 1,248
+                                                accounts updated
+                                            </p>
+                                        </div>
+                                        <span style="color: #9ca3af; font-size: 0.75rem; white-space: nowrap;">1h ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="feature-panel"
+                                 style="height: 340px; border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column;">
+                                <div style="margin-bottom: 0.875rem;">
+                                    <p class="panel-eyebrow"
+                                       style="color: var(--dash-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                        System Health
+                                    </p>
+                                    <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--dash-text); margin: 0;">
+                                        Performance
+                                        Radar
+                                    </h4>
+                                </div>
+
+                                <!-- Circular Progress -->
+                                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                    <div style="position: relative; width: 140px; height: 140px; margin-bottom: 1.25rem;">
+                                        <svg style="transform: rotate(-90deg);" width="140" height="140">
+                                            <circle cx="70" cy="70" r="60" fill="none" stroke="#e5e7eb" stroke-width="10"></circle>
+                                            <circle cx="70" cy="70" r="60" fill="none" stroke="url(#gradient)" stroke-width="10"
+                                                    stroke-dasharray="377" stroke-dashoffset="23" stroke-linecap="round"></circle>
+                                            <defs>
+                                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                            <div style="font-size: 2.5rem; font-weight: 800; color: #1f2937;">94%</div>
+                                            <div style="font-size: 0.875rem; color: #6b7280; font-weight: 600;">Uptime</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Health Indicators -->
+                                    <div style="width: 100%;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.875rem; border-radius: 10px; background: #f9fafb; margin-bottom: 0.5rem;">
+                                            <div>
+                                                <div style="font-weight: 600; color: #1f2937; font-size: 0.9375rem;">Payments Mesh</div>
+                                                <div style="font-size: 0.8125rem; color: #6b7280;">Latency 142ms</div>
+                                            </div>
+                                            <span style="background: #10b981; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Green</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.875rem; border-radius: 10px; background: #f9fafb; margin-bottom: 0.5rem;">
+                                            <div>
+                                                <div style="font-weight: 600; color: #1f2937; font-size: 0.9375rem;">Loan Origination</div>
+                                                <div style="font-size: 0.8125rem; color: #6b7280;">Queue: 6 pending</div>
+                                            </div>
+                                            <span style="background: #f59e0b; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Watch</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.875rem; border-radius: 10px; background: #f9fafb;">
+                                            <div>
+                                                <div style="font-weight: 600; color: #1f2937; font-size: 0.9375rem;">Account Factory</div>
+                                                <div style="font-size: 0.8125rem; color: #6b7280;">Cache refresh 12m</div>
+                                            </div>
+                                            <span style="background: #3b82f6; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Sync</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Quick Actions & Insights -->
+                <div class="col-lg-4">
+
+                    <!-- Quick Actions Command Palette (Dynamic) -->
+                    <div class="feature-panel command-center"
+                         style="margin-bottom: 1rem; border-radius: 16px; padding: 1.25rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                        <div class="d-flex justify-content-between align-items-start" style="margin-bottom: 1rem;">
+                            <div>
+                                <p style="color: var(--dash-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                                    Command Center
+                                </p>
+                                <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Quick Actions</h4>
+                            </div>
+                            <button class="btn-customize" onclick="openQuickActionCustomizer()" title="Customize Quick Actions">
+                                <i class="fas fa-cog me-1"></i> Customize
+                            </button>
+                        </div>
+                        <div id="quickActionsGrid" class="row g-2">
+                            <!-- Dynamically populated -->
+                            <div class="col-12 text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-light opacity-50" role="status"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn w-100" onclick="window.openQuickAction('generateReportsModal')"
+                                    style="background: var(--dash-accent-gradient); border: none; color: white; padding: 0.75rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+                                <i class="fas fa-file-invoice me-2"></i> Generate Reports
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Critical Alerts -->
+                    <div class="feature-panel" style="margin-bottom: 1rem; border-radius: 16px; padding: 1.25rem;">
+                        <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0.875rem;">
+                            <div>
+                                <p class="panel-eyebrow"
+                                   style="color: var(--dash-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                    Notifications
+                                </p>
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--dash-text); margin: 0;">
+                                    Action Required
+                                </h4>
+                            </div>
+                            <span style="background: #dc262620; color: #dc2626; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">3</span>
+                        </div>
+                        <div>
+                            <div style="padding: 0.875rem; border-radius: 10px; background: #fff7ed; border-left: 3px solid #f59e0b; margin-bottom: 0.5rem;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <i class="fas fa-exclamation-triangle"
+                                       style="color: #f59e0b; font-size: 1.25rem; flex-shrink: 0;"></i>
+                                    <div style="flex: 1;">
+                                        <p style="font-weight: 600; color: #92400e; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                            Pending
+                                            Approvals
+                                        </p>
+                                        <p style="color: #78350f; font-size: 0.8125rem; margin: 0;">
+                                            12 transactions awaiting your
+                                            authorization
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="padding: 0.875rem; border-radius: 10px; background: #eff6ff; border-left: 3px solid #3b82f6; margin-bottom: 0.5rem;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <i class="fas fa-info-circle" style="color: #3b82f6; font-size: 1.25rem; flex-shrink: 0;"></i>
+                                    <div style="flex: 1;">
+                                        <p style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                            EOD
+                                            Processing
+                                        </p>
+                                        <p style="color: #1e3a8a; font-size: 0.8125rem; margin: 0;">Scheduled for 6:00 PM today</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="padding: 0.875rem; border-radius: 10px; background: #ecfdf5; border-left: 3px solid #10b981;">
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 1.25rem; flex-shrink: 0;"></i>
+                                    <div style="flex: 1;">
+                                        <p style="font-weight: 600; color: #065f46; margin-bottom: 0.25rem; font-size: 0.9375rem;">
+                                            System
+                                            Backup
+                                        </p>
+                                        <p style="color: #047857; font-size: 0.8125rem; margin: 0;">
+                                            Last successful backup: 2 hours ago
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loan Pipeline -->
+                    <div class="feature-panel" style="border-radius: 16px; padding: 1.25rem;">
+                        <div style="margin-bottom: 0.875rem;">
+                            <p class="panel-eyebrow"
+                               style="color: var(--dash-muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                                Credit Operations
+                            </p>
+                            <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--dash-text); margin: 0;">Loan Pipeline</h4>
+                        </div>
+                        <div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: var(--dash-muted);">Applications</span>
+                                    <span style="font-size: 0.875rem; font-weight: 700; color: var(--dash-text);">24</span>
+                                </div>
+                                <div style="height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                    <div style="width: 85%; height: 100%; background: linear-gradient(to right, #667eea, #764ba2); border-radius: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Appraisal</span>
+                                    <span style="font-size: 0.875rem; font-weight: 700; color: #1f2937;">18</span>
+                                </div>
+                                <div style="height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                    <div style="width: 65%; height: 100%; background: linear-gradient(to right, #10b981, #059669); border-radius: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Approval</span>
+                                    <span style="font-size: 0.875rem; font-weight: 700; color: #1f2937;">12</span>
+                                </div>
+                                <div style="height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                    <div style="width: 45%; height: 100%; background: linear-gradient(to right, #3b82f6, #2563eb); border-radius: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Disbursement</span>
+                                    <span style="font-size: 0.875rem; font-weight: 700; color: #1f2937;">6</span>
+                                </div>
+                                <div style="height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                    <div style="width: 25%; height: 100%; background: linear-gradient(to right, #f59e0b, #d97706); border-radius: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <!-- Modals -->
+    <div id="karioModalContainer"></div>
+
+    <!-- AI Assistant Chat Window -->
+    <div id="aiAssistantWindow"
+         style="position: fixed; bottom: 60px; right: 10px; width: 400px; height: 550px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; z-index: 20000; border: 1px solid rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="background: var(--dash-accent-gradient); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                    <i class="fas fa-robot" style="color: white; font-size: 1.25rem;"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 1.125rem; font-weight: 700; color: white;">AI Assistant</h4>
+                    <p style="margin: 0; font-size: 0.75rem; color: rgba(255,255,255,0.85);">
+                        <span style="display: inline-block; width: 6px; height: 6px; background: #10b981; border-radius: 50%; margin-right: 0.35rem; animation: pulse 2s infinite;"></span>
+                        Online
+                    </p>
+                </div>
+            </div>
+            <button id="closeAiAssistant"
+                    style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="aiChatMessages"
+             style="flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);">
+            <!-- Welcome Message -->
+            <div style="display: flex; gap: 0.75rem; animation: slideInLeft 0.4s ease-out;">
+                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-robot" style="color: white; font-size: 1rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba220 100%); padding: 1rem 1.25rem; border-radius: 16px; border-top-left-radius: 4px; border: 1px solid #667eea30;">
+                        <p style="margin: 0; color: #1f2937; font-size: 0.9375rem; line-height: 1.6;">
+                            Hello! 👋 I'm your AI banking assistant. I can help you with:
+                        </p>
+                        <ul style="margin: 0.75rem 0 0 0; padding-left: 1.25rem; color: #4b5563; font-size: 0.875rem;">
+                            <li>Opening modules and navigating the system</li>
+                            <li>Searching for customer details</li>
+                            <li>Generating reports and analytics</li>
+                            <li>Answering questions about your data</li>
+                        </ul>
+                    </div>
+                    <span style="color: #9ca3af; font-size: 0.75rem; margin-top: 0.5rem; display: block;">Just now</span>
+                </div>
+            </div>
+
+            <!-- Sample AI Suggestion -->
+            <div style="display: flex; gap: 0.75rem; animation: slideInLeft 0.5s ease-out;">
+                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-lightbulb" style="color: white; font-size: 1rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.1); padding: 1rem 1.25rem; border-radius: 16px; border-top-left-radius: 4px; border: 1px solid var(--dash-card-border);">
+                        <p style="margin: 0; color: var(--dash-text); font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.5rem;">
+                            Quick
+                            Actions:
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            <button onclick="sendAiMessage('Open Customer Maintenance')"
+                                    style="background: var(--dash-card-bg); border: 1px solid var(--dash-card-border); color: var(--dash-text); padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-users" style="margin-right: 0.35rem; color: var(--dash-accent);"></i>Customer
+                                Maintenance
+                            </button>
+                            <button onclick="sendAiMessage('Search for customer')"
+                                    style="background: var(--dash-card-bg); border: 1px solid var(--dash-card-border); color: var(--dash-text); padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-search" style="margin-right: 0.35rem; color: var(--dash-accent);"></i>Search Customer
+                            </button>
+                            <button onclick="sendAiMessage('Generate loan portfolio report')"
+                                    style="background: var(--dash-card-bg); border: 1px solid var(--dash-card-border); color: var(--dash-text); padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-chart-bar" style="margin-right: 0.35rem; color: var(--dash-accent);"></i>Generate
+                                Report
+                            </button>
+                        </div>
+                    </div>
+                    <span style="color: #9ca3af; font-size: 0.75rem; margin-top: 0.5rem; display: block;">Just now</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div style="padding: 1.25rem; background: var(--dash-card-bg); border-top: 1px solid var(--dash-card-border); backdrop-filter: blur(10px);">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <input id="aiChatInput" type="text" placeholder="Ask me anything..."
+                       style="flex: 1; padding: 0.875rem 1.125rem; background: var(--dash-panel-bg); color: var(--dash-text); border: 2px solid var(--dash-card-border); border-radius: 12px; font-size: 0.9375rem; outline: none; transition: all 0.2s;" />
+                <button id="sendAiMessage"
+                        style="background: var(--dash-accent-gradient); border: none; color: white; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p style="margin: 0.75rem 0 0 0; color: #9ca3af; font-size: 0.75rem; text-align: center;">
+                Powered by AI • Available 24/7
+            </p>
+        </div>
+    </div>
+
+    <!-- AI Assistant Floating Button -->
+    <!-- Start Menu -->
+    <!-- Start Menu -->
+    <div id="startMenu" class="glass-panel"
+         style="position: fixed; bottom: 60px; left: 10px; width: 680px; height: 550px; background: var(--dash-panel-bg); backdrop-filter: blur(25px); border-radius: 12px; border: 1px solid var(--dash-card-border); box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: none; flex-direction: column; z-index: 2147483647; overflow: hidden; animation-duration: 0.25s; padding: 0; font-family: 'Inter', sans-serif;">
+
+        <!-- Header -->
+        <div style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: var(--dash-accent-gradient); box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <div class="search-box" style="position: relative;">
+                <i class="fas fa-search"
+                   style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: white; opacity: 0.8;"></i>
+                <input type="text" placeholder="Search for Modules, Customers, Reports..." id="startMenuSearch"
+                       autocomplete="off" spellcheck="false"
+                       style="width: 100%; padding: 10px 14px 10px 42px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white; outline: none; transition: all 0.2s; font-size: 0.9rem; backdrop-filter: blur(5px);">
+            </div>
+        </div>
+
+        <!-- Content Area (Switchable) -->
+        <div id="startMenuContent"
+             style="flex: 1; overflow-y: auto; padding: 0.5rem 2rem 1.5rem 2rem; scrollbar-width: thin; overscroll-behavior: contain;">
+
+            <!-- Main Grid View -->
+            <div id="startMenuMainView">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-top: 1rem;">
+                    <h6 style="margin: 0; font-weight: 700; color: var(--dash-text); font-size: 0.9rem;">Pinned Modules</h6>
+                    <button style="background: var(--dash-card-bg); border: 1px solid var(--dash-card-border); padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; color: var(--dash-text); cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        All apps <i class="fas fa-chevron-right" style="font-size: 0.6rem;"></i>
+                    </button>
+                </div>
+
+                <div id="startMenuGrid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; row-gap: 20px;">
+                    <!-- Generated by JS -->
+                    <!-- Generated by C#-->
+                    @foreach (var mainmodule in Model.StartMenu.MainModules)
+                    {
+                        var submenuJson = JsonSerializer.Serialize(Model.StartMenu.MenuItems.Where(m => m.ParentMenuModuleID is null && m.MainModuleID == mainmodule.MainModuleID).Select(mm => new
+                        {
+                            mm.MainModuleID,
+                            mm.MenuDescription,
+                            mm.MenuURL,
+                            mm.ModuleIcon,
+                            mm.ModuleID,
+                            MainModuleDescription = mainmodule.Description
+                        }));
+                        <div class="module-card" data-module-id="@mainmodule.MainModuleID" onclick='javascript:return showSubmenu(@Html.Raw(submenuJson))'>
+                            @Html.Raw(mainmodule.MainModuleIcon)
+                            <span class="module-title">@mainmodule.Description</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Submenu View (Hidden by default) -->
+            <div id="startMenuSubmenu" style="display: none; height: 100%; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: rgba(255,255,255,0.95); z-index: 10;">
+                    <button id="backToGrid"
+                            style="background: none; border: none; cursor: pointer; color: #4b5563; padding: 6px; border-radius: 50%; transition: background 0.2s;">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h6 id="submenuTitle" style="margin: 0; font-weight: 700; color: #1f2937; font-size: 1rem;">Module Name</h6>
+                </div>
+                <div id="submenuList" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Search Results View (Hidden by default) -->
+            <div id="startMenuSearchResults" style="display: none; flex-direction: column; height: 100%;">
+                <h6 style="margin: 0 0 1rem 0; font-weight: 700; color: #1f2937; font-size: 0.9rem;">Search Results</h6>
+                <div id="startMenuSearchResultsList"
+                     style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; overscroll-behavior: contain;">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div id="startMenuFooter"
+             style="background: var(--dash-card-bg); border-top: 1px solid var(--dash-card-border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 12px; border-radius: 6px; transition: background 0.2s;"
+                 class="hover-bg">
+                <div style="width: 32px; height: 32px; background: var(--dash-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.9rem;">
+                    U
+                </div>
+                <span style="font-weight: 600; font-size: 0.85rem; color: var(--dash-text);">User: @Model.UserName</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+                <button onclick="window.location.reload()" title="Refresh"
+                        style="width: 36px; height: 36px; border: none; background: transparent; border-radius: 6px; color: var(--dash-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;"
+                        class="hover-bg">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button data-logout title="Sign out"
+                        style="width: 36px; height: 36px; border: none; background: transparent; border-radius: 6px; color: var(--dash-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;"
+                        class="hover-bg">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+        .hover-bg:hover {
+            background: rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .module-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            cursor: pointer;
+            padding: 10px 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .module-card:hover {
+                background: var(--dash-card-bg);
+                border: 1px solid var(--dash-card-border);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                transform: translateY(-2px);
+            }
+
+            .module-card:active {
+                transform: scale(0.96);
+            }
+
+        .module-icon {
+            font-size: 1.4rem;
+            color: var(--dash-accent);
+            margin-bottom: 2px;
+        }
+
+        .module-title {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--dash-text);
+            line-height: 1.25;
+            word-break: break-word;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            background: none;
+            border: none;
+            width: 100%;
+            color: var(--dash-text);
+            font-size: 0.9rem;
+            border-bottom: 1px solid transparent;
+        }
+
+            .submenu-item:hover {
+                background: var(--dash-card-bg);
+                border: 1px solid var(--dash-card-border);
+                color: var(--dash-accent);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+
+            .submenu-item i {
+                width: 20px;
+                text-align: center;
+                color: var(--dash-accent);
+                font-size: 1rem;
+            }
+
+        /* Theme Variables Integration */
+        :root {
+            /* Default Premium Dark Theme (Fallback) */
+            --dash-panel-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            --dash-card-bg: rgba(255, 255, 255, 0.08);
+            --dash-card-border: rgba(255, 255, 255, 0.15);
+            --dash-text: #ffffff;
+            --dash-muted: rgba(255, 255, 255, 0.6);
+            --dash-accent: #6366f1;
+            --dash-accent-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        /* Override with Global Theme if defined */
+        body {
+            /* Use theme background if available, otherwise dark gradient */
+            --dash-panel-bg: var(--copilot-bg-gradient, linear-gradient(135deg, #1f2937 0%, #111827 100%));
+            /* Adapt text color to theme - CRITICAL FIX */
+            --dash-text: var(--color-text, #ffffff);
+            --dash-muted: var(--color-label-optional, rgba(255, 255, 255, 0.6));
+            /* Adapt accent colors */
+            --dash-accent: var(--color-primary, #6366f1);
+            --dash-accent-gradient: linear-gradient(135deg, var(--color-primary, #6366f1) 0%, var(--color-header, #4f46e5) 100%);
+            /* Adapt cards and borders */
+            --dash-card-bg: var(--theme-bg-card, rgba(255, 255, 255, 0.08));
+            --dash-card-border: var(--color-border, rgba(255, 255, 255, 0.15));
+        }
+
+        /* Extra safety: if dash-text is too light on a light background,
+                                                                                                                                                       ensure it stays visible. But --color-text should handle this. */
+
+        .feature-panel {
+            background: var(--theme-bg-card, #ffffff) !important;
+            color: var(--dash-text, #1e293b) !important;
+            border: 1px solid var(--dash-card-border, rgba(0, 0, 0, 0.05)) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+            transition: all 0.3s ease;
+        }
+
+            .feature-panel.command-center {
+                background: var(--dash-panel-bg) !important;
+                color: var(--dash-text) !important;
+                border: 1px solid var(--dash-card-border) !important;
+                transition: all 0.3s ease;
+            }
+
+        .quick-action-btn {
+            background: var(--dash-card-bg) !important;
+            border: 1px solid var(--dash-card-border) !important;
+            color: var(--dash-text) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+            .quick-action-btn:hover {
+                background: var(--dash-accent-gradient) !important;
+                border-color: var(--dash-accent) !important;
+                color: #ffffff !important;
+                /* Always white on accent background */
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+                .quick-action-btn:hover i,
+                .quick-action-btn:hover span {
+                    color: #ffffff !important;
+                }
+
+            .quick-action-btn i {
+                color: var(--dash-accent) !important;
+                transition: transform 0.25s ease;
+            }
+
+            .quick-action-btn:hover i {
+                transform: scale(1.1);
+            }
+
+        .btn-customize {
+            color: var(--dash-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            border: 1px solid var(--dash-card-border);
+            background: var(--dash-card-bg);
+        }
+
+            .btn-customize:hover {
+                background: var(--dash-accent);
+                color: white !important;
+                border-color: var(--dash-accent);
+            }
+
+        /* AI Assistant Theme Support */
+        #aiAssistantWindow {
+            background: var(--dash-panel-bg) !important;
+            border: 1px solid var(--dash-card-border) !important;
+            color: var(--dash-text) !important;
+        }
+
+        #sendAiMessage {
+            background: var(--dash-accent-gradient) !important;
+        }
+
+        .user-msg-bubble {
+            background: var(--dash-accent-gradient) !important;
+            color: #ffffff !important;
+        }
+
+        /* Scrollbar Styling */
+        #startMenuContent::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #startMenuContent::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #startMenuContent::-webkit-scrollbar-thumb {
+            background: var(--dash-muted);
+            border-radius: 3px;
+        }
+
+            #startMenuContent::-webkit-scrollbar-thumb:hover {
+                background: var(--dash-accent);
+            }
+
+        #startMenuSearch::placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+    </style>
+
+    <!-- System Taskbar -->
+    <footer id="systemTaskbar"
+            style="position: fixed; bottom: 0; left: 0; width: 100%; height: 48px; background: #1f2937; color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; z-index: 2147483646; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
+        <!-- Start Button -->
+        <button id="startButton"
+                style="background: transparent; border: none; color: white; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 4px; transition: background 0.2s;">
+            <i class="fab fa-windows" style="font-size: 1.2rem; color: #60a5fa;"></i>
+            <span style="font-weight: 600; font-size: 0.9rem;">Start</span>
+        </button>
+
+        <!-- Taskbar Separator & Apps -->
+        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.15); margin: 0 0.5rem;"></div>
+        <div id="taskbarApps" class="d-flex align-items-center flex-grow-1 gap-2 px-1"
+             style="overflow-x: auto; scrollbar-width: none;"></div>
+
+        <!-- Right Tray -->
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <!-- AI Assistant Trigger -->
+            <button id="aiAssistantTaskbarButton"
+                    style="background: transparent; border: none; color: white; display: flex; align-items: center; justify-content: center; width: 40px; height: 100%; padding: 0.5rem; border-radius: 4px; transition: background 0.2s; position: relative;">
+                <i class="fas fa-robot" style="font-size: 1.1rem; color: #a78bfa;"></i>
+                <span style="position: absolute; bottom: 4px; right: 4px; width: 8px; height: 8px; background: #10b981; border-radius: 50%; border: 1px solid #1f2937;"></span>
+            </button>
+
+            <!-- Date/Time Display -->
+            <div id="taskbarTime"
+                 style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; padding: 0 0.5rem; cursor: default; line-height: 1.1; min-width: 80px;">
+                <div id="currentTime" style="font-size: 0.85rem; font-weight: 500;">--:--</div>
+                <div id="currentDate" style="font-size: 0.75rem; color: #9ca3af;">--/--/--</div>
+            </div>
+
+            <!-- Show Desktop -->
+            <div style="width: 4px; height: 24px; background: #4b5563; margin-left: 0.5rem; opacity: 0.5;"></div>
+        </div>
+    </footer>
+    @* 
+  <style type="text/css" rel="stylesheet" >
+    #startButton:hover,
+    #aiAssistantTaskbarButton:hover,
+    #taskbarTime:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+    }
+  </style> *@
+
+    <style>
+        /* Taskbar App Button Styles */
+        .taskbar-app-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e5e7eb;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .taskbar-app-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .taskbar-app-btn.active-window {
+                background: rgba(255, 255, 255, 0.25);
+                border-color: rgba(255, 255, 255, 0.4);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            }
+
+            .taskbar-app-btn.minimized {
+                opacity: 0.6;
+                background: transparent;
+                border-color: transparent;
+            }
+
+            .taskbar-app-btn i {
+                color: #818cf8;
+            }
+
+        /* Minimize Button in Modal */
+        .btn-minimize {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            transition: color 0.2s;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .btn-minimize:hover {
+                color: #374151;
+            }
+    </style>
+
+    <!-- AI Assistant Styles and Scripts -->
+    @*  <style>
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    #aiAssistantButton:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+    }
+
+    #aiAssistantButton:active {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    #closeAiAssistant:hover {
+      background: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    #aiChatInput:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    #sendAiMessage:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    #aiChatMessages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #aiChatMessages::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 10px;
+    }
+
+    #aiChatMessages::-webkit-scrollbar-thumb {
+      background: var(--dash-accent-gradient);
+      border-radius: 10px;
+    }
+
+    #aiChatMessages::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    /* Quick action button hover */
+    #aiChatMessages button:hover {
+      background: #f3f4f6 !important;
+      border-color: #667eea !important;
+      color: #667eea !important;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    }
+  </style>
+ *@
+
+
+    <script type="text/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/js/app.js"></script>
+
+    <script type="text/javascript" src="/js/modules/dashboard/dashboard.js"></script>
+</body>
+
+</html>

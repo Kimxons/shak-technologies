@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Repayment Accounts · Data Entry</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css" />
+  <style>
+    /* Grid styling matching Loan Collaterals */
+    .lra-grid {
+      border: 1px solid rgba(74, 163, 223, 0.55);
+      background: #ffffff;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+    .lra-grid .table-responsive {
+      max-height: 300px;
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+    .lra-grid table {
+      width: auto;
+      min-width: 100%;
+      table-layout: auto;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .lra-grid thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1f2937;
+      background: #f1f5f9;
+      border-bottom: 1px solid rgba(74, 163, 223, 0.35);
+      vertical-align: middle;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .lra-grid tbody td {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .lra-grid tbody tr {
+      cursor: pointer;
+    }
+    .lra-grid tbody tr.is-selected,
+    .lra-grid tbody tr.table-active {
+      background-color: #cfe2ff !important;
+      outline: 2px solid rgba(11, 99, 181, 0.55);
+      outline-offset: -2px;
+    }
+    .lra-grid tbody tr:hover:not(.is-selected):not(.table-active) {
+      background-color: #e9ecef;
+    }
+    .lra-col-check { width: 130px; min-width: 130px; }
+    .lra-col-accountid { width: 180px; min-width: 180px; }
+    .lra-col-accountname { min-width: 220px; }
+    .lra-col-main { width: 160px; min-width: 160px; }
+    .lra-col-order { width: 120px; min-width: 120px; }
+    /* Hidden by default states */
+    .lra-hidden { display: none; }
+  </style>
+</head>
+
+<body class="loan-maintenance-sub copilot-theme" data-page="loan-maintenance-sub">
+  <main class="lm-subpage" aria-label="Repayment Accounts">
+    <section class="card-surface lra-shell" data-lra-root aria-label="Repayment Accounts">
+      <div class="lra-body">
+        <section class="lra-content" aria-label="Content">
+          <!-- Repayment Account Details Section -->
+          <section class="lra-top" aria-label="Repayment Account Details">
+            <div class="lm-section-header">Repayment Account Details</div>
+            <div class="container-fluid px-2 py-2">
+              <div class="lra-details">
+                <!-- Is Repayment Account Checkbox -->
+                <div class="lra-check">
+                  <input class="form-check-input" type="checkbox" id="IsRepaymentAccount" name="IsRepaymentAccount" disabled />
+                  <label class="form-check-label" for="IsRepaymentAccount">Is Repayment Account</label>
+                </div>
+                <!-- Is Main Repayment Account Checkbox -->
+                <div class="lra-check">
+                  <input class="form-check-input" type="checkbox" id="IsMainRepaymentAccount" name="IsMainRepaymentAccount" disabled />
+                  <label class="form-check-label" for="IsMainRepaymentAccount">Is Main Repayment Account</label>
+                </div>
+                <!-- Recovery Order Field -->
+                <div class="lra-recovery">
+                  <label class="cbs-label" for="RecoveryOrder">Recovery Order</label>
+                  <input type="text" class="form-control form-control-sm" id="RecoveryOrder" name="RecoveryOrder" disabled />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Row Action Buttons (Alter, Update, Clear) -->
+          <div class="lra-mid-actions" role="group" aria-label="Row actions">
+            <button type="button" class="btn lra-mid-btn" data-action="alter" disabled>Alter</button>
+            <button type="button" class="btn lra-mid-btn" data-action="update" disabled>Update</button>
+            <button type="button" class="btn lra-mid-btn" data-action="clear" disabled>Clear</button>
+          </div>
+
+          <!-- Repayment Accounts Grid -->
+          <section class="lra-grid" aria-label="Repayment Accounts Grid">
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center lra-col-check">IsRepaymentAccount</th>
+                    <th class="lra-col-accountid">Repayment AccountID</th>
+                    <th class="lra-col-accountname">Account Name</th>
+                    <th class="text-center lra-col-main">IsMainRepaymentAccount</th>
+                    <th class="text-end lra-col-order">Recovery Order</th>
+                  </tr>
+                </thead>
+                <tbody data-lra-rows></tbody>
+              </table>
+              <div class="p-3 text-center text-muted lra-hidden" data-lra-empty>
+                <i class="bi bi-inbox fs-3"></i>
+                <p class="mb-0">No records to display.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Behind The Scene Section -->
+          <section class="lra-bts" aria-label="Behind The Scene">
+            <div class="lm-section-header">Behind The Scene</div>
+            <div class="container-fluid px-2 py-2">
+              <div class="row g-2">
+                <div class="col-md-3 col-6">
+                  <label class="cbs-label" for="ModifiedBy">Modified By</label>
+                  <input type="text" class="form-control form-control-sm" id="ModifiedBy" name="ModifiedBy" readonly />
+                </div>
+                <div class="col-md-3 col-6">
+                  <label class="cbs-label" for="ModifiedOn">Modified On</label>
+                  <input type="text" class="form-control form-control-sm" id="ModifiedOn" name="ModifiedOn" readonly />
+                </div>
+                <div class="col-md-3 col-6">
+                  <label class="cbs-label" for="SupervisedBy">Supervised By</label>
+                  <input type="text" class="form-control form-control-sm" id="SupervisedBy" name="SupervisedBy" readonly />
+                </div>
+                <div class="col-md-3 col-6">
+                  <label class="cbs-label" for="SupervisedOn">Supervised On</label>
+                  <input type="text" class="form-control form-control-sm" id="SupervisedOn" name="SupervisedOn" readonly />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Error Display -->
+          <div class="alert alert-danger mt-2 px-2 lra-hidden" role="alert" data-lra-error>
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span data-error-message></span>
+          </div>
+
+          <!-- Footer -->
+          <div class="lcol-footer mt-auto" aria-label="Footer">Nimble 1.0 Banking</div>
+        </section>
+
+        <!-- Right Side Action Buttons -->
+        <aside class="lra-actions" aria-label="Actions">
+          <div class="lra-actions__stack">
+            <button type="button" class="lra-action-btn" data-action="edit" disabled>Edit</button>
+            <button type="button" class="lra-action-btn" data-action="save" disabled>Save</button>
+            <button type="button" class="lra-action-btn" data-action="cancel" disabled>Cancel</button>
+            <button type="button" class="lra-action-btn lra-action-btn--primary" data-action="back">Back</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../../assets/js/environment.js"></script>
+  <script src="../../../../assets/js/config.js"></script>
+  <script src="../../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../../assets/js/app.js"></script>
+  <script src="../../../../assets/js/services/loans/repaymentAccountsService.js"></script>
+  <script src="../../../../assets/js/pages/loans/loan-maintenance/dataentry/repayment-accounts.js"></script>
+</body>
+
+</html>

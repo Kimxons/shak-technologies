@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Center Loan Menu</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css?v=20260201" />
+</head>
+<body>
+  <div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-menu-button-wide am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Center Loan Menu</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <main class="main-container" aria-label="Center Loan Menu form">
+      <div class="form-content" role="region" aria-label="Center Loan Menu form">
+        <div class="form-card" data-main-form>
+          <!-- Loan Cycle Details Section -->
+          <div class="form-section" data-section="loan-cycle-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-arrow-repeat"></i>Loan Cycle Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Loan Cycle Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <!-- Row 1: Loan Cycle No, Loan Level No, Effective Date -->
+                <div class="row g-3 mb-3">
+                  <div class="col-4">
+                    <label class="label-blue" for="LoanCycleNo">Loan Cycle No.</label>
+                    <div class="d-flex gap-1">
+                      <input type="text" id="LoanCycleNo" class="bs-input-text flex-grow-1" aria-label="Loan Cycle No" placeholder="Cycle No">
+                      <button type="button" class="btn-lookup" data-mcs-lookup="loan-cycle" aria-label="Lookup loan cycle">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <label class="label-blue" for="LoanLevelNo">Loan Level No</label>
+                    <div class="d-flex gap-1">
+                      <input type="text" id="LoanLevelNo" class="bs-input-text flex-grow-1" aria-label="Loan Level No" placeholder="Level No">
+                      <button type="button" class="btn-lookup" data-mcs-lookup="loan-level" aria-label="Lookup loan level">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <label class="label-blue" for="EffectiveDate">Effective Date</label>
+                    <div class="d-flex gap-1">
+                      <input type="date" id="EffectiveDate" class="bs-input-date flex-grow-1" aria-label="Effective Date">
+                      <button type="button" class="btn-lookup" data-mcs-lookup="effective-date" aria-label="Lookup effective date">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Menu Details Section -->
+          <div class="form-section" data-section="menu-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-ui-checks-grid"></i>Menu Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Menu Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <!-- Row 1: Min/Max Loan Amount -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="label-blue" for="MinimumLoanAmount">Minimum Loan Amount</label>
+                    <input id="MinimumLoanAmount" type="text" class="bs-input-text" />
+                  </div>
+                  <div class="col-6">
+                    <label class="label-blue" for="MaximumLoanAmount">Maximum Loan Amount</label>
+                    <input id="MaximumLoanAmount" type="text" class="bs-input-text" />
+                  </div>
+                </div>
+
+                <!-- Row 2: Default Loan Amount & Term -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="label-blue" for="DefaultLoanAmount">Default Loan Amount</label>
+                    <input id="DefaultLoanAmount" type="text" class="bs-input-text" />
+                  </div>
+                  <div class="col-6">
+                    <label class="label-blue" for="Term">Term</label>
+                    <input id="Term" type="text" class="bs-input-text" />
+                  </div>
+                </div>
+
+                <!-- Row 3: Interest Menu ID & Grace Period -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="label-blue" for="InterestMenuId">Interest Menu ID</label>
+                    <select id="InterestMenuId" class="bs-select">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label for="InstallmentGracePeriod">Installment Grace Period</label>
+                    <input id="InstallmentGracePeriod" type="text" class="bs-input-text" />
+                  </div>
+                </div>
+
+                <!-- Row 4: Max Adjustment Days -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label for="MaxAdjustmentDays">Max. Adjustment Days</label>
+                    <input id="MaxAdjustmentDays" type="text" class="bs-input-text" />
+                  </div>
+                  <div class="col-6"></div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Collateral Details Section -->
+          <div class="form-section" data-section="collateral-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-shield-check"></i>Collateral Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Collateral Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <!-- Row 1: Saving To Loan Ratio & S/L Recovery Type -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label for="MenuSavingToLoanRatio">Saving To Loan Ratio</label>
+                    <input id="MenuSavingToLoanRatio" type="text" class="bs-input-text" />
+                  </div>
+                  <div class="col-6">
+                    <label for="MenuSLRecoveryType">S/L Recovery Type</label>
+                    <select id="MenuSLRecoveryType" class="bs-select">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 2: Checkbox -->
+                <div class="row g-3 mb-3">
+                  <div class="col-12">
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="MenuCollectSavingWithInstallment">
+                      <label class="form-check-label" for="MenuCollectSavingWithInstallment">Collect Saving With Installment</label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 3: Savings Collection Type & Value -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label for="MenuSavingsCollectionType">Savings Collection Type</label>
+                    <select id="MenuSavingsCollectionType" class="bs-select">
+                      <option value="" selected>--Select--</option>
+                      <option>Amount</option>
+                      <option>Percentage/Installment</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label for="MenuSavingsValue">Savings Value</label>
+                    <input id="MenuSavingsValue" type="text" class="bs-input-text" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Behind the Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <!-- Row 1: Loan Product ID & Currency ID -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label for="MenuLoanProductId">Loan Product ID</label>
+                    <input id="MenuLoanProductId" type="text" class="bs-input-text" readonly />
+                  </div>
+                  <div class="col-6">
+                    <label for="MenuCurrencyId">Currency ID</label>
+                    <input id="MenuCurrencyId" type="text" class="bs-input-text" readonly />
+                  </div>
+                </div>
+
+                <!-- Row 2: Term Excludes Grace Period & Loan Period -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label for="MenuTermExcludesGracePeriod">Term Excludes Grace Period</label>
+                    <input id="MenuTermExcludesGracePeriod" type="text" class="bs-input-text" readonly />
+                  </div>
+                  <div class="col-6">
+                    <label for="MenuLoanPeriod">Loan Period</label>
+                    <input id="MenuLoanPeriod" type="text" class="bs-input-text" readonly />
+                  </div>
+                </div>
+
+                <!-- Row 3: Calculation Method -->
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label for="MenuCalculationMethod">Calculation Method</label>
+                    <input id="MenuCalculationMethod" type="text" class="bs-input-text" readonly />
+                  </div>
+                  <div class="col-6"></div>
+                </div>
+              </form>
+
+              <!-- Audit Trail -->
+              <div class="row g-3 mb-3">
+                <div class="col-6">
+                  <label for="MenuCreatedBy">Created By</label>
+                  <input type="text" id="MenuCreatedBy" class="bs-input-text" readonly aria-label="Created By">
+                </div>
+                <div class="col-6">
+                  <label for="MenuCreatedOn">Created On</label>
+                  <input type="text" id="MenuCreatedOn" class="bs-input-text" readonly aria-label="Created On">
+                </div>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-6">
+                  <label for="MenuModifiedBy">Modified By</label>
+                  <input type="text" id="MenuModifiedBy" class="bs-input-text" readonly aria-label="Modified By">
+                </div>
+                <div class="col-6">
+                  <label for="MenuModifiedOn">Modified On</label>
+                  <input type="text" id="MenuModifiedOn" class="bs-input-text" readonly aria-label="Modified On">
+                </div>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-6">
+                  <label for="MenuSupervisedBy">Supervised By</label>
+                  <input type="text" id="MenuSupervisedBy" class="bs-input-text" readonly aria-label="Supervised By">
+                </div>
+                <div class="col-6">
+                  <label for="MenuSupervisedOn">Supervised On</label>
+                  <input type="text" id="MenuSupervisedOn" class="bs-input-text" readonly aria-label="Supervised On">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view" title="View">
+            <i class="bi bi-eye"></i>View
+          </button>
+          <button class="btn-action" type="button" data-action="add" title="Add">
+            <i class="bi bi-plus-circle"></i>Add
+          </button>
+          <button class="btn-action" type="button" data-action="edit" title="Edit" disabled>
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button class="btn-action" type="button" data-action="delete" title="Delete" disabled>
+            <i class="bi bi-trash3"></i>Delete
+          </button>
+          <button class="btn-action" type="button" data-action="save" title="Save" disabled>
+            <i class="bi bi-check-lg"></i>Save
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+            <i class="bi bi-x-lg"></i>Cancel
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../../assets/js/utils/global-utils.js"></script>
+  <script src="../../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../../../assets/js/environment.js"></script>
+  <script src="../../../common/confirmationDialog/confirmation-dialog.js"></script>
+  <script src="center-loan-menu.js"></script>
+</body>
+</html>

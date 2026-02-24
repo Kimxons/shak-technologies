@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Device Maintenance · Static Data</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/oldcss.css" />
+</head>
+
+<body class="device-maintenance">
+  <div class="window">
+    <div class="main-container">
+      <div class="form-content">
+        <div class="form-card" data-main-form>
+          <form id="device-maintenance-form" autocomplete="off" novalidate>
+            <div class="alert alert-danger d-none" role="alert" data-device-maintenance-alert hidden>
+              <div class="d-flex align-items-start justify-content-between gap-3">
+                <div data-device-maintenance-alert-text></div>
+                <button type="button" class="btn-close" aria-label="Close" data-device-maintenance-alert-close></button>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="device-maintenance-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear" aria-hidden="true"></i>Device Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Device Details" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue bs-label-mand" for="BranchId">Branch ID</label>
+                    <div class="dm-lookup-controls d-flex w-100 gap-0">
+                      <input type="text" class="bs-input-text flex-fill rounded-end-0" id="BranchId" name="BranchId" required data-always-enabled />
+                      <input type="text" class="bs-input-text flex-fill rounded-0" id="BranchName" name="BranchName" readonly />
+                      <button class="btn-lookup rounded-start-0" type="button" aria-label="Search branch" data-dm-lookup="branch" data-always-enabled>
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue bs-label-mand" for="DeviceId">Device ID</label>
+                    <input type="text" class="bs-input-text" id="DeviceId" name="DeviceId" required />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="DeviceDescription">Device Description</label>
+                    <input type="text" class="bs-input-text" id="DeviceDescription" name="DeviceDescription" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="SettlementGl">Settlement GL</label>
+                    <div class="dm-lookup-controls d-flex w-100 gap-0">
+                      <input type="text" class="bs-input-text flex-fill rounded-end-0" id="SettlementGl" name="SettlementGl" />
+                      <input type="text" class="bs-input-text flex-fill rounded-0" id="SettlementGlName" name="SettlementGlName" readonly />
+                      <button class="btn-lookup rounded-start-0" type="button" aria-label="Search settlement GL" data-dm-lookup="settlementGl" data-always-enabled>
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="ReceivableGl">Receivable GL</label>
+                    <div class="dm-lookup-controls d-flex w-100 gap-0">
+                      <input type="text" class="bs-input-text flex-fill rounded-end-0" id="ReceivableGl" name="ReceivableGl" />
+                      <input type="text" class="bs-input-text flex-fill rounded-0" id="ReceivableGlName" name="ReceivableGlName" readonly />
+                      <button class="btn-lookup rounded-start-0" type="button" aria-label="Search receivable GL" data-dm-lookup="receivableGl" data-always-enabled>
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="BankId">Bank ID</label>
+                    <input type="text" class="bs-input-text" id="BankId" name="BankId" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="IsActive">Is Active</label>
+                    <div class="d-flex align-items-center">
+                      <input class="bs-checkbox" type="checkbox" id="IsActive" name="IsActive" />
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="IsLocal">Is Local</label>
+                    <div class="d-flex align-items-center">
+                      <input class="bs-checkbox" type="checkbox" id="IsLocal" name="IsLocal" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="device-list">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-table" aria-hidden="true"></i>Device List</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Device List" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="dm-toolbar" role="toolbar" aria-label="Device list actions">
+                  <button type="button" class="cm-shell__action" data-dm-grid-action="new" aria-label="New" title="New">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                    New
+                  </button>
+                  <button type="button" class="cm-shell__action" data-dm-grid-action="alter" aria-label="Alter" title="Alter">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    Alter
+                  </button>
+                  <button type="button" class="cm-shell__action" data-dm-grid-action="remove" aria-label="Remove" title="Remove">
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                    Remove
+                  </button>
+                  <button type="button" class="cm-shell__action" data-dm-grid-action="update" aria-label="Update" title="Update">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                    Update
+                  </button>
+                  <button type="button" class="cm-shell__action" data-dm-grid-action="clear" aria-label="Clear" title="Clear">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                    Clear
+                  </button>
+                </div>
+
+                <div class="dm-grid">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th class="ps-2">DeviceID</th>
+                          <th>BranchID</th>
+                          <th>Settlement GL</th>
+                          <th>Receivable GL</th>
+                          <th>IsActive</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody data-dm-grid-body>
+                        <tr class="dm-empty">
+                          <td colspan="6" class="text-center py-3 text-muted">No records to display.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-eye" aria-hidden="true"></i>BEHIND THE SCENE</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="section-content" data-section-content>
+                <div class="audit-section">
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Created By</label>
+                      <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Created On</label>
+                      <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Modified By</label>
+                      <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Modified On</label>
+                      <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Supervised By</label>
+                      <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Supervised On</label>
+                      <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil-square"></i> Edit</button>
+          <button type="button" class="btn-action" data-dm-action="save" disabled><i class="bi bi-save"></i> Save</button>
+          <button type="button" class="btn-action" data-dm-action="cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+          <button type="button" class="btn-action" data-dm-action="back"><i class="bi bi-arrow-left-circle"></i> Back</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>
+  </div>
+
+  <div class="modal fade" id="branchLookupModal" tabindex="-1" aria-labelledby="branchLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center py-3 px-4">
+          <h5 class="modal-title mb-0" id="branchLookupModalLabel">Find a Branch</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <form class="row g-4 justify-content-center" id="branchLookupForm">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="branchSearchId">Branch ID</label>
+              <div class="input-group shadow-sm">
+                <select class="form-select fw-semibold" id="branchSearchModeId">
+                  <option value="Like" selected>Like</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" id="branchSearchId" placeholder="Enter Branch ID" />
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="branchSearchName">Branch Name</label>
+              <div class="input-group shadow-sm">
+                <select class="form-select fw-semibold" id="branchSearchModeName">
+                  <option value="Like" selected>Like</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" id="branchSearchName" placeholder="Enter Branch Name" />
+              </div>
+            </div>
+
+            <div class="col-12 text-center">
+              <button type="submit" class="btn btn-light border px-5" id="branchSearchSubmit">Search</button>
+              <button type="button" class="d-none" id="branchSearchRefresh" aria-label="Refresh"></button>
+            </div>
+          </form>
+
+          <div class="position-relative" style="min-height: 300px;">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="bg-primary text-white">
+                  <tr>
+                    <th scope="col">BranchID</th>
+                    <th scope="col">BranchName</th>
+                    <th scope="col" class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="branchSearchResults"></tbody>
+              </table>
+            </div>
+            <div id="branchSearchEmpty" class="text-center py-5 text-muted">Enter at least one filter above and click Search to query branches.</div>
+            <div id="branchSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-primary justify-content-center">
+          <button type="button" class="btn btn-light border px-5" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../assets/js/services/branchesService.js"></script>
+  <script src="../../assets/js/pages/static-data/device-maintenance.js"></script>
+</body>
+
+</html>

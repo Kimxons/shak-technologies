@@ -1,0 +1,40 @@
+/* LG Maintenance submenu modal sizing/centering.
+   These modals live in public/dashboard.html (parent window), not inside the iframe pages. */
+
+#closeLgModal.show,
+#availmentSettlementModal.show,
+#lgMessagesModal.show,
+#lgDiscrepanciesModal.show,
+#lgPortfolioModal.show,
+#lgDocumentsModal.show,
+#lgGuarantorsModal.show,
+#lgNotesModal.show {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+#closeLgModal .modal-dialog,
+#availmentSettlementModal .modal-dialog,
+#lgMessagesModal .modal-dialog,
+#lgDiscrepanciesModal .modal-dialog,
+#lgPortfolioModal .modal-dialog,
+#lgDocumentsModal .modal-dialog,
+#lgGuarantorsModal .modal-dialog,
+#lgNotesModal .modal-dialog {
+  width: 82vw;
+  max-width: 82vw;
+  margin: 0;
+}
+
+#closeLgModal .modal-content,
+#availmentSettlementModal .modal-content,
+#lgMessagesModal .modal-content,
+#lgDiscrepanciesModal .modal-content,
+#lgPortfolioModal .modal-content,
+#lgDocumentsModal .modal-content,
+#lgGuarantorsModal .modal-content,
+#lgNotesModal .modal-content {
+  max-height: calc(100vh - 2rem);
+}

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Exception Overriding</title>
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="system-exception-overriding-new.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Main Content Area -->
+            <div class="content">
+                <div id="statusMsg" class="status-message"></div>
+
+                <!-- Exception Details Card -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-exclamation-triangle"></i> Exception Details</div>
+                    <div class="card-body">
+                        <div class="form-grid form-grid-2col">
+                            <div class="field-row">
+                                <label class="field-label required" for="branchId"><i class="bi bi-hash"></i> Branch ID</label>
+                                <div class="field-control">
+                                    <input type="text" id="branchId" placeholder="Branch ID">
+                                    <button type="button" class="input-group-icon" onclick="handleBranchSearch()" aria-label="Search branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label" for="branchName"><i class="bi bi-building"></i> Branch Name</label>
+                                <div class="field-control">
+                                    <input type="text" id="branchName" placeholder="Branch Name" readonly>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label required" for="processDate"><i class="bi bi-calendar3"></i> Process Date</label>
+                                <div class="field-control">
+                                    <input type="date" id="processDate">
+                                    <button type="button" class="input-group-icon" onclick="openDatePicker()" aria-label="Open date picker"><i class="bi bi-calendar-event"></i></button>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label" for="refId"><i class="bi bi-tag"></i> Ref ID</label>
+                                <div class="field-control">
+                                    <input type="text" id="refId" placeholder="Reference ID">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exception Override Card -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-shield-exclamation"></i> Exception Override Settings</div>
+                    <div class="card-body">
+                        <div class="form-grid form-grid-fullwidth">
+                            <div class="field-row">
+                                <label class="field-label required" for="exception"><i class="bi bi-exclamation-circle"></i> Exception</label>
+                                <div class="field-control">
+                                    <input type="text" id="exception" placeholder="Exception Description">
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label required" for="actionType"><i class="bi bi-sliders"></i> Type Of Action</label>
+                                <div class="field-control">
+                                    <select id="actionType">
+                                        <option value="">-- Select Action Type --</option>
+                                        <option value="Override">Override</option>
+                                        <option value="Waive">Waive</option>
+                                        <option value="Approve">Approve</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="action-button view" onclick="handleView()" title="View"><i class="bi bi-eye"></i> View</button>
+                <button class="action-button edit" onclick="handleEdit()" title="Edit" disabled><i class="bi bi-pencil-square"></i> Edit</button>
+                <button class="action-button delete" onclick="handleDelete()" title="Delete" disabled><i class="bi bi-trash"></i> Delete</button>
+                <button class="action-button save" onclick="handleSave()" title="Save" disabled><i class="bi bi-check2-circle"></i> Save</button>
+                <button class="action-button cancel" onclick="handleCancel()" title="Cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="system-exception-overriding-new.js"></script>
+</body>
+</html>

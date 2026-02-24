@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GL-Cheque Book</title>
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <link rel="stylesheet" href="gl-cheque-book.css">
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+
+</head>
+<body style="margin: 0; padding: 0; background: transparent;">
+  <div class="gl-cheque-book-container">
+    <div style="display: grid; grid-template-columns: 1fr 160px; gap: 8px; height: 100%; padding: 8px;">
+      <!-- Main Content Area -->
+      <div style="display: flex; flex-direction: column; overflow: hidden; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(91, 159, 217, 0.18); border-radius: 1.5rem; padding: 12px;">
+        <div style="overflow-y: auto; flex: 1;">
+          <!-- Branch and Account Section -->
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="branchId" class="mandatory">Branch ID</label>
+                <div class="input-with-search">
+                  <input type="text" id="branchId" value="0101">
+                  <input type="text" id="branchName" value="Head Office" readonly>
+                  <button type="button" class="search-btn" title="Search Branch">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="accountId" class="mandatory">Account ID</label>
+                <div class="input-with-search">
+                  <input type="text" id="accountId">
+                  <button type="button" class="search-btn" title="Search Account">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cheque Book Details Section -->
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="issueDate" class="mandatory">Issue Date</label>
+                <input type="date" id="issueDate">
+              </div>
+
+              <div class="form-group">
+                <label for="bookType" class="mandatory">Book Type</label>
+                <select id="bookType">
+                  <option value="">Select Book Type</option>
+                  <option value="25" selected>25 Leafs - Cheque Book</option>
+                  <option value="50">50 Leafs - Cheque Book</option>
+                  <option value="100">100 Leafs - Cheque Book</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="noOfLeaves" class="mandatory">No Of Leaves</label>
+                <input type="text" id="noOfLeaves">
+              </div>
+
+              <div class="form-group">
+                <label for="cpoPrefix">CPO Prefix</label>
+                <input type="text" id="cpoPrefix">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cpoStart" class="mandatory">CPO Start</label>
+                <input type="text" id="cpoStart">
+              </div>
+
+              <div class="form-group">
+                <label for="cpoEnd">CPO End</label>
+                <input type="text" id="cpoEnd">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs Section -->
+          <div class="tabs-section">
+            <div class="tabs-header">
+              <button class="tab-btn active" data-tab="issued">Issued CPOs</button>
+              <button class="tab-btn" data-tab="requested">Requested CPOs</button>
+            </div>
+
+            <!-- Issued CPOs Tab Content -->
+            <div class="tab-content active" id="issued-tab">
+              <div class="data-grid-container">
+                <table class="data-grid">
+                  <thead>
+                    <tr>
+                      <th>Start</th>
+                      <th>End</th>
+                      <th>ChequePrefix</th>
+                      <th>Leaves</th>
+                      <th>Issue Date</th>
+                      <th>Paid</th>
+                      <th>Stopped</th>
+                    </tr>
+                  </thead>
+                  <tbody id="issuedCPOsBody">
+                    <tr class="no-data-row">
+                      <td colspan="7">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Requested CPOs Tab Content -->
+            <div class="tab-content" id="requested-tab">
+              <div class="data-grid-container">
+                <table class="data-grid">
+                  <thead>
+                    <tr>
+                      <th>Start</th>
+                      <th>End</th>
+                      <th>ChequePrefix</th>
+                      <th>Leaves</th>
+                      <th>Issue Date</th>
+                      <th>Paid</th>
+                      <th>Stopped</th>
+                    </tr>
+                  </thead>
+                  <tbody id="requestedCPOsBody">
+                    <tr class="no-data-row">
+                      <td colspan="7">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+            <div style="background: #517a8e; color: white; padding: 0.5rem 0.85rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-up'); this.nextElementSibling.classList.toggle('collapsed');">
+              <span>Behind The Scene</span>
+              <i class="bi bi-chevron-down" style="font-size: 0.9rem;"></i>
+            </div>
+            
+            <div class="collapsible-content">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="currencyId">Currency ID</label>
+                  <input type="text" id="currencyId" readonly>
+                </div>
+                <div class="form-group"></div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="createdBy">Created By</label>
+                  <input type="text" id="createdBy" readonly>
+                </div>
+                <div class="form-group">
+                  <label for="createdOn">Created On</label>
+                  <input type="text" id="createdOn" readonly>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="approvedBy">Approved By</label>
+                  <input type="text" id="approvedBy" readonly>
+                </div>
+                <div class="form-group">
+                  <label for="approvedOn">Approved On</label>
+                  <input type="text" id="approvedOn" readonly>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="dispatchedBy">Dispatched By</label>
+                  <input type="text" id="dispatchedBy" readonly>
+                </div>
+                <div class="form-group">
+                  <label for="dispatchedOn">Dispatched On</label>
+                  <input type="text" id="dispatchedOn" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel - Action Buttons -->
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-top: auto;">
+        <button class="action-btn" id="approveBtn">
+          <i class="bi bi-check-circle"></i> Approve
+        </button>
+        <button class="action-btn" id="dispatchBtn">
+          <i class="bi bi-truck"></i> Dispatch
+        </button>
+        
+        <div style="margin: 6px 0; border-top: 1px solid #e5e7eb;"></div>
+        
+        <button class="action-btn" id="viewBtn">
+          <i class="bi bi-eye"></i> View
+        </button>
+        <button class="action-btn" id="addBtn">
+          <i class="bi bi-plus-circle"></i> Add
+        </button>
+        <button class="action-btn" id="editBtn">
+          <i class="bi bi-pencil"></i> Edit
+        </button>
+        <button class="action-btn" id="deleteBtn">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+        <button class="action-btn" id="saveBtn">
+          <i class="bi bi-download"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load required services -->
+  <script src="../../assets/js/environment.js?v=20260205"></script>
+  <script src="../../assets/js/services/shared/coreApi.js?v=20260205"></script>
+  <script src="../../assets/js/services/generalLedger/generalLedgerService.js?v=20260205"></script>
+  
+  <!-- Main module script -->
+  <script src="gl-cheque-book.js?v=20260205"></script>
+</body>
+</html>

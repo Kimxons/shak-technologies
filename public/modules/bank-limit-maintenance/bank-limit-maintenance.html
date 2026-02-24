@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Limit Maintenance</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <!-- Global Kairo Styles -->
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <!-- Module-specific Styles -->
+  <link rel="stylesheet" href="bank-limit-maintenance.css">
+</head>
+<body>
+  <div class="limit-container">
+    <!-- Main Content Area -->
+    <div class="limit-content">
+      <!-- Bank Details Section -->
+      <div class="bank-details-section">
+        <div class="section-header">Bank Details</div>
+        <div class="form-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="type">Type</label>
+              <select id="type" class="form-control">
+                <option value="">--Select--</option>
+                <option value="Borrowing">Borrowing</option>
+                <option value="Lending">Lending</option>
+                <option value="Overdraft">Overdraft</option>
+                <option value="CreditLine">Credit Line</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group currency-group">
+              <label for="currencyId">Currency ID</label>
+              <div class="currency-control">
+                <input type="text" id="currencyId" class="form-control currency-id" placeholder="EUR">
+                <input type="text" id="currencyName" class="form-control currency-name" placeholder="EURO" readonly>
+                <button type="button" class="search-btn" aria-label="Search Currency">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="limit">Limit</label>
+              <input type="number" id="limit" class="form-control" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="expiryDate">Expiry Date</label>
+              <div class="date-control">
+                <input type="text" id="expiryDate" class="form-control date-field" value="01/Jan/0001" readonly>
+                <button type="button" class="calendar-btn" aria-label="Pick Date">
+                  <i class="bi bi-calendar-event"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="remarks">Remarks</label>
+              <input type="text" id="remarks" class="form-control" placeholder="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid-actions">
+        <button type="button" class="grid-btn">New</button>
+        <button type="button" class="grid-btn">Alter</button>
+        <button type="button" class="grid-btn">Remove</button>
+        <button type="button" class="grid-btn">Update</button>
+        <button type="button" class="grid-btn">Clear</button>
+      </div>
+
+      <!-- Data Grid -->
+      <div class="data-grid-section">
+        <table class="data-grid">
+          <thead>
+            <tr>
+              <th>Limit Type Name</th>
+              <th>CurrencyName</th>
+              <th>Limit</th>
+              <th>Expiry Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="no-data">
+              <td colspan="4">No records to display.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Behind The Scene Section -->
+      <div class="behind-scene-section">
+        <div class="section-header">Behind The Scene</div>
+        <div class="behind-scene-content">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createdBy">Created By</label>
+              <input type="text" id="createdBy" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="modifiedBy">Modified By</label>
+              <input type="text" id="modifiedBy" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="supervisedBy">Supervised By</label>
+              <input type="text" id="supervisedBy" class="form-control" readonly>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="createdOn">Created On</label>
+              <input type="text" id="createdOn" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="modifiedOn">Modified On</label>
+              <input type="text" id="modifiedOn" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label for="supervisedOn">Supervised On</label>
+              <input type="text" id="supervisedOn" class="form-control" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Load Environment Configuration -->
+    <script src="../../../assets/js/environment.js"></script>
+    <script src="../../../assets/js/services/shared/coreApi.js"></script>
+    <!-- Load Service Loader (which loads CoreApi and other services) -->
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    
+  <script src="bank-limit-maintenance.js"></script>
+</body>
+</html>

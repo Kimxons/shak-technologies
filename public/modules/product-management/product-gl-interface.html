@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product GL Interface</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/maincss.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <style>
+    /* Product GL Interface Specific Styles */
+    .form-section {
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      overflow: hidden;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--white);
+      cursor: pointer;
+    }
+
+    .section-header__title {
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--white);
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .section-content {
+      padding: 12px;
+    }
+
+    .form-section.collapsed .section-content {
+      display: none;
+    }
+
+    .form-section.collapsed .section-toggle-btn i {
+      transform: rotate(180deg);
+    }
+
+    /* Filter Section Styles */
+    .form-row.two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-row .col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .label-blue {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .input-with-lookup {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .input-with-lookup .bs-input {
+      flex: 1;
+    }
+
+    .btn-lookup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-lookup:hover {
+      background: var(--primary-dark);
+    }
+
+    /* Data Grid Toolbar */
+    .data-grid__toolbar {
+      display: flex;
+      gap: 6px;
+      padding: 8px 0;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .btn-grid-action {
+      padding: 5px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      border: 1px solid var(--primary);
+      background: var(--white);
+      color: var(--primary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-grid-action:hover:not(:disabled) {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .btn-grid-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #ccc;
+      color: #999;
+      background: #f5f5f5;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+      overflow-x: auto;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+    }
+
+    .table thead th {
+      background: var(--secondary);
+      color: var(--text-dark);
+      font-weight: 700;
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .table tbody td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-gray);
+    }
+
+    .table tbody tr:hover {
+      background: rgba(10, 107, 165, 0.05);
+    }
+
+    .table tbody tr.selected {
+      background: rgba(10, 107, 165, 0.12);
+    }
+
+    /* Audit Section */
+    .audit-section--summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 24px;
+    }
+
+    .audit-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .audit-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .audit-value {
+      font-size: 11px;
+      color: var(--text-dark);
+      padding: 4px 0;
+      min-height: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Hide sidebar for child form */
+    .sidebar {
+      display: none;
+    }
+
+    /* Adjust main container to remove sidebar space */
+    .main-container {
+      --sidebar-width: 0px;
+      padding: 12px;
+    }
+
+    /* Action Panel */
+    .action-panel {
+      margin-top: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--primary);
+      background: var(--white);
+      color: var(--primary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-action:hover {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .btn-action.btn-save {
+      background: var(--success);
+      border-color: var(--success);
+      color: var(--white);
+    }
+
+    .btn-action.btn-save:hover {
+      background: #218838;
+      border-color: #218838;
+    }
+
+    .btn-action.btn-cancel {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: var(--white);
+    }
+
+    .btn-action.btn-cancel:hover {
+      background: #c82333;
+      border-color: #c82333;
+    }
+
+    /* Form Card */
+    .form-card {
+      background: transparent;
+    }
+
+    /* Select Styles */
+    .bs-select {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .bs-input {
+      padding: 6px 10px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="window">
+    <!-- Header -->
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-file-text am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Product GL Interface</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window">
+          <i class="bi bi-square"></i>
+        </button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container" aria-label="Product GL Interface form">
+      <!-- Form Content -->
+      <div class="form-content" role="region" aria-label="Product GL Interface form">
+        <div class="form-card" data-main-form>
+          <!-- GL Interface Filter Section -->
+          <div class="form-section" data-section="gl-filter">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-funnel"></i> Filter</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Filter" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="accountTag">Account Tag</label>
+                  <select id="accountTag" name="accountTag" class="bs-select">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="accountID">Account ID</label>
+                  <div class="input-with-lookup">
+                    <input type="text" id="accountID" name="accountID" class="bs-input" />
+                    <button type="button" class="btn-lookup" aria-label="Lookup Account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Mapping Section -->
+          <div class="form-section" data-section="account-mapping">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-diagram-3"></i> Account Mapping</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Mapping" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <!-- Toolbar -->
+              <div class="data-grid__toolbar">
+                <button type="button" class="btn-grid-action" data-action="alter" disabled>Alter</button>
+                <button type="button" class="btn-grid-action" data-action="remove" disabled>Remove</button>
+                <button type="button" class="btn-grid-action" data-action="update" disabled>Update</button>
+                <button type="button" class="btn-grid-action" data-action="clear" disabled>Clear</button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-hover data-grid-table" id="mappingTable">
+                  <thead>
+                    <tr>
+                      <th>Account Tag</th>
+                      <th>Account ID</th>
+                      <th>Account Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-account-tag="Debit Control Account" data-account-id="11811000">
+                      <td>Debit Control Account</td>
+                      <td>11811000</td>
+                      <td>Bond Interest Receivable - BOND B(ABOVE FIVE YEARS)</td>
+                    </tr>
+                    <tr data-account-tag="Savings Interest Payable" data-account-id="21350000">
+                      <td>Savings Interest Payable</td>
+                      <td>21350000</td>
+                      <td>Bond Interest Payable - BOND B(ABOVE FIVE YEARS)</td>
+                    </tr>
+                    <tr data-account-tag="Savings Withholding Tax Account" data-account-id="21430000">
+                      <td>Savings Withholding Tax Account</td>
+                      <td>21430000</td>
+                      <td>Saving Interest tax payable</td>
+                    </tr>
+                    <tr data-account-tag="Control Account" data-account-id="21611000">
+                      <td>Control Account</td>
+                      <td>21611000</td>
+                      <td>Bond Payable - BOND B(ABOVE FIVE YEARS)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised By</span>
+                  <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised On</span>
+                  <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action" id="closeBtn" data-action="close-form">
+            <i class="bi bi-x-lg"></i>Close
+          </button>
+          <button type="button" class="btn-action" id="addBtn" data-action="add">
+            <i class="bi bi-plus-lg"></i>Add
+          </button>
+          <button type="button" class="btn-action" id="editBtn" data-action="edit">
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button type="button" class="btn-action" id="deleteBtn" data-action="delete">
+            <i class="bi bi-trash"></i>Delete
+          </button>
+          <button type="button" class="btn-action btn-save" id="saveBtn" data-action="save">
+            <i class="bi bi-check-lg"></i>Save
+          </button>
+          <button type="button" class="btn-action btn-cancel" id="cancelBtn" data-action="cancel">
+            <i class="bi bi-x-lg"></i>Cancel
+          </button>
+          <button type="button" class="btn-action" id="backBtn" data-action="back">
+            <i class="bi bi-arrow-left"></i>Back
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" id="messagePanel" hidden></div>
+  </div>
+
+  <!-- Account ID Lookup Modal -->
+  <div class="modal fade" id="accountLookupModal" tabindex="-1" aria-labelledby="accountLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="modal-title" id="accountLookupModalLabel">Find Account</h5>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="row g-3 align-items-end mb-3" id="accountLookupForm">
+            <div class="col-md-5">
+              <label class="form-label">Account ID</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" id="accountSearchModeId">
+                  <option value="Like">Like</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" id="accountSearchId" placeholder="Enter Account ID" />
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Account Name</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" id="accountSearchModeName">
+                  <option value="Like">Like</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" id="accountSearchName" placeholder="Enter Account Name" />
+              </div>
+            </div>
+            <div class="col-md-2 text-md-end">
+              <button type="submit" class="btn btn-primary btn-sm w-100" id="accountSearchSubmit">
+                Search
+              </button>
+            </div>
+          </form>
+
+          <div class="position-relative" style="min-height: 300px;">
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                <thead class="table-primary">
+                  <tr>
+                    <th scope="col" style="width: 60px;">#</th>
+                    <th scope="col">Account ID</th>
+                    <th scope="col">Account Name</th>
+                  </tr>
+                </thead>
+                <tbody id="accountSearchResults">
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-4">
+                      No results. Click "Search" to find accounts.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="accountSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="accountSelectBtn" disabled><i class="bi bi-check-circle me-1"></i>OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/environment.js?v=2"></script>
+  <script src="../../assets/js/services/shared/coreApi.js?v=2"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js?v=2"></script>
+  <script src="../../assets/js/services/shared/searchService.js?v=2"></script>
+  <script src="../../assets/js/shared/search-modal.js?v=3"></script>
+  <script src="../../assets/js/app.js?v=3"></script>
+  <script src="../../assets/js/pages/product-management/product-gl-interface.embedded.js?v=3"></script>
+  <script>
+    // Section toggle functionality
+    document.querySelectorAll('[data-section-toggle]').forEach(header => {
+      header.addEventListener('click', () => {
+        const section = header.closest('.form-section');
+        const toggleBtn = header.querySelector('.section-toggle-btn');
+        const isCollapsed = section.classList.toggle('collapsed');
+        if (toggleBtn) {
+          toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+        }
+      });
+    });
+
+    // Row selection for table
+    document.querySelectorAll('#mappingTable tbody tr').forEach(row => {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => {
+        // Remove previous selection
+        document.querySelectorAll('#mappingTable tbody tr').forEach(r => {
+          r.classList.remove('selected');
+          r.style.backgroundColor = '';
+        });
+        
+        // Highlight selected row
+        row.classList.add('selected');
+        row.style.backgroundColor = '#e3f2fd';
+        
+        // Bind data to filter fields
+        const accountTagSelect = document.getElementById('accountTag');
+        const accountIDInput = document.getElementById('accountID');
+        const accountTag = row.dataset.accountTag || row.cells[0]?.textContent?.trim();
+        const accountId = row.dataset.accountId || row.cells[1]?.textContent?.trim();
+        
+        // Set Account Tag dropdown
+        if (accountTagSelect && accountTag) {
+          const options = accountTagSelect.options;
+          for (let i = 0; i < options.length; i++) {
+            if (options[i].textContent === accountTag || options[i].value === accountTag) {
+              accountTagSelect.selectedIndex = i;
+              break;
+            }
+          }
+        }
+        
+        // Set Account ID input
+        if (accountIDInput && accountId) {
+          accountIDInput.value = accountId;
+        }
+        
+        console.log('[GL Interface] Row clicked - Data bound to filter fields:', {
+          accountTag: accountTag,
+          accountId: accountId
+        });
+      });
+    });
+
+    // Window control actions
+    document.querySelectorAll('.am-header__right [data-action]').forEach(btn => {
+      const action = btn.getAttribute('data-action');
+      btn.addEventListener('click', () => {
+        if (action === 'refresh') window.location.reload();
+        else if (action === 'maximize') {
+          const windowEl = document.querySelector('.window');
+          const isMaximized = windowEl.classList.toggle('maximized');
+          btn.querySelector('i').className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
+          btn.title = isMaximized ? 'Restore' : 'Maximize';
+        } else if (action === 'close') {
+          goBack();
+        }
+      });
+    });
+
+    // Back button handler
+    function goBack() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'close-child' }, '*');
+      }
+      const overlay = window.parent?.document?.querySelector('[data-child-overlay]');
+      if (overlay) {
+        overlay.classList.remove('is-open');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      if (window.history.length > 1) {
+        window.history.back();
+      }
+    }
+
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+    document.getElementById('closeBtn')?.addEventListener('click', goBack);
+  </script>
+</body>
+
+</html>

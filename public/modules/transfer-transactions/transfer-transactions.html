@@ -1,0 +1,257 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transfer Transactions</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="transfer-transactions.css">
+</head>
+<body style="margin: 0; padding: 0; background: transparent;">
+
+<div class="transfer-transactions">
+  <div style="display: grid; grid-template-columns: 1fr 160px; gap: 8px; height: 100%; padding: 8px;">
+    <!-- Main Content Area -->
+    <div style="display: flex; flex-direction: column; overflow: hidden; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(91, 159, 217, 0.18); border-radius: 1.5rem; padding: 12px;">
+      <div style="overflow-y: auto; flex: 1;">
+        <!-- Query Section -->
+        <div style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+          <div style="background: #5b9fd9; color: white; padding: 8px 12px; border-radius: 0.375rem; margin-bottom: 12px; font-weight: 600; font-size: 0.85rem;">
+            Query
+          </div>
+
+          <!-- Row 1: Transfer Type, Serial ID, Account Type -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Transfer Type</label>
+              <select class="form-select" id="transferTypeSelect">
+                <option selected>Local</option>
+                <option>International</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Serial ID</label>
+              <input type="text" class="form-control" id="serialIdField" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Account Type</label>
+              <select class="form-select" id="accountTypeSelect">
+                <option selected>Customer</option>
+                <option>Bank</option>
+                <option>Internal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 2: Transaction Type, Branch ID, Liquidation Option -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Transaction Type</label>
+              <select class="form-select" id="transactionTypeSelect">
+                <option selected>--Select--</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Branch ID</label>
+              <div style="display: flex; gap: 6px; align-items: flex-end;">
+                <input type="text" class="form-control" id="branchIdField" value="0101" />
+                <span style="font-size: 0.75rem; color: #64748b; white-space: nowrap; padding-bottom: 8px;">Head Office</span>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Liquidation Option</label>
+              <select class="form-select" id="liquidationOptionSelect">
+                <option selected>--Select--</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 3: Cross Currency, Account ID -->
+          <div style="display: grid; grid-template-columns: auto 1fr 1fr; gap: 12px; margin-bottom: 12px; align-items: flex-end;">
+            <div style="display: flex; align-items: center;">
+              <input type="checkbox" class="form-check-input" id="crossCurrencyCheckbox" style="margin: 0;" />
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; margin-left: 6px; margin-bottom: 0;">Cross Currency</label>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Account ID</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" class="form-control" id="accountIdField" style="flex: 1;" />
+                <button class="tt-search-btn" id="accountIdSearchBtn"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+            <div></div>
+          </div>
+
+          <!-- Row 4: CostCenter ID, Value Date -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">CostCenter ID</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" class="form-control" id="costCenterIdField" style="flex: 1;" />
+                <button class="tt-search-btn" id="costCenterIdSearchBtn"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Value Date</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="date" class="form-control" id="valueDateField" style="flex: 1;" />
+                <button class="tt-calendar-btn"><i class="bi bi-calendar"></i></button>
+              </div>
+            </div>
+            <div></div>
+          </div>
+
+          <!-- Row 5: Instrument Type, Instrument ID -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Instrument Type</label>
+              <select class="form-select" id="instrumentTypeSelect">
+                <option selected>--Select--</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Instrument ID</label>
+              <input type="text" class="form-control" id="instrumentIdField" />
+            </div>
+            <div></div>
+          </div>
+
+          <!-- Row 6: Instrument Date, Declaration/Reference No -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Instrument Date</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="date" class="form-control" id="instrumentDateField" style="flex: 1;" />
+                <button class="tt-calendar-btn"><i class="bi bi-calendar"></i></button>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Declaration/Reference No.</label>
+              <input type="text" class="form-control" id="declarationRefNoField" />
+            </div>
+            <div></div>
+          </div>
+
+          <!-- Row 7: Transaction ID, Narration -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Transaction ID</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" class="form-control" id="transactionIdField" style="flex: 1;" />
+                <button class="tt-search-btn" id="transactionIdSearchBtn"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Narration</label>
+              <input type="text" class="form-control" id="narrationField" />
+            </div>
+          </div>
+
+          <!-- Row 8: Transaction Currency, Transaction Amount -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Transaction Currency</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" class="form-control" id="transactionCurrencyField" style="flex: 1;" />
+                <button class="tt-search-btn" id="transactionCurrencySearchBtn"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Transaction Amount</label>
+              <input type="text" class="form-control" id="transactionAmountField" />
+            </div>
+          </div>
+
+          <!-- Row 9: Exchange Rate, Local Amount -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Exchange Rate</label>
+              <input type="text" class="form-control" id="exchangeRateField" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Local Amount</label>
+              <input type="text" class="form-control" id="localAmountField" />
+            </div>
+          </div>
+
+          <!-- Row 10: Foreign Amount -->
+          <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Foreign Amount</label>
+              <input type="text" class="form-control" id="foreignAmountField" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons (Content Area) -->
+        <div style="padding: 12px; border-bottom: 1px solid #e5e7eb; display: flex; gap: 8px; justify-content: center;">
+          <button class="tt-action-secondary-btn" id="nowBtn">Now</button>
+          <button class="tt-action-secondary-btn" id="removeBtn">Remove</button>
+          <button class="tt-action-secondary-btn" id="updateBtn">Update</button>
+          <button class="tt-action-secondary-btn" id="clearBtn">Clear</button>
+        </div>
+
+        <!-- Transactions Table Section -->
+        <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #e5e7eb;">
+          <div style="overflow: auto; flex: 1; border: 1px solid #d1d5db; border-radius: 0.375rem;">
+            <table class="table" style="margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th>Branch ID</th>
+                  <th>Account Type</th>
+                  <th>Account ID</th>
+                  <th>Account Name</th>
+                  <th>Transaction Type</th>
+                  <th>Currency ID</th>
+                  <th>Amount</th>
+                  <th>Exchange Rate</th>
+                  <th>Narration</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsTableBody">
+                <tr style="text-align: center; color: #64748b; font-size: 0.8rem;">
+                  <td colspan="9" style="padding: 20px;">No records to display.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Total Debit</label>
+              <input type="text" class="form-control" id="totalDebitField" readonly style="background-color: #f9fafb;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Total Credit</label>
+              <input type="text" class="form-control" id="totalCreditField" readonly style="background-color: #f9fafb;" />
+            </div>
+            <div>
+              <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem; display: block; margin-bottom: 4px;">Un-Posted</label>
+              <input type="text" class="form-control" id="unPostedField" readonly style="background-color: #f9fafb;" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Action Buttons -->
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <button class="tt-action-btn" id="viewAllBtn">View All</button>
+      <button class="tt-action-btn" id="printBtn">Print</button>
+      <button class="tt-action-btn" id="accountInfoBtn">Account Info</button>
+      <button class="tt-action-btn" id="viewBtn">View</button>
+      <button class="tt-action-btn" id="addBtn">Add</button>
+      <button class="tt-action-btn" id="editBtn">Edit</button>
+      <button class="tt-action-btn" id="rollbackBtn">RollBack</button>
+      <button class="tt-action-btn" id="saveBtn">Save</button>
+      <button class="tt-action-btn" id="cancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="transfer-transactions.js"></script>
+</body>
+</html>

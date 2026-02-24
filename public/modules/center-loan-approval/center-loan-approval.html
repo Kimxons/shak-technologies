@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Center Loan Approval</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="center-loan-approval.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout">
+            <aside class="sidebar" aria-label="Section navigation">
+            </aside>
+
+            <main class="content" role="main">
+                <div id="statusMessage" class="status hidden" role="status" aria-live="polite">
+                    <i class="bi" aria-hidden="true"></i>
+                    <span class="status-text"></span>
+                    <button type="button" class="status-close" aria-label="Dismiss message">✕</button>
+                </div>
+
+                <form id="centerLoanApprovalForm" class="form" novalidate>
+                    <div class="form-section" data-section="dataentry">
+                        <section class="card">
+                            <div class="card-header">
+                                <i class="bi bi-ui-checks-grid" aria-hidden="true"></i>
+                                <span>Center Loan Approval</span>
+                            </div>
+                            <div class="card-body form-grid three-col">
+                                <div class="form-control-group">
+                                    <label for="branchId" class="form-label"><i class="bi bi-building" aria-hidden="true"></i><span>Branch ID</span></label>
+                                    <div class="input-segmented">
+                                        <input type="text" id="branchId" name="branchId" class="form-control segment-id" placeholder="0101" data-required="true">
+                                        <div class="segment-divider"></div>
+                                        <input type="text" id="branchDescription" name="branchDescription" class="form-control segment-desc" placeholder="Head Office" readonly>
+                                        <button type="button" class="btn-inline-search" data-action="search-branch" aria-label="Search branch">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label for="centerId" class="form-label"><i class="bi bi-building-gear" aria-hidden="true"></i><span>Center ID</span></label>
+                                    <div class="input-segmented">
+                                        <input type="text" id="centerId" name="centerId" class="form-control segment-id" placeholder="Enter Center ID" data-required="true">
+                                        <div class="segment-divider"></div>
+                                        <input type="text" id="centerDescription" name="centerDescription" class="form-control segment-desc" placeholder="Center name" readonly>
+                                        <button type="button" class="btn-inline-search" data-action="search-center" aria-label="Search center">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label for="schemeId" class="form-label"><i class="bi bi-diagram-3" aria-hidden="true"></i><span>Scheme ID</span></label>
+                                    <div class="input-segmented">
+                                        <input type="text" id="schemeId" name="schemeId" class="form-control segment-id" placeholder="Enter Scheme ID" data-required="true">
+                                        <div class="segment-divider"></div>
+                                        <input type="text" id="schemeDescription" name="schemeDescription" class="form-control segment-desc" placeholder="Scheme name" readonly>
+                                        <button type="button" class="btn-inline-search" data-action="search-scheme" aria-label="Search scheme">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <i class="bi bi-table" aria-hidden="true"></i>
+                                <span>Application Details</span>
+                            </div>
+                            <div class="card-body">
+                                <table class="data-table" id="applicationDetailsTable">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="selectAll"></th>
+                                            <th>Client ID</th>
+                                            <th>Client Name</th>
+                                            <th>Approval Limit</th>
+                                            <th>Approved Amount</th>
+                                            <th>Application ID</th>
+                                            <th>Application Date</th>
+                                            <th>Loan Amount</th>
+                                            <th>Loan Term</th>
+                                            <th>Application Status</th>
+                                            <th>Loan Type</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="empty-row">
+                                            <td colspan="11">No records to display.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                                <span>Recommendation Details</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-grid three-col">
+                                    <div class="form-control-group">
+                                        <label for="loanAmount" class="form-label"><i class="bi bi-cash-stack" aria-hidden="true"></i><span>Loan Amount</span></label>
+                                        <div class="input-with-label">
+                                            <span class="input-prefix">Applied</span>
+                                            <input type="number" id="loanAmount" name="loanAmount" class="form-control" placeholder="Enter amount" min="0" step="0.01">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-control-group">
+                                        <label for="repaymentFrequency" class="form-label"><i class="bi bi-calendar-week" aria-hidden="true"></i><span>Repayment Frequency</span></label>
+                                        <select id="repaymentFrequency" name="repaymentFrequency" class="form-control">
+                                            <option value="">--Select--</option>
+                                            <option value="yearly">Yearly</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="daily">Daily</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-control-group"></div>
+
+                                    <div class="form-control-group">
+                                        <label for="term" class="form-label"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span>Term</span></label>
+                                        <input type="number" id="term" name="term" class="form-control" placeholder="Enter term" min="0">
+                                    </div>
+
+                                    <div class="form-control-group">
+                                        <label for="interestRate" class="form-label"><i class="bi bi-percent" aria-hidden="true"></i><span>Interest Rate</span></label>
+                                        <input type="number" id="interestRate" name="interestRate" class="form-control" placeholder="Enter rate" min="0" step="0.01">
+                                    </div>
+
+                                    <div class="form-control-group"></div>
+
+                                    <div class="form-control-group">
+                                        <label for="gracePeriod" class="form-label"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Grace Period</span></label>
+                                        <input type="number" id="gracePeriod" name="gracePeriod" class="form-control" placeholder="Enter period" min="0">
+                                    </div>
+
+                                    <div class="form-control-group">
+                                        <label for="repaymentTerm" class="form-label"><i class="bi bi-calendar-range" aria-hidden="true"></i><span>Repayment Term</span></label>
+                                        <input type="text" id="repaymentTerm" name="repaymentTerm" class="form-control" placeholder="Enter term" readonly>
+                                    </div>
+
+                                    <div class="form-control-group"></div>
+
+                                    <div class="form-control-group">
+                                        <label for="approvedAmount" class="form-label"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Approved Amount</span></label>
+                                        <input type="number" id="approvedAmount" name="approvedAmount" class="form-control" placeholder="Enter amount" min="0" step="0.01">
+                                    </div>
+
+                                    <div class="form-control-group full-row-2col">
+                                        <label for="remarks" class="form-label"><i class="bi bi-journal-text" aria-hidden="true"></i><span>Remarks</span></label>
+                                        <textarea id="remarks" name="remarks" class="form-control" placeholder="Enter remarks"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="button-group">
+                                    <button type="button" class="btn-action" data-action="update">Update</button>
+                                    <button type="button" class="btn-action btn-action--secondary" data-action="clear">Clear</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                <span>Behind The Scene</span>
+                            </div>
+                            <div class="card-body form-grid four-col">
+                                <div class="form-control-group">
+                                    <label for="productId" class="form-label"><i class="bi bi-box" aria-hidden="true"></i><span>Product ID</span></label>
+                                    <input type="text" id="productId" name="productId" class="form-control" readonly>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label for="calculationMethod" class="form-label"><i class="bi bi-calculator" aria-hidden="true"></i><span>Calculation Method</span></label>
+                                    <input type="text" id="calculationMethod" name="calculationMethod" class="form-control" readonly>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label for="currencyId" class="form-label"><i class="bi bi-currency-dollar" aria-hidden="true"></i><span>Currency ID</span></label>
+                                    <input type="text" id="currencyId" name="currencyId" class="form-control" readonly>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label for="applicationStatus" class="form-label"><i class="bi bi-badge-ad" aria-hidden="true"></i><span>Application Status</span></label>
+                                    <input type="text" id="applicationStatus" name="applicationStatus" class="form-control" readonly>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </form>
+            </main>
+
+            <aside class="action-bar" aria-label="Actions">
+                <button type="button" class="action-btn action-btn--secondary" data-action="approval-history">
+                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                    <span>Approval History</span>
+                </button>
+                <button type="button" class="action-btn action-btn--secondary" data-action="image">
+                    <i class="bi bi-image" aria-hidden="true"></i>
+                    <span>Image</span>
+                </button>
+                <button type="button" class="action-btn action-btn--secondary" data-action="group-detail">
+                    <i class="bi bi-people" aria-hidden="true"></i>
+                    <span>Group Detail</span>
+                </button>
+                <button type="button" class="action-btn action-btn--info" data-action="view">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                    <span>View</span>
+                </button>
+                <button type="button" class="action-btn action-btn--warning" data-action="edit">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                    <span>Edit</span>
+                </button>
+                <button type="button" class="action-btn action-btn--danger" data-action="reject">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                    <span>Reject</span>
+                </button>
+                <button type="button" class="action-btn action-btn--success" data-action="approve">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
+                    <span>Approve</span>
+                </button>
+                <button type="button" class="action-btn action-btn--secondary" data-action="cancel">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                    <span>Cancel</span>
+                </button>
+            </aside>
+        </div>
+    </div>
+
+    <script src="center-loan-approval.js"></script>
+</body>
+</html>

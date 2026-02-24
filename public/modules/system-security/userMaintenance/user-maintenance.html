@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Maintenance</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="user-maintenance.css">
+    <link rel="stylesheet" href="../../common/toast-messages/toast-messages.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Left Sidebar Menu -->
+            <aside class="sidebar-menu">
+                <div class="menu-section">
+                    <div class="menu-toggle">
+                        <span class="menu-label"><i class="bi bi-pencil-square me-2"></i>Data Entry</span>
+                        <button type="button" class="menu-arrow" aria-label="Toggle DataEntry" aria-expanded="true" aria-controls="menu-dataentry"><i class="bi bi-chevron-up"></i></button>
+                    </div>
+                    <div class="menu-items" id="menu-dataentry">
+                        <div class="menu-item" data-child-form="user-blocking-unblocking"><i class="bi bi-lock"></i><span>Blocking / Unblocking</span></div>
+                        <div class="menu-item" data-child-form="user-role"><i class="bi bi-person-badge"></i><span>User Role</span></div>
+                        <div class="menu-item" data-child-form="copy-user"><i class="bi bi-copy"></i><span>Copy User</span></div>
+                        <div class="menu-item" data-child-form="time-restrictions"><i class="bi bi-clock"></i><span>Time Restrictions</span></div>
+                        <div class="menu-item" data-child-form="terminal-restrictions"><i class="bi bi-terminal"></i><span>Terminal Restrictions</span></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Form Content -->
+            <div class="content">
+                <form id="user-maintenance-form" autocomplete="off" novalidate>
+                    <!-- User Details -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-person"></i>
+                            <span>User Details</span>
+                            <button class="card-toggle" aria-expanded="true" aria-controls="card-user-details"><i class="bi bi-chevron-up"></i></button>
+                        </div>
+                        <div class="card-body" id="card-user-details">
+                            <div class="form-grid">
+                                <div class="form-control-group">
+                                    <label class="form-label required">Login ID</label>
+                                    <div class="segmented-input">
+                                        <input type="text" class="id-part" id="loginId" name="loginId" placeholder="Enter login ID" required />
+                                        <div class="divider"></div>
+                                        <input type="text" class="description-part" readonly />
+                                        <button type="button" class="search-btn" data-target-input="loginId" aria-label="Search User"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Employee ID</label>
+                                    <input type="text" class="form-control" id="employeeId" name="employeeId" placeholder="Enter employee ID" required />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Details -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Personal Details</span>
+                            <button class="card-toggle" aria-expanded="true" aria-controls="card-personal-details"><i class="bi bi-chevron-up"></i></button>
+                        </div>
+                        <div class="card-body" id="card-personal-details">
+                            <div class="form-grid">
+                                <div class="form-control-group">
+                                    <label class="form-label">Client ID</label>
+                                    <div class="segmented-input">
+                                        <input type="text" class="id-part" id="userId" name="userId" placeholder="Enter client ID" />
+                                        <div class="divider"></div>
+                                        <input type="text" class="description-part" id="clientName" name="clientName" placeholder="Client Name" readonly />
+                                        <button type="button" class="search-btn" data-target-input="userId" aria-label="Search Client"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Title</label>
+                                    <select class="form-control" id="title" name="title">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Enter full name" />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="address" name="address" placeholder="Enter address" />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">City</label>
+                                    <select class="form-control" id="city" name="city">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Country</label>
+                                    <select class="form-control" id="country" name="country">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone" />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Mobile</label>
+                                    <input type="tel" class="form-control" id="mobile" name="mobile" placeholder="Enter mobile" />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-control" id="gender" name="gender">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-gear"></i>
+                            <span>System Settings</span>
+                            <button class="card-toggle" aria-expanded="true" aria-controls="card-system-settings"><i class="bi bi-chevron-up"></i></button>
+                        </div>
+                        <div class="card-body" id="card-system-settings">
+                            <div class="form-grid">
+                                <div class="form-control-group">
+                                    <label class="form-label required">Language</label>
+                                    <select class="form-control" id="languageId" name="languageId" required>
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Password Options</label>
+                                    <div class="checkbox-list">
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="form-checkbox" id="cannotChangePassword" name="cannotChangePassword" />
+                                            <label class="checkbox-label">Cannot Change Password</label>
+                                        </div>
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="form-checkbox" id="mustChangeNextLogin" name="mustChangeNextLogin" />
+                                            <label class="checkbox-label">Must Change Password Next Login</label>
+                                        </div>
+                                        <div class="checkbox-wrapper">
+                                            <input type="checkbox" class="form-checkbox" id="allowPopupAlerts" name="allowPopupAlerts" />
+                                            <label class="checkbox-label">Allow Popup Alerts</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Account Status</label>
+                                    <select class="form-control" id="accountStatus" name="accountStatus">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="locked">Locked</option>
+                                        <option value="expired">Expired</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Lock Reason</label>
+                                    <input type="text" class="form-control" id="lockReason" name="lockReason" placeholder="Enter lock reason" />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Remarks</label>
+                                    <textarea class="form-control" id="remarks" name="remarks" placeholder="Enter remarks" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Behind the Scenes</span>
+                            <button class="card-toggle" aria-expanded="true" aria-controls="card-audit-trail"><i class="bi bi-chevron-up"></i></button>
+                        </div>
+                        <div class="card-body" id="card-audit-trail">
+                            <div class="form-grid two-col">
+                                <div class="form-control-group">
+                                    <label class="form-label">Created By</label>
+                                    <input type="text" class="form-control" id="createdBy" readonly />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Created On</label>
+                                    <input type="text" class="form-control" id="createdOn" readonly />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Modified By</label>
+                                    <input type="text" class="form-control" id="modifiedBy" readonly />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Modified On</label>
+                                    <input type="text" class="form-control" id="modifiedOn" readonly />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Supervised By</label>
+                                    <input type="text" class="form-control" id="supervisedBy" readonly />
+                                </div>
+
+                                <div class="form-control-group">
+                                    <label class="form-label">Supervised On</label>
+                                    <input type="text" class="form-control" id="supervisedOn" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button class="btn-action underline" data-mcs-action="view"><i class="bi bi-eye me-2"></i>View</button>
+                    <button class="btn-action underline" data-mcs-action="add" disabled><i class="bi bi-plus-circle me-2"></i>Add</button>
+                    <button class="btn-action" data-mcs-action="edit" disabled><i class="bi bi-pencil me-2"></i>Edit</button>
+                    <button class="btn-action" data-mcs-action="delete" disabled><i class="bi bi-trash me-2"></i>Delete</button>
+                    <button class="btn-action" data-mcs-action="save" disabled><i class="bi bi-check-circle me-2"></i>Save</button>
+                    <button class="btn-action" data-mcs-action="cancel"><i class="bi bi-x-circle me-2"></i>Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DataEntry Child Form Overlay (iframe host) -->
+        <div class="child-overlay" data-child-overlay aria-hidden="true">
+            <div class="child-frame" role="dialog" aria-modal="true" aria-label="DataEntry window">
+                <iframe class="child-iframe" data-child-iframe title="DataEntry"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../common/toast-messages/toast-messages.js"></script>
+    <script src="user-maintenance-new.js"></script>
+
+    <!-- Client Search Modal -->
+    <div id="userMaintenanceClientSearchModal" class="modal" tabindex="-1" style="display:none; position:fixed; z-index:1050; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); align-items:center; justify-content:center;">
+        <div class="modal-dialog" style="background:#fff; border-radius:8px; max-width:1200px; min-width:800px; width:90vw; margin:auto; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div class="modal-content" style="padding:28px 28px 18px 28px; height:80vh; display:flex; flex-direction:column;">
+                <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                    <span style="font-weight:600; font-size:14px;">Client Search</span>
+                    <button type="button" id="userMaintenanceClientSearchModalCloseBtn" class="modal-close-btn" style="background:none; border:none; font-size:18px; cursor:pointer;">&times;</button>
+                </div>
+                <div class="modal-body" style="margin-top:10px; flex:1; padding:0; overflow:hidden;">
+                    <iframe id="userMaintenanceClientSearchFrame" class="um-client-search-frame" src="about:blank" title="Client Search Frame" style="width: 100%; height: 100%; border: none; overflow: auto;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Search Modal -->
+    <div id="userMaintenanceUserSearchModal" class="modal" tabindex="-1" style="display:none; position:fixed; z-index:1050; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); align-items:center; justify-content:center;">
+        <div class="modal-dialog" style="background:#fff; border-radius:8px; max-width:1200px; min-width:800px; width:90vw; margin:auto; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div class="modal-content" style="padding:28px 28px 18px 28px; height:80vh; display:flex; flex-direction:column;">
+                <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                    <span style="font-weight:600; font-size:14px;">User Search</span>
+                    <button type="button" id="userMaintenanceUserSearchModalCloseBtn" class="modal-close-btn" style="background:none; border:none; font-size:18px; cursor:pointer;">&times;</button>
+                </div>
+                <div class="modal-body" style="margin-top:10px; flex:1; padding:0; overflow:hidden;">
+                    <iframe id="userMaintenanceUserSearchFrame" class="um-user-search-frame" src="about:blank" title="User Search Frame" style="width: 100%; height: 100%; border: none; overflow: auto;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize client search modal
+        document.addEventListener('DOMContentLoaded', () => {
+            // Client search modal is now handled by custom functions in user-maintenance-new.js
+        });
+    </script>
+</body>
+</html>

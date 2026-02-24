@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTGS Outgoing Approval</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --border-color: #e2e8f0;
+            --input-focus: #3b82f6;
+            --input-focus-rgba: rgba(59, 130, 246, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .screen-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 160px;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding-right: 8px;
+            gap: 12px;
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .section-header {
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 6px 6px 0 0;
+            /* Rounded top only for attached content */
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Form Layout */
+        .form-row {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 12px;
+        }
+
+        .form-label {
+            color: #334155;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: right;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .form-input {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-main);
+            background-color: white;
+            transition: all 0.2s;
+            width: 100%;
+            height: 32px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px var(--input-focus-rgba);
+        }
+
+        .input-group-custom {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .search-btn {
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            border-radius: 6px;
+            background: rgba(37, 99, 235, 0.05);
+            border: 1px solid transparent;
+            height: 32px;
+            width: 32px;
+        }
+
+        .search-btn:hover {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+
+        /* Tables */
+        .table-container {
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            /* Header has the top border/radius */
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+            background: white;
+            min-height: 120px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .custom-table th {
+            background-color: #f1f5f9;
+            color: #64748b;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .custom-table td {
+            padding: 8px 12px;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .empty-message {
+            text-align: left;
+            padding: 20px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* Split View */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .split-panel {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            overflow: hidden;
+        }
+
+        .header-toolbar {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .image-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            min-height: 200px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(248, 250, 252, 0.5);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            height: 100%;
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        .sidebar-btn {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: white;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .sidebar-btn:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Footer / Audit */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            background: rgba(241, 245, 249, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-top: auto;
+        }
+
+        .footer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .footer-row {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .footer-input {
+            height: 26px;
+            font-size: 11px;
+            padding: 4px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="screen-wrapper">
+        <div class="main-content">
+
+            <!-- Top Search Fields -->
+            <div style="padding-bottom: 8px;">
+                <div class="form-row">
+                    <label class="form-label">Reference Number</label>
+                    <div class="input-group-custom" style="max-width: 400px;">
+                        <input type="text" class="form-input">
+                        <button class="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Nostro Account</label>
+                    <div class="input-group-custom">
+                        <input type="text" class="form-input" style="width: 150px;">
+                        <input type="text" class="form-input">
+                        <button class="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Details Table -->
+            <div>
+                <div class="section-header">
+                    Customer Details
+                </div>
+                <div class="table-container">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Message<br>Type.</th>
+                                <th>Instrument<br>Type.</th>
+                                <th>Ref No.</th>
+                                <th>Branch ID</th>
+                                <th>AccountID</th>
+                                <th>Name</th>
+                                <th>Trx Currency<br>ID</th>
+                                <th>Local<br>Amount</th>
+                                <th>Value Date</th>
+                                <th>Additional<br>Details</th>
+                                <th>Charge<br>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="11" class="empty-message">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Split View: Scanned Image & Beneficiary Details -->
+            <div class="split-view">
+                <!-- Scanned Image -->
+                <div class="split-panel">
+                    <div class="section-header">
+                        Scanned Image
+                        <div class="header-toolbar">
+                            <button class="tool-btn" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                            <button class="tool-btn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            <button class="tool-btn" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="image-placeholder">
+                        <!-- Image content would go here -->
+                    </div>
+                </div>
+
+                <!-- Beneficiary Details -->
+                <div class="split-panel">
+                    <div class="section-header">
+                        Beneficiary Details
+                    </div>
+                    <div class="table-container" style="border: none; border-radius: 0;">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Bank</th>
+                                    <th>BranchID</th>
+                                    <th>AccountID</th>
+                                    <th>Name</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="empty-message">No records to display.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Empty space filler for panel match -->
+                    <div style="flex:1; background: white;"></div>
+                </div>
+            </div>
+
+            <!-- Footer / Audit -->
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-row">
+                        <label class="footer-label">Created By</label>
+                        <input type="text" class="footer-input" readonly>
+                    </div>
+                    <div class="footer-row">
+                        <label class="footer-label">Created On</label>
+                        <input type="text" class="footer-input" readonly>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <div class="footer-row">
+                        <label class="footer-label">Modified By</label>
+                        <input type="text" class="footer-input" readonly>
+                    </div>
+                    <div class="footer-row">
+                        <label class="footer-label">Modified On</label>
+                        <input type="text" class="footer-input" readonly>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <div class="footer-row">
+                        <label class="footer-label">Supervised By</label>
+                        <input type="text" class="footer-input" readonly>
+                    </div>
+                    <div class="footer-row">
+                        <label class="footer-label">Supervised On</label>
+                        <input type="text" class="footer-input" readonly>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="sidebar">
+            <button class="sidebar-btn">Print</button>
+            <div class="sidebar-spacer"></div>
+            <button class="sidebar-btn"><i class="fas fa-edit me-2"></i>Edit</button>
+            <button class="sidebar-btn"><i class="fas fa-save me-2"></i>Save</button>
+            <button class="sidebar-btn text-success" style="background:#f0fdf4; border-color:#86efac;">
+                <i class="fas fa-check me-2"></i>Approve
+            </button>
+            <button class="sidebar-btn text-danger" style="background:#fef2f2; border-color:#fecaca;">
+                <i class="fas fa-ban me-2"></i>Reject
+            </button>
+            <button class="sidebar-btn"><i class="fas fa-times me-2"></i>Cancel</button>
+        </div>
+    </div>
+</body>
+
+</html>

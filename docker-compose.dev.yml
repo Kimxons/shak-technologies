@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: kairo-frontend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      # Optional: set this to your OldAPI host so /api/OldAPI works in dev
+      # - PROXY_OLDAPI=http://HOST:PORT
+      - PROXY_OLDAPI=${PROXY_OLDAPI:-}
+      # Avoid trying to auto-open a browser in container environments
+      - NO_BROWSER=true
+    restart: unless-stopped
+    networks:
+      - kairo-network
+    volumes:
+      # Mount source code for hot-reload
+      - ./public:/app/public
+      - ./package.json:/app/package.json
+    command: npm run dev
+
+networks:
+  kairo-network:
+    driver: bridge

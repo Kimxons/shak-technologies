@@ -1,0 +1,718 @@
+/* Kairo Banking Application - Charge Maintenance Stylesheet */
+
+/* ========== RESET & BASE ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 11px;
+  color: #2C3E50;
+  line-height: 1.4;
+  background: #F5F7FA;
+  overflow: hidden;
+}
+
+/* ========== LAYOUT STRUCTURE ========== */
+.kairo-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Left Sidebar - 200px */
+.kairo-sidebar {
+  width: 200px;
+  background: #FFFFFF;
+  border-right: 1px solid #DDE6ED;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  padding: 10px;
+}
+
+.sidebar-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #2C3E50;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  margin-bottom: 4px;
+}
+
+.sidebar-item i {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.sidebar-item:hover {
+  background: #F5F7FA;
+  color: #4A90E2;
+}
+
+.sidebar-item.active {
+  background: #4A90E2;
+  color: #FFFFFF;
+}
+
+/* Sidebar Toggle & Submenu */
+.sidebar-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #F5F7FA;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2C3E50;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.sidebar-toggle i {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-toggle.collapsed i {
+  transform: rotate(-90deg);
+}
+
+.sidebar-toggle:hover {
+  background: #DDE6ED;
+}
+
+.sidebar-submenu {
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  margin-top: 4px;
+}
+
+.sidebar-submenu.collapsed {
+  max-height: 0;
+}
+
+.sidebar-subitem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 24px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  font-size: 10px;
+  color: #5A6C7D;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  margin-bottom: 2px;
+}
+
+.sidebar-subitem i {
+  font-size: 10px;
+}
+
+.sidebar-subitem:hover {
+  background: #F5F7FA;
+  color: #4A90E2;
+}
+
+.sidebar-subitem.active {
+  background: #4A90E2;
+  color: #FFFFFF;
+}
+
+
+/* Main Content Area - Flexible */
+.kairo-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* Right Action Sidebar - 100px */
+.kairo-actions {
+  width: 100px;
+  background: #FFFFFF;
+  border-left: 1px solid #DDE6ED;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ========== CARDS ========== */
+.kairo-card {
+  background: #FFFFFF;
+  border: 1px solid #DDE6ED;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.card-header {
+  background: linear-gradient(to right, #4A90E2, #357ABD);
+  color: #FFFFFF;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px 4px 0 0;
+}
+
+.card-header i {
+  font-size: 11px;
+}
+
+.card-body {
+  padding: 10px;
+}
+
+/* ========== FORM LAYOUTS ========== */
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.form-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.form-grid-fullwidth {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ========== FORM LABELS ========== */
+label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #4A90E2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+label i {
+  font-size: 11px;
+}
+
+/* ========== FORM INPUTS ========== */
+input[type="text"],
+input[type="date"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+  padding: 4px 8px;
+  border: 1px solid #DDE6ED;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #2C3E50;
+  background: #FFFFFF;
+  transition: all 0.2s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8B98A5;
+}
+
+input:read-only,
+select:disabled,
+textarea:read-only {
+  background: #F5F7FA;
+  cursor: not-allowed;
+  color: #5A6C7D;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 45px;
+}
+
+/* ========== INPUT WITH SEARCH ========== */
+.input-with-search {
+  display: flex;
+  gap: 4px;
+}
+
+.input-with-search input {
+  flex: 1;
+}
+
+.btn-search {
+  background: #4A90E2;
+  color: #FFFFFF;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-search i {
+  font-size: 13px;
+}
+
+.btn-search:hover {
+  background: #357ABD;
+  transform: scale(1.05);
+}
+
+/* ========== CHECKBOXES ========== */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px 12px;
+  margin: 12px 0;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #4A90E2;
+}
+
+.checkbox-group label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #2C3E50;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* ========== ACTION BUTTONS (RIGHT SIDEBAR) ========== */
+.btn-action {
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.btn-action i {
+  font-size: 11px;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-view {
+  color: #3498DB;
+  border: 1px solid #3498DB;
+}
+
+.btn-view:hover {
+  background: #3498DB;
+  color: #FFFFFF;
+}
+
+.btn-add {
+  color: #27AE60;
+  border: 1px solid #27AE60;
+}
+
+.btn-add:hover {
+  background: #27AE60;
+  color: #FFFFFF;
+}
+
+.btn-edit {
+  color: #F39C12;
+  border: 1px solid #F39C12;
+}
+
+.btn-edit:hover {
+  background: #F39C12;
+  color: #FFFFFF;
+}
+
+.btn-delete {
+  color: #E74C3C;
+  border: 1px solid #E74C3C;
+}
+
+.btn-delete:hover {
+  background: #E74C3C;
+  color: #FFFFFF;
+}
+
+.btn-save {
+  color: #27AE60;
+  border: 1px solid #27AE60;
+}
+
+.btn-save:hover {
+  background: #27AE60;
+  color: #FFFFFF;
+}
+
+.btn-cancel {
+  color: #E74C3C;
+  border: 1px solid #E74C3C;
+}
+
+.btn-cancel:hover {
+  background: #E74C3C;
+  color: #FFFFFF;
+}
+
+.btn-back {
+  color: #2C3E50;
+  border: 1px solid #2C3E50;
+}
+
+.btn-back:hover {
+  background: #2C3E50;
+  color: #FFFFFF;
+}
+
+.action-divider {
+  height: 1px;
+  background: #DDE6ED;
+  margin: 6px 0;
+}
+
+/* ========== DATA TABLES ========== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.data-table thead tr {
+  background: linear-gradient(to right, #4A90E2, #357ABD);
+  color: #FFFFFF;
+}
+
+.data-table th {
+  padding: 7px 8px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid #DDE6ED;
+}
+
+.data-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid #DDE6ED;
+  border-left: 1px solid #DDE6ED;
+  border-right: 1px solid #DDE6ED;
+}
+
+.data-table tbody tr:hover {
+  background: #F5F7FA;
+}
+
+.data-table .empty-state td {
+  text-align: center;
+  font-style: italic;
+  color: #5A6C7D;
+  padding: 12px;
+}
+
+/* ========== STATUS MESSAGES ========== */
+.status-message {
+  display: none;
+  padding: 8px 12px;
+  border-radius: 3px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-message.show {
+  display: flex;
+}
+
+.status-message.success {
+  background: rgba(39, 174, 96, 0.1);
+  border: 1px solid #27AE60;
+  color: #27AE60;
+}
+
+.status-message.error {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid #E74C3C;
+  color: #E74C3C;
+}
+
+.status-message.warning {
+  background: rgba(243, 156, 18, 0.1);
+  border: 1px solid #F39C12;
+  color: #F39C12;
+}
+
+.status-message.info {
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid #3498DB;
+  color: #3498DB;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+  .kairo-container {
+    flex-direction: column;
+  }
+
+  .kairo-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #DDE6ED;
+  }
+
+  .sidebar-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .sidebar-item {
+    flex: 1;
+    min-width: 70px;
+  }
+
+  .kairo-actions {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #DDE6ED;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    flex: 1;
+    min-width: 70px;
+  }
+
+  .action-divider {
+    display: none;
+  }
+
+  .form-grid-2col,
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid-3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========== EXEMPTION SETTINGS SPECIFIC STYLES ========== */
+.exemption-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #F5F7FA;
+  border-radius: 3px;
+  align-items: flex-start;
+}
+
+.exemption-checkbox {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exemption-checkbox input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #4A90E2;
+}
+
+.exemption-checkbox label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2C3E50;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.exemption-checkbox label i {
+  font-size: 11px;
+  color: #4A90E2;
+}
+
+.exemption-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 12px;
+}
+
+.exemption-fields .form-group {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .exemption-row {
+    flex-direction: column;
+  }
+
+  .exemption-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========== MODAL OVERLAYS ========== */
+.kairo-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kairo-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-content {
+  width: 92%;
+  max-width: 1200px;
+  height: 92vh;
+  background: #FFFFFF;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  background: linear-gradient(to right, #4A90E2, #357ABD);
+  color: #FFFFFF;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4px 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-close i {
+  font-size: 16px;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.modal-body iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    height: 95vh;
+  }
+}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Copy Role · Data Entry</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="copy-role.css" />
+  <link rel="stylesheet" href="../../../account-maintenance/DataEntry/dataentry-theme.css" />
+</head>
+
+<body>
+  <div class="cu-window" data-cu-window>
+    <div class="cu-title-bar" role="banner" aria-label="Window title bar">
+      <div class="cu-title-bar__left">
+        <span class="cu-title-bar__icon" aria-hidden="true"></span>
+        <span class="cu-title-bar__text">Copy Role</span>
+      </div>
+      <div class="cu-title-bar__right" aria-label="Window controls">
+        <button class="cu-title-btn close" type="button" data-cu-close title="Close" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="cu-main">
+      <div class="cu-content-shell" role="region" aria-label="Copy Role">
+        <div class="cu-scroll">
+          <div class="cu-top-box" role="group" aria-label="Role details">
+            <div class="cu-row cu-row--text">
+              <label class="cu-label cu-label--blue" for="NewRoleId">New Role ID</label>
+              <div class="cu-input-group">
+                <input id="NewRoleId" type="text" class="cu-input" />
+              </div>
+            </div>
+
+            <div class="cu-row cu-row--text">
+              <label class="cu-label" for="NewRoleName">New Role Name</label>
+              <input id="NewRoleName" type="text" class="cu-input" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cu-action-panel">
+        <div class="cu-preview">
+          <!-- Preview area could show role details -->
+        </div>
+        <div class="cu-actions">
+          <button class="cu-action-btn" type="button" data-cu-save disabled>
+            <i class="bi bi-save2"></i>
+            <span>Save</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-cancel disabled>
+            <i class="bi bi-x-circle"></i>
+            <span>Cancel</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-back>
+            <i class="bi bi-arrow-left"></i>
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cu-status-bar">
+      <div class="cu-message" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="../../../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script>
+    // Handle close button
+    document.addEventListener('DOMContentLoaded', function() {
+      const closeBtn = document.querySelector('[data-cu-close]');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          window.parent.postMessage({ type: 'kairo-dataentry-close' }, '*');
+        });
+      }
+
+      // Handle back button
+      const backBtn = document.querySelector('[data-cu-back]');
+      if (backBtn) {
+        backBtn.addEventListener('click', function() {
+          window.parent.postMessage({ type: 'kairo-dataentry-close' }, '*');
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

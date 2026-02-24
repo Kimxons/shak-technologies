@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Branch Settings · Static Data</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/maincss.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20260201" />
+</head>
+
+<body class="branch-settings copilot-theme" data-page="branch-settings">
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  <div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Left Sidebar Navigation -->
+      <div class="sidebar" id="main-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"
+            aria-expanded="true">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-search">
+          <input type="text" id="submoduleSearch" class="sidebar-search__input" placeholder="Search submodules..."
+            autocomplete="off" aria-label="Search submodules">
+          <i class="bi bi-search sidebar-search__icon"></i>
+        </div>
+
+        <div class="sidebar-content">
+          <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
+            <div class="nav-toggle nav-header nav-header--card" data-current-section="dataentry" role="button"
+              tabindex="0" aria-label="Toggle Data Entry navigation">
+              <div class="nav-header__content">
+                <i class="bi bi-folder-fill nav-header__icon"></i>
+                <span class="nav-label nav-label--card">Data Entry</span>
+              </div>
+              <div class="nav-header__badge">
+                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry"
+                  aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="nav-items d-flex">
+              <button type="button" class="nav-item sidebar-item sidebar-item--enhanced"
+                data-section="branch-parameters">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-sliders sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Branch Parameters</div>
+                    <div class="sidebar-item__description">Configure parameters</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="form-content" id="mainFormContainer">
+        <!-- Branch Settings Form -->
+        <div id="branchSettingsSection" class="form-card content-section active">
+          <!-- Branch Details Section -->
+          <div class="form-section" data-section="branch-details">
+            <div class="section-header" data-section-toggle style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+              <span class="section-header__title" style="color: #fff;"><i class="bi bi-building" style="color: #fff;"></i> Branch Details</span>
+              <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle Branch Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <!-- Validation/Success Message Banner -->
+              <div class="validation-summary" role="status" aria-live="polite" style="display: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745; color: #155724;">
+                <i class="bi bi-check-circle validation-summary__icon" style="margin-right: 8px;"></i>
+                <span class="validation-summary__text"></span>
+                <button type="button" class="validation-summary__close" aria-label="Close notification" style="background: none; border: none; float: right; cursor: pointer; color: #155724;">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="bankId">Bank ID</label>
+                  <input type="text" class="bs-input-text" id="bankId" name="bankId" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="branchId">Branch ID</label>
+                  <input type="text" class="bs-input-text" id="branchId" name="branchId" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="shortName">Short Name</label>
+                  <input type="text" class="bs-input-text" id="shortName" name="shortName" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="currencyId">Currency ID</label>
+                  <input type="text" class="bs-input-text" id="currencyId" name="currencyId" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="branchPrefix">Branch Prefix</label>
+                  <input type="text" class="bs-input-text" id="branchPrefix" name="branchPrefix" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="address">Address</label>
+                  <input type="text" class="bs-input-text" id="address" name="address" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="city">City</label>
+                  <input type="text" class="bs-input-text" id="city" name="city" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="zipCode">Zip Code</label>
+                  <input type="text" class="bs-input-text" id="zipCode" name="zipCode" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="emailId">Email ID</label>
+                  <input type="text" class="bs-input-text" id="emailId" name="emailId" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="phone1">Phone 1</label>
+                  <input type="text" class="bs-input-text" id="phone1" name="phone1" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="mobile">Mobile</label>
+                  <input type="text" class="bs-input-text" id="mobile" name="mobile" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="phone2">Phone 2</label>
+                  <input type="text" class="bs-input-text" id="phone2" name="phone2" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="timeZoneDiff">Time Zone Diff</label>
+                  <input type="text" class="bs-input-text" id="timeZoneDiff" name="timeZoneDiff" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="faxNo">Fax No</label>
+                  <input type="text" class="bs-input-text" id="faxNo" name="faxNo" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="clearingDays">Clearing Days</label>
+                  <input type="text" class="bs-input-text" id="clearingDays" name="clearingDays" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="apportionIntTax">Apportion Int. & Tax</label>
+                  <input type="text" class="bs-input-text" id="apportionIntTax" name="apportionIntTax" />
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="label-blue" for="intApportionAC">Int. Apportion A/C</label>
+                <input type="text" class="bs-input-text" id="intApportionAC" name="intApportionAC" />
+              </div>
+              <div class="form-row">
+                <label class="label-blue" for="taxApportionAC">Tax Apportion A/C</label>
+                <input type="text" class="bs-input-text" id="taxApportionAC" name="taxApportionAC" />
+              </div>
+              <div class="form-row">
+                <label class="label-blue" for="reportingBranchID">Reporting Branch ID</label>
+                <input type="text" class="bs-input-text" id="reportingBranchID" name="reportingBranchID" />
+              </div>
+              <div class="form-row checkbox-row">
+                <input type="checkbox" class="bs-checkbox" id="isHeadOffice" name="isHeadOffice" />
+                <label for="isHeadOffice">Is Head Office</label>
+                <input type="checkbox" class="bs-checkbox ms-3" id="isClearingCentre" name="isClearingCentre" />
+                <label for="isClearingCentre">Is Clearing Centre</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Branch Financial Details Section -->
+          <div class="form-section" data-section="branch-financial">
+            <div class="section-header" data-section-toggle style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+              <span class="section-header__title" style="color: #fff;"><i class="bi bi-cash-coin" style="color: #fff;"></i> Branch Financial Details</span>
+              <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle Branch Financial Details"
+                aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="branchCashLimit">Branch Cash Limit (ETB)</label>
+                  <input type="text" class="bs-input-text text-end" id="branchCashLimit" name="branchCashLimit" />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="lastAuditedOn">Last Audited On</label>
+                  <input type="text" class="bs-input-text" id="lastAuditedOn" name="lastAuditedOn" />
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="label-blue" for="largestAllowableTrxAmount">Largest Allowable Trx Amount (ETB)</label>
+                <input type="text" class="bs-input-text text-end" id="largestAllowableTrxAmount"
+                  name="largestAllowableTrxAmount" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+              <span class="section-header__title" style="color: #fff;"><i class="bi bi-eye" style="color: #fff;"></i> Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle Behind The Scene"
+                aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="behind-scene">
+                <div class="behind-scene-grid">
+                  <div class="behind-scene-item">
+                    <label>Modified By</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="btsModifiedBy"></span>
+                    </div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Modified On</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="btsModifiedOn"></span>
+                    </div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Supervised By</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="btsSupervisedBy"></span>
+                    </div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Supervised On</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="btsSupervisedOn"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End Branch Settings Section -->
+
+        <!-- Branch Parameters Section -->
+        <div id="branchParametersSection" class="form-card content-section d-none">
+          <!-- Parameters Section -->
+          <div class="form-section" data-section="parameters-table">
+            <div class="section-header" data-section-toggle style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+              <span class="section-header__title" style="color: #fff;"><i class="bi bi-sliders" style="color: #fff;"></i> Parameters</span>
+              <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle Parameters" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="table-responsive overflow-auto" data-max-height="400">
+                <table class="table table-sm table-hover align-middle mb-0 parameters-table">
+                  <thead class="sticky-top bg-light">
+                    <tr>
+                      <th scope="col" class="text-center" data-width="2rem">
+                        <input class="form-check-input" type="checkbox" id="selectAll" aria-label="Select all" />
+                      </th>
+                      <th scope="col">Grouping</th>
+                      <th scope="col">Description</th>
+                      <th scope="col">Narration</th>
+                      <th scope="col">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Narration Panel Section -->
+          <div class="form-section" data-section="param-narration">
+            <div class="section-header" data-section-toggle style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+              <span class="section-header__title" style="color: #fff;"><i class="bi bi-chat-left-text" style="color: #fff;"></i> Parameter Details</span>
+              <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle Parameter Details"
+                aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div id="paramNarrationText" class="param-narration-text p-3 bg-light rounded"></div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section (Parameters) -->
+          <div class="form-section" data-section="bp-behind-scene">
+            <div class="section-header" data-section-toggle style="background: linear-gradient(135deg, #5b8a9f 0%, #4a7a8f 100%); border: 1px solid rgba(255,255,255,0.2);">
+              <span class="section-header__title" style="color: #fff;"><i class="bi bi-eye" style="color: #fff;"></i> Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" style="background: rgba(255,255,255,0.2); color: #fff;" aria-label="Toggle Behind The Scene"
+                aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="behind-scene">
+                <div class="behind-scene-grid">
+                  <div class="behind-scene-item">
+                    <label>Modified By</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="modifiedBy"></span>
+                    </div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Modified On</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="modifiedOn"></span>
+                    </div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Supervised By</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="supervisedBy"></span>
+                    </div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Supervised On</label>
+                    <div class="value-row">
+                      <span class="behind-scene-value" id="supervisedOn"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- End Branch Parameters Section -->
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <!-- Branch Settings Actions -->
+        <div class="action-buttons" data-bs-actions-view="branch-settings">
+          <button type="button" class="btn-action" id="btnEdit"><i class="bi bi-pencil me-1"></i>Edit</button>
+          <button type="button" class="btn-action" id="btnSave" disabled><i class="bi bi-check me-1"></i>Save</button>
+          <button type="button" class="btn-action" id="btnCancel" disabled><i class="bi bi-x me-1"></i>Cancel</button>
+        </div>
+        <!-- Branch Parameters Actions -->
+        <div class="action-buttons d-none" data-bs-actions-view="branch-parameters">
+          <button type="button" class="btn-action btn-edit" id="btnBpEdit"><i
+              class="bi bi-pencil me-1"></i>Edit</button>
+          <button type="button" class="btn-action btn-save" id="btnBpSave" disabled><i
+              class="bi bi-check me-1"></i>Save</button>
+          <button type="button" class="btn-action btn-cancel" id="btnBpCancel" disabled><i
+              class="bi bi-x me-1"></i>Cancel</button>
+          <button type="button" class="btn-action btn-back" id="btnBpBack"><i
+              class="bi bi-arrow-left me-1"></i>Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="branch-parameters.js"></script>
+  <script src="branch-settings.js"></script>
+</body>
+
+</html>

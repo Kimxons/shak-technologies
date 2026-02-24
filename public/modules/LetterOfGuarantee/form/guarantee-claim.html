@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guarantee Claim</title>
+  <link rel="stylesheet" href="guarantee-claim.css" />
+</head>
+<body>
+  <div class="window" role="application" aria-label="Guarantee Claim">
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <span class="title-icon" aria-hidden="true">☰</span>
+        <span class="title-text">Guarantee Claim</span>
+      </div>
+      <div class="title-bar-right">
+        <button class="title-btn" type="button" aria-label="Minimize">─</button>
+        <button class="title-btn" type="button" aria-label="Maximize">☐</button>
+        <button class="title-btn close" type="button" aria-label="Close" id="closeX">✕</button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="content">
+        <div class="panel" aria-label="Guarantee Claim form">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="label-blue" for="applicationId">Application ID</label>
+              <input type="text" id="applicationId" class="input-mid" data-editable="true" disabled />
+              <button class="btn-lookup" type="button" id="applicationLookup" aria-label="Lookup application">🔍</button>
+              <span class="row-gap" aria-hidden="true"></span>
+            </div>
+
+            <div class="form-row">
+              <label for="claimDate">Claim Date</label>
+              <input type="date" id="claimDate" class="input-mid" data-editable="true" disabled />
+              <label class="label-inline" for="claimAmount">Claim Amount</label>
+              <input type="text" id="claimAmount" class="input-mid" data-editable="true" disabled />
+            </div>
+
+            <div class="form-row">
+              <label for="legalInjunction">Legal Injunction</label>
+              <input type="checkbox" id="legalInjunction" class="chk" data-editable="true" disabled />
+
+              <label class="label-inline" for="liquidateUsingCollateral">Liquidate Using Collateral</label>
+              <input type="checkbox" id="liquidateUsingCollateral" class="chk" data-editable="true" disabled />
+            </div>
+
+            <div class="form-row">
+              <label for="loanForClaimSettlement">Loan For Claim Settlement</label>
+              <input type="checkbox" id="loanForClaimSettlement" class="chk" data-editable="true" disabled />
+
+              <label class="label-inline" for="status">Status</label>
+              <input type="text" id="status" class="input-mid" data-editable="true" disabled />
+            </div>
+
+            <div class="form-row">
+              <label for="beneficiaryAccountId">Beneficiary AccountID</label>
+              <input type="text" id="beneficiaryAccountId" class="input-mid" data-editable="true" disabled />
+
+              <label class="label-inline" for="beneficiaryName">Beneficiary Name</label>
+              <input type="text" id="beneficiaryName" class="input-mid" data-editable="true" disabled />
+            </div>
+
+            <div class="form-row">
+              <label for="loanProductId">Loan ProductID</label>
+              <input type="text" id="loanProductId" class="input-mid" data-editable="true" disabled />
+              <input type="text" id="loanProductDesc" class="input-wide" readonly />
+              <button class="btn-lookup" type="button" id="loanProductLookup" aria-label="Lookup loan product">🔍</button>
+            </div>
+
+            <div class="form-row form-row--top">
+              <label for="remarks">Remarks</label>
+              <textarea id="remarks" class="textarea" rows="4" data-editable="true" disabled></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">Behind The Scene</div>
+        <div class="section-body">
+          <div class="form-grid behind-grid">
+            <div class="form-row">
+              <label for="createdBy">Created By</label>
+              <input type="text" id="createdBy" class="input-mid" readonly />
+              <label class="label-inline" for="createdOn">Created On</label>
+              <input type="text" id="createdOn" class="input-mid" readonly />
+            </div>
+            <div class="form-row">
+              <label for="approvedBy">Approved By</label>
+              <input type="text" id="approvedBy" class="input-mid" readonly />
+              <label class="label-inline" for="approvedOn">Approved On</label>
+              <input type="text" id="approvedOn" class="input-mid" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-mode="view">View</button>
+          <button class="btn-action" type="button" data-mode="add">Add</button>
+          <button class="btn-action" type="button" id="saveBtn" disabled>Save</button>
+          <button class="btn-action" type="button" id="approveBtn" disabled>Approve</button>
+          <button class="btn-action" type="button" id="cancelBtn" disabled>Cancel</button>
+          <button class="btn-action" type="button" id="backBtn">Back</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="status-bar" aria-label="Status">
+      <span id="statusText"></span>
+    </div>
+  </div>
+
+  <script src="guarantee-claim.js"></script>
+</body>
+</html>

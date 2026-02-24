@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross Currency Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+<body>
+    <div class="window">
+        <div class="main-container">
+            <!-- Form Content -->
+            <div class="form-content">
+                <form id="cross-calculator-form" autocomplete="off" novalidate>
+                    <div class="form-card">
+                        <!-- Exchange Rate Information Section -->
+                        <div class="form-section" data-section="exchange-rate-info">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-graph-up"></i>Exchange Rate Information</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Rate Type</label>
+                                        <select class="bs-input-text" id="rateType" name="rateType">
+                                            <option value="">--Select--</option>
+                                            <option value="Bills - Purchase (Foreign)">Bills - Purchase (Foreign)</option>
+                                            <option value="Cheque Rate">Cheque Rate</option>
+                                            <option value="Cash - Currency Purchase / Sell">Cash - Currency Purchase / Sell</option>
+                                            <option value="Forward Rate">Forward Rate</option>
+                                            <option value="Revaluation Rate">Revaluation Rate</option>
+                                            <option value="Spot Rate">Spot Rate</option>
+                                            <option value="Travellers Cheque">Travellers Cheque</option>
+                                            <option value="Telephonic Transfer">Telephonic Transfer</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Currency Conversion Section -->
+                        <div class="form-section" data-section="currency-conversion">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-arrow-left-right"></i>Currency Conversion Details</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">From Currency</label>
+                                        <select class="bs-input-text" id="fromCurrency" name="fromCurrency">
+                                            <option value="">--Select--</option>
+                                            <option value="AED">AED - UAE Dirham</option>
+                                            <option value="AUD">AUD - Australian Dollar</option>
+                                            <option value="CAD">CAD - Canadian Dollar</option>
+                                            <option value="CHF">CHF - Swiss Franc</option>
+                                            <option value="EUR">EUR - Euro</option>
+                                            <option value="GBP">GBP - British Pound</option>
+                                            <option value="INR">INR - Indian Rupee</option>
+                                            <option value="JPY">JPY - Japanese Yen</option>
+                                            <option value="KES">KES - Kenyan Shilling</option>
+                                            <option value="USD">USD - US Dollar</option>
+                                            <option value="ZAR">ZAR - South African Rand</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label>Currency Code</label>
+                                        <input type="text" class="bs-input-text" id="fromCurrencyCode" name="fromCurrencyCode" placeholder="Code" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">To Currency</label>
+                                        <select class="bs-input-text" id="toCurrency" name="toCurrency">
+                                            <option value="">--Select--</option>
+                                            <option value="AED">AED - UAE Dirham</option>
+                                            <option value="AUD">AUD - Australian Dollar</option>
+                                            <option value="CAD">CAD - Canadian Dollar</option>
+                                            <option value="CHF">CHF - Swiss Franc</option>
+                                            <option value="EUR">EUR - Euro</option>
+                                            <option value="GBP">GBP - British Pound</option>
+                                            <option value="INR">INR - Indian Rupee</option>
+                                            <option value="JPY">JPY - Japanese Yen</option>
+                                            <option value="KES">KES - Kenyan Shilling</option>
+                                            <option value="USD">USD - US Dollar</option>
+                                            <option value="ZAR">ZAR - South African Rand</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label>Currency Code</label>
+                                        <input type="text" class="bs-input-text" id="toCurrencyCode" name="toCurrencyCode" placeholder="Code" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conversion Amount Section -->
+                        <div class="form-section" data-section="conversion-amount">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-cash-stack"></i>Conversion Amount</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue">Fixed Amount</label>
+                                        <input type="number" class="bs-input-text" id="fixedAmount" name="fixedAmount" placeholder="Enter amount to convert" step="0.01">
+                                    </div>
+                                    <div class="col">
+                                        <label>Exchange Rate</label>
+                                        <input type="number" class="bs-input-text" id="exchangeRate" name="exchangeRate" placeholder="Enter rate" step="0.0001">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div class="form-section" data-section="conversion-result">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-receipt"></i>Conversion Result</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label>Converted Amount</label>
+                                        <input type="text" class="bs-input-text fs-4 fw-bold text-primary" id="resultAmount" value="0.00" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label>Result Currency</label>
+                                        <input type="text" class="bs-input-text" id="resultCurrency" value="--" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conversion Summary Table -->
+                        <div class="form-section" data-section="conversion-summary">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-table"></i>Conversion Summary</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Description</th>
+                                                <th>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="summaryTableBody">
+                                            <tr>
+                                                <td>Rate Type</td>
+                                                <td id="summaryRateType">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td>From Currency</td>
+                                                <td id="summaryFromCurrency">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td>To Currency</td>
+                                                <td id="summaryToCurrency">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Original Amount</td>
+                                                <td id="summaryOriginalAmount">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Exchange Rate</td>
+                                                <td id="summaryExchangeRate">--</td>
+                                            </tr>
+                                            <tr class="table-primary">
+                                                <td><strong>Converted Amount</strong></td>
+                                                <td id="summaryConvertedAmount"><strong>--</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-action--success" id="calculateBtn">
+                        <i class="bi bi-calculator"></i>
+                        <span>Calculate</span>
+                    </button>
+                    <button type="button" class="btn-action btn-delete" id="cancelBtn">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="cross-calculator.js"></script>
+</body>
+</html>

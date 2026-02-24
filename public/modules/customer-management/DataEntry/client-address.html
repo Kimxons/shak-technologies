@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Details</title>
+    <!-- Use relative link to the base framework in account-maintenance -->
+    <link rel="stylesheet" href="./dataentry-client-base.css?v=20250128" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <style>
+        /* Module specific overrides to match "Documents" exactly */
+        .de-card__header {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+            flex-shrink: 0;
+            color: white !important;
+        }
+
+        .de-card__header--bts {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+            color: white !important;
+            cursor: default !important;
+        }
+
+        .de-card__header--bts:hover {
+            background: linear-gradient(180deg, #4A7C95 0%, #3D6A7F 100%) !important;
+        }
+
+        /* Force full height for embedded view */
+        html,
+        body,
+        .de-window {
+            height: 100% !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .de-label--blue {
+            color: #4A7C95;
+            font-weight: 700;
+        }
+
+        /* Navigation group for address switching, styled to match the framework */
+        .de-nav-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .de-btn-nav {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            color: #4A7C95;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .de-btn-nav:hover {
+            background: #4A7C95;
+            color: white;
+            border-color: #4A7C95;
+        }
+
+        /* Placeholder for logic-required class */
+        /* .section-body-bordered is used by JS toggleFields and clearAllFields to find the inputs */
+
+        /* Ensure lookup buttons look correct */
+        .de-btn-lookup.btn-lookup i {
+            font-size: 11px;
+        }
+
+        /* Action Panel button styles */
+        .de-action-btn i {
+            margin-bottom: 2px;
+        }
+
+        .de-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* BTS Toggle Button Styling Override */
+        .de-bts-toggle {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .de-bts-toggle:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        /* Darken input text to match Client Maintenance */
+        .de-input,
+        .de-select,
+        .bs-input-text,
+        .bs-select {
+            color: #1e293b !important;
+            /* --de-text-primary */
+            font-size: 11px !important;
+            /* --de-font-size-sm */
+            font-weight: 800 !important;
+            /* Matches .de-audit-value */
+        }
+
+        .de-input::placeholder,
+        .bs-input-text::placeholder {
+            color: #9ca3af;
+            /* lighter placeholder */
+            font-weight: 400 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="de-window">
+        <main class="de-main de-main--with-panel">
+            <div class="de-form-shell" role="region" aria-label="Address form">
+                <!-- Main Form Card -->
+                <section class="de-card de-card--grid">
+                    <header class="de-card__header">
+                        <span class="de-card__title">Address Information</span>
+                    </header>
+
+                    <div class="de-card__body section-body-bordered">
+                        <div class="de-form-grid">
+                            <!-- Row 1: Address Type -->
+                            <div class="de-field de-field--full">
+                                <label class="de-label de-label--blue" for="addressType">Address Type</label>
+                                <select id="addressType" class="de-select bs-select">
+                                    <option value="R">Residential Address</option>
+                                    <option value="B">Business Address</option>
+                                    <option value="O">Office Address</option>
+                                </select>
+                            </div>
+
+                            <!-- Row 2: Address 1 -->
+                            <div class="de-field de-field--span2">
+                                <label class="de-label de-label--blue" for="address1">Address #1</label>
+                                <input type="text" id="address1" name="address1" placeholder="Address Line 1"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <!-- Row 3: Address 2 -->
+                            <div class="de-field de-field--span2">
+                                <label class="de-label" for="address2">Address #2</label>
+                                <input type="text" id="address2" name="address2" placeholder="Address Line 2"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <!-- Row 4: Land Mark -->
+                            <div class="de-field de-field--span2">
+                                <label class="de-label" for="landMark">Land Mark</label>
+                                <input type="text" id="landMark" name="landMark" placeholder="Landmark/Nearby Building"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <!-- Country Lookup -->
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="country">Country</label>
+                                <div class="de-input-group">
+                                    <input type="text" id="country" name="country" placeholder="Country"
+                                        class="de-input bs-input-text">
+                                    <button class="de-btn-lookup btn-lookup" type="button">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- City Lookup -->
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="city">City</label>
+                                <div class="de-input-group">
+                                    <input type="text" id="city" name="city" placeholder="City"
+                                        class="de-input bs-input-text">
+                                    <button class="de-btn-lookup btn-lookup" type="button">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="phoneHome">Phone (Home)</label>
+                                <input type="text" id="phoneHome" name="phoneHome" placeholder="Home Phone No"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="phoneWork">Phone (Work)</label>
+                                <input type="text" id="phoneWork" name="phoneWork" placeholder="Work Phone No"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="mobile">Mobile No</label>
+                                <input type="text" id="mobile" name="mobile" placeholder="Mobile No"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="faxNo">Fax No</label>
+                                <input type="text" id="faxNo" name="faxNo" placeholder="Fax No"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label de-label--blue" for="emailId">Email Address</label>
+                                <input type="email" id="emailId" name="emailId" placeholder="Email Address"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="zipCode">Zip Code</label>
+                                <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="subCityZone">Sub-City/Zone</label>
+                                <select id="subCityZone" name="subCityZone" class="de-select bs-select">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="region">Region</label>
+                                <select id="region" name="region" class="de-select bs-select">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="wereda">Wereda</label>
+                                <input type="text" id="wereda" name="wereda" placeholder="Wereda"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="kebele">Kebele</label>
+                                <input type="text" id="kebele" name="kebele" placeholder="Kebele"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="houseNumber">House Number</label>
+                                <input type="text" id="houseNumber" name="houseNumber" placeholder="House No"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field">
+                                <label class="de-label" for="tinNumber">TIN Number</label>
+                                <input type="text" id="tinNumber" name="tinNumber" placeholder="TIN No"
+                                    class="de-input bs-input-text">
+                            </div>
+
+                            <div class="de-field de-field--full">
+                                <label class="de-label" for="communicationAddress">Communication Address</label>
+                                <input type="text" id="communicationAddress" name="communicationAddress"
+                                    placeholder="Mailing Address" class="de-input bs-input-text">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                </section>
+
+                <!-- Behind The Scene Section -->
+                <section class="de-card de-card--bts" id="btsSection">
+                    <header class="de-card__header de-card__header--bts" id="btsHeader">
+                        <span class="de-card__title"><i class="bi bi-gear"></i> BEHIND THE SCENE</span>
+                        <button type="button" class="de-bts-toggle" aria-label="Toggle Behind The Scene">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </header>
+                    <div class="de-card__body de-card__body--bts" id="btsBody">
+                        <div class="de-audit-grid">
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Created By</span>
+                                <span class="de-audit-value" id="createdBy">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Created On</span>
+                                <span class="de-audit-value" id="createdOn">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Modified By</span>
+                                <span class="de-audit-value" id="modifiedBy">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Modified On</span>
+                                <span class="de-audit-value" id="modifiedOn">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Supervised By</span>
+                                <span class="de-audit-value" id="supervisedBy">-</span>
+                            </div>
+                            <div class="de-audit-cell">
+                                <span class="de-audit-label">Supervised On</span>
+                                <span class="de-audit-value" id="supervisedOn">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Action Panel -->
+            <aside class="de-action-panel">
+                <div class="de-nav-group">
+                    <button class="de-btn-nav btn-nav" aria-label="Previous Address">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span>Address</span>
+                    <button class="de-btn-nav btn-nav" aria-label="Next Address">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="de-action-group de-action-group--bottom">
+                    <button class="de-action-btn btn-action action-view de-action-btn--default" type="button">
+                        <i class="bi bi-eye"></i><span>View</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-add" type="button">
+                        <i class="bi bi-plus-circle"></i><span>Add</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-edit" type="button">
+                        <i class="bi bi-pencil-square"></i><span>Edit</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-delete de-action-btn--delete" type="button">
+                        <i class="bi bi-trash3"></i><span>Delete</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-save de-action-btn--save" type="button">
+                        <i class="bi bi-check-lg"></i><span>Save</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-cancel de-action-btn--cancel" type="button">
+                        <i class="bi bi-x-lg"></i><span>Cancel</span>
+                    </button>
+                    <button class="de-action-btn btn-action action-back de-action-btn--cancel" type="button">
+                        <i class="bi bi-box-arrow-right"></i><span>Close</span>
+                    </button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../../assets/js/services/shared/coreApi.js"></script>
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../shared/toast-notification.js"></script>
+
+    <!-- Framework Utilities -->
+    <script src="../../account-maintenance/DataEntry/dataentry-base.js?v=20250128"></script>
+    <script src="../../account-maintenance/DataEntry/dataentry-utils.js"></script>
+
+    <!-- Page Logic -->
+    <script src="../../../assets/js/pages/customer-management/client-address.js"></script>
+
+    <script>
+        const initializeBtsToggle = () => {
+            console.log('[BTS Toggle] Initializing...');
+            const toggleBtn = document.querySelector('.de-bts-toggle');
+            const btsBody = document.getElementById('btsBody');
+            const icon = toggleBtn?.querySelector('i');
+
+            console.log('[BTS Toggle] toggleBtn found:', !!toggleBtn);
+            console.log('[BTS Toggle] btsBody found:', !!btsBody);
+
+            if (toggleBtn && btsBody) {
+                console.log('[BTS Toggle] Both elements found, setting up click handler');
+
+                toggleBtn.addEventListener('click', (e) => {
+                    console.log('[BTS Toggle] Click event triggered');
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const body = document.getElementById('btsBody');
+                    const btn = document.querySelector('.de-bts-toggle');
+                    const ico = btn?.querySelector('i');
+
+                    const isHidden = body.style.display === 'none';
+                    console.log('[BTS Toggle] Is currently hidden:', isHidden);
+
+                    // Toggle visibility
+                    body.style.display = isHidden ? 'block' : 'none';
+                    console.log('[BTS Toggle] Set display to:', body.style.display);
+
+                    // Rotate icon
+                    if (ico) {
+                        ico.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+                        console.log('[BTS Toggle] Icon rotated to:', ico.style.transform);
+                    }
+                });
+
+                console.log('[BTS Toggle] Initialization complete');
+            } else {
+                console.log('[BTS Toggle] Failed to initialize - elements not found');
+            }
+        };
+
+        // Initialize when DOM is ready
+        console.log('[BTS Toggle] Script loaded, document.readyState:', document.readyState);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeBtsToggle);
+        } else {
+            initializeBtsToggle();
+        }
+    </script>
+
+    <style>
+        .de-bts-toggle i {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</body>
+
+</html>

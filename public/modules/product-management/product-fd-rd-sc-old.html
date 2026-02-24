@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product (FD,RD,SC) · Product</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+
+<body class="client-maintenance copilot-theme" data-page="client-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+  <div class="cm-workspace">
+    <form id="product-fd-rd-sc-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <aside class="cm-legacy-nav card-surface" aria-label="Options menu">
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle"
+            onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-right');">
+            <span class="cm-nav-toggle__label">DataEntry</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item"><span>Product GL Interface</span></button>
+            <button type="button" class="cm-legacy-nav__item"><span>Product Documents</span></button>
+            <button type="button" class="cm-legacy-nav__item"><span>Dormant Account</span></button>
+            <button type="button" class="cm-legacy-nav__item"><span>Settings</span></button>
+            <button type="button" class="cm-legacy-nav__item"><span>User Defined Fields</span></button>
+            <button type="button" class="cm-legacy-nav__item"><span>Product Charges</span></button>
+            <button type="button" class="cm-legacy-nav__item"><span>Product Notification</span></button>
+          </div>
+        </div>
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle"
+            onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-right');">
+            <span class="cm-nav-toggle__label">Recent Activities</span>
+            <i class="bi bi-chevron-right"></i>
+          </button>
+          <div class="cm-nav-items is-collapsed">
+          </div>
+        </div>
+      </aside>
+
+      <section class="cm-legacy-content">
+        <div id="main-product-content" style="height: 100%; display: flex; flex-direction: column;">
+
+          <!-- Top Identifiers Section -->
+          <section class="cm-top-identifiers card-surface">
+            <!-- Row 1: Product -->
+            <div class="cbs-grid cbs-grid--two cbs-grid--tight mb-2">
+              <div class="cbs-field cm-top-identifiers__full">
+                <label class="cbs-label required" for="ProductID">Product</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="ProductID" name="ProductID" required />
+                  <button class="btn btn-outline-primary" type="button" aria-label="Search product">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="cbs-grid cbs-grid--two cbs-grid--tight">
+              <!-- Row 2 -->
+              <div class="cbs-field">
+                <label class="cbs-label required" for="ProductTypes">Product Types</label>
+                <select class="form-select" id="ProductTypes" name="ProductTypes" required>
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+              <div class="cbs-field">
+                <label class="cbs-label" for="ProductCategory">Product Category</label>
+                <select class="form-select" id="ProductCategory" name="ProductCategory">
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+
+              <!-- Row 3: Currency -->
+              <div class="cbs-field">
+                <label class="cbs-label required" for="Currency">Currency</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="Currency" name="Currency" required />
+                  <button class="btn btn-outline-primary" type="button" aria-label="Search currency">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="cbs-field"></div> <!-- Spacer -->
+
+              <!-- Row 4 -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="ValidFrom">Valid From</label>
+                <input type="text" class="form-control" id="ValidFrom" name="ValidFrom" value="01/Jan/0001" />
+              </div>
+              <div class="cbs-field">
+                <label class="cbs-label" for="ValidTo">Valid To</label>
+                <input type="text" class="form-control" id="ValidTo" name="ValidTo" value="01/Jan/0001" />
+              </div>
+
+              <!-- Row 5 -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="ProductCode">Product Code</label>
+                <input type="text" class="form-control" id="ProductCode" name="ProductCode" />
+              </div>
+              <div class="cbs-field">
+                <label class="cbs-label" for="CustomerRestriction">Customer Restriction</label>
+                <select class="form-select" id="CustomerRestriction" name="CustomerRestriction">
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+
+              <!-- Row 6 -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="AccountingRule">Accounting Rule</label>
+                <select class="form-select" id="AccountingRule" name="AccountingRule">
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+              <div class="cbs-field">
+                <label class="cbs-label" for="AccountClassID">Account Class ID</label>
+                <select class="form-select" id="AccountClassID" name="AccountClassID">
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+
+              <!-- Row 7 -->
+              <div class="cbs-field">
+                <label class="cbs-label" for="DepositType">Deposit Type</label>
+                <select class="form-select" id="DepositType" name="DepositType">
+                  <option value="">--Select--</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <div class="cm-scroll-region">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Period Type</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="PeriodType">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Interest Type</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="InterestType">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <div class="col-sm-7 offset-sm-5">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="IsInterestTaxable">
+                            <label class="form-check-label" for="IsInterestTaxable">
+                              Is Interest Taxable
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Calculation Method</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="CalculationMethod">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Compounding Frequency</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="CompoundingFrequency">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <div class="col-sm-7 offset-sm-5">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="AccrueInterest">
+                            <label class="form-check-label" for="AccrueInterest">
+                              Accrue Interest
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Day Count Basis</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="DayCountBasis">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Interest Menu ID</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="InterestMenuID">
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Tax Rule</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="TaxRule">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Interest Rounding</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="InterestRounding">
+                            <option>Nearest 0.01</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Period For Compounding</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MinPeriodForCompounding">
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">Accrual Frequency</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="AccrualFrequency">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Parameter Settings In Section -->
+              <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">Parameter Settings In</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Deposit Amount</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MinDepositAmount">
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Term</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MinTerm">
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <div class="col-sm-7 offset-sm-5">
+                          <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="AllowInterestWithdrawal">
+                            <label class="form-check-label" for="AllowInterestWithdrawal">
+                              Allow Interest Withdrawal
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <div class="col-sm-7 offset-sm-5">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="AccrueInterestAfterMaturity">
+                            <label class="form-check-label" for="AccrueInterestAfterMaturity">
+                              Accrue Interest After Maturity
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Renewal Rate Type</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="RenewalRateType">
+                            <option>--Select</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">Savings Rate Menu</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="SavingsRateMenu">
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Max. Deposit Amount</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MaxDepositAmount">
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Max. Term</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MaxTerm">
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Withdrawal Frequency</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="MinWithdrawalFrequency">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Period For Withdrawal</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MinPeriodForWithdrawal">
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <label class="col-sm-5 col-form-label">Max Days Allowed For Renewal From Maturity Date</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MaxDaysAllowedForRenewal">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pay Interest After Maturity Section -->
+              <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">Pay Interest After Maturity</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">ROI After Maturity</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="ROIAfterMaturity">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Days</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MinDays">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Change Product On Maturity Section -->
+              <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">Change Product On Maturity</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">After No. Of Days</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="AfterNoOfDays">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Product ID</label>
+                        <div class="col-sm-7">
+                          <div class="input-group">
+                            <input type="text" class="form-control" id="ChangeProductID">
+                            <button class="btn btn-outline-primary" type="button" aria-label="Search product">
+                              <i class="bi bi-search"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Premature Closure Allowed Section -->
+              <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">Premature Closure Allowed</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Min. Days For Interest</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="MinDaysForInterest">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Penalty Applicable</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="PenaltyApplicable">
+                            <option>--Select--</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Delayed Payment Section -->
+              <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">Delayed Payment</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Penalty Grace Days</label>
+                        <div class="col-sm-7">
+                          <input type="text" class="form-control" id="PenaltyGraceDays">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group row mb-3">
+                        <label class="col-sm-5 col-form-label">Penalty Rule</label>
+                        <div class="col-sm-7">
+                          <select class="form-control" id="PenaltyRule">
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        </div>
+        </div>
+
+        <div id="data-entry-container" class="d-none" style="height: 100%; border-left: 1px solid #dee2e6; flex: 1; display: flex; flex-direction: column;">
+          <iframe id="data-entry-iframe" style="width: 100%; height: 100%; min-height: 600px; border: none; flex: 1;"></iframe>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" id="viewID" data-shell-mode="View">View</button>
+          <button type="button" class="cm-shell__action" data-shell-mode="Add">Add</button>
+          <button type="button" class="cm-shell__action" data-shell-mode="Update" disabled>Edit</button>
+          <button type="button" class="cm-shell__action" data-shell-mode="Delete" disabled>Delete</button>
+        </div>
+
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action cm-shell__action--success" data-submit-action="save" disabled>
+            Save
+          </button>
+          <button type="button" class="cm-shell__action cm-shell__action--danger" data-submit-action="cancel" disabled>
+            Cancel
+          </button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/pages/modules/product-management/product-fd-rd-sc.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Helper to open inline "modal"
+      function openInlineModal(url) {
+        const mainContent = document.getElementById('main-product-content');
+        const container = document.getElementById('data-entry-container');
+        const iframe = document.getElementById('data-entry-iframe');
+
+        if (mainContent && container && iframe) {
+          mainContent.classList.add('d-none');
+          container.classList.remove('d-none');
+          // Append ?inline=true to URL
+          const separator = url.includes('?') ? '&' : '?';
+          iframe.src = url + separator + 'inline=true';
+        }
+      }
+
+      // Exposed global for child pages to call
+      window.closeModalWindow = function () {
+        const mainContent = document.getElementById('main-product-content');
+        const container = document.getElementById('data-entry-container');
+        const iframe = document.getElementById('data-entry-iframe');
+
+        if (mainContent && container && iframe) {
+          container.classList.add('d-none');
+          mainContent.classList.remove('d-none');
+          iframe.src = ''; // Clear source to stop processing
+        }
+      };
+
+      // Get all Data Entry nav items
+      const navItems = document.querySelectorAll('.cm-legacy-nav__item');
+
+      const subModules = [
+        { name: 'Product GL Interface', url: 'product-gl-interface.html', modalId: 'productGLInterfaceModal' },
+        { name: 'Product Documents', url: 'product-documents.html', modalId: 'productDocumentsModal' },
+        { name: 'Dormant Account', url: 'dormant-account.html', modalId: 'dormantAccountModal' },
+        { name: 'Settings', url: 'settings.html', modalId: 'settingsModal' },
+        { name: 'User Defined Fields', url: 'user-defined-fields.html', modalId: 'userDefinedFieldsModal' },
+        { name: 'Product Charges', url: 'product-charges.html', modalId: 'productChargesModal' },
+        { name: 'Product Notification', url: 'product-notification.html', modalId: 'productNotificationModal' }
+      ];
+
+      navItems.forEach(btn => {
+        const foundModule = subModules.find(m => btn.textContent.includes(m.name));
+        if (foundModule) {
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Opening inline:', foundModule.name);
+            openInlineModal(foundModule.url);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

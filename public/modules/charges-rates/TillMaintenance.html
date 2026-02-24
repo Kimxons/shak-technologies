@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Till Maintenance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <link rel="stylesheet" href="TillMaintenance.css" />
+</head>
+
+<body class="client-maintenance copilot-theme" data-page="client-maintenance">
+    <div class="cm-react-orbs" aria-hidden="true">
+        <span class="cm-react-orb cm-react-orb--primary"></span>
+        <span class="cm-react-orb cm-react-orb--secondary"></span>
+        <span class="cm-react-orb cm-react-orb--accent"></span>
+    </div>
+    <div class="cm-workspace">
+        <div class="cm-shell-form" autocomplete="off" novalidate>
+            <aside class="cm-legacy-nav card-surface" aria-label="Options menu">
+                <div class="cm-nav-section">
+                    <button type="button" class="cm-nav-toggle is-active" aria-expanded="true">
+                        <span class="cm-nav-toggle__label">Data Entry</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                    <div class="cm-legacy-nav__list">
+                        <button type="button" class="cm-legacy-nav__item is-active" data-nav-target="till-currency">
+                            <span>Till Currency Maintenance</span>
+                        </button>
+                        <!-- Added specific target for Till Maintenance if needed, assuming Data Entry covers it -->
+                        <button type="button" class="cm-legacy-nav__item" data-nav-target="maintenance">
+                            <span>Till Maintenance</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="cm-nav-section">
+                    <button type="button" class="cm-nav-toggle" aria-expanded="false">
+                        <span class="cm-nav-toggle__label">View</span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+
+                    <div class="cm-legacy-nav__list" style="display: none;">
+                        <button type="button" class="cm-legacy-nav__item" data-nav-target="till-allocation-history">
+                            <span>Till Allocation History</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="cm-legacy-content">
+                <div class="cm-scroll-region">
+                    <!-- Till Currency Form -->
+                    <form class="cm-top-identifiers card-surface" data-screen="till-currency" autocomplete="off"
+                        novalidate>
+                        <div class="section-header d-flex justify-content-between align-items-center">
+                            <span>Till Currency Maintenance</span>
+                            <i class="bi bi-wallet2 text-primary"></i>
+                        </div>
+
+                        <div class="cbs-grid cbs-grid--two">
+                            <!-- Currency ID -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label required">Currency ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Code" />
+                                    <input type="text" class="form-control flex-grow-1" placeholder="Description"
+                                        readonly />
+                                    <button class="btn btn-outline-primary" type="button">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Cash Control GL ID -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label required">Cash Control GL ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="GL Code" />
+                                    <input type="text" class="form-control flex-grow-1" placeholder="GL Name"
+                                        readonly />
+                                    <button class="btn btn-outline-primary" type="button">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Min Currency Holding -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label">Minimum Currency Holding</label>
+                                <input type="number" class="form-control" />
+                            </div>
+
+                            <!-- Max Currency Holding -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label">Maximum Currency Holding</label>
+                                <input type="number" class="form-control" />
+                            </div>
+
+                            <!-- Is Active -->
+                            <div class="cbs-field cm-compact-field d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="IsActive">
+                                    <label class="form-check-label fw-medium" for="IsActive">
+                                        Is Active
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Local Actions -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 mb-3">
+                            <button type="button" class="btn btn-primary" aria-label="Add New">
+                                <i class="bi bi-plus-lg me-1"></i> Add New
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" aria-label="Clear">
+                                <i class="bi bi-eraser me-1"></i> Clear
+                            </button>
+                        </div>
+
+                        <!-- Table Section -->
+                        <div class="table-responsive border rounded bg-white mt-3" style="min-height: 200px;">
+                            <table class="table table-sm table-hover mb-0 cm-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Currency ID</th>
+                                        <th>Min Limit</th>
+                                        <th>Max Limit</th>
+                                        <th>Cash Control GL</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center p-4 text-muted">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <i class="bi bi-inbox fs-3 text-secondary mb-2"></i>
+                                                <span>No records found</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Audit Trail -->
+                        <div class="audit-trail mt-4">
+                            <h6>Audit Trail</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Created By</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Modified By</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Supervised By</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Created On</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Modified On</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Supervised On</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Actions Bar -->
+                        <div class="cm-actions-bar">
+                            <button type="button" class="btn btn-outline-secondary">Cancel</button>
+                            <button type="button" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+
+                    <!-- Till Maintenance Form -->
+                    <form class="cm-top-identifiers card-surface d-none" data-screen="maintenance" autocomplete="off"
+                        novalidate>
+                        <div class="section-header d-flex justify-content-between align-items-center">
+                            <span>Till Maintenance</span>
+                            <i class="bi bi-key text-primary"></i>
+                        </div>
+
+                        <div class="cbs-grid cbs-grid--two">
+                            <!-- Branch ID -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label required">Branch ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control fw-bold" id="BranchID" name="BranchID"
+                                        value="0101" readonly />
+                                    <input type="text" class="form-control flex-grow-1 fw-bold" value="Head Office"
+                                        readonly />
+                                    <button class="btn btn-outline-primary" type="button" aria-label="Search branch">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Till ID -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label required">Till ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="TillID" name="TillID" />
+                                    <button class="btn btn-outline-primary" type="button" aria-label="Search till">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Till Name -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label required">Till Name</label>
+                                <input type="text" class="form-control" id="TillName" name="TillName" />
+                            </div>
+
+                            <!-- Is Vault -->
+                            <div class="cbs-field cm-compact-field d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="IsVault">
+                                    <label class="form-check-label fw-medium" for="IsVault">
+                                        Is Vault
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Cashier -->
+                            <div class="cbs-field cm-compact-field">
+                                <label class="cbs-label">Cashier</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="CashierID" name="CashierID" />
+                                    <input type="text" class="form-control flex-grow-1" readonly />
+                                    <button class="btn btn-outline-primary" type="button" aria-label="Search cashier">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Trail -->
+                        <div class="audit-trail mt-4">
+                            <h6>Audit Trail</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Created By</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Modified By</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Supervised By</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Created On</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Modified On</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cbs-field cm-compact-field">
+                                        <label class="cbs-label">Supervised On</label>
+                                        <input type="text" class="form-control form-control-sm" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Actions Bar -->
+                        <div class="cm-actions-bar">
+                            <button type="button" class="btn btn-outline-secondary">Cancel</button>
+                            <button type="button" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="TillMaintenance.js"></script>
+</body>
+
+</html>

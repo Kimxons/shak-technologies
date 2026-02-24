@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Client Limit · Limits & Collateral</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20260204">
+</head>
+
+<body data-page="application-client-limit">
+  <div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <span class="am-header__icon"><i class="bi bi-graph-up" aria-hidden="true"></i></span>
+        <span class="am-header__title">Application Client Limit</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="minimize" title="Minimize" aria-label="Minimize"><i class="bi bi-dash-lg"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="main-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title"><i class="bi bi-shield-check" aria-hidden="true"></i>LIMITS</span>
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+            <i class="bi bi-list" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-search">
+          <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules" aria-describedby="submoduleSearchClear">
+          <i class="bi bi-search sidebar-search__icon" aria-hidden="true"></i>
+          <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-content" role="navigation" aria-label="Submodules">
+          <div class="nav-section nav-section--card is-open" data-nav-section data-section-name="Data Entry">
+            <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+              <div class="nav-header__content">
+                <i class="bi bi-folder-fill nav-header__icon" aria-hidden="true"></i>
+                <span class="nav-label nav-label--card">Data Entry</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">2</span>
+                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="acl-nav-dataentry">
+                  <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="nav-items nav-items--card" id="acl-nav-dataentry">
+              <div class="sidebar-item sidebar-item--enhanced active" data-tooltip="Application Client Limit" role="button" tabindex="0" aria-current="page">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-graph-up sidebar-item__icon" aria-hidden="true"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Application Client Limit</div>
+                    <div class="sidebar-item__description">Data entry</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-item sidebar-item--enhanced" data-tooltip="Collateral Limit Details" role="button" tabindex="0" onclick="openLimitClientDetailsModal()">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-clipboard-check sidebar-item__icon" aria-hidden="true"></i>
+                  <div class="sidebar-item__text">
+                    <div class="sidebar-item__title">Collateral Limit Details</div>
+                    <div class="sidebar-item__description">Open details</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form content -->
+      <div class="form-content">
+        <form id="clientLimitForm" autocomplete="off" novalidate>
+          <div class="form-card" data-main-form>
+            <div class="form-section" data-section="client-limit-details">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-card-checklist" aria-hidden="true"></i>Client Limit Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Client Limit Details" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="branchId">Branch ID</label>
+                    <div class="kairo-branch-control" data-kairo-branch-control>
+                      <input type="text" id="branchId" name="branchId" class="kairo-branch-control__id" aria-label="Branch ID" required>
+                      <input type="text" id="branchName" name="branchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                      <button type="button" class="btn-lookup kairo-branch-control__lookup" data-lookup="branch" aria-label="Search Branch"><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="effectiveDate">Effective Date</label>
+                    <input type="text" id="effectiveDate" name="effectiveDate" class="bs-input-text" placeholder="dd/mmm/yyyy">
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="referenceNo">Reference No.</label>
+                    <input type="text" id="referenceNo" name="referenceNo" class="bs-input-text">
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="expiryDate">Expiry Date</label>
+                    <input type="text" id="expiryDate" name="expiryDate" class="bs-input-text" placeholder="dd/mmm/yyyy">
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="limitId">Limit ID</label>
+                    <div class="kairo-control" data-kairo-control>
+                      <input type="text" id="limitId" name="limitId" class="kairo-control__id" aria-label="Limit ID" required>
+                      <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="limit" aria-label="Search Limit" onclick="searchLimit()"><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="dpDefinition">DP Definition</label>
+                    <select id="dpDefinition" name="dpDefinition" class="bs-select" required>
+                      <option value="">--Select--</option>
+                      <option value="ACCEPTANCE">Acceptance</option>
+                      <option value="PAYMENT">Payment</option>
+                      <option value="NEGOTIATION">Negotiation</option>
+                      <option value="MIXED">Mixed</option>
+                      <option value="DEFERRED_PAYMENT">Deferred Payment</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="clientId">Client ID</label>
+                    <div class="kairo-client-control" data-kairo-client-control>
+                      <input type="text" id="clientId" name="clientId" class="kairo-client-control__id" aria-label="Client ID" required>
+                      <button type="button" class="btn-lookup kairo-client-control__lookup" data-lookup="client" aria-label="Search Client" onclick="searchClient()"><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="appliedLimit">Applied Limit</label>
+                    <input type="number" id="appliedLimit" name="appliedLimit" class="bs-input-text" step="0.01">
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="currencyId">Currency ID</label>
+                    <div class="kairo-control" data-kairo-control>
+                      <input type="text" id="currencyId" name="currencyId" class="kairo-control__id" aria-label="Currency ID" required>
+                      <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="currency" aria-label="Search Currency" onclick="searchCurrency()"><i class="bi bi-search" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="remarks">Remarks</label>
+                    <textarea id="remarks" name="remarks" class="bs-textarea" rows="3"></textarea>
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="limitType">Limit Type</label>
+                    <select id="limitType" name="limitType" class="bs-select" required>
+                      <option value="">--Select--</option>
+                      <option value="OVERDRAFT">Overdraft</option>
+                      <option value="LOAN">Loan</option>
+                      <option value="CREDIT_CARD">Credit Card</option>
+                      <option value="GUARANTEE">Guarantee</option>
+                      <option value="TRADE_FINANCE">Trade Finance</option>
+                    </select>
+                  </div>
+                  <div class="col"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear" aria-hidden="true"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="behind-scene">
+                  <div class="form-row two-col">
+                    <div class="col">
+                      <label class="label-blue" for="status">Status</label>
+                      <input type="text" id="status" name="status" aria-label="Status" readonly>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="withdrawnDate">Withdrawn Date</label>
+                      <input type="text" id="withdrawnDate" name="withdrawnDate" aria-label="Withdrawn Date" placeholder="dd/mmm/yyyy" readonly>
+                      <input type="checkbox" id="chkWithdrawnDate" name="chkWithdrawnDate" disabled hidden>
+                    </div>
+                  </div>
+
+                  <div class="form-row two-col">
+                    <div class="col">
+                      <label class="label-blue" for="createdBy">Created By</label>
+                      <input type="text" id="createdBy" name="createdBy" aria-label="Created By" readonly>
+                      <input type="checkbox" id="chkSupervisedBy" name="chkSupervisedBy" disabled hidden>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="createdOn">Created On</label>
+                      <input type="text" id="createdOn" name="createdOn" aria-label="Created On" readonly>
+                      <input type="checkbox" id="chkModifiedOn" name="chkModifiedOn" disabled hidden>
+                    </div>
+                  </div>
+
+                  <div class="form-row two-col">
+                    <div class="col">
+                      <label class="label-blue" for="withdrawnReason">Withdrawn Reason</label>
+                      <input type="text" id="withdrawnReason" name="withdrawnReason" aria-label="Withdrawn Reason" readonly>
+                      <input type="checkbox" id="chkSupervisedOn" name="chkSupervisedOn" disabled hidden>
+                    </div>
+                    <div class="col"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Action panel -->
+      <div class="action-panel">
+        <div class="nav-group" aria-label="Navigation">
+          <button type="button" class="btn-nav green" aria-label="Previous" onclick="navigatePrevious()"><i class="bi bi-arrow-left" aria-hidden="true"></i></button>
+          <span>Nav</span>
+          <button type="button" class="btn-nav green" aria-label="Next" onclick="navigateNext()"><i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+        </div>
+
+        <div class="action-buttons">
+          <button type="button" class="btn-action btn-view" data-form-action="view" onclick="handleView()"><i class="bi bi-eye me-1" aria-hidden="true"></i>View</button>
+          <button type="button" class="btn-action" data-form-action="add" onclick="handleAdd()"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Add</button>
+          <button type="button" class="btn-action" data-form-action="edit" onclick="handleEdit()"><i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit</button>
+          <button type="button" class="btn-action" data-form-action="save" onclick="handleSave()"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Save</button>
+          <button type="button" class="btn-action btn-cancel" data-form-action="cancel" onclick="handleCancel()"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>Cancel</button>
+        </div>
+      </div>
+    </main>
+
+    <div class="am-message-panel info" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- Branch Lookup Modal -->
+  <div class="modal fade" id="branchLookupModal" tabindex="-1" aria-labelledby="branchLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content cm-lookup">
+        <div class="modal-header cm-lookup__header">
+          <div>
+            <p class="cm-lookup__eyebrow">Data Search</p>
+            <h5 class="modal-title" id="branchLookupModalLabel">Find Branch</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body cm-lookup__body">
+          <form class="cm-lookup__filters row g-3 align-items-end" onsubmit="event.preventDefault(); searchBranches();">
+            <div class="col-md-4">
+              <label class="form-label">Branch ID</label>
+              <input type="text" class="form-control" id="searchBranchId" placeholder="e.g. 0101" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Branch Name</label>
+              <input type="text" class="form-control" id="searchBranchName" placeholder="e.g. Head Office" />
+            </div>
+            <div class="col-md-4 text-md-end cm-lookup__actions">
+              <button type="button" class="btn btn-outline-secondary" onclick="clearBranchSearch()">Reset</button>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+            </div>
+          </form>
+
+          <div class="cm-lookup__results card-surface mt-3 position-relative">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0 cm-lookup__table">
+                <thead>
+                  <tr>
+                    <th scope="col">Branch ID</th>
+                    <th scope="col">Branch Name</th>
+                    <th scope="col">Region ID</th>
+                    <th scope="col" class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="branchResultsBody"></tbody>
+              </table>
+            </div>
+            <div class="cm-lookup__empty" id="branchEmpty">Enter filters and click Search.</div>
+            <div class="cm-lookup__loading d-none" id="branchLoading">
+              <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer cm-lookup__footer">
+          <small class="text-muted me-auto">Results from Core Banking.</small>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Limit Lookup Modal -->
+  <div class="modal fade" id="limitLookupModal" tabindex="-1" aria-labelledby="limitLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content cm-lookup">
+        <div class="modal-header cm-lookup__header">
+          <div>
+            <p class="cm-lookup__eyebrow">Data Search</p>
+            <h5 class="modal-title" id="limitLookupModalLabel">Find Limit</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body cm-lookup__body">
+          <form class="cm-lookup__filters row g-3 align-items-end" onsubmit="event.preventDefault(); searchLimits();">
+            <div class="col-md-4">
+              <label class="form-label">Limit ID</label>
+              <input type="text" class="form-control" id="searchLimitId" placeholder="e.g. LMT001" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Client ID</label>
+              <input type="text" class="form-control" id="searchLimitClientId" placeholder="e.g. CLI001" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Client Name</label>
+              <input type="text" class="form-control" id="searchLimitName" placeholder="e.g. ABC" />
+            </div>
+            <div class="col-12 text-md-end cm-lookup__actions">
+              <span class="text-muted me-3" id="limitResultsCount"></span>
+              <button type="button" class="btn btn-outline-secondary" onclick="clearLimitSearch()">Reset</button>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+            </div>
+          </form>
+
+          <div class="cm-lookup__results card-surface mt-3 position-relative">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0 cm-lookup__table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Limit ID</th>
+                    <th scope="col">Client ID</th>
+                    <th scope="col">Client Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col" class="text-end">Amount</th>
+                    <th scope="col" class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="limitResultsBody"></tbody>
+              </table>
+            </div>
+            <div class="cm-lookup__empty" id="limitEmpty">Enter filters and click Search.</div>
+            <div class="cm-lookup__loading d-none" id="limitLoading">
+              <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer cm-lookup__footer">
+          <small class="text-muted me-auto">Mock results (backend search not wired).</small>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Lookup Modal -->
+  <div class="modal fade" id="clientLookupModal" tabindex="-1" aria-labelledby="clientLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content cm-lookup">
+        <div class="modal-header cm-lookup__header">
+          <div>
+            <p class="cm-lookup__eyebrow">Data Search</p>
+            <h5 class="modal-title" id="clientLookupModalLabel">Find Client</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body cm-lookup__body">
+          <form class="cm-lookup__filters row g-3 align-items-end" onsubmit="event.preventDefault(); searchClients();">
+            <div class="col-md-6">
+              <label class="form-label">Client ID</label>
+              <input type="text" class="form-control" id="searchClientId" placeholder="e.g. CLI001" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Client Name</label>
+              <input type="text" class="form-control" id="searchClientName" placeholder="e.g. ABC" />
+            </div>
+            <div class="col-12 text-md-end cm-lookup__actions">
+              <span class="text-muted me-3" id="clientResultsCount"></span>
+              <button type="button" class="btn btn-outline-secondary" onclick="clearClientSearch()">Reset</button>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+            </div>
+          </form>
+
+          <div class="cm-lookup__results card-surface mt-3 position-relative">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0 cm-lookup__table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Client ID</th>
+                    <th scope="col">Client Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="clientResultsBody"></tbody>
+              </table>
+            </div>
+            <div class="cm-lookup__empty" id="clientEmpty">Enter filters and click Search.</div>
+            <div class="cm-lookup__loading d-none" id="clientLoading">
+              <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer cm-lookup__footer">
+          <small class="text-muted me-auto">Mock results (backend search not wired).</small>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collateral Limit Details (iframe) -->
+  <div class="modal fade" id="limitClientDetailsModal" tabindex="-1" aria-labelledby="limitClientDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="limitClientDetailsModalLabel">Collateral Limit Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <iframe id="limitClientDetailsFrame" title="Collateral Limit Details" class="w-100 border-0" height="600"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/services/shared/lookupService.js"></script>
+
+  <script src="application-client-limit.js"></script>
+</body>
+</html>

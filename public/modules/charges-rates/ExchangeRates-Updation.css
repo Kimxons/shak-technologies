@@ -1,0 +1,69 @@
+/* Specific styles for ExchangeRates-Updation */
+
+.cm-table-container {
+   background: rgba(255, 255, 255, 0.5);
+   border-radius: 8px;
+   padding: 1rem;
+   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.cm-table th {
+   font-weight: 600;
+   color: var(--text-secondary);
+   border-bottom: 2px solid var(--border-color);
+}
+
+.cm-table td {
+   vertical-align: middle;
+}
+
+.cm-table input.form-control-sm {
+   min-width: 100px;
+   text-align: right;
+}
+
+.audit-trail {
+   margin-top: 2rem;
+   background: rgba(240, 240, 245, 0.5);
+   padding: 1rem;
+   border-radius: 8px;
+}
+
+/* Glassmorphism for right panel */
+body[data-page="client-maintenance"].exchange-rates-updation .cm-legacy-actions {
+   background: rgba(255, 255, 255, 0.1) !important;
+   backdrop-filter: blur(12px);
+   -webkit-backdrop-filter: blur(12px);
+   border: 1px solid rgba(255, 255, 255, 0.2) !important;
+   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+body[data-page="client-maintenance"].exchange-rates-updation .cm-legacy-actions__title {
+   color: #1e293b;
+   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Force grid layout for audit trail */
+.cbs-grid--three {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 0.5rem;
+}
+
+/* Responsive fallback */
+@media (max-width: 992px) {
+   .cbs-grid--three {
+      grid-template-columns: repeat(2, 1fr);
+   }
+}
+
+@media (max-width: 576px) {
+   .cbs-grid--three {
+      grid-template-columns: 1fr;
+   }
+}
+
+/* Adjust grid layout to remove left panel space */
+.exchange-rates-updation .cm-shell-form {
+   grid-template-columns: 1fr clamp(110px, 9vw, 150px) !important;
+}

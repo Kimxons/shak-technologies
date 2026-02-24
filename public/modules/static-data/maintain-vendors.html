@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maintain Vendors · Static Data</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <!-- <link rel="stylesheet" href="./static-data.css" /> -->
+</head>
+
+<body class="maintain-vendors copilot-theme">
+  <div class="window">
+    <div class="main-container">
+      <div class="form-content">
+        <form id="maintain-vendors-form" autocomplete="off" novalidate>
+          <div class="form-card">
+            <div class="form-section" data-section="vendor-info">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-building"></i> Maintain Vendors</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Maintain Vendors" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="VendorId">Vendor ID</label>
+                    <div class="kairo-user-control" data-kairo-user-control>
+                      <input type="text" class="kairo-user-control__id" id="VendorId" name="VendorId" aria-label="Vendor ID" data-always-enabled />
+                      <input type="text" class="kairo-user-control__name" id="VendorName" name="VendorName" aria-label="Vendor Name" placeholder="Vendor Name" readonly />
+                      <button type="button" class="btn-lookup kairo-user-control__lookup" aria-label="Search Vendor" data-always-enabled data-mv-action="search">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="Name">Name</label>
+                    <input type="text" class="bs-input-text" id="Name" name="Name" aria-label="Name" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="Address1">Address 1</label>
+                    <input type="text" class="bs-input-text" id="Address1" name="Address1" aria-label="Address 1" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="Address2">Address 2</label>
+                    <input type="text" class="bs-input-text" id="Address2" name="Address2" aria-label="Address 2" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="City">City</label>
+                    <select class="bs-select" id="City" name="City" aria-label="City">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="Country">Country</label>
+                    <select class="bs-select" id="Country" name="Country" aria-label="Country">
+                      <option value="" selected>--Select--</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="ZipCode">Zip Code</label>
+                    <input type="text" class="bs-input-text" id="ZipCode" name="ZipCode" aria-label="Zip Code" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="EmailId">Email ID</label>
+                    <input type="text" class="bs-input-text" id="EmailId" name="EmailId" aria-label="Email ID" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="PhoneHome">Phone(Home)</label>
+                    <input type="text" class="bs-input-text" id="PhoneHome" name="PhoneHome" aria-label="Phone Home" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="PhoneWork">Phone(Work)</label>
+                    <input type="text" class="bs-input-text" id="PhoneWork" name="PhoneWork" aria-label="Phone Work" />
+                  </div>
+                </div>
+
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue" for="Mobile">Mobile</label>
+                    <input type="text" class="bs-input-text" id="Mobile" name="Mobile" aria-label="Mobile" />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue" for="FaxNo">Fax No</label>
+                    <input type="text" class="bs-input-text" id="FaxNo" name="FaxNo" aria-label="Fax No" />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="ContactPerson">Contact Person</label>
+                  <div class="kairo-user-control" data-kairo-user-control>
+                    <input type="text" class="kairo-user-control__id" id="ContactPerson" name="ContactPerson" aria-label="Contact Person ID" />
+                    <input type="text" class="kairo-user-control__name" id="ContactPersonName" name="ContactPersonName" aria-label="Contact Person Name" placeholder="Contact Person Name" readonly />
+                    <button type="button" class="btn-lookup kairo-user-control__lookup" aria-label="Search Contact Person" data-always-enabled>
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="ProductsDealingWith">Products Dealing With</label>
+                  <textarea class="bs-textarea" id="ProductsDealingWith" name="ProductsDealingWith" rows="4" aria-label="Products Dealing With"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section" data-section="behind-scene">
+              <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                  <i class="bi bi-chevron-up"></i>
+                </button>
+              </div>
+
+              <div class="section-content" data-section-content>
+                <div class="audit-section">
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Created By</label>
+                      <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Created On</label>
+                      <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Modified By</label>
+                      <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Modified On</label>
+                      <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                    </div>
+                  </div>
+                  <div class="audit-block">
+                    <div class="audit-item">
+                      <label>Supervised By</label>
+                      <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                    </div>
+                    <div class="audit-item">
+                      <label>Supervised On</label>
+                      <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="formToast" class="kairo-toast kairo-toast--success d-none" role="alert"></div>
+        </form>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <div class="nav-group">
+            <button type="button" class="btn-nav green" aria-label="Previous Vendor" data-mv-nav="prev">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <span>Vendor</span>
+            <button type="button" class="btn-nav green" aria-label="Next Vendor" data-mv-nav="next">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          
+          <button type="button" class="btn-action btn-view" data-shell-mode="View">
+            <i class="bi bi-eye me-1"></i> View
+          </button>
+          <button type="button" class="btn-action" data-shell-mode="Add">
+            <i class="bi bi-plus-circle me-1"></i> Add
+          </button>
+          <button type="button" class="btn-action" data-shell-mode="Update">
+            <i class="bi bi-pencil-square me-1"></i> Edit
+          </button>
+          <button type="button" class="btn-action" data-mv-action="delete">
+            <i class="bi bi-trash me-1"></i> Delete
+          </button>
+          <button type="button" class="btn-action" data-mv-action="save" disabled>
+            <i class="bi bi-check-lg me-1"></i> Save
+          </button>
+          <button type="button" class="btn-action btn-cancel" data-mv-action="cancel">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+          </button>
+        </div>
+      </aside>
+    </div>
+    <div class="am-message-panel"></div>
+  </div>
+
+  <!-- Vendor Lookup Modal -->
+  <div class="modal fade" id="vendorLookupModal" tabindex="-1" aria-labelledby="vendorLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <div>
+            <p class="mb-0 small">Maintain Vendors</p>
+            <h5 class="modal-title" id="vendorLookupModalLabel">Find Vendor</h5>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-light" id="vendorSearchRefresh" aria-label="Refresh">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <form class="row g-3 align-items-end mb-3" id="vendorLookupForm">
+            <div class="col-md-4">
+              <label class="form-label">Vendor ID</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" id="vendorSearchModeId">
+                  <option value="Like">Contains</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" id="vendorSearchId" placeholder="e.g. VEN00001" />
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Vendor Name</label>
+              <div class="input-group input-group-sm">
+                <select class="form-select" id="vendorSearchModeName">
+                  <option value="Like">Contains</option>
+                  <option value="Exact">Exact</option>
+                </select>
+                <input type="text" class="form-control" id="vendorSearchName" placeholder="Vendor name" />
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="vendorSearchReset">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm" id="vendorSearchSubmit">
+                <i class="bi bi-search"></i> Search
+              </button>
+            </div>
+          </form>
+
+          <div class="position-relative">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Vendor ID</th>
+                    <th scope="col">Vendor Name</th>
+                    <th scope="col" class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="vendorSearchResults"></tbody>
+              </table>
+            </div>
+            <div id="vendorSearchEmpty" class="text-center py-5 text-muted">
+              Enter at least one filter above and click Search to query vendors.
+            </div>
+            <div id="vendorSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <small class="text-muted me-auto">Results powered by the Shared/GetSystemSearch endpoint.</small>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/utils/global-utils.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.7/dist/sweetalert2.all.min.js"></script>
+  <script src="../../assets/js/pages/static-data/maintain-vendors.js"></script>
+</body>
+</html>

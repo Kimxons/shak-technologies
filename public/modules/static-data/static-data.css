@@ -1,0 +1,2241 @@
+﻿/*
+  Kairo Static Data Module Styles
+  Clean version - Optimized for Officer Maintenance, Portfolio, and Insurance Company
+*/
+
+:root {
+  --primary: #4A90E2;
+  --primary-dark: #357ABD;
+  --secondary: #F5F7FA;
+  --border: #DDE6ED;
+  --text-dark: #2C3E50;
+  --text-gray: #64748b;
+  --white: #FFFFFF;
+  --success: #27AE60;
+  --bg-canvas: #f5f5f5;
+}
+
+body.insurance-code,
+body.officers-maintenance,
+body.change-officer-portfolio,
+body.insurance-company,
+body.insurance-policy,
+body.ngo-maintenance,
+body.custodian,
+body.contact-person,
+body.location,
+body.maintain-guarantors,
+body.bank-user-code,
+body.loan-analysis,
+body.branch-user-code,
+body.client-type-workflow,
+body.channels-transaction-settings {
+  background: var(--bg-canvas) !important;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 11px !important;
+}
+
+/* Remove global glass/blur overlay for Static Data screens */
+body.officers-maintenance .window::before,
+body.change-officer-portfolio .window::before,
+body.insurance-policy .window::before,
+body.contact-person .window::before,
+body.location .window::before,
+body.ngo-maintenance .window::before,
+body.bank-user-code .window::before,
+body.loan-analysis .window::before,
+body.branch-user-code .window::before,
+body.client-type-workflow .window::before,
+body.channels-transaction-settings .window::before {
+  content: none !important;
+  display: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.insurance-code .form-row,
+body.officers-maintenance .form-row,
+body.change-officer-portfolio .form-row,
+body.insurance-company .form-row,
+body.insurance-policy .form-row,
+body.contact-person .form-row,
+body.location .form-row,
+body.ngo-maintenance .form-row,
+body.maintain-guarantors .form-row,
+body.bank-user-code .form-row,
+body.loan-analysis .form-row,
+body.branch-user-code .form-row,
+body.client-type-workflow .form-row,
+body.channels-transaction-settings .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  height: auto !important;
+  align-items: flex-start !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+body.insurance-code .form-row.two-col,
+body.officers-maintenance .form-row.two-col,
+body.change-officer-portfolio .form-row.two-col,
+body.insurance-company .form-row.two-col,
+body.insurance-policy .form-row.two-col,
+body.contact-person .form-row.two-col,
+body.location .form-row.two-col,
+body.ngo-maintenance .form-row.two-col,
+body.maintain-guarantors .form-row.two-col,
+body.bank-user-code .form-row.two-col,
+body.loan-analysis .form-row.two-col,
+body.branch-user-code .form-row.two-col,
+body.client-type-workflow .form-row.two-col,
+body.channels-transaction-settings .form-row.two-col {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+body.insurance-code .form-row.three-col,
+body.officers-maintenance .form-row.three-col,
+body.change-officer-portfolio .form-row.three-col,
+body.insurance-company .form-row.three-col,
+body.insurance-policy .form-row.three-col,
+body.contact-person .form-row.three-col,
+body.location .form-row.three-col,
+body.ngo-maintenance .form-row.three-col,
+body.maintain-guarantors .form-row.three-col,
+body.bank-user-code .form-row.three-col,
+body.loan-analysis .form-row.three-col,
+body.branch-user-code .form-row.three-col,
+body.client-type-workflow .form-row.three-col,
+body.channels-transaction-settings .form-row.three-col {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+body.insurance-code .form-row .col,
+body.officers-maintenance .form-row .col,
+body.change-officer-portfolio .form-row .col,
+body.insurance-company .form-row .col,
+body.insurance-policy .form-row .col,
+body.contact-person .form-row .col,
+body.location .form-row .col,
+body.ngo-maintenance .form-row .col,
+body.maintain-guarantors .form-row .col,
+body.bank-user-code .form-row .col,
+body.loan-analysis .form-row .col,
+body.branch-user-code .form-row .col,
+body.client-type-workflow .form-row .col,
+body.channels-transaction-settings .form-row .col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: auto !important;
+}
+
+body.insurance-code .bs-label,
+body.insurance-code .bs-label-mand,
+body.officers-maintenance .bs-label,
+body.officers-maintenance .bs-label-mand,
+body.change-officer-portfolio .bs-label,
+body.change-officer-portfolio .bs-label-mand,
+body.insurance-company .bs-label,
+body.insurance-company .bs-label-mand,
+body.insurance-policy .bs-label,
+body.insurance-policy .bs-label-mand,
+body.contact-person .bs-label,
+body.contact-person .bs-label-mand,
+body.location .bs-label,
+body.location .bs-label-mand,
+body.ngo-maintenance .bs-label,
+body.ngo-maintenance .bs-label-mand,
+body.maintain-guarantors .bs-label,
+body.maintain-guarantors .bs-label-mand,
+body.bank-user-code .bs-label,
+body.bank-user-code .bs-label-mand,
+body.loan-analysis .bs-label,
+body.loan-analysis .bs-label-mand,
+body.branch-user-code .bs-label,
+body.branch-user-code .bs-label-mand,
+body.client-type-workflow .bs-label,
+body.client-type-workflow .bs-label-mand,
+body.channels-transaction-settings .bs-label,
+body.channels-transaction-settings .bs-label-mand {
+  display: block !important;
+  text-align: left !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+  padding: 0 0 2px 0 !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text-gray) !important;
+  line-height: normal !important;
+  white-space: nowrap !important;
+}
+
+body.insurance-code .bs-label-mand::after,
+body.officers-maintenance .bs-label-mand::after,
+body.change-officer-portfolio .bs-label-mand::after,
+body.insurance-company .bs-label-mand::after,
+body.insurance-policy .bs-label-mand::after,
+body.contact-person .bs-label-mand::after,
+body.location .bs-label-mand::after,
+body.ngo-maintenance .bs-label-mand::after,
+body.maintain-guarantors .bs-label-mand::after,
+body.bank-user-code .bs-label-mand::after,
+body.loan-analysis .bs-label-mand::after,
+body.branch-user-code .bs-label-mand::after,
+body.client-type-workflow .bs-label-mand::after,
+body.channels-transaction-settings .bs-label-mand::after {
+  content: " *" !important;
+  color: #ef4444 !important;
+}
+
+body.insurance-code input:not([type="checkbox"]):not([type="radio"]),
+body.officers-maintenance input:not([type="checkbox"]):not([type="radio"]),
+body.change-officer-portfolio input:not([type="checkbox"]):not([type="radio"]),
+body.insurance-company input:not([type="checkbox"]):not([type="radio"]),
+body.insurance-policy input:not([type="checkbox"]):not([type="radio"]),
+body.contact-person input:not([type="checkbox"]):not([type="radio"]),
+body.location input:not([type="checkbox"]):not([type="radio"]),
+body.ngo-maintenance input:not([type="checkbox"]):not([type="radio"]),
+body.maintain-guarantors input:not([type="checkbox"]):not([type="radio"]),
+body.bank-user-code input:not([type="checkbox"]):not([type="radio"]),
+body.loan-analysis input:not([type="checkbox"]):not([type="radio"]),
+body.branch-user-code input:not([type="checkbox"]):not([type="radio"]),
+body.client-type-workflow input:not([type="checkbox"]):not([type="radio"]),
+body.channels-transaction-settings input:not([type="checkbox"]):not([type="radio"]),
+body.insurance-code select,
+body.officers-maintenance select,
+body.change-officer-portfolio select,
+body.insurance-company select,
+body.insurance-policy select,
+body.contact-person select,
+body.location select,
+body.ngo-maintenance select,
+body.maintain-guarantors select,
+body.bank-user-code select,
+body.loan-analysis select,
+body.branch-user-code select,
+body.client-type-workflow select,
+body.channels-transaction-settings select,
+body.insurance-code .bs-input-text,
+body.officers-maintenance .bs-input-text,
+body.change-officer-portfolio .bs-input-text,
+body.insurance-company .bs-input-text,
+body.insurance-policy .bs-input-text,
+body.contact-person .bs-input-text,
+body.location .bs-input-text,
+body.ngo-maintenance .bs-input-text,
+body.maintain-guarantors .bs-input-text,
+body.bank-user-code .bs-input-text,
+body.loan-analysis .bs-input-text,
+body.branch-user-code .bs-input-text,
+body.client-type-workflow .bs-input-text,
+body.channels-transaction-settings .bs-input-text,
+body.insurance-code .bs-input-date,
+body.officers-maintenance .bs-input-date,
+body.change-officer-portfolio .bs-input-date,
+body.insurance-company .bs-input-date,
+body.insurance-policy .bs-input-date,
+body.contact-person .bs-input-date,
+body.location .bs-input-date,
+body.ngo-maintenance .bs-input-date,
+body.maintain-guarantors .bs-input-date,
+body.bank-user-code .bs-input-date,
+body.loan-analysis .bs-input-date,
+body.branch-user-code .bs-input-date,
+body.client-type-workflow .bs-input-date,
+body.channels-transaction-settings .bs-input-date,
+body.insurance-code .bs-select,
+body.officers-maintenance .bs-select,
+body.change-officer-portfolio .bs-select,
+body.insurance-company .bs-select,
+body.insurance-policy .bs-select,
+body.contact-person .bs-select,
+body.location .bs-select,
+body.ngo-maintenance .bs-select,
+body.maintain-guarantors .bs-select,
+body.bank-user-code .bs-select,
+body.loan-analysis .bs-select,
+body.branch-user-code .bs-select,
+body.client-type-workflow .bs-select,
+body.channels-transaction-settings .bs-select {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 2px 10px !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  width: 100% !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  flex: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.insurance-code .section-header,
+body.officers-maintenance .section-header,
+body.change-officer-portfolio .section-header,
+body.insurance-company .section-header,
+body.insurance-policy .section-header,
+body.contact-person .section-header,
+body.location .section-header,
+body.ngo-maintenance .section-header,
+body.maintain-guarantors .section-header,
+body.bank-user-code .section-header,
+body.loan-analysis .section-header,
+body.branch-user-code .section-header,
+body.client-type-workflow .section-header,
+body.channels-transaction-settings .section-header {
+  background: linear-gradient(135deg, #4a7c95 0%, #3d6a7f 100%) !important;
+  color: #fff !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 16px 0 0 0 !important;
+  border: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  cursor: pointer !important;
+  text-transform: uppercase !important;
+}
+
+/* Collapsible header layout: (icon + title) left, chevron right */
+body.insurance-code .section-header > span,
+body.officers-maintenance .section-header > span,
+body.change-officer-portfolio .section-header > span,
+body.insurance-company .section-header > span,
+body.insurance-policy .section-header > span,
+body.contact-person .section-header > span,
+body.location .section-header > span,
+body.ngo-maintenance .section-header > span,
+body.maintain-guarantors .section-header > span,
+body.bank-user-code .section-header > span,
+body.loan-analysis .section-header > span,
+body.branch-user-code .section-header > span,
+body.client-type-workflow .section-header > span,
+body.channels-transaction-settings .section-header > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.insurance-code .section-header .toggle-icon,
+body.officers-maintenance .section-header .toggle-icon,
+body.change-officer-portfolio .section-header .toggle-icon,
+body.insurance-company .section-header .toggle-icon,
+body.insurance-policy .section-header .toggle-icon,
+body.contact-person .section-header .toggle-icon,
+body.location .section-header .toggle-icon,
+body.ngo-maintenance .section-header .toggle-icon,
+body.maintain-guarantors .section-header .toggle-icon,
+body.bank-user-code .section-header .toggle-icon,
+body.loan-analysis .section-header .toggle-icon,
+body.branch-user-code .section-header .toggle-icon,
+body.client-type-workflow .section-header .toggle-icon,
+body.channels-transaction-settings .section-header .toggle-icon {
+  margin-left: auto !important;
+}
+
+body.insurance-code .collapsible-section,
+body.officers-maintenance .collapsible-section,
+body.change-officer-portfolio .collapsible-section,
+body.insurance-company .collapsible-section,
+body.insurance-policy .collapsible-section,
+body.contact-person .collapsible-section,
+body.location .collapsible-section,
+body.ngo-maintenance .collapsible-section,
+body.maintain-guarantors .collapsible-section,
+body.bank-user-code .collapsible-section,
+body.loan-analysis .collapsible-section,
+body.branch-user-code .collapsible-section,
+body.client-type-workflow .collapsible-section,
+body.channels-transaction-settings .collapsible-section {
+  padding: 20px 24px !important;
+  background: #fff !important;
+  border: 1px solid #e5e8ec !important;
+  border-top: none !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  height: auto !important;
+  display: block !important;
+}
+
+/* Collapsible behavior (the HTML toggles the `.collapsed` class) */
+body.officers-maintenance .collapsible-section.collapsed,
+body.officers-maintenance .audit-section.collapsed {
+  display: none !important;
+}
+
+body.change-officer-portfolio .collapsible-section.collapsed,
+body.change-officer-portfolio .audit-section.collapsed {
+  display: none !important;
+}
+
+body.insurance-policy .collapsible-section.collapsed,
+body.insurance-policy .audit-section.collapsed {
+  display: none !important;
+}
+
+body.contact-person .collapsible-section.collapsed,
+body.contact-person .audit-section.collapsed {
+  display: none !important;
+}
+
+body.location .collapsible-section.collapsed,
+body.location .audit-section.collapsed {
+  display: none !important;
+}
+
+body.ngo-maintenance .collapsible-section.collapsed,
+body.ngo-maintenance .audit-section.collapsed {
+  display: none !important;
+}
+
+body.bank-user-code .collapsible-section.collapsed,
+body.bank-user-code .audit-section.collapsed {
+  display: none !important;
+}
+
+body.loan-analysis .collapsible-section.collapsed,
+body.loan-analysis .audit-section.collapsed {
+  display: none !important;
+}
+
+body.branch-user-code .collapsible-section.collapsed,
+body.branch-user-code .audit-section.collapsed {
+  display: none !important;
+}
+
+body.client-type-workflow .collapsible-section.collapsed,
+body.client-type-workflow .audit-section.collapsed {
+  display: none !important;
+}
+
+body.channels-transaction-settings .collapsible-section.collapsed,
+body.channels-transaction-settings .audit-section.collapsed {
+
+body.insurance-code .action-panel,
+body.officers-maintenance .action-panel,
+body.change-officer-portfolio .action-panel,
+body.insurance-company .action-panel,
+body.insurance-policy .action-panel,
+body.contact-person .action-panel,
+body.location .action-panel,
+body.ngo-maintenance .action-panel,
+body.maintain-guarantors .action-panel,
+body.bank-user-code .action-panel,
+body.loan-analysis .action-panel,
+body.branch-user-code .action-panel,
+body.client-type-workflow .action-panel,
+body.channels-transaction-settings .action-panel {
+  width: 110px !important;
+  background: #f8fafc !important;
+  border-left: 1px solid #e2e8f0 !important;
+  padding: 12px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+body.insurance-code .btn-action,
+body.officers-maintenance .btn-action,
+body.change-officer-portfolio .btn-action,
+body.insurance-company .btn-action,
+body.insurance-policy .btn-action,
+body.contact-person .btn-action,
+body.location .btn-action,
+body.ngo-maintenance .btn-action,
+body.maintain-guarantors .btn-action,
+body.bank-user-code .btn-action,
+body.loan-analysis .btn-action,
+body.branch-user-code .btn-action,
+body.client-type-workflow .btn-action,
+body.channels-transaction-settings .btn-action {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 10px 4px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  gap: 6px !important;
+}
+
+body.insurance-company .btn-action[data-insurance-company-action="save"],
+body.officers-maintenance [data-om-action="save"],
+body.change-officer-portfolio [data-cop-action="save"],
+body.bank-user-code [data-buc-action="save"],
+body.loan-analysis [data-la-action="save"],
+body.branch-user-code [data-bruc-action="save"] {
+  background: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+  color: #15803d !important;
+}
+
+body.insurance-company .kairo-lookup-grid,
+body.bank-user-code .kairo-lookup-grid,
+body.loan-analysis .kairo-lookup-grid,
+body.branch-user-code .kairo-lookup-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 28px !important;
+  gap: 4px !important;
+  width: 100% !important;
+}
+
+body.officers-maintenance .kairo-branch-control,
+body.officers-maintenance .kairo-user-control,
+body.change-officer-portfolio .kairo-user-control,
+body.change-officer-portfolio .kairo-branch-control {
+  display: grid !important;
+  grid-template-columns: 100px 1fr 28px !important;
+  gap: 4px !important;
+  width: 100% !important;
+}
+
+body.insurance-code .btn-lookup,
+body.officers-maintenance .btn-lookup,
+body.change-officer-portfolio .btn-lookup,
+body.insurance-company .btn-lookup,
+body.insurance-policy .btn-lookup,
+body.contact-person .btn-lookup,
+body.location .btn-lookup,
+body.ngo-maintenance .btn-lookup,
+body.maintain-guarantors .btn-lookup,
+body.bank-user-code .btn-lookup,
+body.loan-analysis .btn-lookup,
+body.branch-user-code .btn-lookup {
+  height: 28px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #fff !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+}
+
+/* Officers Maintenance: align numeric/amount inputs like grid columns */
+body.officers-maintenance .om-amount-field {
+  text-align: right !important;
+}
+
+/* ==========================================================================
+   OFFICERS MAINTENANCE SPECIFIC OVERRIDES
+   ========================================================================== */
+
+/* Page canvas + layout spacing */
+body.officers-maintenance .window {
+  background: #eef2f7 !important;
+}
+
+body.officers-maintenance .main-container {
+  gap: 16px !important;
+  padding: 12px 16px 16px 16px !important;
+}
+
+body.officers-maintenance .form-content {
+  background: transparent !important;
+  padding: 6px 0 !important;
+}
+
+body.officers-maintenance .sidebar {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  margin-top: 6px !important;
+}
+
+/* Sidebar "Data Entry" header theming */
+body.officers-maintenance .nav-header--card {
+  background: #4a7c95 !important;
+  border-color: #3d6a7f !important;
+}
+
+body.officers-maintenance .nav-label--card,
+body.officers-maintenance .nav-header__icon,
+body.officers-maintenance .nav-arrow--card {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+body.officers-maintenance .nav-arrow--card:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+
+body.officers-maintenance .action-panel {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  margin-top: 6px !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+  position: sticky !important;
+  top: 12px !important;
+  height: fit-content !important;
+}
+
+/* 1. Title bar - compact, modern, solid */
+body.officers-maintenance .title-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  padding: 10px 16px !important;
+  margin-bottom: 8px !important;
+  min-height: 48px !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05) !important;
+  justify-content: flex-end !important;
+}
+
+body.officers-maintenance .title-text {
+  color: #0f172a !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+body.officers-maintenance .title-bar-left {
+  display: none !important;
+}
+
+body.officers-maintenance .title-bar-left i {
+  color: #4a90e2 !important;
+  font-size: 18px !important;
+}
+
+body.officers-maintenance .title-bar-right {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+body.officers-maintenance .title-bar-right .title-text {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  padding: 3px 10px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+body.officers-maintenance .title-btn {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+  border-radius: 8px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+body.officers-maintenance .title-btn:hover {
+  background: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #1d4ed8 !important;
+}
+
+/* 2. Section cards (header + body) */
+body.officers-maintenance .section-header {
+  background: #4a7c95 !important;
+  border: 1px solid #3d6a7f !important;
+  border-radius: 12px 12px 0 0 !important;
+  color: #ffffff !important;
+  padding: 10px 14px !important;
+  margin: 14px 0 0 0 !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  justify-content: space-between !important;
+  min-height: 44px !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Override the default blue accent line before the icon */
+body.officers-maintenance .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.change-officer-portfolio .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.insurance-policy .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.contact-person .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.location .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.ngo-maintenance .section-header::before {
+  background: #4a7c95 !important;
+}
+
+/* Change Officer Portfolio: title bar aligned left + no default blue gradient */
+body.change-officer-portfolio .title-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  padding: 10px 16px !important;
+  margin-bottom: 8px !important;
+  min-height: 48px !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05) !important;
+  justify-content: flex-end !important;
+}
+
+body.change-officer-portfolio .title-bar-left {
+  display: none !important;
+}
+
+body.change-officer-portfolio .title-bar-left i {
+  color: #4a7c95 !important;
+  font-size: 18px !important;
+}
+
+body.change-officer-portfolio .title-text {
+  color: #0f172a !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+body.change-officer-portfolio .title-bar-right {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.change-officer-portfolio .title-bar-right .title-text {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  padding: 4px 10px !important;
+  border-radius: 10px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+body.change-officer-portfolio .title-btn {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+  border-radius: 8px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+body.change-officer-portfolio .title-btn:hover {
+  background: rgba(74, 124, 149, 0.12) !important;
+  border-color: rgba(74, 124, 149, 0.35) !important;
+  color: #0f172a !important;
+}
+
+body.officers-maintenance .section-header span {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.officers-maintenance .section-header span i {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 14px !important;
+}
+
+body.officers-maintenance .section-header .toggle-icon {
+  margin-left: auto !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 13px !important;
+}
+
+/* 3. Section body */
+body.officers-maintenance .collapsible-section {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-top: none !important;
+  border-radius: 0 0 12px 12px !important;
+  padding: 14px !important;
+  margin-bottom: 14px !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Dropdowns / selects should use the same theme focus color */
+body.officers-maintenance select:focus,
+body.officers-maintenance .bs-select:focus,
+body.officers-maintenance .om-ba-select:focus {
+  outline: none !important;
+  border-color: #4a7c95 !important;
+  box-shadow: 0 0 0 3px rgba(74, 124, 149, 0.18) !important;
+}
+
+body.officers-maintenance input:focus,
+body.officers-maintenance .bs-input-text:focus,
+body.officers-maintenance .om-ba-input:focus {
+  outline: none !important;
+  border-color: #4a7c95 !important;
+  box-shadow: 0 0 0 3px rgba(74, 124, 149, 0.18) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Branch - Assigned (Officers Maintenance)
+   -------------------------------------------------------------------------- */
+
+body.officers-maintenance .om-ba-screen {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  display: grid !important;
+  gap: 12px !important;
+}
+
+/* Ensure Branch Assigned stays hidden until explicitly selected */
+body.officers-maintenance .om-ba-screen[hidden] {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Insurance Policy: action buttons on the right (not bottom)
+   -------------------------------------------------------------------------- */
+
+body.insurance-policy .form-content,
+body.insurance-company .form-content,
+body.contact-person .form-content,
+body.location .form-content,
+body.ngo-maintenance .form-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  flex-wrap: nowrap !important;
+}
+
+body.insurance-policy .form-content > form,
+body.insurance-company .form-content > form,
+body.contact-person .form-content > form,
+body.location .form-content > form,
+body.ngo-maintenance .form-content > form {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.insurance-policy .form-content > aside.action-panel,
+body.insurance-company .form-content > aside.action-panel,
+body.contact-person .form-content > aside.action-panel,
+body.location .form-content > aside.action-panel,
+body.ngo-maintenance .form-content > aside.action-panel {
+  flex: 0 0 110px !important;
+  width: 110px !important;
+  position: sticky !important;
+  top: 12px !important;
+  height: fit-content !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 480px) {
+  body.insurance-policy .form-content,
+  body.insurance-company .form-content,
+  body.contact-person .form-content,
+  body.location .form-content,
+  body.ngo-maintenance .form-content {
+    flex-direction: column !important;
+  }
+
+  body.insurance-policy .form-content > aside.action-panel,
+  body.insurance-company .form-content > aside.action-panel,
+  body.contact-person .form-content > aside.action-panel,
+  body.location .form-content > aside.action-panel,
+  body.ngo-maintenance .form-content > aside.action-panel {
+    width: 100% !important;
+    position: static !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+
+  body.insurance-policy .form-content > aside.action-panel .btn-action,
+  body.insurance-company .form-content > aside.action-panel .btn-action,
+  body.contact-person .form-content > aside.action-panel .btn-action,
+  body.location .form-content > aside.action-panel .btn-action,
+  body.ngo-maintenance .form-content > aside.action-panel .btn-action {
+    width: auto !important;
+    min-width: 92px !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+/* Static Data: textarea styling (matches Officers Maintenance feel) */
+body.insurance-policy textarea.bs-textarea,
+body.contact-person textarea.bs-textarea,
+body.location textarea.bs-textarea,
+body.ngo-maintenance textarea.bs-textarea {
+  width: 100% !important;
+  min-height: 64px !important;
+  padding: 8px 10px !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  line-height: 1.25 !important;
+  box-sizing: border-box !important;
+  resize: vertical !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.insurance-policy textarea.bs-textarea:focus,
+body.contact-person textarea.bs-textarea:focus,
+body.location textarea.bs-textarea:focus,
+body.ngo-maintenance textarea.bs-textarea:focus {
+  outline: none !important;
+  border-color: #4a7c95 !important;
+  box-shadow: 0 0 0 3px rgba(74, 124, 149, 0.25) !important;
+}
+
+/* These modules use flex lookup rows; allow input to flex properly */
+body.insurance-policy .form-row .d-flex,
+body.contact-person .form-row .d-flex,
+body.location .form-row .d-flex,
+body.ngo-maintenance .form-row .d-flex {
+  width: 100% !important;
+}
+
+body.insurance-policy .form-row .d-flex > .bs-input-text,
+body.contact-person .form-row .d-flex > .bs-input-text,
+body.location .form-row .d-flex > .bs-input-text,
+body.ngo-maintenance .form-row .d-flex > .bs-input-text {
+  width: auto !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.officers-maintenance .om-ba-panel {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 14px !important;
+  margin-bottom: 0 !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+body.officers-maintenance .om-ba-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #4a7c95 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 12px !important;
+  padding: 10px 12px !important;
+  margin: -14px -14px 12px -14px !important;
+  border-bottom: 1px solid #3d6a7f !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+body.officers-maintenance .om-ba-bar i {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.officers-maintenance .om-ba-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  margin-bottom: 10px !important;
+}
+
+body.officers-maintenance .om-ba-row > :first-child {
+  align-self: start !important;
+}
+
+/* Force the Reporting Branch control row to be: ID | Name (fills) | Search */
+body.officers-maintenance .om-ba-row .kairo-branch-control {
+  display: grid !important; /* overrides inline display: contents */
+  grid-template-columns: minmax(120px, 160px) minmax(0, 1fr) 36px !important;
+  gap: 10px !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+body.officers-maintenance .om-ba-row .kairo-branch-control > input {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.officers-maintenance .om-ba-row--pair {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 6px !important;
+  max-width: 520px !important;
+  margin-bottom: 10px !important;
+}
+
+body.officers-maintenance .om-ba-lookup {
+  height: 28px !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.officers-maintenance .om-ba-lookup:hover {
+  background: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #1d4ed8 !important;
+}
+
+body.officers-maintenance .om-ba-grid-actions {
+  display: flex !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  margin: 0 0 4px 0 !important;
+}
+
+body.officers-maintenance .om-ba-grid-actions button {
+  min-width: 92px !important;
+  height: 34px !important;
+  padding: 6px 12px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
+body.officers-maintenance .om-ba-grid-actions button:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06) !important;
+}
+
+body.officers-maintenance .om-ba-grid-actions button:disabled {
+  opacity: 0.55 !important;
+  box-shadow: none !important;
+}
+
+body.officers-maintenance .om-ba-grid {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+body.officers-maintenance .om-ba-grid table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+body.officers-maintenance .om-ba-grid thead th {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  padding: 10px 10px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+}
+
+body.officers-maintenance .om-ba-grid tbody td {
+  padding: 9px 10px !important;
+  border-bottom: 1px solid #eef2f7 !important;
+  color: #0f172a !important;
+  font-size: 11px !important;
+}
+
+body.officers-maintenance .om-ba-grid tbody tr:hover td {
+  background: #f8fafc !important;
+}
+
+body.officers-maintenance .om-ba-bts-grid-2x3 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px 12px !important;
+}
+
+@media (max-width: 1100px) {
+  body.officers-maintenance .om-ba-bts-grid-2x3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  body.officers-maintenance .om-ba-row {
+    grid-template-columns: 1fr 36px !important;
+  }
+
+  body.officers-maintenance .om-ba-row > :nth-child(2),
+  body.officers-maintenance .om-ba-row > :nth-child(3) {
+    grid-column: 1 / 2 !important;
+  }
+
+  body.officers-maintenance .om-ba-row > :nth-child(4) {
+    grid-column: 2 / 3 !important;
+  }
+
+  body.officers-maintenance .om-ba-bts-grid-2x3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Audit section should match the same card body feel */
+body.officers-maintenance .audit-section {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 14px !important;
+  margin-bottom: 14px !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Action buttons polish */
+body.officers-maintenance .btn-action:hover:not(:disabled) {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.officers-maintenance .btn-action:disabled {
+  opacity: 0.55 !important;
+  filter: grayscale(0.1) !important;
+}
+
+/* ==========================================================================
+   TRANSACTION DESCRIPTION (Static Data) — match Officers Maintenance feel
+   ========================================================================== */
+
+body.transaction-description {
+  background: var(--bg-canvas) !important;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 11px !important;
+}
+
+body.transaction-description .window::before {
+  content: none !important;
+  display: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.transaction-description .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  height: auto !important;
+  align-items: flex-start !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+body.transaction-description .form-row.two-col,
+body.transaction-description .form-row.three-col {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+body.transaction-description .form-row .col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: auto !important;
+}
+
+body.transaction-description .bs-label,
+body.transaction-description .bs-label-mand {
+  display: block !important;
+  text-align: left !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+  padding: 0 0 2px 0 !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text-gray) !important;
+  line-height: normal !important;
+  white-space: nowrap !important;
+}
+
+body.transaction-description .bs-label-mand::after {
+  content: " *" !important;
+  color: #ef4444 !important;
+}
+
+body.transaction-description input:not([type="checkbox"]):not([type="radio"]),
+body.transaction-description select,
+body.transaction-description .bs-input-text,
+body.transaction-description .bs-input-date,
+body.transaction-description .bs-select {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 2px 10px !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  width: 100% !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.transaction-description input:focus,
+body.transaction-description select:focus,
+body.transaction-description .bs-input-text:focus,
+body.transaction-description .bs-input-date:focus,
+body.transaction-description .bs-select:focus {
+  outline: none !important;
+  border-color: #4a7c95 !important;
+  box-shadow: 0 0 0 3px rgba(74, 124, 149, 0.18) !important;
+}
+
+body.transaction-description .section-header {
+  background: linear-gradient(135deg, #4a7c95 0%, #3d6a7f 100%) !important;
+  color: #fff !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 16px 0 0 0 !important;
+  border: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  cursor: pointer !important;
+  text-transform: uppercase !important;
+}
+
+body.transaction-description .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.transaction-description .section-header > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.transaction-description .section-header .toggle-icon {
+  margin-left: auto !important;
+}
+
+body.transaction-description .collapsible-section {
+  padding: 20px 24px !important;
+  background: #fff !important;
+  border: 1px solid #e5e8ec !important;
+  border-top: none !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  height: auto !important;
+  display: block !important;
+}
+
+body.transaction-description .collapsible-section.collapsed,
+body.transaction-description .audit-section.collapsed {
+  display: none !important;
+}
+
+body.transaction-description .btn-lookup {
+  height: 28px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #fff !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+}
+
+body.transaction-description .form-row .d-flex {
+  width: 100% !important;
+}
+
+body.transaction-description .form-row .d-flex > .bs-input-text {
+  width: auto !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* ==========================================================================
+   CUSTODIAN (Static Data) — match Officers Maintenance feel
+   ========================================================================== */
+
+body.custodian {
+  background: var(--bg-canvas) !important;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 11px !important;
+}
+
+body.custodian .window::before {
+  content: none !important;
+  display: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.custodian .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  height: auto !important;
+  align-items: flex-start !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+body.custodian .form-row.two-col,
+body.custodian .form-row.three-col {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+body.custodian .form-row .col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: auto !important;
+}
+
+body.custodian .bs-label,
+body.custodian .bs-label-mand {
+  display: block !important;
+  text-align: left !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+  padding: 0 0 2px 0 !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text-gray) !important;
+  line-height: normal !important;
+  white-space: nowrap !important;
+}
+
+body.custodian .bs-label-mand::after {
+  content: " *" !important;
+  color: #ef4444 !important;
+}
+
+body.custodian input:not([type="checkbox"]):not([type="radio"]),
+body.custodian select,
+body.custodian .bs-input-text,
+body.custodian .bs-input-date,
+body.custodian .bs-select {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 2px 10px !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  width: 100% !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.custodian input:focus,
+body.custodian select:focus,
+body.custodian .bs-input-text:focus,
+body.custodian .bs-input-date:focus,
+body.custodian .bs-select:focus {
+  outline: none !important;
+  border-color: #4a7c95 !important;
+  box-shadow: 0 0 0 3px rgba(74, 124, 149, 0.18) !important;
+}
+
+body.custodian .section-header {
+  background: linear-gradient(135deg, #4a7c95 0%, #3d6a7f 100%) !important;
+  color: #fff !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 16px 0 0 0 !important;
+  border: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  cursor: pointer !important;
+  text-transform: uppercase !important;
+}
+
+body.custodian .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.custodian .section-header > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.custodian .section-header .toggle-icon {
+  margin-left: auto !important;
+}
+
+body.custodian .collapsible-section {
+  padding: 20px 24px !important;
+  background: #fff !important;
+  border: 1px solid #e5e8ec !important;
+  border-top: none !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  height: auto !important;
+  display: block !important;
+}
+
+body.custodian .collapsible-section.collapsed,
+body.custodian .audit-section.collapsed {
+  display: none !important;
+}
+
+body.custodian .btn-lookup {
+  height: 28px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #fff !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+}
+
+body.custodian .form-row .d-flex {
+  width: 100% !important;
+}
+
+body.custodian .form-row .d-flex > .bs-input-text {
+  width: auto !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.custodian .action-panel {
+  width: 110px !important;
+  background: #f8fafc !important;
+  border-left: 1px solid #e2e8f0 !important;
+  padding: 12px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+body.custodian .btn-action {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 10px 4px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  gap: 6px !important;
+}
+
+/* Right-side actions layout (like Insurance Policy) */
+body.custodian .form-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+body.custodian .form-content > form {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.custodian .form-content > aside.action-panel {
+  flex: 0 0 110px !important;
+  width: 110px !important;
+  position: sticky !important;
+  top: 12px !important;
+  height: fit-content !important;
+}
+
+@media (max-width: 980px) {
+  body.custodian .form-content {
+    flex-direction: column !important;
+  }
+
+  body.custodian .form-content > aside.action-panel {
+    width: 100% !important;
+    position: static !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+
+  body.custodian .form-content > aside.action-panel .btn-action {
+    width: auto !important;
+    min-width: 92px !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+body.transaction-description .action-panel {
+  width: 110px !important;
+  background: #f8fafc !important;
+  border-left: 1px solid #e2e8f0 !important;
+  padding: 12px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+body.transaction-description .btn-action {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 10px 4px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  gap: 6px !important;
+}
+
+/* Right-side actions layout (like Insurance Policy) */
+body.transaction-description .form-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+body.transaction-description .form-content > form {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.transaction-description .form-content > aside.action-panel {
+  flex: 0 0 110px !important;
+  width: 110px !important;
+  position: sticky !important;
+  top: 12px !important;
+  height: fit-content !important;
+}
+
+@media (max-width: 980px) {
+  body.transaction-description .form-content {
+    flex-direction: column !important;
+  }
+
+  body.transaction-description .form-content > aside.action-panel {
+    width: 100% !important;
+    position: static !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+
+  body.transaction-description .form-content > aside.action-panel .btn-action {
+    width: auto !important;
+    min-width: 92px !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+/* ==========================================================================
+   MAINTAIN IDENTITY TYPES (Static Data) — match Officers Maintenance feel
+   ========================================================================== */
+
+body.maintain-identity-types {
+  background: var(--bg-canvas) !important;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-size: 11px !important;
+}
+
+body.maintain-identity-types .window::before {
+  content: none !important;
+  display: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.maintain-identity-types .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+  height: auto !important;
+  align-items: flex-start !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Keep the Validation Controls row as a 2-column layout */
+body.maintain-identity-types .mit-validation-row {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+body.maintain-identity-types .form-row.two-col,
+body.maintain-identity-types .form-row.three-col {
+  flex-direction: row !important;
+  gap: 20px !important;
+}
+
+body.maintain-identity-types .form-row .col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: auto !important;
+}
+
+body.maintain-identity-types .bs-label,
+body.maintain-identity-types .bs-label-mand {
+  display: block !important;
+  text-align: left !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+  padding: 0 0 2px 0 !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--text-gray) !important;
+  line-height: normal !important;
+  white-space: nowrap !important;
+}
+
+body.maintain-identity-types .bs-label-mand::after {
+  content: " *" !important;
+  color: #ef4444 !important;
+}
+
+body.maintain-identity-types input:not([type="checkbox"]):not([type="radio"]),
+body.maintain-identity-types select,
+body.maintain-identity-types .bs-input-text,
+body.maintain-identity-types .bs-input-date,
+body.maintain-identity-types .bs-select {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 2px 10px !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  background: #ffffff !important;
+  color: #334155 !important;
+  width: 100% !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.maintain-identity-types input:focus,
+body.maintain-identity-types select:focus,
+body.maintain-identity-types .bs-input-text:focus,
+body.maintain-identity-types .bs-input-date:focus,
+body.maintain-identity-types .bs-select:focus {
+  outline: none !important;
+  border-color: #4a7c95 !important;
+  box-shadow: 0 0 0 3px rgba(74, 124, 149, 0.18) !important;
+}
+
+body.maintain-identity-types .section-header {
+  background: linear-gradient(135deg, #4a7c95 0%, #3d6a7f 100%) !important;
+  color: #fff !important;
+  padding: 6px 14px !important;
+  font-weight: 600 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 16px 0 0 0 !important;
+  border: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  cursor: pointer !important;
+  text-transform: uppercase !important;
+}
+
+body.maintain-identity-types .section-header::before {
+  background: #4a7c95 !important;
+}
+
+body.maintain-identity-types .section-header > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.maintain-identity-types .section-header .toggle-icon {
+  margin-left: auto !important;
+}
+
+body.maintain-identity-types .collapsible-section {
+  padding: 20px 24px !important;
+  background: #fff !important;
+  border: 1px solid #e5e8ec !important;
+  border-top: none !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  height: auto !important;
+  display: block !important;
+}
+
+body.maintain-identity-types .collapsible-section.collapsed,
+body.maintain-identity-types .audit-section.collapsed {
+  display: none !important;
+}
+
+body.maintain-identity-types .btn-lookup {
+  height: 28px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #fff !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+}
+
+body.maintain-identity-types .form-row .d-flex {
+  width: 100% !important;
+}
+
+body.maintain-identity-types .form-row .d-flex > .bs-input-text {
+  width: auto !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.maintain-identity-types .action-panel {
+  width: 110px !important;
+  background: #f8fafc !important;
+  border-left: 1px solid #e2e8f0 !important;
+  padding: 12px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+body.maintain-identity-types .btn-action {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 10px 4px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  gap: 6px !important;
+}
+
+/* Right-side actions layout (like Insurance Policy) */
+body.maintain-identity-types .form-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+body.maintain-identity-types .form-content > form {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+body.maintain-identity-types .form-content > aside.action-panel {
+  flex: 0 0 110px !important;
+  width: 110px !important;
+  position: sticky !important;
+  top: 12px !important;
+  height: fit-content !important;
+}
+
+@media (max-width: 980px) {
+  body.maintain-identity-types .form-content {
+    flex-direction: column !important;
+  }
+
+  body.maintain-identity-types .mit-validation-row {
+    flex-direction: column !important;
+  }
+
+  body.maintain-identity-types .form-content > aside.action-panel {
+    width: 100% !important;
+    position: static !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+
+  body.maintain-identity-types .form-content > aside.action-panel .btn-action {
+    width: auto !important;
+    min-width: 92px !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+/* Bank User Code specific styles */
+body.bank-user-code .grid-container {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+}
+
+body.bank-user-code .grid-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 11px !important;
+}
+
+body.bank-user-code .grid-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+}
+
+body.bank-user-code .grid-table thead tr {
+  background: #f8fafc !important;
+}
+
+body.bank-user-code .grid-table th {
+  padding: 8px 12px !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
+body.bank-user-code .grid-table td {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+body.bank-user-code .grid-table tbody tr:hover {
+  background: #f8fafc !important;
+  cursor: pointer !important;
+}
+
+/* Override section header gradient for bank-user-code */
+body.bank-user-code .section-header {
+  background: #4a7c95 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+/* ==========================================================================
+   LOAN ANALYSIS SPECIFIC STYLES
+   ========================================================================== */
+
+body.loan-analysis .grid-container {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  margin-top: 8px !important;
+}
+
+body.loan-analysis .grid-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 11px !important;
+}
+
+body.loan-analysis .grid-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+}
+
+body.loan-analysis .grid-table thead tr {
+  background: #f8fafc !important;
+}
+
+body.loan-analysis .grid-table th {
+  padding: 8px 12px !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
+body.loan-analysis .grid-table td {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+body.loan-analysis .grid-table tbody tr:hover {
+  background: #f8fafc !important;
+  cursor: pointer !important;
+}
+
+body.loan-analysis .btn-action-mini {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 4px 12px !important;
+  height: 28px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+body.loan-analysis .btn-action-mini:hover:not(:disabled) {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.loan-analysis .btn-action-mini:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ==========================================================================
+   BRANCH USER CODE SPECIFIC STYLES
+   ========================================================================== */
+
+body.branch-user-code .grid-container {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  margin-top: 8px !important;
+}
+
+body.branch-user-code .grid-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 11px !important;
+}
+
+body.branch-user-code .grid-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+}
+
+body.branch-user-code .grid-table thead tr {
+  background: #f8fafc !important;
+}
+
+body.branch-user-code .grid-table th {
+  padding: 8px 12px !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
+body.branch-user-code .grid-table td {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+body.branch-user-code .grid-table tbody tr:hover {
+  background: #f8fafc !important;
+  cursor: pointer !important;
+}
+
+body.branch-user-code .btn-action-mini {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 4px 12px !important;
+  height: 28px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+body.branch-user-code .btn-action-mini:hover:not(:disabled) {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.branch-user-code .btn-action-mini:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ============================================================================
+   CLIENT TYPE WORKFLOW - Module-Specific Grid Styles (with checkbox support)
+   ============================================================================ */
+
+body.client-type-workflow .grid-container {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  margin-top: 16px !important;
+  background: #fff !important;
+}
+
+body.client-type-workflow .grid-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 11px !important;
+  background: #fff !important;
+  table-layout: fixed !important;
+}
+
+body.client-type-workflow .grid-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+  background: #f8fafc !important;
+}
+
+body.client-type-workflow .grid-table th {
+  padding: 10px 12px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+
+body.client-type-workflow .grid-table th:first-child {
+  text-align: center !important;
+}
+
+body.client-type-workflow .grid-table td {
+  padding: 8px 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  vertical-align: middle !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.client-type-workflow .grid-table td:first-child {
+  text-align: center !important;
+  white-space: normal !important;
+}
+
+body.client-type-workflow .grid-table tbody tr {
+  transition: background-color 0.15s ease !important;
+}
+
+body.client-type-workflow .grid-table tbody tr:hover {
+  background: #f8fafc !important;
+  cursor: pointer !important;
+}
+
+/* Checkbox column styling */
+body.client-type-workflow .grid-select-all {
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+  accent-color: #4a7c95 !important;
+  margin: 0 !important;
+}
+
+body.client-type-workflow .grid-table tbody input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+  accent-color: #4a7c95 !important;
+  margin: 0 !important;
+}
+
+body.client-type-workflow .grid-table tbody tr.row-selected {
+  background: #eff6ff !important;
+}
+
+/* Empty state styling */
+body.client-type-workflow .grid-table tbody:empty::after {
+  content: "No records to display" !important;
+  display: block !important;
+  padding: 20px !important;
+  text-align: center !important;
+  color: #94a3b8 !important;
+  font-style: italic !important;
+}
+
+/* ============================================================================
+   CHANNELS TRANSACTION SETTINGS - Module-Specific Grid Styles
+   ============================================================================ */
+
+body.channels-transaction-settings .grid-container {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  margin-top: 12px !important;
+}
+
+body.channels-transaction-settings .grid-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 11px !important;
+  background: #fff !important;
+}
+
+body.channels-transaction-settings .grid-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+}
+
+body.channels-transaction-settings .grid-table th {
+  padding: 8px 12px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+}
+
+body.channels-transaction-settings .grid-table td {
+  padding: 8px 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  vertical-align: middle !important;
+}
+
+body.channels-transaction-settings .grid-table tbody tr:hover {
+  background: #f8fafc !important;
+  cursor: pointer !important;
+}
+
+body.channels-transaction-settings .btn-action-mini {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 4px 12px !important;
+  height: 28px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+body.channels-transaction-settings .btn-action-mini:hover:not(:disabled) {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.channels-transaction-settings .btn-action-mini:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+}

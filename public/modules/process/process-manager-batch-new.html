@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Manager - Batch</title>
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="process-manager-batch-new.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Main Content Area -->
+            <div class="content">
+                <div id="statusMsg" class="status-message"></div>
+
+                <!-- Batch Filters Card -->
+                <div class="card">
+                    <div class="card-header">Batch Filters</div>
+                    <div class="card-body">
+                        <div class="form-grid form-grid-fullwidth">
+                            <div class="field-row">
+                                <label class="field-label"></label>
+                                <div class="field-control" style="padding-top: 0;">
+                                    <label class="form-check">
+                                        <input type="checkbox" id="allRegions" class="form-check-input" checked onchange="handleAllRegionsChange()">
+                                        <span style="font-weight: 600;">All Regions</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label" for="regionId">Region ID</label>
+                                <div class="field-control">
+                                    <input type="text" id="regionId" placeholder="Region ID" disabled>
+                                    <span class="input-group-icon" onclick="handleRegionSearch()"><i class="bi bi-search"></i></span>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label" for="processId">Process ID</label>
+                                <div class="field-control">
+                                    <input type="text" id="processId" placeholder="Process ID">
+                                    <span class="input-group-icon" onclick="handleProcessSearch()"><i class="bi bi-search"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Batch Results Card -->
+                <div class="card">
+                    <div class="card-header">Batch Results</div>
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table id="batchTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;">
+                                            <input type="checkbox" id="selectAll" onchange="handleSelectAll()">
+                                        </th>
+                                        <th>Branch ID</th>
+                                        <th>Branch Name</th>
+                                        <th>Process Date</th>
+                                        <th>Process Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batchTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-gray);">
+                                            No records to display
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="action-button refresh" onclick="handleRefresh()" title="Refresh" disabled>Refresh</button>
+                <button class="action-button view" onclick="handleView()" title="View">View</button>
+                <button class="action-button continue" onclick="handleContinue()" title="Continue" disabled>Continue</button>
+                <button class="action-button cancel" onclick="handleCancel()" title="Cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="process-manager-batch-new.js"></script>
+</body>
+</html>

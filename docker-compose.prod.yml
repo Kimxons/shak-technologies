@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ${KAIRO_FRONTEND_IMAGE:-jipheens/kairo_frontend:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kairo-frontend-prod
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    restart: always
+    networks:
+      - kairo-network
+    volumes:
+      - nginx-logs:/var/log/nginx
+    labels:
+      - "com.kairo.description=Kairo Banking Frontend Production"
+      - "com.kairo.version=0.1.0"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  nginx-logs:
+    driver: local
+
+networks:
+  kairo-network:
+    driver: bridge

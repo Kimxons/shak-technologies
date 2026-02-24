@@ -1,0 +1,126 @@
+/* JV Maintenance-Interbranch Page Styling */
+
+/* Form Control Styling */
+.jv-maintenance-interbranch .form-control,
+.jv-maintenance-interbranch .form-select {
+  background-color: #ffffff;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.jv-maintenance-interbranch .form-control:focus,
+.jv-maintenance-interbranch .form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px rgba(15, 23, 42, 0.05);
+  background-color: #ffffff;
+  outline: none;
+}
+
+/* Search Buttons */
+.jv-maintenance-interbranch .jvm-search-btn {
+  border-radius: 0.375rem;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  background-color: #ffffff;
+  color: #5b9fd9;
+  padding: 0.6rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.jv-maintenance-interbranch .jvm-search-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Action Buttons */
+.jv-maintenance-interbranch .jvm-action-btn {
+  border-radius: 0.375rem;
+  border: 1px solid #5b9fd9;
+  background: #5b9fd9;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.jv-maintenance-interbranch .jvm-action-btn:hover {
+  background: #4a8cc4;
+  border-color: #4a8cc4;
+}
+
+.jv-maintenance-interbranch .jvm-action-btn:active {
+  transform: translateY(1px);
+}
+
+/* Secondary Buttons (in content area) */
+.jv-maintenance-interbranch .jvm-secondary-btn {
+  background-color: #ffffff;
+  color: #5b9fd9;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  width: auto;
+  flex: 1;
+  padding: 0.5rem 0.8rem;
+}
+
+.jv-maintenance-interbranch .jvm-secondary-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #4a8cc4;
+}
+
+/* Table Styling */
+.jv-maintenance-interbranch .table {
+  margin-bottom: 0;
+  border: 1px solid #d1d5db;
+}
+
+.jv-maintenance-interbranch .table thead {
+  background-color: #e8f1ff;
+  border-bottom: 2px solid #c4d9f7;
+}
+
+.jv-maintenance-interbranch .table thead th {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 8px;
+  border: none;
+  white-space: nowrap;
+}
+
+.jv-maintenance-interbranch .table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.jv-maintenance-interbranch .table tbody td {
+  padding: 8px;
+  font-size: 0.8rem;
+  color: #475569;
+  border: none;
+}
+
+/* Checkbox Styling */
+.jv-maintenance-interbranch input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+/* Button Icons */
+.jv-maintenance-interbranch button i {
+  pointer-events: none;
+}

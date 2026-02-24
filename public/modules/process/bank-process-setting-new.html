@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Process Setting</title>
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="bank-process-setting-new.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Main Content Area -->
+            <div class="content">
+                <div id="statusMsg" class="status-message"></div>
+
+                <!-- Process Selection Card -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-sliders"></i> Bank Process Setting</div>
+                    <div class="card-body">
+                        <div class="form-grid form-grid-2col">
+                            <div class="field-row">
+                                <label class="field-label required" for="processId"><i class="bi bi-diagram-3"></i> Process ID</label>
+                                <div class="field-control">
+                                    <input type="text" id="processId" placeholder="Process ID">
+                                    <input type="text" id="processName" placeholder="Process Name" readonly style="flex: 1.2;">
+                                    <button type="button" class="input-group-icon" onclick="handleProcessSearch()" aria-label="Search process"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <label class="field-label"></label>
+                                <div class="field-control"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub Processes Configuration Card -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-diagram-3"></i> Process Sub Processes</div>
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table id="subProcessTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;"><i class="bi bi-check2-square"></i> Apply</th>
+                                        <th style="width: 100px;"><i class="bi bi-patch-check"></i> Required</th>
+                                        <th style="width: 170px;"><i class="bi bi-node-plus"></i> Sub Process</th>
+                                        <th style="width: 300px;"><i class="bi bi-link-45deg"></i> Prerequisite SubProcess</th>
+                                        <th style="width: 250px;"><i class="bi bi-diagram-2"></i> Dependant SubProcess</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="subProcessTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-gray);">
+                                            No records to display
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="action-button view" onclick="handleView()" title="View"><i class="bi bi-eye"></i> View</button>
+                <button class="action-button edit" onclick="handleEdit()" title="Edit" disabled><i class="bi bi-pencil-square"></i> Edit</button>
+                <button class="action-button delete" onclick="handleDelete()" title="Delete" disabled><i class="bi bi-trash"></i> Delete</button>
+                <button class="action-button save" onclick="handleSave()" title="Save" disabled><i class="bi bi-check2-circle"></i> Save</button>
+                <button class="action-button cancel" onclick="handleCancel()" title="Cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="bank-process-setting-new.js"></script>
+</body>
+</html>

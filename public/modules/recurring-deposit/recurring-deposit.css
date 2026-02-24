@@ -1,0 +1,908 @@
+/*
+  Recurring Deposit module styles
+  This file is intentionally located inside the module folder.
+*/
+
+/* ==============================
+   Recurring Deposit - Approval
+   ============================== */
+
+/* Recurring Deposit pages: avoid scrollbars inside the right action rail.
+  Let the page itself scroll instead (especially inside dashboard iframes). */
+body.recurring-deposit .cm-legacy-actions {
+  max-height: none;
+  overflow: visible;
+}
+
+/* Maintenance left menu: stretch dropdown/toggles and items for nicer spacing. */
+body.recurring-maintenance .cm-legacy-nav {
+  padding: 0.6rem;
+}
+
+body.recurring-maintenance .cm-legacy-nav .cm-nav-toggle {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  min-height: 2.6rem;
+}
+
+body.recurring-maintenance .cm-legacy-nav .cm-nav-toggle__label {
+  font-weight: 800;
+}
+
+body.recurring-maintenance .cm-legacy-nav .cm-nav-items {
+  padding: 0.15rem 0;
+}
+
+body.recurring-maintenance .cm-legacy-nav .cm-legacy-nav__item {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  min-height: 2.55rem;
+}
+
+/* Recurring Maintenance: legacy-style arrows + grey View/Cancel in the action rail. */
+body.recurring-maintenance .rd-maint-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+body.recurring-maintenance .rd-maint-quick-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.6rem 0.6rem 0.2rem;
+}
+
+body.recurring-maintenance .rd-maint-quick-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+body.recurring-maintenance .rd-maint-arrows {
+  display: grid;
+  grid-template-columns: repeat(2, 2.5rem);
+  gap: 0.35rem;
+}
+
+body.recurring-maintenance .rd-maint-arrow {
+  width: 2.5rem;
+  min-height: 2.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(47, 127, 214, 0.35);
+  background: #5d9ed6;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem;
+}
+
+body.recurring-maintenance .rd-maint-arrow:hover {
+  background: #4c91cd;
+}
+
+body.recurring-maintenance .rd-maint-arrow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+body.recurring-maintenance .rd-maint-arrow i {
+  font-size: 1.1rem;
+}
+
+body.recurring-maintenance .rd-maint-quick-label {
+  text-align: center;
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.92rem;
+  line-height: 1.05;
+  user-select: none;
+}
+
+body.recurring-maintenance .rd-maint-rail__spacer {
+  flex: 1;
+}
+
+body.recurring-maintenance .rd-maint-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.75rem 0.85rem;
+}
+
+body.recurring-maintenance .rd-maint-actions .cp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+body.recurring-maintenance .rd-maint-actions .cp-actions .cm-shell__action {
+  width: 100%;
+  min-height: 44px;
+}
+
+body.recurring-deposit-approval .cm-shell-form.cm-shell-form--two-column {
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 18vw, 320px);
+  column-gap: 0.95rem;
+}
+
+body.recurring-deposit-application .cm-shell-form.cm-shell-form--two-column,
+body.recurring-maintenance .cm-shell-form.cm-shell-form--two-column,
+body.recurring-close-receipt .cm-shell-form.cm-shell-form--two-column,
+body.recurring-rd-schedule .cm-shell-form.cm-shell-form--two-column {
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 18vw, 320px);
+  column-gap: 0.95rem;
+}
+
+body.recurring-rd-portfolio .cm-shell-form.cm-shell-form--two-column {
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 18vw, 320px);
+  column-gap: 0.95rem;
+}
+
+/* Ensure the right action rail starts below the header/window controls (not beside them). */
+body.recurring-deposit-approval .cm-legacy-actions {
+  margin-top: 3.25rem;
+}
+
+body.recurring-deposit-application .cm-legacy-actions,
+body.recurring-maintenance .cm-legacy-actions,
+body.recurring-close-receipt .cm-legacy-actions,
+body.recurring-rd-schedule .cm-legacy-actions {
+  margin-top: 3.25rem;
+}
+
+body.recurring-rd-portfolio .cm-legacy-actions {
+  margin-top: 3.25rem;
+}
+
+/* When Recurring Deposit pages are hosted in dashboard modals, the modal already provides a header.
+   Hide in-page headings to avoid duplicate title bars. */
+body.recurring-deposit.rd-embedded .rd-inner-heading {
+  display: none !important;
+}
+
+/* Approval page: the action rail offset is only needed when the in-page header is visible. */
+body.recurring-deposit-approval.rd-embedded .cm-legacy-actions {
+  margin-top: 0.9rem;
+}
+
+body.recurring-deposit-application.rd-embedded .cm-legacy-actions,
+body.recurring-maintenance.rd-embedded .cm-legacy-actions,
+body.recurring-close-receipt.rd-embedded .cm-legacy-actions,
+body.recurring-rd-schedule.rd-embedded .cm-legacy-actions {
+  margin-top: 0.9rem;
+}
+
+body.recurring-rd-portfolio.rd-embedded .cm-legacy-actions {
+  margin-top: 0.9rem;
+}
+
+/* When this page is hosted in a dashboard modal (iframe), the modal already has window controls.
+   Hide the nested in-page controls to avoid a "window within window" look. */
+body.recurring-deposit-approval.rd-embedded .rd-inner-window-controls {
+  display: none !important;
+}
+
+body.recurring-deposit-approval.rd-window-maximized.client-maintenance {
+  max-width: 100%;
+  padding: 0;
+}
+
+body.recurring-deposit-approval.rd-window-maximized .cm-workspace {
+  padding: 0;
+}
+
+body.recurring-deposit-approval .rd-approval-canvas {
+  padding: 0.75rem;
+  background: #f1f6ff;
+  border-radius: 0.75rem;
+}
+
+/* Recurring Deposit - Application / Maintenance (reuse the same visual language as Approval) */
+body.recurring-deposit-application .rd-app-canvas,
+body.recurring-maintenance .rd-app-canvas,
+body.recurring-close-receipt .rd-app-canvas,
+body.recurring-rd-schedule .rd-app-canvas {
+  padding: 0.75rem;
+  background: #f1f6ff;
+  border-radius: 0.75rem;
+}
+
+body.recurring-rd-portfolio .rd-app-canvas {
+  padding: 0.75rem;
+  background: #f1f6ff;
+  border-radius: 0.75rem;
+}
+
+/* Close Receipt: screenshot shows a plain white workspace background (no gradients/orbs). */
+html:has(body.recurring-close-receipt),
+body.recurring-close-receipt {
+  background: #ffffff !important;
+}
+
+body.recurring-close-receipt .cm-react-orbs {
+  display: none !important;
+}
+
+body.recurring-close-receipt .rd-app-canvas {
+  background: #ffffff;
+}
+
+/* RD Schedule / RD Portfolio: use a plain pure white background. */
+html:has(body.recurring-rd-schedule),
+body.recurring-rd-schedule,
+html:has(body.recurring-rd-portfolio),
+body.recurring-rd-portfolio {
+  background: #ffffff !important;
+}
+
+body.recurring-rd-schedule .cm-react-orbs,
+body.recurring-rd-portfolio .cm-react-orbs {
+  display: none !important;
+}
+
+body.recurring-rd-schedule .rd-app-canvas,
+body.recurring-rd-portfolio .rd-app-canvas {
+  background: #ffffff;
+}
+
+body.recurring-deposit-approval .rd-block,
+body.recurring-deposit-application .rd-block,
+body.recurring-maintenance .rd-block,
+body.recurring-close-receipt .rd-block,
+body.recurring-rd-schedule .rd-block {
+  border: 1px solid rgba(17, 110, 194, 0.22);
+  background: #ffffff;
+  border-radius: 0.7rem;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+body.recurring-rd-portfolio .rd-block {
+  border: 1px solid rgba(17, 110, 194, 0.22);
+  background: #ffffff;
+  border-radius: 0.7rem;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+body.recurring-deposit-approval .rd-block__header,
+body.recurring-deposit-application .rd-block__header,
+body.recurring-maintenance .rd-block__header,
+body.recurring-close-receipt .rd-block__header,
+body.recurring-rd-schedule .rd-block__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #2f7fd6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.75rem;
+}
+
+body.recurring-rd-portfolio .rd-block__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #2f7fd6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.75rem;
+}
+
+body.recurring-deposit-approval .rd-block__header--with-check {
+  display: flex;
+  align-items: center;
+}
+
+body.recurring-deposit-approval .rd-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+body.recurring-deposit-approval .rd-check span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body.recurring-deposit-approval .rd-block__body,
+body.recurring-deposit-application .rd-block__body,
+body.recurring-maintenance .rd-block__body,
+body.recurring-close-receipt .rd-block__body,
+body.recurring-rd-schedule .rd-block__body {
+  padding: 0.85rem 0.85rem 0.9rem;
+}
+
+body.recurring-rd-portfolio .rd-block__body {
+  padding: 0.85rem 0.85rem 0.9rem;
+}
+
+body.recurring-deposit-approval .rd-form-grid,
+body.recurring-deposit-application .rd-form-grid,
+body.recurring-maintenance .rd-form-grid,
+body.recurring-close-receipt .rd-form-grid,
+body.recurring-rd-schedule .rd-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1.15rem;
+}
+
+body.recurring-rd-portfolio .rd-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1.15rem;
+}
+
+body.recurring-deposit-approval .rd-form-grid--right {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body.recurring-deposit-approval .rd-field,
+body.recurring-deposit-application .rd-field,
+body.recurring-maintenance .rd-field,
+body.recurring-close-receipt .rd-field,
+body.recurring-rd-schedule .rd-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+body.recurring-rd-portfolio .rd-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+body.recurring-deposit-approval .rd-field--remarks,
+body.recurring-deposit-application .rd-field--remarks,
+body.recurring-maintenance .rd-field--remarks,
+body.recurring-close-receipt .rd-field--remarks {
+  grid-column: 1 / -1;
+}
+
+body.recurring-deposit-approval .rd-label,
+body.recurring-deposit-application .rd-label,
+body.recurring-maintenance .rd-label,
+body.recurring-close-receipt .rd-label,
+body.recurring-rd-schedule .rd-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #2f7fd6;
+  font-weight: 700;
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+body.recurring-rd-portfolio .rd-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #2f7fd6;
+  font-weight: 700;
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+body.recurring-deposit-approval .rd-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body.recurring-deposit-approval .rd-inline__suffix {
+  color: #2f7fd6;
+  font-weight: 700;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+body.recurring-deposit-approval .rd-separator,
+body.recurring-deposit-application .rd-separator,
+body.recurring-maintenance .rd-separator {
+  height: 2px;
+  background: rgba(47, 127, 214, 0.25);
+  margin: 0.75rem 0;
+}
+
+body.recurring-deposit-approval .rd-bottom-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+  align-items: center;
+}
+
+body.recurring-deposit-approval .rd-si-grid,
+body.recurring-deposit-application .rd-si-grid,
+body.recurring-maintenance .rd-si-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1.1rem;
+}
+
+body.recurring-deposit-approval .rd-grid {
+  border: 1px solid rgba(11, 109, 191, 0.45);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+body.recurring-deposit-approval .rd-grid .table {
+  background: #ffffff;
+  margin-bottom: 0;
+}
+
+body.recurring-deposit-approval .rd-grid thead th {
+  background: #2f7fd6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+body.recurring-deposit-approval .rd-col-check {
+  width: 34px;
+}
+
+body.recurring-deposit-approval .rd-grid tbody td {
+  font-size: 0.85rem;
+}
+
+body.recurring-deposit-approval .rd-block .form-control,
+body.recurring-deposit-approval .rd-block .form-select {
+  border-radius: 0.45rem;
+  border-color: rgba(15, 23, 42, 0.14);
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+/* Application: make inputs a bit shorter (closer to classic density). */
+body.recurring-deposit-application .rd-block .form-control,
+body.recurring-deposit-application .rd-block .form-select {
+  border-radius: 0.45rem;
+  border-color: rgba(15, 23, 42, 0.14);
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+}
+
+/* Maintenance: keep the same density as Application. */
+body.recurring-maintenance .rd-block .form-control,
+body.recurring-maintenance .rd-block .form-select {
+  border-radius: 0.45rem;
+  border-color: rgba(15, 23, 42, 0.14);
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+}
+
+body.recurring-close-receipt .rd-block .form-control,
+body.recurring-close-receipt .rd-block .form-select {
+  border-radius: 0.45rem;
+  border-color: rgba(15, 23, 42, 0.14);
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+}
+
+body.recurring-rd-schedule .rd-block .form-control,
+body.recurring-rd-schedule .rd-block .form-select {
+  border-radius: 0.45rem;
+  border-color: rgba(15, 23, 42, 0.14);
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+}
+
+body.recurring-rd-portfolio .rd-block .form-control,
+body.recurring-rd-portfolio .rd-block .form-select {
+  border-radius: 0.45rem;
+  border-color: rgba(15, 23, 42, 0.14);
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+}
+
+/* Close Receipt: tabs + dense legacy-like content */
+body.recurring-close-receipt .rd-close-tabs {
+  border-bottom: none;
+  gap: 0.35rem;
+}
+
+body.recurring-close-receipt .rd-close-tabs .nav-link {
+  border-radius: 0.5rem 0.5rem 0 0;
+  border: 1px solid rgba(47, 127, 214, 0.35);
+  background: #ffffff;
+  color: #111827;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+}
+
+body.recurring-close-receipt .rd-close-tabs .nav-link.active {
+  background: rgba(47, 127, 214, 0.14);
+  border-color: rgba(47, 127, 214, 0.55);
+  color: #0b4a8a;
+}
+
+body.recurring-close-receipt .rd-close-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem 1.15rem;
+}
+
+body.recurring-close-receipt .rd-close-span-2 {
+  grid-column: 1 / -1;
+}
+
+body.recurring-close-receipt .rd-close-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+  padding-top: 0.85rem;
+}
+
+body.recurring-close-receipt .rd-close-tool {
+  min-width: 92px;
+  min-height: 38px;
+  border-radius: 2px;
+  border: 1px solid rgba(15, 23, 42, 0.28);
+  background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  font-weight: 800;
+  color: #111827;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 2px 0 rgba(0, 0, 0, 0.18);
+}
+
+body.recurring-close-receipt .rd-close-tool:disabled,
+body.recurring-close-receipt .rd-close-tool[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+body.recurring-close-receipt .rd-close-details {
+  height: clamp(220px, 30vh, 340px);
+  border-top: 2px solid rgba(47, 127, 214, 0.25);
+  background: rgba(241, 246, 255, 0.55);
+}
+
+body.recurring-close-receipt .rd-close-receipt-details .rd-block__body {
+  background: #ffffff;
+}
+
+body.recurring-close-receipt .rd-close-receipt-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem 1.25rem;
+  align-items: start;
+}
+
+body.recurring-close-receipt .rd-close-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.55rem;
+}
+
+body.recurring-close-receipt .rd-close-proceed-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.15rem;
+}
+
+body.recurring-close-receipt .rd-close-proceed {
+  min-width: 210px;
+  min-height: 40px;
+  border-radius: 2px;
+  border: 1px solid rgba(15, 23, 42, 0.3);
+  background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  font-weight: 800;
+  color: #111827;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 2px 0 rgba(0, 0, 0, 0.18);
+}
+
+body.recurring-close-receipt .rd-close-proceed:disabled,
+body.recurring-close-receipt .rd-close-proceed[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==============================
+   Recurring Deposit - RD Schedule
+   ============================== */
+
+body.recurring-rd-schedule .rd-grid {
+  border: 1px solid rgba(11, 109, 191, 0.45);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+body.recurring-rd-schedule .rd-grid .table {
+  background: #ffffff;
+  margin-bottom: 0;
+}
+
+body.recurring-rd-schedule .rd-grid thead th {
+  background: #2f7fd6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+body.recurring-rd-schedule .rd-schedule-empty {
+  padding: 0.65rem 0.75rem;
+  color: #111827;
+}
+
+/* ===============================
+   Recurring Deposit - RD Portfolio
+   =============================== */
+
+body.recurring-rd-portfolio .rd-grid {
+  border: 1px solid rgba(11, 109, 191, 0.45);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+body.recurring-rd-portfolio .rd-grid .table {
+  background: #ffffff;
+  margin-bottom: 0;
+}
+
+body.recurring-rd-portfolio .rd-grid thead th {
+  background: #2f7fd6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+body.recurring-rd-portfolio .rd-portfolio-empty {
+  padding: 0.65rem 0.75rem;
+  color: #111827;
+}
+
+body.recurring-deposit-approval .rd-block textarea.form-control {
+  resize: none;
+}
+
+body.recurring-deposit-approval .rd-side-nav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+body.recurring-deposit-approval .rd-side-nav__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  min-height: 2.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(47, 127, 214, 0.35);
+  background: #5d9ed6;
+  color: #ffffff;
+  padding: 0.45rem;
+}
+
+body.recurring-deposit-approval .rd-side-nav__btn:hover {
+  background: #4c91cd;
+}
+
+body.recurring-deposit-approval .rd-side-nav__btn i {
+  font-size: 0.98rem;
+}
+
+body.recurring-deposit-approval .rd-side-nav__label {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #2f7fd6;
+  padding: 0.1rem 0;
+}
+
+body.recurring-deposit-approval .rd-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(47, 127, 214, 0.35);
+  background: #5d9ed6;
+  color: #ffffff;
+}
+
+body.recurring-deposit-approval .cp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+body.recurring-deposit-approval .cp-actions .cm-shell__action {
+  width: 100%;
+}
+
+/* Recurring Deposit action rail buttons (outlined, color-coded). */
+body.recurring-deposit {
+  /* Default (used when no variant class is present): screenshot blue */
+  --rd-action-rgb: 59, 130, 246;
+}
+
+body.recurring-deposit .cm-legacy-actions .cp-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  align-items: stretch;
+}
+
+body.recurring-deposit .cm-legacy-actions .cp-actions .cm-shell__action {
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.62rem 0.85rem;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  border: 2px solid rgba(var(--rd-action-rgb), 0.75);
+  color: rgb(var(--rd-action-rgb));
+  box-shadow:
+    0 0 0 3px rgba(var(--rd-action-rgb), 0.12),
+    0 10px 18px rgba(var(--rd-action-rgb), 0.10);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+body.recurring-deposit .cm-legacy-actions .cp-actions .cm-shell__action i {
+  font-size: 0.95rem;
+}
+
+body.recurring-deposit .cm-legacy-actions .cp-actions .cm-shell__action:hover {
+  transform: translateY(-1px);
+  background: rgba(var(--rd-action-rgb), 0.06);
+  box-shadow:
+    0 0 0 4px rgba(var(--rd-action-rgb), 0.18),
+    0 14px 24px rgba(var(--rd-action-rgb), 0.16);
+}
+
+body.recurring-deposit .cm-legacy-actions .cp-actions .cm-shell__action:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(var(--rd-action-rgb), 0.22),
+    0 16px 26px rgba(var(--rd-action-rgb), 0.18);
+}
+
+body.recurring-deposit .cm-legacy-actions .cp-actions .cm-shell__action:disabled,
+body.recurring-deposit .cm-legacy-actions .cp-actions .cm-shell__action[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Variant colors */
+body.recurring-deposit .rd-action--add {
+  /* Screenshot green */
+  --rd-action-rgb: 34, 197, 94;
+}
+
+body.recurring-deposit .rd-action--add:hover {
+  background: rgba(var(--rd-action-rgb), 0.08);
+}
+
+body.recurring-deposit .rd-action--edit {
+  /* Screenshot orange */
+  --rd-action-rgb: 249, 115, 22;
+}
+
+body.recurring-deposit .rd-action--edit:hover {
+  background: rgba(var(--rd-action-rgb), 0.08);
+}
+
+body.recurring-deposit .rd-action--view {
+  /* Screenshot blue */
+  --rd-action-rgb: 59, 130, 246;
+}
+
+body.recurring-deposit .rd-action--view:hover {
+  background: rgba(var(--rd-action-rgb), 0.08);
+}
+
+body.recurring-deposit .rd-action--delete,
+body.recurring-deposit .rd-action--cancel {
+  /* Screenshot red */
+  --rd-action-rgb: 239, 68, 68;
+}
+
+body.recurring-deposit .rd-action--delete:hover,
+body.recurring-deposit .rd-action--cancel:hover {
+  background: rgba(var(--rd-action-rgb), 0.08);
+}
+
+body.recurring-deposit .rd-action--save,
+body.recurring-deposit .rd-action--approve {
+  /* Match screenshot green */
+  --rd-action-rgb: 34, 197, 94;
+}
+
+body.recurring-deposit .rd-action--save:hover,
+body.recurring-deposit .rd-action--approve:hover {
+  background: rgba(var(--rd-action-rgb), 0.08);
+}
+
+body.recurring-deposit .rd-action--reject {
+  /* Match screenshot red */
+  --rd-action-rgb: 239, 68, 68;
+}
+
+body.recurring-deposit .rd-action--reject:hover {
+  background: rgba(var(--rd-action-rgb), 0.08);
+}
+
+body.recurring-deposit-approval .rd-bts-2x3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 0.75rem 1.15rem;
+  align-items: start;
+}
+
+body.recurring-deposit-application .rd-bts-2x3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 0.75rem 1.15rem;
+  align-items: start;
+}
+
+/* Maintenance: audit should be 2 x 3 (two columns, three rows). */
+body.recurring-maintenance .rd-bts-2x3 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 0.75rem 1.15rem;
+  align-items: start;
+}
+
+body.recurring-deposit-approval .rd-bts-supervision {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 0.75rem 1.15rem;
+  align-items: start;
+}
+
+body.recurring-deposit-approval .cm-legacy-actions__title,
+body.recurring-deposit-application .cm-legacy-actions__title,
+body.recurring-maintenance .cm-legacy-actions__title {
+  color: #2f7fd6;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+body.recurring-deposit-approval .cm-legacy-actions__group {
+  gap: 0.75rem;
+}
+
+@media (max-width: 991.98px) {
+  body.recurring-deposit-approval .cm-legacy-actions {
+    margin-top: 0.9rem;
+  }
+
+  body.recurring-deposit-approval .rd-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.recurring-deposit-approval .rd-si-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.recurring-deposit-approval .rd-bts-2x3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.recurring-deposit-approval .rd-bts-supervision {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

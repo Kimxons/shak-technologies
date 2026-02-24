@@ -1,0 +1,201 @@
+/* GL Branch Details Module Styles */
+
+.gbd-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Left Panel Selects */
+.gbd-container .gbd-left-select {
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.gbd-container .gbd-left-select:focus {
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+/* Form Controls - Standard Styling */
+.gbd-container .form-control,
+.gbd-container .form-select {
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.gbd-container .form-control:focus,
+.gbd-container .form-select:focus {
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.gbd-container .form-control:disabled,
+.gbd-container .form-control[readonly],
+.gbd-container .form-select:disabled,
+.gbd-container .form-select[readonly] {
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+/* Action Buttons - Right Panel */
+.gbd-container .cm-shell__action {
+  width: 100%;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  padding: 0.28rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #0f1d40;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  justify-content: center;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+
+.gbd-container .cm-shell__action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.15);
+}
+
+.gbd-container .cm-shell__action--success {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.gbd-container .cm-shell__action--success:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+.gbd-container .cm-shell__action--danger {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.gbd-container .cm-shell__action--danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Checkbox Styling */
+.gbd-container .form-check-input {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gbd-container .form-check-input:checked {
+  background-color: #5b9fd9;
+  border-color: #5b9fd9;
+}
+
+.gbd-container .form-check-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.gbd-container .form-check-input:disabled {
+  background-color: #f3f4f6;
+  border-color: rgba(15, 23, 42, 0.1);
+  cursor: not-allowed;
+}
+
+/* Textarea Styling */
+.gbd-container textarea.form-control {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.4;
+}
+
+/* Label Styling */
+.gbd-container label {
+  margin-bottom: 0;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Section Headers */
+.gbd-container .gbd-section-header {
+  background-color: #5b9fd9;
+  color: white;
+  padding: 10px 12px;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+/* Behind The Scene Fields - Readonly Styling */
+.gbd-container .gbd-bts-field {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.gbd-container .gbd-bts-field:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  box-shadow: none;
+}
+
+/* Collapsible Sections */
+.gbd-container .collapsible-content {
+  max-height: 5000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 1;
+}
+
+.gbd-container .collapsible-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .gbd-container [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .gbd-container [style*="grid-template-columns: 150px 1fr"] {
+    grid-template-columns: auto 1fr !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .gbd-container .gbd-action-btn {
+    display: none;
+  }
+}

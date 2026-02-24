@@ -1,0 +1,308 @@
+/* Insurance Code - Exact Replica */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    background: #f0f0f0;
+}
+
+/* Window */
+.window {
+    background: #e8f4fc;
+    border: 1px solid #888;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Title Bar */
+.title-bar {
+    background: linear-gradient(180deg, #6b9cd4 0%, #4a7fc4 50%, #3a6fb4 100%);
+    color: white;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.title-icon {
+    font-size: 14px;
+}
+
+.title-text {
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.title-bar-right {
+    display: flex;
+    gap: 2px;
+}
+
+.title-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 22px;
+    height: 18px;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+.title-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.title-btn.close:hover {
+    background: #c42b1c;
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    background: #e8f4fc;
+    flex: 1;
+    padding: 8px;
+}
+
+/* Form Content */
+.form-content {
+    flex: 1;
+    padding: 8px 12px;
+    background: #e8f4fc;
+    border: 1px solid #4a90d9;
+    margin-right: 8px;
+}
+
+/* Form Row */
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 4px;
+}
+
+.form-row label {
+    min-width: 130px;
+    text-align: right;
+    padding-right: 8px;
+    font-size: 11px;
+    color: #000;
+}
+
+.label-blue {
+    color: #0066cc !important;
+    font-weight: normal;
+}
+
+.form-row input[type="text"],
+.form-row select {
+    height: 22px;
+    padding: 1px 8px;
+    border: 1px solid #7f9db9;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+    background: #ffffff;
+}
+
+.form-row input[type="text"]:focus,
+.form-row select:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+.input-full {
+    width: 300px;
+}
+
+.input-extra-wide {
+    width: 600px;
+}
+
+.audit-input {
+    width: 150px;
+    background: #ffffff;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Two Column Layout */
+.form-row.two-col {
+    display: flex;
+    gap: 40px;
+}
+
+.form-row.two-col .col {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.form-row.two-col .col label {
+    min-width: 100px;
+}
+
+.form-row.two-col .col input {
+    width: 150px;
+}
+
+/* Buttons */
+.btn-lookup {
+    width: 24px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid #999;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-lookup:hover {
+    background: #e5e5e5;
+}
+
+/* Section Header */
+.section-header {
+    background: linear-gradient(180deg, #4a90d9 0%, #2a70b9 100%);
+    color: white;
+    padding: 4px 12px;
+    font-weight: bold;
+    font-size: 11px;
+    margin: 8px 0 10px 0;
+    min-height: 22px;
+}
+
+/* Action Panel */
+.action-panel {
+    width: 100px;
+    background: #e8f4fc;
+    padding: 40px 8px 8px 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.btn-action {
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: linear-gradient(180deg, rgba(74, 144, 217, 0.85) 0%, rgba(42, 112, 185, 0.85) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+    min-width: 80px;
+    text-align: center;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    background: linear-gradient(180deg, rgba(46, 204, 113, 0.9) 0%, rgba(39, 174, 96, 0.9) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-action:active {
+    background: linear-gradient(180deg, rgba(39, 174, 96, 0.9) 0%, rgba(30, 132, 73, 0.9) 100%);
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-action.underline {
+    text-decoration: none;
+}
+
+/* Ensure all action buttons are uniform in width and height, and aligned in a column */
+.cm-shell__action {
+  width: 100% !important;
+  min-width: 260px !important;
+  max-width: 420px !important;
+  height: 56px !important;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 19px;
+  font-weight: 500;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.cm-legacy-actions.card-surface {
+  min-width: 320px;
+  max-width: 420px;
+  width: 380px;
+}
+
+.cp-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+  align-items: stretch;
+}
+
+.cm-shell__action .bi {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+/* Status Bar */
+.status-bar {
+    background: #e0f0ff;
+    border-top: 1px solid #b0c4de;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: #333;
+}
+
+/* Scrollbar */
+.form-content::-webkit-scrollbar {
+    width: 16px;
+}
+
+.form-content::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+.form-content::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border: 1px solid #999;
+}
+
+.form-content::-webkit-scrollbar-button {
+    background: #e0e0e0;
+    border: 1px solid #999;
+    height: 16px;
+}

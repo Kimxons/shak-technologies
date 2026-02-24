@@ -1,0 +1,359 @@
+:root {
+  --primary: #4A90E2;
+  --primary-dark: #357ABD;
+  --secondary: #F5F7FA;
+  --border: #DDE6ED;
+  --text-dark: #2C3E50;
+  --text-gray: #5A6C7D;
+  --text-light: #8B98A5;
+  --white: #FFFFFF;
+  --success: #27AE60;
+  --warning: #F39C12;
+  --danger: #E74C3C;
+  --info: #3498DB;
+  --radius: 3px;
+  --shadow-sm: 0 6px 16px rgba(44, 62, 80, 0.06);
+  --transition: all 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: Tahoma, Arial, sans-serif;
+  font-size: 11px;
+  background: transparent;
+}
+
+.tr-window {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #888;
+}
+
+.tr-title-bar {
+  background: linear-gradient(180deg, #97BAE6 0%, #97BAE6 50%, #97BAE6 100%);
+  color: #fff;
+  padding: 4px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tr-title-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tr-title-bar__icon {
+  font-size: 14px;
+}
+
+.tr-title-bar__text {
+  font-size: 12px;
+}
+
+.tr-title-bar__right {
+  display: flex;
+  gap: 2px;
+}
+
+.tr-title-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  width: 22px;
+  height: 18px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.tr-title-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tr-title-btn.close:hover {
+  background: #c42b1c;
+}
+
+.tr-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: 6px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.tr-content-shell {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid #4a90d9;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tr-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 12px 0;
+  overflow: auto;
+}
+
+.tr-top-box {
+  border: 1px solid #4a90d9;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 10px;
+  margin: 8px 0 6px;
+}
+
+/* Time Period Legend */
+.tr-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.tr-period-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #333;
+}
+
+.tr-period-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Time Grid */
+.tr-time-grid-wrapper {
+  overflow-x: auto;
+  border: 1px solid #4a90d9;
+  background: rgba(255, 255, 255, 0.92);
+  margin-bottom: 15px;
+}
+
+.tr-time-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  min-width: 1000px;
+}
+
+.tr-time-grid thead th {
+  background: linear-gradient(180deg, #1787d3 0%, #0e6fb7 100%);
+  color: #fff;
+  padding: 6px 4px;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid #4a90d9;
+  height: 24px;
+}
+
+.tr-time-grid td {
+  border: 1px solid #4a90d9;
+  padding: 0;
+  text-align: center;
+  height: 24px;
+}
+
+.tr-day-label {
+  background: #f0f0f0;
+  font-weight: 600;
+  color: #333;
+  padding: 6px 4px;
+  width: 80px;
+  text-align: left;
+}
+
+.tr-time-cell {
+  width: 32px;
+  height: 24px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #7f9db9;
+  transition: all 0.2s ease;
+}
+
+.tr-time-cell:hover {
+  box-shadow: inset 0 0 0 2px #4a90d9;
+}
+
+.tr-time-cell.permitted {
+  background: #4a90d9;
+}
+
+.tr-info {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+}
+
+.tr-status-bar {
+  height: 18px;
+  background: #f0f0f0;
+  border-top: 1px solid #c9c9c9;
+}
+
+.tr-message {
+  height: 22px;
+  padding: 4px 6px;
+  color: #c60000;
+}
+
+.tr-action-panel {
+  width: 160px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tr-preview {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid #4a90d9;
+  background: #ffffff;
+}
+
+.tr-actions {
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tr-action-btn {
+  width: 100%;
+  padding: 7px 8px;
+  height: 28px;
+  border-radius: var(--radius);
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.tr-action-btn i {
+  font-size: 12px;
+}
+
+.tr-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.tr-action-btn:disabled {
+  background: #d0d0d0;
+  color: #888;
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: #b0b0b0;
+  transform: none;
+}
+
+.tr-action-btn:disabled:hover {
+  background: #d0d0d0;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Button type variants */
+.tr-action-btn[data-tr-edit] { 
+  color: var(--warning); 
+  border-color: var(--warning); 
+}
+
+.tr-action-btn[data-tr-edit]:hover:not(:disabled) { 
+  background: var(--warning); 
+  color: var(--white); 
+}
+
+.tr-action-btn[data-tr-save] { 
+  color: var(--success); 
+  border-color: var(--success); 
+}
+
+.tr-action-btn[data-tr-save]:hover:not(:disabled) { 
+  background: var(--success); 
+  color: var(--white); 
+}
+
+.tr-action-btn[data-tr-cancel] { 
+  color: var(--danger); 
+  border-color: var(--danger); 
+}
+
+.tr-action-btn[data-tr-cancel]:hover:not(:disabled) { 
+  background: var(--danger); 
+  color: var(--white); 
+}
+
+.tr-action-btn[data-tr-back] { 
+  color: var(--text-dark); 
+  border-color: var(--text-dark); 
+}
+
+.tr-action-btn[data-tr-back]:hover { 
+  background: var(--text-dark); 
+  color: var(--white); 
+}
+
+/* Minimized state */
+.tr-window.tr-window--minimized .tr-main {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .tr-time-grid-wrapper {
+    overflow-x: auto;
+  }
+
+  .tr-time-grid {
+    min-width: 800px;
+  }
+
+  .tr-time-grid th,
+  .tr-time-grid td {
+    padding: 4px 2px;
+    font-size: 9px;
+  }
+
+  .tr-time-cell {
+    width: 24px;
+    height: 20px;
+  }
+}

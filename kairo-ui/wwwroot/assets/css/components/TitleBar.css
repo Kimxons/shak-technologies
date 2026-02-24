@@ -1,0 +1,409 @@
+/* ============================================================================
+   KAIRO TITLEBAR COMPONENT
+   Reusable title bar styling for all DataEntry and View forms
+   Version: 1.0.0 - January 2026
+   ============================================================================
+   
+   Features:
+   - Flexbox layout (no absolute positioning)
+   - 32x32px button hit areas
+   - 8-10px spacing between buttons
+   - Title truncation with ellipsis
+   - Subtle hover feedback only
+   - Enterprise flat/minimal style
+   - Keyboard focus indicators
+   
+   Usage:
+   1. Include this CSS file
+   2. Use KairoTitleBar.js component or apply classes manually
+   
+   ============================================================================ */
+
+/* ============================================================================
+   CSS VARIABLES
+   ============================================================================ */
+:root {
+  /* Title Bar Colors - Use theme variables with fallbacks */
+  --ktb-bg: var(--color-header, #4a7c95);
+  --ktb-bg-dark: color-mix(in srgb, var(--color-header, #4a7c95) 85%, black 15%);
+  --ktb-text: #ffffff;
+  --ktb-btn-hover: rgba(255, 255, 255, 0.15);
+  --ktb-btn-active: rgba(255, 255, 255, 0.25);
+  --ktb-btn-close-hover: #e81123;
+  --ktb-focus-ring: rgba(255, 255, 255, 0.5);
+  
+  /* Dimensions */
+  --ktb-height: 36px;
+  --ktb-btn-size: 36px;
+  --ktb-btn-gap: 4px;
+  --ktb-padding-left: 12px;
+  --ktb-padding-right: 4px;
+  --ktb-icon-size: 14px;
+  --ktb-btn-icon-size: 14px;
+  
+  /* Typography */
+  --ktb-font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ktb-font-size: 13px;
+  --ktb-font-weight: 500;
+}
+
+/* ============================================================================
+   TITLE BAR CONTAINER
+   ============================================================================ */
+.ktb-title-bar {
+  background: linear-gradient(180deg, var(--ktb-bg) 0%, var(--ktb-bg-dark) 100%);
+  color: var(--ktb-text);
+  height: var(--ktb-height);
+  min-height: var(--ktb-height);
+  padding: 0 var(--ktb-padding-right) 0 var(--ktb-padding-left);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  user-select: none;
+  font-family: var(--ktb-font-family);
+  box-sizing: border-box;
+}
+
+/* ============================================================================
+   LEFT SECTION - Title
+   ============================================================================ */
+.ktb-title-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0; /* Allow flex shrink for ellipsis */
+  flex: 1;
+}
+
+.ktb-title-bar__icon {
+  font-size: var(--ktb-icon-size);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.ktb-title-bar__text {
+  font-weight: var(--ktb-font-weight);
+  font-size: var(--ktb-font-size);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ============================================================================
+   RIGHT SECTION - Button Group
+   ============================================================================ */
+.ktb-title-bar__right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: var(--ktb-btn-gap);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+/* ============================================================================
+   TITLE BAR BUTTONS
+   ============================================================================ */
+.ktb-btn {
+  background: transparent;
+  border: none;
+  color: var(--ktb-text);
+  width: var(--ktb-btn-size);
+  height: var(--ktb-btn-size);
+  min-width: var(--ktb-btn-size);
+  min-height: var(--ktb-btn-size);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ktb-btn:hover {
+  background-color: var(--ktb-btn-hover);
+}
+
+.ktb-btn:active {
+  background-color: var(--ktb-btn-active);
+}
+
+/* Close button red hover */
+.ktb-btn--close:hover {
+  background-color: var(--ktb-btn-close-hover);
+}
+
+/* Button icons */
+.ktb-btn i {
+  font-size: var(--ktb-btn-icon-size);
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Icon size adjustments for specific buttons */
+.ktb-btn[data-action="refresh"] i {
+  font-size: 15px;
+}
+
+.ktb-btn[data-action="maximize"] i {
+  font-size: 12px;
+}
+
+.ktb-btn[data-action="close"] i {
+  font-size: 14px;
+}
+
+/* ============================================================================
+   FOCUS STATES - Accessibility
+   ============================================================================ */
+.ktb-btn:focus {
+  outline: none;
+}
+
+.ktb-btn:focus-visible {
+  outline: 2px solid var(--ktb-focus-ring);
+  outline-offset: -2px;
+}
+
+/* ============================================================================
+   WINDOW STATES
+   ============================================================================ */
+.ktb-window--maximized {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999;
+  border-radius: 0 !important;
+}
+
+/* ============================================================================
+   BACKWARD COMPATIBILITY - de- and asg- prefixes
+   ============================================================================ */
+
+/* Apply same styles to de-title-bar for backward compatibility */
+.de-title-bar {
+  background: linear-gradient(180deg, var(--ktb-bg, #4a7c95) 0%, var(--ktb-bg-dark, #3d6a7f) 100%);
+  color: var(--ktb-text, #ffffff);
+  height: var(--ktb-height, 36px);
+  min-height: var(--ktb-height, 36px);
+  padding: 0 var(--ktb-padding-right, 4px) 0 var(--ktb-padding-left, 12px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  user-select: none;
+  font-family: var(--ktb-font-family, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif);
+  box-sizing: border-box;
+}
+
+.de-title-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.de-title-bar__icon {
+  font-size: var(--ktb-icon-size, 14px);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.de-title-bar__text {
+  font-weight: var(--ktb-font-weight, 500);
+  font-size: var(--ktb-font-size, 13px);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.de-title-bar__right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: var(--ktb-btn-gap, 4px);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.de-title-btn {
+  background: transparent;
+  border: none;
+  color: var(--ktb-text, #ffffff);
+  width: var(--ktb-btn-size, 36px);
+  height: var(--ktb-btn-size, 36px);
+  min-width: var(--ktb-btn-size, 36px);
+  min-height: var(--ktb-btn-size, 36px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.de-title-btn:hover {
+  background-color: var(--ktb-btn-hover, rgba(255, 255, 255, 0.15));
+}
+
+.de-title-btn:active {
+  background-color: var(--ktb-btn-active, rgba(255, 255, 255, 0.25));
+}
+
+.de-title-btn.close:hover,
+.de-title-btn[data-action="close"]:hover {
+  background-color: var(--ktb-btn-close-hover, #e81123);
+}
+
+.de-title-btn i {
+  font-size: var(--ktb-btn-icon-size, 14px);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.de-title-btn[data-action="refresh"] i {
+  font-size: 15px;
+}
+
+.de-title-btn[data-action="maximize"] i {
+  font-size: 12px;
+}
+
+.de-title-btn[data-action="close"] i {
+  font-size: 14px;
+}
+
+.de-title-btn:focus {
+  outline: none;
+}
+
+.de-title-btn:focus-visible {
+  outline: 2px solid var(--ktb-focus-ring, rgba(255, 255, 255, 0.5));
+  outline-offset: -2px;
+}
+
+/* asg- prefix compatibility */
+.asg-title-bar {
+  background: linear-gradient(180deg, var(--ktb-bg, #4a7c95) 0%, var(--ktb-bg-dark, #3d6a7f) 100%);
+  color: var(--ktb-text, #ffffff);
+  height: var(--ktb-height, 36px);
+  min-height: var(--ktb-height, 36px);
+  padding: 0 var(--ktb-padding-right, 4px) 0 var(--ktb-padding-left, 12px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  user-select: none;
+  font-family: var(--ktb-font-family, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif);
+  box-sizing: border-box;
+}
+
+.asg-title-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.asg-title-bar__icon {
+  font-size: var(--ktb-icon-size, 14px);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.asg-title-bar__text {
+  font-weight: var(--ktb-font-weight, 500);
+  font-size: var(--ktb-font-size, 13px);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.asg-title-bar__right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: var(--ktb-btn-gap, 4px);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.asg-title-btn {
+  background: transparent;
+  border: none;
+  color: var(--ktb-text, #ffffff);
+  width: var(--ktb-btn-size, 36px);
+  height: var(--ktb-btn-size, 36px);
+  min-width: var(--ktb-btn-size, 36px);
+  min-height: var(--ktb-btn-size, 36px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.asg-title-btn:hover {
+  background-color: var(--ktb-btn-hover, rgba(255, 255, 255, 0.15));
+}
+
+.asg-title-btn:active {
+  background-color: var(--ktb-btn-active, rgba(255, 255, 255, 0.25));
+}
+
+.asg-title-btn.close:hover,
+.asg-title-btn[data-action="close"]:hover {
+  background-color: var(--ktb-btn-close-hover, #e81123);
+}
+
+.asg-title-btn i {
+  font-size: var(--ktb-btn-icon-size, 14px);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.asg-title-btn[data-action="refresh"] i {
+  font-size: 15px;
+}
+
+.asg-title-btn[data-action="maximize"] i {
+  font-size: 12px;
+}
+
+.asg-title-btn[data-action="close"] i {
+  font-size: 14px;
+}
+
+.asg-title-btn:focus {
+  outline: none;
+}
+
+.asg-title-btn:focus-visible {
+  outline: 2px solid var(--ktb-focus-ring, rgba(255, 255, 255, 0.5));
+  outline-offset: -2px;
+}

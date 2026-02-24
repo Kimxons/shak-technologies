@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Copy User</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="copy-user.css" />
+  <link rel="stylesheet" href="../../account-maintenance/DataEntry/dataentry-theme.css" />
+</head>
+<body>
+  <div class="cu-window" data-cu-window>
+    <div class="cu-title-bar" role="banner" aria-label="Window title bar">
+      <div class="cu-title-bar__left">
+        <span class="cu-title-bar__icon" aria-hidden="true"></span>
+        <span class="cu-title-bar__text">Copy User </span>
+      </div>
+      <div class="cu-title-bar__right" aria-label="Window controls">
+        <button class="cu-title-btn" type="button" data-cu-refresh title="Refresh" aria-label="Refresh">🔄</button>
+        <button class="cu-title-btn" type="button" data-cu-minimize title="Minimize" aria-label="Minimize">—</button>
+        <button class="cu-title-btn close" type="button" data-cu-close title="Close" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="cu-main">
+      <div class="cu-content-shell" role="region" aria-label="Copy User">
+        <div class="cu-scroll">
+          <div class="cu-top-box" role="group" aria-label="Login details">
+            <div class="cu-row cu-row--text">
+              <label class="cu-label cu-label--blue" for="loginId">Login ID</label>
+              <div class="cu-input-group">
+                <input id="loginId" type="text" class="cu-input" />
+              </div>
+            </div>
+
+            <div class="cu-row cu-row--text">
+              <label class="cu-label" for="employeeId">Employee ID</label>
+              <input id="employeeId" type="text" class="cu-input" />
+            </div>
+
+            <div class="cu-row cu-row--text">
+              <label class="cu-label cu-label--blue" for="password">Password</label>
+              <input id="password" type="password" class="cu-input" />
+            </div>
+
+            <div class="cu-row cu-row--text">
+              <label class="cu-label cu-label--blue" for="confirmPassword">Confirm Password</label>
+              <input id="confirmPassword" type="password" class="cu-input" />
+            </div>
+          </div>
+
+          <div class="cu-section-header">Personal Details</div>
+
+          <div class="cu-bts" role="group" aria-label="Personal details">
+            <div class="cu-bts-grid">
+              <div class="cu-bts-row">
+                <label class="cu-label cu-label--blue" for="userId">User ID</label>
+                <div class="cu-input-group">
+                  <input id="userId" type="text" class="cu-input" />
+                  <button class="cu-lookup-btn" type="button" data-cu-lookup="user" title="Lookup user">🔍</button>
+                  <button class="cu-add-btn" type="button" data-cu-add-user title="Add user">+</button>
+                </div>
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label cu-label--blue" for="title">Title</label>
+                <select id="title" class="cu-select">
+                  <option></option>
+                  <option>Mr</option>
+                  <option>Mrs</option>
+                  <option>Miss</option>
+                  <option>Dr</option>
+                </select>
+              </div>
+              <div class="cu-bts-row cu-bts-row--wide">
+                <label class="cu-label cu-label--blue" for="address">Address</label>
+                <input id="address" type="text" class="cu-input" />
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label" for="phone">Phone</label>
+                <input id="phone" type="text" class="cu-input" />
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label" for="mobile">Mobile</label>
+                <input id="mobile" type="text" class="cu-input" />
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label" for="emailId">Email ID</label>
+                <input id="emailId" type="email" class="cu-input" />
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label cu-label--blue" for="gender">Gender</label>
+                <select id="gender" class="cu-select">
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label cu-label--blue" for="country">Country</label>
+                <select id="country" class="cu-select">
+                  <option></option>
+                  <option>Kenya</option>
+                  <option>Uganda</option>
+                  <option>Tanzania</option>
+                </select>
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label cu-label--blue" for="city">City</label>
+                <select id="city" class="cu-select">
+                  <option></option>
+                  <option>Nairobi</option>
+                  <option>Mombasa</option>
+                  <option>Kisumu</option>
+                </select>
+              </div>
+              <div class="cu-bts-row">
+                <label class="cu-label cu-label--blue" for="dateOfBirth">Date Of Birth</label>
+                <input id="dateOfBirth" type="date" class="cu-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cu-action-panel">
+        <div class="cu-preview">
+          <!-- Preview area could show user details -->
+        </div>
+        <div class="cu-actions">
+          <button class="cu-action-btn" type="button" data-cu-save disabled>
+            <i class="bi bi-save2"></i>
+            <span>Save</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-cancel disabled>
+            <i class="bi bi-x-circle"></i>
+            <span>Cancel</span>
+          </button>
+          <button class="cu-action-btn" type="button" data-cu-back>
+            <i class="bi bi-arrow-left"></i>
+            <span>Back</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cu-status-bar">
+      <div class="cu-message" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- Search Modal Overlay -->
+  <div class="cu-search-overlay" id="cuSearchOverlay" style="display: none;">
+    <div class="cu-search-modal">
+      <div class="cu-search-header">
+        <h3>User Search</h3>
+        <button type="button" class="cu-search-close" id="cuSearchClose">&times;</button>
+      </div>
+      <div class="cu-search-body">
+        <iframe id="cuSearchFrame" src="about:blank" frameborder="0" width="100%" height="100%"></iframe>
+      </div>
+    </div>
+  </div>
+  <script src="../../../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="copy-user.js"></script>
+</body>
+</html>

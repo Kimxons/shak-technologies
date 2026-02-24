@@ -1,0 +1,19 @@
+# Development Dockerfile for the static dev server (tools/static-server.js)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install
+
+# Copy application files
+COPY . .
+
+# Expose port for the dev server (PORT is set via docker-compose.dev.yml)
+EXPOSE 8080
+
+# Run dev server
+CMD ["npm", "run", "dev"]

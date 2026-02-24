@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Loan Disbursement</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+<body>
+    <div class="window">
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Sidebar -->
+            <div class="sidebar" id="main-sidebar">
+                <!-- SECTIONS Header -->
+                <div class="sidebar-header">
+                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i><span>INFO</span></span>
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="sidebar-content">
+                    <!-- Info Section -->
+                    <div class="nav-section nav-section--card expanded" data-nav-section data-section-name="Info">
+                        <div class="nav-header nav-header--card" data-tooltip="Info">
+                            <div class="nav-header__content">
+                                <i class="bi bi-info-circle nav-header__icon"></i>
+                                <span class="nav-label nav-label--card">Info</span>
+                            </div>
+                            <div class="nav-header__badge">
+                                <span class="nav-badge">7</span>
+                                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Info" aria-expanded="true" aria-controls="nav-info">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav-items nav-items--card is-visible" id="nav-info">
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="charges" data-tooltip="Charges">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-receipt sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Charges</div>
+                                        <div class="sidebar-item__description">View fees</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="pending-disb" data-tooltip="Pending Disb">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-hourglass-split sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Pending Disb</div>
+                                        <div class="sidebar-item__description">Pending disbursements</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="denomination" data-tooltip="Denomination">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-cash-coin sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Denomination</div>
+                                        <div class="sidebar-item__description">Cash breakdown</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="group-detail" data-tooltip="Group Detail">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-people sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Group Detail</div>
+                                        <div class="sidebar-item__description">Group information</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="client-image" data-tooltip="Client Image">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-image sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Client Image</div>
+                                        <div class="sidebar-item__description">View client photo</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="inst-schedule" data-tooltip="Inst Schedule">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-calendar-check sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Inst Schedule</div>
+                                        <div class="sidebar-item__description">Payment schedule</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sidebar-item sidebar-item--enhanced" data-action="print-contract" data-tooltip="Print Contract">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-printer sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Print Contract</div>
+                                        <div class="sidebar-item__description">Generate contract</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- End sidebar-content -->
+            </div>
+
+            <!-- Form Content -->
+            <div class="form-content">
+                <div class="form-card" data-main-form>
+                    <form id="groupLoanDisbursementForm" novalidate>
+                        <!-- Identification Section -->
+                        <div class="form-section" data-section="identification">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-card-text"></i> Identification</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Identification" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Center ID</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="centerId" class="kairo-branch-control__id" placeholder="ID">
+                                            <input type="text" id="centerName" class="kairo-branch-control__name" placeholder="Center Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Group ID</label>
+                                        <div class="kairo-control" data-kairo-control>
+                                            <input type="text" id="groupId" class="kairo-control__id" placeholder="Group ID">
+                                            <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Search Group"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Scheme ID</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="schemeId" class="kairo-branch-control__id" placeholder="ID">
+                                            <input type="text" id="schemeName" class="kairo-branch-control__name" placeholder="Scheme Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Scheme"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Mode Of Disbursement</label>
+                                        <select id="disbursementMode" class="bs-select">
+                                            <option value="">--Select--</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="cheque">Cheque</option>
+                                            <option value="transfer">Transfer</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col">
+                                        <div class="form-check">
+                                            <input type="checkbox" id="toRepaymentAccount" class="form-check-input">
+                                            <label for="toRepaymentAccount" class="form-check-label">To Repayment AccountID</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disbursement List Section -->
+                        <div class="form-section" data-section="disbursement-list">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-table"></i> Disbursement List</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Disbursement List" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 50px;"></th>
+                                                <th>Client ID</th>
+                                                <th>Client Name</th>
+                                                <th>First Disbursement Date</th>
+                                                <th>Value Date</th>
+                                                <th>Loan Amount</th>
+                                                <th>Deduction</th>
+                                                <th>Net Disb. Amount</th>
+                                                <th>Application ID</th>
+                                                <th>Account ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="disbursementTableBody">
+                                            <tr>
+                                                <td colspan="10" class="text-center text-muted">No records to display.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Disbursement Amount</label>
+                                        <input type="text" id="totalDisbursementAmount" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Deduction</label>
+                                        <input type="text" id="totalDeduction" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Net Disb. Amount</label>
+                                        <input type="text" id="totalNetAmount" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Client Name</label>
+                                        <input type="text" id="clientName" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col">
+                                        <div class="form-check">
+                                            <input type="checkbox" id="isContractPrinted" class="form-check-input">
+                                            <label for="isContractPrinted" class="form-check-label">Is Contract Printed</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disbursement Details Section -->
+                        <div class="form-section" data-section="disbursement-details">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-card-list"></i> Disbursement Details</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Disbursement Details" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Total Net Dis.Amount</label>
+                                        <input type="text" id="totalNetDisAmount" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">No. Of Disbursements</label>
+                                        <input type="text" id="noDisbursements" class="bs-input-text" value="0" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Contra Branch ID</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="contraBranchId" class="kairo-branch-control__id" placeholder="ID">
+                                            <input type="text" id="contraBranchName" class="kairo-branch-control__name" placeholder="Branch Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Account Type</label>
+                                        <select id="accountType" class="bs-select">
+                                            <option value="customer">Customer</option>
+                                            <option value="gl">GL</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Contra Account ID</label>
+                                        <div class="kairo-branch-control" data-kairo-control>
+                                            <input type="text" id="contraAccountId" class="kairo-branch-control__id" placeholder="ID">
+                                            <input type="text" id="contraAccountName" class="kairo-branch-control__name" placeholder="Account Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Cheque ID</label>
+                                        <input type="text" id="chequeId" class="bs-input-text">
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Till</label>
+                                        <input type="text" id="till" class="bs-input-text">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Beneficiary</label>
+                                        <input type="text" id="beneficiary" class="bs-input-text">
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Reference No.</label>
+                                        <input type="text" id="referenceNo" class="bs-input-text">
+                                    </div>
+                                    <div class="col"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col">
+                                        <label class="label-blue">Narration</label>
+                                        <input type="text" id="narration" class="bs-input-text">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Behind The Scene Section -->
+                        <div class="form-section" data-section="behind-the-scene">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Officer Name</label>
+                                        <input type="text" id="officerName" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Disbursement Type</label>
+                                        <input type="text" id="disbursementType" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Product ID</label>
+                                        <input type="text" id="productId" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue">Currency ID</label>
+                                        <input type="text" id="currencyId" class="bs-input-text" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue">Loan Type</label>
+                                        <input type="text" id="loanType" class="bs-input-text" readonly>
+                                    </div>
+                                    <div class="col"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action" id="viewBtn">
+                        <i class="bi bi-eye"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--warning" id="deviateBtn">
+                        <i class="bi bi-arrow-left-right"></i>
+                        <span>Deviate</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--success" id="addBtn">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add</span>
+                    </button>
+                    <button type="button" class="btn-action btn-action--success" id="saveBtn">
+                        <i class="bi bi-floppy"></i>
+                        <span>Save</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charges Modal -->
+    <div class="modal fade" id="chargesModal" tabindex="-1" aria-labelledby="chargesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chargesModalLabel">Charges</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Charge Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chargesTableBody">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No charges to display.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Disbursement Modal -->
+    <div class="modal fade" id="pendingdisbModal" tabindex="-1" aria-labelledby="pendingdisbModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pendingdisbModalLabel">Pending Disbursement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Pending disbursement details will be displayed here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Denomination Modal -->
+    <div class="modal fade" id="denominationModal" tabindex="-1" aria-labelledby="denominationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="denominationModalLabel">Denomination</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Denomination details will be displayed here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Detail Modal -->
+    <div class="modal fade" id="groupdetailModal" tabindex="-1" aria-labelledby="groupdetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupdetailModalLabel">Group Detail</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Group details will be displayed here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Image Modal -->
+    <div class="modal fade" id="clientimageModal" tabindex="-1" aria-labelledby="clientimageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clientimageModalLabel">Client Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="text-muted">Client image will be displayed here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installment Schedule Modal -->
+    <div class="modal fade" id="instscheduleModal" tabindex="-1" aria-labelledby="instscheduleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instscheduleModalLabel">Installment Schedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Installment schedule will be displayed here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Contract Modal -->
+    <div class="modal fade" id="printcontractModal" tabindex="-1" aria-labelledby="printcontractModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="printcontractModalLabel">Print Contract</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Contract printing options will be displayed here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary"><i class="bi bi-printer"></i> Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/common/form-init.js"></script>
+    <script src="group-loan-disbursement.js"></script>
+</body>
+</html>

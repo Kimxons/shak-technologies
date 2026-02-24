@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LG Facility Approval · Letter of Guarantee</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+</head>
+
+<body class="lg-facility-approval copilot-theme" data-page="lg-facility-approval">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="lg-facility-approval-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <aside class="cm-legacy-nav card-surface" aria-label="Options menu">
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle"
+            onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-right');">
+            <span class="cm-nav-toggle__label">Data Entry</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item" data-scroll-target="#lg-approval-application-details">
+              <span>Application Details</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-scroll-target="#lg-approval-margin-details">
+              <span>Margin Account Details</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-scroll-target="#lg-approval-transaction-details">
+              <span>Transaction Details</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-scroll-target="#lg-approval-behind-the-scenes">
+              <span>Behind the Scene</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="cm-legacy-content">
+        <div class="cm-content-scroll">
+          <section id="lg-approval-application-details" class="cm-section cm-section--active" data-step="lg-approval-application-details">
+            <header class="cm-section__header">
+              <h2 class="cm-section__title">LG Facility Approval</h2>
+            </header>
+
+            <div class="card-surface p-3">
+              <h3 class="section-title mb-3">Application Details</h3>
+              <div class="cbs-grid cbs-grid--quad">
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label required" for="BranchID">Branch ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="BranchID" name="BranchID" placeholder="e.g. 0101" required data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="branch" aria-label="Search branch">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control" id="BranchName" name="BranchName" placeholder="Head Office" readonly />
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label required" for="ApplicationID">Application ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="ApplicationID" name="ApplicationID" required data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="application" aria-label="Search application">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;"></div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="ApprovedBy">Approved By</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="ApprovedBy" name="ApprovedBy" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" aria-label="Search approved by">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ApprovedOn">Approved On</label>
+                  <input type="date" class="form-control" id="ApprovedOn" name="ApprovedOn" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ValueDate">Value Date</label>
+                  <input type="date" class="form-control" id="ValueDate" name="ValueDate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="RejectedBy">Rejected By</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="RejectedBy" name="RejectedBy" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" aria-label="Search rejected by">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="RejectedOn">Rejected On</label>
+                  <input type="date" class="form-control" id="RejectedOn" name="RejectedOn" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;"></div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="RejectReason">Reject Reason</label>
+                  <textarea class="form-control" id="RejectReason" name="RejectReason" rows="2" data-editable="true"></textarea>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="lg-approval-margin-details" class="cm-section" data-step="lg-approval-margin-details">
+            <div class="card-surface p-3 mt-3">
+              <h3 class="section-title mb-3">Margin Account Details</h3>
+              <div class="cbs-grid cbs-grid--quad">
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="MarginType">Margin Type</label>
+                  <select class="form-select" id="MarginType" name="MarginType" data-editable="true">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="MarginAmount">Margin Amount/Percentage</label>
+                  <input type="text" class="form-control" id="MarginAmount" name="MarginAmount" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="MarginAccountID">Margin Account ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="MarginAccountID" name="MarginAccountID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="margin-account" aria-label="Search margin account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="lg-approval-transaction-details" class="cm-section" data-step="lg-approval-transaction-details">
+            <div class="card-surface p-3 mt-3">
+              <h3 class="section-title mb-3">Transaction Details</h3>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                  <thead>
+                    <tr>
+                      <th>Component</th>
+                      <th>CR AccountID</th>
+                      <th>CrAccountName</th>
+                      <th>DrAccountTypeID</th>
+                      <th>DR AccountID</th>
+                      <th>DrAccountName</th>
+                      <th>Actual Amount</th>
+                      <th>Settlement Amount</th>
+                      <th>IsEditable</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="9">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section id="lg-approval-behind-the-scenes" class="cm-section" data-step="lg-approval-behind-the-scenes">
+            <div class="card-surface p-3 mt-3">
+              <h3 class="section-title section-title--full mb-3">Behind the Scene</h3>
+              <div class="cbs-grid cbs-grid--quad">
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="BehindClientID">Client ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="BehindClientID" name="BehindClientID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="behind-client" aria-label="Search client">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control" id="BehindClientName" name="BehindClientName" placeholder="Client" readonly />
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="BehindAccountID">Account ID</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="BehindAccountID" name="BehindAccountID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="behind-account" aria-label="Search account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindStatus">Status</label>
+                  <input type="text" class="form-control" id="BehindStatus" name="BehindStatus" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindLGNumber">LG Number</label>
+                  <input type="text" class="form-control" id="BehindLGNumber" name="BehindLGNumber" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindLGType">LG Type</label>
+                  <select class="form-select" id="BehindLGType" name="BehindLGType" data-editable="true">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindAmount">Amount</label>
+                  <input type="text" class="form-control" id="BehindAmount" name="BehindAmount" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindExpiryDate">Expiry Date</label>
+                  <input type="date" class="form-control" id="BehindExpiryDate" name="BehindExpiryDate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindLocalAmount">Local Amount</label>
+                  <input type="text" class="form-control" id="BehindLocalAmount" name="BehindLocalAmount" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindExchangeRate">Exchange Rate</label>
+                  <input type="text" class="form-control" id="BehindExchangeRate" name="BehindExchangeRate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindTenderNumber">Tender Number</label>
+                  <input type="text" class="form-control" id="BehindTenderNumber" name="BehindTenderNumber" data-editable="true" />
+                </div>
+
+                <div class="cbs-field">
+                  <label class="cbs-label" for="BehindTenderDate">Tender Date</label>
+                  <input type="date" class="form-control" id="BehindTenderDate" name="BehindTenderDate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="BehindBeneficiary">Beneficiary</label>
+                  <input type="text" class="form-control" id="BehindBeneficiary" name="BehindBeneficiary" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="BehindChargeAccount">Charge Account</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control cbs-lookup-id" id="BehindChargeAccount" name="BehindChargeAccount" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="charge-account" aria-label="Search charge account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="BehindCreatedBy">Created By</label>
+                  <input type="text" class="form-control" id="BehindCreatedBy" name="BehindCreatedBy" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="BehindCreatedOn">Created On</label>
+                  <input type="date" class="form-control" id="BehindCreatedOn" name="BehindCreatedOn" data-editable="true" />
+                </div>
+              </div>
+
+              <div id="formToast" class="alert alert-success mt-3 d-none" role="alert"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" data-lg-approval-action="charges" disabled>Charges</button>
+          <button type="button" class="cm-shell__action" data-lg-approval-action="swift-message" disabled>Swift Message</button>
+        </div>
+
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" data-lg-approval-action="view">View</button>
+          <button type="button" class="cm-shell__action cm-shell__action--success" data-lg-approval-action="approve">Approve</button>
+          <button type="button" class="cm-shell__action cm-shell__action--danger" data-lg-approval-action="reject">Reject</button>
+          <button type="button" class="cm-shell__action cm-shell__action--danger" data-lg-approval-action="cancel">Cancel</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../js/lg-facility-approval.js"></script>
+</body>
+
+</html>

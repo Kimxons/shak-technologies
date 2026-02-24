@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discrepancies Menu · Trade Finance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="bill-discounting.css">
+    <link rel="stylesheet" href="trade-finance-modern.css">
+</head>
+
+<body data-page="bill-discrepancies" class="tf-modern">
+    <div class="cm-react-orbs" aria-hidden="true">
+        <span class="cm-react-orb cm-react-orb--primary"></span>
+        <span class="cm-react-orb cm-react-orb--secondary"></span>
+        <span class="cm-react-orb cm-react-orb--accent"></span>
+    </div>
+
+    <div class="module-shell">
+        <div class="module-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-title">Discrepancies</div>
+                <div class="nav-section">
+                    <button type="button" class="nav-toggle">
+                        <i class="bi bi-pencil-square"></i>
+                        <span class="nav-toggle-label">DataEntry</span>
+                        <i class="bi bi-chevron-down nav-chevron"></i>
+                    </button>
+                    <div class="nav-items">
+                        <button type="button" class="nav-item active">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span>Menu</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <button type="button" class="nav-toggle">
+                        <i class="bi bi-eye"></i>
+                        <span class="nav-toggle-label">View</span>
+                        <i class="bi bi-chevron-down nav-chevron"></i>
+                    </button>
+                    <div class="nav-items">
+                        <button type="button" class="nav-item" data-bs-toggle="modal" data-bs-target="#billSanctionDetailsInline">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Sanction Details</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-3 border-top">
+                    <button type="button" class="nav-item text-danger w-100" data-discrepancies-action="cancel">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <span>Close Window</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="content">
+                <form id="discrepancies-form" class="form" novalidate>
+                    <!-- Identifiers Card -->
+                    <section class="card">
+                        <div class="card-header">
+                            <span>Discrepancy Selection</span>
+                        </div>
+                        <div class="card-body form-grid two-col">
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Discrepancy ID</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="DiscrepancyID">
+                                    <button type="button" class="btn-inline-search" data-discrepancy-search><i
+                                            class="bi bi-search"></i></button>
+                                    <input type="text" class="form-control segment-desc" name="DiscrepancyName"
+                                        placeholder="Description" readonly>
+                                </div>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Document ID</span></label>
+                                <div class="input-segmented">
+                                    <input type="text" class="form-control segment-id" name="DocumentID">
+                                    <button type="button" class="btn-inline-search" data-document-search><i
+                                            class="bi bi-search"></i></button>
+                                    <input type="text" class="form-control segment-desc" name="DocumentName"
+                                        placeholder="Document Name" readonly>
+                                </div>
+                            </div>
+                            <div class="form-control-group full-row">
+                                <label class="form-label"><span>Document Image</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="DocumentImage" readonly
+                                        placeholder="No image selected">
+                                    <button type="button" class="btn btn-outline-primary btn-sm px-3">Browse</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Status Details Card -->
+                    <section class="card">
+                        <div class="card-header">
+                            <span>Status & Reporting</span>
+                        </div>
+                        <div class="card-body form-grid two-col">
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Status</span></label>
+                                <select class="form-control professional-select" name="Status">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Status Date</span></label>
+                                <select class="form-control professional-select" name="StatusDate">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Reporting Date</span></label>
+                                <select class="form-control professional-select" name="ReportingDate">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label"><span>Swift Message</span></label>
+                                <select class="form-control professional-select fw-bold text-primary"
+                                    name="SwiftMessage">
+                                    <option value="MT734">MT734</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group full-row">
+                                <label class="form-label"><span>Remarks</span></label>
+                                <textarea class="form-control" name="Remarks" rows="1"
+                                    placeholder="Enter discrepancy remarks..."></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Discrepancy Table Card -->
+                    <section class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Discrepancy Records</span>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-light btn-xs border">New</button>
+                                <button type="button" class="btn btn-light btn-xs border">Alter</button>
+                                <button type="button" class="btn btn-light btn-xs border">Remove</button>
+                                <button type="button" class="btn btn-light btn-xs border">Update</button>
+                                <button type="button" class="btn btn-light btn-xs border">Clear</button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="data-table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Discrepancy Name</th>
+                                            <th>Document Name</th>
+                                            <th>Status</th>
+                                            <th>Status Date</th>
+                                            <th>Reporting Date</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">No records to display.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Behind The Scene Card -->
+                    <section class="card shadow-sm mb-1">
+                        <div class="card-header">
+                            <span>Audit & Behind The Scene</span>
+                        </div>
+                        <div class="card-body form-grid three-col p-2">
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Created By</label>
+                                <input type="text" name="CreatedBy" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Created On</label>
+                                <input type="text" name="CreatedOn" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Modified By</label>
+                                <input type="text" name="ModifiedBy" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Modified On</label>
+                                <input type="text" name="ModifiedOn" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Supervised By</label>
+                                <input type="text" name="SupervisedBy" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="form-control-group">
+                                <label class="form-label text-muted small">Supervised On</label>
+                                <input type="text" name="SupervisedOn" class="form-control form-control-sm" readonly>
+                            </div>
+                        </div>
+                    </section>
+                </form>
+                <div id="billContractToast" class="alert alert-success mt-3 d-none" role="alert"></div>
+            </main>
+
+            <!-- Action Bar -->
+            <aside class="action-bar border-start">
+                <div class="navigation-group mb-4">
+                    <p class="small fw-bold text-muted mb-2 px-2">Navigation</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="action-btn" data-stepper-action="prev">
+                            <i class="bi bi-chevron-double-left"></i>
+                            <span>Previous</span>
+                        </button>
+                        <button type="button" class="action-btn" data-stepper-action="next">
+                            <i class="bi bi-chevron-double-right"></i>
+                            <span>Next</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="navigation-group mb-4">
+                    <p class="small fw-bold text-muted mb-2 px-2">Decision</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="action-btn" data-discrepancies-action="approve"
+                            style="color: var(--success); border-color: var(--success);">
+                            <i class="bi bi-check-lg"></i>
+                            <span>Approve</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="navigation-group mb-4">
+                    <p class="small fw-bold text-muted mb-2 px-2">Messages</p>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="action-btn" data-discrepancies-action="swift">
+                            <i class="bi bi-chat-left-dots"></i>
+                            <span>Swift Msg</span>
+                        </button>
+                        <button type="button" class="action-btn" data-discrepancies-action="charges">
+                            <i class="bi bi-currency-dollar"></i>
+                            <span>Charges</span>
+                        </button>
+                        <button type="button" class="action-btn" data-discrepancies-action="showimage">
+                            <i class="bi bi-image"></i>
+                            <span>Show Image</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-auto d-flex flex-column gap-2">
+                    <p class="small fw-bold text-muted mb-2 px-2">Workflow</p>
+                    <button type="button" class="action-btn view" data-discrepancies-action="view">
+                        <i class="bi bi-eye-fill"></i>
+                        <span>View</span>
+                    </button>
+                    <button type="button" class="action-btn add" data-discrepancies-action="add">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Add</span>
+                    </button>
+                    <button type="button" class="action-btn edit" data-discrepancies-action="edit">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button type="button" class="action-btn delete" data-discrepancies-action="delete">
+                        <i class="bi bi-trash3-fill"></i>
+                        <span>Delete</span>
+                    </button>
+                    <button type="button" class="action-btn save" data-discrepancies-action="save"
+                        style="background: var(--success); color: white; border: none; font-weight: bold;">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Save</span>
+                    </button>
+                    <button type="button" class="action-btn cancel" data-discrepancies-action="cancel"
+                        style="background: var(--danger); color: white; border: none; font-weight: bold;">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" class="action-btn" data-discrepancies-action="clear">
+                        <i class="bi bi-eraser-fill"></i>
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../assets/js/environment.js"></script>
+    <script src="../../../assets/js/config.js"></script>
+    <script src="../../../assets/js/app.js"></script>
+    <script src="../js/bill-discounting-auto-load.js"></script>
+    <script src="../js/bill-discrepancies.js"></script>
+
+    <script src="../../../assets/js/pages/BillDiscounting/form/discrepancies-menu.embedded.js"></script>
+</body>
+
+<!-- Inline Sanction Details Modal -->
+<div class="modal fade tf-inline-modal--md" id="billSanctionDetailsInline" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Account Sanction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe src="bill-sanction-details.html" title="Account Sanction Details" class="w-100 h-100 border-0"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

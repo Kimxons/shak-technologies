@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LG Maintenance · Letter of Guarantee</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+  <link rel="stylesheet" href="../css/lg-maintenance.css" />
+</head>
+
+<body class="lg-maintenance copilot-theme" data-page="lg-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="lg-maintenance-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <aside class="cm-legacy-nav card-surface" aria-label="Options menu">
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle"
+            onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-right');">
+            <span class="cm-nav-toggle__label">Data Entry</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="closeLgModal">
+              <span>Close</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-scroll-target="#lg-maintenance-main">
+              <span>LG Extension</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="guaranteeClaimModal">
+              <span>Guarantee Claim</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="lgTransferModal">
+              <span>LG Transfer</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="availmentSettlementModal">
+              <span>Availment (Settlement)</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="lgMessagesModal">
+              <span>Messages</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="discrepanciesModal">
+              <span>Discrepancies</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle" aria-expanded="true"
+            onclick="const section=this.closest('.cm-nav-section'); const items=section.querySelector('.cm-nav-items'); const icon=this.querySelector('.bi'); items.classList.toggle('is-collapsed'); icon.classList.toggle('bi-chevron-up'); icon.classList.toggle('bi-chevron-down'); this.setAttribute('aria-expanded', items.classList.contains('is-collapsed') ? 'false' : 'true');">
+            <span class="cm-nav-toggle__label">View</span>
+            <i class="bi bi-chevron-up"></i>
+          </button>
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="lgPortfolioModal">
+              <span>LG Portfolio</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item" data-open-parent-modal="lgAccountStatementModal">
+              <span>Account Statement</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="cm-legacy-content">
+        <div class="cm-content-scroll">
+          <section id="lg-maintenance-main" class="cm-section cm-section--active" data-step="lg-maintenance-main">
+            <div class="card-surface p-3">
+              <div class="cbs-grid cbs-grid--quad">
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label required" for="BranchID">Branch ID</label>
+                  <div class="input-group w-100">
+                    <input type="text" class="form-control cbs-lookup-id" id="BranchID" name="BranchID" placeholder="e.g. 0101" required data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="branch" aria-label="Search branch">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control cbs-lookup-desc" id="BranchName" name="BranchName" placeholder="Head Office" readonly />
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ApplicationID">Application ID</label>
+                  <div class="input-group w-100">
+                    <input type="text" class="form-control cbs-lookup-id" id="ApplicationID" name="ApplicationID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="application" aria-label="Search application">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="ClientID">Client ID</label>
+                  <div class="input-group w-100">
+                    <input type="text" class="form-control cbs-lookup-id" id="ClientID" name="ClientID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="client" aria-label="Search client">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control cbs-lookup-desc" id="ClientName" name="ClientName" placeholder="Client Name" readonly />
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="AccountID">Account ID</label>
+                  <div class="input-group w-100">
+                    <input type="text" class="form-control cbs-lookup-id" id="AccountID" name="AccountID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="account" aria-label="Search account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control cbs-lookup-desc" id="AccountName" name="AccountName" placeholder="Account Description" readonly />
+                  </div>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="LGNumber">LG Number</label>
+                  <input type="text" class="form-control" id="LGNumber" name="LGNumber" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="LGType">LG Type</label>
+                  <select class="form-select" id="LGType" name="LGType" data-editable="true">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="Amount">Amount</label>
+                  <input type="number" class="form-control" id="Amount" name="Amount" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="ExpiryDate">Expiry Date</label>
+                  <input type="date" class="form-control" id="ExpiryDate" name="ExpiryDate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="LocalAmount">Local Amount</label>
+                  <input type="number" class="form-control" id="LocalAmount" name="LocalAmount" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="ExchangeRate">Exchange Rate</label>
+                  <input type="number" class="form-control" id="ExchangeRate" name="ExchangeRate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="TenderNumber">Tender Number</label>
+                  <input type="text" class="form-control" id="TenderNumber" name="TenderNumber" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 1;">
+                  <label class="cbs-label" for="TenderDate">Tender Date</label>
+                  <input type="date" class="form-control" id="TenderDate" name="TenderDate" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="Beneficiary">Beneficiary</label>
+                  <input type="text" class="form-control" id="Beneficiary" name="Beneficiary" data-editable="true" />
+                </div>
+
+                <div class="cbs-field" style="grid-column: span 4;">
+                  <label class="cbs-label" for="ChargeAccount">Charge Account</label>
+                  <div class="input-group w-100">
+                    <input type="text" class="form-control cbs-lookup-id" id="ChargeAccount" name="ChargeAccount" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="charge-account" aria-label="Search charge account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control cbs-lookup-desc" id="ChargeAccountName" name="ChargeAccountName" placeholder="Charge Account Description" readonly />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-surface p-3 mt-3">
+              <h3 class="section-title mb-3">Client Details</h3>
+              <div class="cbs-grid cbs-grid--quad">
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ClientLimit">Client Limit</label>
+                  <input type="number" class="form-control" id="ClientLimit" name="ClientLimit" data-editable="true" />
+                </div>
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="AccountLimit">Account Limit</label>
+                  <input type="number" class="form-control" id="AccountLimit" name="AccountLimit" data-editable="true" />
+                </div>
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="AvailableClientLimit">Available Client Limit</label>
+                  <input type="number" class="form-control" id="AvailableClientLimit" name="AvailableClientLimit" data-editable="true" />
+                </div>
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="AvailableAccountLimit">Available Account Limit</label>
+                  <input type="number" class="form-control" id="AvailableAccountLimit" name="AvailableAccountLimit" data-editable="true" />
+                </div>
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="ClientLimitExpiry">Client Limit Expiry</label>
+                  <input type="date" class="form-control" id="ClientLimitExpiry" name="ClientLimitExpiry" data-editable="true" />
+                </div>
+                <div class="cbs-field" style="grid-column: span 2;">
+                  <label class="cbs-label" for="AccountLimitExpiry">Account Limit Expiry</label>
+                  <input type="date" class="form-control" id="AccountLimitExpiry" name="AccountLimitExpiry" data-editable="true" />
+                </div>
+              </div>
+            </div>
+
+            <div class="card-surface p-3 mt-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-4">
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="IsMarginRequired" name="IsMarginRequired" />
+                    <label class="cbs-label mb-0" for="IsMarginRequired">Is Margin Required</label>
+                  </div>
+
+                  <label class="cbs-label" for="MarginType">Margin Type</label>
+                  <select class="form-select" id="MarginType" name="MarginType" data-editable="true">
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4">
+                  <label class="cbs-label" for="AccountMarginAmount">Account Margin Amount</label>
+                  <input type="number" class="form-control" id="AccountMarginAmount" name="AccountMarginAmount" data-editable="true" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4">
+                  <label class="cbs-label" for="MarginAmountPercentage">Margin Amount/Percentage</label>
+                  <input type="text" class="form-control" id="MarginAmountPercentage" name="MarginAmountPercentage" data-editable="true" />
+                </div>
+
+                <div class="col-12">
+                  <label class="cbs-label" for="MarginAccountID">Margin Account ID</label>
+                  <div class="input-group w-100">
+                    <input type="text" class="form-control cbs-lookup-id" id="MarginAccountID" name="MarginAccountID" data-editable="true" />
+                    <button class="btn btn-outline-primary" type="button" data-lookup="margin-account" aria-label="Search margin account">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <input type="text" class="form-control cbs-lookup-desc" id="MarginAccountName" name="MarginAccountName" placeholder="Margin Account Description" readonly />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-surface p-3 mt-3">
+              <h3 class="section-title section-title--full mb-3">Behind the Scene</h3>
+              <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-3">
+                  <label class="cbs-label" for="ProductID">Product ID</label>
+                  <input type="text" class="form-control" id="ProductID" name="ProductID" data-editable="true" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                  <label class="cbs-label" for="ApplicationStatus">Application Status</label>
+                  <input type="text" class="form-control" id="ApplicationStatus" name="ApplicationStatus" data-editable="true" />
+                </div>
+
+                <div class="col-12">
+                  <label class="cbs-label" for="RejectReason">Reject Reason</label>
+                  <textarea class="form-control" id="RejectReason" name="RejectReason" rows="2" data-editable="true"></textarea>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                  <label class="cbs-label" for="CreatedBy">Created By</label>
+                  <input type="text" class="form-control" id="CreatedBy" name="CreatedBy" data-editable="true" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                  <label class="cbs-label" for="CreatedOn">Created On</label>
+                  <input type="date" class="form-control" id="CreatedOn" name="CreatedOn" data-editable="true" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                  <label class="cbs-label" for="ApprovedBy">Approved By</label>
+                  <input type="text" class="form-control" id="ApprovedBy" name="ApprovedBy" data-editable="true" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                  <label class="cbs-label" for="ApprovedOn">Approved On</label>
+                  <input type="date" class="form-control" id="ApprovedOn" name="ApprovedOn" data-editable="true" />
+                </div>
+              </div>
+              <div id="formToast" class="alert alert-success mt-3 d-none" role="alert"></div>
+            </div>
+
+          </section>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" data-lg-maintenance-action="view">View</button>
+          <button type="button" class="cm-shell__action cm-shell__action--danger" data-lg-maintenance-action="cancel">Cancel</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../js/lg-maintenance.js"></script>
+</body>
+
+</html>

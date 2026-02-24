@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LG Transfer</title>
+  <link rel="stylesheet" href="lg-transfer.css" />
+</head>
+
+<body>
+  <div class="window" role="application" aria-label="LG Transfer">
+    <div class="main-container">
+      <div class="content">
+        <div class="tab-strip" role="tablist" aria-label="LG Transfer Tabs">
+          <button type="button" class="tab is-active" role="tab" aria-selected="true" data-tab="transfer">Transfer</button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="participants">Participants</button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="documents">Documents</button>
+        </div>
+
+        <section class="tab-panel is-active" data-tab-panel="transfer" aria-label="Transfer">
+          <div class="panel" aria-label="Transfer details">
+            <div class="panel-header" aria-hidden="true"></div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="label-blue" for="referenceNo">Reference No</label>
+                  <input type="text" id="referenceNo" class="input-wide" data-editable="true" disabled />
+                  <button class="btn-lookup" type="button" id="referenceLookup" aria-label="Lookup reference">🔍</button>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="expiryDate">Expiry Date</label>
+                  <select id="expiryDate" class="select-mid" data-editable="true" disabled>
+                    <option value="">--Select--</option>
+                  </select>
+
+                  <label class="label-blue label-inline" for="transferAmount">Transfer Amount</label>
+                  <input type="text" id="transferAmount" class="input-mid" data-editable="true" disabled />
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="transferDate">Transfer Date</label>
+                  <select id="transferDate" class="select-mid" data-editable="true" disabled>
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="remarks">Remarks</label>
+                  <input type="text" id="remarks" class="input-remarks" data-editable="true" disabled />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">TransactionDetails</div>
+          <div class="grid-shell" aria-label="TransactionDetails table">
+            <div class="grid-table" role="table" aria-label="TransactionDetails">
+              <div class="grid-header" role="row">
+                <div class="grid-cell" role="columnheader">Component</div>
+                <div class="grid-cell" role="columnheader">CR AccountID</div>
+                <div class="grid-cell" role="columnheader">CrAccountName</div>
+                <div class="grid-cell" role="columnheader">DrAccountType</div>
+                <div class="grid-cell" role="columnheader">DR AccountID</div>
+                <div class="grid-cell" role="columnheader">DrAccountName</div>
+                <div class="grid-cell" role="columnheader">Actual Amount</div>
+                <div class="grid-cell" role="columnheader">Settlement Amount</div>
+                <div class="grid-cell" role="columnheader">IsEditable</div>
+              </div>
+              <div class="grid-body" role="rowgroup">
+                <div class="grid-empty" role="row">
+                  <div class="grid-empty__cell" role="cell">No records to display.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">Behind The Scene</div>
+          <div class="section-body">
+            <div class="behind-grid">
+              <div class="behind-col">
+                <div class="form-row">
+                  <label for="status">Status</label>
+                  <input type="text" id="status" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="createdBy">Created By</label>
+                  <input type="text" id="createdBy" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="approvedBy">Approved By</label>
+                  <input type="text" id="approvedBy" class="input-wide" readonly />
+                </div>
+              </div>
+              <div class="behind-col">
+                <div class="form-row">
+                  <label for="createdOn">Created On</label>
+                  <input type="text" id="createdOn" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="approvedOn">Approved On</label>
+                  <input type="text" id="approvedOn" class="input-wide" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <section class="tab-panel" data-tab-panel="participants" aria-label="Participants" hidden>
+          <div class="panel" aria-label="Participants details">
+            <div class="panel-header" aria-hidden="true"></div>
+            <div class="panel-body panel-body--participants">
+              <div class="participants-grid">
+                <div class="participants-left">
+                  <div class="form-row">
+                    <label class="label-blue" for="participantType">Participant Type</label>
+                    <select id="participantType" class="select-mid" data-editable="true" disabled>
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="label-blue" for="participantClientId">Client ID</label>
+                    <input type="text" id="participantClientId" class="input-mid" data-editable="true" disabled />
+                    <button class="btn-lookup" type="button" id="participantClientLookup" aria-label="Lookup client">🔍</button>
+                  </div>
+
+                  <div class="form-row">
+                    <label class="label-blue" for="participantClientName">Client Name</label>
+                    <input type="text" id="participantClientName" class="input-wide" data-editable="true" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label class="label-blue" for="participantAddress1">Address1</label>
+                    <input type="text" id="participantAddress1" class="input-wide" data-editable="true" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label class="label-blue" for="participantAddress3">Address3</label>
+                    <input type="text" id="participantAddress3" class="input-mid" data-editable="true" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label class="label-blue" for="participantCountryId">Country ID</label>
+                    <input type="text" id="participantCountryId" class="input-mid" data-editable="true" disabled />
+                    <button class="btn-lookup" type="button" id="participantCountryLookup" aria-label="Lookup country">🔍</button>
+                  </div>
+
+                  <div class="form-row">
+                    <label for="participantSwiftCode">SWIFT Code</label>
+                    <input type="text" id="participantSwiftCode" class="input-mid" data-editable="true" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label for="participantAccountId">Account ID</label>
+                    <input type="text" id="participantAccountId" class="input-mid" data-editable="true" disabled />
+                  </div>
+                </div>
+
+                <div class="participants-right">
+                  <div class="form-row">
+                    <label for="participantAddress2">Address2</label>
+                    <input type="text" id="participantAddress2" class="input-wide" data-editable="true" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label for="participantRefNo">Reference No.</label>
+                    <input type="text" id="participantRefNo" class="input-wide" data-editable="true" disabled />
+                  </div>
+
+                  <div class="form-row">
+                    <label for="participantDate">Date</label>
+                    <select id="participantDate" class="select-mid" data-editable="true" disabled>
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+
+                  <div class="form-row">
+                    <label for="participantLanguage">Language</label>
+                    <select id="participantLanguage" class="select-mid" data-editable="true" disabled>
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row-inline-actions" aria-label="Participant actions">
+                <button type="button" class="btn-inline" id="participantNewBtn" disabled>New</button>
+                <button type="button" class="btn-inline" disabled>Alter</button>
+                <button type="button" class="btn-inline" disabled>Remove</button>
+                <button type="button" class="btn-inline" disabled>Update</button>
+                <button type="button" class="btn-inline" disabled>Clear</button>
+              </div>
+
+              <div class="grid-shell grid-shell--participants" aria-label="Participants table">
+                <div class="grid-table" role="table" aria-label="Participants">
+                  <div class="grid-header grid-header--participants" role="row">
+                    <div class="grid-cell" role="columnheader">ClientID</div>
+                    <div class="grid-cell" role="columnheader">Client</div>
+                    <div class="grid-cell" role="columnheader">Address1</div>
+                    <div class="grid-cell" role="columnheader">Address2</div>
+                    <div class="grid-cell" role="columnheader">Address3</div>
+                    <div class="grid-cell" role="columnheader">RefNo</div>
+                    <div class="grid-cell" role="columnheader">CountryID</div>
+                    <div class="grid-cell" role="columnheader">Date</div>
+                    <div class="grid-cell" role="columnheader">Participant</div>
+                    <div class="grid-cell" role="columnheader">Language</div>
+                    <div class="grid-cell" role="columnheader">SwiftCode</div>
+                  </div>
+                  <div class="grid-body" role="rowgroup">
+                    <div class="grid-empty" role="row">
+                      <div class="grid-empty__cell" role="cell">No records to display.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">Behind The Scene</div>
+          <div class="section-body">
+            <div class="behind-grid">
+              <div class="behind-col">
+                <div class="form-row">
+                  <label for="pStatus">Status</label>
+                  <input type="text" id="pStatus" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="pCreatedBy">Created By</label>
+                  <input type="text" id="pCreatedBy" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="pApprovedBy">Approved By</label>
+                  <input type="text" id="pApprovedBy" class="input-wide" readonly />
+                </div>
+              </div>
+              <div class="behind-col">
+                <div class="form-row">
+                  <label for="pCreatedOn">Created On</label>
+                  <input type="text" id="pCreatedOn" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="pApprovedOn">Approved On</label>
+                  <input type="text" id="pApprovedOn" class="input-wide" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-tab-panel="documents" aria-label="Documents" hidden>
+          <div class="panel" aria-label="Document details">
+            <div class="panel-header" aria-hidden="true"></div>
+            <div class="panel-body panel-body--documents">
+              <div class="documents-form">
+                <div class="form-row">
+                  <label class="label-blue" for="documentId">Document ID</label>
+                  <input type="text" id="documentId" class="input-wide" data-editable="true" disabled />
+                  <button class="btn-lookup" type="button" id="documentIdLookup" aria-label="Lookup document">🔍</button>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="documentType">Document Type</label>
+                  <select id="documentType" class="select-mid" data-editable="true" disabled>
+                    <option value="">--Select--</option>
+                    <option value="Original">Original</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="documentLocation">Location</label>
+                  <select id="documentLocation" class="select-mid" data-editable="true" disabled>
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="documentImage">Document Image</label>
+                  <input type="text" id="documentImage" class="input-mid" data-editable="true" disabled />
+                </div>
+
+                <div class="form-row">
+                  <label for="documentRemarks">Remarks</label>
+                  <input type="text" id="documentRemarks" class="input-remarks" data-editable="true" disabled />
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="receivedBy">Received By</label>
+                  <input type="text" id="receivedBy" class="input-wide" data-editable="true" disabled />
+                  <button class="btn-lookup" type="button" id="receivedByLookup" aria-label="Lookup received by">🔍</button>
+                </div>
+
+                <div class="form-row">
+                  <label class="label-blue" for="receivedDate">Received Date</label>
+                  <select id="receivedDate" class="select-mid" data-editable="true" disabled>
+                    <option value="">--Select--</option>
+                    <option value="01/Jan/0001">01/Jan/0001</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row-inline-actions" aria-label="Document actions">
+                <button type="button" class="btn-inline" id="documentNewBtn" disabled>New</button>
+                <button type="button" class="btn-inline" disabled>Alter</button>
+                <button type="button" class="btn-inline" disabled>Remove</button>
+                <button type="button" class="btn-inline" disabled>Update</button>
+                <button type="button" class="btn-inline" disabled>Clear</button>
+              </div>
+
+              <div class="grid-shell grid-shell--documents" aria-label="Documents table">
+                <div class="grid-table" role="table" aria-label="Documents">
+                  <div class="grid-header grid-header--documents" role="row">
+                    <div class="grid-cell" role="columnheader">DocumentID</div>
+                    <div class="grid-cell" role="columnheader">Document Type</div>
+                    <div class="grid-cell" role="columnheader">Location</div>
+                    <div class="grid-cell" role="columnheader">Remarks</div>
+                    <div class="grid-cell" role="columnheader">Received By</div>
+                    <div class="grid-cell" role="columnheader">Received Date</div>
+                  </div>
+                  <div class="grid-body" role="rowgroup">
+                    <div class="grid-empty" role="row">
+                      <div class="grid-empty__cell" role="cell">No records to display.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-header">Behind The Scene</div>
+          <div class="section-body">
+            <div class="behind-grid">
+              <div class="behind-col">
+                <div class="form-row">
+                  <label for="dStatus">Status</label>
+                  <input type="text" id="dStatus" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="dCreatedBy">Created By</label>
+                  <input type="text" id="dCreatedBy" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="dApprovedBy">Approved By</label>
+                  <input type="text" id="dApprovedBy" class="input-wide" readonly />
+                </div>
+              </div>
+              <div class="behind-col">
+                <div class="form-row">
+                  <label for="dCreatedOn">Created On</label>
+                  <input type="text" id="dCreatedOn" class="input-wide" readonly />
+                </div>
+                <div class="form-row">
+                  <label for="dApprovedOn">Approved On</label>
+                  <input type="text" id="dApprovedOn" class="input-wide" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons action-buttons--top">
+          <button class="btn-action" type="button" disabled>Charges</button>
+          <button class="btn-action" type="button" disabled>Approve</button>
+        </div>
+
+        <div class="action-buttons action-buttons--bottom">
+          <button class="btn-action" type="button" data-mode="view">View</button>
+          <button class="btn-action" type="button" data-mode="add">Add</button>
+          <button class="btn-action" type="button" id="saveBtn" disabled>Save</button>
+          <button class="btn-action" type="button" id="cancelBtn" disabled>Cancel</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="lg-transfer.js"></script>
+</body>
+
+</html>

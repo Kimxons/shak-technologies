@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BR Gateway Formats · Contra Account Info</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+  <link rel="stylesheet" href="../overdraft-application/overdraft-application.css" />
+</head>
+
+<body class="br-gateway-formats module-shell" data-page="br-gateway-formats" style="background:transparent;">
+  <div class="cm-react-orbs d-none" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form class="cm-shell-form" autocomplete="off" novalidate>
+      <aside class="cm-legacy-nav card-surface" aria-label="BR Gateway Formats navigation">
+        <div class="cm-nav-section">
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item brgf-nav-parent" data-brgf-toggle="dataentry-menu"
+              aria-expanded="true">
+              <span>DataEntry</span>
+              <i class="bi bi-caret-right-fill brgf-nav-caret" aria-hidden="true"></i>
+            </button>
+
+            <div class="brgf-subnav" data-brgf-subnav="dataentry-menu">
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="../views/BRGatewayFormats.html"
+                onclick="location.href='../views/BRGatewayFormats.html'"><span>Format Details</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsInFieldDetails.html"
+                onclick="location.href='BRGatewayFormatsInFieldDetails.html'"><span>In Field Details</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsOutFieldDetails.html"
+                onclick="location.href='BRGatewayFormatsOutFieldDetails.html'"><span>Out Field Details</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item is-active"
+                aria-current="page"><span>Contra Account Info</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsInvalidAccountInfo.html"
+                onclick="location.href='BRGatewayFormatsInvalidAccountInfo.html'"><span>Invalid Account
+                  Info</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item"
+                data-brgf-route="BRGatewayFormatsFolderInfo.html"
+                onclick="location.href='BRGatewayFormatsFolderInfo.html'"><span>Folder Info</span></button>
+              <button type="button" class="cm-legacy-nav__item brgf-subnav__item" disabled><span>Recent
+                  Activities</span></button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="cm-legacy-content">
+        <div class="brgf-layout">
+          <div>
+            <div class="brgf-window-title card-surface" aria-label="Contra Account Info header">
+              <div class="brgf-window-title__bar">
+                <i class="bi bi-journal-text" aria-hidden="true"></i>
+                <span>Contra Account Info ::</span>
+              </div>
+            </div>
+
+            <section class="brgf-panel card-surface mt-2" aria-label="Account details">
+              <div class="brgf-panel__header">Account Details</div>
+              <div class="brgf-panel__body">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="brgf-branch-row">
+                      <div class="cbs-field brgf-branch-row__label">
+                        <label class="cbs-label" for="contraBranchId">Branch ID</label>
+                      </div>
+                      <div class="brgf-branch-row__inputs">
+                        <input type="text" id="contraBranchId" class="form-control brgf-branch-code" value="0101" />
+                        <div class="input-group brgf-branch-name">
+                          <input type="text" class="form-control" value="Head Office" />
+                          <button class="btn btn-outline-primary" type="button" aria-label="Search branch">
+                            <i class="bi bi-search"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <ul class="nav nav-tabs brgf-tabs" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="credit-contra-tab" data-bs-toggle="tab"
+                          data-bs-target="#credit-contra" type="button" role="tab" aria-controls="credit-contra"
+                          aria-selected="true">Credit Contra</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="debit-contra-tab" data-bs-toggle="tab"
+                          data-bs-target="#debit-contra" type="button" role="tab" aria-controls="debit-contra"
+                          aria-selected="false">Debit Contra</button>
+                      </li>
+                    </ul>
+
+                    <div class="tab-content brgf-tab-content">
+                      <div class="tab-pane fade show active" id="credit-contra" role="tabpanel"
+                        aria-labelledby="credit-contra-tab" tabindex="0">
+                        <div class="row g-3 mt-1">
+                          <div class="col-12 col-lg-7">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="contraAccountType">Account Type</label>
+                              <select id="contraAccountType" class="form-select">
+                                <option value="">--Select--</option>
+                                <option value="customer" selected>Customer</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="contraAccountId">Account ID</label>
+                              <div class="input-group">
+                                <input type="text" id="contraAccountId" class="form-control" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search account">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="creditTrxId">Credit Trx ID</label>
+                              <div class="input-group">
+                                <input type="text" id="creditTrxId" class="form-control" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search credit trx">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="debitTrxId">Debit Trx ID</label>
+                              <div class="input-group">
+                                <input type="text" id="debitTrxId" class="form-control" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search debit trx">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="contraNarration">Narration</label>
+                              <input type="text" id="contraNarration" class="form-control" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="tab-pane fade" id="debit-contra" role="tabpanel" aria-labelledby="debit-contra-tab"
+                        tabindex="0">
+                        <div class="row g-3 mt-1">
+                          <div class="col-12 col-lg-7">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="contraAccountType2">Account Type</label>
+                              <select id="contraAccountType2" class="form-select">
+                                <option value="">--Select--</option>
+                                <option value="customer" selected>Customer</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="contraAccountId2">Account ID</label>
+                              <div class="input-group">
+                                <input type="text" id="contraAccountId2" class="form-control" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search account">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="creditTrxId2">Credit Trx ID</label>
+                              <div class="input-group">
+                                <input type="text" id="creditTrxId2" class="form-control" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search credit trx">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="debitTrxId2">Debit Trx ID</label>
+                              <div class="input-group">
+                                <input type="text" id="debitTrxId2" class="form-control" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search debit trx">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="cbs-field">
+                              <label class="cbs-label" for="contraNarration2">Narration</label>
+                              <input type="text" id="contraNarration2" class="form-control" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="brgf-panel card-surface mt-3" aria-label="Behind the scene">
+              <div class="brgf-panel__header">Behind The Scene</div>
+              <div class="brgf-panel__body">
+                <div class="row g-3">
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="caiCreatedBy">Created By</label>
+                          <input type="text" id="caiCreatedBy" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="caiCreatedOn">Created On</label>
+                          <input type="text" id="caiCreatedOn" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="caiModifiedBy">Modified By</label>
+                          <input type="text" id="caiModifiedBy" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="caiModifiedOn">Modified On</label>
+                          <input type="text" id="caiModifiedOn" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-lg-4">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="caiSupervisedBy">Supervised By</label>
+                          <input type="text" id="caiSupervisedBy" class="form-control" />
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="cbs-field">
+                          <label class="cbs-label" for="caiSupervisedOn">Supervised On</label>
+                          <input type="text" id="caiSupervisedOn" class="form-control" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="brgf-status card-surface mt-2" role="status" aria-live="polite">
+              <span class="brgf-status__text">No details Found [No:1011]</span>
+            </div>
+          </div>
+
+          <aside class="brgf-actions" aria-label="Actions">
+            <button type="button" class="btn btn-outline-secondary brgf-action">View</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action">Add</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action" disabled>Edit</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action" disabled>Delete</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action">Save</button>
+            <button type="button" class="btn btn-outline-secondary brgf-action">Cancel</button>
+          </aside>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script
+    src="../../../assets/js/pages/other-modules/data-entry/BRGatewayFormatsContraAccountInfo.embedded.js"></script>
+</body>
+
+</html>

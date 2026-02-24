@@ -1,0 +1,97 @@
+/* LG Facility Application page-specific styles extracted from public/assets/css/styles.css */
+
+body[data-page="lg-facility-application"] .cm-workspace {
+  max-width: min(1880px, 100%);
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  padding-inline: clamp(0.1rem, 0.4vw, 0.4rem);
+}
+
+body[data-page="lg-facility-application"] .cm-shell-form {
+  background: var(--cm-surface);
+  border-radius: 1.5rem;
+  border: 1px solid var(--cm-border);
+  gap: clamp(0.2rem, 0.3vw, 0.35rem);
+  padding: clamp(0.2rem, 0.35vw, 0.45rem);
+  box-shadow: var(--cm-shadow);
+  backdrop-filter: blur(16px);
+}
+
+body[data-page="lg-facility-application"] .card-surface {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
+}
+
+body[data-page="lg-facility-application"] .cm-legacy-nav {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-page="lg-facility-application"] .cm-nav-section {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+body[data-page="lg-facility-application"] .cm-nav-section:last-child {
+  border-bottom: none;
+}
+
+body[data-page="lg-facility-application"] .cm-nav-toggle {
+  background: #5b9fd9;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+body[data-page="lg-facility-application"] .cm-nav-toggle:hover {
+  background: #4a8cc4;
+}
+
+body[data-page="lg-facility-application"] .cm-nav-toggle .bi {
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+body[data-page="lg-facility-application"] .input-group .btn.btn-outline-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  min-height: 1.65rem;
+}
+
+body[data-page="lg-facility-application"] .form-control,
+body[data-page="lg-facility-application"] .form-select,
+body[data-page="lg-facility-application"] .input-group-text,
+body[data-page="lg-facility-application"] .btn.btn-outline-secondary,
+body[data-page="lg-facility-application"] .btn.btn-outline-primary {
+  border-radius: 0.5rem;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: all 0.15s ease;
+  min-height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+}

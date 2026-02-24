@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Role Maintenance · System Security</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="role-maintenance.css" />
+</head>
+
+<body>
+  <div class="module-shell">
+    <div class="module-layout">
+      <!-- Left Sidebar Menu -->
+      <aside class="sidebar-menu">
+        <div class="menu-section">
+          <div class="menu-toggle">
+            <span class="menu-label"><i class="bi bi-pencil-square me-2"></i> Data Entry</span>
+            <button type="button" class="menu-arrow" aria-label="Toggle DataEntry" aria-expanded="true" aria-controls="menu-dataentry"><i class="bi bi-chevron-up"></i></button>
+          </div>
+          <div class="menu-items" id="menu-dataentry">
+            <div class="menu-item active" data-child-form="role-access-rights">
+              <i class="bi bi-shield-check"></i>
+              <span>Role Access Rights</span>
+            </div>
+            <div class="menu-item" data-child-form="copy-role">
+              <i class="bi bi-files"></i>
+              <span>Copy Role</span>
+            </div>
+            <div class="menu-item" data-child-form="advance-wf-rights">
+              <i class="bi bi-diagram-3"></i>
+              <span>Advance WF Rights</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-toggle">
+            <span class="menu-label"><i class="bi bi-eye me-2"></i> View</span>
+            <button type="button" class="menu-arrow" aria-label="Toggle View" aria-expanded="false" aria-controls="menu-view"><i class="bi bi-chevron-down"></i></button>
+          </div>
+          <div class="menu-items" id="menu-view" hidden>
+          </div>
+        </div>
+
+        <nav class="nav-section">
+          <button class="nav-toggle collapsed" type="button">
+            <i class="bi bi-clock-history"></i>
+            <span class="nav-toggle-label">Recent Activities</span>
+            <i class="bi bi-chevron-down nav-chevron"></i>
+          </button>
+          <div class="nav-items collapsed">
+          </div>
+        </nav>
+      </aside>
+
+      <div class="content">
+    <div id="statusMsg"></div>
+        <form id="role-maintenance-form" autocomplete="off" novalidate>
+          <!-- Role Details -->
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-person-badge"></i>
+              <span>Role Details</span>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                  <div class="form-control-group">
+                    <label class="form-label required">Role ID</label>
+                    <div class="segmented-input">
+                      <input type="text" class="id-part" id="RoleId" />
+                      <div class="divider"></div>
+                      <input type="text" class="description-part" id="RoleName" />
+                      <button type="button" class="search-btn" data-mcs-lookup="role" data-action="search">
+                        <i class="bi bi-search"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                <div class="form-control-group">
+                  <label class="form-label">Access Level</label>
+                  <select class="form-control" id="AccessLevel">
+                    <option value="Low" selected>Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+
+                <div class="form-control-group">
+                  <label class="form-label">Cashier Role</label>
+                  <div class="checkbox-wrapper">
+                    <input type="checkbox" class="form-checkbox" id="CashierRole" />
+                    <label class="checkbox-label">Enable Cashier Role</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+            <!-- Behind The Scene -->
+            <div class="card">
+              <div class="card-header">
+                <i class="bi bi-info-circle"></i>
+                <span>Behind The Scene</span>
+              </div>
+              <div class="card-body">
+                <div class="form-grid two-col">
+                  <div class="form-control-group">
+                    <label class="form-label">
+                      <i class="bi bi-person-plus"></i>
+                      <span>Created By</span>
+                    </label>
+                    <input type="text" class="form-control" id="CreatedBy" readonly />
+                  </div>
+
+                  <div class="form-control-group">
+                    <label class="form-label">
+                      <i class="bi bi-pencil"></i>
+                      <span>Modified By</span>
+                    </label>
+                    <input type="text" class="form-control" id="ModifiedBy" readonly />
+                  </div>
+
+                  <div class="form-control-group">
+                    <label class="form-label">
+                      <i class="bi bi-check-circle"></i>
+                      <span>Supervised By</span>
+                    </label>
+                    <input type="text" class="form-control" id="SupervisedBy" readonly />
+                  </div>
+
+                  <div class="form-control-group">
+                    <label class="form-label">
+                      <i class="bi bi-calendar-plus"></i>
+                      <span>Created On</span>
+                    </label>
+                    <input type="text" class="form-control" id="CreatedOn" readonly />
+                  </div>
+
+                  <div class="form-control-group">
+                    <label class="form-label">
+                      <i class="bi bi-calendar-check"></i>
+                      <span>Modified On</span>
+                    </label>
+                    <input type="text" class="form-control" id="ModifiedOn" readonly />
+                  </div>
+
+                  <div class="form-control-group">
+                    <label class="form-label">
+                      <i class="bi bi-calendar-event"></i>
+                      <span>Supervised On</span>
+                    </label>
+                    <input type="text" class="form-control" id="SupervisedOn" readonly />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </form>
+
+        <!-- Data Entry Container -->
+        <div id="data-entry-container" style="display: none; height: 100%;">
+          <iframe id="data-entry-iframe" src="about:blank" title="Data Entry" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button class="btn-action underline" data-mcs-action="view"><i class="bi bi-eye me-2"></i>View</button>
+          <button class="btn-action underline" data-mcs-action="add" disabled><i class="bi bi-plus-circle me-2"></i>Add</button>
+          <button class="btn-action" data-mcs-action="edit" disabled><i class="bi bi-pencil me-2"></i>Edit</button>
+          <button class="btn-action" data-mcs-action="delete" disabled><i class="bi bi-trash me-2"></i>Delete</button>
+          <button class="btn-action" data-mcs-action="save" disabled><i class="bi bi-check-circle me-2"></i>Save</button>
+          <button class="btn-action" data-mcs-action="cancel"><i class="bi bi-x-circle me-2"></i>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Nested popup (DataEntry) -->
+
+    <!-- Role Search Modal -->
+    <div id="roleMaintenanceRoleSearchModal" class="modal" tabindex="-1" style="display:none; position:fixed; z-index:1050; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); align-items:center; justify-content:center;">
+        <div class="modal-dialog" style="background:#fff; border-radius:8px; max-width:1200px; min-width:800px; width:90vw; margin:auto; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div class="modal-content" style="padding:28px 28px 18px 28px; height:80vh; display:flex; flex-direction:column;">
+                <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                    <span style="font-weight:600; font-size:14px;">Role Search</span>
+                    <button type="button" id="roleMaintenanceRoleSearchModalCloseBtn" class="modal-close-btn" style="background:none; border:none; font-size:18px; cursor:pointer;">&times;</button>
+                </div>
+                <div class="modal-body" style="margin-top:10px; flex:1; padding:0; overflow:hidden;">
+                    <iframe id="roleMaintenanceRoleSearchFrame" class="um-role-search-frame" src="about:blank" title="Role Search Frame" style="width: 100%; height: 100%; border: none; overflow: auto;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="role-maintenance-new.js"></script>
+  <script>
+    (function () {
+      // Menu toggle functionality
+      const menuArrows = document.querySelectorAll('.menu-arrow');
+      menuArrows.forEach(arrow => {
+        arrow.addEventListener('click', () => {
+          const menuToggle = arrow.closest('.menu-toggle');
+          const menuSection = menuToggle.parentElement;
+          const menuItems = menuSection.querySelector('.menu-items');
+          if (menuItems) {
+            const isExpanded = arrow.getAttribute('aria-expanded') === 'true';
+            arrow.setAttribute('aria-expanded', !isExpanded);
+            if (isExpanded) {
+              menuItems.setAttribute('hidden', '');
+              arrow.querySelector('i').classList.remove('bi-chevron-up');
+              arrow.querySelector('i').classList.add('bi-chevron-down');
+            } else {
+              menuItems.removeAttribute('hidden');
+              arrow.querySelector('i').classList.remove('bi-chevron-down');
+              arrow.querySelector('i').classList.add('bi-chevron-up');
+            }
+          }
+        });
+      });
+
+      // Navigation toggle functionality
+      const navToggles = document.querySelectorAll('.nav-toggle');
+      navToggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          toggle.classList.toggle('collapsed');
+          const navItems = toggle.nextElementSibling;
+          if (navItems) {
+            navItems.classList.toggle('collapsed');
+          }
+        });
+      });
+
+      // Child form handling - now in main content instead of overlay
+      const roleForm = document.getElementById('role-maintenance-form');
+      const dataEntryContainer = document.getElementById('data-entry-container');
+      const dataEntryIframe = document.getElementById('data-entry-iframe');
+      const actionPanel = document.querySelector('.action-panel');
+
+      const showChildForm = (formName) => {
+        if (!dataEntryContainer || !dataEntryIframe || !roleForm) return;
+        const src = `dataEntry/${formName}.html`;
+        dataEntryIframe.src = src;
+        // Hide the main form and action panel, show data entry
+        roleForm.style.display = 'none';
+        if (actionPanel) actionPanel.style.display = 'none';
+        dataEntryContainer.style.display = 'block';
+      };
+
+      const hideChildForm = () => {
+        if (!dataEntryContainer || !dataEntryIframe || !roleForm) return;
+        dataEntryIframe.src = 'about:blank';
+        // Show the main form and action panel, hide data entry
+        roleForm.style.display = 'block';
+        if (actionPanel) actionPanel.style.display = 'block';
+        dataEntryContainer.style.display = 'none';
+      };
+
+      function setActiveMenuItem(btn) {
+        const items = btn.closest('.menu-items');
+        if (!items) return;
+        items.querySelectorAll('.menu-item').forEach((el) => el.classList.remove('active'));
+        btn.classList.add('active');
+      };
+
+      // Listen for close messages from child iframe
+      window.addEventListener('message', (event) => {
+        if (event.data?.type === 'kairo-dataentry-close') {
+          hideChildForm();
+        }
+      });
+
+      document.querySelector('.sidebar-menu')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-child-form]');
+        if (!btn) return;
+        e.preventDefault();
+        const formName = btn.getAttribute('data-child-form');
+        if (!formName) return;
+        setActiveMenuItem(btn);
+        showChildForm(formName);
+      });
+    })();
+  </script>
+</body>
+
+</html>

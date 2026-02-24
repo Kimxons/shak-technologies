@@ -1,0 +1,281 @@
+/* GL Maintenance Module Styles */
+
+.gl-maintenance {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Collapse functionality */
+.is-collapsed {
+  display: none !important;
+}
+
+/* Grid layout for form fields - 3 columns */
+.gl-maintenance .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px 20px;
+  padding: 12px;
+}
+
+/* Override form-row for vertical layout (labels on top) */
+.gl-maintenance .form-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.gl-maintenance .form-row label {
+  min-width: auto;
+  width: auto;
+  text-align: left;
+  padding-right: 0;
+  font-size: 0.75rem;
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 2px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.gl-maintenance .form-row:hover {
+  background: transparent;
+  padding: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Full width rows */
+.gl-maintenance .form-row-full {
+  grid-column: 1 / -1;
+}
+
+/* Input fields sizing - Match Account Maintenance */
+.gl-maintenance .form-row input[type="text"],
+.gl-maintenance .form-row input[type="number"],
+.gl-maintenance .form-row select,
+.gl-maintenance .form-row textarea {
+  display: block !important;
+  width: 100% !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 3px 8px !important;
+  border: 1px solid #d8dde3 !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+  background: #fefefe !important;
+  color: #334155 !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.gl-maintenance .form-row textarea {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 60px !important;
+}
+
+.gl-maintenance .form-row .input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.gl-maintenance .form-row input[type="text"]:hover,
+.gl-maintenance .form-row input[type="number"]:hover,
+.gl-maintenance .form-row select:hover {
+  border-color: #b8c0ca !important;
+}
+
+.gl-maintenance .form-row input[type="text"]:focus,
+.gl-maintenance .form-row input[type="number"]:focus,
+.gl-maintenance .form-row select:focus {
+  outline: none !important;
+  border-color: #7ba3b8 !important;
+  box-shadow: 0 0 0 2px rgba(123, 163, 184, 0.15) !important;
+}
+
+.gl-maintenance .form-row input[readonly],
+.gl-maintenance .form-row input[disabled] {
+  background: #f5f6f7 !important;
+  color: #6b7280 !important;
+  cursor: default;
+  border-color: #e5e7eb !important;
+}
+
+/* Form Controls - Standard Styling */
+.gl-maintenance .form-control,
+.gl-maintenance .form-select {
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+
+.gl-maintenance .form-control:focus,
+.gl-maintenance .form-select:focus {
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.gl-maintenance .form-control:disabled,
+.gl-maintenance .form-control[readonly],
+.gl-maintenance .form-select:disabled,
+.gl-maintenance .form-select[readonly] {
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+/* Search Buttons - Match header color #517a8e */
+.gl-maintenance .btn-lookup,
+.gl-maintenance .glm-search-btn {
+  background-color: #517a8e;
+  color: white;
+  border: 1.5px solid #517a8e;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  font-size: 0.9rem;
+}
+
+.gl-maintenance .btn-lookup:hover,
+.gl-maintenance .glm-search-btn:hover {
+  background-color: #3f6270;
+  border-color: #4a8cc4;
+}
+
+.gl-maintenance .glm-search-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Action Buttons - Right Panel */
+.gl-maintenance .glm-action-btn {
+  background-color: #5b9fd9;
+  color: white;
+  border: 1.5px solid #5b9fd9;
+  border-radius: 0.375rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  font-weight: 500;
+  width: 100%;
+  text-align: center;
+}
+
+.gl-maintenance .glm-action-btn:hover {
+  background-color: #4a8cc4;
+  border-color: #4a8cc4;
+  box-shadow: 0 2px 4px rgba(91, 159, 217, 0.2);
+}
+
+.gl-maintenance .glm-action-btn:active {
+  background-color: #3a7aaa;
+  border-color: #3a7aaa;
+}
+
+.gl-maintenance .glm-action-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Checkbox Styling */
+.gl-maintenance .form-check-input {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(15, 23, 42, 0.25);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gl-maintenance .form-check-input:checked {
+  background-color: #5b9fd9;
+  border-color: #5b9fd9;
+}
+
+.gl-maintenance .form-check-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Textarea Styling */
+.gl-maintenance textarea.form-control {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.4;
+}
+
+/* Label Styling */
+.gl-maintenance label {
+  margin-bottom: 0;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Section Headers - Match Account Maintenance */
+.gl-maintenance .glm-section-header,
+.gl-maintenance .section-header {
+  background-color: #517a8e;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 0;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+  margin-left: -12px;
+  margin-right: -12px;
+}
+
+/* Behind The Scene Fields - Readonly Styling */
+.gl-maintenance .glm-bts-field {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.gl-maintenance .glm-bts-field:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  box-shadow: none;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .gl-maintenance [style*="grid-template-columns: 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .gl-maintenance [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .gl-maintenance .glm-action-btn,
+  .gl-maintenance .glm-search-btn {
+    display: none;
+  }
+}

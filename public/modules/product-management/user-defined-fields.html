@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Defined Fields</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/maincss.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+</head>
+
+<body>
+  <div class="window">
+    <!-- Header -->
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-list-ul am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">User Defined Fields</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window">
+          <i class="bi bi-square"></i>
+        </button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container" aria-label="User Defined Fields form">
+      <!-- Form Content -->
+      <div class="form-content" role="region" aria-label="User Defined Fields form">
+        <div class="form-card" data-main-form>
+          <!-- User Defined Fields Section -->
+          <div class="form-section" data-section="udf-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-list-ul"></i>User Defined Fields</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle User Defined Fields" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="empty-state">
+                <i class="bi bi-exclamation-triangle empty-state__icon"></i>
+                <span class="empty-state__message">User Fields Not Defined [No:216006]</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised By</span>
+                  <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised On</span>
+                  <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action" data-action="edit">
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button type="button" class="btn-action btn-save" data-action="save">
+            <i class="bi bi-check-lg"></i>Save
+          </button>
+          <button type="button" class="btn-action btn-cancel" data-action="cancel">
+            <i class="bi bi-x-lg"></i>Cancel
+          </button>
+          <button type="button" class="btn-action" id="backBtn" data-action="back">
+            <i class="bi bi-arrow-left"></i>Back
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" id="messagePanel" hidden></div>
+  </div>
+
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/pages/product-management/user-defined-fields.embedded.js"></script>
+  <script>
+    // Section toggle functionality
+    document.querySelectorAll('[data-section-toggle]').forEach(header => {
+      header.addEventListener('click', () => {
+        const section = header.closest('.form-section');
+        const toggleBtn = header.querySelector('.section-toggle-btn');
+        const isCollapsed = section.classList.toggle('collapsed');
+        if (toggleBtn) {
+          toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+        }
+      });
+    });
+
+    // Window control actions
+    document.querySelectorAll('.am-header__right [data-action]').forEach(btn => {
+      const action = btn.getAttribute('data-action');
+      btn.addEventListener('click', () => {
+        if (action === 'refresh') window.location.reload();
+        else if (action === 'maximize') {
+          const windowEl = document.querySelector('.window');
+          const isMaximized = windowEl.classList.toggle('maximized');
+          btn.querySelector('i').className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
+          btn.title = isMaximized ? 'Restore' : 'Maximize';
+        } else if (action === 'close') {
+          goBack();
+        }
+      });
+    });
+
+    // Back button handler
+    function goBack() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'close-child' }, '*');
+      }
+      const overlay = window.parent?.document?.querySelector('[data-child-overlay]');
+      if (overlay) {
+        overlay.classList.remove('is-open');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      if (window.history.length > 1) {
+        window.history.back();
+      }
+    }
+
+    document.getElementById('backBtn')?.addEventListener('click', goBack);
+  </script>
+</body>
+
+</html>

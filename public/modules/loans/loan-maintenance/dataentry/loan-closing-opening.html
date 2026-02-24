@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loan Closing/Opening · Data Entry</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css" />
+</head>
+
+<body class="loan-maintenance-sub copilot-theme" data-page="loan-maintenance-sub">
+  <main class="lm-subpage" aria-label="Loan Closing/Opening">
+    <section class="card-surface lco-shell" data-lco-root aria-label="Loan Closing/Opening">
+      <!-- Hidden data fields -->
+      <input type="hidden" id="hdnBranchID" data-hidden />
+      <input type="hidden" id="hdnAccountID" data-hidden />
+      <input type="hidden" id="hdnLoanSeries" data-hidden />
+      <input type="hidden" id="hdnOperatorID" data-hidden />
+      <input type="hidden" id="hdnEventID" data-hidden />
+      <input type="hidden" id="hdnEditMode" data-hidden value="NONE" />
+      <input type="hidden" id="hdnUpdateCount" data-hidden value="0" />
+      <input type="hidden" id="hdnIsSupervised" data-hidden value="0" />
+      <input type="hidden" id="hdnOperation" data-hidden />
+      <input type="hidden" id="hdnGroupLoanAccount" data-hidden />
+      <input type="hidden" id="hdnEditOperator" data-hidden />
+      <input type="hidden" id="hdnLoanStatusID" data-hidden />
+
+      <div class="lco-body">
+        <section class="lco-content" aria-label="Content">
+          <!-- Closing Details Section -->
+          <section class="lco-section" aria-label="Closing Details">
+            <div class="lm-section-header" id="lblCaption">Closing Details</div>
+            <div class="lco-section-body">
+              <div class="container-fluid px-0">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="cbs-label mandatory" for="ClosingRemarks">Remarks</label>
+                    <textarea class="form-control form-control-sm" id="ClosingRemarks" name="ClosingRemarks" placeholder="Enter remarks (max 255 characters)" rows="3" disabled></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Behind The Scene Section -->
+          <section class="lco-section" aria-label="Behind The Scene">
+            <div class="lm-section-header">Behind The Scene</div>
+            <div class="lco-section-body">
+              <div class="container-fluid px-0">
+                <div class="row g-2">
+                  <div class="col-md-3 col-6">
+                    <label class="cbs-label" for="BtsRemarks">Loan Remarks</label>
+                    <input class="form-control form-control-sm" id="BtsRemarks" name="BtsRemarks" type="text" readonly />
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <label class="cbs-label" for="LoanBalance">Loan Balance</label>
+                    <input class="form-control form-control-sm" id="LoanBalance" name="LoanBalance" type="text" readonly />
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <label class="cbs-label" for="FreezedAmount">Freezed Amount</label>
+                    <input class="form-control form-control-sm" id="FreezedAmount" name="FreezedAmount" type="text" readonly />
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <label class="cbs-label" for="LoanStatus">Loan Status</label>
+                    <input class="form-control form-control-sm" id="LoanStatus" name="LoanStatus" type="text" readonly />
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <label class="cbs-label" for="ClosedBy">Closed By</label>
+                    <input class="form-control form-control-sm" id="ClosedBy" name="ClosedBy" type="text" readonly />
+                  </div>
+                  <div class="col-md-3 col-6">
+                    <label class="cbs-label" for="ClosedOn">Closed On</label>
+                    <input class="form-control form-control-sm" id="ClosedOn" name="ClosedOn" type="text" readonly />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="lco-status" data-lco-status aria-label="Status"></div>
+          <div class="lco-footer" aria-label="Footer">Nimble 1.0 Banking</div>
+        </section>
+
+        <aside class="lco-actions" aria-label="Actions">
+          <button type="button" class="lco-action-btn" data-action="edit" disabled>Edit</button>
+          <button type="button" class="lco-action-btn" data-action="save" disabled>Save</button>
+          <button type="button" class="lco-action-btn" data-action="cancel" disabled>Cancel</button>
+          <button type="button" class="lco-action-btn lco-action-btn--primary" data-action="back">Back</button>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- Environment and Config -->
+  <script src="../../../../assets/js/environment.js"></script>
+  <script src="../../../../assets/js/config.js"></script>
+
+  <!-- Services -->
+  <script src="../../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../../assets/js/services/loans/loanClosingOpeningService.js"></script>
+
+  <!-- Page Script -->
+  <script src="../../../../assets/js/pages/loans/loan-maintenance/dataentry/loan-closing-opening.js"></script>
+
+  <style>
+    /* Loan Closing/Opening Layout */
+    body[data-page="loan-maintenance-sub"] .lco-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-body {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-section {
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-section-body {
+      padding: 12px;
+    }
+
+    /* Status and Footer */
+    body[data-page="loan-maintenance-sub"] .lco-status {
+      padding: 10px 12px;
+      background: #fef2f2;
+      border-top: 1px solid #fecaca;
+      color: #991b1b;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-status:not(:empty) {
+      display: block;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-status.is-error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-status.is-success {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #15803d;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-status.is-warning {
+      background: #fffbeb;
+      border-color: #fde68a;
+      color: #92400e;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-footer {
+      padding: 8px 12px;
+      background: #f0f4f8;
+      color: #64748b;
+      font-size: 0.7rem;
+      border-top: 1px solid rgba(15, 23, 42, 0.12);
+      flex-shrink: 0;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    /* Actions Panel */
+    body[data-page="loan-maintenance-sub"] .lco-actions {
+      border-left: 1px solid rgba(15, 23, 42, 0.12);
+      background: #f8fafc;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 100px;
+      flex-shrink: 0;
+      align-items: stretch;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn {
+      width: 100%;
+      border: 1px solid #94a3b8;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+      padding: 10px 12px;
+      border-radius: 2px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: all 0.2s ease;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn:hover:not(:disabled) {
+      background: #cbd5e1;
+      border-color: #64748b;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn:active:not(:disabled) {
+      background: #b5bcc7;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn--primary {
+      background: #3b82f6;
+      border-color: #1d4ed8;
+      color: #ffffff;
+      text-decoration: none;
+      margin-top: auto;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn--primary:hover:not(:disabled) {
+      background: #2563eb;
+      border-color: #1e40af;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-action-btn--primary:active:not(:disabled) {
+      background: #1d3a8a;
+    }
+
+    /* Responsive Grid */
+    body[data-page="loan-maintenance-sub"] .lco-section-body .form-control-sm,
+    body[data-page="loan-maintenance-sub"] .lco-section-body .form-select-sm,
+    body[data-page="loan-maintenance-sub"] .lco-section-body textarea {
+      font-size: 0.875rem;
+    }
+
+    body[data-page="loan-maintenance-sub"] .lco-section-body textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    body[data-page="loan-maintenance-sub"] .cbs-label.mandatory::after {
+      content: " *";
+      color: #dc2626;
+      font-weight: 900;
+    }
+
+    /* Hidden fields */
+    [data-hidden] {
+      display: none;
+    }
+  </style>
+</body>
+
+</html>

@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fixed Asset Maintenance · Fixed Asset</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/maincss.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+  <style>
+    /* Behind The Scene Card Styling */
+    .behind-scene-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      background-color: #fff;
+    }
+    
+    .behind-scene-card .form-row:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="window">
+    <!-- Title Bar -->
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-building am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Fixed Asset Maintenance</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button class="am-btn" type="button" data-action="minimize" title="Minimize" aria-label="Minimize window">
+          <i class="bi bi-dash-lg"></i>
+        </button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window">
+          <i class="bi bi-square"></i>
+        </button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-header__title">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>SUBMODULES</span>
+          </span>
+          <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+        <div class="sidebar-search">
+          <i class="bi bi-search sidebar-search__icon"></i>
+          <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules">
+          <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        <div class="sidebar-content">
+          <div class="nav-section--card expanded" data-nav-section>
+            <div class="nav-header--card" data-tooltip="Data Entry">
+              <div class="nav-header__content">
+                <i class="bi bi-pencil-square nav-header__icon"></i>
+                <span class="nav-label--card">Data Entry</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">2</span>
+                <button type="button" class="nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items--card" id="nav-dataentry">
+              <button type="button" class="sidebar-item--enhanced" data-fam-nav="asset-cost-history">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-currency-dollar sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">Asset Cost History</span>
+                  </div>
+                </div>
+              </button>
+              <button type="button" class="sidebar-item--enhanced" data-fam-nav="depreciation-schedule">
+                <div class="sidebar-item__content">
+                  <i class="bi bi-graph-down sidebar-item__icon"></i>
+                  <div class="sidebar-item__text">
+                    <span class="sidebar-item__title">Depreciation Schedule</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+          <div class="nav-section--card" data-nav-section>
+            <div class="nav-header--card" data-tooltip="View">
+              <div class="nav-header__content">
+                <i class="bi bi-eye nav-header__icon"></i>
+                <span class="nav-label--card">View</span>
+              </div>
+              <div class="nav-header__badge">
+                <span class="nav-badge">0</span>
+                <button type="button" class="nav-arrow--card" aria-label="Toggle View" aria-expanded="false">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items--card" id="nav-view"></div>
+          </div>
+          <div class="nav-section--card" data-nav-section>
+            <div class="nav-header--card" data-tooltip="Recent Activities">
+              <div class="nav-header__content">
+                <i class="bi bi-clock-history nav-header__icon"></i>
+                <span class="nav-label--card">Recent Activities</span>
+              </div>
+              <div class="nav-header__badge">
+                <button type="button" class="nav-arrow--card" aria-label="Toggle Recent Activities" aria-expanded="false">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="nav-items--card" id="nav-recent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Content -->
+      <div class="form-content" role="region">
+        <div class="form-card" data-main-form>
+          <!-- Asset Search Section -->
+          <div class="form-section" data-section="asset-search">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <i class="bi bi-search"></i>Asset Search
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Asset Search" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="branchId">Branch ID</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="branchId" value="0101" data-always-enabled />
+                    <input type="text" class="bs-input kairo-product-control__name" id="branchName" value="Head Office" readonly />
+                    <button class="btn-lookup" type="button" data-fam-action="search-branch" aria-label="Search Branch" data-always-enabled>
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="assetType">Asset Type</label>
+                  <select class="bs-input" id="assetType" data-always-enabled>
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="assetId">Asset ID</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="assetId" data-always-enabled />
+                    <button class="btn-lookup" type="button" data-fam-action="search-asset" aria-label="Search Asset" data-always-enabled>
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="description">Description</label>
+                  <input type="text" class="bs-input" id="description" disabled />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Asset Details Section -->
+          <div class="form-section" data-section="asset-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <i class="bi bi-building"></i>Asset Details
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Asset Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="assetSubType">Asset Sub Type</label>
+                  <select class="bs-input" id="assetSubType" disabled>
+                    <option value="">--Select--</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="acquisitionDate">Acquisition Date</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="acquisitionDate" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="pick-acquisition-date" aria-label="Pick Acquisition Date">
+                      <i class="bi bi-calendar3"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="acquisitionBy">Acquisition By</label>
+                  <select class="bs-input" id="acquisitionBy" disabled>
+                    <option>Transfer</option>
+                    <option>Purchase</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="acquisitionNo">Acquisition No</label>
+                  <input type="text" class="bs-input" id="acquisitionNo" disabled />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="fromBranchId">From Branch ID</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="fromBranchId" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="search-from-branch" aria-label="Search From Branch">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="vendorId">Vendor ID</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="vendorId" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="search-vendor" aria-label="Search Vendor">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="assetLocationId">Asset Location ID</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="assetLocationId" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="search-location" aria-label="Search Location">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="location">Location</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="location" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="search-location-detail" aria-label="Search Location Detail">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="label">Label</label>
+                  <input type="text" class="bs-input" id="label" disabled />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="brandName">Brand Name</label>
+                  <input type="text" class="bs-input" id="brandName" disabled />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="noOfItems">No Of Items</label>
+                  <input type="text" class="bs-input" id="noOfItems" disabled />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="model">Model</label>
+                  <input type="text" class="bs-input" id="model" disabled />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="assetValue">Asset Value</label>
+                  <input type="text" class="bs-input" id="assetValue" disabled />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="expectedAssetLife">Expected Asset Life (Years)</label>
+                  <input type="text" class="bs-input" id="expectedAssetLife" disabled />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue" for="apprDeprStartDate">Appr / Depr Start Date</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="apprDeprStartDate" placeholder="--Select--" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="pick-start-date" aria-label="Pick Start Date">
+                      <i class="bi bi-calendar3"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="salvageValue">Salvage Value</label>
+                  <input type="text" class="bs-input" id="salvageValue" disabled />
+                </div>
+              </div>
+
+              <!-- Acquired Depreciation Sub-section -->
+              <div class="form-row two-col" style="margin-top: 12px;">
+                <div class="col">
+                  <label class="label-blue" for="fixedAmount">Acquired Depreciation - Fixed Amount</label>
+                  <input type="text" class="bs-input" id="fixedAmount" disabled />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="uptoDate">Acquired Depreciation - Upto Date</label>
+                  <div class="kairo-product-control">
+                    <input type="text" class="bs-input kairo-product-control__id" id="uptoDate" placeholder="--Select--" disabled />
+                    <button class="btn-lookup" type="button" data-fam-action="pick-upto-date" aria-label="Pick Upto Date">
+                      <i class="bi bi-calendar3"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="col" style="grid-column: span 2;">
+                  <label class="label-blue" for="remarks">Remarks</label>
+                  <textarea class="bs-input" id="remarks" rows="3" placeholder="Enter remarks..." disabled></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title">
+                <i class="bi bi-gear"></i>Behind The Scene
+              </span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <!-- Metrics Card -->
+              <div class="behind-scene-card">
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Accumulated Depreciation</label>
+                    <input type="text" class="bs-input" id="accDep" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Depreciation Rate</label>
+                    <input type="text" class="bs-input" id="depRate" readonly />
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Total Disposed Value</label>
+                    <input type="text" class="bs-input" id="disposedValue" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Depreciation Applied Upto</label>
+                    <input type="text" class="bs-input" id="depAppliedUpto" readonly />
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Book Value</label>
+                    <input type="text" class="bs-input" id="bookValue" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Next Depreciation Date</label>
+                    <input type="text" class="bs-input" id="nextDepDate" readonly />
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Status</label>
+                    <input type="text" class="bs-input" id="status" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">No. Of Items On Hand</label>
+                    <input type="text" class="bs-input" id="itemsOnHand" readonly />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audit Section Card -->
+              <div class="behind-scene-card">
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Created By</label>
+                    <input type="text" class="bs-input" id="createdBy" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Modified By</label>
+                    <input type="text" class="bs-input" id="modifiedBy" readonly />
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Created On</label>
+                    <input type="text" class="bs-input" id="createdOn" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Modified On</label>
+                    <input type="text" class="bs-input" id="modifiedOn" readonly />
+                  </div>
+                </div>
+                <div class="form-row two-col">
+                  <div class="col">
+                    <label class="label-blue">Supervised By</label>
+                    <input type="text" class="bs-input" id="supervisedBy" readonly />
+                  </div>
+                  <div class="col">
+                    <label class="label-blue">Supervised On</label>
+                    <input type="text" class="bs-input" id="supervisedOn" readonly />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button type="button" class="btn-action btn-view" data-fam-action="view">
+            <i class="bi bi-eye"></i>View
+          </button>
+          <button type="button" class="btn-action btn-add" data-fam-action="add" disabled>
+            <i class="bi bi-plus-lg"></i>Add
+          </button>
+          <button type="button" class="btn-action btn-edit" data-fam-action="edit" disabled>
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button type="button" class="btn-action btn-delete" data-fam-action="delete" disabled>
+            <i class="bi bi-trash"></i>Delete
+          </button>
+          <button type="button" class="btn-action btn-save" data-fam-action="save" disabled>
+            <i class="bi bi-floppy"></i>Save
+          </button>
+          <button type="button" class="btn-action btn-cancel" data-fam-action="cancel">
+            <i class="bi bi-x-circle"></i>Cancel
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span id="famToast"></span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/utils/global-utils.js"></script>
+  <script src="../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/shared/customCodesLookupService.js"></script>
+  <script src="../../../assets/js/services/fixedAssets/fixedAssetsService.js"></script>
+  <script src="../../../assets/js/pages/fixed-asset/fixed-asset-maintenance-nav.js"></script>
+  <script src="../../../assets/js/pages/fixed-asset/fixed-asset-maintenance.js"></script>
+  <script>
+    (function() {
+      // Section toggle functionality
+      document.querySelectorAll('[data-section-toggle]').forEach(function(header) {
+        header.addEventListener('click', function() {
+          const section = header.closest('.form-section');
+          const content = section.querySelector('[data-section-content]');
+          const toggleBtn = header.querySelector('.section-toggle-btn');
+          const icon = toggleBtn?.querySelector('i');
+          
+          if (section.classList.contains('collapsed')) {
+            section.classList.remove('collapsed');
+            if (content) content.hidden = false;
+            if (icon) icon.className = 'bi bi-chevron-up';
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            section.classList.add('collapsed');
+            if (content) content.hidden = true;
+            if (icon) icon.className = 'bi bi-chevron-down';
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+
+      // Sidebar nav section toggle (card style)
+      document.querySelectorAll('.nav-header--card').forEach(function(header) {
+        header.addEventListener('click', function(e) {
+          if (e.target.closest('.nav-arrow--card')) return;
+          const section = header.closest('.nav-section--card');
+          const arrow = header.querySelector('.nav-arrow--card');
+          toggleNavSection(section, arrow);
+        });
+      });
+
+      document.querySelectorAll('.nav-arrow--card').forEach(function(arrow) {
+        arrow.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const section = arrow.closest('.nav-section--card');
+          toggleNavSection(section, arrow);
+        });
+      });
+
+      function toggleNavSection(section, arrow) {
+        const isExpanded = section.classList.contains('expanded');
+        if (isExpanded) {
+          section.classList.remove('expanded');
+          if (arrow) arrow.setAttribute('aria-expanded', 'false');
+        } else {
+          section.classList.add('expanded');
+          if (arrow) arrow.setAttribute('aria-expanded', 'true');
+        }
+      }
+
+      // Submodule search functionality
+      const searchInput = document.getElementById('submoduleSearch');
+      const searchClear = document.getElementById('submoduleSearchClear');
+      
+      if (searchInput && searchClear) {
+        searchInput.addEventListener('input', function() {
+          const query = this.value.toLowerCase().trim();
+          searchClear.classList.toggle('is-visible', query.length > 0);
+          document.querySelectorAll('.sidebar-item--enhanced').forEach(function(item) {
+            const title = item.querySelector('.sidebar-item__title');
+            const text = title ? title.textContent.toLowerCase() : '';
+            item.style.display = text.includes(query) ? '' : 'none';
+          });
+        });
+        
+        searchClear.addEventListener('click', function() {
+          searchInput.value = '';
+          searchClear.classList.remove('is-visible');
+          document.querySelectorAll('.sidebar-item--enhanced').forEach(function(item) {
+            item.style.display = '';
+          });
+          searchInput.focus();
+        });
+      }
+
+      // Sidebar hamburger toggle functionality
+      const sidebarToggle = document.querySelector('.sidebar-toggle');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', function() {
+          sidebar.classList.toggle('collapsed');
+          const isCollapsed = sidebar.classList.contains('collapsed');
+          sidebarToggle.setAttribute('aria-expanded', !isCollapsed);
+          
+          // Toggle icon between list and x
+          const icon = sidebarToggle.querySelector('i');
+          if (icon) {
+            icon.className = isCollapsed ? 'bi bi-list' : 'bi bi-x-lg';
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>

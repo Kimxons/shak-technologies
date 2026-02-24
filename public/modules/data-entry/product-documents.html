@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Documents · Product</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20260201" />
+</head>
+<body class="copilot-theme" data-page="product-documents">
+  <div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-file-earmark-text am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Product Documents</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="refresh" title="Refresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container" aria-label="Product Documents form">
+      <div class="form-content" role="region">
+        <div class="form-card" data-main-form>
+          <div class="form-section" data-section="documents">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-file-earmark-text"></i>Documents</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Documents" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div id="pdToast" class="alert alert-info d-none small mb-2" role="status"></div>
+              <div class="table-responsive">
+                <table class="table table-striped mb-0" aria-label="Product documents grid">
+                  <thead>
+                    <tr>
+                      <th scope="col">Description</th>
+                      <th scope="col" style="width: 140px;">IsApplicable</th>
+                      <th scope="col" style="width: 140px;">Is Mandatory</th>
+                    </tr>
+                  </thead>
+                  <tbody data-pd-grid-body>
+                    <tr>
+                      <td colspan="3" class="text-center align-middle text-muted" style="height: 360px;">No documents to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-pd-action="edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button class="btn-action btn-save" type="button" data-pd-action="save" title="Save">
+            <i class="bi bi-check-lg"></i>Save
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-pd-action="cancel" title="Cancel">
+            <i class="bi bi-x-circle"></i>Cancel
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/pages/product/product-documents.js"></script>
+  <script>
+    (function () {
+      function closeChild() {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'closeChildForm' }, '*');
+          } else {
+            window.close();
+          }
+        } catch (err) {
+          console.error('Error closing child form:', err);
+        }
+      }
+
+      function handleWindowAction(action, btn) {
+        const win = document.querySelector('.window');
+        switch (action) {
+          case 'refresh':
+            window.location.reload();
+            break;
+          case 'maximize':
+            if (!win) return;
+            const isMax = win.classList.toggle('maximized');
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = isMax ? 'bi bi-fullscreen-exit' : 'bi bi-square';
+            btn.title = isMax ? 'Restore' : 'Maximize';
+            btn.setAttribute('aria-label', isMax ? 'Restore window' : 'Maximize window');
+            break;
+          case 'close':
+            closeChild();
+            break;
+        }
+      }
+
+      function initWindowControls() {
+        document.querySelectorAll('.de-title-btn[data-action]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleWindowAction(btn.getAttribute('data-action'), btn);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initWindowControls);
+      } else {
+        initWindowControls();
+      }
+
+      // Section toggle functionality
+      function initSectionToggles() {
+        document.querySelectorAll('[data-section-toggle]').forEach((header) => {
+          header.addEventListener('click', (e) => {
+            if (e.target.closest('input, select, button:not(.section-toggle-btn)')) return;
+            const section = header.closest('.form-section');
+            const content = section.querySelector('[data-section-content]');
+            const btn = header.querySelector('.section-toggle-btn');
+            const icon = btn?.querySelector('i');
+            const isExpanded = btn?.getAttribute('aria-expanded') === 'true';
+
+            if (content) {
+              content.hidden = isExpanded;
+            }
+            if (btn) {
+              btn.setAttribute('aria-expanded', String(!isExpanded));
+            }
+            if (icon) {
+              icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+            }
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSectionToggles);
+      } else {
+        initSectionToggles();
+      }
+    })();
+  </script>
+</body>
+</html>

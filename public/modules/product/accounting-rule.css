@@ -1,0 +1,277 @@
+:root {
+  --primary-color: #5a7a9c;
+  --secondary-color: #2b4a6b;
+  --accent-color: #0d7377;
+  --border-color: #d0d0d0;
+  --bg-light: #ffffff;
+}
+
+body.copilot-theme[data-page="accounting-rule"],
+body[data-page="accounting-rule"] {
+  background: #ffffff !important;
+}
+
+/* Remove extra margin - hide empty am-header */
+body[data-page="accounting-rule"] .am-header:empty {
+  display: none;
+}
+
+/* Tighten form-content padding */
+body[data-page="accounting-rule"] .form-content {
+  padding: 4px 6px;
+}
+
+/* Remove gaps between sections */
+body[data-page="accounting-rule"] .form-section {
+  margin-bottom: 0;
+}
+
+/* Reduce section content padding */
+body[data-page="accounting-rule"] .section-content {
+  padding: 6px 10px;
+}
+
+/* Tighten form-row spacing */
+body[data-page="accounting-rule"] .form-row {
+  margin-bottom: 4px;
+}
+
+/* Reduce form-card border-radius for tighter look */
+body[data-page="accounting-rule"] .form-card {
+  border-radius: 6px;
+}
+
+body.copilot-theme[data-page="accounting-rule"] .cm-workspace,
+.cm-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff !important;
+}
+
+body.copilot-theme[data-page="accounting-rule"] .cm-window-content,
+.cm-window-content {
+  flex: 1;
+  overflow: auto;
+  background: #ffffff !important;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+  background: #ffffff;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #5a7a9c 0%, #456480 100%);
+  color: #fff;
+  font-weight: 600;
+  border-bottom: none;
+  padding: 1rem 1rem !important;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: auto;
+}
+
+.card-header:hover {
+  opacity: 0.95;
+}
+
+.card-header h6 {
+  margin: 0;
+  font-size: 0.95rem;
+  flex: 1;
+  color: #ffffff;
+}
+
+.card-header .collapse-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.card-body {
+  padding: 1.25rem;
+  background: #ffffff;
+  display: block;
+}
+
+.card-body.show {
+  display: block;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #2b4a6b;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.form-control,
+.form-select {
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  background-color: #ffffff;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #5a7a9c;
+  box-shadow: 0 0 0 0.2rem rgba(90, 122, 156, 0.15);
+}
+
+.form-control::placeholder {
+  color: #999;
+}
+
+.input-group>.form-control,
+.input-group>.form-select {
+  border-right: none;
+}
+
+.input-group>.btn {
+  border: 1px solid #d0d0d0;
+  border-left: none;
+  background-color: #f8f9fa;
+  color: #5a7a9c;
+}
+
+.input-group>.btn:hover {
+  background-color: #e9ecef;
+}
+
+.table {
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background: #f8f9fa;
+  color: #2b4a6b;
+  font-weight: 700;
+  border-bottom: 2px solid #d0d0d0;
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.table tbody td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-outline-primary {
+  color: #5a7a9c;
+  border-color: #5a7a9c;
+}
+
+.btn-outline-primary:hover {
+  background-color: #5a7a9c;
+  border-color: #5a7a9c;
+  color: #fff;
+}
+
+.btn-primary {
+  background-color: #0d7377;
+  border-color: #0d7377;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: #0a5c60;
+  border-color: #0a5c60;
+}
+
+.btn-secondary {
+  background-color: #d0d0d0;
+  border-color: #d0d0d0;
+  color: #2b4a6b;
+  font-weight: 600;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #b8b8b8;
+  border-color: #b8b8b8;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+}
+
+.action-button {
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  color: #2b4a6b;
+  font-weight: 600;
+  padding: 0.625rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.action-button:hover:not(:disabled) {
+  background: #5a7a9c;
+  color: #fff;
+  border-color: #5a7a9c;
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdown-menu {
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  color: #2b4a6b;
+  font-weight: 500;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #5a7a9c;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+}
+
+.table-responsive {
+  border-radius: 0;
+}
+
+.row>[class*="col-"] {
+  margin-bottom: 0;
+}
+
+textarea.form-control {
+  resize: vertical;
+  font-family: inherit;
+}
+
+textarea.form-control:focus {
+  border-color: #5a7a9c;
+}

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loan / Disbursement - Reversal · Loans</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css?v=20260201" />
+</head>
+
+<body class="copilot-theme" data-page="loan-disbursement-reversal">
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  
+  <!-- Page Loading Overlay -->
+  <div id="pageLoadingOverlay" class="page-loading-overlay" hidden>
+    <div class="page-loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+  </div>
+  
+  <div class="window">
+    <div class="main-container">
+      <div class="form-content">
+        <div class="form-card" data-main-form>
+
+          <!-- Account Details Section -->
+          <div class="form-section" data-section="account-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-card-text"></i>Account Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Branch <span class="text-danger">*</span></label>
+                <div class="kairo-branch-control">
+                  <input type="text" class="bs-input-text" id="BranchID" name="BranchID" maxlength="6" placeholder="Branch ID" />
+                  <button class="btn-lookup" type="button" id="btnBranchSearch" title="Search Branch (F2)" aria-label="Search Branch">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label class="label-muted">Branch Name</label>
+                <input type="text" class="bs-input-text" id="BranchName" name="BranchName" readonly placeholder="Branch Name" />
+              </div>
+            </div>
+
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-muted">Client ID</label>
+                <div class="kairo-client-control">
+                  <input type="text" class="bs-input-text" id="ClientID" name="ClientID" maxlength="20" placeholder="Client ID" />
+                  <button class="btn-lookup" type="button" id="btnClientSearch" title="Search Client (F2)" aria-label="Search Client">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label class="label-muted">Client Name</label>
+                <input type="text" class="bs-input-text" id="ClientName" name="ClientName" readonly placeholder="Client Name" />
+              </div>
+            </div>
+
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Account ID <span class="text-danger">*</span></label>
+                <div class="kairo-account-control">
+                  <input type="text" class="bs-input-text" id="AccountID" name="AccountID" maxlength="20" placeholder="Account ID" />
+                  <button class="btn-lookup" type="button" id="btnAccountSearch" title="Search Account (F2)" aria-label="Search Account">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label class="label-muted">Account Name</label>
+                <input type="text" class="bs-input-text" id="AccountName" name="AccountName" readonly placeholder="Account Name" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="label-muted">Loan Series</label>
+              <input type="text" class="bs-input-text" id="LoanSeries" name="LoanSeries" readonly placeholder="Loan Series" />
+            </div>
+            </div>
+          </div>
+
+          <!-- Reversal Details Section -->
+          <div class="form-section" data-section="reversal-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-arrow-counterclockwise"></i>Reversal Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Reversal Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Reason <span class="text-danger">*</span></label>
+                <select class="bs-select" id="ReasonID" name="ReasonID" disabled>
+                    <option value="">Select Reason</option>
+                    <option value="R001">Wrong Disbursement</option>
+                    <option value="R002">Duplicate Entry</option>
+                    <option value="R003">Client Request</option>
+                    <option value="R004">System Error</option>
+                    <option value="R005">Account Closed</option>
+                    <option value="R006">Other</option>
+                  </select>
+              </div>
+              <div class="col">
+                <label class="label-blue">Remarks <span class="text-danger">*</span></label>
+                <textarea class="bs-input-text" id="Remarks" name="Remarks" rows="2" maxlength="255" disabled placeholder="Enter reversal remarks"></textarea>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Loan Amount</label>
+                <input type="text" class="bs-input-text text-end" id="LoanAmount" name="LoanAmount" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Loan Balance</label>
+                <input type="text" class="bs-input-text text-end" id="LoanBalance" name="LoanBalance" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Product ID</label>
+                <input type="text" class="bs-input-text" id="ProductID" name="ProductID" readonly placeholder="Product ID" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Currency ID</label>
+                <input type="text" class="bs-input-text" id="CurrencyID" name="CurrencyID" readonly placeholder="Currency" />
+              </div>
+            </div>
+
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Maturity Date</label>
+                <input type="text" class="bs-input-text" id="MaturityDate" name="MaturityDate" readonly placeholder="DD/MM/YYYY" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Loan Status</label>
+                <input type="text" class="bs-input-text" id="LoanStatus" name="LoanStatus" readonly placeholder="Status" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Disbursed By</label>
+                <input type="text" class="bs-input-text" id="DisbursedBy" name="DisbursedBy" readonly placeholder="Operator" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Last Disbursement Date</label>
+                <input type="text" class="bs-input-text" id="LastDisbursementDate" name="LastDisbursementDate" readonly placeholder="DD/MM/YYYY" />
+              </div>
+            </div>
+
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Reversal Type</label>
+                <input type="text" class="bs-input-text" id="ReversalType" name="ReversalType" readonly placeholder="Type" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Loan Type</label>
+                <input type="text" class="bs-input-text" id="LoanType" name="LoanType" readonly placeholder="Loan Type" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Application ID</label>
+                <input type="text" class="bs-input-text" id="ApplicationID" name="ApplicationID" readonly placeholder="Application ID" />
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+          <button class="btn-action" type="button" data-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+          <button class="btn-action" type="button" data-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
+          <button class="btn-action" type="button" data-action="back"><i class="bi bi-arrow-left me-1"></i>Back</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Search Modal -->
+  <div id="searchModal"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../assets/js/app.js"></script>
+  <script src="../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../assets/js/shared/search-modal.js"></script>
+  <script src="../../../assets/js/services/loans/loanDisbursementReversalService.js"></script>
+  <script src="../../../assets/js/pages/loans/loan-disbursement-reversal/loan-disbursement-reversal.js"></script>
+</body>
+
+</html>

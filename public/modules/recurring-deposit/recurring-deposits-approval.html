@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recurring Deposits Approval · Recurring Deposit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <link rel="stylesheet" href="./recurring-deposit.css" />
+</head>
+
+<body class="client-maintenance recurring-deposit recurring-deposit-approval copilot-theme" data-page="client-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="rd-approval-form" class="cm-shell-form cm-shell-form--two-column" autocomplete="off" novalidate>
+      <section class="cm-legacy-content">
+        <section class="card-surface p-0">
+          <header class="modal-header d-flex align-items-center justify-content-between rd-inner-heading">
+            <div class="d-flex align-items-center gap-3">
+              <h4 class="modal-title mb-0">Recurring Deposits Approval</h4>
+              <span class="badge bg-light text-primary fw-semibold">Queue</span>
+            </div>
+
+            <div class="window-controls rd-inner-window-controls" aria-label="Window controls">
+              <button type="button" class="window-control" data-rd-action="minimize" aria-label="Minimize">
+                <i class="bi bi-dash-lg" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="window-control" data-rd-action="maximize" aria-label="Maximize">
+                <i class="bi bi-square" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="window-control window-control--close" data-rd-action="close" aria-label="Close">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+              </button>
+            </div>
+          </header>
+
+          <div class="p-3">
+            <div class="row g-3 align-items-start">
+            <div class="col-12">
+              <div class="card-surface p-0" aria-label="Approval workspace">
+                <div class="rd-approval-canvas">
+                  <section class="rd-block" aria-label="Receipt Details">
+                    <header class="rd-block__header">
+                      <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                      <span>Receipt Details</span>
+                    </header>
+                    <div class="rd-block__body">
+                      <div class="row g-2">
+                        <div class="col-12 col-xl-8">
+                          <div class="rd-form-grid">
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalApplicationId">
+                                <i class="bi bi-hash" aria-hidden="true"></i>
+                                <span>Application ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdApprovalApplicationId" name="RdApprovalApplicationId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Search application" data-rd-action="search">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalBranchId">
+                                <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                                <span>Branch ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdApprovalBranchId" name="RdApprovalBranchId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Lookup branch" data-rd-action="lookup-branch">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalClientId">
+                                <i class="bi bi-person-badge" aria-hidden="true"></i>
+                                <span>Client ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdApprovalClientId" name="RdApprovalClientId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Lookup client" data-rd-action="lookup-client">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalProductId">
+                                <i class="bi bi-box" aria-hidden="true"></i>
+                                <span>Product ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdApprovalProductId" name="RdApprovalProductId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Lookup product" data-rd-action="lookup-product">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalAccountId">
+                                <i class="bi bi-credit-card" aria-hidden="true"></i>
+                                <span>Account ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdApprovalAccountId" name="RdApprovalAccountId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Lookup account" data-rd-action="lookup-account">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalValueDate">
+                                <i class="bi bi-calendar3" role="button" tabindex="0" data-date-trigger aria-label="Open date picker"></i>
+                                <span>Value Date</span>
+                              </label>
+                              <input type="date" class="form-control" id="RdApprovalValueDate" name="RdApprovalValueDate" />
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalInstallmentAmount">
+                                <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                                <span>Installment Amount</span>
+                              </label>
+                              <input type="text" class="form-control" id="RdApprovalInstallmentAmount" name="RdApprovalInstallmentAmount" />
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalTerm">
+                                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                                <span>Term</span>
+                              </label>
+                              <div class="rd-inline">
+                                <input type="text" class="form-control" id="RdApprovalTerm" name="RdApprovalTerm" />
+                                <span class="rd-inline__suffix">( )</span>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalInterestRate">
+                                <i class="bi bi-percent" aria-hidden="true"></i>
+                                <span>Interest Rate</span>
+                              </label>
+                              <input type="text" class="form-control" id="RdApprovalInterestRate" name="RdApprovalInterestRate" />
+                            </div>
+
+                            <div class="rd-field rd-field--remarks">
+                              <label class="rd-label" for="RdApprovalRemarks">
+                                <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+                                <span>Remarks</span>
+                              </label>
+                              <textarea class="form-control" id="RdApprovalRemarks" name="RdApprovalRemarks" rows="2"></textarea>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-12 col-xl-4">
+                          <div class="rd-form-grid rd-form-grid--right">
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalSeries">
+                                <i class="bi bi-upc-scan" aria-hidden="true"></i>
+                                <span>Series</span>
+                              </label>
+                              <input type="text" class="form-control" id="RdApprovalSeries" name="RdApprovalSeries" />
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalCurrencyId">
+                                <i class="bi bi-currency-exchange" aria-hidden="true"></i>
+                                <span>Currency ID</span>
+                              </label>
+                              <input type="text" class="form-control" id="RdApprovalCurrencyId" name="RdApprovalCurrencyId" />
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalFrequency">
+                                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                                <span>Frequency</span>
+                              </label>
+                              <select class="form-select" id="RdApprovalFrequency" name="RdApprovalFrequency" disabled>
+                                <option value="" selected>--Select--</option>
+                              </select>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdApprovalTax">
+                                <i class="bi bi-receipt" aria-hidden="true"></i>
+                                <span>Tax</span>
+                              </label>
+                              <input type="text" class="form-control" id="RdApprovalTax" name="RdApprovalTax" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="rd-separator" aria-hidden="true"></div>
+
+                      <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md-7">
+                          <div class="rd-bottom-row">
+                            <label class="rd-label" for="RdApprovalMaturityDate">
+                              <i class="bi bi-calendar-check" role="button" tabindex="0" data-date-trigger aria-label="Open date picker"></i>
+                              <span>Maturity Date</span>
+                            </label>
+                            <input type="date" class="form-control" id="RdApprovalMaturityDate" name="RdApprovalMaturityDate" />
+                          </div>
+                        </div>
+                        <div class="col-12 col-md-5">
+                          <div class="rd-bottom-row">
+                            <label class="rd-label" for="RdApprovalMaturityAmount">
+                              <i class="bi bi-cash-stack" aria-hidden="true"></i>
+                              <span>Maturity Amount</span>
+                            </label>
+                            <input type="text" class="form-control" id="RdApprovalMaturityAmount" name="RdApprovalMaturityAmount" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="rd-block mt-2" aria-label="Standing Instruction">
+                    <header class="rd-block__header rd-block__header--with-check">
+                      <label class="rd-check">
+                        <input class="form-check-input" type="checkbox" disabled />
+                        <span>
+                          <i class="bi bi-journal-check" aria-hidden="true"></i>
+                          Standing Instruction
+                        </span>
+                      </label>
+                    </header>
+                    <div class="rd-block__body">
+                      <div class="row g-2">
+                        <div class="col-12">
+                          <div class="rd-si-grid">
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdSiBranchId">
+                                <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                                <span>Branch ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdSiBranchId" name="RdSiBranchId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Lookup SI branch" data-rd-action="lookup-si-branch">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div class="rd-field">
+                              <label class="rd-label" for="RdSiAccountId">
+                                <i class="bi bi-credit-card" aria-hidden="true"></i>
+                                <span>Account ID</span>
+                              </label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="RdSiAccountId" name="RdSiAccountId" />
+                                <button class="btn btn-outline-primary" type="button" aria-label="Lookup SI account" data-rd-action="lookup-si-account">
+                                  <i class="bi bi-search"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="rd-grid mt-2" aria-label="Approval list">
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th scope="col" class="rd-col-check">
+                              <input class="form-check-input" type="checkbox" disabled aria-label="Select all" />
+                            </th>
+                            <th scope="col">Application ID</th>
+                            <th scope="col">Value Date</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Term</th>
+                            <th scope="col">RD Inst Frequency ID</th>
+                            <th scope="col">Remarks</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td colspan="7" class="text-muted">No records to display.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <div id="rdToast" class="alert alert-info mt-2 d-none" role="alert"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="cm-scroll-region">
+          <section class="card-surface p-3 mt-2" aria-label="Behind The Scene">
+            <header class="d-flex align-items-center justify-content-between mb-2">
+              <h3 class="section-title mb-0">Behind The Scene</h3>
+            </header>
+
+            <div class="rd-bts-2x3 mt-3" aria-label="Behind The Scene Details">
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsStatus">Status</label>
+                <input type="text" class="form-control" id="RdBtsStatus" name="RdBtsStatus" disabled />
+              </div>
+
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsRejectReason">Reject Reason</label>
+                <input type="text" class="form-control" id="RdBtsRejectReason" name="RdBtsRejectReason" disabled />
+              </div>
+
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsCreatedBy">Created By</label>
+                <input type="text" class="form-control" id="RdBtsCreatedBy" name="RdBtsCreatedBy" disabled />
+              </div>
+
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsCreatedOn">Created On</label>
+                <input type="text" class="form-control" id="RdBtsCreatedOn" name="RdBtsCreatedOn" disabled />
+              </div>
+
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsModifiedBy">Modified By</label>
+                <input type="text" class="form-control" id="RdBtsModifiedBy" name="RdBtsModifiedBy" disabled />
+              </div>
+
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsModifiedOn">Modified On</label>
+                <input type="text" class="form-control" id="RdBtsModifiedOn" name="RdBtsModifiedOn" disabled />
+              </div>
+            </div>
+
+            <div class="rd-bts-supervision mt-3" aria-label="Supervision">
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsSupervisedBy">Supervised By</label>
+                <input type="text" class="form-control" id="RdBtsSupervisedBy" name="RdBtsSupervisedBy" disabled />
+              </div>
+              <div class="cbs-field cm-compact-field">
+                <label class="cbs-label" for="RdBtsSupervisedOn">Supervised On</label>
+                <input type="text" class="form-control" id="RdBtsSupervisedOn" name="RdBtsSupervisedOn" disabled />
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="cm-legacy-actions card-surface" aria-label="Actions">
+        <div class="cm-legacy-actions__group">
+          <p class="cm-legacy-actions__title">Navigation</p>
+          <div class="rd-side-nav">
+            <button type="button" class="cm-shell__action rd-side-nav__btn" data-rd-action="nav-prev" aria-label="Previous">
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="rd-side-nav__label">Application ID</div>
+            <button type="button" class="cm-shell__action rd-side-nav__btn" data-rd-action="nav-next" aria-label="Next">
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cm-legacy-actions__group">
+          <p class="cm-legacy-actions__title">Actions</p>
+          <div class="cp-actions">
+            <button type="button" class="cm-shell__action rd-action-btn rd-action-btn--approve rd-action--approve" data-rd-action="approve" disabled>
+              <i class="bi bi-check-circle" aria-hidden="true"></i>
+              <span>Approve</span>
+            </button>
+            <button type="button" class="cm-shell__action rd-action-btn rd-action-btn--reject rd-action--reject" data-rd-action="reject" disabled>
+              <i class="bi bi-x-circle" aria-hidden="true"></i>
+              <span>Reject</span>
+            </button>
+            <button type="button" class="cm-shell__action rd-action-btn rd-action-btn--cancel rd-action--cancel" data-rd-action="exit">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth/auth.config.js"></script>
+  <script src="../../assets/js/auth/auth.service.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/ui/date-picker-trigger.js"></script>
+  <script src="../../assets/js/pages/recurring-deposit/recurring-deposit.js"></script>
+</body>
+
+</html>

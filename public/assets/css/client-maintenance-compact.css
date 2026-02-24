@@ -1,0 +1,1852 @@
+/* ============================================
+   CLIENT MAINTENANCE - COMPACT LAYOUT
+   Using high specificity to override styles.css
+   ============================================ */
+
+/* ============================================
+   ALL INPUTS - STYLED LIKE LOAN MAINTENANCE
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] input,
+.client-maintenance[data-page="client-maintenance"] select,
+.client-maintenance[data-page="client-maintenance"] textarea,
+.client-maintenance[data-page="client-maintenance"] .form-control,
+.client-maintenance[data-page="client-maintenance"] .form-select,
+.client-maintenance[data-page="client-maintenance"] [class*="bs-input"],
+.client-maintenance[data-page="client-maintenance"] [class*="bs-select"],
+.client-maintenance[data-page="client-maintenance"] .bs-textarea {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0.2rem 0.5rem !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  border-radius: 4px !important;
+  box-sizing: border-box !important;
+  border: 1px solid #90b9df !important;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  display: block !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] input:focus,
+.client-maintenance[data-page="client-maintenance"] select:focus,
+.client-maintenance[data-page="client-maintenance"] textarea:focus,
+.client-maintenance[data-page="client-maintenance"] .form-control:focus,
+.client-maintenance[data-page="client-maintenance"] .form-select:focus {
+  border-color: #4A90E2 !important;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+  outline: none !important;
+}
+
+/* Textarea specific */
+.client-maintenance[data-page="client-maintenance"] textarea,
+.client-maintenance[data-page="client-maintenance"] .bs-textarea {
+  height: auto !important;
+  min-height: 60px !important;
+  max-height: 120px !important;
+}
+
+/* Right-align number inputs */
+.client-maintenance[data-page="client-maintenance"] input[type="number"],
+.client-maintenance[data-page="client-maintenance"] .bs-input-number {
+  text-align: right !important;
+}
+
+/* Buttons in input groups */
+.client-maintenance[data-page="client-maintenance"] .input-group > .btn,
+.client-maintenance[data-page="client-maintenance"] .btn-outline-primary,
+.client-maintenance[data-page="client-maintenance"] .btn-outline-secondary {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 12px !important;
+  line-height: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .input-group {
+  flex-wrap: nowrap !important;
+  display: flex !important;
+  width: 100% !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .input-group > input,
+.client-maintenance[data-page="client-maintenance"] .input-group > select {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .input-group .bi {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* ============================================
+   MANDATORY LABELS - Blue with red asterisk (LABELS ON TOP)
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .bs-label-mand {
+  color: #4A90E2 !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  padding: 0 !important;
+  margin-bottom: 2px !important;
+  display: block !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .bs-label-mand::after {
+  content: " *" !important;
+  color: #E74C3C !important;
+  font-weight: 700 !important;
+}
+
+/* Regular labels */
+.client-maintenance[data-page="client-maintenance"] .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cbs-label,
+.client-maintenance[data-page="client-maintenance"] label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  padding: 0 !important;
+  margin-bottom: 2px !important;
+  color: #5A6C7D !important;
+  display: block !important;
+}
+
+/* ============================================
+   STEPPER PANEL VISIBILITY
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel {
+  display: none !important;
+}
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel.is-active {
+  display: block !important;
+}
+
+/* ============================================
+   TOP HEADER BAR - COMPACT
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .page-header,
+.client-maintenance[data-page="client-maintenance"] .cm-page-header,
+.client-maintenance[data-page="client-maintenance"] header {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding: 2px 10px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .page-header h1,
+.client-maintenance[data-page="client-maintenance"] .cm-page-header h1,
+.client-maintenance[data-page="client-maintenance"] header h1 {
+  font-size: 13px !important;
+  margin: 0 !important;
+  line-height: 24px !important;
+}
+
+/* ============================================
+   MAIN LAYOUT - USE MORE VERTICAL SPACE
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] {
+  background: #eef2f6 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-workspace {
+  padding: 2px !important;
+  height: calc(100vh - 28px) !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell-form {
+  height: 100% !important;
+  max-height: 100% !important;
+  gap: 3px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-content {
+  padding: 3px !important;
+  overflow-y: auto !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  flex: 1 !important;
+}
+
+/* ============================================
+   LEFT NAV - WIDER FOR FULL LABELS
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav {
+  padding: 4px !important;
+  width: 200px !important;
+  min-width: 200px !important;
+  max-width: 200px !important;
+  overflow-x: visible !important;
+  overflow-y: auto !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-section {
+  margin-bottom: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-items {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  padding: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item {
+  padding: 5px 6px !important;
+  font-size: 11px !important;
+  min-height: 24px !important;
+  height: auto !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 6px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  color: #5A6C7D !important;
+  width: 100% !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item:hover {
+  background: #f0f4f8 !important;
+  color: #4A90E2 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item i,
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item .bi {
+  flex-shrink: 0 !important;
+  font-size: 13px !important;
+  width: 16px !important;
+  text-align: center !important;
+  margin-right: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item span {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  flex: 1 1 auto !important;
+  display: inline !important;
+}
+
+/* Remove Bootstrap me-2 margin from icons */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item i.me-2,
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item .bi.me-2 {
+  margin-right: 0 !important;
+}
+
+/* DataEntry / View / Recent Activities Toggle Headers */
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle {
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  min-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  margin-bottom: 0 !important;
+  cursor: pointer !important;
+  overflow: visible !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle__label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  overflow: visible !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle__label span {
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle__label i,
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle__label .bi {
+  color: #fff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle__chevron {
+  margin-left: auto !important;
+  color: #fff !important;
+}
+
+/* Right action panel */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-actions {
+  padding: 4px !important;
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action {
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+  min-height: 28px !important;
+  width: 100% !important;
+  border-radius: 5px !important;
+  border: 1.5px solid currentColor !important;
+  background: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  font-weight: 600 !important;
+  margin-bottom: 4px !important;
+}
+
+/* Mode Switch buttons - outlined style */
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action--underline,
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action[data-shell-mode] {
+  color: #4A90E2 !important;
+  border-color: #4A90E2 !important;
+  background: #fff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action[data-shell-mode="Add"] {
+  color: #27ae60 !important;
+  border-color: #27ae60 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action[data-shell-mode="Update"] {
+  color: #f39c12 !important;
+  border-color: #f39c12 !important;
+}
+
+/* Navigation buttons - ghost style */
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action--ghost {
+  color: #5A6C7D !important;
+  border-color: #DDE6ED !important;
+  background: #fff !important;
+}
+
+/* Workflow buttons */
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action--success {
+  color: #fff !important;
+  background: linear-gradient(180deg, #27ae60 0%, #219a52 100%) !important;
+  border-color: #27ae60 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action--danger {
+  color: #fff !important;
+  background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%) !important;
+  border-color: #e74c3c !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action--danger[data-submit-action="clear"] {
+  color: #e74c3c !important;
+  background: #fff !important;
+  border-color: #e74c3c !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-actions__title {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: #4A90E2 !important;
+  margin: 6px 0 4px 0 !important;
+  padding: 0 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-actions__group {
+  margin-bottom: 8px !important;
+}
+
+/* ============================================
+   TOP IDENTIFIERS - LABELS ON TOP
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers {
+  padding: 8px 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 20px !important;
+  align-items: start !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .bs-label-mand {
+  display: block !important;
+  font-size: 11px !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  color: #4A90E2 !important;
+  font-weight: 600 !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-bottom: 2px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > input,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > select {
+  width: 100% !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .input-group {
+  width: 100% !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__full {
+  grid-column: 1 / -1 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__full .cbs-field {
+  flex-direction: column !important;
+}
+
+/* ============================================
+   STEPPER NAV TABS - COMPACT WITH VISIBLE LABELS
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper.card-surface {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__nav {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: linear-gradient(180deg, #f0f4f8 0%, #e8ecf0 100%) !important;
+  border-bottom: 1px solid #DDE6ED !important;
+  overflow-x: auto !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger {
+  padding: 4px 12px !important;
+  margin: 0 !important;
+  font-size: 10px !important;
+  min-height: 24px !important;
+  height: 24px !important;
+  border: none !important;
+  border-right: 1px solid rgba(0,0,0,0.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Explicit stepper tab ordering for Individual scope */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="personal"] { order: 1 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="corporate"] { order: 1 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="address"] { order: 2 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="relations"] { order: 3 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="employment"] { order: 4 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="offers"] { order: 5 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="groupDetail"] { order: 6 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="kyc"] { order: 7 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="products"] { order: 8 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="documents"] { order: 9 !important; }
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger[data-step-id="submit"] { order: 10 !important; }
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__trigger.is-active {
+  background: #fff !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #4A90E2 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__text {
+  display: block !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__label {
+  font-size: 10px !important;
+  display: inline !important;
+}
+
+/* ============================================
+   STEPPER PANELS - COMPACT
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panels {
+  padding: 12px !important;
+  margin: 0 !important;
+  background: #fff !important;
+  overflow-x: hidden !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-panel-card {
+  padding: 8px !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* ============================================
+   FORM GRID - 4-COLUMN LAYOUT, LABELS ON TOP
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+  margin: 0 !important;
+  padding: 8px !important;
+}
+
+/* Field spanning 2 columns */
+.client-maintenance[data-page="client-maintenance"] .cbs-field--span-2 {
+  grid-column: span 2 !important;
+}
+
+/* Field spanning all 4 columns */
+.client-maintenance[data-page="client-maintenance"] .cbs-field--span-4,
+.client-maintenance[data-page="client-maintenance"] .cbs-full {
+  grid-column: span 4 !important;
+}
+
+/* ============================================
+   FORM ROWS - 4-COLUMN GRID, LABELS ON TOP (legacy support)
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-form-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+  margin: 0 0 12px 0 !important;
+  padding: 0 8px !important;
+}
+
+/* For 2-column rows (maintains backward compat for specific layouts) */
+.client-maintenance[data-page="client-maintenance"] .cm-form-row--two {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* Full width row */
+.client-maintenance[data-page="client-maintenance"] .cm-form-row--full {
+  grid-template-columns: 1fr !important;
+}
+
+/* ============================================
+   FIELDS - LABEL ON TOP OF INPUT (VERTICAL STACK)
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cbs-field,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+  margin: 0 !important;
+  margin-bottom: 8px !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Labels - left aligned, on top */
+.client-maintenance[data-page="client-maintenance"] .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cbs-field > .bs-label-mand {
+  text-align: left !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  min-width: auto !important;
+  font-size: 13px !important;
+  margin-bottom: 2px !important;
+  display: block !important;
+}
+
+/* Inputs - full width below label */
+.client-maintenance[data-page="client-maintenance"] .cbs-field > input,
+.client-maintenance[data-page="client-maintenance"] .cbs-field > select,
+.client-maintenance[data-page="client-maintenance"] .cbs-field > textarea,
+.client-maintenance[data-page="client-maintenance"] .cbs-field > .input-group {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cbs-field > .input-group {
+  display: flex !important;
+}
+
+/* Checkbox fields need different layout */
+.client-maintenance[data-page="client-maintenance"] .cbs-field--checkbox {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  max-height: none !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cbs-field--checkbox .form-check {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: auto !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .form-check-input {
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+}
+
+/* ============================================
+   BEHIND THE SCENE - AT BOTTOM
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .section-header {
+  display: block !important;
+  width: 100% !important;
+  margin: 4px 0 2px 0 !important;
+  padding: 2px 6px !important;
+  font-size: 9px !important;
+  clear: both !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .audit-section {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  clear: both !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .audit-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
+  margin-bottom: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .audit-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .audit-item label {
+  font-size: 9px !important;
+  min-width: 70px !important;
+  flex-shrink: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .audit-item input {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* ============================================
+   STEPPER ACTIONS (Back/Next) - BIGGER
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__actions {
+  padding: 8px 0 !important;
+  margin-top: 8px !important;
+  border-top: 1px solid #eee !important;
+  gap: 8px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__actions .btn {
+  padding: 6px 16px !important;
+  font-size: 12px !important;
+  height: 32px !important;
+}
+
+/* ============================================
+   CARD SURFACES - MINIMAL PADDING
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .card-surface {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06) !important;
+  border-radius: 3px !important;
+}
+
+/* ============================================
+   PERSONAL GRID - 4-COLUMN, LABELS ON TOP
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-personal-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+  padding: 8px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-personal-grid .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  align-items: stretch !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ============================================
+   CBS-GRID--FOUR (Address, etc.) - LABELS ON TOP
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--four {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+  padding: 8px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--four .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* CBS-GRID--TWO for 2-column layouts */
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--two {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px 16px !important;
+  padding: 8px !important;
+}
+
+/* ============================================
+   SCROLL REGION - USE FULL HEIGHT
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-scroll-region {
+  display: block !important;
+  padding: 0 !important;
+  min-height: calc(100% - 80px) !important;
+}
+
+/* ============================================
+   RESPONSIVE - 4 COLUMN LABELS ON TOP
+   ============================================ */
+
+/* FORCE 4 COLUMNS FOR ALL GRIDS ON ALL STEPPERS */
+.client-maintenance[data-page="client-maintenance"] .cm-form-grid,
+.client-maintenance[data-page="client-maintenance"] .cm-form-row,
+.client-maintenance[data-page="client-maintenance"] .cm-personal-grid,
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--four {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+/* ============================================
+   FIX ALL STEPPERS - LABELS ON TOP, UNIFORM SPACING
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-bottom: 8px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field > .bs-label-mand {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  min-width: auto !important;
+  width: auto !important;
+  text-align: left !important;
+  padding: 0 !important;
+  font-size: 13px !important;
+  margin-bottom: 2px !important;
+  display: block !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* ============================================
+   FIX LEFT NAV - Prevent overlap
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav {
+  position: relative !important;
+  z-index: 10 !important;
+  flex-shrink: 0 !important;
+  height: fit-content !important;
+  max-height: calc(100vh - 100px) !important;
+  overflow-y: auto !important;
+  align-self: flex-start !important;
+  width: 210px !important;
+  min-width: 210px !important;
+  max-width: 210px !important;
+}
+
+/* DataEntry menu items - fully visible */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item {
+  padding: 6px 8px !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 28px !important;
+  width: 100% !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item span {
+  overflow: visible !important;
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-nav__item i.me-2 {
+  margin-right: 0 !important;
+}
+
+/* View and Recent Activities toggles */
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle {
+  overflow: visible !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-nav-toggle__label {
+  overflow: visible !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* ============================================
+   FIX TOP IDENTIFIERS - Labels visible
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers {
+  padding: 6px 10px !important;
+  margin-bottom: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 6px 16px !important;
+  align-items: center !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .bs-label-mand {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-align: right !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #4A90E2 !important;
+}
+
+/* Behind The Scene - proper positioning */
+.client-maintenance[data-page="client-maintenance"] .section-header {
+  clear: both !important;
+  margin-top: 8px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .audit-section {
+  clear: both !important;
+}
+
+/* ============================================
+   FIX RIGHT ACTIONS PANEL - Smaller width
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-actions {
+  position: relative !important;
+  z-index: 10 !important;
+  flex-shrink: 0 !important;
+  height: fit-content !important;
+  align-self: flex-start !important;
+  width: 85px !important;
+  min-width: 85px !important;
+  max-width: 85px !important;
+  padding: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-shell__action {
+  padding: 3px 4px !important;
+  font-size: 9px !important;
+  min-height: 24px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-actions__title {
+  font-size: 8px !important;
+}
+
+/* Main form shell - flex layout with no overlap */
+.client-maintenance[data-page="client-maintenance"] .cm-shell-form {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+/* Content area should not overflow */
+.client-maintenance[data-page="client-maintenance"] .cm-legacy-content {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* ============================================
+   FIX CORPORATE STEPPER - Force inline layout
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field {
+  display: grid !important;
+  grid-template-columns: 200px 1fr !important;
+  grid-template-rows: auto !important;
+  gap: 6px !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  margin: 0 !important;
+  padding: 2px 0 !important;
+  min-height: 22px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > .bs-label-mand,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > .cbs-label {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  min-width: 200px !important;
+  width: 200px !important;
+  text-align: right !important;
+  padding-right: 6px !important;
+  font-size: 10px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > input,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > select,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > textarea,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field > .input-group {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+}
+
+/* cbs-grid--tight layout */
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--tight {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2px 20px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--tight > .cbs-field,
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--tight > .cm-compact-field {
+  display: grid !important;
+  grid-template-columns: 200px 1fr !important;
+  gap: 6px !important;
+  align-items: center !important;
+  min-height: 22px !important;
+  padding: 2px 0 !important;
+}
+
+/* Full width fields span both columns */
+.client-maintenance[data-page="client-maintenance"] .cbs-full {
+  grid-column: 1 / -1 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cbs-full.cm-compact-field {
+  grid-template-columns: 200px 1fr !important;
+}
+
+/* ============================================
+   ADDRESS TAB - Make collection items visible
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-collection="addresses"] {
+  display: block !important;
+  min-height: 100px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-collection__items {
+  display: block !important;
+}
+
+/* ============================================
+   EMPLOYMENT TAB - Compact styling
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .cm-panel-card {
+  padding: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] h4 {
+  font-size: 12px !important;
+  margin-bottom: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] small {
+  font-size: 9px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .form-check-label {
+  font-size: 10px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .mt-3 {
+  margin-top: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .mb-3 {
+  margin-bottom: 4px !important;
+}
+
+/* ============================================
+   CLIENT RELATIONS BUTTONS - Centered, styled
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-inline-actions,
+.client-maintenance[data-page="client-maintenance"] .cm-relations__actions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin: 10px 0 !important;
+  flex-wrap: wrap !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-inline-actions .btn,
+.client-maintenance[data-page="client-maintenance"] .cm-relations__actions .btn {
+  padding: 6px 16px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  min-height: 30px !important;
+  border-radius: 6px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-relations__actions .btn-outline-secondary {
+  color: #5A6C7D !important;
+  border-color: #DDE6ED !important;
+  background: #fff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-relations__actions .btn-outline-danger {
+  color: #fff !important;
+  background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%) !important;
+  border-color: #e74c3c !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-relations__actions .btn-primary {
+  color: #fff !important;
+  background: linear-gradient(180deg, #27ae60 0%, #219a52 100%) !important;
+  border-color: #27ae60 !important;
+}
+
+/* ============================================
+   TOP IDENTIFIERS - Wider labels, fully visible  
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 6px 20px !important;
+  align-items: center !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field {
+  display: grid !important;
+  grid-template-columns: 100px 1fr !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-top-identifiers__grid .cbs-field > .bs-label-mand {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-align: right !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #4A90E2 !important;
+  min-width: 100px !important;
+}
+
+/* ============================================
+   STEPPER TABLES - Compact
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-table {
+  font-size: 10px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-table th {
+  font-size: 9px !important;
+  padding: 4px 6px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-table td {
+  font-size: 10px !important;
+  padding: 3px 6px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .table-responsive {
+  margin-top: 6px !important;
+}
+
+/* ============================================
+   ALL STEPPER PANELS - Universal compact rules
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-panel-card {
+  padding: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel h4 {
+  font-size: 12px !important;
+  margin-bottom: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel small,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .text-muted {
+  font-size: 9px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .mb-3 {
+  margin-bottom: 6px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .mt-3 {
+  margin-top: 6px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .g-4 {
+  gap: 8px !important;
+}
+
+/* ============================================
+   SPECIAL OFFERS TAB - Compact checkboxes
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--two {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px 20px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="offers"] .form-check {
+  padding: 4px 0 !important;
+  margin: 0 !important;
+  min-height: 20px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="offers"] .form-check-label {
+  font-size: 10px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="offers"] .form-check-input {
+  width: 14px !important;
+  height: 14px !important;
+  margin-top: 0 !important;
+}
+
+/* ============================================
+   OTHER DETAILS TAB - Compact 2-column inline layout
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__title {
+  font-size: 12px !important;
+  margin-bottom: 6px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px 24px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__grid .col-lg-6 {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__card {
+  padding: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+/* Toggle rows (Black List, Under Law Suit) - inline */
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__row {
+  display: grid !important;
+  grid-template-columns: 180px 1fr !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 2px 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__row label {
+  text-align: right !important;
+  font-size: 10px !important;
+  padding-right: 4px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__row .form-switch {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: auto !important;
+}
+
+/* Regular fields - inline */
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__field {
+  display: grid !important;
+  grid-template-columns: 180px 1fr !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__field label {
+  text-align: right !important;
+  font-size: 13px !important;
+  padding-right: 4px !important;
+  margin-bottom: 0 !important;
+  white-space: nowrap !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__field input,
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__field select {
+  width: 100% !important;
+}
+
+/* Toggle buttons (PEP, US Person, Data Cleansed) - inline */
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__toggle {
+  display: grid !important;
+  grid-template-columns: 180px 1fr !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 2px 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__toggle-label {
+  text-align: right !important;
+  font-size: 10px !important;
+  padding-right: 4px !important;
+  font-weight: 600 !important;
+  color: #4A90E2 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__toggle .btn-group {
+  display: flex !important;
+  gap: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__toggle .btn-sm {
+  font-size: 9px !important;
+  padding: 2px 10px !important;
+  min-height: 20px !important;
+}
+
+/* Ensure btn-check radio buttons are functional */
+.client-maintenance[data-page="client-maintenance"] .btn-check {
+  position: absolute !important;
+  clip: rect(0,0,0,0) !important;
+  pointer-events: auto !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .btn-check + .btn {
+  cursor: pointer !important;
+}
+
+/* Conditional sections */
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__inline {
+  margin-left: 0 !important;
+  padding: 4px 0 !important;
+  grid-column: 1 / -1 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__inline:not(.d-none) {
+  display: block !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__cond-grid {
+  display: grid !important;
+  grid-template-columns: 180px 1fr 180px 1fr !important;
+  gap: 4px 8px !important;
+  align-items: center !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__cond-label {
+  font-size: 10px !important;
+  text-align: right !important;
+  padding-right: 4px !important;
+  font-weight: 600 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-other-details__cond-grid input {
+  width: 100% !important;
+}
+
+/* Ensure d-none is respected but visible sections show properly */
+.client-maintenance[data-page="client-maintenance"] [data-kyc-section]:not(.d-none) {
+  display: block !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-kyc-section].d-none {
+  display: none !important;
+}
+
+/* ============================================
+   PRODUCTS & SERVICES TAB - Side by side compact
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-panel-card {
+  padding: 6px !important;
+}
+
+/* Hide the header section with "Filtered automatically by client type" */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-panel-card > .d-flex.justify-content-between {
+  display: none !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-panel-card > .d-flex h4 {
+  font-size: 12px !important;
+  margin: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-panel-card > .d-flex small {
+  font-size: 9px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .row.g-4 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .row.g-4 > .col-lg-6 {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  flex: none !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .card-header {
+  padding: 4px 8px !important;
+  background: linear-gradient(180deg, #4A90E2 0%, #357ABD 100%) !important;
+  color: #fff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .card-header span,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .card-header .fw-semibold {
+  font-size: 11px !important;
+  color: #fff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .card-header small,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .card-header .text-muted {
+  font-size: 9px !important;
+  color: rgba(255,255,255,0.8) !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .card-header .form-check-label {
+  font-size: 9px !important;
+  color: #fff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-subcard {
+  border-radius: 4px !important;
+  border: 1px solid #ddd !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-subcard .card-body {
+  padding: 0 !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .badge {
+  font-size: 9px !important;
+  padding: 2px 6px !important;
+}
+
+/* Products & Services tables - compact */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-table {
+  font-size: 10px !important;
+  margin: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-table th {
+  font-size: 9px !important;
+  padding: 4px 6px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  background: #f5f5f5 !important;
+  border-bottom: 1px solid #ddd !important;
+  white-space: nowrap !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-table td {
+  font-size: 10px !important;
+  padding: 3px 6px !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-table tbody tr:hover {
+  background: #f0f7ff !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .form-check-input {
+  width: 14px !important;
+  height: 14px !important;
+  margin: 0 !important;
+}
+
+/* ============================================
+   GROUP DETAILS TAB - Uses cm-form-row already
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cm-panel-card {
+  padding: 8px !important;
+}
+
+/* ============================================
+   DOCUMENTS TAB - Compact
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="documents"] .btn-sm {
+  font-size: 10px !important;
+  padding: 4px 10px !important;
+}
+
+/* ============================================
+   FORM CHECK (checkboxes/radios) - Compact
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .form-check {
+  min-height: 20px !important;
+  padding-left: 1.5em !important;
+  margin-bottom: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .form-check-input {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .form-check-label {
+  font-size: 10px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .form-switch .form-check-input {
+  width: 28px !important;
+  height: 14px !important;
+}
+/* ============================================
+   GLOBAL GRID FIXES - PREVENT OVERFLOW
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .cm-form-grid,
+.client-maintenance[data-page="client-maintenance"] .cm-form-row,
+.client-maintenance[data-page="client-maintenance"] .cm-personal-grid,
+.client-maintenance[data-page="client-maintenance"] .cbs-grid,
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] .cbs-grid--two {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* All grids in ALL steppers use 4 columns by default */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="personal"] .cm-form-grid,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="corporate"] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="address"] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-form-row,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="offers"] .cbs-grid,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__grid,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cm-form-row,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="products"] .cm-form-row,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="documents"] .cm-form-row {
+  display: grid !important;
+  gap: 8px 16px !important;
+  padding: 8px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure 4-column layout for all except specific 2-column sections */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cbs-grid:not(.cbs-grid--two),
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cm-form-grid,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cm-form-row:not(.cm-form-row--two):not(.cm-form-row--full) {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
+/* Input groups should not overflow */
+.client-maintenance[data-page="client-maintenance"] .input-group {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Prevent any field from overflowing its container */
+.client-maintenance[data-page="client-maintenance"] .cbs-field,
+.client-maintenance[data-page="client-maintenance"] .cm-compact-field {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Ensure inputs don't exceed their container */
+.client-maintenance[data-page="client-maintenance"] input,
+.client-maintenance[data-page="client-maintenance"] select,
+.client-maintenance[data-page="client-maintenance"] textarea {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* CORPORATE TAB - tighten layout */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="corporate"] .cbs-grid--tight {
+  gap: 12px 16px !important;
+}
+
+/* Apply to ALL cbs-grid instances across all steppers */
+.client-maintenance[data-page="client-maintenance"] .cbs-grid {
+  gap: 12px 16px !important;
+}
+
+/* EMPLOYMENT TAB - ensure proper 4-column */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .cbs-grid--tight {
+  gap: 12px 16px !important;
+}
+
+/* OFFERS TAB - 2-column override for checkboxes */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="offers"] .cbs-grid--two {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* RELATIONS TAB - ensure proper grid */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-form-row--full {
+  grid-template-columns: 1fr !important;
+}
+
+/* RELATIONS TAB - 2 column layout for paired fields */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-form-row:not(.cm-form-row--full) {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* ADDRESS TAB - Ensure inputs are visible in address collections */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="address"] input,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="address"] select,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="address"] textarea {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure all buttons are visible */
+.client-maintenance[data-page="client-maintenance"] .btn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Icons within buttons must be visible */
+.client-maintenance[data-page="client-maintenance"] .btn i,
+.client-maintenance[data-page="client-maintenance"] .btn .bi {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* ============================================
+   GLOBAL: ALL STEPPERS - Uniform spacing
+   Apply to every stepper panel grid
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cm-form-grid,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cm-form-row,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cbs-grid,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cbs-grid--two,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cm-personal-grid {
+  gap: 12px 16px !important;
+}
+
+/* Ensure fields have minimal vertical padding */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cbs-field,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel] .cm-compact-field {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+/* ============================================
+   MASTER OVERRIDE: ALL STEPPERS - LABELS ON TOP
+   This overrides any conflicting styles from styles.css
+   ============================================ */
+
+/* All grids in ALL steppers must be 4-column */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-grid,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-form-grid,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-personal-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+/* cm-form-row uses 2 columns for relations tab */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-form-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+/* 2-column grids */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-grid--two {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+/* ALL cbs-field elements in ALL steppers - FLEX COLUMN (label on top) */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-compact-field,
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+  grid-template-columns: none !important;
+}
+
+/* ALL labels in ALL steppers - on top, left aligned, camel case */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-field > .bs-label-mand,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-compact-field > label,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-compact-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cm-compact-field > .bs-label-mand,
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-field > label,
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-field > .bs-label,
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-field > .bs-label-mand {
+  display: block !important;
+  text-align: left !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+  min-width: auto !important;
+  width: auto !important;
+  padding: 0 !important;
+  padding-right: 0 !important;
+  margin-bottom: 2px !important;
+}
+
+/* cbs-full spans all columns */
+.client-maintenance[data-page="client-maintenance"] .cm-stepper__panel .cbs-full,
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-full {
+  grid-column: 1 / -1 !important;
+}
+
+/* ============================================
+   OTHER DETAILS (KYC) TAB - Convert to 4-column grid with labels on top
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__grid > .col-lg-6 {
+  grid-column: span 2 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__card {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__row,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__field,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__toggle {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__label,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__toggle-label,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__cond-label {
+  display: block !important;
+  text-align: left !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  color: #5A6C7D !important;
+  min-width: auto !important;
+  width: auto !important;
+  padding: 0 !important;
+  margin-bottom: 2px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__inline {
+  grid-column: 1 / -1 !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="kyc"] .cm-other-details__cond-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+/* ============================================
+   GROUP DETAIL TAB - 4-column grid with labels on top
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cm-panel-card {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+  padding: 12px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cm-form-row {
+  display: contents !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+}
+
+/* Hide empty cbs-field placeholders */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cbs-field:empty {
+  display: none !important;
+}
+
+/* Stepper actions span full width */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="groupDetail"] .cm-stepper__actions {
+  grid-column: 1 / -1 !important;
+}
+
+/* ============================================
+   CLIENT RELATIONS TAB - 4-column grid
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-panel-card {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-form-row {
+  display: contents !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-form-row--full {
+  grid-column: 1 / -1 !important;
+  display: block !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="relations"] .cm-inline-actions {
+  grid-column: 1 / -1 !important;
+}
+
+/* ============================================
+   EMPLOYMENT TAB - 4-column grid with labels on top
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .cbs-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="employment"] .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+}
+
+/* ============================================
+   CORPORATE TAB - 4-column grid with labels on top
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="corporate"] .cbs-grid--four,
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="corporate"] .cbs-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] [data-step-panel="corporate"] .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+}
+
+/* ============================================
+   ADDRESS TAB - Address cards with 4-column grid
+   ============================================ */
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-grid--four {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 12px 16px !important;
+}
+
+.client-maintenance[data-page="client-maintenance"] .address-card .cbs-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  align-items: stretch !important;
+}

@@ -1,0 +1,356 @@
+/* ============================================================================
+   BANK LIMIT MAINTENANCE - Account Maintenance Theme
+   ============================================================================
+   This module inherits all base styling from:
+   → ../../assets/css/styles.css (Global Kairo Design System)
+   
+   This file contains ONLY module-specific layout overrides to match
+   Account Maintenance's exact visual structure.
+   ============================================================================ */
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  background: #f4f8f9;
+  color: #1e293b;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 0;
+}
+
+.limit-container {
+  display: flex;
+  height: 100vh;
+  background: #ffffff;
+}
+
+/* Main Content Area */
+.limit-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: #ffffff;
+}
+
+/* Sections - Card Style */
+.bank-details-section,
+.behind-scene-section,
+.data-grid-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: visible !important;
+  margin-bottom: 16px;
+  display: block !important;
+}
+
+/* Section Headers - Account Maintenance Style */
+.section-header {
+  background: #5a8fa8;
+  color: #ffffff;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: none;
+  display: block !important;
+}
+
+.form-content,
+.behind-scene-content {
+  padding: 24px;
+  background: #ffffff;
+  height: auto !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+/* Ensure form rows and groups are visible */
+.form-row {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  visibility: visible !important;
+}
+
+/* Labels - Account Maintenance Style */
+.form-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4a7c95;
+  margin: 0;
+  display: block !important;
+  text-align: left;
+  visibility: visible !important;
+}
+
+/* Form Controls - Match Maintain Banks */
+.form-control,
+input[type="text"],
+input[type="number"],
+select {
+  height: 32px;
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.form-control::placeholder,
+input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.form-control:focus,
+input:focus,
+select:focus {
+  outline: 2px solid #4a7c95;
+  outline-offset: 2px;
+  border-color: #4a7c95;
+}
+
+.form-control:disabled,
+.form-control:read-only,
+input:read-only {
+  background-color: #f8fafc;
+  cursor: not-allowed;
+  color: #64748b;
+}
+
+select.form-control,
+select {
+  cursor: pointer;
+  padding-right: 32px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a7c95' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+/* Currency Control - Two fields side by side */
+.currency-group {
+  position: relative;
+}
+
+.currency-control {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+}
+
+.currency-control .currency-id {
+  flex: 0 0 120px;
+  min-width: 80px;
+}
+
+.currency-control .currency-name {
+  flex: 1;
+  background-color: #f8fafc;
+}
+
+.currency-control .search-btn {
+  position: static;
+  flex-shrink: 0;
+  bottom: auto;
+  right: auto;
+}
+
+/* Date Control */
+.date-control {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  position: relative;
+}
+
+.date-control .date-field {
+  flex: 1;
+}
+
+.date-control .calendar-btn {
+  position: static;
+  flex-shrink: 0;
+  bottom: auto;
+  right: auto;
+}
+
+/* Search and Calendar Buttons */
+.search-btn,
+.calendar-btn {
+  position: absolute;
+  right: 2px;
+  bottom: 7px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #4a7c95;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  padding: 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.search-btn:hover,
+.calendar-btn:hover {
+  background: #3d6a7f;
+  box-shadow: 0 2px 6px rgba(74, 124, 149, 0.15);
+}
+
+/* Add padding to inputs with buttons */
+.form-group:has(.search-btn) .form-control,
+.form-group:has(.calendar-btn) .form-control {
+  padding-right: 36px;
+}
+
+/* Grid Actions */
+.grid-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.grid-btn {
+  padding: 8px 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f8fafc 0%, #e3e9ed 100%);
+  color: #2C3E50;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  min-width: 80px;
+  text-decoration: underline;
+  box-shadow: 0 1px 4px rgba(74, 124, 149, 0.04);
+}
+
+.grid-btn:hover {
+  background: linear-gradient(90deg, #4a7c95 0%, #3d6a7f 100%);
+  color: #ffffff;
+  border-color: #4a7c95;
+  box-shadow: 0 2px 8px rgba(74, 124, 149, 0.12);
+  transform: translateY(-1px);
+}
+
+.grid-btn:active {
+  transform: translateY(0);
+}
+
+/* Data Grid */
+.data-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.data-grid thead {
+  background: #5a8fa8;
+  color: #ffffff;
+}
+
+.data-grid th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  border: none;
+}
+
+.data-grid tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.data-grid tbody tr:hover:not(.no-data) {
+  background: #f0f9ff;
+}
+
+.data-grid td {
+  padding: 10px 14px;
+  color: #1e293b;
+  border: none;
+}
+
+.data-grid tr.no-data td {
+  text-align: center;
+  color: #ef4444;
+  padding: 24px;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Behind The Scene - Grid Layout */
+.behind-scene-content .form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Scrollbar Styling */
+.limit-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.limit-content::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.limit-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.limit-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .form-group label {
+    min-width: 100px;
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .grid-actions {
+    flex-wrap: wrap;
+  }
+}

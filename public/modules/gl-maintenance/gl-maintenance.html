@@ -1,0 +1,1467 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GL Maintenance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <link rel="stylesheet" href="gl-maintenance.css">
+</head>
+<body style="margin: 0; padding: 0; background: transparent;">
+
+<div class="gl-maintenance">
+  <div style="display: grid; grid-template-columns: 1fr 110px; gap: 8px; height: 100%; padding: 8px;">
+    <!-- Main Content Area -->
+    <div style="display: flex; flex-direction: column; overflow: hidden; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(91, 159, 217, 0.18); border-radius: 1.5rem; padding: 12px;">
+      <div style="overflow-y: auto; flex: 1;">
+        <!-- Query Section -->
+        <div class="form-grid" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
+          <!-- Row 1 Col 1: GL Account ID -->
+          <div class="form-row">
+            <label class="label-blue">GL Account ID</label>
+            <div class="input-group">
+              <input type="text" id="glAccountIdField" style="flex: 1;" />
+              <button class="btn-lookup" id="glAccountIdSearchBtn"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <!-- Row 1 Col 2: Description -->
+          <div class="form-row">
+            <label class="label-blue">Description</label>
+            <input type="text" id="descriptionField" />
+          </div>
+
+          <!-- Row 2 Col 1: Short Name -->
+          <div class="form-row">
+            <label>Short Name</label>
+            <input type="text" id="shortNameField" />
+          </div>
+
+          <!-- Row 2 Col 2: Currency ID -->
+          <div class="form-row">
+            <label class="label-blue">Currency ID</label>
+            <div style="display: flex; gap: 0; align-items: center; border: 1px solid #d8dde3; border-radius: 4px; height: 28px; background: #fefefe;">
+              <input type="text" id="currencyIdField" style="width: 70px; height: 26px !important; border: none !important; border-radius: 0 !important; padding: 3px 8px !important; background: transparent !important;" />
+              <div style="width: 1px; height: 20px; background: #d8dde3; flex-shrink: 0;"></div>
+              <input type="text" id="currencyDescField" readonly style="flex: 1; min-width: 150px; height: 26px !important; border: none !important; border-radius: 0 !important; padding: 3px 8px !important; background: transparent !important; color: #6b7280 !important;" />
+              <button class="btn-lookup" id="currencyIdSearchBtn" onclick="window.openCurrencySearch()" style="margin-left: 8px;"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <!-- Row 3 Col 1: Main Account ID -->
+          <div class="form-row">
+            <label>Main Account ID</label>
+            <div class="input-group">
+              <input type="text" id="mainAccountIdField" style="flex: 1;" />
+              <button class="btn-lookup" id="mainAccountIdSearchBtn"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <!-- Row 3 Col 2: GL Type -->
+          <div class="form-row">
+            <label class="label-blue">GL Type</label>
+            <select id="glTypeSelect">
+              <option value="" selected>--Select--</option>
+            </select>
+          </div>
+
+          <!-- Row 4 Col 1: GL Sub Type Group -->
+          <div class="form-row">
+            <label class="label-blue">GL Sub Type Group</label>
+            <select id="glSubTypeGroupSelect">
+              <option selected>--Select--</option>
+            </select>
+          </div>
+
+          <!-- Row 4 Col 2: GL Sub Type -->
+          <div class="form-row">
+            <label class="label-blue">GL Sub Type</label>
+            <select id="glSubTypeSelect">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <!-- Row 5 Col 1: GL Category -->
+          <div class="form-row">
+            <label class="label-blue">GL Category</label>
+            <select id="glCategorySelect">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <!-- Row 5 Col 2: Posting Type -->
+          <div class="form-row">
+            <label>Posting Type</label>
+            <select id="postingTypeSelect">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <!-- Row 6 Col 1: GL Class -->
+          <div class="form-row">
+            <label>GL Class</label>
+            <select id="glClassSelect">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <!-- Row 6 Col 2: Contra Account ID -->
+          <div class="form-row">
+            <label>Contra Account ID</label>
+            <div class="input-group">
+              <input type="text" id="contraAccountIdField" style="flex: 1;" />
+              <button class="btn-lookup" id="contraAccountIdSearchBtn"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <!-- Row 7 Col 1: Do Revaluation -->
+          <div class="form-row">
+            <label>Do Revaluation</label>
+            <input type="checkbox" class="checkbox" id="doRevaluationCheckbox" />
+          </div>
+
+          <!-- Row 7 Col 2: Remarks -->
+          <div class="form-row">
+            <label>Remarks</label>
+            <textarea id="remarksField" rows="3" style="resize: vertical;"></textarea>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <header class="cm-step__header" style="background: #517a8e; color: white; padding: 12px 16px; margin: 0 -12px 16px -12px; display: flex; align-items: center; justify-content: space-between;">
+          <h3 class="mb-0" style="font-size: 0.875rem; font-weight: 600; background: none; border: none; box-shadow: none; padding: 0; margin: 0; text-transform: none; letter-spacing: normal;">Behind The Scene</h3>
+          <button type="button" style="background: transparent; border: none; color: white; cursor: pointer; font-size: 18px;" 
+                  onclick="document.getElementById('behindTheSceneContent').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-up');">
+            <i class="bi bi-chevron-up"></i>
+          </button>
+        </header>
+
+        <div id="behindTheSceneContent">
+          <!-- Behind The Scene Fields - 4 columns -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px 20px; padding: 0 12px 16px 12px;">
+            <div class="form-row">
+              <label>Created By</label>
+              <input type="text" class="bs-input-text" id="createdByField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Modified By</label>
+              <input type="text" class="bs-input-text" id="modifiedByField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Supervised By</label>
+              <input type="text" class="bs-input-text" id="supervisedByField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Closed By</label>
+              <input type="text" class="bs-input-text" id="closedByField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Created On</label>
+              <input type="text" class="bs-input-text" id="createdOnField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Modified On</label>
+              <input type="text" class="bs-input-text" id="modifiedOnField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Supervised On</label>
+              <input type="text" class="bs-input-text" id="supervisedOnField" readonly />
+            </div>
+            <div class="form-row">
+              <label>Closed On</label>
+              <input type="text" class="bs-input-text" id="closedOnField" readonly />
+            </div>
+            <div class="form-row" style="grid-column: 1 / -1;">
+              <label>Closed Reason</label>
+              <input type="text" class="input-full" id="closedReasonField" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Action Buttons -->
+    <div class="action-panel">
+      <div class="action-buttons">
+        <button class="btn-action underline" id="viewBtn"><i class="bi bi-eye me-1"></i>View</button>
+        <button class="btn-action underline" id="addBtn"><i class="bi bi-plus-circle me-1"></i>Add</button>
+        <button class="btn-action" id="editBtn"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+        <button class="btn-action" id="saveBtn"><i class="bi bi-save2 me-1"></i>Save</button>
+        <button class="btn-action" id="deleteBtn"><i class="bi bi-trash3 me-1"></i>Delete</button>
+        <button class="btn-action" id="cancelBtn"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+        <button class="btn-action" id="closeBtn"><i class="bi bi-x-lg me-1"></i>Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include in Branches Confirmation Modal -->
+<div class="modal fade" id="branchInclusionModal" tabindex="-1" aria-labelledby="branchInclusionModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="branchInclusionModalLabel">Confirm</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="mb-3">Do you wish to Include the Account in the Branches Also? [No:<span id="branchAccountNo"></span>]</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-primary btn-sm px-4" id="branchInclusionYesBtn">Yes</button>
+        <button type="button" class="btn btn-secondary btn-sm px-4" id="branchInclusionNoBtn">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- General Ledger Search Modal -->
+<div class="modal fade" id="glSearchModal" tabindex="-1" aria-labelledby="glSearchModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background: #517a8e; color: white;">
+        <h5 class="modal-title" id="glSearchModalLabel">General Ledger</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="glSearchForm" class="mb-2" onsubmit="return false;">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label for="glSearchAccountId" class="form-label mb-0">Account ID</label>
+              <div class="input-group input-group-sm">
+                <select id="glSearchAccountIdType" class="form-select" style="max-width: 90px;">
+                  <option value="Like">Like</option>
+                  <option value="Equals">Equals</option>
+                </select>
+                <input id="glSearchAccountId" type="text" class="form-control" placeholder="e.g. 1011" />
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label for="glSearchDesc" class="form-label mb-0">Description</label>
+              <div class="input-group input-group-sm">
+                <select id="glSearchDescType" class="form-select" style="max-width: 90px;">
+                  <option value="Like">Like</option>
+                  <option value="Equals">Equals</option>
+                </select>
+                <input id="glSearchDesc" type="text" class="form-control" placeholder="e.g. Cash" />
+              </div>
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-primary btn-sm w-100" id="glSearchBtn">Search</button>
+            </div>
+          </div>
+        </form>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+          <table class="table table-sm table-bordered table-hover mb-0" id="glSearchTable">
+            <colgroup>
+              <col style="width: 140px;" />
+              <col />
+            </colgroup>
+            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+              <tr>
+                <th class="text-nowrap">Account ID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Results will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <style>
+          #glSearchTable {
+            table-layout: fixed;
+          }
+          #glSearchTable th, #glSearchTable td {
+            vertical-align: middle;
+          }
+          #glSearchTable th:nth-child(1),
+          #glSearchTable td:nth-child(1) {
+            white-space: nowrap;
+          }
+          #glSearchTable td:nth-child(2) {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          #glSearchTable tbody tr {
+            cursor: pointer !important;
+          }
+          #glSearchTable tbody tr:hover {
+            background-color: #e3f2fd !important;
+          }
+          #glSearchTable tbody tr.table-active {
+            background-color: #2196F3 !important;
+            color: white !important;
+          }
+        </style>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="glSearchPrevBtn"><i class="bi bi-arrow-left"></i></button>
+        <button type="button" class="btn btn-primary btn-sm" id="glSearchOkBtn">OK</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="glSearchNextBtn"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Currency Search Modal -->
+<div class="modal fade" id="currencySearchModal" tabindex="-1" aria-labelledby="currencySearchModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background: #517a8e; color: white;">
+        <h5 class="modal-title" id="currencySearchModalLabel">Currency</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="currencySearchForm" class="mb-2" onsubmit="return false;">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <label for="currencySearchId" class="form-label mb-0">Currency ID</label>
+              <select id="currencySearchIdType" class="form-select form-select-sm w-auto d-inline-block" style="width: 80px;">
+                <option value="Like">Like</option>
+                <option value="Equals">Equals</option>
+              </select>
+              <input id="currencySearchId" type="text" class="form-control form-control-sm d-inline-block" style="width: 150px;" />
+            </div>
+            <div class="col-md-4">
+              <label for="currencySearchDesc" class="form-label mb-0">Description</label>
+              <select id="currencySearchDescType" class="form-select form-select-sm w-auto d-inline-block" style="width: 80px;">
+                <option value="Like">Like</option>
+                <option value="Equals">Equals</option>
+              </select>
+              <input id="currencySearchDesc" type="text" class="form-control form-control-sm d-inline-block" style="width: 150px;" />
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-primary btn-sm w-100" id="currencySearchBtn">Search</button>
+            </div>
+          </div>
+        </form>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+          <table class="table table-sm table-bordered table-hover mb-0" id="currencySearchTable">
+            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+              <tr>
+                <th>CurrencyID</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Results will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <style>
+          #currencySearchTable tbody tr {
+            cursor: pointer !important;
+          }
+          #currencySearchTable tbody tr:hover {
+            background-color: #e3f2fd !important;
+          }
+          #currencySearchTable tbody tr.table-active {
+            background-color: #2196F3 !important;
+            color: white !important;
+          }
+        </style>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="currencySearchPrevBtn"><i class="bi bi-arrow-left"></i></button>
+        <button type="button" class="btn btn-primary btn-sm" id="currencySearchOkBtn">OK</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="currencySearchNextBtn"><i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Simple test function -->
+<script>
+  console.log('🔴 Inline script loaded');
+  
+  window.openGLSearch = function() {
+    console.log('🔴 openGLSearch called from onclick');
+    
+    const modal = document.getElementById('glSearchModal');
+    if (!modal) {
+      alert('Modal element not found!');
+      return;
+    }
+    
+    if (typeof bootstrap === 'undefined') {
+      alert('Bootstrap not loaded!');
+      return;
+    }
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Load sample data
+    setTimeout(() => {
+      const tbody = document.querySelector('#glSearchTable tbody');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr style="cursor: pointer;">
+            <td>10110000</td>
+            <td>IFB Cash In Vaulies</td>
+            <td>A</td>
+          </tr>
+          <tr style="cursor: pointer;">
+            <td>10110001</td>
+            <td>IFB Cash In Till once</td>
+            <td>A</td>
+          </tr>
+          <tr style="cursor: pointer;">
+            <td>10110002</td>
+            <td>IFB Cash In Till - Twobyt</td>
+            <td>A</td>
+          </tr>
+          <tr style="cursor: pointer;">
+            <td>10110003</td>
+            <td>IFB Cash In Till-Three</td>
+            <td>A</td>
+          </tr>
+          <tr style="cursor: pointer;">
+            <td>10110004</td>
+            <td>IFB Cash In Till-Four</td>
+            <td>A</td>
+          </tr>
+        `;
+        
+        // Add click handlers to highlight selected row
+        tbody.querySelectorAll('tr').forEach(tr => {
+          // Single click - highlight
+          tr.addEventListener('click', function() {
+            tbody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+            this.classList.add('table-active');
+          });
+          
+          // Double click - select and close
+          tr.addEventListener('dblclick', function() {
+            const accountId = this.children[0].textContent;
+            const description = this.children[1].textContent;
+            
+            // Populate the main form
+            document.getElementById('glAccountIdField').value = accountId;
+            document.getElementById('descriptionField').value = description;
+            
+            // Close the modal
+            bootstrap.Modal.getInstance(modal).hide();
+          });
+        });
+      }
+      
+      // Wire up OK button to populate main form
+      const okBtn = document.getElementById('glSearchOkBtn');
+      if (okBtn) {
+        okBtn.onclick = function() {
+          const selectedRow = tbody.querySelector('tr.table-active');
+          if (selectedRow) {
+            const accountId = selectedRow.children[0].textContent;
+            const description = selectedRow.children[1].textContent;
+            
+            // Populate the main form
+            document.getElementById('glAccountIdField').value = accountId;
+            document.getElementById('descriptionField').value = description;
+            
+            // Close the modal
+            bootstrap.Modal.getInstance(modal).hide();
+          } else {
+            alert('Please select a record first');
+          }
+        };
+      }
+    }, 100);
+  };
+  
+  // Currency Search Function
+  window.openCurrencySearch = function() {
+    console.log('🔴 openCurrencySearch called');
+    
+    const modal = document.getElementById('currencySearchModal');
+    if (!modal) {
+      alert('Currency modal element not found!');
+      return;
+    }
+    
+    if (typeof bootstrap === 'undefined') {
+      alert('Bootstrap not loaded!');
+      return;
+    }
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    // Load currency data
+    setTimeout(() => {
+      const tbody = document.querySelector('#currencySearchTable tbody');
+      if (tbody) {
+        const currencies = [
+          { CurrencyID: "AED", Description: "UAE DIRHAM" },
+          { CurrencyID: "AUD", Description: "AUSTRALIAN DOLLAR" },
+          { CurrencyID: "CAD", Description: "CANADIAN DOLLAR" },
+          { CurrencyID: "CHF", Description: "SWISS FRANC" },
+          { CurrencyID: "CNY", Description: "CHINESE YUAN" },
+          { CurrencyID: "DJF", Description: "DJIBOUTI FRANC" },
+          { CurrencyID: "DKK", Description: "DANISH KRONER" },
+          { CurrencyID: "ETB", Description: "BIRR" },
+          { CurrencyID: "EUR", Description: "EURO" },
+          { CurrencyID: "GBP", Description: "POUND STERLING" },
+          { CurrencyID: "INR", Description: "INDIAN RUPEE" },
+          { CurrencyID: "JPY", Description: "JAPANESE YEN" },
+          { CurrencyID: "KES", Description: "KENYA SHILLING" },
+          { CurrencyID: "KWD", Description: "KUWAITI DINAR" },
+          { CurrencyID: "NOK", Description: "NORWIGIAN KRONER" },
+          { CurrencyID: "SAR", Description: "SAUDI RIYAL" },
+          { CurrencyID: "SDR", Description: "SDR" },
+          { CurrencyID: "SEK", Description: "SWDISH KRONER" },
+          { CurrencyID: "USD", Description: "USD DOLLAR" },
+          { CurrencyID: "ZAR", Description: "SOUTH AFRICA RAND" }
+        ];
+        
+        tbody.innerHTML = '';
+        currencies.forEach(currency => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${currency.CurrencyID}</td>
+            <td>${currency.Description}</td>
+          `;
+          tr.style.cursor = 'pointer';
+          
+          // Single click - highlight
+          tr.addEventListener('click', function() {
+            tbody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+            this.classList.add('table-active');
+          });
+          
+          // Double click - select and close
+          tr.addEventListener('dblclick', function() {
+            const currencyId = this.children[0].textContent;
+            const currencyDesc = this.children[1].textContent;
+            document.getElementById('currencyIdField').value = currencyId;
+            document.getElementById('currencyDescField').value = currencyDesc;
+            bootstrap.Modal.getInstance(modal).hide();
+          });
+          
+          tbody.appendChild(tr);
+        });
+      }
+      
+      // Wire up OK button
+      const okBtn = document.getElementById('currencySearchOkBtn');
+      if (okBtn) {
+        okBtn.onclick = function() {
+          const selectedRow = tbody.querySelector('tr.table-active');
+          if (selectedRow) {
+            const currencyId = selectedRow.children[0].textContent;
+            const currencyDesc = selectedRow.children[1].textContent;
+            document.getElementById('currencyIdField').value = currencyId;
+            document.getElementById('currencyDescField').value = currencyDesc;
+            bootstrap.Modal.getInstance(modal).hide();
+          } else {
+            alert('Please select a currency first');
+          }
+        };
+      }
+      
+      // Search button functionality
+      const searchBtn = document.getElementById('currencySearchBtn');
+      if (searchBtn) {
+        searchBtn.onclick = function() {
+          const searchId = document.getElementById('currencySearchId').value.toLowerCase();
+          const searchDesc = document.getElementById('currencySearchDesc').value.toLowerCase();
+          
+          tbody.querySelectorAll('tr').forEach(tr => {
+            const currencyId = tr.children[0].textContent.toLowerCase();
+            const description = tr.children[1].textContent.toLowerCase();
+            
+            const matchId = !searchId || currencyId.includes(searchId);
+            const matchDesc = !searchDesc || description.includes(searchDesc);
+            
+            if (matchId && matchDesc) {
+              tr.style.display = '';
+            } else {
+              tr.style.display = 'none';
+            }
+          });
+        };
+      }
+    }, 100);
+  };
+  
+  // Main Account ID Search Function
+  window.openMainAccountSearch = function() {
+    // Remove existing modal if any
+    const existingModal = document.getElementById('mainAccountSearchModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'mainAccountSearchModal';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+    
+    // Create modal content
+    const content = document.createElement('div');
+    content.style.cssText = 'background: white; border-radius: 8px; width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 4px 24px rgba(0,0,0,0.15);';
+    
+    // Modal header with #517a8e color and controls
+    const header = document.createElement('div');
+    header.style.cssText = 'background: #517a8e; color: white; padding: 12px 16px; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: space-between; cursor: move;';
+    header.innerHTML = `
+      <span style="font-weight: 600; font-size: 14px;">Main Account ID Search</span>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="this.closest('#mainAccountSearchModal').style.display='none'" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; border-radius: 4px; font-size: 18px; font-weight: 300;">−</button>
+        <button onclick="if(this.closest('#mainAccountSearchModal').style.maxWidth=='100%'){this.closest('#mainAccountSearchModal').querySelector('div').style.width='600px';this.closest('#mainAccountSearchModal').style.maxWidth='';} else {this.closest('#mainAccountSearchModal').querySelector('div').style.width='100%';this.closest('#mainAccountSearchModal').style.maxWidth='100%';}" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; border-radius: 4px; font-size: 18px; font-weight: 300;">□</button>
+        <button onclick="document.getElementById('mainAccountSearchModal').remove()" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; border-radius: 4px; font-size: 18px; font-weight: 300;">×</button>
+      </div>
+    `;
+    
+    // Modal body
+    const body = document.createElement('div');
+    body.style.cssText = 'padding: 16px; flex: 1; overflow-y: auto;';
+    body.innerHTML = `
+      <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Account ID</label>
+          <div style="display: flex; gap: 4px;">
+            <select id="mainAccountSearchType" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;">
+              <option value="Like">Like</option>
+              <option value="Equals">Equals</option>
+            </select>
+            <input id="mainAccountSearchId" type="text" placeholder="e.g. 1011" style="flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;" />
+          </div>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Description</label>
+          <div style="display: flex; gap: 4px;">
+            <select id="mainAccountSearchDescType" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;">
+              <option value="Like">Like</option>
+              <option value="Equals">Equals</option>
+            </select>
+            <input id="mainAccountSearchDesc" type="text" placeholder="e.g. Cash" style="flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;" />
+          </div>
+        </div>
+        <button onclick="window.performMainAccountSearch()" style="padding: 6px 16px; background: #517a8e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; height: 32px; font-weight: 600;">Search</button>
+      </div>
+      <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">
+            <tr>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600;">Account ID</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600;">Description</th>
+            </tr>
+          </thead>
+          <tbody id="mainAccountSearchResults">
+            <!-- Results will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    // Modal footer with navigation
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding: 12px 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;';
+    footer.innerHTML = `
+      <button style="padding: 6px 12px; background: white; color: #64748b; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-size: 12px;">◀</button>
+      <button onclick="window.selectMainAccount()" style="padding: 6px 24px; background: #517a8e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">OK</button>
+      <button style="padding: 6px 12px; background: white; color: #64748b; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-size: 12px;">▶</button>
+    `;
+    
+    content.appendChild(header);
+    content.appendChild(body);
+    content.appendChild(footer);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    // Load data
+    window.performMainAccountSearch();
+    
+    // Click outside to close
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  };
+  
+  window.performMainAccountSearch = function() {
+    const searchId = document.getElementById('mainAccountSearchId')?.value.toLowerCase() || '';
+    const searchDesc = document.getElementById('mainAccountSearchDesc')?.value.toLowerCase() || '';
+    const searchType = document.getElementById('mainAccountSearchType')?.value || 'Like';
+    const searchDescType = document.getElementById('mainAccountSearchDescType')?.value || 'Like';
+    
+    // Sample data - replace with actual API call
+    const accounts = [
+      { AccountID: "1011", Description: "CASH AT HEAD OFFICE" },
+      { AccountID: "1021", Description: "CASH AT BRANCH" },
+      { AccountID: "1031", Description: "CLEARING ACCOUNT" },
+      { AccountID: "1041", Description: "SUSPENSE ACCOUNT" },
+      { AccountID: "2011", Description: "CURRENT ACCOUNT" },
+      { AccountID: "2021", Description: "SAVINGS ACCOUNT" },
+      { AccountID: "3011", Description: "FIXED DEPOSIT" },
+      { AccountID: "4011", Description: "LOANS AND ADVANCES" }
+    ];
+    
+    const tbody = document.getElementById('mainAccountSearchResults');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    accounts.forEach(account => {
+      const accountId = account.AccountID.toLowerCase();
+      const description = account.Description.toLowerCase();
+      
+      let matchId = true;
+      let matchDesc = true;
+      
+      if (searchId) {
+        matchId = searchType === 'Like' ? accountId.includes(searchId) : accountId === searchId;
+      }
+      if (searchDesc) {
+        matchDesc = searchDescType === 'Like' ? description.includes(searchDesc) : description === searchDesc;
+      }
+      
+      if (matchId && matchDesc) {
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.innerHTML = `
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">${account.AccountID}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">${account.Description}</td>
+        `;
+        
+        tr.addEventListener('click', function() {
+          tbody.querySelectorAll('tr').forEach(r => r.style.background = '');
+          this.style.background = '#e0e7ff';
+        });
+        
+        tr.addEventListener('dblclick', function() {
+          document.getElementById('mainAccountIdField').value = account.AccountID;
+          document.getElementById('mainAccountSearchModal').remove();
+        });
+        
+        tbody.appendChild(tr);
+      }
+    });
+  };
+  
+  window.selectMainAccount = function() {
+    const selectedRow = document.querySelector('#mainAccountSearchResults tr[style*="e0e7ff"]');
+    if (selectedRow) {
+      const accountId = selectedRow.cells[0].textContent;
+      document.getElementById('mainAccountIdField').value = accountId;
+      document.getElementById('mainAccountSearchModal').remove();
+    } else {
+      alert('Please select an account first');
+    }
+  };
+  
+  // Contra Account ID Search Function
+  window.openContraAccountSearch = function() {
+    // Remove existing modal if any
+    const existingModal = document.getElementById('contraAccountSearchModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'contraAccountSearchModal';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+    
+    // Create modal content
+    const content = document.createElement('div');
+    content.style.cssText = 'background: white; border-radius: 8px; width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 4px 24px rgba(0,0,0,0.15);';
+    
+    // Modal header with #517a8e color and controls
+    const header = document.createElement('div');
+    header.style.cssText = 'background: #517a8e; color: white; padding: 12px 16px; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: space-between; cursor: move;';
+    header.innerHTML = `
+      <span style="font-weight: 600; font-size: 14px;">Contra Account ID Search</span>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="this.closest('#contraAccountSearchModal').style.display='none'" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; border-radius: 4px; font-size: 18px; font-weight: 300;">−</button>
+        <button onclick="if(this.closest('#contraAccountSearchModal').style.maxWidth=='100%'){this.closest('#contraAccountSearchModal').querySelector('div').style.width='600px';this.closest('#contraAccountSearchModal').style.maxWidth='';} else {this.closest('#contraAccountSearchModal').querySelector('div').style.width='100%';this.closest('#contraAccountSearchModal').style.maxWidth='100%';}" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; border-radius: 4px; font-size: 18px; font-weight: 300;">□</button>
+        <button onclick="document.getElementById('contraAccountSearchModal').remove()" style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; border-radius: 4px; font-size: 18px; font-weight: 300;">×</button>
+      </div>
+    `;
+    
+    // Modal body
+    const body = document.createElement('div');
+    body.style.cssText = 'padding: 16px; flex: 1; overflow-y: auto;';
+    body.innerHTML = `
+      <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Account ID</label>
+          <div style="display: flex; gap: 4px;">
+            <select id="contraAccountSearchType" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;">
+              <option value="Like">Like</option>
+              <option value="Equals">Equals</option>
+            </select>
+            <input id="contraAccountSearchId" type="text" placeholder="e.g. 1011" style="flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;" />
+          </div>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Description</label>
+          <div style="display: flex; gap: 4px;">
+            <select id="contraAccountSearchDescType" style="padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;">
+              <option value="Like">Like</option>
+              <option value="Equals">Equals</option>
+            </select>
+            <input id="contraAccountSearchDesc" type="text" placeholder="e.g. Cash" style="flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; height: 32px;" />
+          </div>
+        </div>
+        <button onclick="window.performContraAccountSearch()" style="padding: 6px 16px; background: #517a8e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; height: 32px; font-weight: 600;">Search</button>
+      </div>
+      <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">
+            <tr>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600;">Account ID</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600;">Description</th>
+            </tr>
+          </thead>
+          <tbody id="contraAccountSearchResults">
+            <!-- Results will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    // Modal footer with navigation
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding: 12px 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;';
+    footer.innerHTML = `
+      <button style="padding: 6px 12px; background: white; color: #64748b; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-size: 12px;">◀</button>
+      <button onclick="window.selectContraAccount()" style="padding: 6px 24px; background: #517a8e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">OK</button>
+      <button style="padding: 6px 12px; background: white; color: #64748b; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-size: 12px;">▶</button>
+    `;
+    
+    content.appendChild(header);
+    content.appendChild(body);
+    content.appendChild(footer);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    // Load data
+    window.performContraAccountSearch();
+    
+    // Click outside to close
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  };
+  
+  window.performContraAccountSearch = function() {
+    const searchId = document.getElementById('contraAccountSearchId')?.value.toLowerCase() || '';
+    const searchDesc = document.getElementById('contraAccountSearchDesc')?.value.toLowerCase() || '';
+    const searchType = document.getElementById('contraAccountSearchType')?.value || 'Like';
+    const searchDescType = document.getElementById('contraAccountSearchDescType')?.value || 'Like';
+    
+    // Sample data - replace with actual API call
+    const accounts = [
+      { AccountID: "1011", Description: "CASH AT HEAD OFFICE" },
+      { AccountID: "1021", Description: "CASH AT BRANCH" },
+      { AccountID: "1031", Description: "CLEARING ACCOUNT" },
+      { AccountID: "1041", Description: "SUSPENSE ACCOUNT" },
+      { AccountID: "2011", Description: "CURRENT ACCOUNT" },
+      { AccountID: "2021", Description: "SAVINGS ACCOUNT" },
+      { AccountID: "3011", Description: "FIXED DEPOSIT" },
+      { AccountID: "4011", Description: "LOANS AND ADVANCES" }
+    ];
+    
+    const tbody = document.getElementById('contraAccountSearchResults');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    accounts.forEach(account => {
+      const accountId = account.AccountID.toLowerCase();
+      const description = account.Description.toLowerCase();
+      
+      let matchId = true;
+      let matchDesc = true;
+      
+      if (searchId) {
+        matchId = searchType === 'Like' ? accountId.includes(searchId) : accountId === searchId;
+      }
+      if (searchDesc) {
+        matchDesc = searchDescType === 'Like' ? description.includes(searchDesc) : description === searchDesc;
+      }
+      
+      if (matchId && matchDesc) {
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.innerHTML = `
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">${account.AccountID}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #f1f5f9;">${account.Description}</td>
+        `;
+        
+        tr.addEventListener('click', function() {
+          tbody.querySelectorAll('tr').forEach(r => r.style.background = '');
+          this.style.background = '#e0e7ff';
+        });
+        
+        tr.addEventListener('dblclick', function() {
+          document.getElementById('contraAccountIdField').value = account.AccountID;
+          document.getElementById('contraAccountSearchModal').remove();
+        });
+        
+        tbody.appendChild(tr);
+      }
+    });
+  };
+  
+  window.selectContraAccount = function() {
+    const selectedRow = document.querySelector('#contraAccountSearchResults tr[style*="e0e7ff"]');
+    if (selectedRow) {
+      const accountId = selectedRow.cells[0].textContent;
+      document.getElementById('contraAccountIdField').value = accountId;
+      document.getElementById('contraAccountSearchModal').remove();
+    } else {
+      alert('Please select an account first');
+    }
+  };
+  
+  // Populate GL Sub Type Group dropdown on page load
+  window.addEventListener('DOMContentLoaded', function() {
+    // Populate GL Type dropdown
+    const glTypeData = [
+      { SubCodeID: "L", CodeDescription: "Liability", DisplayOrder: 0 },
+      { SubCodeID: "S", CodeDescription: "Share Capital / Equity", DisplayOrder: 1 },
+      { SubCodeID: "A", CodeDescription: "Asset", DisplayOrder: 2 },
+      { SubCodeID: "R", CodeDescription: "Retained Earning", DisplayOrder: 3 },
+      { SubCodeID: "I", CodeDescription: "Income", DisplayOrder: 4 },
+      { SubCodeID: "E", CodeDescription: "Expense", DisplayOrder: 5 },
+      { SubCodeID: "C", CodeDescription: "Contingent Asset", DisplayOrder: 6 },
+      { SubCodeID: "D", CodeDescription: "Contingent Liability", DisplayOrder: 7 }
+    ];
+    
+    const glTypeSelect = document.getElementById('glTypeSelect');
+    if (glTypeSelect) {
+      // Sort by display order
+      glTypeData.sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+      
+      // Clear existing options except first
+      glTypeSelect.innerHTML = '<option value="">--Select--</option>';
+      
+      // Add all options
+      glTypeData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.SubCodeID;
+        option.textContent = item.CodeDescription;
+        glTypeSelect.appendChild(option);
+      });
+    }
+    
+    // Populate GL Category dropdown
+    const glCategoryData = [
+      { SubCodeID: "MAIN", CodeDescription: "Main GL", DisplayOrder: 0, GLType: "" },
+      { SubCodeID: "PEXP", CodeDescription: "Prepaid Expense GL", DisplayOrder: 1, GLType: "A" },
+      { SubCodeID: "OFFB", CodeDescription: "Off Balance Sheet", DisplayOrder: 2, GLType: "C" },
+      { SubCodeID: "NOST", CodeDescription: "Nostro A/c", DisplayOrder: 3, GLType: "A" },
+      { SubCodeID: "CONT", CodeDescription: "Control A/c", DisplayOrder: 4, GLType: "" },
+      { SubCodeID: "VOST", CodeDescription: "Vostro A/c", DisplayOrder: 5, GLType: "L" },
+      { SubCodeID: "DREC", CodeDescription: "Direct Reconcillable A/c", DisplayOrder: 6, GLType: "A" },
+      { SubCodeID: "PROV", CodeDescription: "Provision A/c", DisplayOrder: 7, GLType: "L" },
+      { SubCodeID: "OTHR", CodeDescription: "Others", DisplayOrder: 8, GLType: "" },
+      { SubCodeID: "CASH", CodeDescription: "Cash Account", DisplayOrder: 9, GLType: "A" },
+      { SubCodeID: "CONG", CodeDescription: "Contingent", DisplayOrder: 10, GLType: "C" },
+      { SubCodeID: "PAYB", CodeDescription: "Payable", DisplayOrder: 11, GLType: "L" },
+      { SubCodeID: "MPAY", CodeDescription: "Misc Payment", DisplayOrder: 12, GLType: "E" },
+      { SubCodeID: "MREC", CodeDescription: "Misc Receipt", DisplayOrder: 13, GLType: "I" },
+      { SubCodeID: "CTRA", CodeDescription: "Contra A/c", DisplayOrder: 14, GLType: "" },
+      { SubCodeID: "IBAC", CodeDescription: "Inter Branch Connectivity Account", DisplayOrder: 15, GLType: "A" },
+      { SubCodeID: "ATM", CodeDescription: "ATM VAULT", DisplayOrder: 16, GLType: "A" }
+    ];
+    
+    // Store full data globally for filtering
+    window.glCategoryFullData = glCategoryData;
+    
+    const glCategorySelect = document.getElementById('glCategorySelect');
+    if (glCategorySelect) {
+      // Initially populate with all options
+      populateGLCategory('');
+    }
+    
+    // Populate GL Sub Type Group dropdown
+    const glSubTypeGroupData = [
+      { SubCodeID: "001", CodeDescription: "Administrative expense- personnel", DisplayOrder: 1, GLType: "E" },
+      { SubCodeID: "002", CodeDescription: "Current Asset", DisplayOrder: 2, GLType: "A" },
+      { SubCodeID: "002", CodeDescription: "BALANCES FROM BANKS AND FINANCIAL INSTITTUTIONS", DisplayOrder: 3, GLType: "A" },
+      { SubCodeID: "003", CodeDescription: "Current Liability", DisplayOrder: 4, GLType: "L" },
+      { SubCodeID: "003", CodeDescription: "NOSTRO A/C", DisplayOrder: 5, GLType: "A" },
+      { SubCodeID: "004", CodeDescription: "BORROWINGS", DisplayOrder: 6, GLType: "L" },
+      { SubCodeID: "004", CodeDescription: "Retained Earnings", DisplayOrder: 7, GLType: "R" },
+      { SubCodeID: "004", CodeDescription: "Equity", DisplayOrder: 8, GLType: "S" },
+      { SubCodeID: "005", CodeDescription: "CASH ACCOUNT", DisplayOrder: 9, GLType: "A" },
+      { SubCodeID: "005", CodeDescription: "Income from other finance related services", DisplayOrder: 10, GLType: "I" },
+      { SubCodeID: "006", CodeDescription: "Interest (financial) expense", DisplayOrder: 11, GLType: "E" },
+      { SubCodeID: "006", CodeDescription: "CASH WITH CBK", DisplayOrder: 12, GLType: "A" },
+      { SubCodeID: "007", CodeDescription: "Loan loss provision expense", DisplayOrder: 13, GLType: "E" },
+      { SubCodeID: "007", CodeDescription: "CUSTOMER DEPOSITS", DisplayOrder: 14, GLType: "L" },
+      { SubCodeID: "008", CodeDescription: "Other-Operational expense", DisplayOrder: 15, GLType: "E" },
+      { SubCodeID: "008", CodeDescription: "FEES & COMMISSIONS - FINANCING", DisplayOrder: 16, GLType: "I" },
+      { SubCodeID: "008", CodeDescription: "Long Term Assets", DisplayOrder: 17, GLType: "A" },
+      { SubCodeID: "009", CodeDescription: "FEES & COMMISSIONS - OTHER", DisplayOrder: 18, GLType: "I" },
+      { SubCodeID: "009", CodeDescription: "Long Term Liability", DisplayOrder: 19, GLType: "L" },
+      { SubCodeID: "010", CodeDescription: "Non-Operational expense", DisplayOrder: 20, GLType: "E" },
+      { SubCodeID: "010", CodeDescription: "FIXED ASSETS", DisplayOrder: 21, GLType: "A" },
+      { SubCodeID: "011", CodeDescription: "INATNGIBLE ASSETS", DisplayOrder: 22, GLType: "A" },
+      { SubCodeID: "011", CodeDescription: "Non-operational income", DisplayOrder: 23, GLType: "I" },
+      { SubCodeID: "012", CodeDescription: "Operating Income", DisplayOrder: 24, GLType: "I" },
+      { SubCodeID: "012", CodeDescription: "INTANGIBLE ASSETS", DisplayOrder: 25, GLType: "A" },
+      { SubCodeID: "013", CodeDescription: "PROFIT EXPENSE", DisplayOrder: 26, GLType: "E" },
+      { SubCodeID: "013", CodeDescription: "Other Administrative expense ", DisplayOrder: 27, GLType: "E" },
+      { SubCodeID: "014", CodeDescription: "PROFIT IN INVESTMENTS", DisplayOrder: 28, GLType: "I" },
+      { SubCodeID: "015", CodeDescription: "PROFIT ON FINANCING", DisplayOrder: 29, GLType: "I" },
+      { SubCodeID: "015", CodeDescription: "Profit (Finacial) Expense", DisplayOrder: 30, GLType: "E" },
+      { SubCodeID: "016", CodeDescription: "INCOME", DisplayOrder: 31, GLType: "I" },
+      { SubCodeID: "017", CodeDescription: "INVESTMENTS", DisplayOrder: 32, GLType: "A" },
+      { SubCodeID: "018", CodeDescription: "FINANCING PROVISIONS", DisplayOrder: 33, GLType: "E" },
+      { SubCodeID: "019", CodeDescription: "FINANCING AND ADVANCES", DisplayOrder: 34, GLType: "A" },
+      { SubCodeID: "020", CodeDescription: "OFF BALANCE SHEET ASSETS", DisplayOrder: 35, GLType: "C" },
+      { SubCodeID: "021", CodeDescription: "OTHER", DisplayOrder: 36, GLType: "" },
+      { SubCodeID: "022", CodeDescription: "RETAINED EARNINGS ", DisplayOrder: 39, GLType: "R" },
+      { SubCodeID: "022", CodeDescription: "OTHER ASSETS", DisplayOrder: 40, GLType: "A" },
+      { SubCodeID: "023", CodeDescription: "OTHER INCOME", DisplayOrder: 41, GLType: "I" },
+      { SubCodeID: "023", CodeDescription: "OFF BALANCE SHEET LIABILITIES", DisplayOrder: 42, GLType: "D" },
+      { SubCodeID: "024", CodeDescription: "OTHER LIABILITIES", DisplayOrder: 43, GLType: "L" },
+      { SubCodeID: "025", CodeDescription: "SHAREHOLDERS FUNDS", DisplayOrder: 44, GLType: "S" },
+      { SubCodeID: "026", CodeDescription: "CURRENCY POSITIONING", DisplayOrder: 45, GLType: "" },
+      { SubCodeID: "026", CodeDescription: "STAFF COSTS", DisplayOrder: 46, GLType: "E" },
+      { SubCodeID: "026", CodeDescription: "CURRENT ASSETS", DisplayOrder: 47, GLType: "A" },
+      { SubCodeID: "027", CodeDescription: "TAX ", DisplayOrder: 48, GLType: "E" },
+      { SubCodeID: "028", CodeDescription: "TAXATION", DisplayOrder: 49, GLType: "E" },
+      { SubCodeID: "029", CodeDescription: "TREASURY INCOME", DisplayOrder: 50, GLType: "I" },
+      { SubCodeID: "030", CodeDescription: "EXPENCES", DisplayOrder: 51, GLType: "E" },
+      { SubCodeID: "030", CodeDescription: "CURRENT LIABILITIES", DisplayOrder: 52, GLType: "L" },
+      { SubCodeID: "031", CodeDescription: "NON CURRENT LIABILITIES", DisplayOrder: 53, GLType: "L" },
+      { SubCodeID: "031", CodeDescription: "EQUITY", DisplayOrder: 54, GLType: "S" },
+      { SubCodeID: "031", CodeDescription: "IMPAIREMENT", DisplayOrder: 55, GLType: "E" },
+      { SubCodeID: "032", CodeDescription: "Administrative expense-Personal", DisplayOrder: 56, GLType: "E" },
+      { SubCodeID: "032", CodeDescription: "Control A/c", DisplayOrder: 57, GLType: "" },
+      { SubCodeID: "033", CodeDescription: "Direct Reconcillable A/c", DisplayOrder: 59, GLType: "" },
+      { SubCodeID: "033", CodeDescription: "RESERVES", DisplayOrder: 60, GLType: "S" },
+      { SubCodeID: "033", CodeDescription: "Other Administrative Expense", DisplayOrder: 61, GLType: "E" },
+      { SubCodeID: "034", CodeDescription: "EQUITY", DisplayOrder: 62, GLType: "S" },
+      { SubCodeID: "035", CodeDescription: "Clearing Accounts", DisplayOrder: 63, GLType: "" },
+      { SubCodeID: "036", CodeDescription: "Cash At Bank", DisplayOrder: 64, GLType: "A" },
+      { SubCodeID: "100", CodeDescription: "Intangible Asset", DisplayOrder: 65, GLType: "A" },
+      { SubCodeID: "12131", CodeDescription: "???????", DisplayOrder: 66, GLType: "" },
+      { SubCodeID: "34567", CodeDescription: "wertyuiop", DisplayOrder: 67, GLType: "" },
+      { SubCodeID: "345678", CodeDescription: "wertyuio", DisplayOrder: 68, GLType: "" }
+    ];
+    
+    // Store full data for filtering
+    window.glSubTypeGroupFullData = glSubTypeGroupData;
+    
+    const select = document.getElementById('glSubTypeGroupSelect');
+    if (select) {
+      // Initially populate with all options
+      populateGLSubTypeGroup('');
+    }
+    
+    // Add change event listener to GL Type dropdown
+    glTypeSelect.addEventListener('change', function() {
+      const selectedType = this.value;
+      populateGLSubTypeGroup(selectedType);
+      populateGLCategory(selectedType);
+      // Reset dependent dropdowns
+      document.getElementById('glSubTypeSelect').innerHTML = '<option value="">--Select--</option>';
+    });
+    
+    // Add change event listener to GL Sub Type Group dropdown
+    const glSubTypeGroupSelect = document.getElementById('glSubTypeGroupSelect');
+    if (glSubTypeGroupSelect) {
+      glSubTypeGroupSelect.addEventListener('change', function() {
+        const selectedGroup = this.value;
+        populateGLSubType(selectedGroup);
+      });
+    }
+    
+    // Populate GL Sub Type dropdown
+    const glSubTypeData = [
+      { SubCodeID: "001", CodeDescription: "Bank - Cash In Transit", DisplayOrder: 1, ParentGroupID: "005" },
+      { SubCodeID: "001", CodeDescription: "INTERIM PROFITS", DisplayOrder: 2, ParentGroupID: "014" },
+      { SubCodeID: "001", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 3, ParentGroupID: "001" },
+      { SubCodeID: "001", CodeDescription: "Expense from FCY", DisplayOrder: 4 },
+      { SubCodeID: "001", CodeDescription: "TRAVELLING EXPENSES", DisplayOrder: 5 },
+      { SubCodeID: "001", CodeDescription: "Salary and Benefit", DisplayOrder: 6 },
+      { SubCodeID: "001", CodeDescription: "Other Administrative Expense", DisplayOrder: 7 },
+      { SubCodeID: "001", CodeDescription: "CREDIT IMPAIRMENT - SPECIFIC PROVISIONS", DisplayOrder: 8 },
+      { SubCodeID: "001", CodeDescription: "ACCRUED PROFITS - AL AWWAL ", DisplayOrder: 9 },
+      { SubCodeID: "001", CodeDescription: "CUSTOMER DEPOSITS - MUDARABA CERTIFICATE", DisplayOrder: 10 },
+      { SubCodeID: "002", CodeDescription: "CUSTOMER DEPOSITS - WAKALA DEPOSITS", DisplayOrder: 11 },
+      { SubCodeID: "002", CodeDescription: "ACCRUED PROFITS - MUDARABA CERTIFICATE", DisplayOrder: 12 },
+      { SubCodeID: "002", CodeDescription: "CREDIT IMPAIRMENT - GENERAL PROVISIONS", DisplayOrder: 13 },
+      { SubCodeID: "002", CodeDescription: "BALANCES FROM BANKS AND FINANCIAL INSTITTUTIONS", DisplayOrder: 14 },
+      { SubCodeID: "002", CodeDescription: "OPERATIONAL EXPENSES", DisplayOrder: 15 },
+      { SubCodeID: "002", CodeDescription: "Bank -Current Account", DisplayOrder: 16 },
+      { SubCodeID: "003", CodeDescription: "Bank-Saving account", DisplayOrder: 17 },
+      { SubCodeID: "003", CodeDescription: "BALANCES WITH FINANCIAL INSITTUTIONS", DisplayOrder: 18 },
+      { SubCodeID: "003", CodeDescription: "BALANCES WITH FINANCIAL INSTITUTIONS", DisplayOrder: 19 },
+      { SubCodeID: "003", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 20 },
+      { SubCodeID: "003", CodeDescription: "ACCRUED PROFITS - WAKALA DEPOSITS", DisplayOrder: 21 },
+      { SubCodeID: "003", CodeDescription: "CUSTOMER DEPOSITS - COMMODITY MURABAHA", DisplayOrder: 22 },
+      { SubCodeID: "004", CodeDescription: "CUSTOMER DEPOSITS - MUDARABA AL AWWAL", DisplayOrder: 23 },
+      { SubCodeID: "004", CodeDescription: "BORROWINGS", DisplayOrder: 24 },
+      { SubCodeID: "004", CodeDescription: "ACCRUED PROFITS -COMMODITY MURABAHA", DisplayOrder: 25 },
+      { SubCodeID: "004", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 26 },
+      { SubCodeID: "004", CodeDescription: "Bond Payable - DBE", DisplayOrder: 27 },
+      { SubCodeID: "005", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 28 },
+      { SubCodeID: "005", CodeDescription: "CASH BALANCES", DisplayOrder: 29 },
+      { SubCodeID: "005", CodeDescription: "Cash", DisplayOrder: 30 },
+      { SubCodeID: "005", CodeDescription: "BALANCES FROM BANKS AND FINANCIAL INSTITUTIONS", DisplayOrder: 31 },
+      { SubCodeID: "005", CodeDescription: "CUSTOMER DEPOSITS - MUDARABA AL AWWAL USD", DisplayOrder: 32 },
+      { SubCodeID: "006", CodeDescription: "FIXED INCOME INSTRUMENTS", DisplayOrder: 33 },
+      { SubCodeID: "006", CodeDescription: "Current Tax Liabilities", DisplayOrder: 34 },
+      { SubCodeID: "006", CodeDescription: "Clearing accounts ", DisplayOrder: 35 },
+      { SubCodeID: "006", CodeDescription: "CASH WITH CBK", DisplayOrder: 36 },
+      { SubCodeID: "006", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 37 },
+      { SubCodeID: "007", CodeDescription: "OTHER", DisplayOrder: 38 },
+      { SubCodeID: "007", CodeDescription: "CUSTOMER ADVANCE PAYMENTS", DisplayOrder: 39 },
+      { SubCodeID: "007", CodeDescription: "CUSTOMER ADVANCE PAYMENTS", DisplayOrder: 40 },
+      { SubCodeID: "007", CodeDescription: "CUSTOMER DEPOSITS", DisplayOrder: 41 },
+      { SubCodeID: "007", CodeDescription: "Equity", DisplayOrder: 42 },
+      { SubCodeID: "007", CodeDescription: "Equity", DisplayOrder: 43 },
+      { SubCodeID: "008", CodeDescription: "Fee income on loans", DisplayOrder: 44 },
+      { SubCodeID: "008", CodeDescription: "CUSTOMER CURRENT DEPOSITS", DisplayOrder: 45 },
+      { SubCodeID: "008", CodeDescription: "OPERATIONAL EXPENSES", DisplayOrder: 46 },
+      { SubCodeID: "008", CodeDescription: "FEES & COMMISSIONS - FINANCING", DisplayOrder: 47 },
+      { SubCodeID: "009", CodeDescription: "FEES & COMMISSIONS - OTHER", DisplayOrder: 48 },
+      { SubCodeID: "009", CodeDescription: "STAFF COSTS", DisplayOrder: 49 },
+      { SubCodeID: "009", CodeDescription: "Fixed assets", DisplayOrder: 50 },
+      { SubCodeID: "009", CodeDescription: "CUSTOMER SAVINGS DEPOSITS", DisplayOrder: 51 },
+      { SubCodeID: "009", CodeDescription: "Service Charge", DisplayOrder: 52 },
+      { SubCodeID: "01", CodeDescription: "Cash At Bank Current Account", DisplayOrder: 53 },
+      { SubCodeID: "010", CodeDescription: "FIXED ASSETS", DisplayOrder: 54 },
+      { SubCodeID: "010", CodeDescription: "DIRECTORS EXPENSES", DisplayOrder: 55 },
+      { SubCodeID: "010", CodeDescription: "Income from bank deposits", DisplayOrder: 56 },
+      { SubCodeID: "010", CodeDescription: "Commission Income", DisplayOrder: 57 },
+      { SubCodeID: "010", CodeDescription: "MURABAHA PAYABLES", DisplayOrder: 58 },
+      { SubCodeID: "011", CodeDescription: "PAYABLE TO BROKER B", DisplayOrder: 59 },
+      { SubCodeID: "011", CodeDescription: "Income from FCY", DisplayOrder: 60 },
+      { SubCodeID: "011", CodeDescription: "Income from investment", DisplayOrder: 61 },
+      { SubCodeID: "011", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 62 },
+      { SubCodeID: "011", CodeDescription: "CURRENT ASSETS", DisplayOrder: 63 },
+      { SubCodeID: "011", CodeDescription: "INATNGIBLE ASSETS", DisplayOrder: 64 },
+      { SubCodeID: "011", CodeDescription: "CURRENT ASSETS", DisplayOrder: 65 },
+      { SubCodeID: "012", CodeDescription: "INTANGIBLE ASSETS", DisplayOrder: 66 },
+      { SubCodeID: "012", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 67 },
+      { SubCodeID: "012", CodeDescription: "Insurance Payable", DisplayOrder: 68 },
+      { SubCodeID: "012", CodeDescription: "PROPOSED DIVIDENDS", DisplayOrder: 69 },
+      { SubCodeID: "013", CodeDescription: "OTHER PAYABLES", DisplayOrder: 70 },
+      { SubCodeID: "013", CodeDescription: "PROFIT EXPENSE", DisplayOrder: 71 },
+      { SubCodeID: "013", CodeDescription: "OPERATIONAL EXPENSES", DisplayOrder: 72 },
+      { SubCodeID: "013", CodeDescription: "Interest expense on saving", DisplayOrder: 73 },
+      { SubCodeID: "013", CodeDescription: "Profit Expense on Saving", DisplayOrder: 74 },
+      { SubCodeID: "014", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 75 },
+      { SubCodeID: "014", CodeDescription: "PROFIT IN INVESTMENTS", DisplayOrder: 76 },
+      { SubCodeID: "014", CodeDescription: "OTHER LIABILITIES", DisplayOrder: 77 },
+      { SubCodeID: "014", CodeDescription: "Interest income on loans", DisplayOrder: 78 },
+      { SubCodeID: "015", CodeDescription: "Tax payable", DisplayOrder: 79 },
+      { SubCodeID: "015", CodeDescription: "PROFIT ON FINANCING", DisplayOrder: 80 },
+      { SubCodeID: "015", CodeDescription: "Interest payable", DisplayOrder: 81 },
+      { SubCodeID: "015", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 82 },
+      { SubCodeID: "016", CodeDescription: "FOREX LOSS", DisplayOrder: 83 },
+      { SubCodeID: "016", CodeDescription: "INVESTMENT INCOME", DisplayOrder: 84 },
+      { SubCodeID: "016", CodeDescription: "Interest receivable ", DisplayOrder: 85 },
+      { SubCodeID: "016", CodeDescription: "Insurance Payable", DisplayOrder: 86 },
+      { SubCodeID: "017", CodeDescription: "Inventory (Stock)", DisplayOrder: 87 },
+      { SubCodeID: "017", CodeDescription: "INVESTMENTS", DisplayOrder: 88 },
+      { SubCodeID: "017", CodeDescription: "INVESTMENTS", DisplayOrder: 89 },
+      { SubCodeID: "017", CodeDescription: "INVESTMENTS", DisplayOrder: 90 },
+      { SubCodeID: "017", CodeDescription: "DEPRECIATION", DisplayOrder: 91 },
+      { SubCodeID: "018", CodeDescription: "AMORTISATION", DisplayOrder: 92 },
+      { SubCodeID: "018", CodeDescription: "FINANCING PROVISIONS", DisplayOrder: 93 },
+      { SubCodeID: "018", CodeDescription: "Loan loss provision expense", DisplayOrder: 94 },
+      { SubCodeID: "019", CodeDescription: "FINANCING AND ADVANCES", DisplayOrder: 95 },
+      { SubCodeID: "019", CodeDescription: "Loan loss reserve", DisplayOrder: 96 },
+      { SubCodeID: "019", CodeDescription: "LOSS ON DISPOSAL", DisplayOrder: 97 },
+      { SubCodeID: "02", CodeDescription: "Cash At Bank Saving Account", DisplayOrder: 98 },
+      { SubCodeID: "020", CodeDescription: "OFF BALANCE SHEET ASSETS", DisplayOrder: 99 },
+      { SubCodeID: "020", CodeDescription: "Loan Portfolio", DisplayOrder: 100 },
+      { SubCodeID: "020", CodeDescription: "INSURANCE PREMIUMS", DisplayOrder: 101 },
+      { SubCodeID: "021", CodeDescription: "STAFF COSTS", DisplayOrder: 102 },
+      { SubCodeID: "021", CodeDescription: "Loan subsidized ", DisplayOrder: 103 },
+      { SubCodeID: "021", CodeDescription: "OTHER", DisplayOrder: 104 },
+      { SubCodeID: "021", CodeDescription: "OTHER", DisplayOrder: 105 },
+      { SubCodeID: "021", CodeDescription: "OTHER", DisplayOrder: 106 },
+      { SubCodeID: "022", CodeDescription: "RETAINED EARNINGS ", DisplayOrder: 107 },
+      { SubCodeID: "022", CodeDescription: "OTHER ASSETS", DisplayOrder: 108 },
+      { SubCodeID: "022", CodeDescription: "OTHER ASSETS", DisplayOrder: 109 },
+      { SubCodeID: "022", CodeDescription: "OTHER ASSETS", DisplayOrder: 110 },
+      { SubCodeID: "022", CodeDescription: "Loans- Commercial", DisplayOrder: 111 },
+      { SubCodeID: "022", CodeDescription: "OPERATIONAL EXPENSES", DisplayOrder: 112 },
+      { SubCodeID: "023", CodeDescription: "ADMINISTRATIVE COSTS", DisplayOrder: 113 },
+      { SubCodeID: "023", CodeDescription: "Long term investment", DisplayOrder: 114 },
+      { SubCodeID: "023", CodeDescription: "OTHER INCOME", DisplayOrder: 115 },
+      { SubCodeID: "023", CodeDescription: "OFF BALANCE SHEET LIABILITIES", DisplayOrder: 116 },
+      { SubCodeID: "024", CodeDescription: "OTHER LIABILITIES", DisplayOrder: 117 },
+      { SubCodeID: "024", CodeDescription: "Long term loans-commercial", DisplayOrder: 118 },
+      { SubCodeID: "024", CodeDescription: "CORPORATE TAX", DisplayOrder: 119 },
+      { SubCodeID: "025", CodeDescription: "ROYALTIES PAYMENT", DisplayOrder: 120 },
+      { SubCodeID: "025", CodeDescription: "Long term loans-subsidized", DisplayOrder: 121 },
+      { SubCodeID: "025", CodeDescription: "SHAREHOLDERS FUNDS", DisplayOrder: 122 },
+      { SubCodeID: "026", CodeDescription: "CURRENCY POSITIONING", DisplayOrder: 123 },
+      { SubCodeID: "026", CodeDescription: "OPERATIONAL EXPENSES", DisplayOrder: 124 },
+      { SubCodeID: "026", CodeDescription: "Money Transfer Suspense Account", DisplayOrder: 125 },
+      { SubCodeID: "026", CodeDescription: "STAFF COSTS", DisplayOrder: 126 },
+      { SubCodeID: "026", CodeDescription: "CURRENCY POSITIONING ASSETS", DisplayOrder: 127 },
+      { SubCodeID: "027", CodeDescription: "Non-Operational expense", DisplayOrder: 128 },
+      { SubCodeID: "027", CodeDescription: "TAX ", DisplayOrder: 129 },
+      { SubCodeID: "027", CodeDescription: "ENTERTAINMENT EXPENSES", DisplayOrder: 130 },
+      { SubCodeID: "028", CodeDescription: "WAKALA PROFITS - INDIVIDUALS", DisplayOrder: 131 },
+      { SubCodeID: "028", CodeDescription: "Non-operational income", DisplayOrder: 132 },
+      { SubCodeID: "028", CodeDescription: "TAXATION", DisplayOrder: 133 },
+      { SubCodeID: "029", CodeDescription: "Other Administrative expense ", DisplayOrder: 134 },
+      { SubCodeID: "029", CodeDescription: "WAKALA PROFITS - SMEs", DisplayOrder: 135 },
+      { SubCodeID: "029", CodeDescription: "TREASURY INCOME", DisplayOrder: 136 },
+      { SubCodeID: "030", CodeDescription: "IRR", DisplayOrder: 137 },
+      { SubCodeID: "030", CodeDescription: "WAKALA PROFITS - CORPORATES", DisplayOrder: 138 },
+      { SubCodeID: "030", CodeDescription: "Other Income", DisplayOrder: 139 },
+      { SubCodeID: "030", CodeDescription: "DIVIDEND INCOME - QUOTED", DisplayOrder: 140 },
+      { SubCodeID: "031", CodeDescription: "DIVIDEND INCOME - UNQUOTED", DisplayOrder: 141 },
+      { SubCodeID: "031", CodeDescription: "WAKALA PROFITS - FINANCIAL INSTITUTIONS", DisplayOrder: 142 },
+      { SubCodeID: "031", CodeDescription: "Other long term Assets", DisplayOrder: 143 },
+      { SubCodeID: "031", CodeDescription: "PER", DisplayOrder: 144 },
+      { SubCodeID: "031", CodeDescription: "stated capital", DisplayOrder: 145 },
+      { SubCodeID: "032", CodeDescription: "Other long term liabilities", DisplayOrder: 146 },
+      { SubCodeID: "032", CodeDescription: "MURABAHA TRADE FINANCE", DisplayOrder: 147 },
+      { SubCodeID: "032", CodeDescription: "ACCRUED INCOME- IJARA VEHICLES", DisplayOrder: 148 },
+      { SubCodeID: "032", CodeDescription: "WAKALA PROFITS - NGO", DisplayOrder: 149 },
+      { SubCodeID: "032", CodeDescription: "FEES & COMMISSIONS - ADVISORY", DisplayOrder: 150 },
+      { SubCodeID: "033", CodeDescription: "FEES & COMMISSIONS - BANK CHARGES", DisplayOrder: 151 },
+      { SubCodeID: "033", CodeDescription: "Other Payable Accounts", DisplayOrder: 152 },
+      { SubCodeID: "033", CodeDescription: "WAKALA PROFITS - OTHER", DisplayOrder: 153 },
+      { SubCodeID: "033", CodeDescription: "ACCRUED INCOME- IJARA MACHINERY", DisplayOrder: 154 },
+      { SubCodeID: "033", CodeDescription: "INVESTMENTS", DisplayOrder: 155 },
+      { SubCodeID: "034", CodeDescription: "ACCRUED INCOME- IJARA HOME FINANCE", DisplayOrder: 156 },
+      { SubCodeID: "034", CodeDescription: "Other Short Term Assets", DisplayOrder: 157 },
+      { SubCodeID: "034", CodeDescription: "MUDARABA PROFITS - INDIVIDUALS", DisplayOrder: 158 },
+      { SubCodeID: "034", CodeDescription: "FEES & COMMISSIONS - GUARANTEE FEE", DisplayOrder: 159 },
+      { SubCodeID: "035", CodeDescription: "FEES & COMMISSIONS - IN LIEU EUR", DisplayOrder: 160 },
+      { SubCodeID: "035", CodeDescription: "MUDARABA PROFITS - SMEs", DisplayOrder: 161 },
+      { SubCodeID: "035", CodeDescription: "Penalty Interest Receivable", DisplayOrder: 162 },
+      { SubCodeID: "035", CodeDescription: "ACCRUED INCOME- IJARA EQUIPMENT", DisplayOrder: 163 },
+      { SubCodeID: "035", CodeDescription: "OTHER LIABILITIES", DisplayOrder: 164 },
+      { SubCodeID: "036", CodeDescription: "OFFICE CHEQUE CLEARING", DisplayOrder: 165 },
+      { SubCodeID: "036", CodeDescription: "ACCRUED INCOME- COMMODITY MURABAHA", DisplayOrder: 166 },
+      { SubCodeID: "036", CodeDescription: "Prepayments", DisplayOrder: 167 },
+      { SubCodeID: "036", CodeDescription: "MUDARABA PROFITS - CORPORATES", DisplayOrder: 168 },
+      { SubCodeID: "036", CodeDescription: "FEES & COMMISSIONS - IN LIEU MUR", DisplayOrder: 169 },
+      { SubCodeID: "037", CodeDescription: "FEES & COMMISSIONS - OTHER", DisplayOrder: 170 },
+      { SubCodeID: "037", CodeDescription: "MUDARABA PROFITS - FINANCIAL INSTITUTIONS", DisplayOrder: 171 },
+      { SubCodeID: "037", CodeDescription: "ACCRUED INCOME- CREDIT SALE", DisplayOrder: 172 },
+      { SubCodeID: "037", CodeDescription: "OTHER", DisplayOrder: 173 },
+      { SubCodeID: "037", CodeDescription: "Profit and Loss  Account", DisplayOrder: 174 },
+      { SubCodeID: "038", CodeDescription: "Retained earnings", DisplayOrder: 175 },
+      { SubCodeID: "038", CodeDescription: "ACCRUED INCOME- MURABAHA HOME FINANCE", DisplayOrder: 176 },
+      { SubCodeID: "038", CodeDescription: "MUDARABA PROFITS - NGO", DisplayOrder: 177 },
+      { SubCodeID: "038", CodeDescription: "FEES & COMMISSIONS - WAKALA", DisplayOrder: 178 },
+      { SubCodeID: "039", CodeDescription: "INVESTMENT INCOME - FIXED INCOME", DisplayOrder: 179 },
+      { SubCodeID: "039", CodeDescription: "MUDARABA PROFITS - OTHER", DisplayOrder: 180 },
+      { SubCodeID: "039", CodeDescription: "ACCRUED INCOME- MURABAHA LINE OF CREDIT", DisplayOrder: 181 },
+      { SubCodeID: "039", CodeDescription: "Salary and Benefit", DisplayOrder: 182 },
+      { SubCodeID: "040", CodeDescription: "ACCRUED INCOME- MURABAHA TRADE FINANCE", DisplayOrder: 183 },
+      { SubCodeID: "040", CodeDescription: "SECURITY EXPENCES", DisplayOrder: 184 },
+      { SubCodeID: "040", CodeDescription: "OTHER INCOME", DisplayOrder: 185 },
+      { SubCodeID: "040", CodeDescription: "Saving Payable", DisplayOrder: 186 },
+      { SubCodeID: "041", CodeDescription: "PROFIT ON COMMODITY MURABAHA", DisplayOrder: 187 },
+      { SubCodeID: "041", CodeDescription: "RENT AND RATES", DisplayOrder: 188 },
+      { SubCodeID: "041", CodeDescription: "ACCRUED INCOME- MURABAHA", DisplayOrder: 189 },
+      { SubCodeID: "041", CodeDescription: "Short term investment ", DisplayOrder: 190 },
+      { SubCodeID: "042", CodeDescription: "Suspended Interest receivable –Non Performing Loans", DisplayOrder: 191 },
+      { SubCodeID: "042", CodeDescription: "MURABAHA TRADE FINANCE", DisplayOrder: 192 },
+      { SubCodeID: "042", CodeDescription: "CASH WITH CBK", DisplayOrder: 193 },
+      { SubCodeID: "042", CodeDescription: "LISENCES", DisplayOrder: 194 },
+      { SubCodeID: "042", CodeDescription: "PROFIT ON DISPOSAL", DisplayOrder: 195 },
+      { SubCodeID: "043", CodeDescription: "PROFIT ON IJARA - EQUIPMENT", DisplayOrder: 196 },
+      { SubCodeID: "043", CodeDescription: "Tax Payable", DisplayOrder: 197 },
+      { SubCodeID: "043", CodeDescription: "REGULATORY COSTS", DisplayOrder: 198 },
+      { SubCodeID: "043", CodeDescription: "RECEIVABLE - COMMODITY MURABAHA", DisplayOrder: 199 },
+      { SubCodeID: "043", CodeDescription: "CASH FOREIGN CURRENCY", DisplayOrder: 200 },
+      { SubCodeID: "044", CodeDescription: "NOSTRO ACCOUNTS", DisplayOrder: 201 },
+      { SubCodeID: "044", CodeDescription: "RECEIVABLE - IJARA EQUIPMENT", DisplayOrder: 202 },
+      { SubCodeID: "044", CodeDescription: "PROFIT ON IJARA - HOME FINANCE", DisplayOrder: 203 },
+      { SubCodeID: "045", CodeDescription: "PROFIT ON IJARA - MACHINERY", DisplayOrder: 204 },
+      { SubCodeID: "045", CodeDescription: "RECEIVABLE - IJARA HOME FINANCE", DisplayOrder: 205 },
+      { SubCodeID: "045", CodeDescription: "UNCLEARED EFFECTS-LOCAL", DisplayOrder: 206 },
+      { SubCodeID: "046", CodeDescription: "UNCLEARED EFFECTS-FOREIGN", DisplayOrder: 207 },
+      { SubCodeID: "046", CodeDescription: "RECEIVABLE - IJARA MACHINERY", DisplayOrder: 208 },
+      { SubCodeID: "046", CodeDescription: "PROFIT ON IJARA - VEHICLES", DisplayOrder: 209 },
+      { SubCodeID: "047", CodeDescription: "PROFIT ON MURABAHA - CREDIT SALE", DisplayOrder: 210 },
+      { SubCodeID: "047", CodeDescription: "RECEIVABLE - IJARA VEHICLES", DisplayOrder: 211 },
+      { SubCodeID: "048", CodeDescription: "RECEIVABLE - MURABAHA CREDIT SALE", DisplayOrder: 212 },
+      { SubCodeID: "048", CodeDescription: "PROFIT ON MURABAHA - HOME FINANCE", DisplayOrder: 213 },
+      { SubCodeID: "049", CodeDescription: "PROFIT ON MURABAHA - LINE OF CREDIT", DisplayOrder: 214 },
+      { SubCodeID: "049", CodeDescription: "RECEIVABLE - MURABAHA HOME FINANCE", DisplayOrder: 215 },
+      { SubCodeID: "050", CodeDescription: "RECEIVABLE - MURABAHA LINE OF CREDIT", DisplayOrder: 216 },
+      { SubCodeID: "050", CodeDescription: "PROFIT ON MURABAHA - OTHER", DisplayOrder: 217 },
+      { SubCodeID: "051", CodeDescription: "PROFIT ON MURABAHA - TRADE FINANCE", DisplayOrder: 218 },
+      { SubCodeID: "051", CodeDescription: "RECEIVABLE - MURABAHA TRADE FINANCE", DisplayOrder: 219 },
+      { SubCodeID: "052", CodeDescription: "RECEIVABLE", DisplayOrder: 220 },
+      { SubCodeID: "052", CodeDescription: "PROFIT ON MURABAHA - TRADE FINANCE USD", DisplayOrder: 221 },
+      { SubCodeID: "053", CodeDescription: "SERVICE FEE", DisplayOrder: 222 },
+      { SubCodeID: "053", CodeDescription: "Clearing Accounts", DisplayOrder: 223 },
+      { SubCodeID: "053", CodeDescription: "INTANGIBLE ASSETS", DisplayOrder: 224 },
+      { SubCodeID: "054", CodeDescription: "Bank-Saving account", DisplayOrder: 225 },
+      { SubCodeID: "055", CodeDescription: "Other Short term asset", DisplayOrder: 226 },
+      { SubCodeID: "056", CodeDescription: "Inventory(Stock)", DisplayOrder: 227 },
+      { SubCodeID: "057", CodeDescription: "Prepayments", DisplayOrder: 228 },
+      { SubCodeID: "057", CodeDescription: "BANKING RESERVES", DisplayOrder: 229 },
+      { SubCodeID: "058", CodeDescription: "OTHER RESERVES", DisplayOrder: 230 },
+      { SubCodeID: "200", CodeDescription: "Intangible Asset", DisplayOrder: 231, ParentGroupID: "012" }
+    ];
+    
+    // Store full data globally for filtering
+    window.glSubTypeFullData = glSubTypeData;
+    
+    const glSubTypeSelect = document.getElementById('glSubTypeSelect');
+    if (glSubTypeSelect) {
+      // Initially empty - will be populated when GL Sub Type Group is selected
+      glSubTypeSelect.innerHTML = '<option value="">--Select--</option>';
+    }
+    
+    // Populate Posting Type dropdown
+    const postingTypeData = [
+      { SubCodeID: "D", CodeDescription: "Detail (Individual entries)", DisplayOrder: 0 },
+      { SubCodeID: "S", CodeDescription: "Summary of Debit / Credit", DisplayOrder: 0 }
+    ];
+    
+    const postingTypeSelect = document.getElementById('postingTypeSelect');
+    if (postingTypeSelect) {
+      // Sort by display order (both are 0, will maintain original order)
+      postingTypeData.sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+      
+      // Populate the dropdown
+      postingTypeData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.SubCodeID;
+        option.textContent = item.CodeDescription;
+        postingTypeSelect.appendChild(option);
+      });
+    }
+    
+    // Populate GL Class dropdown
+    const glClassData = [
+      { SubCodeID: "12344", CodeDescription: "3443", DisplayOrder: 1 },
+      { SubCodeID: "GLA", CodeDescription: "GL ACCOUNTS", DisplayOrder: 2 },
+      { SubCodeID: "GLBALL", CodeDescription: "GL- Blocking All", DisplayOrder: 3 },
+      { SubCodeID: "GLBC", CodeDescription: "GL- Blocking Credit", DisplayOrder: 4 },
+      { SubCodeID: "GLBD", CodeDescription: "GL- Blocking Debit", DisplayOrder: 5 },
+      { SubCodeID: "GLBL", CodeDescription: "GL- Blocking All", DisplayOrder: 6 },
+      { SubCodeID: "GLBLC", CodeDescription: "GL Blocking Credit", DisplayOrder: 7 },
+      { SubCodeID: "GLBLD", CodeDescription: "GL Blocking Debit", DisplayOrder: 8 },
+      { SubCodeID: "GLCLASS", CodeDescription: "Kairo project GL Class", DisplayOrder: 9 },
+      { SubCodeID: "TEST02", CodeDescription: "Updated Test Special Condition Class 2", DisplayOrder: 10 }
+    ];
+    
+    const glClassSelect = document.getElementById('glClassSelect');
+    if (glClassSelect) {
+      // Sort by display order
+      glClassData.sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+      
+      // Populate the dropdown
+      glClassData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.SubCodeID;
+        option.textContent = item.CodeDescription;
+        glClassSelect.appendChild(option);
+      });
+    }
+  });
+  
+  // Function to populate GL Sub Type Group based on selected GL Type
+  function populateGLSubTypeGroup(glType) {
+    const select = document.getElementById('glSubTypeGroupSelect');
+    if (!select) return;
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">--Select--</option>';
+    
+    // Filter data based on GL Type
+    let filteredData = window.glSubTypeGroupFullData || [];
+    if (glType) {
+      filteredData = filteredData.filter(item => item.GLType === glType);
+    }
+    
+    // Sort by display order
+    filteredData.sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+    
+    // Add filtered options
+    filteredData.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.SubCodeID;
+      option.textContent = item.CodeDescription;
+      select.appendChild(option);
+    });
+  }
+  
+  // Function to populate GL Category based on selected GL Type
+  function populateGLCategory(glType) {
+    const select = document.getElementById('glCategorySelect');
+    if (!select) return;
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">--Select--</option>';
+    
+    // Filter data based on GL Type
+    let filteredData = window.glCategoryFullData || [];
+    if (glType) {
+      filteredData = filteredData.filter(item => item.GLType === glType || item.GLType === '');
+    }
+    
+    // Sort by display order
+    filteredData.sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+    
+    // Add filtered options
+    filteredData.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.SubCodeID;
+      option.textContent = item.CodeDescription;
+      select.appendChild(option);
+    });
+  }
+  
+  // Function to populate GL Sub Type based on selected GL Sub Type Group
+  function populateGLSubType(subTypeGroup) {
+    const select = document.getElementById('glSubTypeSelect');
+    if (!select) return;
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">--Select--</option>';
+    
+    // Filter data based on GL Sub Type Group
+    let filteredData = window.glSubTypeFullData || [];
+    if (subTypeGroup) {
+      // Match GL Sub Type's SubCodeID with selected GL Sub Type Group's SubCodeID
+      // Also check ParentGroupID if it exists for backward compatibility
+      filteredData = filteredData.filter(item => 
+        item.SubCodeID === subTypeGroup || item.ParentGroupID === subTypeGroup
+      );
+    }
+    
+    // Sort by display order
+    filteredData.sort((a, b) => a.DisplayOrder - b.DisplayOrder);
+    
+    // Add filtered options
+    filteredData.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.SubCodeID;
+      option.textContent = item.CodeDescription;
+      select.appendChild(option);
+    });
+  }
+</script>
+
+<!-- Service Layer Pattern: Only 2 scripts needed! -->
+<script src="../../assets/js/services/shared/serviceLoader.js"></script>
+<script src="../../assets/js/services/shared/coreApi.js"></script>
+<script src="../../assets/js/services/branchesService.js"></script>
+<script src="../../assets/js/pages/generalLedger/gl-maintenance.js?v=20260130-1"></script>
+</body>
+</html>

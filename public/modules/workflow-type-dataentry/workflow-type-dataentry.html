@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Type</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="workflow-type-dataentry.css">
+</head>
+<body>
+    <!-- Workflow Type Container -->
+    <div class="workflow-container">
+        <!-- Left Sidebar Navigation -->
+        <div class="workflow-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="bi bi-diagram-3-fill"></i> Workflow Type</h3>
+            </div>
+            <div class="sidebar-menu">
+                <button class="menu-item active" data-workflow-type="dataentry">
+                    <i class="bi bi-keyboard-fill"></i> DataEntry
+                </button>
+                <button class="menu-item" data-workflow-type="stage-checklist">
+                    <i class="bi bi-check2-square"></i> Workflow Stage Checklist
+                </button>
+                <button class="menu-item" data-workflow-type="stage-setting">
+                    <i class="bi bi-gear-fill"></i> Workflow Stage Setting
+                </button>
+                <button class="menu-item" data-workflow-type="verification">
+                    <i class="bi bi-shield-check"></i> Verification Fields
+                </button>
+                <button class="menu-item" data-workflow-type="contract-doc">
+                    <i class="bi bi-file-earmark-text"></i> Contract Doc. Setting
+                </button>
+                <button class="menu-item" data-workflow-type="fees">
+                    <i class="bi bi-cash-coin"></i> Workflow Fees
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="workflow-content">
+            <div class="content-scroll">
+                <!-- Main Form Section -->
+                <div class="form-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="workflowTypeId"><i class="bi bi-hash"></i> WorkFlow Type ID</label>
+                            <div class="input-display-group">
+                                <input type="text" id="workflowTypeId" class="form-input-flex" placeholder="Enter workflow type ID">
+                                <button class="search-icon-btn-inline" id="searchWorkflowBtn" title="Search Workflow Type">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description"><i class="bi bi-file-text"></i> Description</label>
+                            <input type="text" id="description" class="form-input" placeholder="Enter description">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="validFrom"><i class="bi bi-calendar-event"></i> Valid From</label>
+                            <select id="validFrom" class="form-input">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="validTo"><i class="bi bi-calendar-check"></i> Valid To</label>
+                            <select id="validTo" class="form-input">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="module"><i class="bi bi-grid-3x3-gap-fill"></i> Module</label>
+                            <select id="module" class="form-input">
+                                <option value="">--Select--</option>
+                                <option value="loans">Loans</option>
+                                <option value="accounts">Accounts</option>
+                                <option value="deposits">Deposits</option>
+                                <option value="treasury">Treasury</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noOfGuarantors"><i class="bi bi-people-fill"></i> No Of Guarantors</label>
+                            <input type="number" id="noOfGuarantors" class="form-input" placeholder="Enter number">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="enforceMakerChecker">
+                                <label for="enforceMakerChecker"><i class="bi bi-shield-lock"></i> Enforce Maker Checker</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="scene-card">
+                    <div class="scene-header">
+                        <h3><i class="bi bi-info-circle"></i> Behind The Scene</h3>
+                    </div>
+                    <div class="scene-grid">
+                        <div class="form-group">
+                            <label for="createdBy"><i class="bi bi-person"></i> Created By</label>
+                            <input type="text" id="createdBy" class="form-input-readonly" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="modifiedBy"><i class="bi bi-person-gear"></i> Modified By</label>
+                            <input type="text" id="modifiedBy" class="form-input-readonly" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="supervisedBy"><i class="bi bi-person-check"></i> Supervised By</label>
+                            <input type="text" id="supervisedBy" class="form-input-readonly" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="createdOn"><i class="bi bi-calendar-plus"></i> Created On</label>
+                            <input type="text" id="createdOn" class="form-input-readonly" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="modifiedOn"><i class="bi bi-calendar-event"></i> Modified On</label>
+                            <input type="text" id="modifiedOn" class="form-input-readonly" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="supervisedOn"><i class="bi bi-calendar-check"></i> Supervised On</label>
+                            <input type="text" id="supervisedOn" class="form-input-readonly" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons Sidebar -->
+        <div class="action-sidebar">
+            <button class="btn-sidebar btn-view" id="viewBtn">
+                <i class="bi bi-eye-fill"></i> View
+            </button>
+            <button class="btn-sidebar btn-add" id="addBtn">
+                <i class="bi bi-plus-circle"></i> Add
+            </button>
+            <button class="btn-sidebar btn-edit" id="editBtn">
+                <i class="bi bi-pencil-fill"></i> Edit
+            </button>
+            <button class="btn-sidebar btn-delete" id="deleteBtn">
+                <i class="bi bi-trash-fill"></i> Delete
+            </button>
+            <button class="btn-sidebar btn-save" id="saveBtn">
+                <i class="bi bi-save-fill"></i> Save
+            </button>
+            <button class="btn-sidebar btn-cancel" id="cancelBtn">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+        </div>
+    </div>
+
+    <script src="workflow-type-dataentry.js"></script>
+</body>
+</html>

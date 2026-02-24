@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auto Gen. ID Definition · System Utilities</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <link rel="stylesheet" href="id-definition.css" />
+</head>
+
+<body class="copilot-theme">
+  <div class="container-fluid p-3">
+    <div class="main-layout">
+        <!-- Center Form Area -->
+        <div class="form-area">
+
+            <!-- Type ID Row -->
+            <div class="row mb-3 align-items-center justify-content-center">
+                <div class="col-auto">
+                    <label class="label-blue">Type ID</label>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select">
+                        <option>AccountID</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Blue Header Bar -->
+            <div class="section-blue-header">
+                &nbsp;
+            </div>
+
+            <!-- Field Definition Section -->
+            <div class="id-definition-section">
+                <div class="row mb-2">
+                    <div class="col-md-2 text-end"><label class="label-blue">Field Name</label></div>
+                    <div class="col-md-4">
+                        <select class="form-select">
+                            <option>Product Code</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 text-end"><label class="label-blue">Length</label></div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" value="3">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-2 text-end"><label class="label-blue">Order</label></div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" value="2">
+                    </div>
+                    <div class="col-md-2 text-end"><label class="label-blue">Value</label></div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" value="TEST">
+                    </div>
+                </div>
+
+                <!-- Top Controls (New, Alter, etc.) -->
+                <div class="top-controls mt-3">
+                    <button class="btn cust-btn">New</button>
+                    <button class="btn cust-btn">Alter</button>
+                    <button class="btn cust-btn">Remove</button>
+                    <button class="btn cust-btn">Update</button>
+                    <button class="btn cust-btn">Clear</button>
+                </div>
+            </div>
+
+            <!-- Grid Section -->
+            <div class="grid-area">
+                <div class="grid-header">
+                    <div class="grid-col">Indicator Field</div>
+                    <div class="grid-col">Indicator Length</div>
+                    <div class="grid-col">Indicator Order</div>
+                    <div class="grid-col">Constant Value</div>
+                </div>
+                <div class="grid-row">
+                    <div class="grid-col">OurBranch ID</div>
+                    <div class="grid-col">5</div>
+                    <div class="grid-col">1</div>
+                    <div class="grid-col"></div>
+                </div>
+                <div class="grid-row" style="background-color: #eef7ff;">
+                    <div class="grid-col">Product Code</div>
+                    <div class="grid-col">3</div>
+                    <div class="grid-col">2</div>
+                    <div class="grid-col">TEST</div>
+                </div>
+            </div>
+
+            <!-- Formula Section -->
+            <div class="row mb-2">
+                <div class="col-md-2 text-end">Total Length</div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control text-end" value="8" style="font-weight: bold;">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-2 text-end">Formula</div>
+                <div class="col-md-10">
+                    <input type="text" class="form-control" value="<OurBranch ID><Product Code>" style="font-weight: bold;">
+                </div>
+            </div>
+
+            <!-- Behind The Scene -->
+            <div class="id-definition-header">
+                Behind The Scene
+            </div>
+            <div class="id-definition-section" style="padding: 5px;">
+                <div class="row mb-1">
+                    <div class="col-md-2 text-end small">Created By</div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control form-control-sm" value="System" readonly>
+                    </div>
+                    <div class="col-md-2 text-end small">Supervised By</div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control form-control-sm" value="Supervisor" readonly>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 text-end small">Created On</div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control form-control-sm" value="20/Dec/2025" readonly>
+                    </div>
+                    <div class="col-md-2 text-end small">Supervised On</div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control form-control-sm" value="22/Dec/2025" readonly>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Sidebar Buttons -->
+        <div class="sidebar-buttons">
+            <button class="btn side-btn">View</button>
+            <button class="btn side-btn">Add</button>
+            <button class="btn side-btn"><strong>Edit</strong></button>
+            <button class="btn side-btn">Delete</button>
+            <button class="btn side-btn">Save</button>
+            <button class="btn side-btn">Cancel</button>
+        </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

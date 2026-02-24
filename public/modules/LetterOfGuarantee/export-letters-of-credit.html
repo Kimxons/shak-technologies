@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Export Letters Of Credit · Trade Finance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+
+<body class="client-maintenance copilot-theme" data-page="export-lc">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+  <div class="cm-workspace">
+    <form id="export-lc-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <aside class="cm-legacy-nav card-surface" aria-label="Options menu">
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle"
+            onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-right');">
+            <span class="cm-nav-toggle__label">Actions</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="cm-nav-items">
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Show Image</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>View</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Add</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Edit</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Delete</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Save</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cm-nav-section">
+          <button type="button" class="cm-nav-toggle"
+            onclick="this.closest('.cm-nav-section').querySelector('.cm-nav-items').classList.toggle('is-collapsed'); this.querySelector('.bi').classList.toggle('bi-chevron-down'); this.querySelector('.bi').classList.toggle('bi-chevron-right');">
+            <span class="cm-nav-toggle__label">Workflow</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="cm-nav-items is-collapsed">
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Approve</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Reject</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Swift Message</span>
+            </button>
+            <button type="button" class="cm-legacy-nav__item">
+              <span>Charges</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="cm-legacy-content">
+        <section class="cm-top-identifiers card-surface">
+          <div class="cm-top-identifiers__grid">
+            <div class="cbs-field">
+              <label class="cbs-label required" for="BranchID">Branch ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="BranchID" name="BranchID" value="0101" required />
+                <button class="btn btn-outline-primary" type="button" aria-label="Search branch">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            <div class="cbs-field">
+              <label class="cbs-label" for="HeadOffice">Head Office</label>
+              <input type="text" class="form-control" id="HeadOffice" name="HeadOffice" readonly />
+            </div>
+            <div class="cbs-field">
+              <label class="cbs-label" for="ApplicationID">Application ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="ApplicationID" name="ApplicationID" />
+                <button class="btn btn-outline-primary" type="button" aria-label="Search">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            <div class="cbs-field">
+              <label class="cbs-label" for="ExportLCID">Export LC ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="ExportLCID" name="ExportLCID" />
+                <button class="btn btn-outline-primary" type="button" aria-label="Search">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            <div class="cbs-field">
+              <label class="cbs-label" for="ClientID">Client ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="ClientID" name="ClientID" />
+                <button class="btn btn-outline-primary" type="button" aria-label="Search client">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            <div class="cbs-field">
+              <label class="cbs-label" for="AccountID">Account ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="AccountID" name="AccountID" />
+                <button class="btn btn-outline-primary" type="button" aria-label="Search account">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="cm-scroll-region">
+          <section class="cm-stepper card-surface" data-stepper>
+            <div class="cm-stepper__nav" data-stepper-nav>
+              <button type="button" class="cm-stepper__trigger is-active" data-step-id="details" data-step-index="1">
+                <span class="cm-stepper__index" aria-hidden="true">1</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Details</span>
+                </div>
+              </button>
+              <button type="button" class="cm-stepper__trigger" data-step-id="documents" data-step-index="2">
+                <span class="cm-stepper__index" aria-hidden="true">2</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Documents</span>
+                </div>
+              </button>
+              <button type="button" class="cm-stepper__trigger" data-step-id="participants" data-step-index="3">
+                <span class="cm-stepper__index" aria-hidden="true">3</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Participants</span>
+                </div>
+              </button>
+              <button type="button" class="cm-stepper__trigger" data-step-id="terms" data-step-index="4">
+                <span class="cm-stepper__index" aria-hidden="true">4</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Terms</span>
+                </div>
+              </button>
+              <button type="button" class="cm-stepper__trigger" data-step-id="shipping" data-step-index="5">
+                <span class="cm-stepper__index" aria-hidden="true">5</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Shipping</span>
+                </div>
+              </button>
+              <button type="button" class="cm-stepper__trigger" data-step-id="additional" data-step-index="6">
+                <span class="cm-stepper__index" aria-hidden="true">6</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Additional Information</span>
+                </div>
+              </button>
+              <button type="button" class="cm-stepper__trigger" data-step-id="swift" data-step-index="7">
+                <span class="cm-stepper__index" aria-hidden="true">7</span>
+                <div class="cm-stepper__text">
+                  <span class="cm-stepper__label">Swift Free Format Text</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="cm-stepper__content" data-stepper-content>
+              <!-- LC Export Details Tab -->
+              <div class="cm-step-panel is-active" data-step-panel="details">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">LC Export Details</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ProductID">Product ID</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="ProductID" name="ProductID" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCType">LC Type</label>
+                      <select class="form-select" id="LCType" name="LCType">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ExporterName">Exporter Name</label>
+                      <input type="text" class="form-control" id="ExporterName" name="ExporterName" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ExporterAddress">Exporter Address</label>
+                      <input type="text" class="form-control" id="ExporterAddress" name="ExporterAddress" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCIssueDate">LC Issue Date</label>
+                      <input type="date" class="form-control" id="LCIssueDate" name="LCIssueDate" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="PermitNo">Permit No</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="PermitNo" name="PermitNo" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="PermitExpiryDate">Permit Expiry Date</label>
+                      <input type="date" class="form-control" id="PermitExpiryDate" name="PermitExpiryDate" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CurrencyID">Currency ID</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="CurrencyID" name="CurrencyID" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ExchangeRate">Exchange Rate</label>
+                      <input type="text" class="form-control" id="ExchangeRate" name="ExchangeRate" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCAmount">LC Amount</label>
+                      <input type="text" class="form-control" id="LCAmount" name="LCAmount" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LocalAmount">Local Amount</label>
+                      <input type="text" class="form-control" id="LocalAmount" name="LocalAmount" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCRefNo">LC Ref No</label>
+                      <input type="text" class="form-control" id="LCRefNo" name="LCRefNo" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCExpiryPlace">LC Expiry Place</label>
+                      <input type="text" class="form-control" id="LCExpiryPlace" name="LCExpiryPlace" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCExpiryDate">LC Expiry Date</label>
+                      <input type="date" class="form-control" id="LCExpiryDate" name="LCExpiryDate" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="SalesContractID">Sales Contract ID</label>
+                      <input type="text" class="form-control" id="SalesContractID" name="SalesContractID" />
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--1col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ApplicantDetails">Applicant Details</label>
+                      <textarea class="form-control" id="ApplicantDetails" name="ApplicantDetails" rows="3"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--2col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="DebitAccount">Debit Account</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="DebitAccount" name="DebitAccount" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Documents Tab -->
+              <div class="cm-step-panel" data-step-panel="documents">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">Document Details</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="DocumentID">Document ID</label>
+                      <input type="text" class="form-control" id="DocumentID" name="DocumentID" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="NoOfOriginal">No. Of Original</label>
+                      <input type="text" class="form-control" id="NoOfOriginal" name="NoOfOriginal" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="NoOfCopy">No. Of Copy</label>
+                      <input type="text" class="form-control" id="NoOfCopy" name="NoOfCopy" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="DocumentType">Document Type</label>
+                      <select class="form-select" id="DocumentType" name="DocumentType">
+                        <option value="">Original</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="BLNumber">B/L Number</label>
+                      <input type="text" class="form-control" id="BLNumber" name="BLNumber" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Location">Location</label>
+                      <select class="form-select" id="Location" name="Location">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="VoyageNo">Voyage No</label>
+                      <input type="text" class="form-control" id="VoyageNo" name="VoyageNo" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="DocumentImage">Document Image</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="DocumentImage" name="DocumentImage" />
+                        <button class="btn btn-outline-secondary" type="button">Browse</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--1col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Remarks">Remarks</label>
+                      <textarea class="form-control" id="Remarks" name="Remarks" rows="2"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--2col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ReceivedBy">Received By</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="ReceivedBy" name="ReceivedBy" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="VesselName">Vessel Name</label>
+                      <input type="text" class="form-control" id="VesselName" name="VesselName" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ReceivedDate">Received Date</label>
+                      <input type="date" class="form-control" id="ReceivedDate" name="ReceivedDate" value="01/Jan/0001" />
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex gap-2 mb-3">
+                      <button type="button" class="btn btn-sm btn-outline-primary">New</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary">Alter</button>
+                      <button type="button" class="btn btn-sm btn-outline-danger">Remove</button>
+                      <button type="button" class="btn btn-sm btn-outline-success">Update</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered">
+                        <thead class="table-primary">
+                          <tr>
+                            <th>Document Type Name</th>
+                            <th>LocationID Name</th>
+                            <th>Remarks</th>
+                            <th>Received By</th>
+                            <th>Received Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td colspan="5" class="text-center text-muted">No records to display.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Participants Tab -->
+              <div class="cm-step-panel" data-step-panel="participants">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">Participant Type</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ParticipantType">Participant Type</label>
+                      <select class="form-select" id="ParticipantType" name="ParticipantType">
+                        <option value="Drawer">Drawer</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ParticipantClientID">Client ID</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="ParticipantClientID" name="ParticipantClientID" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--1col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ClientName">Client Name</label>
+                      <input type="text" class="form-control" id="ClientName" name="ClientName" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Address1">Address1</label>
+                      <input type="text" class="form-control" id="Address1" name="Address1" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Address2">Address2</label>
+                      <input type="text" class="form-control" id="Address2" name="Address2" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Address3">Address3</label>
+                      <input type="text" class="form-control" id="Address3" name="Address3" />
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--2col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CountryID">Country ID</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="CountryID" name="CountryID" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ReferenceNo">Reference No.</label>
+                      <input type="text" class="form-control" id="ReferenceNo" name="ReferenceNo" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="SWIFTCode">SWIFT Code</label>
+                      <input type="text" class="form-control" id="SWIFTCode" name="SWIFTCode" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ParticipantDate">Date</label>
+                      <select class="form-select" id="ParticipantDate" name="ParticipantDate">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Language">Language</label>
+                      <select class="form-select" id="Language" name="Language">
+                        <option value="English">English</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ParticipantAccountID">Account ID</label>
+                      <input type="text" class="form-control" id="ParticipantAccountID" name="ParticipantAccountID" />
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex gap-2 mb-3">
+                      <button type="button" class="btn btn-sm btn-outline-primary">New</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary">Alter</button>
+                      <button type="button" class="btn btn-sm btn-outline-danger">Remove</button>
+                      <button type="button" class="btn btn-sm btn-outline-success">Update</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered">
+                        <thead class="table-primary">
+                          <tr>
+                            <th>Participant Name</th>
+                            <th>SwiftCode</th>
+                            <th>ClientID</th>
+                            <th>Address1</th>
+                            <th>Address2</th>
+                            <th>Address3</th>
+                            <th>RefNo</th>
+                            <th>Date</th>
+                            <th>LanguageID</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td colspan="9" class="text-center text-muted">No records to display.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Terms Tab -->
+              <div class="cm-step-panel" data-step-panel="terms">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">Terms And Payments</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="BankCharges">Bank Charges</label>
+                      <select class="form-select" id="BankCharges" name="BankCharges">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="IncoTerms">Inco Terms</label>
+                      <select class="form-select" id="IncoTerms" name="IncoTerms">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ConfirmationType">Confirmation Type</label>
+                      <select class="form-select" id="ConfirmationType" name="ConfirmationType">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCPaymentTerms">LC Payment Terms</label>
+                      <select class="form-select" id="LCPaymentTerms" name="LCPaymentTerms">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LCConditions">LC Conditions</label>
+                      <select class="form-select" id="LCConditions" name="LCConditions">
+                        <option value="Irrevocable LC">Irrevocable LC</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ICCApplicableRules">ICC Applicable Rules</label>
+                      <select class="form-select" id="ICCApplicableRules" name="ICCApplicableRules">
+                        <option value="UCP Latest Version">UCP Latest Version</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CreditAvailableWith">Credit Available With</label>
+                      <input type="text" class="form-control" id="CreditAvailableWith" name="CreditAvailableWith" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="RuleDescription">Rule Description</label>
+                      <input type="text" class="form-control" id="RuleDescription" name="RuleDescription" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CreditAvailableBy">Credit Available By</label>
+                      <select class="form-select" id="CreditAvailableBy" name="CreditAvailableBy">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="BankSwiftCode">Bank Swift Code</label>
+                      <input type="text" class="form-control" id="BankSwiftCode" name="BankSwiftCode" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CollateralAccountID">Collateral AccountID</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="CollateralAccountID" name="CollateralAccountID" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CollateralCurrency">Collateral Currency</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="CollateralCurrency" name="CollateralCurrency" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ExchangeRateCollateral">Exchange Rate</label>
+                      <input type="text" class="form-control" id="ExchangeRateCollateral" name="ExchangeRateCollateral" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CollateralPercentage">Collateral Percentage</label>
+                      <input type="text" class="form-control" id="CollateralPercentage" name="CollateralPercentage" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CollateralDescription">Collateral Description</label>
+                      <input type="text" class="form-control" id="CollateralDescription" name="CollateralDescription" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="CollateralAmount">Collateral Amount</label>
+                      <input type="text" class="form-control" id="CollateralAmount" name="CollateralAmount" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LocalCurrencyEquivalent">Local Currency Equivalent</label>
+                      <input type="text" class="form-control" id="LocalCurrencyEquivalent" name="LocalCurrencyEquivalent" />
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Shipping Tab -->
+              <div class="cm-step-panel" data-step-panel="shipping">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">Shipping Information</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="FromCountry">From Country</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="FromCountry" name="FromCountry" value="ET" />
+                        <input type="text" class="form-control" value="Ethiopia" readonly />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ToCountry">To Country</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="ToCountry" name="ToCountry" />
+                        <button class="btn btn-outline-primary" type="button">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ShipmentType">Shipment Type</label>
+                      <select class="form-select" id="ShipmentType" name="ShipmentType">
+                        <option value="">--Select--</option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="PortOfLoading">Port Of Loading</label>
+                      <input type="text" class="form-control" id="PortOfLoading" name="PortOfLoading" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="PortOfDischarge">Port Of Discharge</label>
+                      <input type="text" class="form-control" id="PortOfDischarge" name="PortOfDischarge" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LatestDays">Latest Days:</label>
+                      <input type="text" class="form-control" id="LatestDays" name="LatestDays" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="TranshipmentAllowed">Transhipment Allowed</label>
+                      <input type="checkbox" class="form-check-input" id="TranshipmentAllowed" name="TranshipmentAllowed" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ShipmentPeriod">Shipment Period</label>
+                      <input type="text" class="form-control" id="ShipmentPeriod" name="ShipmentPeriod" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="LatestDateOfShipment">Latest Date Of Shipment</label>
+                      <input type="date" class="form-control" id="LatestDateOfShipment" name="LatestDateOfShipment" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="QuantityOfGoods">Quantity Of Goods</label>
+                      <input type="text" class="form-control" id="QuantityOfGoods" name="QuantityOfGoods" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="GrossWeight">Gross Weight</label>
+                      <input type="text" class="form-control" id="GrossWeight" name="GrossWeight" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="NetWeight">Net Weight</label>
+                      <input type="text" class="form-control" id="NetWeight" name="NetWeight" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="UnitPrice">Unit Price</label>
+                      <input type="text" class="form-control" id="UnitPrice" name="UnitPrice" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="NumberOfPackage">Number Of Package</label>
+                      <input type="text" class="form-control" id="NumberOfPackage" name="NumberOfPackage" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Mark">Mark</label>
+                      <input type="text" class="form-control" id="Mark" name="Mark" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="FinalDestination">Final Destination</label>
+                      <input type="text" class="form-control" id="FinalDestination" name="FinalDestination" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ModeOfTransport">Mode Of Transport</label>
+                      <select class="form-select" id="ModeOfTransport" name="ModeOfTransport">
+                        <option value=""></option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--1col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="GoodsDescription">Goods Description</label>
+                      <textarea class="form-control" id="GoodsDescription" name="GoodsDescription" rows="3"></textarea>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="SupplierNameAndAddress">Supplier Name And Address</label>
+                      <textarea class="form-control" id="SupplierNameAndAddress" name="SupplierNameAndAddress" rows="3"></textarea>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ShipmentDetails">Shipment Details</label>
+                      <textarea class="form-control" id="ShipmentDetails" name="ShipmentDetails" rows="3"></textarea>
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Information Tab -->
+              <div class="cm-step-panel" data-step-panel="additional">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">Additional Information</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="HSCode">HS Code</label>
+                      <input type="text" class="form-control" id="HSCode" name="HSCode" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="TinNo">Tin No</label>
+                      <input type="text" class="form-control" id="TinNo" name="TinNo" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="NBEAccountID">NBE AccountID</label>
+                      <input type="text" class="form-control" id="NBEAccountID" name="NBEAccountID" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="ReceiverRef">Receiver Ref</label>
+                      <input type="text" class="form-control" id="ReceiverRef" name="ReceiverRef" />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="BusinessLicenseNo">Business License No</label>
+                      <input type="text" class="form-control" id="BusinessLicenseNo" name="BusinessLicenseNo" />
+                    </div>
+                  </div>
+
+                  <div class="cm-form-grid cm-form-grid--1col mt-3">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="PaymentInstruction">Payment Instruction</label>
+                      <textarea class="form-control" id="PaymentInstruction" name="PaymentInstruction" rows="4"></textarea>
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Swift Free Format Text Tab -->
+              <div class="cm-step-panel" data-step-panel="swift">
+                <div class="card-surface cm-step-panel__inner">
+                  <h3 class="cm-section-title">Swift Fields</h3>
+                  <div class="cm-form-grid cm-form-grid--1col">
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="SwiftMessage">Swift Message</label>
+                      <select class="form-select" id="SwiftMessage" name="SwiftMessage">
+                        <option value=""></option>
+                      </select>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="GoodsServicesDescription">Description Of Goods And Services(:45A:)</label>
+                      <textarea class="form-control" id="GoodsServicesDescription" name="GoodsServicesDescription" rows="4"></textarea>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="AdditionalConditions">Additional Conditions(:47A:)</label>
+                      <textarea class="form-control" id="AdditionalConditions" name="AdditionalConditions" rows="4"></textarea>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="Charges">Charges(:71B:)</label>
+                      <textarea class="form-control" id="Charges" name="Charges" rows="4"></textarea>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="PayingAcceptingBank">Instructions To The Paying/Accepting/Negotiating Bank(:78:)</label>
+                      <textarea class="form-control" id="PayingAcceptingBank" name="PayingAcceptingBank" rows="4"></textarea>
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label" for="SenderToReceiver">Sender To Reciever Information(:72:)</label>
+                      <textarea class="form-control" id="SenderToReceiver" name="SenderToReceiver" rows="4"></textarea>
+                    </div>
+                  </div>
+
+                  <h3 class="cm-section-title mt-4">Behind The Scene</h3>
+                  <div class="cm-form-grid cm-form-grid--2col">
+                    <div class="cbs-field">
+                      <label class="cbs-label">Status</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Created By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Modified By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Approved By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected On</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                    <div class="cbs-field">
+                      <label class="cbs-label">Rejected By</label>
+                      <input type="text" class="form-control" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/pages/LetterOfGuarantee/export-letters-of-credit.embedded.js"></script>
+</body>
+
+</html>

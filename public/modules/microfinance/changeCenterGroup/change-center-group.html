@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Center/Group · MicroFinance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../../assets/css/styles.css?v=20260201">
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="window">
+        <!-- Main Container -->
+        <div class="main-container">
+
+            <!-- Form Content -->
+            <div class="form-content">
+                <div class="form-card" data-main-form>
+                    <!-- Center & Group Identifiers Section -->
+                    <div class="form-section" data-section="center-group-identifiers">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-diagram-3"></i>Center & Group Identifiers</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Center & Group Identifiers" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">Center ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="CenterId" class="kairo-control__id" aria-label="Center ID" placeholder="Center ID">
+                                        <input type="text" id="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-search="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Group ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="GroupId" class="kairo-control__id" aria-label="Group ID" placeholder="Group ID">
+                                        <input type="text" id="GroupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-search="group" aria-label="Search Group"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client List Section -->
+                    <div class="form-section" data-section="client-list">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-list-ul"></i>Client List</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Client List" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="clientTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 40px;">
+                                                <input type="checkbox" id="selectAll" class="bs-checkbox" aria-label="Select all" disabled>
+                                            </th>
+                                            <th>Client ID</th>
+                                            <th>Client Name</th>
+                                            <th>Client Type</th>
+                                            <th>Registration Date</th>
+                                            <th>Join Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="clientTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">No records to display.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Group Section (Transfer To) - Hidden by default -->
+                    <div class="form-section d-none" id="newGroupSection" data-section="new-group">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-arrow-right-circle"></i>New Group (Transfer To)</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle New Group" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">New Center ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="NewCenterId" class="kairo-control__id" aria-label="New Center ID" placeholder="Center ID">
+                                        <input type="text" id="NewCenterName" class="kairo-control__name" aria-label="New Center Name" placeholder="Center Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-search="newCenter" aria-label="Search New Center"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">New Group ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="NewGroupId" class="kairo-control__id" aria-label="New Group ID" placeholder="Group ID">
+                                        <input type="text" id="NewGroupName" class="kairo-control__name" aria-label="New Group Name" placeholder="Group Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-search="newGroup" aria-label="Search New Group"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="nav-group">
+                    <button class="btn-nav green" aria-label="Previous Center"><i class="bi bi-chevron-left"></i></button>
+                    <span>Center</span>
+                    <button class="btn-nav green" aria-label="Next Center"><i class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-action underline" data-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                    <button class="btn-action" data-action="select" title="Select" disabled><i class="bi bi-check-square me-1"></i>Select</button>
+                    <button class="btn-action" data-action="next" title="Next" disabled><i class="bi bi-arrow-right-circle me-1"></i>Next</button>
+                    <button class="btn-action" data-action="change" title="Change" disabled><i class="bi bi-arrow-left-right me-1"></i>Change</button>
+                    <button class="btn-action" data-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center Search Modal -->
+    <div class="modal fade" id="centerSearchModal" tabindex="-1" aria-labelledby="centerSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="centerSearchModalLabel">Center Search</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="centerSearchFrame" style="width: 100%; height: 500px; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group/SubGroup Search Modal -->
+    <div class="modal fade" id="groupSearchModal" tabindex="-1" aria-labelledby="groupSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupSearchModalLabel">Sub Group Search</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="groupSearchFrame" style="width: 100%; height: 500px; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="change-center-group.js"></script>
+    <script>
+        // Initialize sidebar toggle and section interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('main-sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    const isExpanded = !sidebar.classList.contains('collapsed');
+                    sidebarToggle.setAttribute('aria-expanded', isExpanded);
+                });
+            }
+
+            // Nav section toggles
+            document.querySelectorAll('.nav-arrow--card').forEach(arrow => {
+                arrow.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const section = this.closest('.nav-section');
+                    const items = section.querySelector('.nav-items--card');
+                    const isOpen = section.classList.toggle('is-open');
+                    
+                    this.setAttribute('aria-expanded', isOpen);
+                    items.hidden = !isOpen;
+                    
+                    const icon = this.querySelector('i');
+                    icon.className = isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+                });
+            });
+
+            // Section toggles for form sections
+            document.querySelectorAll('[data-section-toggle]').forEach(header => {
+                header.addEventListener('click', function() {
+                    const section = this.closest('.form-section');
+                    const content = section.querySelector('[data-section-content]');
+                    const btn = this.querySelector('.section-toggle-btn');
+                    const icon = btn.querySelector('i');
+                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    
+                    btn.setAttribute('aria-expanded', !isExpanded);
+                    content.hidden = isExpanded;
+                    icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+                });
+            });
+
+            // Sidebar item click handlers
+            document.querySelectorAll('.sidebar-item[data-dataentry]').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GL AccountType Prefix Codes · General Ledger</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <link rel="stylesheet" href="gl-accounttype-prefix-codes.css" />
+</head>
+
+<body class="client-maintenance copilot-theme gl-accounttype-prefix-codes" data-page="client-maintenance">
+  <div class="cm-react-orbs" aria-hidden="true">
+    <span class="cm-react-orb cm-react-orb--primary"></span>
+    <span class="cm-react-orb cm-react-orb--secondary"></span>
+    <span class="cm-react-orb cm-react-orb--accent"></span>
+  </div>
+
+  <div class="cm-workspace">
+    <form id="gl-accounttype-prefix-form" class="cm-shell-form" autocomplete="off" novalidate>
+      <section class="cm-legacy-content">
+        <div class="cm-scroll-region">
+          <!-- Filters -->
+          <section class="card-surface gaptc-filters">
+            <h3 class="section-title d-inline-flex align-items-center gap-2 mb-2"><i class="bi bi-upc-scan"></i> GL AccountType Prefix Codes</h3>
+            <div class="row g-2">
+              <div class="col-xl-4">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="accountTypeID">Account Type ID</label>
+                  <input id="accountTypeID" type="text" class="form-control" />
+                </div>
+              </div>
+              <div class="col-xl-4">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="description">Description</label>
+                  <input id="description" type="text" class="form-control" />
+                </div>
+              </div>
+              <div class="col-xl-4">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="code">Code</label>
+                  <input id="code" type="text" class="form-control" />
+                </div>
+              </div>
+            </div>
+
+            <div class="gaptc-toolbar">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="alterBtn">Alter</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="updateBtn">Update</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="clearBtn">Clear</button>
+            </div>
+          </section>
+
+          <!-- Grid -->
+          <section class="card-surface gaptc-grid">
+            <div class="table-responsive">
+              <table class="table table-sm table-borderless align-middle mb-0">
+                <thead>
+                  <tr class="text-muted">
+                    <th>Account Type</th>
+                    <th>Description</th>
+                    <th>Account Type Code</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="3" class="text-muted py-4">No records to display.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Behind the Scene -->
+          <section class="card-surface gaptc-bts">
+            <h4 class="gaptc-bts-title">Behind The Scene</h4>
+            <div class="row g-2 align-items-end">
+              <div class="col-lg-3">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="createdBy">Created By</label>
+                  <input id="createdBy" type="text" class="form-control" />
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="createdOn">Created On</label>
+                  <input id="createdOn" type="text" class="form-control" />
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="modifiedBy">Modified By</label>
+                  <input id="modifiedBy" type="text" class="form-control" />
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="cbs-field">
+                  <label class="cbs-label" for="modifiedOn">Modified On</label>
+                  <input id="modifiedOn" type="text" class="form-control" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card-surface gaptc-footer">
+            <h3 class="gaptc-footer-title">BR.Net Web Banking</h3>
+          </section>
+        </div>
+      </section>
+
+      <!-- Right action rail -->
+      <aside class="cm-legacy-actions card-surface">
+        <div class="cm-legacy-actions__group">
+          <button type="button" class="cm-shell__action" id="viewBtn">View</button>
+          <button type="button" class="cm-shell__action" id="editBtn">Edit</button>
+          <button type="button" class="cm-shell__action cm-shell__action--success" id="saveBtn">Save</button>
+          <button type="button" class="cm-shell__action" id="cancelBtn">Cancel</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="gl-accounttype-prefix-codes.js"></script>
+</body>
+
+</html>

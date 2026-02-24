@@ -1,0 +1,22 @@
+node_modules/
+.temp/
+temp/
+.env
+.idea/
+.vscode/
+.DS_Store
+dist/
+build/
+coverage/
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.db
+.vs/
+*.user
+*.suo
+# Implementation guides (internal documentation)
+*.txt
+kairo-ui/logs/

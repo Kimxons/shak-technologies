@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Loan Menu Wise · Kairo Banking</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="group-loan-menu-wise.css">
+</head>
+<body>
+  <div class="kairo-container-modal">
+    <!-- Main Content Area -->
+    <main class="kairo-content">
+      <div id="statusMessage" class="status-message"></div>
+      
+      <form id="groupLoanForm" autocomplete="off" novalidate>
+        <!-- Main Form Section -->
+        <div class="kairo-card">
+          <div class="card-body">
+            <div class="form-grid-2col">
+              <div class="form-group">
+                <label for="workflowStage">
+                  <i class="bi bi-flow"></i>
+                  <span>Workflow Stage</span>
+                </label>
+                <input type="text" id="workflowStage" name="workflowStage" disabled>
+              </div>
+
+              <div class="form-group">
+                <label for="ruleType">
+                  <i class="bi bi-gear"></i>
+                  <span>Rule Type</span>
+                </label>
+                <input type="text" id="ruleType" name="ruleType" disabled>
+              </div>
+
+              <div class="form-group">
+                <label for="ruleId">
+                  <i class="bi bi-key"></i>
+                  <span>Rule ID</span>
+                </label>
+                <input type="text" id="ruleId" name="ruleId" disabled style="grid-column: span 2;">
+              </div>
+
+              <div class="form-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="isMandatory" name="isMandatory" disabled>
+                  <span>Is Mandatory</span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="allowOverride" name="allowOverride" disabled>
+                  <span>Allow Override</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Data Grid -->
+            <div class="data-grid">
+              <div class="grid-header">
+                <div class="grid-col">WFAdvTypeID</div>
+                <div class="grid-col">WFAdvTypeName</div>
+                <div class="grid-col">WFAdvStageID</div>
+              </div>
+              <div class="grid-body" id="gridBody">
+                <div class="empty-state">No records to display</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="kairo-card">
+          <div class="card-header">
+            <i class="bi bi-caret-down-fill"></i>
+            <span>Behind The Scene</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-2col">
+              <div class="form-group">
+                <label for="createdBy">
+                  <i class="bi bi-person-plus"></i>
+                  <span>Created By</span>
+                </label>
+                <input type="text" id="createdBy" name="createdBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedBy">
+                  <i class="bi bi-person-badge"></i>
+                  <span>Supervised By</span>
+                </label>
+                <input type="text" id="supervisedBy" name="supervisedBy" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="createdOn">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>Created On</span>
+                </label>
+                <input type="text" id="createdOn" name="createdOn" readonly>
+              </div>
+
+              <div class="form-group">
+                <label for="supervisedOn">
+                  <i class="bi bi-calendar-plus"></i>
+                  <span>Supervised On</span>
+                </label>
+                <input type="text" id="supervisedOn" name="supervisedOn" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <!-- Right Action Panel -->
+    <aside class="kairo-actions">
+      <button type="button" class="action-btn" onclick="handleEdit()">
+        <i class="bi bi-pencil-square"></i>
+        <span>Edit</span>
+      </button>
+      <button type="button" class="action-btn action-save" id="saveBtn" onclick="handleSave()" disabled>
+        <i class="bi bi-floppy"></i>
+        <span>Save</span>
+      </button>
+      <button type="button" class="action-btn action-cancel" id="cancelBtn" onclick="handleCancel()" disabled>
+        <i class="bi bi-x-circle"></i>
+        <span>Cancel</span>
+      </button>
+    </aside>
+  </div>
+
+  <script src="group-loan-menu-wise.js"></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+/**
+ * Card Maintenance CSS
+ * Styles specific to card maintenance module
+ */
+
+/* ============================================================================
+   LABEL STYLES - Ensure blue color for mandatory fields
+   ============================================================================ */
+
+/* Force blue color for label-blue class with high specificity */
+label.label-blue,
+.label-blue,
+.section-content label.label-blue,
+.form-content label.label-blue,
+.form-section label.label-blue {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+}
+
+/* Selected row highlighting */
+.table tbody tr.selected,
+.table tbody tr.table-active {
+  background-color: #cce5ff !important;
+  border-left: 3px solid #004085;
+}
+
+.table tbody tr.selected td,
+.table tbody tr.table-active td {
+  background-color: #cce5ff !important;
+}
+
+/* Row hover effect */
+.table tbody tr:not(.table-empty):hover {
+  background-color: #e9ecef;
+  cursor: pointer;
+}
+
+/* Audit section styling */
+.audit-section--summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.audit-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.audit-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.audit-value {
+  font-size: 0.875rem;
+  color: #212529;
+  font-weight: 500;
+}

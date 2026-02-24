@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Limit -À Limits & Collateral</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="client-limit.css">
+</head>
+
+<body>
+  <div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+
+      <!-- Form Content -->
+      <div class="form-content">
+        <!-- Row 1: Branch ID -->
+        <div class="form-row">
+          <label class="label-blue">Branch ID</label>
+          <div class="lookup-group" style="width: 500px;">
+            <input type="text" id="BranchId" value="0325" style="width: 60px;">
+            <input type="text" id="BranchName" value="" style="flex: 1;" readonly>
+            <button class="btn-lookup">­ƒöì</button>
+          </div>
+        </div>
+
+        <!-- Row 2: Limit ID | Reference No. -->
+        <div class="form-row two-col">
+          <div class="col">
+            <label class="label-blue">Limit ID</label>
+            <div class="lookup-group">
+              <input type="text" id="LimitId" class="input-full">
+              <button class="btn-lookup">­ƒöì</button>
+            </div>
+          </div>
+          <div class="col">
+            <label>Reference No.</label>
+            <input type="text" id="ReferenceNo" class="input-full">
+          </div>
+        </div>
+
+        <!-- Row 3: Client ID | Currency ID -->
+        <div class="form-row two-col">
+          <div class="col">
+            <label class="label-blue">Client ID</label>
+            <div class="lookup-group">
+              <input type="text" id="ClientId" style="width: 70px;">
+              <input type="text" id="ClientName" style="flex: 1;" readonly>
+              <button class="btn-lookup">­ƒöì</button>
+            </div>
+          </div>
+          <div class="col">
+            <label class="label-blue">Currency ID</label>
+            <div class="lookup-group">
+              <input type="text" id="CurrencyId" style="width: 70px;">
+              <input type="text" id="CurrencyName" style="flex: 1;" readonly>
+              <button class="btn-lookup">­ƒöì</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: Limit Level | Limit Type -->
+        <div class="form-row two-col">
+          <div class="col">
+            <label class="label-blue">Limit Level</label>
+            <input type="text" id="LimitLevel" class="input-full">
+          </div>
+          <div class="col">
+            <label class="label-blue">Limit Type</label>
+            <select id="LimitType" class="input-full">
+              <option value="">--Select--</option>
+              <option value="Revolving">Revolving</option>
+              <option value="Non Revolving">Non Revolving</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 5: Effective Date | Expiry Date -->
+        <div class="form-row two-col">
+          <div class="col">
+            <label class="label-blue">Effective Date</label>
+            <div class="lookup-group">
+              <input type="date" id="EffectiveDate" class="input-full" />
+              <button type="button" class="btn-lookup btn-date" data-open-date="EffectiveDate"
+                aria-label="Open calendar">
+                <i class="bi bi-calendar3"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col">
+            <label class="label-blue">Expiry Date</label>
+            <div class="lookup-group">
+              <input type="date" id="ExpiryDate" class="input-full" />
+              <button type="button" class="btn-lookup btn-date" data-open-date="ExpiryDate" aria-label="Open calendar">
+                <i class="bi bi-calendar3"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 6: Sanctioned Date | Sanctioned Limit -->
+        <div class="form-row two-col">
+          <div class="col">
+            <label class="label-blue">Sanctioned Date</label>
+            <div class="lookup-group">
+              <input type="date" id="SanctionedDate" class="input-full" />
+              <button type="button" class="btn-lookup btn-date" data-open-date="SanctionedDate"
+                aria-label="Open calendar">
+                <i class="bi bi-calendar3"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col">
+            <label class="label-blue">Sanctioned Limit</label>
+            <input type="text" id="SanctionedLimit" class="input-full money-field">
+          </div>
+        </div>
+
+        <!-- Row 7: DP Definition | Drawing Power -->
+        <div class="form-row two-col">
+          <div class="col">
+            <label class="label-blue">DP Definition</label>
+            <select id="DpDefinition" class="input-full">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>Drawing Power</label>
+            <input type="text" id="DrawingPower" class="input-full money-field">
+          </div>
+        </div>
+
+
+        <!-- Row 8: Remarks -->
+        <div class="form-row">
+          <label>Remarks</label>
+          <input type="text" id="Remarks" class="input-full" style="width: 100%; max-width: none;">
+        </div>
+
+        <!-- LIMIT DETAILS TABULAR CARD (Legacy Style) -->
+        <div id="LimitDetailsContainer" style="margin-top:18px; display: none;">
+          <div
+            style="background:#1976d2;color:#fff;font-weight:bold;padding:6px 12px;border-top-left-radius:4px;border-top-right-radius:4px;">
+            Limit Details
+          </div>
+          <div class="legacy-table-container">
+            <table id="LimitDetailsTable" class="legacy-table">
+              <thead>
+                <tr>
+                  <th>LimitID</th>
+                  <th>ProductID</th>
+                  <th class="text-right">LimitAmount</th>
+                  <th class="text-right">UtilizedAmount</th>
+                  <th class="text-center">LimitTypeID</th>
+                  <th class="text-center">LimitStatusID</th>
+                  <th>WithdrawnBy</th>
+                  <th>WithdrawnReason</th>
+                </tr>
+              </thead>
+              <tbody id="LimitDetailsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="LimitDetailsActions" class="limit-details-actions"
+          style="display: none; justify-content: center; gap: 20px; margin-top: 10px;">
+          <button id="btnAlterLimit" class="btn-secondary" style="min-width: 120px;">Alter</button>
+          <button id="btnUpdateLimit" class="btn-secondary" style="min-width: 120px;" disabled>Update</button>
+        </div>
+
+        <!-- COLLATERAL DETAILS TABULAR CARD (Legacy Style) -->
+        <div id="CollateralDetailsContainer" style="margin-top:18px; display: none;">
+          <div
+            style="background:#1976d2;color:#fff;font-weight:bold;padding:6px 12px;border-top-left-radius:4px;border-top-right-radius:4px;">
+            Collateral Details
+          </div>
+          <div class="collateral-form-container" style="background: #fff; border: 1px solid #1976d2; padding: 10px;">
+            <!-- Row 1: Collateral ID | Reference No. -->
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Collateral ID</label>
+                <div class="lookup-group">
+                  <input type="text" id="CollateralId" class="input-full">
+                  <button class="btn-lookup">­ƒöì</button>
+                </div>
+              </div>
+              <div class="col">
+                <label>Reference No.</label>
+                <input type="text" id="CollateralRefNo" class="input-full">
+              </div>
+            </div>
+
+            <!-- Row 2: Apportioned Ratio | Margin -->
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Apportioned Ratio</label>
+                <input type="text" id="ApportionedRatio" class="input-full">
+              </div>
+              <div class="col">
+                <label class="label-blue">Margin</label>
+                <input type="text" id="CollateralMargin" class="input-full">
+              </div>
+            </div>
+
+            <!-- Row 3: Apportioned Value | Apportioned Collateral Value -->
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Apportioned Value</label>
+                <input type="text" id="ApportionedValue" class="input-full money-field">
+              </div>
+              <div class="col">
+                <label class="label-blue">Apportioned Collateral Value</label>
+                <input type="text" id="ApportionedCollateralValue" class="input-full money-field">
+              </div>
+            </div>
+
+            <!-- Row 4: Assigned Date | Limit Collateral Value -->
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Assigned Date</label>
+                <div class="lookup-group">
+                  <input type="date" id="AssignedDate" class="input-full" />
+                  <button type="button" class="btn-lookup btn-date" data-open-date="AssignedDate">
+                    <i class="bi bi-calendar3"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label>Limit Collateral Value</label>
+                <input type="text" id="LimitCollateralValue" class="input-full money-field">
+              </div>
+            </div>
+
+            <!-- Collateral Actions -->
+            <div class="collateral-actions"
+              style="display: flex; justify-content: center; gap: 10px; margin: 15px 0; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+              <button id="btnCollateralNew" class="btn-secondary-sm">New</button>
+              <button id="btnCollateralAlter" class="btn-secondary-sm">Alter</button>
+              <button id="btnCollateralUpdate" class="btn-secondary-sm" disabled>Update</button>
+              <button id="btnCollateralRemove" class="btn-secondary-sm">Remove</button>
+              <button id="btnCollateralClear" class="btn-secondary-sm">Clear</button>
+              <button id="btnCollateralWithdraw" class="btn-secondary-sm">Withdraw</button>
+            </div>
+
+            <!-- The Grid -->
+            <div class="legacy-table-container">
+              <table id="CollateralDetailsTable" class="legacy-table">
+                <thead>
+                  <tr>
+                    <th>Collateral ID</th>
+                    <th>Reference No</th>
+                    <th class="text-right">Apportioned Ratio (%)</th>
+                    <th class="text-right">Apportioned Value</th>
+                    <th class="text-right">Margin (%)</th>
+                    <th class="text-right">Apportioned Collateral Value</th>
+                  </tr>
+                </thead>
+                <tbody id="CollateralDetailsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- END COLLATERAL DETAILS TABULAR CARD -->
+        <!-- END COLLATERAL DETAILS TABULAR CARD -->
+
+        <!-- Behind The Scene Section -->
+        <div class="section-title">Behind The Scene</div>
+        <div class="behind-scene">
+          <div class="form-row three-col">
+            <div class="col">
+              <label>Net Collateral Value</label>
+              <input type="text" id="NetCollateralValue" readonly>
+            </div>
+            <div class="col">
+              <label>Status</label>
+              <input type="text" id="Status" readonly>
+            </div>
+            <div class="col">
+              <label>Total Apportioned Value</label>
+              <input type="text" id="TotalApportionedValue" readonly>
+            </div>
+          </div>
+          <div class="form-row two-col">
+            <div class="col" style="flex: 0 0 33.33%;">
+              <label>Withdrawn Date</label>
+              <input type="text" id="WithdrawnDate" readonly>
+            </div>
+            <div class="col" style="flex: 1;">
+              <label>Withdrawn Reason</label>
+              <input type="text" id="WithdrawnReason" readonly style="width: 100%; max-width: none;">
+            </div>
+          </div>
+          <div class="form-row three-col">
+            <div class="col">
+              <label>Created By</label>
+              <input type="text" id="CreatedBy" readonly>
+            </div>
+            <div class="col">
+              <label>Modified By</label>
+              <input type="text" id="ModifiedBy" readonly>
+            </div>
+            <div class="col">
+              <label>Supervised By</label>
+              <input type="text" id="SupervisedBy" readonly>
+            </div>
+          </div>
+          <div class="form-row three-col">
+            <div class="col">
+              <label>Created On</label>
+              <input type="text" id="CreatedOn" readonly>
+            </div>
+            <div class="col">
+              <label>Modified On</label>
+              <input type="text" id="ModifiedOn" readonly>
+            </div>
+            <div class="col">
+              <label>Supervised On</label>
+              <input type="text" id="SupervisedOn" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <div class="nav-group">
+          <button class="btn-nav" id="btnPrevious" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
+          <button class="btn-nav" id="btnNext" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-action" id="btnWithdraw"><i class="bi bi-arrow-down-circle me-2"></i>Withdraw</button>
+          <button class="btn-action" id="btnView"><i class="bi bi-eye me-2"></i>View</button>
+          <button class="btn-action" id="btnAdd"><i class="bi bi-plus-circle me-2"></i>Add</button>
+          <button class="btn-action" id="btnEdit" disabled><i class="bi bi-pencil-square me-2"></i>Edit</button>
+          <button class="btn-action" id="btnSave" disabled><i class="bi bi-save2 me-2"></i>Save</button>
+          <button class="btn-action" id="btnCancel" disabled><i class="bi bi-x-circle me-2"></i>Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Alert Message -->
+  <div id="formToast" class="alert-message"></div>
+
+  <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../../assets/js/shared/search-modal.js"></script>
+  <script src="client-limit.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Maintenance - Loan</title>
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../assets/css/styles.css">
+  <link rel="stylesheet" href="../../modules/shared/search-modal.css">
+  <style>
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+    /* Compact spacing */
+    .form-row {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .section-header {
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+
+    .behind-scene-section {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .behind-scene-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 15px;
+    }
+
+    .behind-scene-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .behind-scene-item label {
+      min-width: 85px;
+      text-align: right;
+      font-size: 10px;
+      color: #1e293b;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .behind-scene-item input {
+      flex: 1;
+      min-width: 0;
+      padding: 4px 6px;
+      font-size: 10px;
+      height: 22px;
+    }
+
+    .tab-navigation {
+      display: flex;
+      gap: 2px;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 4px;
+      margin-top: 6px;
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 5px 10px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-dark);
+      transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+      background: rgba(10, 107, 165, 0.1);
+    }
+
+    .tab-button.active {
+      background: var(--primary);
+      color: var(--white);
+      border-color: var(--primary);
+    }
+
+    .tab-content-area {
+      display: none;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 10px 15px;
+      background: var(--white);
+    }
+
+    .tab-content-area.active {
+      display: block;
+    }
+
+    .form-row.two-col {
+      gap: 10px;
+    }
+
+    .form-row.two-col .col {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .form-row.two-col .col label {
+      min-width: 115px;
+    }
+
+    /* Submodules Header */
+    .sidebar-submodules-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(10, 107, 165, 0.15);
+      margin-bottom: 12px;
+    }
+
+    .submodules-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .submodules-label i {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .submodules-menu-btn {
+      background: transparent;
+      border: 1px solid rgba(10, 107, 165, 0.2);
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.2s ease;
+    }
+
+    .submodules-menu-btn:hover {
+      background: rgba(10, 107, 165, 0.08);
+      border-color: rgba(10, 107, 165, 0.3);
+      color: #357abd;
+    }
+
+    .submodules-menu-btn i {
+      font-size: 16px;
+    }
+
+    /* Submodules Search */
+    .submodules-search-wrapper {
+      padding: 0 12px 12px;
+    }
+
+    .submodules-search {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .submodules-search i {
+      position: absolute;
+      left: 10px;
+      font-size: 12px;
+      color: #94a3b8;
+      pointer-events: none;
+    }
+
+    .submodules-search-input {
+      width: 100%;
+      padding: 6px 10px 6px 32px;
+      font-size: 11px;
+      border: 1px solid rgba(10, 107, 165, 0.2);
+      border-radius: 4px;
+      background: #ffffff;
+      color: #1e293b;
+      transition: all 0.2s ease;
+      pointer-events: auto;
+    }
+
+    .submodules-search-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .submodules-search-input:focus {
+      outline: none;
+      border-color: #357abd;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(53, 122, 189, 0.1);
+    }
+
+    /* Nav Section */
+    .nav-section {
+      margin-bottom: 10px;
+    }
+
+    .nav-header {
+      background: #ffffff;
+      color: #475569;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      user-select: none;
+      position: relative;
+    }
+
+    .nav-header:hover {
+      background: #f8fafc;
+      border-color: rgba(148, 163, 184, 0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      letter-spacing: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .nav-label i {
+      font-size: 16px;
+      color: #64748b;
+    }
+
+    /* Badge count */
+    .nav-header .nav-badge {
+      background: #e0e7ff;
+      color: #4f46e5;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: auto;
+      margin-right: 8px;
+    }
+
+    /* Dropdown arrow */
+    .nav-header::after {
+      content: '\F282';
+      font-family: 'bootstrap-icons';
+      font-size: 14px;
+      color: #94a3b8;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-section.is-open .nav-header::after {
+      transform: rotate(180deg);
+    }
+
+    .nav-items {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-left: 2px solid rgba(10, 107, 165, 0.15);
+      border-right: 2px solid rgba(10, 107, 165, 0.15);
+      border-bottom: 2px solid rgba(10, 107, 165, 0.15);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .nav-section.is-open .nav-items {
+      max-height: 600px;
+      padding: 4px 0;
+    }
+
+    .nav-items.collapsed {
+      max-height: 0;
+      padding: 0;
+    }
+
+    .sidebar-item {
+      width: 100%;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 11px;
+      color: #475569;
+      white-space: nowrap;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(10, 107, 165, 0.10);
+      border-radius: 0;
+      transition: all 0.2s ease;
+    }
+
+    .nav-items .sidebar-item:last-child {
+      border-bottom: none;
+    }
+
+    .sidebar-item:hover {
+      color: #357abd;
+      background: rgba(10, 107, 165, 0.06);
+    }
+
+    .sidebar-item.active {
+      background: linear-gradient(90deg, #357abd 0%, #2b6199 100%);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .sidebar-item i {
+      font-size: 12px;
+    }
+
+    /* Sidebar collapse state */
+    .sidebar.sidebar-collapsed {
+      width: 50px !important;
+      padding: 12px 0 !important;
+      border: none !important;
+      overflow: visible;
+      transition: width 0.3s ease, padding 0.3s ease;
+    }
+
+    .sidebar.sidebar-collapsed > div:not(.sidebar-submodules-header) {
+      display: none !important;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-submodules-header {
+      display: flex !important;
+      padding: 0 8px !important;
+      margin-bottom: 0 !important;
+      border-bottom: none !important;
+      justify-content: center !important;
+    }
+
+    .sidebar.sidebar-collapsed .submodules-label {
+      display: none !important;
+    }
+
+    .sidebar.sidebar-collapsed .submodules-menu-btn {
+      margin: 0 auto !important;
+      display: flex !important;
+    }
+
+    .main-container.sidebar-collapsed {
+      gap: 0 !important;
+      padding: 0 !important;
+    }
+
+    .main-container.sidebar-collapsed .form-content {
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Label color matching Account Maintenance */
+    label {
+      color: #1e293b !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+      <!-- Left Sidebar -->
+      <aside class="sidebar card-surface" aria-label="Options menu">
+        <!-- Submodules Header -->
+        <div class="sidebar-submodules-header">
+          <div class="submodules-label">
+            <i class="bi bi-columns-gap"></i> SUBMODULES
+          </div>
+          <button type="button" class="submodules-menu-btn" title="Menu">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+
+        <!-- Submodules Search -->
+        <div class="submodules-search-wrapper">
+          <div class="submodules-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search submodules..." class="submodules-search-input">
+          </div>
+        </div>
+
+        <div class="nav-section is-open">
+          <div class="nav-header">
+            <span class="nav-label">
+              <i class="bi bi-folder"></i>Data Entry
+            </span>
+            <span class="nav-badge">8</span>
+          </div>
+          <div class="nav-items">
+            <button type="button" class="sidebar-item" data-child-form="product-gl-interface">
+              <i class="bi bi-file-text"></i><span>Product GL Interface</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="installment-allocations">
+              <i class="bi bi-calendar-check"></i><span>Installment Allocations</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-parameters">
+              <i class="bi bi-sliders"></i><span>Product Parameters</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="user-defined-fields">
+              <i class="bi bi-list-ul"></i><span>User Defined Fields</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-loan-cycle">
+              <i class="bi bi-arrow-repeat"></i><span>Product Loan Cycle</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-charges">
+              <i class="bi bi-currency-dollar"></i><span>Product Charges</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="product-notification">
+              <i class="bi bi-bell"></i><span>Product Notification</span>
+            </button>
+            <button type="button" class="sidebar-item" data-child-form="loan-appraisal-limit">
+              <i class="bi bi-bar-chart"></i><span>Loan Appraisal Limit</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-header">
+            <span class="nav-label">
+              <i class="bi bi-clock-history"></i>Recent Activities
+            </span>
+          </div>
+          <div class="nav-items collapsed">
+          </div>
+        </div>
+      </aside>
+
+      <!-- Form Content -->
+      <div class="form-content">
+        <!-- Product Details Section -->
+        <div class="section-header">
+          <i class="bi bi-file-text"></i> PRODUCT DETAILS
+        </div>
+
+        <div class="kairo-grid-4">
+          <div class="kairo-field">
+            <label class="label-blue">Product</label>
+            <div class="kairo-product-control" data-kairo-product-control>
+              <input type="text" id="Product" name="Product" class="kairo-product-control__id" aria-label="Product ID">
+              <input type="text" id="ProductName" class="kairo-product-control__name" aria-label="Product Name" placeholder="Product Name" readonly>
+              <button type="button" class="btn-lookup kairo-product-control__lookup" id="productSearchBtn" data-target-input="Product" aria-label="Search Product"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Workflow ID</label>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" id="WorkflowID" name="WorkflowID" class="bs-input-text" style="flex: 1;">
+              <button class="btn-lookup" aria-label="Lookup Workflow"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Product Code</label>
+            <input type="text" id="ProductCode" name="ProductCode" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Currency</label>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" id="Currency" name="Currency" class="bs-input-text" style="flex: 1;">
+              <button class="btn-lookup" aria-label="Lookup Currency"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Valid From</label>
+            <input type="date" id="ValidFrom" name="ValidFrom" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Valid To</label>
+            <input type="date" id="ValidTo" name="ValidTo" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Accounting Rule</label>
+            <select id="AccountingRule" name="AccountingRule" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Product Category</label>
+            <select id="ProductCategory" name="ProductCategory" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Account Class ID</label>
+            <select id="AccountClassID" name="AccountClassID" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label class="label-blue">Customer Restriction</label>
+            <select id="CustomerRestriction" name="CustomerRestriction" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="IsSyndicated" name="IsSyndicated" class="bs-checkbox">
+              <label for="IsSyndicated">Is Syndicated</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Debit Interest Setting Section -->
+        <div class="section-header">
+          <i class="bi bi-percent"></i> DEBIT INTEREST SETTING
+        </div>
+
+        <div class="kairo-grid-4">
+          <div class="kairo-field">
+            <label>Interest Type</label>
+            <select id="InterestType" name="InterestType" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Menu ID</label>
+            <select id="InterestMenuID" name="InterestMenuID" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Int. Appl. Frequency</label>
+            <select id="IntApplFrequency" name="IntApplFrequency" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Interest Rounding</label>
+            <select id="InterestRounding" name="InterestRounding" class="bs-select">
+              <option value="">Nearest 0.01</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Period Type</label>
+            <select id="PeriodType" name="PeriodType" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Int. Calculation Rule</label>
+            <select id="IntCalculationRule" name="IntCalculationRule" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Monthly Differential Accrual</label>
+            <input type="text" id="MonthlyDifferentialAccrual" name="MonthlyDifferentialAccrual" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Loss Provision</label>
+            <input type="text" id="LossProvision" name="LossProvision" class="bs-input-text">
+          </div>
+
+          <div class="kairo-field">
+            <label>Provision Frequency</label>
+            <select id="ProvisionFrequency" name="ProvisionFrequency" class="bs-select">
+              <option value="">Monthly</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <label>Loan Class</label>
+            <select id="LoanClass" name="LoanClass" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="IsInterestTaxable" name="IsInterestTaxable" class="bs-checkbox">
+              <label for="IsInterestTaxable">Is Interest Taxable</label>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label>Tax Rule</label>
+            <select id="TaxRule" name="TaxRule" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <div class="checkbox-row">
+              <input type="checkbox" id="ChargePenalty" name="ChargePenalty" class="bs-checkbox">
+              <label for="ChargePenalty">Charge Penalty</label>
+            </div>
+          </div>
+
+          <div class="kairo-field">
+            <label>Penalty Rule</label>
+            <select id="PenaltyRule" name="PenaltyRule" class="bs-select">
+              <option value="">--Select--</option>
+            </select>
+          </div>
+
+          <div class="kairo-field">
+            <!-- Empty for alignment -->
+          </div>
+
+          <div class="kairo-field">
+            <label>Penalty Grace Days</label>
+            <input type="text" id="PenaltyGraceDays" name="PenaltyGraceDays" class="bs-input-text">
+          </div>
+        </div>
+
+        <!-- Loan Setting Tabs -->
+        <div class="tab-navigation">
+          <button type="button" class="tab-button active" data-tab="loan-setting-1">Loan Setting - I</button>
+          <button type="button" class="tab-button" data-tab="loan-setting-2">Loan Setting - II</button>
+          <button type="button" class="tab-button" data-tab="loan-setting-3">Loan Setting - III</button>
+          <button type="button" class="tab-button" data-tab="loan-setting-4">Loan Setting - IV</button>
+        </div>
+
+        <!-- Loan Setting - I -->
+        <div class="tab-content-area active" id="loan-setting-1">
+          <div class="section-header">
+            <i class="bi bi-gear"></i> PRODUCT TYPE - LOAN DETAILS III
+          </div>
+
+          <div class="kairo-grid-4">
+            <div class="kairo-field">
+              <label>Installment Rounding</label>
+              <select id="InstallmentRounding" name="InstallmentRounding" class="bs-select">
+                <option value="">Nearest 0.01</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <label>Collateral % Of Loan Amount</label>
+              <input type="text" id="CollateralPercent" name="CollateralPercent" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="RoundLastInstallment" name="RoundLastInstallment" class="bs-checkbox">
+                <label for="RoundLastInstallment">Round Last Installment</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Max. Loan Amount</label>
+              <input type="text" id="MaxLoanAmount" name="MaxLoanAmount" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>Min. Loan Amount</label>
+              <input type="text" id="MinLoanAmount" name="MinLoanAmount" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>Max. Term</label>
+              <input type="text" id="MaxTerm" name="MaxTerm" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>Min. Term</label>
+              <input type="text" id="MinTerm" name="MinTerm" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <!-- Empty for alignment -->
+            </div>
+
+            <div class="kairo-field">
+              <label>Holiday Handling</label>
+              <select id="HolidayHandling" name="HolidayHandling" class="bs-select">
+                <option value="">Same Day</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="CanInstallmentMoveToNextMonth" name="CanInstallmentMoveToNextMonth" class="bs-checkbox">
+                <label for="CanInstallmentMoveToNextMonth">Can Installment Move To Next Month</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Collateral Product ID</label>
+              <div style="display: flex; gap: 4px;">
+                <input type="text" id="CollateralProductID" name="CollateralProductID" class="bs-input-text" style="flex: 1;">
+                <button class="btn-lookup" aria-label="Lookup Product"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loan Setting - II -->
+        <div class="tab-content-area" id="loan-setting-2">
+          <div class="section-header">
+            <i class="bi bi-gear"></i> PRODUCT TYPE - LOAN DETAILS II
+          </div>
+
+          <div class="kairo-grid-4">
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="AllowMultipleDisbursement" name="AllowMultipleDisbursement" class="bs-checkbox">
+                <label for="AllowMultipleDisbursement">Allow Multiple Disbursement</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Max. Duration For Disbursement</label>
+              <input type="text" id="MaxDurationForDisbursement" name="MaxDurationForDisbursement" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="RescheduleOnDisbursement" name="RescheduleOnDisbursement" class="bs-checkbox">
+                <label for="RescheduleOnDisbursement">Reschedule On Disbursement</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="FlexibleGracePeriod" name="FlexibleGracePeriod" class="bs-checkbox">
+                <label for="FlexibleGracePeriod">Flexible Grace Period</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="TermExcludesGracePeriod" name="TermExcludesGracePeriod" class="bs-checkbox">
+                <label for="TermExcludesGracePeriod">Term Excludes Grace Period</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="CollectInterestDuringGracePeriod" name="CollectInterestDuringGracePeriod" class="bs-checkbox">
+                <label for="CollectInterestDuringGracePeriod">Collect Interest During Grace Period</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="MoveProductOnNPA" name="MoveProductOnNPA" class="bs-checkbox">
+                <label for="MoveProductOnNPA">Move Product On NPA</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>To NPA Days</label>
+              <input type="text" id="ToNPADays" name="ToNPADays" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="MoveProductToBadDebt" name="MoveProductToBadDebt" class="bs-checkbox">
+                <label for="MoveProductToBadDebt">Move Prod. To BadDebt</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>To Bad Debt Days</label>
+              <input type="text" id="ToBadDebtDays" name="ToBadDebtDays" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>NPA Product ID</label>
+              <div style="display: flex; gap: 4px;">
+                <input type="text" id="NPAProductID" name="NPAProductID" class="bs-input-text" style="flex: 1;">
+                <button class="btn-lookup" aria-label="Lookup Product"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Bad Debt ProductID</label>
+              <div style="display: flex; gap: 4px;">
+                <input type="text" id="BadDebtProductID" name="BadDebtProductID" class="bs-input-text" style="flex: 1;">
+                <button class="btn-lookup" aria-label="Lookup Product"><i class="bi bi-search"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loan Setting - III -->
+        <div class="tab-content-area" id="loan-setting-3">
+          <div class="section-header">
+            <i class="bi bi-gear"></i> PRODUCT TYPE - LOAN DETAILS III
+          </div>
+
+          <div class="kairo-grid-4">
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="PrepaymentAllowed" name="PrepaymentAllowed" class="bs-checkbox">
+                <label for="PrepaymentAllowed">Prepayment Allowed</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Min. Prepayment Days</label>
+              <input type="text" id="MinPrepaymentDays" name="MinPrepaymentDays" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="WithholdPrepayment" name="WithholdPrepayment" class="bs-checkbox">
+                <label for="WithholdPrepayment">Withhold Prepayment</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Max. Prepayment Allowed (%) On Loan Amt.</label>
+              <input type="text" id="MaxPrepaymentPercent" name="MaxPrepaymentPercent" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="PreClosureAllowed" name="PreClosureAllowed" class="bs-checkbox">
+                <label for="PreClosureAllowed">Pre-Closure Allowed</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Min. Pre-Closure Days</label>
+              <input type="text" id="MinPreClosureDays" name="MinPreClosureDays" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>Penalty Type</label>
+              <select id="PenaltyTypeIII" name="PenaltyTypeIII" class="bs-select">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <label>Penalty Rate</label>
+              <input type="text" id="PenaltyRateIII" name="PenaltyRateIII" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>Recovery Type</label>
+              <select id="RecoveryType" name="RecoveryType" class="bs-select">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <label>No. Of Days</label>
+              <input type="text" id="NoOfDaysIII" name="NoOfDaysIII" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <label>Future Interest Type</label>
+              <select id="FutureInterestType" name="FutureInterestType" class="bs-select">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <label>No Of Installments</label>
+              <input type="text" id="NoOfInstallments" name="NoOfInstallments" class="bs-input-text">
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="ChargePenaltyIII" name="ChargePenaltyIII" class="bs-checkbox">
+                <label for="ChargePenaltyIII">Charge Penalty</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <!-- Empty for alignment -->
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="PayRebate" name="PayRebate" class="bs-checkbox">
+                <label for="PayRebate">Pay Rebate</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Rebate Rule</label>
+              <select id="RebateRule" name="RebateRule" class="bs-select">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loan Setting - IV -->
+        <div class="tab-content-area" id="loan-setting-4">
+          <div class="section-header">
+            <i class="bi bi-gear"></i> PRODUCT TYPE - LOAN DETAILS IV
+          </div>
+
+          <div class="kairo-grid-4">
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="CanRefinance" name="CanRefinance" class="bs-checkbox">
+                <label for="CanRefinance">Can Refinance</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="CanExtendTermOnReschedule" name="CanExtendTermOnReschedule" class="bs-checkbox">
+                <label for="CanExtendTermOnReschedule">Can Extend Term On Reschedule</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Refinance Amount Rounding</label>
+              <select id="RefinanceAmountRounding" name="RefinanceAmountRounding" class="bs-select">
+                <option value="">Nearest 0.01</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="CollectInterestDuringBreakPeriod" name="CollectInterestDuringBreakPeriod" class="bs-checkbox">
+                <label for="CollectInterestDuringBreakPeriod">Collect Interest During Break Period</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Interest Menu ID</label>
+              <select id="InterestMenuIDIV" name="InterestMenuIDIV" class="bs-select">
+                <option value="">--Select--</option>
+              </select>
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="AllowForInterestWaiver" name="AllowForInterestWaiver" class="bs-checkbox">
+                <label for="AllowForInterestWaiver">Allow For Interest Waiver</label>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Max Extendable Term</label>
+              <div style="display: flex; gap: 3px; align-items: center;">
+                <input type="text" id="MaxExtendableTerm" name="MaxExtendableTerm" class="bs-input-text" style="flex: 1;">
+                <span style="font-size: 10px; color: var(--text-gray); min-width: 20px;">%</span>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <label>Max Break Period</label>
+              <div style="display: flex; gap: 3px; align-items: center;">
+                <input type="text" id="MaxBreakPeriod" name="MaxBreakPeriod" class="bs-input-text" style="flex: 1;">
+                <span style="font-size: 10px; color: var(--text-gray); min-width: 20px;">%</span>
+              </div>
+            </div>
+
+            <div class="kairo-field">
+              <!-- Empty for alignment -->
+            </div>
+
+            <div class="kairo-field">
+              <div class="checkbox-row">
+                <input type="checkbox" id="AllowToPostponeInstallment" name="AllowToPostponeInstallment" class="bs-checkbox">
+                <label for="AllowToPostponeInstallment">Allow To Postpone Installment</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Behind The Scene Section -->
+        <div class="section-header">Behind The Scene</div>
+
+        <div class="behind-scene-section">
+          <div class="behind-scene-grid">
+            <div class="behind-scene-item">
+              <label>Created By</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Created On</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Modified By</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Modified On</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Supervised By</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+            <div class="behind-scene-item">
+              <label>Supervised On</label>
+              <input type="text" class="bs-input-text" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button type="button" class="btn-action">
+            <i class="bi bi-eye me-1"></i>View
+          </button>
+          <button type="button" class="btn-action">
+            <i class="bi bi-plus-circle me-1"></i>Add
+          </button>
+          <button type="button" class="btn-action">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </button>
+          <button type="button" class="btn-action">
+            <i class="bi bi-trash me-1"></i>Delete
+          </button>
+          <button type="button" class="btn-action">
+            <i class="bi bi-floppy me-1"></i>Save
+          </button>
+          <button type="button" class="btn-action">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+        </div>
+      </div>
+
+      <!-- DataEntry Child Form Overlay (iframe host) -->
+      <div class="child-overlay" data-child-overlay aria-hidden="true">
+        <div class="child-frame" role="dialog" aria-modal="true" aria-label="DataEntry window">
+          <iframe class="child-iframe" data-child-iframe title="DataEntry"></iframe>
+        </div>
+      </div>
+
+      <!-- Product Lookup Modal -->
+      <div class="modal fade" id="productLookupModal" tabindex="-1" aria-labelledby="productLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="modal-title" id="productLookupModalLabel">Find Product</h5>
+              </div>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form class="row g-3 align-items-end mb-3" id="productLookupForm">
+                <div class="col-md-5">
+                  <label class="form-label">Product ID</label>
+                  <div class="input-group input-group-sm">
+                    <select class="form-select" id="productSearchModeId">
+                      <option value="Like">Like</option>
+                      <option value="Exact">Exact</option>
+                    </select>
+                    <input type="text" class="form-control" id="productSearchId" placeholder="Enter Product ID" />
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label">Product Name</label>
+                  <div class="input-group input-group-sm">
+                    <select class="form-select" id="productSearchModeName">
+                      <option value="Like">Like</option>
+                      <option value="Exact">Exact</option>
+                    </select>
+                    <input type="text" class="form-control" id="productSearchName" placeholder="Enter Product Name" />
+                  </div>
+                </div>
+                <div class="col-md-2 text-md-end">
+                  <button type="submit" class="btn btn-primary btn-sm w-100" id="productSearchSubmit">
+                    Search
+                  </button>
+                </div>
+              </form>
+
+              <div class="position-relative" style="min-height: 300px;">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                    <thead class="table-primary">
+                      <tr>
+                        <th scope="col" style="width: 60px;">#</th>
+                        <th scope="col">Product ID</th>
+                        <th scope="col">Product Name</th>
+                      </tr>
+                    </thead>
+                    <tbody id="productSearchResults">
+                      <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                          No results. Click "Search" to find products.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div id="productSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" id="productSelectBtn" disabled><i class="bi bi-check-circle me-1"></i>OK</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/environment.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../assets/js/shared/search-modal.js"></script>
+  <script src="../../assets/js/pages/modules/product-management/product-maintenance-loan.js"></script>
+  <script src="product-maintenance-loan.js"></script>
+  <script src="../../assets/js/pages/product-management/product-maintenance-loan.embedded.js"></script>
+</body>
+
+</html>

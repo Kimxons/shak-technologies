@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Swift Outgoing Approval · Clearing</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .swift-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: #f8f9fa;
+    }
+
+    .swift-form {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .swift-scroll-region {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .swift-section {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .swift-section-header {
+      background: #e8f1ff;
+      color: #003d82;
+      padding: 12px 16px;
+      font-weight: 600;
+      border-radius: 3px 3px 0 0;
+      font-size: 14px;
+      border-bottom: 1px solid #d0e0f5;
+    }
+
+    .swift-section-body {
+      padding: 16px;
+    }
+
+    .swift-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .swift-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    .swift-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .swift-field label {
+      font-weight: 600;
+      color: #0066cc;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .swift-field input,
+    .swift-field select,
+    .swift-field textarea {
+      padding: 8px 10px;
+      border-radius: 0.5rem;
+      border: 1.5px solid rgba(15, 23, 42, 0.25);
+      font-size: 13px;
+      font-family: inherit;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+      transition: all 0.15s ease;
+    }
+
+    .swift-field input:focus,
+    .swift-field select:focus,
+    .swift-field textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px rgba(15, 23, 42, 0.05);
+      background: #ffffff;
+    }
+
+    .swift-field input[readonly] {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    .input-group-swift {
+      display: flex;
+      gap: 6px;
+    }
+
+    .input-group-swift input {
+      flex: 1;
+    }
+
+    .input-group-swift button {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid rgba(59, 130, 246, 0.3);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s ease;
+    }
+
+    .input-group-swift button:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .data-table thead {
+      background: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .data-table th {
+      padding: 10px 8px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .data-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .data-table tr:hover {
+      background: #f8f8f8;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+      font-size: 13px;
+    }
+
+    .scanned-image-section {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 20px;
+      text-align: center;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .image-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .image-btn {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid rgba(59, 130, 246, 0.3);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s ease;
+    }
+
+    .image-btn:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .swift-actions {
+      display: flex;
+      gap: 8px;
+      padding: 16px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      justify-content: flex-end;
+    }
+
+    .btn-swift {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-swift-primary {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      box-shadow: 0 15px 30px rgba(59, 130, 246, 0.35);
+    }
+
+    .btn-swift-primary:hover {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+    }
+
+    .btn-swift-secondary {
+      background: rgba(255, 255, 255, 0.9);
+      color: #003d82;
+      border: 1.5px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-swift-secondary:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .two-col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .footer-fields {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .footer-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-field-row label {
+      font-weight: 600;
+      color: #0066cc;
+      font-size: 12px;
+    }
+
+    .footer-field-row input {
+      padding: 6px 8px;
+      border-radius: 0.5rem;
+      border: 1.5px solid rgba(15, 23, 42, 0.25);
+      font-size: 12px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+  </style>
+</head>
+
+<body class="copilot-theme" data-page="swift-outgoing-approval">
+  <div class="swift-container">
+    <form class="swift-form" autocomplete="off" novalidate>
+      <div class="swift-scroll-region">
+        <!-- Search Section -->
+        <div class="swift-section">
+          <div class="swift-section-body">
+            <div class="swift-grid">
+              <div class="swift-field">
+                <label>Reference Number</label>
+                <div class="input-group-swift">
+                  <input type="text" />
+                  <button type="button" aria-label="Search">🔍</button>
+                </div>
+              </div>
+              <div class="swift-field">
+                <label>Nostro Account</label>
+                <div class="input-group-swift">
+                  <input type="text" />
+                  <button type="button" aria-label="Search">🔍</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Details Section -->
+        <div class="swift-section">
+          <div class="swift-section-header">Customer Details</div>
+          <div class="swift-section-body">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Ref No.</th>
+                  <th>AccountID</th>
+                  <th>Name</th>
+                  <th>Trx Currency ID</th>
+                  <th>Local Amount</th>
+                  <th>Foreign Amount</th>
+                  <th>Exchange Rate</th>
+                  <th>Charge Amount</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="9" class="empty-message">No records to display.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="two-col-layout">
+          <!-- Scanned Image Section -->
+          <div class="swift-section">
+            <div class="swift-section-header">Scanned Image</div>
+            <div class="swift-section-body">
+              <div class="scanned-image-section">
+                <p style="color: #999; margin: 0;">No image uploaded</p>
+                <div class="image-buttons">
+                  <button type="button" class="image-btn" title="View">👁️</button>
+                  <button type="button" class="image-btn" title="Search">🔍</button>
+                  <button type="button" class="image-btn" title="Zoom">🔍+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beneficiary Details Section -->
+          <div class="swift-section">
+            <div class="swift-section-header">Beneficiary Details</div>
+            <div class="swift-section-body">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Item No.</th>
+                    <th>Bank</th>
+                    <th>BranchID</th>
+                    <th>AccountID</th>
+                    <th>Name</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="empty-message">No records to display.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Fields Section -->
+        <div class="swift-section">
+          <div class="swift-section-body">
+            <div class="footer-fields">
+              <div class="footer-field">
+                <div class="footer-field-row">
+                  <label>Created By</label>
+                  <input type="text" readonly />
+                </div>
+                <div class="footer-field-row">
+                  <label>Created On</label>
+                  <input type="text" readonly />
+                </div>
+              </div>
+              <div class="footer-field">
+                <div class="footer-field-row">
+                  <label>Modified By</label>
+                  <input type="text" readonly />
+                </div>
+                <div class="footer-field-row">
+                  <label>Modified On</label>
+                  <input type="text" readonly />
+                </div>
+              </div>
+              <div class="footer-field">
+                <div class="footer-field-row">
+                  <label>Supervised By</label>
+                  <input type="text" readonly />
+                </div>
+                <div class="footer-field-row">
+                  <label>Supervised On</label>
+                  <input type="text" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="swift-actions">
+        <button type="button" class="btn-swift btn-swift-secondary">Print</button>
+        <button type="button" class="btn-swift btn-swift-secondary">Swift Message</button>
+        <button type="button" class="btn-swift btn-swift-secondary">Edit</button>
+        <button type="button" class="btn-swift btn-swift-secondary">Save</button>
+        <button type="button" class="btn-swift btn-swift-secondary">Approve</button>
+        <button type="button" class="btn-swift btn-swift-secondary">Reject</button>
+        <button type="button" class="btn-swift btn-swift-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>

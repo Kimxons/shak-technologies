@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LC/PO Extension</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../overdraft-application/overdraft-application.css">
+</head>
+<body>
+    <div class="module-shell">
+        <div class="module-layout" style="grid-template-columns: 1fr 120px;">
+            <main class="content" role="main" style="padding: 16px;">
+                <section class="card" style="display: none;">
+                    <div class="card-header" style="background: #2b7abf; color: white; padding: 8px 12px;">
+                        <span>LC/PO Extension</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start;">
+                            <div class="form-control-group">
+                                <label for="branchId" class="form-label"><span>Branch ID</span></label>
+                                <input type="text" id="branchId" name="branchId" class="form-control" value="0104" readonly>
+                            </div>
+                            <div class="form-control-group" style="grid-column: span 3;">
+                                <label for="branchName" class="form-label"><span>IBO</span></label>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="text" id="branchName" name="branchName" class="form-control" readonly style="flex: 1;">
+                                    <button type="button" class="btn-search" aria-label="Search" style="padding: 6px 12px; height: 32px;">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-control-group" style="grid-column: span 2;">
+                                <label for="applicationId" class="form-label"><span>Application ID</span></label>
+                                <input type="text" id="applicationId" name="applicationId" class="form-control" value="1020240002">
+                            </div>
+                            <div class="form-control-group" style="grid-column: span 2;"></div>
+
+                            <div class="form-control-group" style="grid-column: span 2;">
+                                <label for="expiryDate" class="form-label"><span>Expiry Date</span></label>
+                                <select id="expiryDate" name="expiryDate" class="form-control">
+                                    <option value="13/Nov/2024" selected>13/Nov/2024</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group" style="grid-column: span 2;"></div>
+
+                            <div class="form-control-group" style="grid-column: span 2;">
+                                <label for="dueDate" class="form-label"><span>Due Date</span></label>
+                                <select id="dueDate" name="dueDate" class="form-control">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="form-control-group" style="grid-column: span 2;"></div>
+
+                            <div class="form-control-group">
+                                <label for="amount" class="form-label"><span>Amount</span></label>
+                                <input type="text" id="amount" name="amount" class="form-control" value="20,953.00" style="text-align: right;">
+                            </div>
+                            <div class="form-control-group"></div>
+                            <div class="form-control-group"></div>
+                            <div class="form-control-group"></div>
+
+                            <div class="form-control-group">
+                                <label for="exchangeRate" class="form-label"><span>Exchange Rate</span></label>
+                                <input type="text" id="exchangeRate" name="exchangeRate" class="form-control" value="140.34" style="text-align: right;">
+                            </div>
+                            <div class="form-control-group" style="grid-column: span 2;">
+                                <label for="localAmount" class="form-label"><span>Local Amount</span></label>
+                                <input type="text" id="localAmount" name="localAmount" class="form-control" value="2,940,544.02" style="text-align: right;">
+                            </div>
+                            <div class="form-control-group"></div>
+
+                            <div class="form-control-group" style="grid-column: span 4;">
+                                <label for="remarks" class="form-label"><span>Remarks</span></label>
+                                <textarea id="remarks" name="remarks" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" style="margin-top: 16px;">
+                    <div class="card-body">
+                        <table class="data-table" style="width: 100%; font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>CR AccountID</th>
+                                    <th>CrAccountName</th>
+                                    <th>DrAccountType</th>
+                                    <th>DR AccountID</th>
+                                    <th>DrAccountName</th>
+                                    <th>Actual Amount</th>
+                                    <th>Settlement Amount</th>
+                                    <th>IsEditable</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="empty-row">
+                                    <td colspan="9" style="text-align: center; padding: 20px;">No records to display.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+
+            <aside class="action-bar" aria-label="Actions">
+                <button class="action-btn view" data-action="back">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    <span>Back</span>
+                </button>
+                <button class="action-btn add" data-action="add">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                    <span>Add</span>
+                </button>
+                <button class="action-btn save" data-action="save">
+                    <i class="bi bi-save-fill" aria-hidden="true"></i>
+                    <span>Save</span>
+                </button>
+                <button class="action-btn cancel" data-action="cancel">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                    <span>Cancel</span>
+                </button>
+            </aside>
+        </div>
+    </div>
+
+    <script src="../../../assets/js/pages/trade-finance/data-entry/lcpo-extension.embedded.js"></script>
+</body>
+</html>

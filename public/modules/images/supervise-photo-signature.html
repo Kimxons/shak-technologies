@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supervise Photo and Signature</title>
+  <link rel="stylesheet" href="supervise-photo-signature.css" />
+</head>
+<body>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <span class="title-icon">☰</span>
+        <span class="title-text">Supervise Photo and Signature</span>
+      </div>
+      <div class="title-bar-right">
+        <button class="title-btn" type="button" aria-label="Refresh">🔄</button>
+        <button class="title-btn" type="button" aria-label="Minimize">─</button>
+        <button class="title-btn" type="button" aria-label="Maximize">☐</button>
+        <button class="title-btn close" type="button" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="form-content">
+        <div class="grid-panel" aria-label="Images pending supervision">
+          <table class="data-table" id="superviseTable">
+            <thead>
+              <tr>
+                <th>ImageID</th>
+                <th>Client ID</th>
+                <th>Client Name</th>
+                <th>Account ID</th>
+                <th>Description</th>
+                <th>Image Type</th>
+              </tr>
+            </thead>
+            <tbody id="superviseTbody">
+              <tr>
+                <td colspan="6" class="no-records">No records to display.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-header">Image</div>
+        <div class="image-panel" aria-label="Selected image preview">
+          <div class="image-stage">
+            <div class="image-placeholder" id="imagePlaceholder">
+              <div class="placeholder-icon" aria-hidden="true">🖼️</div>
+            </div>
+            <img id="imagePreview" class="image-preview" alt="Selected image" hidden />
+          </div>
+        </div>
+
+        <div class="status-strip" aria-label="Status">
+          <span id="statusText"></span>
+        </div>
+      </div>
+
+      <aside class="action-panel" aria-label="Actions">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" id="showImageBtn">ShowImage</button>
+          <button class="btn-action" type="button" id="superviseBtn">Supervise</button>
+          <button class="btn-action" type="button" id="rejectBtn">Reject</button>
+          <button class="btn-action" type="button" id="cancelBtn">Cancel</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="status-bar">
+      <span></span>
+    </div>
+  </div>
+
+  <script src="supervise-photo-signature.js"></script>
+</body>
+</html>

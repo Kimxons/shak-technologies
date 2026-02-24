@@ -1,0 +1,479 @@
+/* GL Parameters - Modern Account Maintenance Style */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    background: #f0f0f0;
+    height: 100%;
+}
+
+/* Window */
+.window {
+    background: #f0f0f0;
+    border: 1px solid #888;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Title Bar */
+.title-bar {
+    background: linear-gradient(180deg, #6b9cd4 0%, #4a7fc4 50%, #3a6fb4 100%);
+    color: white;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.title-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.title-icon {
+    font-size: 14px;
+}
+
+.title-text {
+    font-weight: normal;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.title-bar-right {
+    display: flex;
+    gap: 2px;
+}
+
+.title-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 22px;
+    height: 18px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: background-color 0.2s;
+}
+
+.title-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.title-btn.close:hover {
+    background: #c42b1c;
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    flex: 1;
+    background: #f0f0f0;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 160px;
+    background: #f5f5f5;
+    border-right: 1px solid #ccc;
+    padding: 4px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.sidebar-item {
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    color: #000;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.sidebar-item:hover {
+    background: #e0e0e0;
+}
+
+.sidebar-item.active {
+    background: #b0d4e3;
+    font-weight: bold;
+}
+
+.sidebar-item.dropdown select {
+    width: 100%;
+    padding: 2px;
+    font-size: 11px;
+    border: 1px solid #999;
+    background: white;
+}
+
+/* Form Content */
+.form-content {
+    flex: 1;
+    padding: 8px 12px;
+    background: #f0f0f0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Form Row */
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.form-row label {
+    min-width: 130px;
+    text-align: right;
+    padding-right: 8px;
+    font-size: 11px;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.label-blue {
+    color: #0066cc !important;
+    font-weight: normal;
+}
+
+.form-row input[type="text"],
+.form-row select {
+    height: 20px;
+    padding: 1px 4px;
+    border: 1px solid #7f9db9;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+    background: white;
+}
+
+.form-row input[type="text"]:focus,
+.form-row select:focus {
+    outline: none;
+    border-color: #0066cc;
+    background: #fffacd;
+}
+
+.input-small {
+    width: 80px;
+}
+
+.input-medium {
+    width: 200px;
+}
+
+.input-large {
+    width: 280px;
+    flex: 1;
+}
+
+.input-full {
+    width: 440px;
+}
+
+.input-audit {
+    width: 100px;
+    height: 20px;
+    padding: 1px 4px;
+    border: 1px solid #7f9db9;
+    font-size: 11px;
+    background: #f5f5f5;
+}
+
+/* Action Row */
+.action-row {
+    margin: 8px 0;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Buttons */
+.btn-lookup {
+    width: 22px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid #999;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-lookup:hover {
+    background: #e5e5e5;
+}
+
+.btn-action {
+    padding: 6px 16px;
+    border: 1px solid #999;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+    transition: background-color 0.2s;
+    min-width: 80px;
+}
+
+.btn-action:hover {
+    background: #e5e5e5;
+}
+
+.btn-view {
+    padding: 6px 16px;
+    border: 1px solid #999;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+    transition: background-color 0.2s;
+}
+
+.btn-view:hover {
+    background: #e5e5e5;
+}
+
+/* Section Header */
+.section-header {
+    background: linear-gradient(180deg, #4a90d9 0%, #2a70b9 100%);
+    color: white;
+    padding: 4px 12px;
+    font-weight: bold;
+    font-size: 11px;
+    margin: 8px 0 6px 0;
+    border-radius: 2px;
+}
+
+/* Table Container */
+.table-container {
+    width: 100%;
+    margin-bottom: 4px;
+    border: 1px solid #999;
+    background: white;
+    overflow-x: auto;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    background: white;
+}
+
+.data-table thead {
+    background: #d0d0d0;
+    position: sticky;
+    top: 0;
+}
+
+.data-table th {
+    border: 1px solid #999;
+    padding: 4px 8px;
+    text-align: left;
+    font-weight: bold;
+    color: #000;
+}
+
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 4px 8px;
+    background: white;
+}
+
+.data-table tbody tr:nth-child(odd) {
+    background: #f9f9f9;
+}
+
+.data-table tbody tr:hover {
+    background: #e8f4f8;
+}
+
+.table-action-row {
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+/* Audit Section */
+.audit-section {
+    margin-top: 4px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+}
+
+.audit-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 6px;
+}
+
+.audit-row:last-child {
+    margin-bottom: 0;
+}
+
+.audit-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.audit-item label {
+    min-width: 80px;
+    text-align: right;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+/* Action Panel */
+.action-panel {
+    width: 100px;
+    background: #f5f5f5;
+    border-left: 1px solid #ccc;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.nav-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+    text-align: center;
+}
+
+.btn-nav {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-nav.green {
+    background: linear-gradient(180deg, #6fbf6f 0%, #4a9f4a 100%);
+    color: white;
+}
+
+.btn-nav.green:hover {
+    background: linear-gradient(180deg, #5faf5f 0%, #3a8f3a 100%);
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: auto;
+}
+
+.btn-action-panel {
+    padding: 6px 12px;
+    border: 1px solid #999;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-action-panel:hover {
+    background: #e5e5e5;
+}
+
+.btn-action-panel.close-btn {
+    margin-top: 8px;
+    background: #f5f5f5;
+}
+
+.btn-action-panel.close-btn:hover {
+    background: #ffcccc;
+}
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar,
+.form-content::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+    width: 16px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.form-content::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.form-content::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border: 1px solid #999;
+}
+
+.sidebar::-webkit-scrollbar-button,
+.form-content::-webkit-scrollbar-button,
+.table-container::-webkit-scrollbar-button {
+    background: #e0e0e0;
+    border: 1px solid #999;
+    height: 16px;
+}
+
+/* Modal/Dialog Styling for integration */
+.gl-parameters-modal {
+    background: #f0f0f0;
+    border: 1px solid #888;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 1200px;
+    width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .action-panel {
+        width: 80px;
+    }
+
+    .sidebar {
+        width: 140px;
+    }
+
+    .form-row label {
+        min-width: 100px;
+    }
+
+    .input-full {
+        width: 300px;
+    }
+}

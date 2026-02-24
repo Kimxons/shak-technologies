@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loan Rate Change · Data Entry</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../../assets/css/styles.css?v=20260201" />
+</head>
+
+<body class="copilot-theme" data-page="loan-rate-change">
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  
+  <!-- Page Loading Overlay -->
+  <div id="pageLoadingOverlay" class="page-loading-overlay" hidden>
+    <div class="page-loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+  </div>
+  
+  <div class="window">
+    <div class="main-container">
+      <div class="form-content">
+        <div class="form-card" data-main-form>
+          
+          <!-- Account Assignment Section -->
+          <div class="form-section" data-section="account-assignment">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-card-text"></i>Account Assignment</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Assignment" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Branch</label>
+                <div class="kairo-branch-control">
+                  <input class="bs-input-text" id="BranchID" name="BranchID" type="text" placeholder="Branch ID" />
+                  <button class="btn-lookup" type="button" aria-label="Lookup branch" title="Lookup branch">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label class="label-muted">Branch Name</label>
+                <input class="bs-input-text" id="BranchName" name="BranchName" type="text" readonly placeholder="Branch Name" />
+              </div>
+            </div>
+
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-muted">Client ID</label>
+                <div class="kairo-client-control">
+                  <input class="bs-input-text" id="ClientID" name="ClientID" type="text" placeholder="Client ID" />
+                  <button class="btn-lookup" type="button" aria-label="Search client" title="Search client">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label class="label-muted">Client Name</label>
+                <input class="bs-input-text" id="ClientName" name="ClientName" type="text" readonly placeholder="Client Name" />
+              </div>
+            </div>
+
+            <div class="form-row two-col">
+              <div class="col">
+                <label class="label-blue">Account ID</label>
+                <div class="kairo-account-control">
+                  <input class="bs-input-text" id="AccountID" name="AccountID" type="text" placeholder="Account ID" />
+                  <button class="btn-lookup" type="button" aria-label="Search account" title="Search account">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col">
+                <label class="label-muted">Account Name</label>
+                <input class="bs-input-text" id="AccountName" name="AccountName" type="text" readonly placeholder="Account Name" />
+              </div>
+            </div>
+
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Loan Series</label>
+                <input class="bs-input-text" id="LoanSeries" name="LoanSeries" type="text" readonly placeholder="Loan Series" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Current Interest Rate (%)</label>
+                <input class="bs-input-text" id="CurrentInterestRate" name="CurrentInterestRate" type="text" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-blue">Proposed Interest Rate (%)</label>
+                <input class="bs-input-text" id="ProposedInterestRate" name="ProposedInterestRate" type="number" step="0.01" min="0" max="100" placeholder="Enter new rate" disabled />
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- Loan Schedules Section -->
+          <div class="form-section" data-section="loan-schedules">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-calendar-event"></i>Loan Schedules</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Loan Schedules" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="lrc-tabs" role="tablist" aria-label="Schedule Tabs">
+                <button type="button" class="lrc-tab active" role="tab" aria-selected="true" data-lrc-tab="current-schedule">Current Schedule</button>
+                <button type="button" class="lrc-tab" role="tab" aria-selected="false" data-lrc-tab="new-schedule">New Schedule</button>
+              </div>
+
+              <div class="lrc-panels" aria-label="Schedule Panels">
+                <!-- Current Schedule Panel -->
+                <div role="tabpanel" data-lrc-panel="current-schedule">
+                  <div class="lrc-grid" aria-label="Current Schedule Grid">
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-0 table-bordered table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th class="text-center">Inst No.</th>
+                            <th class="text-center">Installment Date</th>
+                            <th class="text-end">Loan Balance</th>
+                            <th class="text-end">Installment Amount</th>
+                            <th class="text-end">Prn Amount</th>
+                            <th class="text-end">Int Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody data-lrc-current-rows></tbody>
+                      </table>
+                      <div class="p-3 text-muted text-center" data-lrc-current-empty>No current schedule to display. Click View to load.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- New Schedule Panel -->
+                <div role="tabpanel" data-lrc-panel="new-schedule" hidden>
+                  <div class="lrc-grid" aria-label="New Schedule Grid">
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-0 table-bordered table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th class="text-center">Inst No.</th>
+                            <th class="text-center">Installment Date</th>
+                            <th class="text-end">Loan Balance</th>
+                            <th class="text-end">Installment Amount</th>
+                            <th class="text-end">Prn Amount</th>
+                            <th class="text-end">Int Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody data-lrc-new-rows></tbody>
+                      </table>
+                      <div class="p-3 text-muted text-center" data-lrc-new-empty>No new schedule to display. Enter proposed rate and click View to generate.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Loan Amount</label>
+                <input class="bs-input-text text-end" id="LoanAmount" name="LoanAmount" type="text" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Loan Balance</label>
+                <input class="bs-input-text text-end" id="LoanBalance" name="LoanBalance" type="text" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Product ID</label>
+                <input class="bs-input-text" id="ProductID" name="ProductID" type="text" readonly placeholder="Product ID" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Currency ID</label>
+                <input class="bs-input-text" id="CurrencyID" name="CurrencyID" type="text" readonly placeholder="Currency" />
+              </div>
+            </div>
+
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Maturity Date</label>
+                <input class="bs-input-text" id="MaturityDate" name="MaturityDate" type="text" readonly placeholder="DD/MM/YYYY" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Loan Status</label>
+                <input class="bs-input-text" id="LoanStatus" name="LoanStatus" type="text" readonly placeholder="Status" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Outstanding Principal</label>
+                <input class="bs-input-text text-end" id="OutstandingPrincipal" name="OutstandingPrincipal" type="text" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Overdue Principal</label>
+                <input class="bs-input-text text-end" id="OverduePrincipal" name="OverduePrincipal" type="text" readonly placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="form-row four-col">
+              <div class="col">
+                <label class="label-muted">Overdue Interest</label>
+                <input class="bs-input-text text-end" id="OverdueInterest" name="OverdueInterest" type="text" readonly placeholder="0.00" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Current Installment</label>
+                <input class="bs-input-text" id="CurrentInstallment" name="CurrentInstallment" type="text" readonly placeholder="Installment" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Total Term</label>
+                <input class="bs-input-text" id="TotalTerm" name="TotalTerm" type="text" readonly placeholder="Term" />
+              </div>
+              <div class="col">
+                <label class="label-muted">Balance Term</label>
+                <input class="bs-input-text" id="BalanceTerm" name="BalanceTerm" type="text" readonly placeholder="Balance" />
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action Panel -->
+      <div class="action-panel">
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+          <button class="btn-action" type="button" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+          <button class="btn-action" type="button" data-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Core Dependencies -->
+  <script src="../../../../assets/js/environment.js"></script>
+  <script src="../../../../assets/js/config.js"></script>
+  <script src="../../../../assets/js/services/shared/coreApi.js"></script>
+  
+  <!-- Services -->
+  <script src="../../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../../assets/js/shared/search-modal.js"></script>
+  
+  <!-- Auth -->
+  <script src="../../../../assets/js/auth/auth.config.js"></script>
+  <script src="../../../../assets/js/auth/auth.service.js"></script>
+  <script src="../../../../assets/js/app.js"></script>
+  
+  <!-- Page Scripts -->
+  <script src="../../../../assets/js/services/loans/loanRateChangeService.js"></script>
+  <script src="../../../../assets/js/pages/loans/loan-rate-change/loan-rate-change.js"></script>
+  
+  <!-- Tab Initialization Script -->
+  <script>
+    (function() {
+      const tabButtons = Array.from(document.querySelectorAll("[data-lrc-tab]"));
+      const panels = Array.from(document.querySelectorAll("[data-lrc-panel]"));
+      
+      if (tabButtons.length === 0 || panels.length === 0) return;
+      
+      function showTab(key) {
+        // Update tab buttons
+        tabButtons.forEach(btn => {
+          const isActive = btn.getAttribute("data-lrc-tab") === key;
+          btn.classList.toggle("active", isActive);
+          btn.setAttribute("aria-selected", isActive);
+        });
+        
+        // Update panels
+        panels.forEach(panel => {
+          const isActive = panel.getAttribute("data-lrc-panel") === key;
+          if (isActive) {
+            panel.removeAttribute("hidden");
+          } else {
+            panel.setAttribute("hidden", "");
+          }
+        });
+      }
+      
+      // Attach click handlers
+      tabButtons.forEach(button => {
+        button.addEventListener("click", () => {
+          const key = button.getAttribute("data-lrc-tab");
+          if (key) showTab(key);
+        });
+      });
+      
+      // Initialize with first tab
+      const activeTab = tabButtons.find(b => b.classList.contains("active"));
+      showTab(activeTab?.getAttribute("data-lrc-tab") || "current-schedule");
+    })();
+  </script>
+</body>
+
+</html>

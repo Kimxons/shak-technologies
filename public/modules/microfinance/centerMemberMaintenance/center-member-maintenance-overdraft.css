@@ -1,0 +1,464 @@
+/* Center Member Maintenance (MicroFinance) — Overdraft-like styling (scoped)
+   Focus: compact typography + Overdraft button colors/sizing.
+*/
+
+body.center-member-maintenance.copilot-theme {
+  --od-primary: #4A90E2;
+  --od-primary-dark: #357ABD;
+  --od-border: #DDE6ED;
+  --od-text: #2C3E50;
+  --od-text-light: #8B98A5;
+  --od-info: #3498DB;
+  --od-success: #27AE60;
+  --od-warning: #F39C12;
+  --od-danger: #E74C3C;
+  --od-radius: 3px;
+  --od-shadow-sm: 0 6px 16px rgba(44, 62, 80, 0.06);
+  --od-transition: all 0.18s ease;
+
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--od-text);
+}
+
+/* Controls: compact like Overdraft */
+body.center-member-maintenance.copilot-theme .form-control,
+body.center-member-maintenance.copilot-theme .form-select {
+  padding: 4px 8px;
+  border: 1px solid var(--od-border);
+  border-radius: var(--od-radius);
+  font-size: 11px;
+  color: var(--od-text);
+  background: #fff;
+  line-height: 1.35;
+  min-height: 0;
+  transition: var(--od-transition);
+}
+
+body.center-member-maintenance.copilot-theme .cm-top-identifiers .form-control,
+body.center-member-maintenance.copilot-theme .cm-top-identifiers .form-select {
+  font-size: 11px;
+  min-height: 26px !important;
+  height: auto;
+}
+
+body.center-member-maintenance.copilot-theme .form-control::placeholder {
+  color: var(--od-text-light);
+}
+
+body.center-member-maintenance.copilot-theme .form-control:focus,
+body.center-member-maintenance.copilot-theme .form-select:focus {
+  border-color: var(--od-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.18);
+}
+
+body.center-member-maintenance.copilot-theme .form-control:disabled,
+body.center-member-maintenance.copilot-theme .form-control[readonly],
+body.center-member-maintenance.copilot-theme .form-select:disabled {
+  background: #F5F7FA;
+  color: #5A6C7D;
+}
+
+body.center-member-maintenance.copilot-theme .input-group > .btn {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+body.center-member-maintenance.copilot-theme .cm-top-identifiers .input-group .btn {
+  min-height: 26px !important;
+  padding: 0 10px;
+  font-size: 11px;
+  border-radius: var(--od-radius);
+}
+
+/* Labels */
+body.center-member-maintenance.copilot-theme .cbs-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--od-primary);
+  margin-bottom: 2px;
+}
+
+/* Buttons */
+body.center-member-maintenance.copilot-theme .btn {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  border-radius: var(--od-radius);
+  padding: 6px 10px;
+  transition: var(--od-transition);
+}
+
+body.center-member-maintenance.copilot-theme .btn > .bi {
+  margin-right: 6px;
+  line-height: 1;
+}
+
+body.center-member-maintenance.copilot-theme .btn > .bi:only-child {
+  margin-right: 0;
+}
+
+body.center-member-maintenance.copilot-theme .btn.btn-outline-primary {
+  color: var(--od-primary);
+  border-color: var(--od-primary);
+  background: transparent;
+}
+
+body.center-member-maintenance.copilot-theme .btn.btn-outline-primary:hover,
+body.center-member-maintenance.copilot-theme .btn.btn-outline-primary:focus {
+  color: #fff;
+  background: var(--od-primary);
+  border-color: var(--od-primary);
+  box-shadow: var(--od-shadow-sm);
+}
+
+body.center-member-maintenance.copilot-theme .btn:disabled,
+body.center-member-maintenance.copilot-theme .btn.disabled {
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+/* Lookup buttons: filled primary like Overdraft */
+body.center-member-maintenance.copilot-theme button.btn.btn-outline-primary[data-cmm-lookup],
+body.center-member-maintenance.copilot-theme button.btn.btn-outline-primary[data-cms-lookup] {
+  background: var(--od-primary);
+  color: #fff;
+  border-color: var(--od-primary);
+  font-size: 11px;
+  padding: 5px 10px;
+}
+
+body.center-member-maintenance.copilot-theme button.btn.btn-outline-primary[data-cmm-lookup]:hover,
+body.center-member-maintenance.copilot-theme button.btn.btn-outline-primary[data-cmm-lookup]:focus,
+body.center-member-maintenance.copilot-theme button.btn.btn-outline-primary[data-cms-lookup]:hover,
+body.center-member-maintenance.copilot-theme button.btn.btn-outline-primary[data-cms-lookup]:focus {
+  background: var(--od-primary-dark);
+  border-color: var(--od-primary-dark);
+  transform: scale(1.02);
+}
+
+/* Inline actions in data entry (new/alter/remove/update/clear) */
+body.center-member-maintenance.copilot-theme .btn.btn-outline-secondary[data-cms-inline] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-color: var(--od-border);
+  color: var(--od-text);
+  background: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .btn.btn-outline-secondary[data-cms-inline="new"],
+body.center-member-maintenance.copilot-theme .btn.btn-outline-secondary[data-cms-inline="update"] {
+  border-color: var(--od-success);
+  color: var(--od-success);
+}
+
+body.center-member-maintenance.copilot-theme .btn.btn-outline-secondary[data-cms-inline="alter"] {
+  border-color: var(--od-warning);
+  color: var(--od-warning);
+}
+
+body.center-member-maintenance.copilot-theme .btn.btn-outline-secondary[data-cms-inline="remove"],
+body.center-member-maintenance.copilot-theme .btn.btn-outline-secondary[data-cms-inline="clear"] {
+  border-color: var(--od-danger);
+  color: var(--od-danger);
+}
+
+/* Cards + nav density */
+body.center-member-maintenance.copilot-theme .card-surface {
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+}
+
+body.center-member-maintenance.copilot-theme .cm-legacy-nav {
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+body.center-member-maintenance.copilot-theme .cm-nav-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--od-primary);
+  color: #ffffff;
+  border: 1px solid #2d5f8d;
+  border-radius: var(--od-radius);
+  padding: 10px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+body.center-member-maintenance.copilot-theme .cm-nav-toggle:hover {
+  background: var(--od-primary-dark);
+}
+
+body.center-member-maintenance.copilot-theme .cm-nav-toggle .bi {
+  color: #ffffff;
+  font-size: 10px;
+}
+
+body.center-member-maintenance.copilot-theme .cm-nav-items {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid var(--od-border);
+  border-radius: var(--od-radius);
+  padding: 4px;
+  box-shadow: var(--od-shadow-sm);
+}
+
+body.center-member-maintenance.copilot-theme .cm-legacy-nav__item {
+  border-radius: 2px;
+  border: none;
+  background: #ffffff;
+  padding: 8px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--od-text-light);
+  text-align: left;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.center-member-maintenance.copilot-theme .cm-legacy-nav__item:hover {
+  background: rgba(74, 144, 226, 0.08);
+  color: var(--od-primary);
+}
+
+body.center-member-maintenance.copilot-theme .cm-legacy-nav__item.is-active {
+  background: var(--od-info);
+  color: #ffffff;
+}
+
+/* Section bands (main + data-entry variants) */
+body.center-member-maintenance.copilot-theme .cmm-section-band,
+body.center-member-maintenance.copilot-theme .mcn-section-band {
+  background: linear-gradient(180deg, var(--od-primary) 0%, var(--od-primary-dark) 100%);
+  color: #ffffff;
+  border: 1px solid #2d5f8d;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+body.center-member-maintenance.copilot-theme .cmm-section-band .bi,
+body.center-member-maintenance.copilot-theme .mcn-section-band .bi {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Record nav buttons */
+body.center-member-maintenance.copilot-theme .cmm-ref-nav__btn.btn {
+  font-size: 10px;
+  padding: 7px 8px;
+  color: var(--od-info);
+  border-color: var(--od-info);
+}
+
+body.center-member-maintenance.copilot-theme .cmm-ref-nav__btn.btn:hover,
+body.center-member-maintenance.copilot-theme .cmm-ref-nav__btn.btn:focus {
+  background: var(--od-info);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--od-shadow-sm);
+}
+
+body.center-member-maintenance.copilot-theme .cm-legacy-actions__title,
+body.center-member-maintenance.copilot-theme .cmm-ref-nav__label {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+/* Right rail action buttons (main + popup actions share class) */
+body.center-member-maintenance.copilot-theme .cm-shell__action {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+
+  padding: 7px 8px;
+  border-radius: var(--od-radius);
+  border: 1px solid var(--od-border);
+  background: #fff;
+  color: var(--od-text);
+  transition: var(--od-transition);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action:focus {
+  transform: translateY(-1px);
+  box-shadow: var(--od-shadow-sm);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[disabled],
+body.center-member-maintenance.copilot-theme .cm-shell__action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[disabled]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action:disabled:hover {
+  transform: none;
+}
+
+/* Main screen action variants */
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="view"] {
+  color: var(--od-info);
+  border-color: var(--od-info);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="view"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="view"]:focus {
+  background: var(--od-info);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="add"] {
+  color: var(--od-success);
+  border-color: var(--od-success);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="add"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="add"]:focus {
+  background: var(--od-success);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="edit"] {
+  color: var(--od-warning);
+  border-color: var(--od-warning);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="edit"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="edit"]:focus {
+  background: var(--od-warning);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="delete"] {
+  color: var(--od-danger);
+  border-color: var(--od-danger);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="delete"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="delete"]:focus {
+  background: var(--od-danger);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="save"],
+body.center-member-maintenance.copilot-theme .cm-shell__action.cm-shell__action--success {
+  color: var(--od-success);
+  border-color: var(--od-success);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="save"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="save"]:focus,
+body.center-member-maintenance.copilot-theme .cm-shell__action.cm-shell__action--success:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action.cm-shell__action--success:focus {
+  background: var(--od-success);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="cancel"],
+body.center-member-maintenance.copilot-theme .cm-shell__action.cm-shell__action--danger {
+  color: var(--od-danger);
+  border-color: var(--od-danger);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="cancel"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cmm-action="cancel"]:focus,
+body.center-member-maintenance.copilot-theme .cm-shell__action.cm-shell__action--danger:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action.cm-shell__action--danger:focus {
+  background: var(--od-danger);
+  color: #fff;
+}
+
+/* Data-entry popup action variants */
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="add"] {
+  color: var(--od-success);
+  border-color: var(--od-success);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="add"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="add"]:focus {
+  background: var(--od-success);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="edit"] {
+  color: var(--od-warning);
+  border-color: var(--od-warning);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="edit"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="edit"]:focus {
+  background: var(--od-warning);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="delete"] {
+  color: var(--od-danger);
+  border-color: var(--od-danger);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="delete"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="delete"]:focus {
+  background: var(--od-danger);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="save"] {
+  color: var(--od-success);
+  border-color: var(--od-success);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="save"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="save"]:focus {
+  background: var(--od-success);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="cancel"] {
+  color: var(--od-danger);
+  border-color: var(--od-danger);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="cancel"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="cancel"]:focus {
+  background: var(--od-danger);
+  color: #fff;
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="back"],
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-dataentry-close] {
+  color: var(--od-info);
+  border-color: var(--od-info);
+}
+
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="back"]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-cms-de-action="back"]:focus,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-dataentry-close]:hover,
+body.center-member-maintenance.copilot-theme .cm-shell__action[data-dataentry-close]:focus {
+  background: var(--od-info);
+  color: #fff;
+}

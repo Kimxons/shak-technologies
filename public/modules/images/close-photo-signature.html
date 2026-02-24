@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Close Photo and Signature</title>
+  <link rel="stylesheet" href="close-photo-signature.css" />
+</head>
+<body>
+  <div class="window">
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <span class="title-icon">☰</span>
+        <span class="title-text">Close Photo and Signature</span>
+      </div>
+      <div class="title-bar-right">
+        <button class="title-btn" type="button" aria-label="Refresh">🔄</button>
+        <button class="title-btn" type="button" aria-label="Minimize">─</button>
+        <button class="title-btn" type="button" aria-label="Maximize">☐</button>
+        <button class="title-btn close" type="button" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <div class="form-content">
+        <div class="form-box" aria-label="Close Photo and Signature filters">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="label-blue">Branch ID</label>
+              <input type="text" id="branchId" class="input-small" value="0101" />
+              <input type="text" id="branchName" class="input-large" value="Head Office" />
+              <button class="btn-lookup" type="button" id="branchLookupBtn" aria-label="Lookup branch">🔍</button>
+            </div>
+
+            <div class="form-row">
+              <label class="label-blue">Image Type</label>
+              <select id="imageType" class="input-medium">
+                <option value="">--Select--</option>
+                <option value="photo">Photo</option>
+                <option value="signature">Signature</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label class="label-blue">Client ID</label>
+              <input type="text" id="clientId" class="input-full" />
+              <button class="btn-lookup" type="button" id="clientLookupBtn" aria-label="Lookup client">🔍</button>
+            </div>
+
+            <div class="form-row">
+              <label>Description</label>
+              <input type="text" id="description" class="input-full" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">Image</div>
+        <div class="image-panel" aria-label="Image preview">
+          <div class="image-stage" id="imageStage">
+            <div class="image-placeholder" id="imagePlaceholder">
+              <div class="placeholder-icon">🖼️</div>
+            </div>
+            <img id="imagePreview" class="image-preview" alt="Image" hidden />
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel" aria-label="Actions">
+        <div></div>
+        <div class="action-buttons">
+          <button class="btn-action" type="button" id="viewBtn">View</button>
+          <button class="btn-action underline" type="button" id="closeImageBtn">Close Image</button>
+          <button class="btn-action" type="button" id="cancelBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar" aria-label="Status">
+      <span id="statusText"></span>
+    </div>
+  </div>
+
+  <script src="close-photo-signature.js"></script>
+</body>
+</html>

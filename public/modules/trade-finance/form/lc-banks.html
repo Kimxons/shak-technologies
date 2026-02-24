@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LC Banks · Trade Finance</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/trade-finance.css" />
+  <link rel="stylesheet" href="../../../assets/css/styles.css" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --lc-popout-width: 1120px;
+      --lc-popout-height: 640px;
+      --lc-actions-width: 180px;
+      --lc-legacy-blue: #0b77c5;
+      --lc-legacy-blue-2: #0a6ab0;
+      --lc-legacy-bg: #eaf4ff;
+      --lc-legacy-border: #7fb3dd;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Poppins", system-ui, -apple-system, sans-serif;
+      color: #0f2e4f;
+    }
+
+    .lc-popout-root {
+      height: 100%;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      padding: 0;
+    }
+
+    .lc-popout {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--lc-actions-width);
+      gap: 12px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .lc-main {
+      background: var(--lc-legacy-bg);
+      border: 1px solid var(--lc-legacy-border);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    #lcBanksForm {
+      overflow: auto;
+      min-height: 0;
+    }
+
+    .lc-titlebar {
+      background: var(--lc-legacy-blue);
+      color: #fff;
+      font-weight: 600;
+      padding: 6px 10px;
+      font-size: 0.95rem;
+    }
+
+    .lc-section {
+      border-top: 3px solid var(--lc-legacy-blue-2);
+      border-left: 1px solid var(--lc-legacy-border);
+      border-right: 1px solid var(--lc-legacy-border);
+      border-bottom: 1px solid var(--lc-legacy-border);
+      background: #f6fbff;
+      margin: 10px;
+    }
+
+    .lc-section__header {
+      background: var(--lc-legacy-blue);
+      color: #fff;
+      font-weight: 600;
+      padding: 4px 10px;
+      font-size: 0.9rem;
+    }
+
+    button.lc-section__header {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    button.lc-section__header:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .lc-bts-caret {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: #ffffff;
+    }
+
+    .lc-bts-caret .bi-caret-up-fill {
+      display: none;
+    }
+
+    button.lc-section__header[aria-expanded="true"] .lc-bts-caret .bi-caret-down-fill {
+      display: none;
+    }
+
+    button.lc-section__header[aria-expanded="true"] .lc-bts-caret .bi-caret-up-fill {
+      display: inline-block;
+    }
+
+    .lc-fields {
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 140px minmax(0, 170px) minmax(0, 1fr) minmax(0, 220px);
+      gap: 8px 10px;
+      align-items: center;
+    }
+
+    .lc-label {
+      font-weight: 800;
+      color: #4169E1;
+      font-size: 0.9rem;
+      text-align: right;
+      padding-right: 6px;
+      white-space: nowrap;
+    }
+
+    .lc-input,
+    .lc-select {
+      height: 34px;
+      border: 1px solid #b9cff1;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 0.95rem;
+      background: #fff;
+      width: 100%;
+      min-width: 0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      text-transform: none;
+    }
+
+    /* Bold only the main form fields, not the Behind The Scene section */
+    .lc-fields .lc-input,
+    .lc-fields .lc-select {
+      font-weight: 700;
+    }
+
+    .lc-input:focus,
+    .lc-select:focus {
+      outline: none;
+      border-color: #2f67ff;
+      box-shadow: 0 0 0 3px rgba(47, 103, 255, 0.18);
+    }
+
+    .lc-input[disabled],
+    .lc-select[disabled] {
+      background: #eef5fb;
+      color: #3b4a58;
+    }
+
+    .lc-input--id {
+      max-width: 160px;
+    }
+
+    .lc-input--short {
+      max-width: 220px;
+    }
+
+    .lc-input--span2 {
+      grid-column: 3 / span 2;
+    }
+
+    .lc-input--wide {
+      grid-column: 2 / span 3;
+    }
+
+    .lc-lookup {
+      width: 38px;
+      height: 34px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #2f7bff, #2a63ff);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      box-shadow: 0 2px 6px rgba(33, 82, 200, 0.35);
+      justify-self: start;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    .lc-lookup i {
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .lc-lookup:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(33, 82, 200, 0.4);
+    }
+
+    .lc-lookup:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(33, 82, 200, 0.35);
+    }
+
+    .lc-lookup:disabled {
+      opacity: 0.6;
+      filter: grayscale(0.1);
+      box-shadow: none;
+    }
+
+    .lc-lookup:disabled {
+      opacity: 0.6;
+    }
+
+    .lc-legacy-actions-row {
+      padding: 6px 12px 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .lc-legacy-actions-row .btn {
+      min-width: 110px;
+    }
+
+    .lc-table-wrap {
+      margin: 0 10px 10px;
+      border: 1px solid var(--lc-legacy-border);
+      background: #fff;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .lc-table-title {
+      background: var(--lc-legacy-blue);
+      color: #fff;
+      font-weight: 600;
+      padding: 4px 10px;
+      font-size: 0.9rem;
+    }
+
+    .lc-table-scroll {
+      overflow: auto;
+      max-height: 180px;
+    }
+
+    .lc-table th {
+      position: sticky;
+      top: 0;
+      background: #f2f6fb;
+      z-index: 1;
+      font-size: 0.85rem;
+    }
+
+    .lc-table td {
+      font-size: 0.85rem;
+    }
+
+    .lc-bts-grid {
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr) 140px minmax(0, 1fr) 140px minmax(0, 1fr);
+      gap: 8px 10px;
+      align-items: center;
+    }
+
+    .lc-status {
+      padding: 6px 12px;
+      border-top: 1px solid var(--lc-legacy-border);
+      color: #c70000;
+      font-weight: 700;
+      background: #dff0ff;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .lc-actions {
+      display: grid;
+      grid-auto-rows: min-content;
+      gap: 8px;
+      align-content: end;
+      padding: 54px 8px 8px;
+      height: 100%;
+    }
+
+    .lc-actions .btn {
+      width: 100%;
+      height: 34px;
+      font-weight: 600;
+    }
+
+    .lc-actions .btn-outline-secondary {
+      background: #f3f5f7;
+    }
+
+    .lc-toast {
+      margin: 0 10px;
+      display: none;
+    }
+
+    .lc-toast.is-visible {
+      display: block;
+    }
+
+    /* Modern Unified Input Group */
+    .lc-unified-group {
+      grid-column: 2 / -1;
+      display: flex;
+      align-items: stretch;
+      border: 1px solid #b9cff1;
+      border-radius: 4px;
+      background: #fff;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      height: 34px;
+    }
+
+    .lc-unified-group:focus-within {
+      border-color: #2f67ff;
+      box-shadow: 0 0 0 3px rgba(47, 103, 255, 0.18);
+    }
+
+    .lc-unified-group .lc-input {
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+      height: 100%;
+      padding: 6px 10px;
+    }
+
+    .lc-unified-group .lc-input:focus {
+      background: #f8faff;
+      z-index: 1;
+    }
+
+    .lc-unified-group .lc-input--id {
+      flex: 0 0 140px;
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .lc-unified-group .lc-input-desc {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .lc-unified-group .lc-lookup {
+      width: 42px;
+      border-radius: 0;
+      margin: 0;
+      box-shadow: none;
+      height: auto;
+      border-left: 1px solid #2a63ff;
+      transform: none !important;
+    }
+
+    .lc-unified-group .lc-lookup:hover {
+      background: linear-gradient(135deg, #1a5cff, #1550ff);
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Overdraft-like 2-column field grid (override legacy grid) */
+    .lc-fields.form-grid.two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 16px;
+      align-items: start;
+    }
+  </style>
+</head>
+
+<body class="copilot-theme" data-page="lc-banks">
+  <div class="lc-popout-root">
+    <div class="lc-popout" role="application" aria-label="LC Banks popout window">
+      <section class="lc-main" aria-label="LC Banks">
+        <form id="lcBanksForm" class="lc-body" autocomplete="off" novalidate>
+          <section class="lc-section" aria-label="LC Banks details">
+            <div class="lc-fields form-grid two-col">
+              <div class="form-control-group">
+                <label class="form-label" for="BranchID"><i class="bi bi-hash" aria-hidden="true"></i><span>Branch ID</span></label>
+                <div class="input-segmented" aria-label="Branch lookup">
+                  <input class="form-control segment-id" id="BranchID" name="BranchID" type="text" value="" required data-editable="true" />
+                  <div class="segment-divider" aria-hidden="true"></div>
+                  <input class="form-control segment-desc" id="BranchName" name="BranchName" type="text" value="" readonly aria-label="Branch name" />
+                </div>
+              </div>
+
+              <div class="form-control-group">
+                <label class="form-label" for="ApplicationID"><i class="bi bi-card-heading" aria-hidden="true"></i><span>Application ID</span></label>
+                <input class="form-control" id="ApplicationID" name="ApplicationID" type="text" value="" required data-editable="true" />
+              </div>
+
+              <div class="form-control-group">
+                <label class="form-label" for="BankType"><i class="bi bi-building" aria-hidden="true"></i><span>Bank Type</span></label>
+                <select class="form-select" id="BankType" name="BankType" required data-editable="true">
+                  <option value="" selected>--Select--</option>
+                  <option value="negotiating">Negotiating Bank</option>
+                  <option value="confirming">Confirming Bank</option>
+                  <option value="paying">Paying Bank</option>
+                  <option value="advising">Advising Bank</option>
+                  <option value="reimbursing">Reimbursing Bank</option>
+                </select>
+              </div>
+
+              <div class="form-control-group">
+                <label class="form-label" for="BankID"><i class="bi bi-bank" aria-hidden="true"></i><span>Bank</span></label>
+                <div class="input-segmented" aria-label="Bank lookup">
+                  <input class="form-control segment-id" id="BankID" name="BankID" type="text" required data-editable="true" />
+                  <div class="segment-divider" aria-hidden="true"></div>
+                  <input class="form-control segment-desc" id="BankName" name="BankName" type="text" readonly aria-label="Bank name" />
+                  <button class="btn-inline-search" type="button" data-lookup="bank" aria-label="Search bank">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-control-group">
+                <label class="form-label" for="Branch"><i class="bi bi-geo-alt" aria-hidden="true"></i><span>Branch</span></label>
+                <div class="input-segmented" aria-label="Bank branch lookup">
+                  <input class="form-control segment-id" id="Branch" name="Branch" type="text" data-editable="true" />
+                  <div class="segment-divider" aria-hidden="true"></div>
+                  <input class="form-control segment-desc" id="BranchDesc" name="BranchDesc" type="text" readonly aria-label="Branch description" />
+                  <button class="btn-inline-search" type="button" data-lookup="bankBranch" aria-label="Search bank branch">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-control-group full-row">
+                <label class="form-label" for="Address1"><i class="bi bi-house" aria-hidden="true"></i><span>Address 1</span></label>
+                <input class="form-control" id="Address1" name="Address1" type="text" data-editable="true" />
+              </div>
+
+              <div class="form-control-group full-row">
+                <label class="form-label" for="Address2"><i class="bi bi-house-door" aria-hidden="true"></i><span>Address 2</span></label>
+                <input class="form-control" id="Address2" name="Address2" type="text" data-editable="true" />
+              </div>
+
+              <div class="form-control-group">
+                <label class="form-label" for="Phone"><i class="bi bi-telephone" aria-hidden="true"></i><span>Phone</span></label>
+                <input class="form-control" id="Phone" name="Phone" type="tel" inputmode="tel" data-editable="true" />
+              </div>
+
+              <div class="form-control-group">
+                <label class="form-label" for="Fax"><i class="bi bi-printer" aria-hidden="true"></i><span>Fax</span></label>
+                <input class="form-control" id="Fax" name="Fax" type="tel" inputmode="tel" data-editable="true" />
+              </div>
+            </div>
+
+            <div class="lc-legacy-actions-row" aria-label="Legacy row actions">
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-action="new" disabled>New</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-action="alter" disabled>Alter</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-action="remove"
+                disabled>Remove</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-action="update"
+                disabled>Update</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-action="clear" disabled>Clear</button>
+            </div>
+          </section>
+
+          <div id="lcBanksToast" class="alert alert-info lc-toast" role="status" aria-live="polite"></div>
+
+          <section class="lc-table-wrap" aria-label="List of banks">
+            <div class="lc-table-title">List Of Banks</div>
+            <div class="lc-table-scroll">
+              <table class="table table-sm mb-0 lc-table" aria-label="LC banks table">
+                <thead>
+                  <tr>
+                    <th scope="col">BankType</th>
+                    <th scope="col">BankID</th>
+                    <th scope="col">BranchID</th>
+                    <th scope="col">Address1</th>
+                    <th scope="col">Address2</th>
+                    <th scope="col">Phone</th>
+                    <th scope="col">Fax</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="7">No records to display.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="lc-section" aria-label="Behind the scene">
+            <button type="button" class="lc-section__header" data-bs-toggle="collapse" data-bs-target="#lcBanksBts"
+              aria-expanded="false" aria-controls="lcBanksBts">
+              <i class="bi bi-eye-fill me-2" aria-hidden="true"></i><span>Behind The Scene</span>
+              <span class="lc-bts-caret" aria-hidden="true">
+                <i class="bi bi-caret-down-fill"></i>
+                <i class="bi bi-caret-up-fill"></i>
+              </span>
+            </button>
+            <div id="lcBanksBts" class="collapse">
+              <div class="lc-bts-grid form-grid two-col">
+              <div class="form-control-group">
+                <label class="form-label" for="CreatedBy"><i class="bi bi-person" aria-hidden="true"></i><span>Created By</span></label>
+                <input class="form-control" id="CreatedBy" name="CreatedBy" type="text" readonly />
+              </div>
+              <div class="form-control-group">
+                <label class="form-label" for="ModifiedBy"><i class="bi bi-person" aria-hidden="true"></i><span>Modified By</span></label>
+                <input class="form-control" id="ModifiedBy" name="ModifiedBy" type="text" readonly />
+              </div>
+              <div class="form-control-group">
+                <label class="form-label" for="SupervisedBy"><i class="bi bi-person" aria-hidden="true"></i><span>Supervised By</span></label>
+                <input class="form-control" id="SupervisedBy" name="SupervisedBy" type="text" readonly />
+              </div>
+              <div class="form-control-group">
+                <label class="form-label" for="CreatedOn"><i class="bi bi-calendar" aria-hidden="true"></i><span>Created On</span></label>
+                <input class="form-control" id="CreatedOn" name="CreatedOn" type="text" readonly />
+              </div>
+              <div class="form-control-group">
+                <label class="form-label" for="ModifiedOn"><i class="bi bi-calendar" aria-hidden="true"></i><span>Modified On</span></label>
+                <input class="form-control" id="ModifiedOn" name="ModifiedOn" type="text" readonly />
+              </div>
+              <div class="form-control-group">
+                <label class="form-label" for="SupervisedOn"><i class="bi bi-calendar" aria-hidden="true"></i><span>Supervised On</span></label>
+                <input class="form-control" id="SupervisedOn" name="SupervisedOn" type="text" readonly />
+              </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="lc-status" id="lcBanksStatus" role="status" aria-live="polite">&nbsp;</div>
+        </form>
+      </section>
+
+      <aside class="lc-actions" aria-label="Actions">
+        <button type="button" class="elc-legacy-action" data-action="add">
+          <i class="bi bi-plus-circle" aria-hidden="true"></i>
+          <span>Add</span>
+        </button>
+        <button type="button" class="elc-legacy-action" data-action="edit" disabled>
+          <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+          <span>Edit</span>
+        </button>
+        <button type="button" class="elc-legacy-action" data-action="delete" disabled>
+          <i class="bi bi-trash-fill" aria-hidden="true"></i>
+          <span>Delete</span>
+        </button>
+        <button type="button" class="elc-legacy-action" data-action="save" disabled>
+          <i class="bi bi-save-fill" aria-hidden="true"></i>
+          <span>Save</span>
+        </button>
+        <button type="button" class="elc-legacy-action" data-action="cancel" disabled>
+          <i class="bi bi-x-circle" aria-hidden="true"></i>
+          <span>Cancel</span>
+        </button>
+        <div style="height: 12px;"></div>
+        <button type="button" class="elc-legacy-action" data-action="back">
+          <i class="bi bi-arrow-left-circle" aria-hidden="true"></i>
+          <span>Back</span>
+        </button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Search Results Modal -->
+  <div class="modal fade" id="searchResultsModal" tabindex="-1" aria-labelledby="searchResultsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content" style="border-radius: 0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="modal-header"
+          style="background: linear-gradient(to right, #f8f9fa, #e9ecef); border-bottom: 2px solid #dee2e6; padding: 1rem 1.5rem;">
+          <h5 class="modal-title" id="searchResultsTitle" style="color: #2c3e50; font-weight: 600; font-size: 1.1rem;">
+            Search Results</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem; background: #f8f9fa;">
+          <!-- Search Filters Section -->
+          <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 0;">
+            <div class="card-header"
+              style="background: linear-gradient(to right, #f8f9fa, #e9ecef); padding: 0.75rem 1rem; border-bottom: 1px solid #dee2e6;">
+              <strong style="color: #495057; font-size: 0.9rem;">Search Filters</strong>
+            </div>
+            <div class="card-body" style="padding: 1rem;">
+              <div id="searchFiltersContainer"></div>
+              <div class="text-end mt-3">
+                <button type="button" class="btn btn-sm btn-primary" id="searchButton"
+                  style="padding: 0.375rem 1.5rem; border-radius: 0;">
+                  Search
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Results Section -->
+          <div class="card" style="border: 1px solid #dee2e6; border-radius: 0;">
+            <div class="card-header"
+              style="background: linear-gradient(to right, #e3f2fd, #bbdefb); padding: 0.5rem 1rem; border-bottom: 1px solid #90caf9;">
+              <strong id="searchResultsCountLabel" style="color: #1976d2; font-size: 0.9rem;">Search Results</strong>
+            </div>
+            <div class="card-body p-0">
+              <div id="searchResultsContainer" class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover table-sm mb-0" style="font-size: 0.875rem;">
+                  <thead id="searchResultsHeader"
+                    style="position: sticky; top: 0; background: #f8f9fa; z-index: 1; border-bottom: 2px solid #dee2e6;">
+                  </thead>
+                  <tbody id="searchResultsBody"></tbody>
+                </table>
+              </div>
+              <div id="searchResultsEmpty" class="text-center text-muted py-5" style="display: none;">
+                <i class="bi bi-search" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0">No results found</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer"
+          style="background: #f8f9fa; border-top: 2px solid #dee2e6; padding: 0.75rem 1rem; justify-content: center;">
+          <button type="button" class="btn btn-sm" id="prevPageBtn"
+            style="padding: 0.375rem 0.75rem; border-radius: 0; background: #6c757d; color: white; min-width: 80px;">
+            <i class="bi bi-arrow-left"></i> Previous
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"
+            style="padding: 0.375rem 1.5rem; border-radius: 0; min-width: 100px;">OK</button>
+          <button type="button" class="btn btn-sm" id="nextPageBtn"
+            style="padding: 0.375rem 0.75rem; border-radius: 0; background: #6c757d; color: white; min-width: 80px;">
+            Next <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/trade-finance/tradeFinanceService.js"></script>
+  <script src="../js/lc-banks.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1745 @@
+/* Trade Finance modern theme (scoped)
+   Inspired by public/modules/account-maintenance/modern-account-maintenance.css
+   Apply by adding class="tf-modern" on <body> and including this stylesheet AFTER bill-discounting.css.
+   VERSION: 2.2 - Compact Layout for Better Error Visibility
+*/
+
+body.tf-modern {
+    --primary: #4a7c95;
+    /* Slate blue for labels/headers */
+    --primary-dark: #3d6a7f;
+    --title-bar-bg: linear-gradient(135deg, #1e4f8a 0%, #15406b 100%);
+    /* Deep blue from Account Maintenance */
+    --secondary: #f0f5f7;
+    --border: #e3e9ed;
+    --white: #ffffff;
+    --text-dark: #334155;
+    --radius: 4px;
+    --title-bar-height: 28px;
+
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    background: #f4f8f9;
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body.tf-modern .window {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Round outer window and title-bar corners to match Account Application visuals */
+body.tf-modern .window {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Hide decorative background used by older Trade Finance pages */
+body.tf-modern .cm-react-orbs {
+    display: none !important;
+}
+
+/* Title Bar - Matches Account Maintenance EXACTLY */
+body.tf-modern .tf-title-bar {
+    background: var(--title-bar-bg) !important;
+    color: #ffffff !important;
+    padding: 0 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--title-bar-height);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    z-index: 1001;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.tf-modern .tf-title-bar {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+body.tf-modern .tf-title-text {
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    /* Increased from 11px */
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    color: #ffffff !important;
+    text-shadow: none !important;
+    transform: translateZ(0);
+    /* Force crisp hardware-accelerated rendering */
+}
+
+body.tf-modern .tf-title-bar-right {
+    display: flex;
+    gap: 4px;
+}
+
+body.tf-modern .tf-title-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff !important;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    padding: 0;
+    border-radius: 4px;
+}
+
+body.tf-modern .tf-title-btn i {
+    color: #ffffff !important;
+}
+
+body.tf-modern .tf-title-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Container Layout */
+body.tf-modern .main-container {
+    display: flex !important;
+    height: calc(100vh - var(--title-bar-height)) !important;
+    overflow: hidden !important;
+    flex-direction: row !important;
+}
+
+/* Form Content Area - Contains form-card and action-panel */
+body.tf-modern .form-content {
+    display: flex !important;
+    flex: 1 !important;
+    flex-direction: row !important;
+    overflow: hidden !important;
+    background: #f4f8f9 !important;
+    height: 100% !important;
+    align-items: stretch !important;
+}
+
+/* Form Card removed - defined later with complete styling */
+
+/* Sidebar - Matches Account Maintenance EXACTLY */
+body.tf-modern .sidebar {
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    background: #f0f5f7 !important;
+    border-right: 1px solid #e3e9ed !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    height: 100% !important;
+}
+
+body.tf-modern .sidebar-header {
+    background: transparent;
+    border-bottom: 1px solid #e5e9ee;
+    padding: 12px 14px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+body.tf-modern .sidebar-header__title {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+    font-weight: 600;
+    color: #000000 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+body.tf-modern .sidebar-toggle {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    font-size: 16px;
+}
+
+body.tf-modern .sidebar-toggle:hover {
+    color: #4a7c95;
+}
+
+body.tf-modern .sidebar-search {
+    padding: 8px 14px;
+    position: relative;
+}
+
+body.tf-modern .sidebar-search__input {
+    width: 100%;
+    padding: 6px 10px 6px 32px;
+    border: 1px solid #e3e9ed;
+    border-radius: 6px;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+    background: #ffffff;
+    color: #334155;
+    transition: border-color 0.2s;
+}
+
+body.tf-modern .sidebar-search__input:focus {
+    outline: none;
+    border-color: #4a7c95;
+}
+
+body.tf-modern .sidebar-search__icon {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+body.tf-modern .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+}
+
+body.tf-modern .nav-section {
+    margin-bottom: 8px;
+}
+
+body.tf-modern .nav-section--card {
+    margin: 0 8px 8px 8px;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    overflow: visible;
+}
+
+body.tf-modern .nav-header--card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    min-height: 36px;
+    background: linear-gradient(135deg, #f0f4f8 0%, #e3ecf1 100%) !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    user-select: none !important;
+}
+
+body.tf-modern .nav-header--card:hover {
+    background: linear-gradient(135deg, #e3ecf1 0%, #cbd5e1 100%) !important;
+    border-color: #94a3b8 !important;
+    color: #1e293b !important;
+}
+
+body.tf-modern .nav-label--card {
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+}
+
+body.tf-modern .nav-arrow--card {
+    background: transparent !important;
+    border: none !important;
+    color: #94a3b8 !important;
+    cursor: pointer !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+    transition: all 0.15s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 10px !important;
+    flex-shrink: 0 !important;
+}
+
+body.tf-modern .nav-arrow--card:hover {
+    background: rgba(100, 116, 139, 0.1) !important;
+    color: #64748b !important;
+}
+
+body.tf-modern .nav-arrow--card i {
+    transition: transform 0.2s ease !important;
+}
+
+body.tf-modern .nav-section--card.expanded .nav-arrow--card i {
+    transform: rotate(180deg) !important;
+}
+
+body.tf-modern .nav-header__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+body.tf-modern .nav-header__icon {
+    color: #64748b !important;
+    font-size: 14px !important;
+    width: 16px !important;
+    text-align: center !important;
+    flex-shrink: 0 !important;
+}
+
+body.tf-modern .nav-header--card:hover .nav-header__icon {
+    color: #475569 !important;
+}
+
+body.tf-modern .nav-header__badge {
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+body.tf-modern .nav-items--card {
+    max-height: 0 !important;
+    overflow: hidden !important;
+    background: #fafbfc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-top: none !important;
+    border-radius: 0 0 6px 6px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transition: max-height 0.3s ease, opacity 0.3s ease !important;
+    opacity: 0 !important;
+}
+
+body.tf-modern .nav-section--card.expanded .nav-items--card {
+    max-height: 500px !important;
+    opacity: 1 !important;
+    padding: 8px !important;
+    border-top: 1px solid #cbd5e1 !important;
+}
+
+body.tf-modern .nav-label {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+    font-weight: 600;
+}
+
+body.tf-modern .nav-label--card {
+    color: #ffffff;
+}
+
+body.tf-modern .nav-items--card .nav-item span {
+    color: #475569 !important;
+    font-weight: 500 !important;
+    font-size: 11px !important;
+}
+
+body.tf-modern .nav-items--card .nav-item {
+    background: transparent !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    transition: background 0.15s ease !important;
+    border-radius: 4px !important;
+    color: #475569 !important;
+}
+
+body.tf-modern .nav-items--card .nav-item:hover {
+    background: rgba(74, 124, 149, 0.06) !important;
+}
+
+body.tf-modern .nav-items--card .nav-item:hover span {
+    color: #4a7c95 !important;
+}
+
+body.tf-modern .nav-items--card .nav-item.active {
+    background: rgba(74, 124, 149, 0.06) !important;
+    border-left: 2px solid #4a7c95 !important;
+}
+
+body.tf-modern .nav-items--card .nav-item.active span {
+    color: #4a7c95 !important;
+    font-weight: 600 !important;
+}
+
+/* Sidebar Navigation Accordion */
+body.tf-modern .nav-header {
+    cursor: pointer !important;
+    user-select: none;
+    transition: background 0.2s;
+    padding: 10px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    border-radius: 6px;
+    margin: 2px 8px;
+    color: #475569;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+}
+
+body.tf-modern .nav-header:hover {
+    background: rgba(74, 124, 149, 0.08);
+    color: #4a7c95;
+}
+
+body.tf-modern .nav-header.active {
+    background: rgba(74, 124, 149, 0.15);
+    color: #4a7c95;
+    font-weight: 600;
+}
+body.tf-modern .nav-items {
+    display: none !important;
+    /* Collapsed by default */
+    padding-left: 14px;
+    margin-bottom: 8px;
+}
+
+body.tf-modern .nav-section.expanded .nav-items {
+    display: flex !important;
+    flex-direction: column;
+    gap: 2px;
+}
+
+body.tf-modern .nav-section .bi-chevron-right {
+    transition: transform 0.3s ease;
+    font-size: 10px;
+    margin-left: auto;
+}
+
+body.tf-modern .nav-section.expanded .bi-chevron-right {
+    transform: rotate(90deg);
+}
+    transform: rotate(90deg);
+}
+
+body.tf-modern .sidebar-mini .nav-items {
+    display: none !important;
+}
+
+/* Sidebar Zoom (Mini State) */
+body.tf-modern .sidebar.sidebar-mini {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+    flex: 0 0 64px !important;
+}
+
+body.tf-modern .sidebar.sidebar-mini .sidebar-header__title,
+body.tf-modern .sidebar.sidebar-mini .sidebar-search,
+body.tf-modern .sidebar.sidebar-mini .nav-label,
+body.tf-modern .sidebar.sidebar-mini .nav-header__badge,
+body.tf-modern .sidebar.sidebar-mini .sidebar-item__text,
+body.tf-modern .sidebar.sidebar-mini .sidebar-item__description {
+    display: none !important;
+}
+
+body.tf-modern .sidebar.sidebar-mini .sidebar-header {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+body.tf-modern .sidebar.sidebar-mini .sidebar-item,
+body.tf-modern .sidebar.sidebar-mini .nav-header {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+body.tf-modern .sidebar.sidebar-mini .sidebar-item__icon,
+body.tf-modern .sidebar.sidebar-mini .nav-header__icon {
+    margin: 0 !important;
+    font-size: 18px;
+}
+
+/* Section Header - Matches Account Maintenance EXACTLY */
+body.tf-modern .section-header {
+    background: linear-gradient(135deg, #4a7c95 0%, #3d6a7f 100%) !important;
+    color: #ffffff !important;
+    padding: 2px 8px 2px 6px !important;
+    /* Adjusted left padding for the accent bar */
+    border-left: 3px solid #00a8ff !important;
+    /* Bright blue accent bar */
+    font-family: "Segoe UI",
+        Tahoma,
+        Arial,
+        sans-serif;
+    font-weight: 700 !important;
+    font-size: 10px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    min-height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    border: none !important;
+    border-radius: 8px 8px 0 0 !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    /* Indicate collapsible */
+    user-select: none;
+    transition: background 0.2s;
+}
+
+body.tf-modern .section-header:hover {
+    filter: brightness(1.1);
+}
+
+body.tf-modern .section-header__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff !important;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    flex: 1;
+}
+
+body.tf-modern .section-toggle-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+body.tf-modern .section-toggle-btn i {
+    font-size: 14px;
+}
+
+body.tf-modern .form-section {
+    margin-bottom: 4px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+}
+
+body.tf-modern .form-section.collapsed .section-toggle-btn i {
+    transform: rotate(180deg);
+}
+
+body.tf-modern .section-toggle {
+    transition: transform 0.3s ease;
+    font-size: 14px;
+}
+
+body.tf-modern .form-section.collapsed .section-toggle {
+    transform: rotate(180deg);
+}
+
+body.tf-modern .form-section.collapsed .section-header {
+    border-radius: 8px !important;
+}
+
+body.tf-modern .form-section.collapsed .section-content {
+    display: none !important;
+}
+
+/* Input and Select Styling - Light Grey Borders matching Loan Maintenance */
+body.tf-modern .bs-input-text,
+body.tf-modern .bs-select,
+body.tf-modern input[type="text"],
+body.tf-modern input[type="email"],
+body.tf-modern input[type="tel"],
+body.tf-modern input[type="number"],
+body.tf-modern input[type="date"],
+body.tf-modern select,
+body.tf-modern textarea.bs-textarea {
+    border: 1px solid #b8d4e3 !important;
+    border-radius: 4px;
+    background: #fff;
+    color: #334155;
+    transition: all 0.15s ease;
+}
+
+body.tf-modern .bs-input-text:focus,
+body.tf-modern .bs-select:focus,
+body.tf-modern input[type="text"]:focus,
+body.tf-modern input[type="email"]:focus,
+body.tf-modern input[type="tel"]:focus,
+body.tf-modern input[type="number"]:focus,
+body.tf-modern input[type="date"]:focus,
+body.tf-modern select:focus,
+body.tf-modern textarea.bs-textarea:focus {
+    outline: none;
+    border-color: #4a7c95 !important;
+    box-shadow: 0 0 0 2px rgba(74, 124, 149, 0.12);
+}
+
+body.tf-modern .bs-input-text:readonly,
+body.tf-modern .bs-input-text:disabled,
+body.tf-modern input[type="text"]:readonly,
+body.tf-modern input[type="text"]:disabled,
+body.tf-modern textarea.bs-textarea:readonly,
+body.tf-modern textarea.bs-textarea:disabled {
+    background: #f8fafc !important;
+    color: #64748b;
+    border-color: #d1dce5 !important;
+}
+
+/* Form Layout - ENSURE TOP LABELS - COMPACT */
+body.tf-modern .form-row {
+    display: grid;
+    gap: 2px 8px;
+    margin-bottom: 2px;
+}
+
+body.tf-modern .form-row.two-col {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px 8px;
+}
+
+body.tf-modern .form-row.three-col {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px 8px;
+}
+
+body.tf-modern .form-row.four-col {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px 8px;
+}
+
+/* Minimized Compact Checkbox Design */
+body.tf-modern .form-check-input {
+    width: 0.95rem !important;
+    height: 0.95rem !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    accent-color: #1e4b6d;
+    /* Darkened Theme Color */
+    border: 1px solid #94a3b8 !important;
+    appearance: checkbox !important;
+    -webkit-appearance: checkbox !important;
+}
+
+body.tf-modern .form-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    width: 24px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 0;
+    margin: 2px 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+body.tf-modern .form-check:hover {
+    border-color: #1e4b6d;
+    background-color: #f1f5f9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+body.tf-modern .form-check:focus-within {
+    border-color: #1e4b6d;
+    box-shadow: 0 0 0 2px rgba(30, 75, 109, 0.1);
+}
+
+body.tf-modern .form-row.five-col {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px 8px;
+}
+
+/* Custom layout for Account Product ID + Application Date + Application Status */
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) {
+    grid-template-columns: 2.0fr 0.65fr 0.85fr !important;
+    gap: 2px 6px !important;
+}
+
+/* Expand Product control to show full name */
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) .kairo-product-control {
+    display: flex !important;
+    gap: 2px !important;
+    width: 100% !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+}
+
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) .kairo-product-control__id {
+    flex: 0 0 45px !important;
+    width: 45px !important;
+    min-width: 45px !important;
+}
+
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) .kairo-product-control__name {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+    text-overflow: clip !important;
+}
+
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) .kairo-product-control__lookup {
+    flex: 0 0 28px !important;
+    width: 28px !important;
+    min-width: 28px !important;
+}
+
+/* Compact ApplicationDate within the Account Product row */
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) input[name="ApplicationDate"] {
+    max-width: none !important;
+    width: 100% !important;
+    font-size: 13px !important;
+}
+
+/* Compact rules for Bill Inward/Outward Header Branch and Product */
+body.tf-modern .form-row.three-col .kairo-branch-control__id,
+body.tf-modern .form-row.three-col .kairo-product-control__id,
+body.tf-modern .form-row.three-col input[name="HeaderBranchID"],
+body.tf-modern .form-row.three-col input[name="HeaderProductID"] {
+    flex: 0 0 55px !important;
+    width: 55px !important;
+    min-width: 55px !important;
+}
+
+body.tf-modern .form-row.three-col .kairo-branch-control__name,
+body.tf-modern .form-row.three-col .kairo-product-control__name,
+body.tf-modern .form-row.three-col input[name="HeaderBranchName"],
+body.tf-modern .form-row.three-col input[name="HeaderProductName"] {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+/* Keep Application Status compact on the right */
+body.tf-modern .form-row.three-col:has(input[name="ProductID"]) input[name="ApplicationStatus"] {
+    width: 100% !important;
+    font-size: 13px !important;
+}
+
+/* Fix Account Name visibility in two-col Account ID row */
+body.tf-modern .form-row.two-col:has(input[name="AccountID"]) .kairo-account-control {
+    display: flex !important;
+    gap: 2px !important;
+    width: 100% !important;
+    align-items: center !important;
+}
+
+body.tf-modern .form-row.two-col:has(input[name="AccountID"]) .kairo-account-control__id {
+    flex: 0 0 40% !important;
+    min-width: 0 !important;
+}
+
+body.tf-modern .form-row.two-col:has(input[name="AccountID"]) .kairo-account-control__name {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    visibility: visible !important;
+    display: block !important;
+    opacity: 1 !important;
+    height: auto !important;
+    padding: 6px 8px !important;
+    background-color: white !important;
+    border: 1px solid #b8d4e3 !important;
+    color: #333 !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.tf-modern .form-row.two-col:has(input[name="AccountID"]) input.kairo-account-control__name {
+    background-color: white !important;
+    border: 1px solid #b8d4e3 !important;
+    color: #333 !important;
+    visibility: visible !important;
+    display: block !important;
+    opacity: 1 !important;
+}
+
+body.tf-modern .form-row.two-col:has(input[name="AccountID"]) .kairo-account-control__lookup {
+    flex: 0 0 28px !important;
+}
+
+body.tf-modern .form-row .col,
+body.tf-modern .form-section .col {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+/* Force all form elements to behave as stacked blocks, except for specified multi-column layouts */
+body.tf-modern .form-section .form-row:not(.two-col):not(.three-col):not(.four-col):not(.five-col) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2px !important;
+}
+
+/* Label Styling - Match Account Maintenance */
+body.tf-modern label,
+body.tf-modern .label-blue {
+    display: block !important;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #5c6670 !important;
+    margin: 0 !important;
+    margin-bottom: 0px !important;
+    padding: 0 !important;
+    line-height: 1.0 !important;
+    text-align: left !important;
+    width: auto !important;
+    min-width: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    text-transform: none !important;
+}
+
+body.tf-modern .label-blue,
+body.tf-modern label.label-blue {
+    color: #4a7c95 !important;
+    font-weight: 700 !important;
+}
+
+/* Action Panel - Standard Right Sidebar (Matches AM Compact Style) */
+body.tf-modern .action-panel {
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
+    flex: 0 0 104px !important;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    border-left: 1px solid #cbd5e1 !important;
+    padding: 6px 4px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    align-self: stretch !important;
+    order: 2 !important;
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+body.tf-modern .form-card {
+    order: 1 !important;
+}
+
+body.tf-modern .action-panel .nav-group {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    margin-bottom: 4px !important;
+}
+
+body.tf-modern .action-panel .action-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
+
+body.tf-modern .action-panel .nav-group span {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    color: #9ca3af !important;
+    text-transform: uppercase;
+    min-width: 50px;
+    text-align: center;
+}
+
+body.tf-modern .btn-action {
+    height: 34px !important;
+    min-height: 34px !important;
+    width: 100% !important;
+    border-radius: 4px !important;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    transition: all 0.15s ease !important;
+    padding: 7px 8px !important;
+    line-height: 1.1 !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+}
+
+body.tf-modern .btn-action i {
+    font-size: 14px !important;
+    line-height: 1 !important;
+}
+
+body.tf-modern .btn-action:hover {
+    background: rgba(74, 124, 149, 0.06) !important;
+    border-color: #4a7c95 !important;
+    color: #4a7c95 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+body.tf-modern .btn-action:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 124, 149, 0.18) !important;
+}
+
+body.tf-modern .btn-action:active {
+    background: rgba(74, 124, 149, 0.1) !important;
+}
+
+/* Save button - green with light background */
+body.tf-modern .btn-action[data-submit-action="save"] {
+    background: #d1fae5 !important;
+    border-color: #10b981 !important;
+    color: #059669 !important;
+    font-weight: 600 !important;
+}
+
+body.tf-modern .btn-action[data-submit-action="save"]:hover {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+/* Delete button - red border and text */
+body.tf-modern .btn-action[data-submit-action="delete"] {
+    background: #ffffff !important;
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+    font-weight: 600 !important;
+}
+
+body.tf-modern .btn-action[data-submit-action="delete"]:hover {
+    background: #fee2e2 !important;
+    border-color: #dc2626 !important;
+    color: #dc2626 !important;
+}
+
+/* Cancel button - muted/neutral */
+body.tf-modern .btn-action.btn-cancel,
+body.tf-modern .btn-action[data-submit-action="cancel"] {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+}
+
+body.tf-modern .btn-action.btn-cancel:hover,
+body.tf-modern .btn-action[data-submit-action="cancel"]:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+/* Add button - green themed */
+body.tf-modern .btn-action[data-shell-mode="Add"] {
+    background: #ffffff !important;
+    border-color: #10b981 !important;
+    color: #059669 !important;
+    font-weight: 500 !important;
+}
+
+body.tf-modern .btn-action[data-shell-mode="Add"]:hover {
+    background: #d1fae5 !important;
+    border-color: #10b981 !important;
+    color: #059669 !important;
+}
+
+/* View button - blue themed */
+body.tf-modern .btn-action[data-shell-mode="View"] {
+    background: #ffffff !important;
+    border-color: #3b82f6 !important;
+    color: #2563eb !important;
+    font-weight: 500 !important;
+}
+
+body.tf-modern .btn-action[data-shell-mode="View"]:hover {
+    background: #dbeafe !important;
+    border-color: #2563eb !important;
+    color: #1d4ed8 !important;
+}
+
+/* Clear button - neutral gray */
+body.tf-modern .btn-action[data-submit-action="clear"] {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+}
+
+body.tf-modern .btn-action[data-submit-action="clear"]:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #475569 !important;
+}
+
+/* Legacy 3D Buttons for Document Details */
+body.tf-modern .btn-legacy-doc {
+    background: #e2e8f0;
+    border: 1px solid #94a3b8;
+    border-bottom: 3px solid #4a5568 !important;
+    border-radius: 4px;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 12px;
+    min-width: 90px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+    top: 0;
+}
+
+body.tf-modern .btn-legacy-doc:hover {
+    filter: brightness(0.95);
+    transform: translateY(1px);
+    border-bottom-width: 2px !important;
+}
+
+body.tf-modern .btn-legacy-doc:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px !important;
+    top: 1px;
+}
+
+body.tf-modern .btn-legacy-doc u {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* Distinct Colors for Legacy Doc Buttons */
+body.tf-modern .btn-legacy-doc.btn-new {
+    background: #d1fae5;
+    border-color: #10b981;
+    border-bottom-color: #059669 !important;
+    color: #065f46;
+}
+
+body.tf-modern .btn-legacy-doc.btn-new:hover {
+    background: #10b981;
+    color: white;
+    border-bottom-color: #047857 !important;
+}
+
+body.tf-modern .btn-legacy-doc.btn-alter {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    border-bottom-color: #1d4ed8 !important;
+    color: #1e3a8a;
+}
+
+body.tf-modern .btn-legacy-doc.btn-alter:hover {
+    background: #3b82f6;
+    color: white;
+    border-bottom-color: #1d4ed8 !important;
+}
+
+body.tf-modern .btn-legacy-doc.btn-remove {
+    background: #fee2e2;
+    border-color: #ef4444;
+    border-bottom-color: #dc2626 !important;
+    color: #991b1b;
+}
+
+body.tf-modern .btn-legacy-doc.btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    border-bottom-color: #b91c1c !important;
+}
+
+body.tf-modern .btn-legacy-doc.btn-update {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    border-bottom-color: #d97706 !important;
+    color: #92400e;
+}
+
+body.tf-modern .btn-legacy-doc.btn-update:hover {
+    background: #f59e0b;
+    color: white;
+    border-bottom-color: #b45309 !important;
+}
+
+body.tf-modern .btn-legacy-doc.btn-clear {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    border-bottom-color: #64748b !important;
+    color: #334155;
+}
+
+body.tf-modern .btn-legacy-doc.btn-clear:hover {
+    background: #cbd5e1;
+    color: #1e293b;
+    border-bottom-color: #475569 !important;
+}
+
+
+/* Inputs & Form Cards */
+body.tf-modern .form-card {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 8px !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    min-width: 0 !important;
+    display: block !important;
+}
+
+body.tf-modern .form-card form {
+    display: block !important;
+}
+
+/* Audit & Behind The Scene Grid (3-Column) */
+body.tf-modern .audit-section {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 4px 10px !important;
+    padding: 4px 0 !important;
+}
+
+body.tf-modern .audit-section .col-span-2 {
+    grid-column: span 2 !important;
+}
+
+body.tf-modern .audit-section .col-span-3 {
+    grid-column: span 3 !important;
+}
+
+body.tf-modern .audit-card {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure three-column form rows use full-width flexible controls
+   so fields like Bill No / Bill Reference No / LC-PO Ref expand consistently */
+body.tf-modern .form-row.three-col .kairo-control,
+body.tf-modern .form-row.three-col .kairo-account-control,
+body.tf-modern .form-row.three-col .kairo-product-control,
+body.tf-modern .form-row.three-col .kairo-client-control,
+body.tf-modern .form-row.three-col .kairo-branch-control {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+body.tf-modern .form-row.three-col .kairo-control__id,
+body.tf-modern .form-row.three-col .kairo-account-control__id,
+body.tf-modern .form-row.three-col .kairo-product-control__id,
+body.tf-modern .form-row.three-col .kairo-client-control__id,
+body.tf-modern .form-row.three-col .kairo-branch-control__id,
+body.tf-modern .form-row.three-col .bs-input-text {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+/* Small tweak to ensure lookup buttons remain fixed and inputs expand */
+body.tf-modern .form-row.three-col .btn-lookup,
+body.tf-modern .form-row.three-col .kairo-control__lookup {
+    flex: 0 0 38px !important;
+}
+
+/* Wider variant for bill header controls - makes inputs noticeably longer */
+body.tf-modern .form-row.three-col .bill-wide-control {
+    gap: 6px !important;
+    width: 100% !important;
+    /* Force container to full width */
+    display: flex !important;
+}
+
+body.tf-modern .form-row.three-col .bill-wide-control .kairo-control__id,
+body.tf-modern .form-row.three-col .bill-wide-control .bs-input-text {
+    flex: 1 1 auto !important;
+    /* Grow to fill space */
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+body.tf-modern .form-row.three-col .bill-wide-control .btn-lookup,
+body.tf-modern .form-row.three-col .bill-wide-control .kairo-control__lookup {
+    flex: 0 0 32px !important;
+}
+
+/* Stronger enforcement: ensure bill header inputs truly fill the available column
+   and the lookup button remains compact at the far right. This makes the
+   textbox appear to span the row while keeping the search icon aligned. */
+body.tf-modern .form-row.three-col .bill-wide-control {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.tf-modern .form-row.three-col .bill-wide-control>input.bs-input-text,
+body.tf-modern .form-row.three-col .bill-wide-control>input.kairo-control__id {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+body.tf-modern .form-row.three-col .bill-wide-control>.btn-lookup,
+body.tf-modern .form-row.three-col .bill-wide-control>.kairo-control__lookup {
+    flex: 0 0 38px !important;
+    width: 38px !important;
+}
+
+/* Three-column rows: make all three columns equal-width and span the available area.
+   This ensures inputs (Bill No / Bill Reference No / LC-PO Ref) share the row evenly
+   and the lookup buttons remain fixed at the end of each column. */
+body.tf-modern .form-row.three-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 2px 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.tf-modern .form-row.four-col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    gap: 2px 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Remove default column side-padding for these header 3-col rows so controls
+   truly span end-to-end. Keep internal control gaps so lookup buttons stay
+   visually separated from inputs. */
+body.tf-modern .form-row.three-col>.col {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+/* Ensure the inner control container stretches full height/width of the column */
+body.tf-modern .form-row.three-col .kairo-control,
+body.tf-modern .form-row.three-col .kairo-account-control,
+body.tf-modern .form-row.three-col .kairo-client-control,
+body.tf-modern .form-row.three-col .kairo-product-control,
+body.tf-modern .form-row.three-col .bill-wide-control {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
+}
+
+/* Inputs should fill the remaining space in each column and not be artificially
+   constrained; allow text to be fully visible within the input control area. */
+body.tf-modern .form-row.three-col .bill-wide-control>input.bs-input-text,
+body.tf-modern .form-row.three-col .bill-wide-control>input.kairo-control__id,
+body.tf-modern .form-row.three-col input[name="HeaderBillNo"],
+body.tf-modern .form-row.three-col input[name="HeaderBillReferenceNo"],
+body.tf-modern .form-row.three-col input[name="HeaderLCPOReferenceNo"] {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding: 1px 4px !important;
+    /* reduced padding to maximize visible text */
+    box-sizing: border-box !important;
+    font-size: 10px !important;
+    /* slightly smaller font to fit more characters */
+}
+
+/* Ensure lookup buttons in three-col stay fixed width */
+body.tf-modern .form-row.three-col .bill-wide-control>.btn-lookup,
+body.tf-modern .form-row.three-col .bill-wide-control>.kairo-control__lookup {
+    flex: 0 0 28px !important;
+    width: 28px !important;
+    min-width: 28px !important;
+}
+
+@media (max-width: 992px) {
+    body.tf-modern .audit-section {
+        grid-template-columns: repeat(1, 1fr) !important;
+    }
+
+    body.tf-modern .audit-section .col-span-2,
+    body.tf-modern .audit-section .col-span-3 {
+        grid-column: span 1 !important;
+    }
+}
+
+body.tf-modern .audit-section .col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+body.tf-modern .audit-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Tabs Styling - Integrated with Form Cards */
+/* Tabs Styling - 3D Embossed Look */
+body.tf-modern .form-tabs-container {
+    background: #f1f5f9;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 8px 12px 0 12px;
+    border-radius: 8px 8px 0 0;
+}
+
+body.tf-modern .nav-tabs {
+    border-bottom: none !important;
+    gap: 4px;
+    padding-bottom: 0;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+}
+
+body.tf-modern .nav-tabs .nav-link {
+    border: 1px solid #cbd5e1 !important;
+    border-bottom: none !important;
+    color: #475569 !important;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    padding: 10px 14px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 6px 6px 0 0 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
+    box-shadow: inset 0 1px 0 #ffffff, 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+    opacity: 0.85;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+body.tf-modern .nav-tabs .nav-link:hover {
+    color: #1e7cc4 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%) !important;
+    opacity: 1;
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 #ffffff, 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+body.tf-modern .nav-tabs .nav-link.active {
+    color: #1e7cc4 !important;
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    border-top: 3px solid #1e7cc4 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    opacity: 1;
+    position: relative;
+    z-index: 5;
+    transform: translateY(1px);
+    /* Blends into the bottom border/content */
+}
+
+body.tf-modern .tab-content {
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.tf-modern .tab-pane {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body.tf-modern .audit-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.tf-modern .section-content {
+    padding: 4px 8px;
+}
+
+body.tf-modern .bs-input-text,
+body.tf-modern .bs-select,
+body.tf-modern .bs-textarea {
+    height: 22px;
+    padding: 1px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(8px);
+    width: 100%;
+    transition: border-color 0.2s;
+    color: #334155;
+}
+
+/* Date inputs need slightly more height to display calendar picker properly */
+body.tf-modern .bs-input-date {
+    height: 26px;
+    padding: 2px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(8px);
+    width: 100%;
+    transition: border-color 0.2s;
+    color: #334155;
+}
+
+body.tf-modern .bs-textarea {
+    height: 22px !important;
+    min-height: 22px !important;
+    max-height: 120px;
+    resize: none;
+    overflow-y: hidden;
+    padding: 2px 6px !important;
+    line-height: 1.0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+body.tf-modern .bs-input-text:focus,
+body.tf-modern .bs-select:focus {
+    outline: none;
+    border-color: #4a7c95;
+    box-shadow: 0 0 0 2px rgba(74, 124, 149, 0.1);
+}
+
+/* Lookup controls - 30/70 ALIGNMENT */
+body.tf-modern .kairo-branch-control,
+body.tf-modern .kairo-client-control,
+body.tf-modern .kairo-product-control,
+body.tf-modern .kairo-account-control,
+body.tf-modern .kairo-currency-control,
+body.tf-modern .kairo-control {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+}
+
+body.tf-modern .kairo-branch-control__id,
+body.tf-modern .kairo-client-control__id,
+body.tf-modern .kairo-product-control__id,
+body.tf-modern .kairo-account-control__id,
+body.tf-modern .kairo-currency-control__id,
+body.tf-modern .kairo-control__id {
+    flex: 0 0 35% !important;
+    /* ~30-35% like reference */
+}
+
+body.tf-modern .kairo-branch-control__name,
+body.tf-modern .kairo-client-control__name,
+body.tf-modern .kairo-product-control__name,
+body.tf-modern .kairo-account-control__name,
+body.tf-modern .kairo-currency-control__name {
+    flex: 1 !important;
+    /* Fills remaining space (~70%) */
+}
+
+body.tf-modern .btn-lookup {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: #4a7c95;
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+body.tf-modern .btn-lookup:hover {
+    background: #3d6a7f;
+}
+
+/* Sidebar Items */
+body.tf-modern .sidebar-item,
+body.tf-modern .sidebar-item--enhanced {
+    padding: 8px 14px;
+    color: #475569;
+    cursor: pointer;
+    border-radius: 6px;
+    margin: 2px 8px 2px 24px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+}
+
+body.tf-modern .sidebar-item:hover,
+body.tf-modern .sidebar-item--enhanced:hover {
+    background: rgba(74, 124, 149, 0.08);
+    color: #4a7c95;
+}
+
+body.tf-modern .sidebar-item.active,
+body.tf-modern .sidebar-item--enhanced.active {
+    background: rgba(74, 124, 149, 0.15);
+    color: #4a7c95;
+    font-weight: 600;
+}
+
+body.tf-modern .sidebar-item__content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+body.tf-modern .sidebar-item__icon {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+body.tf-modern .sidebar-item__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+body.tf-modern .sidebar-item__title {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 11px !important;
+    font-weight: 600;
+    color: inherit;
+}
+
+body.tf-modern .sidebar-item__description {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 9px !important;
+    color: #64748b;
+}
+
+/* Navigation Buttons */
+body.tf-modern .btn-nav {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #4a7c95;
+    background: #4a7c95;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+body.tf-modern .btn-nav:hover {
+    background: #3d6a7f;
+    border-color: #3d6a7f;
+    transform: translateY(-1px);
+}
+
+body.tf-modern .btn-nav.green {
+    background: #27AE60;
+    border-color: #27AE60;
+}
+
+body.tf-modern .btn-nav.green:hover {
+    background: #229954;
+    border-color: #229954;
+}
+
+/* ============================================
+   FLOATING TOAST NOTIFICATIONS
+   ============================================ */
+.toast-container-floating {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.toast-notification {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #3b82f6;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-notification.hide {
+    opacity: 0;
+    transform: translateX(400px);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    line-height: 1.4;
+    color: #1e293b;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+/* Toast variants */
+.toast-notification.toast-success {
+    border-left-color: #10b981;
+}
+
+.toast-notification.toast-success .toast-icon {
+    color: #10b981;
+}
+
+.toast-notification.toast-danger {
+    border-left-color: #ef4444;
+}
+
+.toast-notification.toast-danger .toast-icon {
+    color: #ef4444;
+}
+
+.toast-notification.toast-warning {
+    border-left-color: #f59e0b;
+}
+
+.toast-notification.toast-warning .toast-icon {
+    color: #f59e0b;
+}
+
+.toast-notification.toast-info {
+    border-left-color: #3b82f6;
+}
+
+.toast-notification.toast-info .toast-icon {
+    color: #3b82f6;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .toast-container-floating {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .toast-notification {
+        min-width: auto;
+        max-width: none;
+    }
+}
+
+/* Page-specific: remove horizontal gutter between three-column fields
+   for the Inward/Outward Documentary Application so inputs span edge-to-edge */
+body.tf-modern [data-page="bill-inward-outward-documentary-application"] .form-row.three-col {
+    gap: 2px 0 !important;
+}
