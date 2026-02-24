@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CBS.Entities.Common")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+afbda3dbc740f9282367a7c635c4258b72ac3c17")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+596177ff43074486c31bdc24e1d19535497f3430")]
 [assembly: System.Reflection.AssemblyProductAttribute("CBS.Entities.Common")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CBS.Entities.Common")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
