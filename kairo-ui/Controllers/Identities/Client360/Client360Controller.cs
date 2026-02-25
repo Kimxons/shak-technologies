@@ -76,7 +76,10 @@ namespace kairo_ui.Controllers.Identities.Client360
 
                 _logger.LogInformation("Client 360 validation request: {Request}", JsonSerializer.Serialize(requestData));
 
-                var response = await PostOldApiAsync("dbo.p_GetIDDescription", requestData);
+                //var response = await PostOldApiAsync("dbo.p_GetIDDescription", requestData);
+
+
+                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", "OldApi/GetIDDescription", requestData);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -121,7 +124,8 @@ namespace kairo_ui.Controllers.Identities.Client360
 
                 _logger.LogInformation("Client 360 search request: {Request}", JsonSerializer.Serialize(requestData));
 
-                var response = await PostOldApiAsync("dbo.p_GetSearchResult", requestData);
+                //var response = await PostOldApiAsync("dbo.p_GetSearchResult", requestData);
+                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", "OldApi/GetSearchResult", requestData);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -164,7 +168,9 @@ namespace kairo_ui.Controllers.Identities.Client360
 
                 _logger.LogInformation("Client 360 view request: {Request}", JsonSerializer.Serialize(requestData));
 
-                var response = await PostOldApiAsync("dbo.p_GetMember360", requestData);
+                //var response = await PostOldApiAsync("dbo.p_GetMember360", requestData);
+
+                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", "OldApi/GetMember360", requestData);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -178,35 +184,35 @@ namespace kairo_ui.Controllers.Identities.Client360
             }
         }
 
-        private async Task<JsonElement> PostOldApiAsync(string formId, object requestData)
-        {
-            var envelope = BuildOldApiEnvelope(formId, requestData);
-            return await _apiService.CreateAsync<JsonElement>("ClientManagementApi","OldApi", envelope);
-        }
+        //private async Task<JsonElement> PostOldApiAsync(string formId, object requestData)
+        //{
+        //    var envelope = BuildOldApiEnvelope(formId, requestData);
+        //    return await _apiService.CreateAsync<JsonElement>("ClientManagementApi","OldApi", envelope);
+        //}
 
-        private object BuildOldApiEnvelope(string formId, object requestData)
-        {
-            var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
-                ? formId.Substring(4)
-                : formId;
+        //private object BuildOldApiEnvelope(string formId, object requestData)
+        //{
+        //    var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
+        //        ? formId.Substring(4)
+        //        : formId;
 
-            return new
-            {
-                RequestID = formId,
-                FormID = cleanFormId,
-                RequestData = requestData,
-                RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
-                AppName = ResolveOldApiAppName(),
-                Checksum = ""
-            };
-        }
+        //    return new
+        //    {
+        //        RequestID = formId,
+        //        FormID = cleanFormId,
+        //        RequestData = requestData,
+        //        RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
+        //        AppName = ResolveOldApiAppName(),
+        //        Checksum = ""
+        //    };
+        //}
 
-        private string ResolveOldApiAppName()
-        {
-            return _config["ApiSettings:OldApiAppName"]
-                ?? _config["ApiSettings:AppName"]
-                ?? "PROJECT_KAIRO";
-        }
+        //private string ResolveOldApiAppName()
+        //{
+        //    return _config["ApiSettings:OldApiAppName"]
+        //        ?? _config["ApiSettings:AppName"]
+        //        ?? "PROJECT_KAIRO";
+        //}
 
         private void EnsureClient360Defaults(Client360BaseRequest requestData)
         {
