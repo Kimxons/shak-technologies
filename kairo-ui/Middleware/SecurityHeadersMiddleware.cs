@@ -37,7 +37,7 @@ namespace kairo_ui.Middleware
             // In development, allow localhost connections for Browser Link and WebSockets
             if (_environment.IsDevelopment())
             {
-                connectSrc = "'self' ws://localhost:* wss://localhost:* http://localhost:* https://localhost:*  http://172.16.2.31:*";
+                connectSrc = "'self' ws://localhost:* wss://localhost:* http://localhost:* https://localhost:* ";
             }
 
             context.Response.Headers.Append("Content-Security-Policy",

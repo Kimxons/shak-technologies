@@ -85,14 +85,8 @@ namespace kairo_ui.Controllers.ThemeConfiguration
                 requestData.OperatorID = HttpContext.Session.GetString("user_name");
                 requestData.BranchID = HttpContext.Session.GetString("branch_code");
                 requestData.BankID = "00";
-                InDataRequest<object> apiReq = new()
-                {
-                    AppName = _config["ApiSettings:AppName"]!,
-                    RequestId = HttpContext.Connection.Id,
-                    RequestTime = DateTime.UtcNow,
-                    RequestData = requestData
-                };
-                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.ADD_THEME, apiReq);
+
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.ADD_THEME, requestData);
 
 
                 return Ok(response);
@@ -141,25 +135,8 @@ namespace kairo_ui.Controllers.ThemeConfiguration
                 requestData.UserID = HttpContext.Session.GetString("user_name");
                 requestData.BranchID = HttpContext.Session.GetString("branch_code");
                 requestData.BankID = "00";
-                InDataRequest<object> apiReq = new()
-                {
-                    AppName = _config["ApiSettings:AppName"]!,
-                    RequestId = HttpContext.Connection.Id,
-                    RequestTime = DateTime.UtcNow,
-                    RequestData = requestData
-                };
-                //var apiReqPair = new List<KeyValuePair<string, object>>
-                //{
-                //    new (nameof(requestData.SettingsJson),requestData.SettingsJson!),
-                //    new (nameof(requestData.UserID),requestData.UserID!),
-                //    new (nameof(requestData.BankID),requestData.BankID!),
-                //    new (nameof(requestData.OperatorID),requestData.OperatorID!),
-                //    new (nameof(requestData.ScopeType),requestData.ScopeType!),
-                //    new (nameof(requestData.ScopeRefID),requestData.ScopeRefID!),
-                //    new (nameof(requestData.ThemeName),requestData.ThemeName!)
-                //};
 
-                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.GET_EFFECTIVETHEME, apiReq);
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.GET_EFFECTIVETHEME, requestData);
 
 
                 return Ok(response);
