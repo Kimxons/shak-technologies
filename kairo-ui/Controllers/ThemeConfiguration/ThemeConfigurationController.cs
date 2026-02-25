@@ -1,5 +1,6 @@
 using CBS.Entities.Common;
 using kairo_ui.Services;
+using kairo_ui.Models.Utilities.ThemeConfiguration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace kairo_ui.Controllers.ThemeConfiguration
@@ -153,15 +154,4 @@ namespace kairo_ui.Controllers.ThemeConfiguration
         }
 
     }
-    public class ThemeSettingDto()
-    {
-        public string? ScopeType { get; set; }
-        public string? UserID { get; set; }
-        public string? BranchID { get; set; }
-        public string? BankID { get; set; }
-        public string? ScopeRefID { get; set; }
-        public string? ThemeName { get; set; }
-        public object? SettingsJson { get; set; }
-        public string? OperatorID { get; set; }
-    };
 }

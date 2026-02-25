@@ -2,7 +2,7 @@ using CBS.Entities.SystemCore;
 using System;
 using System.Collections.Generic;
 
-namespace kairo_ui.Models
+namespace kairo_ui.Models.Dashboard
 {
     /// <summary>
     /// Represents a role from the /api/role/resources endpoint

@@ -1,6 +1,7 @@
 ﻿using CBS.Entities.Common;
 using CBS.Entities.SystemCore;
 using kairo_ui.Models;
+using kairo_ui.Models.Login;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace kairo_ui.Models
+namespace kairo_ui.Models.Login
 {
     /// <summary>
     /// Models the login request sent to the authentication endpoint

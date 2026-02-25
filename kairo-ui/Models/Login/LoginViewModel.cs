@@ -1,7 +1,6 @@
-using kairo_ui.Models;
 using System.Collections.Generic;
 
-namespace kairo_ui.Models
+namespace kairo_ui.Models.Login
 {
     /// <summary>
     /// View model for the login page

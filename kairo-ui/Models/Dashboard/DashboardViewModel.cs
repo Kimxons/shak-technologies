@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace kairo_ui.Models
+namespace kairo_ui.Models.Dashboard
 {
     /// <summary>
     /// View model for the dashboard page
