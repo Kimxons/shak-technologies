@@ -167,7 +167,7 @@ function showSubmenu(module) {
             title: module[0].MainModuleDescription,
             items: module.map(item => ({
                 label: item.MenuDescription,
-                icon: 'fas fa-circle',
+                icon: item.ModuleIcon ?? 'fas fa-circle',
                 route: item.MenuURL,
                 modalId: item.ModuleID
             }))
@@ -211,7 +211,11 @@ function showSubmenu(module) {
 
             const btn = document.createElement('button');
             btn.className = 'submenu-item';
-            btn.innerHTML = `<i class="${item.icon || 'fas fa-circle'}" style="color: var(--dash-accent);"></i> ${item.label}`;
+            //btn.innerHTML = `<i class="${item.icon || 'fas fa-circle'}" style="color: var(--dash-accent);"></i> ${item.label}`;
+            var dparser = new DOMParser();
+            dparser.parseFromString(item.icon, 'text/html');
+            dparser.setAttribute("style", "color: var(--dash-accent);");
+            btn.innerHTML = `${dparser.body.innerHTML}${item.label}`;
 
             btn.addEventListener('click', () => {
                 console.log('[Dashboard] Start Menu Item Clicked:', item.label);

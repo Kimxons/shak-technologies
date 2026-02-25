@@ -2,6 +2,7 @@ using kairo_ui.Handlers;
 using kairo_ui.Middleware;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,10 @@ builder.Host.UseSerilog((context, configuration) =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+builder.Services.Configure<RazorViewEngineOptions>(options =>
+{
+    options.ViewLocationFormats.Add("/Views/Identities/{1}/{0}.cshtml");
+});
 // Get timeout configurations
 var apiTimeoutSeconds = builder.Configuration.GetValue<int>("ApiSettings:HttpClientTimeoutSeconds", 30);
 var sessionTimeoutMinutes = builder.Configuration.GetValue<int>("Session:IdleTimeoutMinutes", 30);

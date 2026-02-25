@@ -202,7 +202,7 @@ namespace kairo_ui.Controllers.Dashboard
             try
             {
                 _logger.LogInformation("Fetching role resources for roles: {RoleNames}", roleNames);
-                var endpoint = $"role/resources?roleNames={Uri.EscapeDataString(roleNames)}";
+                var endpoint = $"api/role/resources?roleNames={Uri.EscapeDataString(roleNames)}";
                 var response = await _authService.GetSingleAsync<RoleResourcesResponse>(endpoint);
                 return response;
             }
@@ -225,13 +225,8 @@ namespace kairo_ui.Controllers.Dashboard
                 JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
                 //string auth_tokenJson = HttpContext.Session.GetString("auth_token")!;
                 //JsonDocument jsonAuthToken = JsonDocument.Parse(auth_tokenJson);
-                InDataRequest<object> apiReq = new()
-                {
-                    AppName = HttpContext.Session.GetString("appname")!,
-                    RequestId = HttpContext.Connection.Id,
-                    RequestTime = DateTime.UtcNow,
-                    RequestData = new { RequestID = HttpContext.Connection.Id, Modules = lsmodules, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() }
-                };
+
+                var apiReq = new { RequestID = HttpContext.Connection.Id, Modules = lsmodules, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() };
                 var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<MainModule>>>("SystemCoreApi", ApiEndpoints.GET_MAINMODULES, apiReq);
                 var mainModules = response!.Details?.ToList() ?? [];
                 _logger.LogInformation("Fetched {Count} main modules", mainModules.Count);
@@ -254,13 +249,8 @@ namespace kairo_ui.Controllers.Dashboard
                 _logger.LogInformation("Fetching modules");
                 string auth_userJson = HttpContext.Session.GetString("auth_user")!;
                 JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
-                InDataRequest<object> apiReq = new()
-                {
-                    AppName = HttpContext.Session.GetString("appname")!,
-                    RequestId = HttpContext.Connection.Id,
-                    RequestTime = DateTime.UtcNow,
-                    RequestData = new { RequestID = HttpContext.Connection.Id, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() }
-                };
+
+                var apiReq = new { RequestID = HttpContext.Connection.Id, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() };
                 var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<CBS.Entities.SystemCore.Module>>>("SystemCoreApi", ApiEndpoints.GET_MODULES, apiReq);
 
                 //var response = await _apiService.GetAsync<CBS.Entities.SystemCore.Module>("modules");
@@ -308,7 +298,7 @@ namespace kairo_ui.Controllers.Dashboard
             {
                 _logger.LogInformation("Fetching branches for user {UserId}", userId);
                 //var endpoint = $"BranchSetting?userId={userId}";
-                var response = await _apiService.GetAsync<BranchSetting>("IdentityAccessManagentApi", "BranchSetting", new KeyValuePair<string,object>("userId",userId));
+                var response = await _apiService.GetAsync<BranchSetting>("IdentityAccessManagentApi", "BranchSetting", new KeyValuePair<string, object>("userId", userId));
                 return response?.ToList() ?? [];
             }
             catch (Exception ex)
