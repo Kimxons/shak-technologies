@@ -213,9 +213,10 @@ function showSubmenu(module) {
             btn.className = 'submenu-item';
             //btn.innerHTML = `<i class="${item.icon || 'fas fa-circle'}" style="color: var(--dash-accent);"></i> ${item.label}`;
             var dparser = new DOMParser();
-            dparser.parseFromString(item.icon, 'text/html');
-            dparser.setAttribute("style", "color: var(--dash-accent);");
-            btn.innerHTML = `${dparser.body.innerHTML}${item.label}`;
+            const doc = dparser.parseFromString(item.icon, 'text/html');
+            const micon = doc.querySelector("i");
+            micon.setAttribute("style", "color: var(--dash-accent);");
+            btn.innerHTML = `${micon.outerHTML}${item.label}`;
 
             btn.addEventListener('click', () => {
                 console.log('[Dashboard] Start Menu Item Clicked:', item.label);
