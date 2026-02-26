@@ -1,26 +1,17 @@
 @{
     ViewData["Title"] = "Account Maintenance";
-    Layout = "";
+    Layout = "_ApplicationLayout";
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Account Maintenance - Professional Banking Solution</title>
 
-    <!-- Bootstrap & Icons -->
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+@section Styles {
+    <style>
+        /* Account Maintenance specific styles */
+    </style>
+}
 
-    <!-- Global App Styles (NO page-specific CSS) -->
-    <link rel="stylesheet" href="/css/styles.css" />
-
-    <!-- App Core - CRITICAL for controller communication -->
-    <script src="/js/app/app-core.js"></script>
-</head>
-<body data-page="account-maintenance">
+<form id="accountMaintenanceForm" style="display:none;">
     @Html.AntiForgeryToken()
+</form>
 
     <!-- Reminder Modal Popup - System Theme Styled -->
     <div id="reminderModal" class="reminder-modal" role="dialog" aria-labelledby="reminderModalTitle" aria-modal="true" hidden>
@@ -1095,23 +1086,16 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Environment Configuration -->
-    <script src="/js/environment.js"></script>
-
+@section Scripts {
     <!-- Service dependencies -->
     <script src="/js/services/shared/serviceLoader.js"></script>
     <script src="/js/services/shared/coreApi.js"></script>
     <script src="/js/services/shared/lookupService.js"></script>
     <script src="/js/services/shared/searchService.js"></script>
     <script src="/js/shared/search-modal.js"></script>
-    <script src="/js/services/account/accountservice.js"></script>
 
     <!-- Main Account Maintenance Logic -->
     <script src="/js/modules/accountsmaintenance/window-controls.js"></script>
     <script src="/js/modules/accountsmaintenance/submodule-loader.js"></script>
     <script src="/js/modules/accounts/modern-account-maintenance.js"></script>
-</body>
-</html>
+}

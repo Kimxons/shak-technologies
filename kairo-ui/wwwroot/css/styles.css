@@ -1,34 +1,5 @@
 @import "maincss.css";
-
-/* ================================================================
-   Submodule Container - Dynamic Partial View Loading
-================================================================ */
-
-.submodule-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.sidebar-item--active {
-  background-color: rgba(74, 124, 149, 0.1) !important;
-  border-left: 3px solid var(--color-primary) !important;
-}
-
-.sidebar-item--active .sidebar-item__title {
-  color: var(--color-primary) !important;
-  font-weight: 600 !important;
-}
-
-.sidebar-item[data-submodule] {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sidebar-item[data-submodule]:hover {
-  background-color: rgba(74, 124, 149, 0.05);
-}
+@import "../vendor/bootstrap-icons/bootstrap-icons.min.css";
 
 /* ================================================================
    CSS Theme Variables
@@ -244,6 +215,50 @@ span[class*="label-optional"] {
   display: none !important;
 }
 
+/* Status Message */
+.status-msg {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  border-left: 4px solid;
+  font-size: 14px;
+  line-height: 1.5;
+  display: block;
+}
+
+.status-msg.hidden {
+  display: none !important;
+}
+
+.status-msg--info {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+  color: #0d47a1;
+}
+
+.status-msg--success {
+  background-color: #e8f5e9;
+  border-color: #4caf50;
+  color: #1b5e20;
+}
+
+.status-msg--warning {
+  background-color: #fff3e0;
+  border-color: #ff9800;
+  color: #e65100;
+}
+
+.status-msg--error {
+  background-color: #ffebee;
+  border-color: #f44336;
+  color: #b71c1c;
+}
+
+.status-msg .status-text {
+  margin: 0;
+  font-weight: 500;
+}
+
 /* Behind the Scene - 4-column group layout */
 .bts-group-grid {
   display: grid;
@@ -324,6 +339,10 @@ span[class*="label-optional"] {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text, var(--color-text-primary, #1e293b));
+}
+
+.bts-group-grid .behind-scene-item .behind-scene-value.negative {
+  color: #dc3545;
 }
 
 /* ============================================================================
@@ -501,6 +520,10 @@ span[class*="label-optional"] {
   text-overflow: ellipsis;
   width: 100%;
   font-variant-numeric: tabular-nums;
+}
+
+.behind-scene .behind-scene-value.negative {
+  color: #dc3545;
 }
 
 .behind-scene .behind-scene-value:empty::before {
@@ -845,6 +868,10 @@ span[class*="label-optional"] {
     min-height: 32px;
     display: flex;
     align-items: center;
+  }
+
+  .behind-scene-value.negative {
+    color: #dc3545;
   }
 
   .bts-info-btn {
@@ -2719,6 +2746,102 @@ textarea.form-control {
   background: transparent;
 }
 
+
+
+/* Disbursement Schedule Entry (DSE) - Data Entry Module Layout */
+.dse-shell {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  gap: 0;
+  overflow: hidden;
+}
+
+.dse-body {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+  overflow: hidden;
+}
+
+.dse-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+}
+
+.dse-actions {
+  width: 120px;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(245, 246, 248, 0.5);
+  border-left: 1px solid rgba(74, 144, 226, 0.2);
+  padding: 8px;
+  gap: 4px;
+}
+
+.dse-actions__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+}
+
+.dse-action-btn {
+  flex: 1;
+  min-height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: #f8f9fa;
+  color: #333;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 6px 8px;
+}
+
+.dse-action-btn:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: rgba(74, 144, 226, 0.4);
+}
+
+.dse-action-btn:active:not(:disabled) {
+  background-color: #dee2e6;
+}
+
+.dse-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dse-action-btn--primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.dse-action-btn--primary:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  opacity: 0.85;
+  border-color: var(--color-primary);
+}
+
+.dse-action-btn--primary:active:not(:disabled) {
+  opacity: 0.7;
+}
+
 /* Form Row and Labels */
 .form-row {
   display: flex;
@@ -3006,9 +3129,51 @@ span[class*="label--blue"] {
   grid-column: span 2;
 }
 
+/* Five Column Layout */
+.form-row.five-col,
+.form-card .form-row.five-col,
+.form-section--bts .form-row.five-col,
+.form-section--bts .section-content .form-row.five-col {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 16px !important;
+  column-gap: 16px !important;
+  row-gap: 12px !important;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.form-row.five-col .col,
+.form-card .form-row.five-col .col,
+.form-section--bts .form-row.five-col .col,
+.form-section--bts .section-content .form-row.five-col .col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  align-items: flex-start !important;
+}
+
+.form-row.five-col .col label {
+  font-size: 11px;
+  color: #1a5276;
+  font-weight: 600;
+}
+
+.form-row.five-col .col input,
+.form-row.five-col .col select,
+.form-row.five-col .col textarea {
+  width: 100%;
+}
+
 /* Responsive adjustments for multi-column layouts */
 @media (max-width: 1200px) {
   .form-row.four-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-row.five-col {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -3023,6 +3188,7 @@ span[class*="label--blue"] {
 @media (max-width: 768px) {
 
   .form-row.four-col,
+  .form-row.five-col,
   .form-row.three-col {
     grid-template-columns: 1fr;
   }
@@ -3722,15 +3888,33 @@ x .audit-item input {
 }
 
 .btn-action {
-  padding: 8px 10px;
+  padding: 10px 8px;
   border: 1px solid var(--primary);
   background: var(--white);
   color: var(--primary);
   border-radius: var(--radius);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 10px;
   font-family: inherit;
   transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.btn-action i {
+  font-size: 14px;
+  display: block;
+}
+
+.btn-action span {
+  font-size: 9px;
+  font-weight: 500;
 }
 
 .btn-action:hover:not(:disabled) {
@@ -3872,6 +4056,30 @@ x .audit-item input {
   color: #333;
 }
 
+/* Action Button Groups - Grouped button organization */
+.action-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Action Spacer - Flexible spacer for action panels */
+.action-spacer {
+  flex: 1;
+}
+
+/* Checkbox Wrapper - Proper padding for checkbox fields */
+.checkbox-wrapper {
+  padding-top: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Textarea Vertical Resize - Allow vertical resizing on textareas */
+.textarea-vertical-resize {
+  resize: vertical;
+}
+
 /* Scrollbar styling */
 .sidebar::-webkit-scrollbar,
 .form-content::-webkit-scrollbar,
@@ -3991,9 +4199,9 @@ x .audit-item input {
 .kairo-document-control__id,
 .kairo-file-control__path,
 .kairo-control__id,
-#ClientID,
-#ProductID,
-#BranchID {
+input#ClientID,
+input#ProductID,
+input#BranchID {
   width: 120px !important;
   min-width: 120px !important;
   max-width: 120px !important;
@@ -4252,47 +4460,60 @@ input.kairo-control__id,
   cursor: not-allowed;
 }
 
-/* Input with Info Icon Inside (Loan Amount) */
+/* Input with Info Icon Side by Side (Loan Amount) */
 .input-with-info-icon {
-  position: relative;
-  display: block;
+  display: flex;
+  gap: 0;
   width: 100%;
+  align-items: center;
 }
 
 .input-with-info-icon input {
-  width: 100%;
+  flex: 1;
   height: 32px;
   min-height: 32px;
-  padding: 4px 58px 4px 10px !important;
+  padding: 4px 10px !important;
   text-align: right;
   display: block;
   box-sizing: border-box;
+  border-right: none !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
-.input-with-info-icon .btn-info-inside {
-  position: absolute !important;
-  right: 1px !important;
-  left: auto !important;
-  top: 1px !important;
-  bottom: auto !important;
-  transform: none !important;
-  width: 38px;
-  height: 30px;
+.input-with-info-icon .btn-info-side {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
   padding: 0;
   margin: 0;
-  border: none;
+  margin-left: 0;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-left: none;
   background: var(--bs-input-bg, #ffffff);
-  border-left: 1px solid var(--color-border, #e2e8f0);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
+  color: var(--color-primary, #4a7c95);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  transition: all 0.2s ease;
 }
 
-.input-with-info-icon .btn-info-inside i {
+.input-with-info-icon .btn-info-side:hover {
+  color: #2563eb;
+  background: #f1f5f9;
+}
+
+.input-with-info-icon .btn-info-side:focus {
+  outline: 2px solid var(--color-primary, #4a7c95);
+  outline-offset: 2px;
+}
+
+.input-with-info-icon .btn-info-side i {
   font-size: 16px;
   line-height: 1;
   pointer-events: none;
@@ -6408,7 +6629,7 @@ body {
 }
 
 .auth-page .authBackground {
-  background: url('../images/background/nrb3.jpg') no-repeat center center;
+  background: url('../images/background/Tsedey_Et.png') no-repeat center center;
   background-size: cover;
   background-attachment: scroll;
   min-height: 100vh;
@@ -6436,7 +6657,7 @@ body {
 
 
 .auth-page .login-bg {
-  background: url('../images/background/nrb3.jpg') no-repeat center center fixed;
+  background: url('../images/background/Tsedey_Et.png') no-repeat center center fixed;
   background-size: cover;
 }
 
@@ -11048,6 +11269,7 @@ body[data-page="client"] .card-surface {
 /* React desktop inspired palette - accent uses theme so it responds to theme selection */
 body[data-page="client-maintenance"],
 body[data-page="account-maintenance"],
+body[data-page="loan-maintenance"],
 body[data-page="lg-application"],
 body[data-page="lcpo-account-application"],
 body[data-page="lcpo-amendment-extension-application"],
@@ -22420,7 +22642,7 @@ body {
 }
 
 .auth-page .authBackground {
-  background: url('../images/background/nrb3.jpg') no-repeat center center;
+  background: url('../images/background/Tsedey_Et.png') no-repeat center center;
   background-size: cover;
   background-attachment: scroll;
   min-height: 100vh;
@@ -27648,6 +27870,7 @@ body[data-page="client"] .card-surface {
 /* React desktop inspired palette */
 body[data-page="client-maintenance"],
 body[data-page="account-maintenance"],
+body[data-page="loan-maintenance"],
 body[data-page="bank-parameters"] {
   --cm-primary-900: #0f172a;
   --cm-primary-800: #1e3a8a;
@@ -30724,9 +30947,6 @@ body.duplicate-search-setting .cm-legacy-actions__group .cm-shell__action {
 .kairo-client-control__id,
 .kairo-product-control__id,
 .kairo-branch-control__id,
-#ClientID,
-#ProductID,
-#BranchID,
 input#ClientID,
 input#ProductID,
 input#BranchID,
@@ -31762,11 +31982,11 @@ body.modal-open .sidebar {
 /* Search Actions */
 .kairo-search-modal .search-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e9ecef;
+  margin-top: 10px;
+  padding-top: 0;
+  border-top: none;
 }
 
 /* Search Button - Primary Blue */
@@ -31829,12 +32049,12 @@ body.modal-open .sidebar {
 }
 
 .kairo-search-modal .results-table thead th {
-  background: linear-gradient(180deg, #1a5276 0%, #154360 100%);
+  background: linear-gradient(180deg, var(--color-header, var(--color-primary, #1a5276)) 0%, color-mix(in srgb, var(--color-header, var(--color-primary, #1a5276)) 85%, black 15%) 100%);
   color: white;
   font-size: 12px;
   font-weight: 600;
   padding: 10px 12px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -31855,14 +32075,14 @@ body.modal-open .sidebar {
 }
 
 .kairo-search-modal .results-table tbody td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e9ecef;
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
   color: #212529;
   vertical-align: middle;
 }
 
 .kairo-search-modal .results-table tbody tr:last-child td {
-  border-bottom: none;
+  border-bottom: 1px solid #dee2e6;
 }
 
 /* Empty State / No Results */
@@ -31910,9 +32130,9 @@ body.modal-open .sidebar {
 }
 
 .kairo-search-modal .pagination-btn:hover:not(:disabled) {
-  background: #1a5276;
+  background: var(--color-primary, var(--color-header, #4a7c95));
   color: white;
-  border-color: #1a5276;
+  border-color: var(--color-primary, var(--color-header, #4a7c95));
 }
 
 .kairo-search-modal .pagination-btn:disabled {
@@ -31927,9 +32147,11 @@ body.modal-open .sidebar {
 
 /* Modal Footer */
 .kairo-search-modal .modal-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #dee2e6;
-  background: #ffffff;
+  padding: 10px 16px;
+  border-top: none;
+  background: linear-gradient(180deg, var(--color-header, var(--color-primary, #4a7c95)) 0%, color-mix(in srgb, var(--color-header, var(--color-primary, #4a7c95)) 85%, black 15%) 100%);
+  display: flex;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -31984,11 +32206,10 @@ body.modal-open .sidebar {
 
 /* Map old search-section to new search-filters */
 .kairo-search-modal .search-section {
-  padding: 16px;
-  background: #f8f9fa;
+  padding: 12px 20px;
+  background: #fafafa;
   border-bottom: 1px solid #dee2e6;
   border-radius: 0;
-  border: none;
   margin-bottom: 0;
 }
 
@@ -32012,7 +32233,7 @@ body.modal-open .sidebar {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #6c757d;
+  color: var(--color-primary, var(--color-header, #4a7c95));
   margin-bottom: 4px;
   text-align: left;
   min-width: unset;
@@ -32034,8 +32255,8 @@ body.modal-open .sidebar {
 
 .kairo-search-modal .search-input:focus {
   outline: none;
-  border-color: #1a5276;
-  box-shadow: 0 0 0 2px rgba(26, 82, 118, 0.15);
+  border-color: var(--color-primary, var(--color-header, #4a7c95));
+  box-shadow: 0 0 0 2px rgba(74, 124, 149, 0.2);
 }
 
 /* Map old search-select */
@@ -32082,12 +32303,15 @@ body.modal-open .sidebar {
 }
 
 .kairo-search-modal .search-btn-primary {
-  background: #2563eb;
-  color: white;
+  background: #e8ecf0;
+  color: #1e293b;
+  border: 1px solid #adb5bd;
 }
 
 .kairo-search-modal .search-btn-primary:hover {
-  background: #1d4ed8;
+  background: var(--color-primary, var(--color-header, #4a7c95));
+  color: white;
+  border-color: var(--color-primary, var(--color-header, #4a7c95));
 }
 
 .kairo-search-modal .search-btn-secondary {
@@ -32098,6 +32322,7 @@ body.modal-open .sidebar {
 
 .kairo-search-modal .search-btn-secondary:hover {
   background: #f8f9fa;
+  color: #495057;
 }
 
 /* Map old modal-btn classes */
@@ -32115,29 +32340,32 @@ body.modal-open .sidebar {
 }
 
 .kairo-search-modal .modal-btn-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
+  background: #e8ecf0;
+  color: #1e293b;
+  border: 1px solid rgba(255,255,255,0.4);
 }
 
 .kairo-search-modal .modal-btn-secondary:hover {
-  background: #5a6268;
+  background: #ffffff;
+  color: #1e293b;
 }
 
 .kairo-search-modal .modal-btn-success,
 .kairo-search-modal .modal-btn-primary {
-  background: #17a2b8;
-  color: white;
+  background: #e8ecf0;
+  color: #1e293b;
+  border: 1px solid rgba(255,255,255,0.4);
 }
 
 .kairo-search-modal .modal-btn-success:hover:not(:disabled),
 .kairo-search-modal .modal-btn-primary:hover:not(:disabled) {
-  background: #138496;
+  background: #ffffff;
+  color: #1e293b;
 }
 
 .kairo-search-modal .modal-btn-success:disabled,
 .kairo-search-modal .modal-btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -32149,11 +32377,12 @@ body.modal-open .sidebar {
 
 /* Results table wrapper */
 .kairo-search-modal .results-table-wrapper {
-  max-height: 300px;
   overflow-y: auto;
+  max-height: 300px;
   background: #ffffff;
-  border-radius: 0;
-  border: none;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  margin: 12px 16px;
 }
 
 /* No results message */
@@ -34643,6 +34872,10 @@ body.overlay-open {
     color: var(--color-text, var(--color-text-primary, #1e293b));
   }
 
+  .bts-group-grid .behind-scene-item .behind-scene-value.negative {
+    color: #dc3545;
+  }
+
   /* ============================================================================
    ACCOUNT SNAPSHOT - Enhanced Professional Styling
    ============================================================================ */
@@ -34778,6 +35011,10 @@ body.overlay-open {
     text-overflow: ellipsis;
     width: 100%;
     font-variant-numeric: tabular-nums;
+  }
+
+  .behind-scene .behind-scene-value.negative {
+    color: #dc3545;
   }
 
   .behind-scene .behind-scene-value:empty::before {
@@ -38085,9 +38322,9 @@ body.overlay-open {
   .kairo-document-control__id,
   .kairo-file-control__path,
   .kairo-control__id,
-  #ClientID,
-  #ProductID,
-  #BranchID {
+  input#ClientID,
+  input#ProductID,
+  input#BranchID {
     width: 120px !important;
     min-width: 120px !important;
     max-width: 120px !important;
@@ -40311,7 +40548,7 @@ body.overlay-open {
   }
 
   .auth-page .authBackground {
-    background: url('../images/background/nrb3.jpg') no-repeat center center;
+    background: url('../images/background/Tsedey_Et.png') no-repeat center center;
     background-size: cover;
     background-attachment: scroll;
     min-height: 100vh;
@@ -40339,7 +40576,7 @@ body.overlay-open {
 
 
   .auth-page .login-bg {
-    background: url('../images/background/nrb3.jpg') no-repeat center center fixed;
+    background: url('../images/background/Tsedey_Et.png') no-repeat center center fixed;
     background-size: cover;
   }
 
@@ -56298,7 +56535,7 @@ body.overlay-open {
   }
 
   .auth-page .authBackground {
-    background: url('../images/background/nrb3.jpg') no-repeat center center;
+    background: url('../images/background/Tsedey_Et.png') no-repeat center center;
     background-size: cover;
     background-attachment: scroll;
     min-height: 100vh;
@@ -64602,9 +64839,6 @@ body.overlay-open {
   .kairo-client-control__id,
   .kairo-product-control__id,
   .kairo-branch-control__id,
-  #ClientID,
-  #ProductID,
-  #BranchID,
   input#ClientID,
   input#ProductID,
   input#BranchID,
@@ -65637,11 +65871,11 @@ body.overlay-open {
   /* Search Actions */
   .kairo-search-modal .search-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #e9ecef;
+    margin-top: 10px;
+    padding-top: 0;
+    border-top: none;
   }
 
   /* Search Button - Primary Blue */
@@ -65704,12 +65938,12 @@ body.overlay-open {
   }
 
   .kairo-search-modal .results-table thead th {
-    background: linear-gradient(180deg, #1a5276 0%, #154360 100%);
+    background: linear-gradient(180deg, var(--color-header, var(--color-primary, #1a5276)) 0%, color-mix(in srgb, var(--color-header, var(--color-primary, #1a5276)) 85%, black 15%) 100%);
     color: white;
     font-size: 12px;
     font-weight: 600;
     padding: 10px 12px;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     position: sticky;
     top: 0;
     z-index: 1;
@@ -65730,14 +65964,14 @@ body.overlay-open {
   }
 
   .kairo-search-modal .results-table tbody td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #e9ecef;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
     color: #212529;
     vertical-align: middle;
   }
 
   .kairo-search-modal .results-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: 1px solid #dee2e6;
   }
 
   /* Empty State / No Results */
@@ -65785,9 +66019,9 @@ body.overlay-open {
   }
 
   .kairo-search-modal .pagination-btn:hover:not(:disabled) {
-    background: #1a5276;
+    background: var(--color-primary, var(--color-header, #4a7c95));
     color: white;
-    border-color: #1a5276;
+    border-color: var(--color-primary, var(--color-header, #4a7c95));
   }
 
   .kairo-search-modal .pagination-btn:disabled {
@@ -65802,9 +66036,11 @@ body.overlay-open {
 
   /* Modal Footer */
   .kairo-search-modal .modal-footer {
-    padding: 12px 16px;
-    border-top: 1px solid #dee2e6;
-    background: #ffffff;
+    padding: 10px 16px;
+    border-top: none;
+    background: linear-gradient(180deg, var(--color-header, var(--color-primary, #4a7c95)) 0%, color-mix(in srgb, var(--color-header, var(--color-primary, #4a7c95)) 85%, black 15%) 100%);
+    display: flex;
+    justify-content: center;
     gap: 8px;
   }
 
@@ -65859,11 +66095,10 @@ body.overlay-open {
 
   /* Map old search-section to new search-filters */
   .kairo-search-modal .search-section {
-    padding: 16px;
-    background: #f8f9fa;
+    padding: 12px 20px;
+    background: #fafafa;
     border-bottom: 1px solid #dee2e6;
     border-radius: 0;
-    border: none;
     margin-bottom: 0;
   }
 
@@ -65887,7 +66122,7 @@ body.overlay-open {
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #6c757d;
+    color: var(--color-primary, var(--color-header, #4a7c95));
     margin-bottom: 4px;
     text-align: left;
     min-width: unset;
@@ -65909,8 +66144,8 @@ body.overlay-open {
 
   .kairo-search-modal .search-input:focus {
     outline: none;
-    border-color: #1a5276;
-    box-shadow: 0 0 0 2px rgba(26, 82, 118, 0.15);
+    border-color: var(--color-primary, var(--color-header, #4a7c95));
+    box-shadow: 0 0 0 2px rgba(74, 124, 149, 0.2);
   }
 
   /* Map old search-select */
@@ -65957,12 +66192,15 @@ body.overlay-open {
   }
 
   .kairo-search-modal .search-btn-primary {
-    background: #2563eb;
-    color: white;
+    background: #e8ecf0;
+    color: #1e293b;
+    border: 1px solid #adb5bd;
   }
 
   .kairo-search-modal .search-btn-primary:hover {
-    background: #1d4ed8;
+    background: var(--color-primary, var(--color-header, #4a7c95));
+    color: white;
+    border-color: var(--color-primary, var(--color-header, #4a7c95));
   }
 
   .kairo-search-modal .search-btn-secondary {
@@ -65973,6 +66211,7 @@ body.overlay-open {
 
   .kairo-search-modal .search-btn-secondary:hover {
     background: #f8f9fa;
+    color: #495057;
   }
 
   /* Map old modal-btn classes */
@@ -65990,29 +66229,32 @@ body.overlay-open {
   }
 
   .kairo-search-modal .modal-btn-secondary {
-    background: #6c757d;
-    color: white;
-    border: none;
+    background: #e8ecf0;
+    color: #1e293b;
+    border: 1px solid rgba(255,255,255,0.4);
   }
 
   .kairo-search-modal .modal-btn-secondary:hover {
-    background: #5a6268;
+    background: #ffffff;
+    color: #1e293b;
   }
 
   .kairo-search-modal .modal-btn-success,
   .kairo-search-modal .modal-btn-primary {
-    background: #17a2b8;
-    color: white;
+    background: #e8ecf0;
+    color: #1e293b;
+    border: 1px solid rgba(255,255,255,0.4);
   }
 
   .kairo-search-modal .modal-btn-success:hover:not(:disabled),
   .kairo-search-modal .modal-btn-primary:hover:not(:disabled) {
-    background: #138496;
+    background: #ffffff;
+    color: #1e293b;
   }
 
   .kairo-search-modal .modal-btn-success:disabled,
   .kairo-search-modal .modal-btn-primary:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
@@ -66024,11 +66266,12 @@ body.overlay-open {
 
   /* Results table wrapper */
   .kairo-search-modal .results-table-wrapper {
-    max-height: 300px;
     overflow-y: auto;
+    max-height: 300px;
     background: #ffffff;
-    border-radius: 0;
-    border: none;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    margin: 12px 16px;
   }
 
   /* No results message */
@@ -67415,64 +67658,63 @@ body.overlay-open {
   }
 
   /* ================================================================  
-   Input with Info Icon Inside  
-   Used for fields like Loan Amount with info button inside  
+   Input with Info Icon Side by Side  
+   Used for fields like Loan Amount with info button alongside  
 ================================================================ */
   .input-with-info-icon {
-    position: relative !important;
-    display: block !important;
+    display: flex !important;
+    gap: 0;
     width: 100% !important;
-    height: 32px;
+    align-items: center;
   }
 
   .input-with-info-icon input {
-    width: 100%;
+    flex: 1;
     min-height: 32px;
     height: 32px;
-    padding: 4px 58px 4px 10px !important;
+    padding: 4px 10px !important;
     text-align: right;
     display: block;
     box-sizing: border-box;
     line-height: 32px;
+    border-right: none !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
   }
 
-  .input-with-info-icon .btn-info-inside {
-    position: absolute !important;
-    right: 1px !important;
-    left: auto !important;
-    top: 1px !important;
-    bottom: auto !important;
-    transform: none !important;
+  .input-with-info-icon .btn-info-side {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    margin: 0 !important;
+    margin-left: 0 !important;
+    border: 1px solid var(--color-border, #e2e8f0) !important;
+    border-left: none !important;
     background: var(--bs-input-bg, #ffffff) !important;
-    border: none !important;
-    border-left: 1px solid var(--color-border, #e2e8f0) !important;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
     color: var(--color-primary, #4a7c95);
     cursor: pointer;
-    padding: 0 !important;
-    margin: 0 !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s ease;
-    z-index: 20;
-    width: 38px;
-    height: 30px;
+    transition: all 0.2s ease;
   }
 
-  .input-with-info-icon .btn-info-inside:hover {
+  .input-with-info-icon .btn-info-side:hover {
     color: #2563eb;
-    transform: none;
+    background: #f1f5f9 !important;
   }
 
-  .input-with-info-icon .btn-info-inside:focus {
+  .input-with-info-icon .btn-info-side:focus {
     outline: 2px solid var(--color-primary, #4a7c95);
     outline-offset: 2px;
-    border-radius: 50%;
   }
 
-  .input-with-info-icon .btn-info-inside i {
+  .input-with-info-icon .btn-info-side i {
     font-size: 16px;
     pointer-events: none;
   }
@@ -71662,4 +71904,53 @@ body.overlay-open {
   background: #f1f5f9 !important;
   border-color: #94a3b8 !important;
   color: #334155 !important;
+}
+
+/* Loan Insurance - Nominees layout */
+body[data-page="loan-insurance"] .lins-nominees {
+  display: grid;
+  gap: 8px;
+}
+
+body[data-page="loan-insurance"] .lins-nominees__header,
+body[data-page="loan-insurance"] .lins-nominees__row {
+  display: grid;
+  grid-template-columns: 36px 1fr 180px 140px;
+  column-gap: 12px;
+  align-items: center;
+}
+
+body[data-page="loan-insurance"] .lins-nominees__header {
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a5276;
+}
+
+body[data-page="loan-insurance"] .lins-nominees__cell {
+  min-width: 0;
+}
+
+body[data-page="loan-insurance"] .lins-nominees__cell--idx {
+  text-align: center;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+body[data-page="loan-insurance"] .lins-nominees__row .form-control,
+body[data-page="loan-insurance"] .lins-nominees__row .form-select {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  body[data-page="loan-insurance"] .lins-nominees__header,
+  body[data-page="loan-insurance"] .lins-nominees__row {
+    grid-template-columns: 28px 1fr;
+    row-gap: 8px;
+  }
+
+  body[data-page="loan-insurance"] .lins-nominees__cell:nth-child(3),
+  body[data-page="loan-insurance"] .lins-nominees__cell:nth-child(4) {
+    grid-column: 2;
+  }
 }
