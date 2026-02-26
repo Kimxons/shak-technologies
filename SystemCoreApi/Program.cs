@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using SystemCoreApi.Helpers;
 using SystemCoreApi.Modules.SystemCore;
 using SystemCoreApi.Modules.SystemBankSettings;
+using SystemCoreApi.Modules.Shared;
 
 var configS = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -61,6 +62,21 @@ try
         .LogTo(Log.Logger.Error, LogLevel.Error);
     }, ServiceLifetime.Scoped);
 
+    builder.Services.AddDbContextFactory<SharedDAL>(options =>
+    {
+        options.UseSqlServer(DBClient.GetConnectionString(
+            config["AppSettings:dbtype"]!,
+            config["AppSettings:dbservername"]!,
+            config["AppSettings:databasename"]!,
+            config["AppSettings:brusername"]!,
+            config["AppSettings:bruserpassword"]!,
+            config["AppSettings:appname"]!), sqlOptions =>
+            {
+                //sqlOptions.EnableRetryOnFailure(2);
+                sqlOptions.CommandTimeout(int.Parse(config["AppSettings:commandtimeout"]!));
+            })
+        .LogTo(Log.Logger.Error, LogLevel.Error);
+    }, ServiceLifetime.Scoped);
     builder.Services.AddAuthentication("oauth2")
                .AddJwtBearer(options =>
                {
@@ -143,7 +159,7 @@ try
     // Register services
     builder.Services.AddScoped<ISystemCoreRepo, SystemCoreRepo>();
     builder.Services.AddScoped<ISystemBankSettingRepo, SystemBankSettingRepo>();
-
+    builder.Services.AddScoped<ISharedRepo, SharedRepo>();
     // Configure CORS
     var corsOrigins = builder.Configuration["AppSettings:cors"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
 

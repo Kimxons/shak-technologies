@@ -1177,8 +1177,6 @@ async function validateClientIdFromInput({ silentOnBlank = false } = {}) {
     }
 }
 
-let clientLookupModal = null;
-
 function initializeEventListeners() {
     // View Client button
     const btnViewClient = $('btnViewClient');
@@ -1271,83 +1269,77 @@ function loadBranchInfo() {
 }
 
 async function handleClientSearch() {
+    // Check if SearchModal is available
     if (!window.SearchModal) {
-        client360Toast('Search modal is not available (search-modal.js not loaded).', 'error');
-        return;
-    }
-    if (!Client360Service || typeof Client360Service.searchClients !== 'function') {
-        client360Toast('Client360Service.searchClients is not available.', 'error');
+        client360Toast('Search modal is not available (searchModal.js not loaded).', 'error');
         return;
     }
 
-    const ctx = getContext();
+    const appCore = getAppCore();
+    if (!appCore) {
+        client360Toast('AppCore is not available.', 'error');
+        return;
+    }
 
-    if (!clientLookupModal) {
-        clientLookupModal = new window.SearchModal({
-            prefix: 'client360',
+    try {
+        // Get current input values to pre-fill search criteria
+        const currentClientId = $('clientIdSearch')?.value?.trim() || '';
+        const currentClientName = $('clientNameSearch')?.value?.trim() || '';
+
+        // Build initial search key if values are present
+        let initialSearchKey = '';
+        if (currentClientId) {
+            initialSearchKey += `ClientID LIKE '%${currentClientId}%'`;
+        }
+        if (currentClientName) {
+            if (initialSearchKey) initialSearchKey += ' AND ';
+            initialSearchKey += `Name LIKE '%${currentClientName}%'`;
+        }
+
+        // Initialize the new SearchModal
+        const searchModal = new window.SearchModal(appCore);
+
+        // Open the search modal
+        const selectedRecord = await searchModal.open({
+            tableID: 'ClientID',
             moduleID: '1000',
-            getOperatorId: () => ctx.OperatorID,
-            getOurBranchId: () => ctx.OurBranchID,
-            searchFn: async (payload) => {
-                // Match the requested requestData contract (OldAPI p_GetSearchResult)
-                const requestData = {
-                    TableID: payload.TableID,
-                    AdvFilterString: payload.AdvFilterString || '',
-                    WhereStmt: payload.WhereStmt || '',
-                    PrevOrNext: payload.PrevOrNext || '1',
-                    RefID: payload.RefID || '',
-                    OperatorID: payload.OperatorID || ctx.OperatorID,
-                    ModuleID: payload.ModuleID || '1000',
-                    OurBranchID: payload.OurBranchID || ctx.OurBranchID,
-                    SearchKey: payload.SearchKey || '',
-                    LanguageID: 'en'
-                };
+            whereStmt: '',
+            advFilterString: '',
+            searchKey: initialSearchKey,
+            onSelect: (record) => {
+                console.log('[Client360] Client selected:', record);
 
-                return Client360Service.searchClients(requestData);
-            },
-            onError: (err) => {
-                console.error('Client lookup error', err);
-                client360Toast('Client lookup failed.', 'error');
+                // Extract client ID and name from record
+                const id = record?.ClientID ?? record?.clientId ?? '';
+                const name = record?.Name ?? record?.ClientName ?? record?.clientName ?? '';
+
+                // Populate the search fields
+                setField('clientIdSearch', id);
+                setField('clientNameSearch', name);
+
+                // Enable View button
+                const btnViewClient = $('btnViewClient');
+                if (btnViewClient) btnViewClient.disabled = false;
+
+                // Show success message
+                client360Toast(`Client ${id} selected successfully`, 'success');
+
+                // Optional: auto-load once selected
+                if (id) {
+                    setTimeout(() => handleViewClient(), 100);
+                }
             }
         });
-    }
 
-    // Pre-fill criteria from current input (optional)
-    const currentClientId = $('clientIdSearch')?.value?.trim() || '';
-    const currentClientName = $('clientNameSearch')?.value?.trim() || '';
-
-    await clientLookupModal.open({
-        title: 'Find Client',
-        tableID: 'ClientID',
-        whereStmt: '',
-        advFilterString: '',
-        searchKey: '',
-        autoCloseOnRowClick: true,
-        uniqueBy: ['ClientID'],
-        searchFields: [
-            { name: 'ClientID', label: 'Client ID', column: 'ClientID', value: currentClientId },
-            { name: 'Name', label: 'Name', column: 'Name', value: currentClientName }
-        ],
-        displayFields: [
-            { key: 'ClientID', label: 'Client ID' },
-            { key: 'Name', label: 'Name' }
-        ],
-        onSelect: (record) => {
-            const id = record?.ClientID ?? record?.clientId ?? '';
-            const name = record?.Name ?? record?.ClientName ?? record?.clientName ?? '';
-            setField('clientIdSearch', id);
-            setField('clientNameSearch', name);
-
-            // Enable View button and focus it
-            const btnViewClient = $('btnViewClient');
-            if (btnViewClient) btnViewClient.disabled = false;
-
-            // Optional: auto-load once selected
-            if (id) {
-                handleViewClient();
-            }
+        if (selectedRecord) {
+            console.log('[Client360] Modal closed with selection:', selectedRecord);
+        } else {
+            console.log('[Client360] Modal closed without selection');
         }
-    });
+    } catch (error) {
+        console.error('[Client360] Search modal error:', error);
+        client360Toast('Failed to open client search: ' + error.message, 'error');
+    }
 }
 
 async function handleViewClient() {

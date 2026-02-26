@@ -294,7 +294,7 @@ namespace kairo_ui.Services
                 var result = JsonSerializer.Deserialize<T>(responseJson, _jsonSerializerOptions);
 
                 _logger.LogInformation("API POST Success: {Endpoint} | Response Size: {ResponseSize} bytes | Response: {ResponseData}",
-                    endpoint, responseJson.Length, responseJson);
+                    endpoint, responseJson.Length, "responseJson");
                 return result!;
             }
             catch (Exception ex)

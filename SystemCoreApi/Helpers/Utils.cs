@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace SystemCoreApi.Helpers
 {
     public static class Utils
@@ -8,6 +10,18 @@ namespace SystemCoreApi.Helpers
             var body = await new StreamReader(request.Body).ReadToEndAsync();
             request.Body.Position = 0;
             return body;
+        }
+        public static bool IsValidJson(string jsonString)
+        {
+            try
+            {
+                JsonDocument.Parse(jsonString);
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
         }
     }
 }

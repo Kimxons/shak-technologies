@@ -1,17 +1,9 @@
 @{
     ViewData["Title"] = "Client 360 View";
-    Layout = "";
+    Layout = "_ApplicationLayout";
 }
-<!doctype html>
-<html lang="en">
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Client 360 View</title>
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="/css/styles.css" />
+@section Styles {
     <style>
         /* Ensure overlay can be positioned relative to the Client 360 window */
         .main-container {
@@ -869,13 +861,12 @@
             min-width: 32px !important;
         }
     </style>
-</head>
+}
 
-<body>
-    <form id="client360Form" style="display:none;">
-        @Html.AntiForgeryToken()
-    </form>
-    <div class="window">
+<form id="client360Form" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+<div class="window">
         <div class="main-container">
             <!-- Left Sidebar (Sub Modules / Quick Links area) -->
             <div class="sidebar" id="client360Sidebar">
@@ -1187,14 +1178,6 @@
         </div>
     </div>
 
-    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/environment.js"></script>
-    <script src="/js/auth/auth.config.js"></script>
-    <script src="/js/auth/auth.service.js"></script>
-    <script src="/js/app/app-core.js"></script>
-    <script src="/js/services/workflow/notificationService.js"></script>
-    <script src="/js/shared/search-modal.js"></script>
+@section Scripts {
     <script src="/js/modules/identities/client360/client-360-view.js"></script>
-</body>
-
-</html>
+}

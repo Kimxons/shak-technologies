@@ -1,9 +1,9 @@
 ﻿using CBS.Entities.Common;
-using ClientManagement.Helpers;
+using SystemCoreApi.Helpers;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace ClientManagement.Modules.Shared
+namespace SystemCoreApi.Modules.Shared
 {
     public class SharedRepo(SharedDAL dal) : ISharedRepo
     {
@@ -11,7 +11,8 @@ namespace ClientManagement.Modules.Shared
 
         public async Task<ResponseDetail<object>> GetSystemSearch(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_SYSTEMSEARCH} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_SYSTEMSEARCH} @RequestData={requestJson}")
+                .AsEnumerable().FirstOrDefault()!;
             ResponseDetail<object> respObj = new()
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!)
@@ -22,7 +23,6 @@ namespace ClientManagement.Modules.Shared
             };
             return respObj;
         }
-
         public async Task<ResponseDetail<object>> GetSystemSearchResult(string requestJson, CancellationToken cancellationToken = default)
         {
             ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_SYSTEMSEARCH_RESULT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
