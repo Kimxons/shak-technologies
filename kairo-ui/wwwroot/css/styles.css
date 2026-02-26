@@ -1,6 +1,36 @@
 @import "maincss.css";
 
 /* ================================================================
+   Submodule Container - Dynamic Partial View Loading
+================================================================ */
+
+.submodule-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sidebar-item--active {
+  background-color: rgba(74, 124, 149, 0.1) !important;
+  border-left: 3px solid var(--color-primary) !important;
+}
+
+.sidebar-item--active .sidebar-item__title {
+  color: var(--color-primary) !important;
+  font-weight: 600 !important;
+}
+
+.sidebar-item[data-submodule] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item[data-submodule]:hover {
+  background-color: rgba(74, 124, 149, 0.05);
+}
+
+/* ================================================================
    CSS Theme Variables
    Used by theme-configuration.js for color management
 ================================================================ */

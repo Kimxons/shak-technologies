@@ -1,0 +1,350 @@
+﻿@{
+    // No layout - this is a partial view loaded dynamically
+    // Migrated from: public/modules/account-maintenance/DataEntry/account-charge-rates.html
+}
+
+<!-- ChargeRates Submodule - Original HTML Preserved -->
+<div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+      <div class="am-header__left">
+        <i class="bi bi-currency-dollar am-header__icon" aria-hidden="true"></i>
+        <span class="am-header__title">Account Charge Rates</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container">
+      <div class="form-content" role="region" aria-label="Account Charge Rates form">
+        <div class="form-card" data-main-form>
+          <div class="form-section" data-section="charge-selection">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-currency-dollar"></i>Charge Selection</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Charge Selection" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <div class="row g-2 mb-2">
+                  <div class="col-12">
+                    <label class="label-blue">Charge ID / Name</label>
+                    <div class="d-flex gap-2">
+                      <input id="chargeId" name="chargeId" type="text" class="bs-input-text form-control" placeholder="Charge ID" />
+                      <input id="chargeName" name="chargeName" type="text" class="bs-input-text form-control" placeholder="Charge Name" readonly />
+                      <button class="btn-lookup" type="button" data-lookup="chargeId" title="Lookup Charge" aria-label="Lookup Charge"><i class="bi bi-search"></i></button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <label class="label-blue" for="effectiveDate">Effective Date</label>
+                    <input id="effectiveDate" name="effectiveDate" type="date" class="bs-input-text form-control" />
+                  </div>
+                  <div class="col-6">
+                    <label class="label-blue" for="expiryDate">Expiry Date</label>
+                    <input id="expiryDate" name="expiryDate" type="date" class="bs-input-text form-control" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Charge Settings Section -->
+          <div class="form-section" data-section="charge-settings">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-sliders"></i>Charge Settings</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Charge Settings" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <label class="label-blue" for="ceilingAmountType">Ceiling Amount</label>
+                    <div class="d-flex gap-2">
+                      <select id="ceilingAmountType" name="ceilingAmountType" class="bs-select form-control flex-grow-1">
+                        <option>--Select--</option>
+                      </select>
+                      <input id="ceilingAmount" name="ceilingAmount" type="text" class="bs-input-text form-control" />
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="label-blue" for="calculationMethod">Calculation Method</label>
+                    <select id="calculationMethod" name="calculationMethod" class="bs-select form-control">
+                      <option>--Select--</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <label class="label-blue" for="minCharge">Min Charge</label>
+                    <input id="minCharge" name="minCharge" type="text" class="bs-input-text form-control" />
+                  </div>
+                  <div class="col-6">
+                    <label class="label-blue" for="maximumCharge">Maximum Charge</label>
+                    <input id="maximumCharge" name="maximumCharge" type="text" class="bs-input-text form-control" />
+                  </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <label class="label-blue" for="value">Value</label>
+                    <input id="value" name="value" type="text" class="bs-input-text form-control" />
+                  </div>
+                  <div class="col-6">
+                    <label class="label-blue" for="fixedAmount">Fixed Amount</label>
+                    <input id="fixedAmount" name="fixedAmount" type="text" class="bs-input-text form-control" />
+                  </div>
+                </div>
+
+                <!-- Grid Action Buttons -->
+                <div class="d-flex gap-2 mb-3 justify-content-center">
+                  <button class="btn btn-secondary btn-sm" type="button" data-grid-action="new" title="New">
+                    <i class="bi bi-plus-lg"></i> New
+                  </button>
+                  <button class="btn btn-secondary btn-sm" type="button" data-grid-action="alter" title="Alter">
+                    <i class="bi bi-pencil"></i> Alter
+                  </button>
+                  <button class="btn btn-secondary btn-sm" type="button" data-grid-action="remove" title="Remove">
+                    <i class="bi bi-trash"></i> Remove
+                  </button>
+                  <button class="btn btn-secondary btn-sm" type="button" data-grid-action="update" title="Update">
+                    <i class="bi bi-arrow-repeat"></i> Update
+                  </button>
+                  <button class="btn btn-secondary btn-sm" type="button" data-grid-action="clear" title="Clear">
+                    <i class="bi bi-x-circle"></i> Clear
+                  </button>
+                </div>
+              </form>
+
+              <!-- Charge Settings Grid -->
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm" id="chargeSettingsGrid">
+                  <thead class="table-primary">
+                    <tr>
+                      <th>Ceiling Amount</th>
+                      <th>Minimum Charge</th>
+                      <th>Maximum Charge</th>
+                      <th>Calculation Method</th>
+                      <th>Value</th>
+                      <th>Fixed Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="chargeSettingsBody">
+                    <tr class="no-records-row">
+                      <td colspan="6" class="text-center text-muted">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind the Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="MakerID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="MakerDT">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Checked By</span>
+                  <span class="audit-value" id="CheckerID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Checked On</span>
+                  <span class="audit-value" id="CheckerDT">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifierID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifierDT">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view" title="View">
+            <i class="bi bi-eye"></i>View
+          </button>
+          <button class="btn-action" type="button" data-action="add" title="Add New">
+            <i class="bi bi-plus-circle"></i>Add
+          </button>
+          <button class="btn-action" type="button" data-action="edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>Edit
+          </button>
+          <button class="btn-action" type="button" data-action="save" title="Save">
+            <i class="bi bi-check-lg"></i>Save
+          </button>
+          <button class="btn-action" type="button" data-action="delete" title="Delete">
+            <i class="bi bi-trash3"></i>Delete
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+            <i class="bi bi-x-lg"></i>Cancel
+          </button>
+          <button class="btn-action" type="button" data-action="close" title="Close">
+            <i class="bi bi-box-arrow-right"></i>Close
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Loading charge rates...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Scripts -->
+  <script src="/js/services/shared/serviceLoader.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-charge-rates.js?v=20250209"></script>
+
+  <!-- Window Controls & Blur Behavior -->
+  <script>
+    (function() {
+      /**
+       * Send message to parent when form opens
+       */
+      function notifyParentFormOpened() {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ 
+              action: 'submoduleOpened',
+              source: 'Account Charge Rates'
+            }, '*');
+          }
+        } catch (error) {
+          console.error('Error notifying parent of form open:', error);
+        }
+      }
+
+      /**
+       * Close the child form by notifying parent
+       */
+      function closeChildForm() {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ 
+              action: 'submoduleClosed',
+              source: 'Account Charge Rates'
+            }, '*');
+          } else {
+            window.close();
+          }
+        } catch (error) {
+          console.error('Error closing form:', error);
+        }
+      }
+
+      /**
+       * Handle window control actions
+       */
+      function handleWindowAction(action, btn) {
+        const windowEl = document.querySelector('.window');
+        
+        switch (action) {
+          case 'refresh':
+            // Clear all validation errors before refresh
+            document.querySelectorAll('[class*="invalid"]').forEach(el => {
+              el.classList.remove(...Array.from(el.classList).filter(c => c.includes('invalid')));
+            });
+            window.location.reload();
+            break;
+
+          case 'maximize':
+            if (windowEl) {
+              const isMaximized = windowEl.classList.toggle('maximized');
+              const icon = btn.querySelector('i');
+              if (icon) {
+                icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
+              }
+              btn.title = isMaximized ? 'Restore' : 'Maximize';
+              btn.setAttribute('aria-label', isMaximized ? 'Restore window' : 'Maximize window');
+              
+              // Notify parent to collapse/expand sidebar
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ 
+                  action: 'toggleSidebarForMaximize',
+                  maximize: isMaximized
+                }, '*');
+              }
+            }
+            break;
+
+          case 'close':
+            closeChildForm();
+            break;
+        }
+      }
+
+      /**
+       * Initialize window control buttons
+       */
+      function initWindowControls() {
+        document.querySelectorAll('.de-title-btn[data-action]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = btn.getAttribute('data-action');
+            handleWindowAction(action, btn);
+          });
+        });
+      }
+
+      // Initialize on DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          initWindowControls();
+          notifyParentFormOpened();
+        });
+      } else {
+        initWindowControls();
+        notifyParentFormOpened();
+      }
+    })();
+  </script>
+
+<script>
+    // ChargeRates submodule initialization
+    document.addEventListener('submodule:loaded', function(e) {
+        if (e.detail.submoduleName === 'ChargeRates') {
+            console.log('[ChargeRates] Submodule initialized - Original HTML preserved');
+            // Original JS logic should be loaded here
+            // Include corresponding JS file or inline the business logic
+        }
+    });
+</script>

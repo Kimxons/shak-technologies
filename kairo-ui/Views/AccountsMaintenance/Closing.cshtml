@@ -1,0 +1,416 @@
+﻿@{
+    // No layout - this is a partial view loaded dynamically
+    // Migrated from: public/modules/account-maintenance/DataEntry/account-closing.html
+}
+
+<!-- Closing Submodule - Original HTML Preserved -->
+<div class="window am-form">
+    <!-- Header Bar -->
+    <div class="am-header" role="banner">
+      <div class="am-header__left">
+        <i class="bi bi-door-closed am-header__icon"></i>
+        <span class="am-header__title">Account Closing</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container main-container--with-panel">
+      <div class="form-content" role="region">
+        <div class="form-card">
+          <!-- Bootstrap 5 Nav Tabs -->
+          <ul class="nav nav-tabs mb-3" id="closingTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="close-tab" data-bs-toggle="tab" data-bs-target="#close-pane" type="button" role="tab" aria-controls="close-pane" aria-selected="true">
+                Close Details
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="transaction-tab" data-bs-toggle="tab" data-bs-target="#transaction-pane" type="button" role="tab" aria-controls="transaction-pane" aria-selected="false">
+                Transaction Details
+              </button>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content" id="closingTabsContent">
+            <!-- Close Details Tab -->
+            <div class="tab-pane fade show active" id="close-pane" role="tabpanel" aria-labelledby="close-tab">
+              <div class="form-section" data-section="account-details">
+                <div class="section-header" data-section-toggle>
+                  <span class="section-header__title"><i class="bi bi-file-earmark-text"></i>Account Details</span>
+                  <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                </div>
+                <div class="section-content" data-section-content>
+                  <!-- Row 1: Reason (full width) -->
+                  <div class="form-row">
+                    <div class="col">
+                      <label class="label-blue" for="reason">Reason</label>
+                      <select id="reason" name="reason" class="bs-select">
+                        <option value="">Select Reason</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Row 2: Remarks (full width) -->
+                  <div class="form-row">
+                    <div class="col">
+                      <label class="label-blue" for="remarks">Remarks</label>
+                      <input id="remarks" name="remarks" type="text" class="bs-input-text" />
+                    </div>
+                  </div>
+
+                  <!-- Row 3: Balance, Penal Interest Receivable, Credit Interest Payable, Tax Amount -->
+                  <div class="form-row four-col">
+                    <div class="col">
+                      <label class="label-blue" for="balance">Balance</label>
+                      <input id="balance" name="balance" type="text" class="bs-input-text" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="penalInterestReceivable">Penal Interest Receivable</label>
+                      <input id="penalInterestReceivable" name="penalInterestReceivable" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="creditInterestPayable">Credit Interest Payable</label>
+                      <input id="creditInterestPayable" name="creditInterestPayable" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="taxAmount">Tax Amount</label>
+                      <input id="taxAmount" name="taxAmount" type="text" class="bs-input-text" />
+                    </div>
+                  </div>
+
+                  <!-- Row 4: Debit Interest Receivable, Closing Charges -->
+                  <div class="form-row four-col">
+                    <div class="col">
+                      <label class="label-blue" for="debitInterestReceivable">Debit Interest Receivable</label>
+                      <input id="debitInterestReceivable" name="debitInterestReceivable" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="closingCharges">Closing Charges</label>
+                      <input id="closingCharges" name="closingCharges" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col span-2">
+                      <label class="label-blue" for="netPayable">Net Payable</label>
+                      <input id="netPayable" name="netPayable" type="text" class="bs-input-text" readonly />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Components Section (Close Details Tab only) -->
+              <div class="form-section" data-section="components">
+                <div class="section-header" data-section-toggle>
+                  <span class="section-header__title"><i class="bi bi-puzzle"></i>Components</span>
+                  <button type="button" class="section-toggle-btn" aria-label="Toggle Components" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                </div>
+                <div class="section-content" data-section-content>
+                  <div class="table-container">
+                    <table class="data-table" id="componentsGrid">
+                      <thead>
+                        <tr>
+                          <th>Component ID</th>
+                          <th>Trx Branch ID</th>
+                          <th>Account Type ID</th>
+                          <th>Account ID</th>
+                        </tr>
+                      </thead>
+                      <tbody id="componentsGridBody">
+                        <tr class="empty-row">
+                          <td colspan="4" class="text-center text-muted">There are no Items to be Displayed</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction Details Tab -->
+            <div class="tab-pane fade" id="transaction-pane" role="tabpanel" aria-labelledby="transaction-tab">
+              <div class="form-section" data-section="txn-information">
+                <div class="section-header" data-section-toggle>
+                  <span class="section-header__title"><i class="bi bi-receipt"></i>Transaction Information</span>
+                  <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Information" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                </div>
+                <div class="section-content" data-section-content>
+                  <!-- Row 1: Transaction Type, Till, Type Of Service, Account Type -->
+                  <div class="form-row four-col">
+                    <div class="col">
+                      <label class="label-blue" for="transactionType">Transaction Type</label>
+                      <select id="transactionType" name="transactionType" class="bs-select">
+                        <option value="">Select Transaction Type</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="till">Till</label>
+                      <select id="till" name="till" class="bs-select">
+                        <option value="">Select Till</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="typeOfService">Type Of Service</label>
+                      <select id="typeOfService" name="typeOfService" class="bs-select">
+                        <option value="">Select Service Type</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="accountType">Account Type</label>
+                      <select id="accountType" name="accountType" class="bs-select">
+                        <option value="">Select Account Type</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Row 2: Account ID (span 2), Product ID, Currency ID -->
+                  <div class="form-row four-col">
+                    <div class="col span-2">
+                      <label class="label-blue" for="txnAccountId">Account ID</label>
+                      <div class="kairo-account-control" data-kairo-account-control>
+                        <input id="txnAccountId" name="txnAccountId" type="text" class="kairo-account-control__id" placeholder="Account ID" aria-label="Account ID" />
+                        <input id="txnAccountName" name="txnAccountName" type="text" class="kairo-account-control__name" placeholder="Account Name" aria-label="Account Name" readonly />
+                        <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="txnAccountId" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="productId">Product ID</label>
+                      <input id="productId" name="productId" type="text" class="bs-input-text" placeholder="Product ID" aria-label="Product ID" readonly disabled />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="currencyId">Currency ID</label>
+                      <input id="currencyId" name="currencyId" type="text" class="bs-input-text" readonly disabled />
+                    </div>
+                  </div>
+
+                  <!-- Row 3: Cheque ID, Payable At, Beneficiary Name, Reference No -->
+                  <div class="form-row four-col">
+                    <div class="col">
+                      <label class="label-blue" for="chequeId">Cheque ID</label>
+                      <input id="chequeId" name="chequeId" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="payableAt">Payable At</label>
+                      <div class="kairo-branch-control" data-kairo-branch-control>
+                        <input id="payableAt" name="payableAt" type="text" class="kairo-branch-control__id" placeholder="Payable At" aria-label="Payable At" />
+                        <input id="payableAtName" name="payableAtName" type="text" class="kairo-branch-control__name" placeholder="Branch Name" aria-label="Branch Name" readonly />
+                        <button class="btn-lookup kairo-branch-control__lookup" type="button" data-lookup="payableAt" aria-label="Search Payable At"><i class="bi bi-search"></i></button>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="beneficiaryName">Beneficiary Name</label>
+                      <input id="beneficiaryName" name="beneficiaryName" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="referenceNo">Reference No</label>
+                      <input id="referenceNo" name="referenceNo" type="text" class="bs-input-text" />
+                    </div>
+                  </div>
+
+                  <!-- Row 4: Transaction ID (span 2), Narration (span 2) -->
+                  <div class="form-row four-col">
+                    <div class="col span-2">
+                      <label class="label-blue" for="transactionId">Transaction ID</label>
+                      <div class="kairo-control" data-kairo-control>
+                        <input id="transactionId" name="transactionId" type="text" class="kairo-control__id" placeholder="Transaction ID" aria-label="Transaction ID" />
+                        <input id="transactionIdName" name="transactionIdName" type="text" class="kairo-control__name" placeholder="Transaction Description" aria-label="Transaction Description" readonly />
+                        <button class="btn-lookup kairo-control__lookup" type="button" data-lookup="transactionId" aria-label="Search Transaction"><i class="bi bi-search"></i></button>
+                      </div>
+                    </div>
+                    <div class="col span-2">
+                      <label class="label-blue" for="narration">Narration</label>
+                      <input id="narration" name="narration" type="text" class="bs-input-text" />
+                    </div>
+                  </div>
+
+                  <!-- Row 5: Unposted Amount, Balance Amount, Exchange Rate, Forex Gain/Loss -->
+                  <div class="form-row four-col">
+                    <div class="col">
+                      <label class="label-blue" for="unpostedAmount">Unposted Amount</label>
+                      <input id="unpostedAmount" name="unpostedAmount" type="text" class="bs-input-text" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="balanceAmount">Balance Amount</label>
+                      <input id="balanceAmount" name="balanceAmount" type="text" class="bs-input-text" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="exchangeRate">Exchange Rate</label>
+                      <input id="exchangeRate" name="exchangeRate" type="text" class="bs-input-text" value="1" readonly />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="forexGainLoss">Forex Gain/Loss</label>
+                      <input id="forexGainLoss" name="forexGainLoss" type="text" class="bs-input-text" readonly />
+                    </div>
+                  </div>
+
+                  <!-- Row 6: Transaction Amount, Local Amount -->
+                  <div class="form-row four-col">
+                    <div class="col">
+                      <label class="label-blue" for="transactionAmount">Transaction Amount</label>
+                      <input id="transactionAmount" name="transactionAmount" type="text" class="bs-input-text" />
+                    </div>
+                    <div class="col">
+                      <label class="label-blue" for="localAmount">Local Amount</label>
+                      <input id="localAmount" name="localAmount" type="text" class="bs-input-text" readonly />
+                    </div>
+                    <div class="col span-2"></div>
+                  </div>
+
+                  <!-- Transaction Action Buttons -->
+                  <div class="form-action-buttons">
+                    <button class="btn-form-action" type="button" data-action="txnNew"><i class="bi bi-plus-circle"></i> New</button>
+                    <button class="btn-form-action" type="button" data-action="txnAlter"><i class="bi bi-pencil"></i> Alter</button>
+                    <button class="btn-form-action" type="button" data-action="txnRemove"><i class="bi bi-trash"></i> Remove</button>
+                    <button class="btn-form-action" type="button" data-action="txnUpdate"><i class="bi bi-arrow-repeat"></i> Update</button>
+                    <button class="btn-form-action" type="button" data-action="txnClear"><i class="bi bi-eraser"></i> Clear</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transaction Details Grid -->
+              <div class="form-section" data-section="txn-details">
+                <div class="section-header" data-section-toggle>
+                  <span class="section-header__title"><i class="bi bi-table"></i>Transaction Details</span>
+                  <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Details" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                </div>
+                <div class="section-content" data-section-content>
+                  <div class="table-container table-responsive">
+                    <table class="data-table" id="transactionGrid">
+                      <thead>
+                        <tr>
+                          <th>Account Type</th>
+                          <th>Account ID</th>
+                          <th>Till ID</th>
+                          <th>Trx Type</th>
+                          <th>Product ID</th>
+                          <th>Currency ID</th>
+                          <th class="text-right">Credit Amount</th>
+                          <th class="text-right">Debit Amount</th>
+                          <th class="text-right">Amount</th>
+                          <th class="text-right">Local Amount</th>
+                          <th class="text-right">Exchange Rate</th>
+                          <th>Reference Number</th>
+                          <th>Beneficiary Name</th>
+                          <th>Trx Description</th>
+                          <th class="text-right">Profit</th>
+                          <th>Remarks</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="text-center text-muted">
+                          <td colspan="16">No records to display.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <aside class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-action="view" title="View">
+            <i class="bi bi-eye me-1"></i>View
+          </button>
+          <button class="btn-action" type="button" data-action="add" title="Add">
+            <i class="bi bi-plus-circle me-1"></i>Add
+          </button>
+          <button class="btn-action" type="button" data-action="edit" title="Edit">
+            <i class="bi bi-pencil-square me-1"></i>Edit
+          </button>
+          <button class="btn-action" type="button" data-action="save" title="Save">
+            <i class="bi bi-check-lg me-1"></i>Save
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span class="message-text"></span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="page-loading-overlay" id="loadingOverlay" hidden>
+      <div class="page-loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="page-loading-text">Loading account closing...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/utils/global-utils.js"></script>
+  <script src="/js/environment.js"></script>
+  <script src="/js/services/shared/coreApi.js"></script>
+  <script src="/js/services/shared/lookupService.js"></script>
+  <script src="/js/services/shared/searchService.js"></script>
+  <script src="/js/shared/search-modal.js"></script>
+  <script src="../../../modules/common/confirmationDialog/confirmation-dialog.js"></script>
+  <script src="/js/services/account/accountservice.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-closing.js?v=20260209"></script>
+  <script>
+    function notifyParentFormOpened() {
+      window.parent.postMessage({ type: 'submoduleOpened', source: 'Account Closing' }, '*');
+    }
+    function closeChildForm() {
+      window.parent.postMessage({ type: 'submoduleClosed' }, '*');
+      window.close();
+    }
+    function handleWindowAction(action) {
+      if (action === 'refresh') {
+        location.reload();
+      } else if (action === 'maximize') {
+        window.parent.postMessage({ type: 'toggleSidebarForMaximize' }, '*');
+      } else if (action === 'close') {
+        closeChildForm();
+      }
+    }
+    function initWindowControls() {
+      document.querySelectorAll('[data-action]').forEach(btn => {
+        const action = btn.getAttribute('data-action');
+        if (['refresh', 'maximize', 'close'].includes(action)) {
+          btn.addEventListener('click', () => handleWindowAction(action));
+        }
+      });
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      initWindowControls();
+      notifyParentFormOpened();
+    });
+  </script>
+
+<script>
+    // Closing submodule initialization
+    document.addEventListener('submodule:loaded', function(e) {
+        if (e.detail.submoduleName === 'Closing') {
+            console.log('[Closing] Submodule initialized - Original HTML preserved');
+            // Original JS logic should be loaded here
+            // Include corresponding JS file or inline the business logic
+        }
+    });
+</script>

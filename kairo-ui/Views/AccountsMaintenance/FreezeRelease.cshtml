@@ -1,0 +1,373 @@
+﻿@{
+    // Migrated from: account-freeze-release.html
+}
+
+<!-- FreezeRelease Submodule -->
+<div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+        <div class="am-header__left">
+            <i class="bi bi-snow am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Freeze/Release</span>
+        </div>
+        <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i
+            class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i
+            class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close"
+          aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container" aria-label="Freeze/Release form">
+      <div class="form-content" role="region" aria-label="Freeze/Release form">
+        <div class="form-card" data-main-form>
+          <div class="form-section" data-section="account-identification">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-person-badge"></i>Account Identification</span>
+              <button type="button" class="section-toggle-btn"><i class="bi bi-chevron-up"></i></button>
+            </div>
+
+            <div class="section-content" data-section-content>
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="branchId">Branch ID</label>
+                  <div class="kairo-branch-control" data-kairo-branch-control>
+                    <input id="branchId" name="branchId" type="text" class="kairo-branch-control__id"
+                      aria-label="Branch ID" placeholder="ID" />
+                    <input id="branchName" name="branchName" type="text" class="kairo-branch-control__name"
+                      aria-label="Branch Name" placeholder="Branch Name" readonly />
+                    <button class="btn-lookup kairo-branch-control__lookup" type="button" data-lookup="branchId"
+                      title="Lookup Branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="accountId">Account ID</label>
+                  <div class="kairo-account-control" data-kairo-account-control>
+                    <input id="accountId" name="accountId" type="text" class="kairo-account-control__id"
+                      aria-label="Account ID" placeholder="Account ID" />
+                    <input id="accountName" name="accountName" type="text" class="kairo-account-control__name"
+                      aria-label="Account Name" placeholder="Account Name" readonly />
+                    <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="accountId"
+                      title="Lookup Account" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label for="referenceId">Reference ID</label>
+                  <div class="d-flex">
+                    <input id="referenceId" name="referenceId" type="text" class="bs-input-text form-control"
+                      />
+                    <button class="btn-lookup" type="button" data-lookup="referenceId" title="Lookup Reference"><i
+                        class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section" data-section="freeze-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-snow"></i>Freeze Details</span>
+              <button type="button" class="section-toggle-btn"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row">
+                <div class="col">
+                  <label for="effectiveDate">Effective Date</label>
+                  <input id="effectiveDate" name="effectiveDate" type="date" class="bs-input-text form-control" required
+                    data-no-flatpickr />
+                </div>
+                <div class="col">
+                  <label class="label-blue" for="fixedAmount">Fixed Amount <span class="required">*</span></label>
+                  <input id="fixedAmount" name="fixedAmount" type="text" class="bs-input-text form-control money-field"
+                    required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label for="reason">Reason <span class="required">*</span></label>
+                  <textarea id="reason" name="reason" class="bs-textarea" rows="1" required></textarea>
+                </div>
+                <div class="col"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row">
+                <div class="col">
+                  <label>Released Reason</label>
+                  <input type="text" class="bs-input-text form-control" id="releasedReason" readonly />
+                </div>
+                <div class="col">
+                  <label>Released Date</label>
+                  <input type="text" class="bs-input-text form-control" id="releasedDate" readonly data-no-flatpickr />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label>Product</label>
+                  <input type="text" class="bs-input-text form-control" id="productId" readonly />
+                </div>
+                <div class="col">
+                  <label>Currency</label>
+                  <input type="text" class="bs-input-text form-control" id="currencyId" readonly />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label>Clear Balance</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="clearBalance" readonly />
+                </div>
+                <div class="col">
+                  <label>Unclear Balance</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="unclearBalance" readonly />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label>Available Balance</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="availableBalance" readonly />
+                </div>
+                <div class="col">
+                  <label>Total Balance</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="totalBalance" readonly />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label>Drawing Power</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="drawingPower" readonly />
+                </div>
+                <div class="col">
+                  <label>Minimum Balance</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="minimumBalance" readonly />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label>Freezed Amount</label>
+                  <input type="text" class="bs-input-text form-control money-field" id="freezedAmount" readonly />
+                </div>
+                <div class="col">
+                  <label>Loan Branch</label>
+                  <input type="text" class="bs-input-text form-control" id="loanBranchId" readonly />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col">
+                  <label>Loan Account</label>
+                  <input type="text" class="bs-input-text form-control" id="loanAccountId" readonly />
+                </div>
+                <div class="col"></div>
+              </div>
+
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <div class="audit-label">Created By</div>
+                  <div class="audit-value" id="MakerID" data-field="createdBy">-</div>
+                </div>
+                <div class="audit-cell">
+                  <div class="audit-label">Modified By</div>
+                  <div class="audit-value" id="ModifierID" data-field="modifiedBy">-</div>
+                </div>
+                <div class="audit-cell">
+                  <div class="audit-label">Supervised By</div>
+                  <div class="audit-value" id="CheckerID" data-field="supervisedBy">-</div>
+                </div>
+                <div class="audit-cell">
+                  <div class="audit-label">Created On</div>
+                  <div class="audit-value" id="MakerDT" data-field="createdOn">-</div>
+                </div>
+                <div class="audit-cell">
+                  <div class="audit-label">Modified On</div>
+                  <div class="audit-value" id="ModifierDT" data-field="modifiedOn">-</div>
+                </div>
+                <div class="audit-cell">
+                  <div class="audit-label">Supervised On</div>
+                  <div class="audit-value" id="CheckerDT" data-field="supervisedOn">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-action="history" title="History">
+            <i class="bi bi-clock-history"></i>
+            <span>History</span>
+          </button>
+          <button class="btn-action" type="button" data-action="release" title="Release">
+            <i class="bi bi-unlock"></i>
+            <span>Release</span>
+          </button>
+          <button class="btn-action btn-view" type="button" data-action="view" title="View">
+            <i class="bi bi-eye"></i>
+            <span>View</span>
+          </button>
+          <button class="btn-action btn-add" type="button" data-action="add" title="Add">
+            <i class="bi bi-plus-lg"></i>
+            <span>Add</span>
+          </button>
+
+
+          <button class="btn-action btn-save" type="button" data-action="save" title="Save" disabled>
+            <i class="bi bi-check-lg"></i>
+            <span>Save</span>
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel" disabled>
+            <i class="bi bi-x-lg"></i>
+            <span>Cancel</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Loading...</span>
+      </div>
+    </div>
+
+    <div id="toastContainer" class="freeze-toast-container" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+
+  <!-- Transaction History Modal -->
+  <div id="historyModal" class="modal" hidden>
+    <div class="history-modal">
+      <div class="modal-header">
+        <h2><i class="bi bi-clock-history"></i> Transaction History</h2>
+        <div class="d-flex gap-2 align-items-center">
+          <button type="button" class="close-modal" onclick="refreshHistoryData()" title="Refresh"><i
+              class="bi bi-arrow-clockwise"></i></button>
+          <button type="button" class="close-modal" onclick="closeHistoryModal()" title="Close">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div id="historyLoading" class="history-loading d-none">
+          <div class="spinner"></div>
+          <p>Loading transaction history...</p>
+        </div>
+        <div id="historyEmpty" class="history-empty d-none">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          <p>No freeze/release history found for this account.</p>
+        </div>
+        <div class="history-table-container d-none">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th class="text-center col-index">#</th>
+                <th>Client ID</th>
+                <th>Client Name</th>
+                <th>Account Name</th>
+                <th>Reference ID</th>
+                <th>Effective Date</th>
+                <th>Freezed Value</th>
+                <th>Freeze Reason</th>
+                <th>Released Date</th>
+                <th>Released Value</th>
+                <th>Released Reason</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Release Confirmation Modal -->
+  <div id="releaseModal" class="modal" hidden>
+    <div class="release-modal">
+      <div class="modal-header">
+        <h2><i class="bi bi-unlock"></i> Release Freeze</h2>
+        <button type="button" class="close-modal" onclick="closeReleaseModal()" title="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="release-form">
+          <label for="releaseReason" class="fw-semibold mb-2 d-block">Release Reason <span
+              class="required">*</span></label>
+          <textarea id="releaseReason" name="releaseReason" class="form-control" rows="3"
+            placeholder="Enter reason for releasing the freeze..." required></textarea>
+        </div>
+        <div class="release-actions">
+          <button type="button" class="release-btn release-btn-save" onclick="confirmRelease()">
+            <i class="bi bi-check-lg"></i> Save
+          </button>
+          <button type="button" class="release-btn release-btn-cancel" onclick="closeReleaseModal()">
+            <i class="bi bi-x-lg"></i> Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abort Confirmation Modal -->
+  <div id="abortModal" class="modal" hidden>
+    <div class="abort-modal">
+      <div class="modal-header">
+        <h2><i class="bi bi-question-circle"></i> Confirm</h2>
+        <button type="button" class="close-modal" onclick="closeAbortModal()" title="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-message">
+          <i class="bi bi-question-circle-fill confirm-icon"></i>
+          <div>
+            <p class="mb-0 fw-medium">Do you want to Abort/ Discard the changes?</p>
+            <p class="mt-1 mb-0 small text-muted">[No:1100]</p>
+          </div>
+        </div>
+        <div class="release-actions justify-content-end pt-2">
+          <button type="button" class="release-btn release-btn-save" onclick="confirmAbort()">
+            Yes
+          </button>
+          <button type="button" class="release-btn release-btn-cancel" onclick="closeAbortModal()">
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/utils/global-utils.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../assets/js/shared/search-modal.js"></script>
+  <script src="../../../assets/js/ui/date-pickers.js"></script>
+  <script src="../../../assets/js/ui/date-picker-trigger.js"></script>
+  <script src="../../../assets/js/services/Account/AccountService.js"></script>
+  <script src="../../../assets/js/services/account/blockingUnblockingService.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="../../../assets/js/utils/global-utils.js"></script>
+  <script src="account-freeze-release.js?v=20250128"></script>
+
+<script>
+document.addEventListener('submodule:loaded', function(e) {
+    if (e.detail.submoduleName === 'FreezeRelease') {
+        console.log('[FreezeRelease] Submodule loaded');
+    }
+});
+</script>

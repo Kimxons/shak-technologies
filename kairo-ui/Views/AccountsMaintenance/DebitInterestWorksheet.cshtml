@@ -1,0 +1,94 @@
+﻿@{
+    // Migrated from: debit-interest-worksheet.html
+}
+
+<!-- DebitInterestWorksheet Submodule -->
+<div class="window de-window" data-ktb-window>
+    <div data-kairo-titlebar data-title="Debit Interest Worksheet" data-icon="bi-calculator"></div>
+    <main class="main-container main-container--with-panel">
+      <div class="form-content" role="region">
+        <div class="form-card" data-main-form>
+        <div class="form-section">
+          <div class="section-header"><span class="section-header__title">Filters</span></div>
+          <div class="section-content">
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <label class="label-blue" for="periodSelect">Period</label>
+                <select id="periodSelect" name="periodSelect" class="bs-select form-control">
+                  <option value="0">Select Period</option>
+                  <option value="1">Current Month</option>
+                  <option value="2">Current and Previous Month</option>
+                  <option value="3">Date Range</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="label-blue" for="fromDate">From Date</label>
+                <div class="de-date-wrapper">
+                  <input id="fromDate" name="fromDate" type="text" class="bs-input-date form-control" placeholder="dd-mmm-yyyy" autocomplete="off" />
+                  <button class="de-date-btn" type="button" id="fromDatePicker" aria-label="Pick from date"><i class="bi bi-calendar-date"></i></button>
+                </div>
+              </div>
+              <div class="col-4">
+                <label class="label-blue" for="toDate">To Date</label>
+                <div class="de-date-wrapper">
+                  <input id="toDate" name="toDate" type="text" class="bs-input-date form-control" placeholder="dd-mmm-yyyy" autocomplete="off" />
+                  <button class="de-date-btn" type="button" id="toDatePicker" aria-label="Pick to date"><i class="bi bi-calendar-date"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-section form-section--grid">
+          <div class="section-header"><span class="section-header__title">Debit Interest Worksheet</span><span class="de-record-count" id="recordCount">0 records</span></div>
+          <div class="section-content section-content--grid">
+            <div class="table table-sm table-hover-wrap">
+              <table class="table table-sm table-hover" id="worksheetGrid">
+                  <thead>
+                    <tr>
+                      <th class="de-table-check"><input type="checkbox" id="selectAll" /></th>
+                      <th>Date</th>
+                      <th class="text-end">Balance</th>
+                      <th class="text-end">Rate %</th>
+                      <th class="text-end">Days</th>
+                      <th class="text-end">Interest</th>
+                      <th class="text-end">Excess Amount</th>
+                      <th class="text-end">Cumulative</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="de-table__empty"><td colspan="8">No records to display.</td></tr>
+                  </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      <aside class="action-panel">
+        <div class="d-flex flex-column gap-2 mt-auto">
+          <button class="btn-action" type="button" data-action="view"><i class="bi bi-eye"></i><span>View</span></button>
+          <button class="btn-action" type="button" data-action="print"><i class="bi bi-printer"></i><span>Print</span></button>
+          <button class="btn-action" type="button" data-action="export"><i class="bi bi-download"></i><span>Export</span></button>
+          <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+          <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+        </div>
+      </aside>
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+  </div>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/account/AccountService.js"></script>
+  <script src="../../../assets/js/components/TitleBar.js"></script>
+  <script src="view-base.js?v=20250128"></script>
+  <script src="debit-interest-worksheet.js?v=20250129"></script>
+
+<script>
+document.addEventListener('submodule:loaded', function(e) {
+    if (e.detail.submoduleName === 'DebitInterestWorksheet') {
+        console.log('[DebitInterestWorksheet] Submodule loaded');
+    }
+});
+</script>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.3.11512.155 d18.3
+VisualStudioVersion = 18.3.11512.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kairo-ui", "kairo-ui\kairo-ui.csproj", "{FB7DDCD5-09C9-499E-A7DC-0F286ED62790}"
 EndProject
@@ -24,6 +24,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CBS.Entities.SystemCore", "CBS.Entities.SystemCore\CBS.Entities.SystemCore.csproj", "{6DE8258C-ADB9-40B0-9278-8B7B1E076173}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountManagement", "AccountManagement\AccountManagement.csproj", "{D6E08674-55F5-4899-9C97-E9E1968E6C3D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{028A4C05-9D12-419C-9553-88248D1CA728}"
+	ProjectSection(SolutionItems) = preProject
+		docs\SUBMODULES_UI_CHEATSHEET.md = docs\SUBMODULES_UI_CHEATSHEET.md
+		docs\UI_STANDARDIZATION_CHEATSHEET.md = docs\UI_STANDARDIZATION_CHEATSHEET.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

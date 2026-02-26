@@ -1,0 +1,250 @@
+﻿@{
+    // Migrated from: account-notes.html
+}
+
+<!-- AccountNotes Submodule -->
+<div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+        <div class="am-header__left">
+            <i class="bi bi-sticky am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Account Notes</span>
+        </div>
+        <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container" aria-label="Account Notes form">
+      <div class="form-content" role="region" aria-label="Account Notes form">
+        <div class="form-card" data-main-form>
+          <div class="form-section" data-section="note-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-journal-text"></i>Note Details</span>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="notes">Notes</label>
+                    <textarea id="notes" name="notes" class="bs-textarea" placeholder="Enter account notes..."></textarea>
+                </div>
+                <div class="col"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind the Scene Section - Collapsible Static Display -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifiedBy" data-field="modifiedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised By</span>
+                  <span class="audit-value" id="SupervisedBy" data-field="supervisedBy"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifiedOn" data-field="modifiedOn"></span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Supervised On</span>
+                  <span class="audit-value" id="SupervisedOn" data-field="supervisedOn"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-panel" aria-label="Form actions">        
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>          
+          <button class="btn-action" type="button" data-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+          <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-lg me-1"></i>Cancel</button>          
+        </div>
+      </div>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>    
+
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading notes...</span></div>
+    </div>
+  </div>
+
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/account/accountservice.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-notes.js?v=20250128"></script>
+  <script>
+    // Submodule state tracking
+    let activeSubmodule = 'account-notes';
+    let submoduleOpen = false;
+    
+    // Notify parent that this submodule is open
+    function notifyParentSubmoduleOpen() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ 
+          action: 'submoduleOpened', 
+          source: 'account-notes',
+          timestamp: Date.now()
+        }, '*');
+      }
+    }
+    
+    // Listen for messages from parent
+    window.addEventListener('message', function(event) {
+      if (event.data) {
+        if (event.data.action === 'submoduleOpened') {
+          // Another submodule is trying to open
+          if (activeSubmodule === 'account-notes' && event.data.source !== 'account-notes') {
+            // This submodule is already open, prevent the other from opening
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ 
+                action: 'blockSubmoduleOpen', 
+                reason: 'account-notes is already active',
+                source: 'account-notes',
+                blockedModule: event.data.source
+              }, '*');
+            }
+          }
+        } else if (event.data.action === 'submoduleClosed') {
+          if (event.data.source === 'account-notes') {
+            activeSubmodule = null;
+            submoduleOpen = false;
+          }
+        }
+      }
+    });
+    
+    // Header Window Controls
+    document.addEventListener('DOMContentLoaded', function() {
+      // Notify parent that this submodule is now open
+      notifyParentSubmoduleOpen();
+      submoduleOpen = true;
+      
+      const headerRight = document.querySelector('.am-header__right');
+      if (headerRight) {
+        // Refresh button
+        const refreshBtn = headerRight.querySelector('[data-action="refresh"]');
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', function() {
+            window.location.reload();
+          });
+        }
+        
+        // Maximize button
+        const maximizeBtn = headerRight.querySelector('[data-action="maximize"]');
+        if (maximizeBtn) {
+          maximizeBtn.addEventListener('click', function() {
+            // Toggle fullscreen/maximize
+            const window_el = document.querySelector('.window');
+            const isMaximized = window_el.classList.contains('maximized');
+            
+            // Try to collapse/expand parent sidebar if in iframe
+            if (window.parent && window.parent !== window) {
+              try {
+                // Try to find sidebar toggle button in parent document
+                const parentDoc = window.parent.document;
+                
+                // Look for sidebar toggle button
+                const toggleBtn = parentDoc.querySelector('[data-action="toggle-sidebar"], .sidebar-toggle, [class*="toggle"]');
+                
+                if (toggleBtn && toggleBtn.click) {
+                  // Click the toggle button to collapse/expand sidebar
+                  toggleBtn.click();
+                } else {
+                  // Fallback: try to toggle collapsed class on sidebar
+                  const sidebar = parentDoc.querySelector('.sidebar, [class*="sidebar"], .SUBMODULES');
+                  if (sidebar) {
+                    if (!isMaximized) {
+                      // Maximizing - add collapsed class
+                      sidebar.classList.add('collapsed');
+                    } else {
+                      // Restoring - remove collapsed class
+                      sidebar.classList.remove('collapsed');
+                    }
+                  }
+                }
+              } catch (e) {
+                console.log('Could not access parent sidebar:', e);
+              }
+            }
+            
+            // Toggle local maximized class
+            window_el.classList.toggle('maximized');
+            
+            // Toggle icon
+            const icon = maximizeBtn.querySelector('i');
+            if (window_el.classList.contains('maximized')) {
+              icon.classList.replace('bi-square', 'bi-square-fill');
+            } else {
+              icon.classList.replace('bi-square-fill', 'bi-square');
+            }
+          });
+        }
+        
+        // Close button
+        const closeBtn = headerRight.querySelector('[data-action="close"]');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function() {
+            // Notify parent this submodule is closing
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ 
+                action: 'submoduleClosed', 
+                source: 'account-notes' 
+              }, '*');
+            }
+            
+            activeSubmodule = null;
+            submoduleOpen = false;
+            
+            if (window.parent && window.parent !== window) {
+              // Inside iframe - notify parent to close
+              window.parent.postMessage({ 
+                action: 'closeForm', 
+                source: 'account-notes' 
+              }, '*');
+            } else {
+              // Standalone - close window
+              window.close();
+            }
+          });
+        }
+      }
+    });
+  </script>
+
+<script>
+document.addEventListener('submodule:loaded', function(e) {
+    if (e.detail.submoduleName === 'AccountNotes') {
+        console.log('[AccountNotes] Submodule loaded');
+    }
+});
+</script>
