@@ -1,0 +1,333 @@
+﻿@{
+    // No layout - this is a partial view loaded dynamically
+    // Migrated from: public/modules/account-maintenance/DataEntry/account-signatories.html
+}
+
+<!-- Signatories Submodule - Original HTML Preserved -->
+<div class="window">
+    <div class="am-header" role="banner">
+      <div class="am-header__left">
+        <i class="bi bi-people am-header__icon"></i>
+        <span class="am-header__title">Account Signatories</span>
+      </div>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <main class="main-container main-container--with-panel">
+      <div class="form-content" role="region" aria-label="Signatories form">
+        <div class="form-card" data-main-form>
+
+          <!-- SIGNATORY DETAILS SECTION -->
+          <div class="form-section">
+            <div class="section-header">
+              <span class="section-header__title"><i class="bi bi-person-badge"></i>Signatory Details</span>
+            </div>
+            <div class="section-content">
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="signatoryId">Signatory ID</label>
+                  <div class="d-flex gap-1">
+                    <input id="signatoryId" name="signatoryId" type="text" class="bs-input-text form-control" />
+                    <button class="btn-lookup" type="button" data-lookup="signatoryId" title="Search signatory"><i class="bi bi-search"></i></button>
+                  </div>
+                  <!-- Hidden field to store signatory name from search -->
+                  <input id="signatoryName" name="signatoryName" type="hidden" />
+                </div>
+                <div class="col">
+                  <label for="groupId">Group ID</label>
+                  <div class="d-flex gap-1">
+                    <input id="groupId" name="groupId" type="text" class="bs-input-text form-control" />
+                    <button class="btn-lookup" type="button" data-lookup="groupId" title="Search group"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label class="label-blue" for="signatoryType">Signatory Type</label>
+                  <select id="signatoryType" name="signatoryType" class="bs-select form-control">
+                    <option value="">Select...</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label for="sequenceNo">Sequence No</label>
+                  <input id="sequenceNo" name="sequenceNo" type="text" class="bs-input-text form-control" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label for="limit">Limit</label>
+                  <input id="limit" name="limit" type="text" class="bs-input-text form-control" />
+                </div>
+                <div class="col">
+                  <label for="mandates">Mandates</label>
+                  <select id="mandates" name="mandates" class="bs-select form-control">
+                    <option value="">Select...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label class="form-check-label">
+                    <input id="isMandatory" name="isMandatory" type="checkbox" class="form-check-input" />
+                    Is Mandatory
+                  </label>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="form-row mt-3">
+                <div class="col-12">
+                  <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn btn-primary btn-sm" type="button" data-action="new" title="Add new signatory">
+                      <i class="bi bi-plus-circle"></i> New
+                    </button>
+                    <button class="btn btn-warning btn-sm" type="button" data-action="alter" title="Edit selected signatory">
+                      <i class="bi bi-pencil"></i> Alter
+                    </button>
+                    <button class="btn btn-danger btn-sm" type="button" data-action="remove" title="Remove selected signatory">
+                      <i class="bi bi-trash"></i> Remove
+                    </button>
+                    <button class="btn btn-success btn-sm" type="button" data-action="update" title="Update form data">
+                      <i class="bi bi-arrow-repeat"></i> Update
+                    </button>
+                    <button class="btn btn-secondary btn-sm" type="button" data-action="clear" title="Clear form fields">
+                      <i class="bi bi-x-circle"></i> Clear
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" data-action="close-form" title="Close form">
+                      <i class="bi bi-box-arrow-right"></i> Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SIGNATORIES LIST SECTION -->
+          <div class="form-section">
+            <div class="section-header">
+              <span class="section-header__title"><i class="bi bi-list-ul"></i>Signatories List</span>
+              <div class="section-header__actions">
+                <button class="btn-icon" type="button" data-action="refresh-list" title="Refresh list">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+            </div>
+            <div class="section-content">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th scope="col">Signatory Id</th>
+                      <th scope="col">Signatory Name</th>
+                      <th scope="col">Type</th>
+                      <th scope="col">Limit</th>
+                      <th scope="col">Ref</th>
+                      <th scope="col">Mandatory</th>
+                    </tr>
+                  </thead>
+                  <tbody id="signatoryTableBody">
+                    <tr>
+                      <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                        <span>No signatories found</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- BEHIND THE SCENE SECTION -->
+          <div class="form-section">
+            <div class="section-header" role="button" data-section-toggle aria-expanded="true">
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+              <button class="section-toggle-btn" type="button" aria-label="Toggle Behind The Scene"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content">
+              <div class="behind-scene">
+                <div class="behind-scene-grid">
+                  <div class="behind-scene-item">
+                    <label>Operating Mode</label>
+                    <div class="value-row"><span class="behind-scene-value" id="operatingMode">-</span></div>
+                  </div>
+                  <div class="behind-scene-item">
+                    <label>Operating Instruction</label>
+                    <div class="value-row"><span class="behind-scene-value" id="operatingInstruction">-</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="audit-section">
+                <div class="audit-block">
+                  <div class="audit-item">
+                    <label>Created By</label>
+                    <span class="audit-value" id="createdBy">-</span>
+                  </div>
+                  <div class="audit-item">
+                    <label>Created On</label>
+                    <span class="audit-value" id="createdOn">-</span>
+                  </div>
+                </div>
+                <div class="audit-block">
+                  <div class="audit-item">
+                    <label>Modified By</label>
+                    <span class="audit-value" id="modifiedBy">-</span>
+                  </div>
+                  <div class="audit-item">
+                    <label>Modified On</label>
+                    <span class="audit-value" id="modifiedOn">-</span>
+                  </div>
+                </div>
+                <div class="audit-block">
+                  <div class="audit-item">
+                    <label>Supervised By</label>
+                    <span class="audit-value" id="supervisedBy">-</span>
+                  </div>
+                  <div class="audit-item">
+                    <label>Supervised On</label>
+                    <span class="audit-value" id="supervisedOn">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ACTION PANEL -->
+      <aside class="action-panel">
+        <div class="d-flex flex-column gap-2">
+          <button class="btn-action" type="button" data-action="signature" title="Capture signature"><i class="bi bi-pen"></i><span>Signature</span></button>
+          <button class="btn-action" type="button" data-action="photo" title="Capture photo"><i class="bi bi-camera"></i><span>Photo</span></button>
+          <button class="btn-action" type="button" data-action="both" title="Capture both"><i class="bi bi-collection"></i><span>Both</span></button>
+        </div>
+        <div class="d-flex flex-column gap-2 mt-auto">
+          <button class="btn-action" type="button" data-action="add" title="Add new"><i class="bi bi-plus-circle"></i><span>Add</span></button>
+          <button class="btn-action" type="button" data-action="edit" title="Edit"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
+          <button class="btn-action" type="button" data-action="save" title="Save changes"><i class="bi bi-check-lg"></i><span>Save</span></button>
+          <button class="btn-action" type="button" data-action="cancel" title="Cancel changes"><i class="bi bi-x-circle"></i><span>Cancel</span></button>
+        </div>
+      </aside>
+    </main>
+
+    <div class="de-message-bar" role="alert" aria-live="polite"><i class="bi bi-info-circle"></i><span></span></div>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+  </div>
+
+  <!-- Service Scripts -->
+  <script src="/js/config.js"></script>
+  <script src="/js/environment.js"></script>
+  <script src="/js/services/shared/coreApi.js"></script>
+  <script src="/js/services/shared/lookupService.js"></script>
+  <script src="/js/services/shared/searchService.js"></script>
+  <script src="/js/shared/search-modal.js"></script>
+  <script src="/js/services/account/OtherAccountService.js"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-signatories.js?v=20250128n"></script>
+
+  <!-- Window Controls -->
+  <script>
+    (function() {
+      function notifyParentFormOpened() {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ 
+              action: 'submoduleOpened',
+              source: 'Account Signatories'
+            }, '*');
+          }
+        } catch (error) {
+          console.error('Error notifying parent of form open:', error);
+        }
+      }
+
+      function closeChildForm() {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ 
+              action: 'submoduleClosed',
+              source: 'Account Signatories'
+            }, '*');
+          } else {
+            window.close();
+          }
+        } catch (error) {
+          console.error('Error closing form:', error);
+        }
+      }
+
+      function handleWindowAction(action, btn) {
+        const windowEl = document.querySelector('.window');
+        
+        switch (action) {
+          case 'refresh':
+            document.querySelectorAll('[class*="invalid"]').forEach(el => {
+              el.classList.remove(...Array.from(el.classList).filter(c => c.includes('invalid')));
+            });
+            window.location.reload();
+            break;
+
+          case 'maximize':
+            if (windowEl) {
+              const isMaximized = windowEl.classList.toggle('maximized');
+              const icon = btn.querySelector('i');
+              if (icon) {
+                icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
+              }
+              btn.title = isMaximized ? 'Restore' : 'Maximize';
+              btn.setAttribute('aria-label', isMaximized ? 'Restore window' : 'Maximize window');
+              
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ 
+                  action: 'toggleSidebarForMaximize',
+                  maximize: isMaximized
+                }, '*');
+              }
+            }
+            break;
+
+          case 'close':
+            closeChildForm();
+            break;
+        }
+      }
+
+      function initWindowControls() {
+        document.querySelectorAll('.am-btn[data-action]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = btn.getAttribute('data-action');
+            handleWindowAction(action, btn);
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          initWindowControls();
+          notifyParentFormOpened();
+        });
+      } else {
+        initWindowControls();
+        notifyParentFormOpened();
+      }
+    })();
+  </script>
+
+<script>
+    // Signatories submodule initialization
+    document.addEventListener('submodule:loaded', function(e) {
+        if (e.detail.submoduleName === 'Signatories') {
+            console.log('[Signatories] Submodule initialized - Original HTML preserved');
+            // Original JS logic should be loaded here
+            // Include corresponding JS file or inline the business logic
+        }
+    });
+</script>

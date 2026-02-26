@@ -1,0 +1,132 @@
+﻿@{
+    // Migrated from: account-special-conditions.html
+}
+
+<!-- SpecialConditions Submodule -->
+<div class="window de-window" data-ktb-window>
+    <div data-kairo-titlebar 
+         data-title="Account Special Conditions" 
+         data-icon="bi-list-check">
+    </div>
+
+    <main class="main-container main-container--with-panel">
+      <div class="form-content" role="region" aria-label="Account Special Conditions form">
+        <div class="form-card" data-main-form>
+          <div class="form-section">
+            <div class="section-header">
+              <span class="section-header__title"><i class="bi bi-list-check"></i>General Conditions</span>
+              <span class="de-record-count" id="recordCount">0 records</span>
+            </div>
+            <div class="section-content">
+              <!-- Search Bar -->
+              <div class="mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="flex-grow-1 position-relative">
+                    <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 text-muted" aria-hidden="true"></i>
+                    <input type="text" id="searchInput" class="form-control ps-5" placeholder="Search conditions..." />
+                  </div>
+                  <button type="button" id="clearSearch" class="btn btn-sm btn-outline-secondary d-none" title="Clear search">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Grid -->
+              <div class="table table-sm table-hover-wrap" role="region" aria-label="Account special conditions" tabindex="0">
+                <table class="table table-sm table-hover" id="conditionsGrid" aria-label="Account special conditions">
+                  <thead>
+                    <tr>
+                      <th>Apply</th>
+                      <th>Description</th>
+                      <th>Set</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="table table-sm table-hover__empty"><td colspan="4">No records to display.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Pagination Controls -->
+              <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top d-none" id="paginationControls">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted small">Showing</span>
+                  <span id="paginationInfo" class="text-muted small">0 - 0 of 0</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" id="prevPageBtn" class="btn btn-sm btn-outline-secondary" disabled title="Previous page">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                  <span class="text-muted small">
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                  </span>
+                  <button type="button" id="nextPageBtn" class="btn btn-sm btn-outline-secondary" disabled title="Next page">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BEHIND THE SCENE SECTION (COLLAPSIBLE) -->
+          <div class="form-section form-section--bts" id="btsSection">
+            <div class="section-header" role="button" data-section-toggle aria-expanded="true" id="btsHeader">
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+              <button class="section-toggle-btn" type="button" aria-label="Toggle audit information"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" id="btsBody">
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="MakerID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="MakerDT">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifierID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifierDT">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION PANEL -->
+      <aside class="action-panel">
+        <div class="d-flex flex-column gap-2 mt-auto">
+          <button class="btn-action" type="button" data-action="edit" title="Edit condition"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
+          <button class="btn-action" type="button" data-action="save" title="Save changes" disabled><i class="bi bi-check-lg"></i><span>Save</span></button>
+          <button class="btn-action" type="button" data-action="cancel" title="Cancel changes" disabled><i class="bi bi-x-circle"></i><span>Cancel</span></button>
+        </div>
+      </aside>
+    </main>
+
+    <div class="de-message-bar" role="alert" aria-live="polite"><i class="bi bi-info-circle"></i><span></span></div>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+  </div>
+
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/account/accountservice.js"></script>
+  <script src="../../../assets/js/components/TitleBar.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-special-conditions.js?v=20250128"></script>
+
+<script>
+document.addEventListener('submodule:loaded', function(e) {
+    if (e.detail.submoduleName === 'SpecialConditions') {
+        console.log('[SpecialConditions] Submodule loaded');
+    }
+});
+</script>

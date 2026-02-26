@@ -1,0 +1,309 @@
+﻿@{
+    // Migrated from: card-maintenance.html
+}
+
+<!-- CardMaintenance Submodule -->
+<div class="window">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+        <div class="am-header__left">
+            <i class="bi bi-credit-card am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Card Maintenance</span>
+        </div>
+        <div class="am-header__right" role="toolbar" aria-label="Window controls">
+            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <main class="main-container">
+      <div class="form-content" role="region" aria-label="Card Maintenance form">
+        <div class="form-card" data-main-form>
+          
+          <!-- Card Search Section -->
+          <div class="form-section" data-section="card-search">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-search"></i>Card Search</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Card Search" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <!-- Row 1: TrackingID, Card Provider, CardName, CardType -->
+                <div class="row g-2 mb-2">
+                  <div class="col-3">
+                    <label class="label-blue">TrackingID</label>
+                    <input id="trackingId" type="text" class="bs-input-text form-control" placeholder="TrackingID" aria-label="TrackingID" />
+                  </div>
+                  <div class="col-3">
+                    <label class="label-blue">Card Provider</label>
+                    <select id="cardProvider" class="bs-select form-control">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col-3">
+                    <label class="label-blue">CardName <small class="text-muted">(from Account)</small></label>
+                    <input id="cardName" type="text" class="bs-input-text form-control" placeholder="Auto-populated from Account" aria-label="Card Name" readonly />
+                  </div>
+                  <div class="col-3">
+                    <label class="label-blue">CardType</label>
+                    <select id="cardType" class="bs-select form-control">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Card Details Section -->
+          <div class="form-section" data-section="card-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-credit-card"></i>Card Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Card Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <form autocomplete="off">
+                <!-- Row 1: Card ID, Card Remarks, Is Approved, Approved Date -->
+                <div class="row g-2 mb-2">
+                  <div class="col-3">
+                    <label class="label-blue">Card ID <small class="text-muted">(optional)</small></label>
+                    <input id="cardId" type="text" class="bs-input-text form-control" placeholder="Card ID" aria-label="Card ID" readonly />
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Card Remarks</label>
+                    <textarea id="cardRemarks" class="bs-input-text form-control" rows="1" placeholder="Card Remarks" aria-label="Card Remarks"></textarea>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Is Approved</label>
+                    <div class="form-check">
+                      <input id="isApproved" type="checkbox" class="form-check-input" />
+                      <label class="form-check-label" for="isApproved">Approved</label>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Approved Date</label>
+                    <input id="approvedDate" type="date" class="bs-input-text form-control" aria-label="Approved Date" />
+                  </div>
+                </div>
+
+                <!-- Row 2: Is Exported, Exported Date, Is Active, Activated Date -->
+                <div class="row g-2 mb-2">
+                  <div class="col-3">
+                    <label class="label">Is Exported</label>
+                    <div class="form-check">
+                      <input id="isExported" type="checkbox" class="form-check-input" />
+                      <label class="form-check-label" for="isExported">Exported</label>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Exported Date</label>
+                    <input id="exportedDate" type="date" class="bs-input-text form-control" aria-label="Exported Date" />
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Is Active</label>
+                    <div class="form-check">
+                      <input id="isActive" type="checkbox" class="form-check-input" checked />
+                      <label class="form-check-label" for="isActive">Active</label>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Activated Date</label>
+                    <input id="activatedDate" type="date" class="bs-input-text form-control" aria-label="Activated Date" />
+                  </div>
+                </div>
+
+                <!-- Row 3: Start Date, Expiry Date, Collected, Collection Date -->
+                <div class="row g-2 mb-2">
+                  <div class="col-3">
+                    <label class="label">Start Date</label>
+                    <input id="startDate" type="date" class="bs-input-text form-control" aria-label="Start Date" />
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Expiry Date</label>
+                    <input id="expiryDate" type="date" class="bs-input-text form-control" aria-label="Expiry Date" />
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Collected</label>
+                    <div class="form-check">
+                      <input id="collected" type="checkbox" class="form-check-input" />
+                      <label class="form-check-label" for="collected">Collected</label>
+                    </div>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Collection Date</label>
+                    <input id="collectionDate" type="date" class="bs-input-text form-control" aria-label="Collection Date" />
+                  </div>
+                </div>
+
+                <!-- Row 4: Deactivation Date, Reason, Reactivation Date, Reactivation Remarks -->
+                <div class="row g-2 mb-2">
+                  <div class="col-3">
+                    <label class="label">Deactivation Date</label>
+                    <input id="deactivationDate" type="date" class="bs-input-text form-control" aria-label="Deactivation Date" />
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Reason</label>
+                    <select id="reason" class="bs-select form-control">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Reactivation Date</label>
+                    <input id="reactivationDate" type="date" class="bs-input-text form-control" aria-label="Reactivation Date" />
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Reactivation Remarks</label>
+                    <input id="reactivationRemarks" type="text" class="bs-input-text form-control" placeholder="Reactivation Remarks" aria-label="Reactivation Remarks" />
+                  </div>
+                </div>
+
+                <!-- Row 5: Status, Initial Transaction -->
+                <div class="row g-2 mb-2">
+                  <div class="col-3">
+                    <label class="label">Status</label>
+                    <select id="status" class="bs-select form-control">
+                      <option value="">--Select--</option>
+                    </select>
+                  </div>
+                  <div class="col-3">
+                    <label class="label">Initial Transaction</label>
+                    <input id="initialTransaction" type="text" class="bs-input-text form-control" placeholder="Initial Transaction" aria-label="Initial Transaction" />
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Cards List Section -->
+          <div class="form-section" data-section="cards-list">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-list-ul"></i>CardList</span>
+              <span class="record-count" id="recordCount">(0 records)</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Cards List" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="table-wrapper">
+                <table class="table table-sm table-hover" id="cardsListTable">
+                  <thead>
+                    <tr>
+                      <th>TrackingID</th>
+                      <th>Card ID</th>
+                      <th>Account ID</th>
+                      <th>Card Provider</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="table-empty">
+                      <td colspan="5">No records to display.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Behind the Scene Section -->
+          <div class="form-section" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="false">
+                <i class="bi bi-chevron-down"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section audit-section--summary">
+                <div class="audit-cell">
+                  <span class="audit-label">Created By</span>
+                  <span class="audit-value" id="MakerID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Created On</span>
+                  <span class="audit-value" id="MakerDT">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Checked By</span>
+                  <span class="audit-value" id="CheckerID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Checked On</span>
+                  <span class="audit-value" id="CheckerDT">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified By</span>
+                  <span class="audit-value" id="ModifierID">-</span>
+                </div>
+                <div class="audit-cell">
+                  <span class="audit-label">Modified On</span>
+                  <span class="audit-value" id="ModifierDT">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="action-panel" aria-label="Form actions">
+        <div class="action-buttons">
+          <button class="btn-action btn-view" type="button" data-action="view" title="View" aria-label="View selected card">
+            <i class="bi bi-eye"></i><span>View</span>
+          </button>
+          <button class="btn-action btn-add" type="button" data-action="add" title="Add" aria-label="Add new card">
+            <i class="bi bi-plus-circle"></i><span>Add</span>
+          </button>
+          <button class="btn-action btn-edit" type="button" data-action="edit" title="Edit" aria-label="Edit selected card">
+            <i class="bi bi-pencil-square"></i><span>Edit</span>
+          </button>
+          <button class="btn-action btn-save" type="button" data-action="save" title="Save" aria-label="Save changes">
+            <i class="bi bi-check-lg"></i><span>Save</span>
+          </button>
+          <button class="btn-action btn-delete" type="button" data-action="delete" title="Delete" aria-label="Delete selected card">
+            <i class="bi bi-trash3"></i><span>Delete</span>
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel" aria-label="Cancel changes">
+            <i class="bi bi-x-lg"></i><span>Cancel</span>
+          </button>
+          <button class="btn-action btn-close" type="button" data-action="close" title="Close" aria-label="Close window">
+            <i class="bi bi-box-arrow-right"></i><span>Close</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span></span>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Scripts -->
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/Account/AccountService.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="card-maintenance.js?v=20260206"></script>
+
+<script>
+document.addEventListener('submodule:loaded', function(e) {
+    if (e.detail.submoduleName === 'CardMaintenance') {
+        console.log('[CardMaintenance] Submodule loaded');
+    }
+});
+</script>

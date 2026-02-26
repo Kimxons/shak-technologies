@@ -1,0 +1,148 @@
+﻿@{
+    // Migrated from: account-stop-payment-void.html
+}
+
+<!-- StopPaymentVoid Submodule -->
+<div class="window am-form">
+    <div class="am-header" role="banner" aria-label="Window title bar">
+        <div class="am-header__left">
+            <i class="bi bi-slash-circle am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Stop Payment/Void</span>
+        </div>
+        <div class="am-header__right" role="toolbar" aria-label="Window controls">
+            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+    <main class="main-container main-container--with-panel">
+      <div class="form-content" role="region">
+        <div class="form-section am-section">
+          <div class="section-header"><span class="section-header__title">Account Identification</span></div>
+          <form class="de-card__body" autocomplete="off">
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="label-blue am-label" for="branchId">Branch ID</label>
+                <div class="d-flex gap-1">
+                  <input id="branchId" name="branchId" type="text" class="bs-input-text form-control am-input" />
+                  <input id="branchName" type="text" class="bs-input-text form-control am-input" readonly />
+                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="branchId"><i class="bi bi-search"></i></button>
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="label-blue am-label" for="accountId">Account ID</label>
+                <div class="d-flex gap-1">
+                  <input id="accountId" name="accountId" type="text" class="bs-input-text form-control am-input" />
+                  <input id="accountName" type="text" class="bs-input-text form-control am-input" readonly />
+                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="accountId"><i class="bi bi-search"></i></button>
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="de-label am-label" for="requestRef">Request Ref No</label>
+                <div class="d-flex gap-1">
+                  <input id="requestRef" name="requestRef" type="text" class="bs-input-text form-control am-input" />
+                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="requestRef"><i class="bi bi-search"></i></button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="form-section am-section">
+          <div class="section-header"><span class="section-header__title">Stop Payment Details</span></div>
+          <div class="section-content">
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="label-blue am-label" for="chequeNoStart">Cheque No Start</label>
+                <input id="chequeNoStart" type="text" class="bs-input-text form-control am-input" />
+              </div>
+              <div class="col-6">
+                <label class="label-blue am-label" for="chequeNoEnd">Cheque No End</label>
+                <input id="chequeNoEnd" type="text" class="bs-input-text form-control am-input" />
+              </div>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="de-label am-label" for="chequeDate">Cheque Date</label>
+                <select id="chequeDate" class="bs-select form-control am-select"><option>--Select--</option></select>
+              </div>
+              <div class="col-6">
+                <label class="de-label am-label" for="chequeAmount">Cheque Amount</label>
+                <input id="chequeAmount" type="text" class="bs-input-text form-control am-input" />
+              </div>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label class="label-blue am-label" for="reasonId">Reason</label>
+                <select id="reasonId" class="bs-select form-control am-select"><option>--Select--</option></select>
+              </div>
+              <div class="col-6">
+                <label class="de-label am-label" for="voidDate">Void Date</label>
+                <input id="voidDate" type="text" class="bs-input-text form-control am-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-section form-section form-section--grid am-section">
+          <div class="section-header"><span class="section-header__title">Stop Payment Records</span><span class="de-record-count" id="recordCount">0 records</span></div>
+          <div class="section-content section-content section-content--grid">
+            <div class="table table-sm table-hover-wrap">
+              <table class="table table-sm table-hover" id="stopPaymentGrid">
+                <thead><tr><th>Cheque Start</th><th>Cheque End</th><th>Date</th><th>Amount</th><th>Reason</th><th>Void Date</th></tr></thead>
+                <tbody><tr class="table table-sm table-hover__empty"><td colspan="6">No records to display.</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="form-section form-section form-section--bts am-section" id="btsSection">
+          <div class="section-header section-header section-header--bts" id="btsHeader" role="button">
+            <span class="section-header__title"><i class="bi bi-gear"></i> BEHIND THE SCENE</span>
+            <button type="button" class="de-bts-toggle am-btn am-btn-secondary"><i class="bi bi-chevron-up"></i></button>
+          </div>
+          <div class="section-content section-content section-content--bts" id="btsBody">
+            <div class="de-audit-grid">
+              <div class="de-audit-cell"><span class="de-audit-label">Created By</span><span class="de-audit-value" id="MakerID">-</span></div>
+              <div class="de-audit-cell"><span class="de-audit-label">Created On</span><span class="de-audit-value" id="MakerDT">-</span></div>
+              <div class="de-audit-cell"><span class="de-audit-label">Checked By</span><span class="de-audit-value" id="CheckerID">-</span></div>
+              <div class="de-audit-cell"><span class="de-audit-label">Checked On</span><span class="de-audit-value" id="CheckerDT">-</span></div>
+              <div class="de-audit-cell"><span class="de-audit-label">Modified By</span><span class="de-audit-value" id="ModifierID">-</span></div>
+              <div class="de-audit-cell"><span class="de-audit-label">Modified On</span><span class="de-audit-value" id="ModifierDT">-</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="action-panel">
+        <div class="d-flex flex-column gap-2 mt-auto">
+          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="view"><i class="bi bi-eye"></i><span>View</span></button>
+          <button class="btn-action am-btn am-btn-primary" type="button" data-action="add"><i class="bi bi-plus-circle"></i><span>Add</span></button>
+          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="edit"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
+          <button class="btn-action am-btn am-btn-primary" type="button" data-action="save"><i class="bi bi-check-lg"></i><span>Save</span></button>
+          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="delete"><i class="bi bi-trash3"></i><span>Delete</span></button>
+          <button class="btn-action btn-cancel am-btn am-btn-secondary" type="button" data-action="cancel"><i class="bi bi-x-lg"></i><span>Cancel</span></button>
+          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="close" title="Close">
+            <i class="bi bi-box-arrow-right"></i><span>Close</span>
+          </button>
+        </div>
+      </aside>
+    </main>
+    <div class="de-message-bar am-message-panel" role="alert"><i class="bi bi-info-circle"></i><span></span></div>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+  </div>
+  <script src="../../../assets/js/config.js"></script>
+  <script src="../../../assets/js/environment.js"></script>
+  <script src="../../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../../assets/js/services/shared/lookupService.js"></script>
+  <script src="../../../assets/js/services/shared/searchService.js"></script>
+  <script src="../../../assets/js/shared/search-modal.js"></script>
+  <script src="../../../assets/js/services/Account/AccountService.js"></script>
+  <script src="dataentry-base.js?v=20250128"></script>
+  <script src="dataentry-utils.js"></script>
+  <script src="account-stop-payment-void.js?v=20250128"></script>
+
+<script>
+document.addEventListener('submodule:loaded', function(e) {
+    if (e.detail.submoduleName === 'StopPaymentVoid') {
+        console.log('[StopPaymentVoid] Submodule loaded');
+    }
+});
+</script>
