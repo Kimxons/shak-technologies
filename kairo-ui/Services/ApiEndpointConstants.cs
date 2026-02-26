@@ -1,5 +1,8 @@
-﻿namespace kairo_ui.Services
+﻿using Microsoft.Extensions.Configuration;
+
+namespace kairo_ui.Services
 {
+    // Static constants for backwards compatibility
     public static class ApiEndpoints
     {
         public const string GET_BRANCHSETTINGS_IAM = "api/BranchSetting";

@@ -698,7 +698,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "SystemCoreApi",
-                    "api/accounts/details",
+                    ApiEndpoints.GET_ACCOUNT,
                     requestData
                 );
 
@@ -739,7 +739,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "SystemCoreApi",
-                    "api/accounts/update",
+                    ApiEndpoints.EDIT_ACCOUNT,
                     requestData
                 );
 
@@ -780,7 +780,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "SystemCoreApi",
-                    "api/accounts/create",
+                    ApiEndpoints.CREATE_ACCOUNT,
                     requestData
                 );
 
@@ -794,6 +794,89 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                     Success = false,
                     ErrorMessage = $"Error creating account: {ex.Message}"
                 });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Save account (used by Add mode in frontend)
+        /// </summary>
+        [HttpPost]
+        [Route("SaveAccount")]
+        public async Task<IActionResult> SaveAccount([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "SystemCoreApi",
+                    ApiEndpoints.CREATE_ACCOUNT,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving account");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get account opening details (for Add mode)
+        /// </summary>
+        [HttpPost]
+        [Route("GetAccountOpeningDetails")]
+        public async Task<IActionResult> GetAccountOpeningDetails([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Note: Backend endpoint doesn't exist yet - this will need to be added to backend API
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "SystemCoreApi",
+                    ApiEndpoints.GET_ACCOUNT,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account opening details");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get unclear balance details
+        /// </summary>
+        [HttpPost]
+        [Route("GetUnClearBalance")]
+        public async Task<IActionResult> GetUnClearBalance([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Note: Backend endpoint doesn't exist yet - this will need to be added to backend API
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "SystemCoreApi",
+                    ApiEndpoints.GET_ACCOUNT,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unclear balance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
     }

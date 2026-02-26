@@ -92,6 +92,15 @@ builder.Services.AddHttpClient("ClientManagementApi")
     });
 
 
+builder.Services.AddHttpClient("AccountManagementApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
+    });
+
+
 // Add IConfiguration for injecting into services
 builder.Services.AddSingleton(builder.Configuration);
 

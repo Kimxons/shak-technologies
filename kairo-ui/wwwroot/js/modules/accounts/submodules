@@ -1,6 +1,6 @@
 /**
  * Account Notes - JavaScript Implementation
- * Follows Client360 pattern for consistency
+ * Follows Client360 pattern
  */
 
 (function (global) {
@@ -9,12 +9,11 @@
     console.log('✅ [ACCOUNT-NOTES] Module loading...');
 
     // ============================================================================
-    // SERVICE LAYER (Following Client360 pattern)
+    // SERVICE LAYER (Matches Client360 pattern exactly)
     // ============================================================================
 
-    /**
-     * Safe AppCore getter (supports iframe/parent contexts)
-     */
+    const ACCOUNT_MAINTENANCE_CONTROLLER_BASE = 'AccountsMaintenance';
+
     function getAppCore() {
         const win = window;
         return win.AppCore ||
@@ -23,10 +22,7 @@
             null;
     }
 
-    /**
-     * Generic controller invoker (matches Client360 pattern)
-     */
-    function invokeAccountMaintenanceController(endpoint, requestData) {
+    function invokeAccountMaintenanceController(action, requestData) {
         return new Promise((resolve, reject) => {
             const appCore = getAppCore();
             if (!appCore || typeof appCore.invokeController !== 'function') {
@@ -34,6 +30,7 @@
                 return;
             }
 
+            const endpoint = `${ACCOUNT_MAINTENANCE_CONTROLLER_BASE}/${action}`;
             appCore.invokeController(endpoint, requestData || {}, (error, response) => {
                 if (error) {
                     reject(error);
@@ -44,35 +41,55 @@
         });
     }
 
-    /**
-     * Get API endpoints (from global constants)
-     */
-    function getApiEndpoints() {
-        return window.ApiEndpoints?.AccountMaintenance || null;
-    }
-
-    /**
-     * Account Maintenance Service (matches Client360Service pattern)
-     */
     const AccountMaintenanceService = {
         getNotes(requestData) {
-            const endpoints = getApiEndpoints();
-            if (!endpoints || !endpoints.GET_NOTES) {
-                return Promise.reject(new Error('API endpoints not loaded. Ensure api-endpoints.js is loaded before account-notes.js'));
-            }
-            return invokeAccountMaintenanceController(endpoints.GET_NOTES, requestData);
+            return invokeAccountMaintenanceController('api/get-notes', requestData);
         },
         updateNotes(requestData) {
-            const endpoints = getApiEndpoints();
-            if (!endpoints || !endpoints.UPDATE_NOTES) {
-                return Promise.reject(new Error('API endpoints not loaded. Ensure api-endpoints.js is loaded before account-notes.js'));
-            }
-            return invokeAccountMaintenanceController(endpoints.UPDATE_NOTES, requestData);
+            return invokeAccountMaintenanceController('api/update-notes', requestData);
         }
     };
 
-    // Export service to global scope
     global.AccountMaintenanceService = AccountMaintenanceService;
+
+    // ============================================================================
+    // UTILITY FUNCTIONS (Same as Client360)
+    // ============================================================================
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function setField(id, value) {
+        const el = $(id);
+        if (!el) return;
+
+        const v = value ?? '';
+        if ('value' in el) {
+            el.value = v;
+            return;
+        }
+
+        el.textContent = v;
+    }
+
+    function getOldApiStatus(payload) {
+        const candidates = [];
+        if (payload) candidates.push(payload);
+        if (Array.isArray(payload?.Details) && payload.Details.length) candidates.push(payload.Details[0]);
+        if (Array.isArray(payload?.Details01) && payload.Details01.length) candidates.push(payload.Details01[0]);
+
+        for (const candidate of candidates) {
+            const code = candidate?.ResponseCode ?? candidate?.responseCode ?? candidate?.Status ?? candidate?.status ?? candidate?.code;
+            if (code === undefined || code === null) continue;
+            const normalized = String(code).trim();
+            const ok = normalized === '' || normalized === '00' || normalized === '0' || normalized.toLowerCase() === 'ok' || normalized.toLowerCase() === 'success';
+            const message = candidate?.ResponseMessage ?? candidate?.responseMessage ?? candidate?.Message ?? candidate?.message ?? '';
+            return { ok, code: normalized, message };
+        }
+
+        return { ok: true, code: '', message: '' };
+    }
 
     // ============================================================================
     // UI STATE & DOM
@@ -85,10 +102,6 @@
 
     // DOM Elements
     let notesTextarea = null;
-    let btnView = null;
-    let btnEdit = null;
-    let btnSave = null;
-    let btnCancel = null;
     let auditFields = {};
 
     /**
@@ -98,30 +111,25 @@
         console.log('[ACCOUNT-NOTES] Initializing...');
 
         // Get DOM elements
-        notesTextarea = document.getElementById('notes');
-        btnView = document.querySelector('[data-action="view"]');
-        btnEdit = document.querySelector('[data-action="edit"]');
-        btnSave = document.querySelector('[data-action="save"]');
-        btnCancel = document.querySelector('[data-action="cancel"]');
+        notesTextarea = $('notes');
 
         // Get audit fields
         auditFields = {
-            createdBy: document.getElementById('CreatedBy'),
-            modifiedBy: document.getElementById('ModifiedBy'),
-            supervisedBy: document.getElementById('SupervisedBy'),
-            createdOn: document.getElementById('CreatedOn'),
-            modifiedOn: document.getElementById('ModifiedOn'),
-            supervisedOn: document.getElementById('SupervisedOn')
+            createdBy: $('CreatedBy'),
+            modifiedBy: $('ModifiedBy'),
+            supervisedBy: $('SupervisedBy'),
+            createdOn: $('CreatedOn'),
+            modifiedOn: $('ModifiedOn'),
+            supervisedOn: $('SupervisedOn')
         };
 
-        // Wire up button events
-        if (btnView) btnView.addEventListener('click', handleView);
-        if (btnEdit) btnEdit.addEventListener('click', handleEdit);
-        if (btnSave) btnSave.addEventListener('click', handleSave);
-        if (btnCancel) btnCancel.addEventListener('click', handleCancel);
+        // Listen for parent button clicks (following Client360 pattern)
+        window.addEventListener('message', handleParentMessage);
 
-        // Listen for account selection from parent window
-        window.addEventListener('message', handleAccountSelection);
+        // If running in parent window (not iframe), listen for direct button events
+        if (window === window.parent) {
+            wireParentButtons();
+        }
 
         // Initial state: View mode (read-only)
         setMode('view');
@@ -130,13 +138,41 @@
     }
 
     /**
-     * Handle account selection from parent window
+     * Wire up parent form buttons (when not in iframe)
      */
-    function handleAccountSelection(event) {
-        if (event.data && event.data.action === 'accountSelected') {
-            const accountId = event.data.accountId;
-            console.log('[ACCOUNT-NOTES] Account selected:', accountId);
-            loadNotes(accountId);
+    function wireParentButtons() {
+        const parentDoc = document;
+        const btnView = parentDoc.querySelector('[data-action="view"]');
+        const btnEdit = parentDoc.querySelector('.action-panel [data-action="edit"]');
+        const btnSave = parentDoc.querySelector('[data-action="save"]');
+        const btnCancel = parentDoc.querySelector('[data-action="cancel"]');
+
+        if (btnView) btnView.addEventListener('click', handleView);
+        if (btnEdit) btnEdit.addEventListener('click', handleEdit);
+        if (btnSave) btnSave.addEventListener('click', handleSave);
+        if (btnCancel) btnCancel.addEventListener('click', handleCancel);
+    }
+
+    /**
+     * Handle messages from parent window (when in iframe)
+     */
+    function handleParentMessage(event) {
+        const data = event?.data;
+        if (!data) return;
+
+        // Handle parent button actions
+        if (data.action === 'view' && data.source === 'AccountMaintenance') {
+            handleView();
+        } else if (data.action === 'edit' && data.source === 'AccountMaintenance') {
+            handleEdit();
+        } else if (data.action === 'save' && data.source === 'AccountMaintenance') {
+            handleSave();
+        } else if (data.action === 'cancel' && data.source === 'AccountMaintenance') {
+            handleCancel();
+        } else if (data.action === 'accountSelected') {
+            // Account selection from parent
+            const accountId = data.accountId;
+            if (accountId) loadNotes(accountId);
         }
     }
 
@@ -218,6 +254,11 @@
 
         const notes = notesTextarea.value.trim();
 
+        // Validation
+        if (!validateNotes(notes)) {
+            return;
+        }
+
         // Check if notes changed
         if (notes === originalNotes) {
             showMessage('No changes to save', 'info');
@@ -259,6 +300,37 @@
     }
 
     /**
+     * Validate notes input
+     */
+    function validateNotes(notes) {
+        // Clear previous validation errors
+        if (notesTextarea) {
+            notesTextarea.classList.remove('is-invalid');
+        }
+
+        // Check if notes exceed maximum length (e.g., 2000 characters)
+        const maxLength = 2000;
+        if (notes.length > maxLength) {
+            showMessage(`Notes cannot exceed ${maxLength} characters. Current: ${notes.length}`, 'error');
+            if (notesTextarea) {
+                notesTextarea.classList.add('is-invalid');
+                notesTextarea.focus();
+            }
+            return false;
+        }
+
+        // Optional: Check for invalid characters if needed
+        // const invalidChars = /[<>]/g;
+        // if (invalidChars.test(notes)) {
+        //     showMessage('Notes contain invalid characters (< or >)', 'error');
+        //     if (notesTextarea) notesTextarea.classList.add('is-invalid');
+        //     return false;
+        // }
+
+        return true;
+    }
+
+    /**
      * Handle Cancel button click
      */
     function handleCancel() {
@@ -283,23 +355,20 @@
             notesTextarea.classList.toggle('readonly', !isEditMode);
         }
 
-        // Update button states
-        if (btnView) {
-            btnView.disabled = !isEditMode;
-            btnView.classList.toggle('active', !isEditMode);
-        }
+        // Notify parent about mode change so it can update button states
+        notifyParentModeChange(mode);
+    }
 
-        if (btnEdit) {
-            btnEdit.disabled = isEditMode;
-            btnEdit.classList.toggle('active', isEditMode);
-        }
-
-        if (btnSave) {
-            btnSave.style.display = isEditMode ? '' : 'none';
-        }
-
-        if (btnCancel) {
-            btnCancel.style.display = isEditMode ? '' : 'none';
+    /**
+     * Notify parent window about mode change
+     */
+    function notifyParentModeChange(mode) {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                action: 'submoduleModeChange',
+                source: 'AccountNotes',
+                mode: mode
+            }, '*');
         }
     }
 
@@ -313,27 +382,6 @@
         if (auditFields.createdOn) auditFields.createdOn.textContent = data.CreatedOn || '-';
         if (auditFields.modifiedOn) auditFields.modifiedOn.textContent = data.ModifiedOn || '-';
         if (auditFields.supervisedOn) auditFields.supervisedOn.textContent = data.SupervisedOn || '-';
-    }
-
-    /**
-     * Check old API status pattern (from Client360)
-     */
-    function getOldApiStatus(payload) {
-        const candidates = [];
-        if (payload) candidates.push(payload);
-        if (Array.isArray(payload?.Details) && payload.Details.length) candidates.push(payload.Details[0]);
-        if (Array.isArray(payload?.Details01) && payload.Details01.length) candidates.push(payload.Details01[0]);
-
-        for (const candidate of candidates) {
-            const code = candidate?.ResponseCode ?? candidate?.responseCode ?? candidate?.Status ?? candidate?.status ?? candidate?.code;
-            if (code === undefined || code === null) continue;
-            const normalized = String(code).trim();
-            const ok = normalized === '' || normalized === '00' || normalized === '0' || normalized.toLowerCase() === 'ok' || normalized.toLowerCase() === 'success';
-            const message = candidate?.ResponseMessage ?? candidate?.responseMessage ?? candidate?.Message ?? candidate?.message ?? '';
-            return { ok, code: normalized, message };
-        }
-
-        return { ok: true, code: '', message: '' };
     }
 
     /**
@@ -411,11 +459,17 @@
     }
 
     /**
-     * Public API
+     * Public API (exported for parent window access)
      */
     global.AccountNotes = {
         init,
-        loadNotes
+        loadNotes,
+        handleView,
+        handleEdit,
+        handleSave,
+        handleCancel,
+        isEditMode: () => isEditMode,
+        hasUnsavedChanges: () => notesTextarea?.value?.trim() !== originalNotes
     };
 
     // Auto-initialize when DOM is ready
