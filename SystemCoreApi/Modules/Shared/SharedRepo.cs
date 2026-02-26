@@ -49,5 +49,18 @@ namespace SystemCoreApi.Modules.Shared
             };
             return respObj;
         }
+        public async Task<ResponseDetail<object>> GetIDDescription(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ID_DESCRIPTION} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!)
+            ,
+                ResponseCode = respStr.ResponseCode
+            ,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
     }
 }

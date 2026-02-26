@@ -12,6 +12,7 @@ namespace kairo_ui.Models.Shared
         public string? ModuleID { get; set; } = "1000";
         public int? PrevOrNext { get; set; } = 1; // 1=Next, -1=Previous, 0=No direction
         public int? PageSize { get; set; } = 10;
+        public string? RefID { get; set; } = string.Empty; // Last value of KeyForNavigation for cursor-based pagination
     }
 
     /// <summary>
@@ -56,6 +57,7 @@ namespace kairo_ui.Models.Shared
         public string ModuleID { get; set; } = "1000";
         public int PrevOrNext { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+        public string RefID { get; set; } = string.Empty;
         public SearchConfigDto? SearchConfig { get; set; }
         public string SearchTitle { get; set; } = "Search";
     }

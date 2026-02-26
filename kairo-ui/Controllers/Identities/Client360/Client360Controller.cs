@@ -77,10 +77,7 @@ namespace kairo_ui.Controllers.Identities.Client360
 
                 _logger.LogInformation("Client 360 validation request: {Request}", JsonSerializer.Serialize(requestData));
 
-                //var response = await PostOldApiAsync("dbo.p_GetIDDescription", requestData);
-
-
-                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", "OldApi/GetIDDescription", requestData);
+                var response = await _apiService.CreateAsync<JsonElement>("SystemCoreApi", ApiEndpoints.GET_ID_DESCRIPTION, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -90,52 +87,6 @@ namespace kairo_ui.Controllers.Identities.Client360
                 {
                     Success = false,
                     ErrorMessage = $"Error validating client: {ex.Message}"
-                });
-            }
-        }
-
-        [HttpPost]
-        [Route("search-clients")]
-        public async Task<IActionResult> SearchClients([FromBody] Client360SearchRequest requestData)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                {
-                    _logger.LogWarning("Unauthenticated Client 360 search attempt");
-                    return Unauthorized(new
-                    {
-                        Success = false,
-                        ErrorMessage = "User is not authenticated"
-                    });
-                }
-
-                if (requestData == null)
-                {
-                    return BadRequest(new
-                    {
-                        Success = false,
-                        ErrorMessage = "Request data is required"
-                    });
-                }
-
-                EnsureClient360Defaults(requestData);
-                requestData.ModuleID ??= "1000";
-                requestData.LanguageID ??= "en";
-
-                _logger.LogInformation("Client 360 search request: {Request}", JsonSerializer.Serialize(requestData));
-
-                //var response = await PostOldApiAsync("dbo.p_GetSearchResult", requestData);
-                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", "OldApi/GetSearchResult", requestData);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error searching clients for Client 360");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    ErrorMessage = $"Error searching clients: {ex.Message}"
                 });
             }
         }
@@ -169,9 +120,7 @@ namespace kairo_ui.Controllers.Identities.Client360
 
                 _logger.LogInformation("Client 360 view request: {Request}", JsonSerializer.Serialize(requestData));
 
-                //var response = await PostOldApiAsync("dbo.p_GetMember360", requestData);
-
-                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", "OldApi/GetMember360", requestData);
+                var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_360, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -184,36 +133,6 @@ namespace kairo_ui.Controllers.Identities.Client360
                 });
             }
         }
-
-        //private async Task<JsonElement> PostOldApiAsync(string formId, object requestData)
-        //{
-        //    var envelope = BuildOldApiEnvelope(formId, requestData);
-        //    return await _apiService.CreateAsync<JsonElement>("ClientManagementApi","OldApi", envelope);
-        //}
-
-        //private object BuildOldApiEnvelope(string formId, object requestData)
-        //{
-        //    var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
-        //        ? formId.Substring(4)
-        //        : formId;
-
-        //    return new
-        //    {
-        //        RequestID = formId,
-        //        FormID = cleanFormId,
-        //        RequestData = requestData,
-        //        RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
-        //        AppName = ResolveOldApiAppName(),
-        //        Checksum = ""
-        //    };
-        //}
-
-        //private string ResolveOldApiAppName()
-        //{
-        //    return _config["ApiSettings:OldApiAppName"]
-        //        ?? _config["ApiSettings:AppName"]
-        //        ?? "PROJECT_KAIRO";
-        //}
 
         private void EnsureClient360Defaults(Client360BaseRequest requestData)
         {
