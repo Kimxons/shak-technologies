@@ -27,6 +27,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<RazorViewEngineOptions>(options =>
 {
     options.ViewLocationFormats.Add("/Views/Identities/{1}/{0}.cshtml");
+    options.ViewLocationFormats.Add("/Views/Shared/{1}/{0}.cshtml");
 });
 // Get timeout configurations
 var apiTimeoutSeconds = builder.Configuration.GetValue<int>("ApiSettings:HttpClientTimeoutSeconds", 30);

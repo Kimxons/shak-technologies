@@ -1,11 +1,11 @@
 ﻿using Asp.Versioning;
 using CBS.Entities.Common;
-using ClientManagement.Helpers;
+using SystemCoreApi.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace ClientManagement.Modules.Shared
+namespace SystemCoreApi.Modules.Shared
 {
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
@@ -40,7 +40,7 @@ namespace ClientManagement.Modules.Shared
                     //reqDat.RequestData = Regex.Unescape(JsonSerializer.Serialize(reqDat.RequestData));
                     requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
                     requestJson = Regex.Unescape(requestJson);
-                    resp = await _repo.GetSystemSearchResult(requestJson!, cancellationToken);
+                    resp = await _repo.GetSystemSearch(requestJson!, cancellationToken);
                     if (resp is null)
                     {
                         logLevel = LogLevel.Error;
@@ -98,7 +98,7 @@ namespace ClientManagement.Modules.Shared
                     requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
                     requestJson = Regex.Unescape(requestJson);
                     resp = await _repo.GetSystemSearchResult(requestJson!, cancellationToken);
-                    if (resp is null)
+                    if (resp == null)
                     {
                         logLevel = LogLevel.Error;
                         resp = new ResponseDetail<string>

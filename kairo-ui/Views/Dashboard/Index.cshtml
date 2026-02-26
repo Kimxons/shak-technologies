@@ -1,6 +1,7 @@
 @model DashboardViewModel
 @using System.Text.Json;
 @using System.Text.RegularExpressions
+@using kairo_ui.Models.Dashboard
 @{
     ViewData["Title"] = "Enterprise Core Banking";
     Layout = null;
@@ -1504,6 +1505,9 @@
     <script type="text/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/app.js"></script>
+
+    <!-- Shared Search Modal -->
+    <script src="/js/modules/shared/searchModal.js"></script>
 
     <script type="text/javascript" src="/js/modules/dashboard/dashboard.js"></script>
 </body>

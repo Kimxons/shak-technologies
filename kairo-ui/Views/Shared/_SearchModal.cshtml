@@ -1,0 +1,139 @@
+@model kairo_ui.Models.Shared.SearchModalViewModel
+@{
+    Layout = null;
+}
+
+<!-- Search Modal with Bootstrap Structure and cm-lookup Styling -->
+<div class="modal fade" id="search-modal-overlay" tabindex="-1" 
+     aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content cm-lookup">
+            
+            <!-- Header -->
+            <div class="modal-header cm-lookup__header">
+                <div>
+                    <p class="cm-lookup__eyebrow mb-0">Data Search</p>
+                    <h5 class="modal-title" id="searchModalLabel">@Model.SearchTitle</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" id="search-modal-close-btn" 
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body cm-lookup__body">
+                
+                <!-- Search Filters Form -->
+                <form class="cm-lookup__filters row g-3 align-items-end" id="search-criteria-form" onsubmit="return false;">
+                    @Html.AntiForgeryToken()
+                    @if (Model.SearchConfig?.SearchFields != null)
+                    {
+                        foreach (var field in Model.SearchConfig.SearchFields.OrderBy(f => f.FieldOrder))
+                        {
+                            <div class="col-md-4">
+                                <label class="form-label">@field.DisplayName</label>
+                                <div class="input-group input-group-sm">
+                                    <select class="form-select search-field-operator" 
+                                            data-field="@field.FieldName"
+                                            aria-label="@field.DisplayName Filter Type" 
+                                            title="@field.DisplayName Filter Type">
+                                        <option value="like" selected>Contains</option>
+                                        <option value="equals">Exact</option>
+                                        <option value="startswith">Starts With</option>
+                                        <option value="endswith">Ends With</option>
+                                    </select>
+                                    <input type="text" 
+                                           class="form-control search-field-input" 
+                                           data-field="@field.FieldName"
+                                           placeholder="Enter @field.DisplayName.ToLower()..." 
+                                           title="@field.DisplayName Search Term"
+                                           autocomplete="off" />
+                                </div>
+                            </div>
+                        }
+                    }
+                    
+                    <!-- Action Buttons -->
+                    <div class="col-md-4 text-md-end cm-lookup__actions">
+                        <button type="button" class="btn btn-outline-secondary" id="search-clear-btn">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="search-execute-btn">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Results Section -->
+                <div class="cm-lookup__results card-surface mt-3">
+                    
+                    <!-- Results Table -->
+                    <div class="table-responsive" id="search-results-container" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <h6 class="mb-0 fw-semibold">Search Results</h6>
+                            <span id="results-count" class="badge bg-primary">0 records</span>
+                        </div>
+                        <table class="table table-sm table-hover align-middle mb-0 cm-lookup__table">
+                            <thead>
+                                <tr id="search-results-header"></tr>
+                            </thead>
+                            <tbody id="search-results-body"></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="cm-lookup__empty" id="search-empty-state">
+                        <i class="bi bi-search fs-1 text-muted d-block mb-2"></i>
+                        <p class="mb-0 text-muted">Enter at least one filter above and click Search.</p>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div class="cm-lookup__loading d-none" id="search-loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Searching...</p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div class="cm-lookup__empty d-none" id="search-error-state">
+                        <i class="bi bi-exclamation-triangle fs-1 text-danger d-block mb-2"></i>
+                        <p class="mb-0 text-danger" id="search-error-message">An error occurred</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer cm-lookup__footer">
+                <small class="text-muted me-auto">Results from Core Banking System.</small>
+                <button type="button" class="btn btn-secondary btn-sm" id="search-cancel-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="search-select-btn" disabled>
+                    <i class="bi bi-check-circle me-1"></i>Select
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for JavaScript -->
+<input type="hidden" id="search-table-id" value="@Model.TableID" />
+<input type="hidden" id="search-where-stmt" value="@Model.WhereStmt" />
+<input type="hidden" id="search-adv-filter" value="@Model.AdvFilterString" />
+<input type="hidden" id="search-module-id" value="@Model.ModuleID" />
+<input type="hidden" id="search-key-for-nav" value="@(Model.SearchConfig?.KeyForNavigation ?? "")" />
+
+<script>
+    // Store modal state and configuration for JavaScript
+    window.SearchModalState = {
+        tableID: '@Model.TableID',
+        whereStmt: '@Model.WhereStmt',
+        advFilterString: '@Model.AdvFilterString',
+        moduleID: '@Model.ModuleID',
+        searchKey: '@Model.SearchKey',
+        prevOrNext: @Model.PrevOrNext,
+        pageSize: @Model.PageSize,
+        keyForNavigation: '@(Model.SearchConfig?.KeyForNavigation ?? "")',
+        searchConfig: @Html.Raw(Json.Serialize(Model.SearchConfig))
+    };
+</script>

@@ -4,17 +4,21 @@
     {
         public const string GET_BRANCHSETTINGS_IAM = "api/BranchSetting";
 
-        public const string GET_SYSTEMBANKSETTINGS = "api/v1/SystemBankSettings/GetSystemBankSetting";
-        public const string CREATE_SYSTEMBANKSETTINGS = "api/v1/SystemBankSettings/CreateSystemBankSetting";
-        public const string UPDATE_SYSTEMBANKSETTINGS = "api/v1/SystemBankSettings/UpdateSystemBankSetting";
-        public const string DELETE_SYSTEMBANKSETTINGS = "api/v1/SystemBankSettings/DeleteSystemBankSetting";
+        // SYSTEM BANK SETTINGS ENDPOINTS:
+        private const string BASESYSTEMBANKSETTING = "api/v1/SystemBankSettings";
+        public const string GET_SYSTEMBANKSETTINGS = BASESYSTEMBANKSETTING + "/GetSystemBankSetting";
+        public const string CREATE_SYSTEMBANKSETTINGS = BASESYSTEMBANKSETTING + "/CreateSystemBankSetting";
+        public const string UPDATE_SYSTEMBANKSETTINGS = BASESYSTEMBANKSETTING + "/UpdateSystemBankSetting";
+        public const string DELETE_SYSTEMBANKSETTINGS = BASESYSTEMBANKSETTING + "/DeleteSystemBankSetting";
 
-        public const string GET_MAINMODULES = "api/v1/SystemCore/main-modules";
-        public const string GET_MODULES = "api/v1/SystemCore/modules";
+        //SYSTEM CORE ENDPOINTS:
+        public const string BASESYSTEMCORE = "api/v1/SystemCore";
+        public const string GET_MAINMODULES = BASESYSTEMCORE + "/main-modules";
+        public const string GET_MODULES = BASESYSTEMCORE + "/modules";
+        public const string ADD_THEME = BASESYSTEMCORE + "/add-theme";
+        public const string GET_EFFECTIVETHEME = BASESYSTEMCORE + "/effective-theme";
+
         public const string GET_DASHBOARDMETRICS = "api/v1/dashboard/metrics";
-
-        public const string ADD_THEME = "api/v1/SystemCore/add-theme";
-        public const string GET_EFFECTIVETHEME = "api/v1/SystemCore/effective-theme";
 
 
         // ACCOUNTS ENDPOINTS:
@@ -128,5 +132,10 @@
         // Account Transfer Details
         public const string ADD_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/AddAccountTransferDetails";
         public const string GET_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/GetAccountTransferDetails";
+
+        // SHARED SEARCH MODAL ENDPOINTS:
+        public const string BASESHARED = "api/v1/Shared";
+        public const string GET_SYSTEM_SEARCH = BASESHARED + "/GetSystemSearch";
+        public const string GET_SYSTEM_SEARCH_RESULT = BASESHARED + "/GetSystemSearchResult";
     }
 }
