@@ -137,5 +137,11 @@
         public const string BASESHARED = "api/v1/Shared";
         public const string GET_SYSTEM_SEARCH = BASESHARED + "/GetSystemSearch";
         public const string GET_SYSTEM_SEARCH_RESULT = BASESHARED + "/GetSystemSearchResult";
+        public const string GET_ID_DESCRIPTION = BASESHARED + "/GetIDDescription";
+
+        //CLIENT ENDPOINTS
+
+        private const string BASECLIENTS = "api/v1/ClientMaintenance";
+        public const string GET_CLIENT_360 = BASECLIENTS + "/GetMember360";
     }
 }

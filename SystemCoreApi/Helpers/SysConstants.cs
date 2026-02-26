@@ -8,6 +8,7 @@
         public const string GET_SYSTEMSEARCH = "p_V8_GetSystemSearch";
         public const string GET_SYSTEMSEARCH_RESULT = "p_V8_GetSystemSearchResult";
         public const string GET_SYSTEMCODES = "p_V8_GetSystemCodes";
+        public const string GET_ID_DESCRIPTION = "p_V8_GetIDDescription";
 
         public const string SAVE_THEME_SETTINGS = "p_V8_SaveThemeSettings";
         public const string GET_EFFECTIVE_THEME = "p_V8_GetEffectiveTheme";

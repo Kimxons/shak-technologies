@@ -50,6 +50,7 @@
         public const string GET_SYSTEMSEARCH = "p_V8_GetSystemSearch";
         public const string GET_SYSTEMSEARCH_RESULT = "p_V8_GetSystemSearchResult";
         public const string GET_SYSTEMCODES = "p_V8_GetSystemCodes";
+        public const string GET_MEMBER360 = "p_V8_GetMember360";
 
 
     }
