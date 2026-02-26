@@ -399,6 +399,24 @@
      * @returns {Promise<Object>} Resolves with response data or rejects with error
      */
 
+    async function invokeControllerGetViewAsync(endpoint, requestData, callback) {
+        return new Promise((resolve, reject) => {
+            invokeControllerGetView(endpoint, requestData, (error, response, status) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(response);
+                }
+            });
+        });
+    }
+    /**
+     * Promisified wrapper for invokeControllerGetView to support async/await
+     * @param {string} endpoint - Controller endpoint
+     * @param {Object} requestData - Request parameters
+     * @returns {Promise<Object>} Resolves with response data or rejects with error
+     */
+
     async function invokeControllerGetView(endpoint, requestData, callback) {
         try {
             // Validate required parameters
@@ -630,8 +648,9 @@
         invokeController,
         invokeControllerAsync,
         invokeControllerGet,
-        invokeControllerGetView,
         invokeControllerGetAsync,
+        invokeControllerGetView,
+        invokeControllerGetViewAsync,
         getXsrfToken,
         getXsrfHeaderName,
         log,

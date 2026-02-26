@@ -1,6 +1,6 @@
 ﻿using CBS.Entities.Common;
 
-namespace ClientManagement.Modules.Shared
+namespace SystemCoreApi.Modules.Shared
 {
     public interface ISharedRepo
     {
