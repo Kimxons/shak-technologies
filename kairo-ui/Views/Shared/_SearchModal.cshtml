@@ -48,7 +48,7 @@
             <div id="search-modal-empty" class="search-modal-themed__empty" style="display:none;">No records found</div>
         </div>
         <div class="search-modal-themed__footer">
-            <div style="display: flex; align-items: center; gap: 8px; margin-right: auto;">
+            <div class="search-modal-themed__footer-left">
                 <h5 class="search-modal-themed__footer-label">Page Size:</h5>
                 <select id="search-page-size" class="search-modal-themed__select" aria-label="Page Size" style="flex: 0 0 auto; padding: 4px 8px;">
                     <option value="10">10</option>
@@ -57,13 +57,17 @@
                     <option value="100">100</option>
                 </select>
             </div>
-            <button type="button" id="search-modal-nav-prev" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">
-                <i class="bi bi-chevron-left"></i> Previous
-            </button>
-            <button type="button" id="search-modal-ok" class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>
-            <button type="button" id="search-modal-nav-next" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">
-                Next <i class="bi bi-chevron-right"></i>
-            </button>
+            <div class="search-modal-themed__footer-center">
+                <button type="button" id="search-modal-ok" class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>
+            </div>
+            <div class="search-modal-themed__footer-right">
+                <button type="button" id="search-modal-nav-prev" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">
+                    <i class="bi bi-chevron-left"></i> Previous
+                </button>
+                <button type="button" id="search-modal-nav-next" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>

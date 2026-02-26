@@ -1219,12 +1219,19 @@ function initializeEventListeners() {
         });
 
         // Enter: validate then load
+        // F2: Open search modal
         clientIdSearch.addEventListener('keydown', async (e) => {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-            const res = await validateClientIdFromInput({ silentOnBlank: false });
-            if (res.ok) {
-                handleViewClient();
+            if (e.key === 'F2') {
+                e.preventDefault();
+                await handleClientSearch();
+            } else if (e.key !== 'Enter') {
+                return;
+            } else {
+                e.preventDefault();
+                const res = await validateClientIdFromInput({ silentOnBlank: false });
+                if (res.ok) {
+                    handleViewClient();
+                }
             }
         });
     }
@@ -1375,7 +1382,7 @@ async function handleViewClient() {
             ClientID: clientId,
             OperatorID: ctx.OperatorID
         });
-
+        console.log(resp);
         const payload = resp?.raw ?? resp?.data ?? resp;
         const status = getOldApiStatus(payload);
         if (!status.ok) {
