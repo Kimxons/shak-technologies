@@ -33,9 +33,6 @@ const Client360Service = {
     validateClient360(requestData) {
         return invokeClient360Controller('validate-client', requestData);
     },
-    searchClients(requestData) {
-        return invokeClient360Controller('search-clients', requestData);
-    },
     viewClient360(requestData) {
         return invokeClient360Controller('view-client-360', requestData);
     }
@@ -374,7 +371,7 @@ function client360Toast(message, type = 'info') {
 }
 
 // Initialize page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeEventListeners();
     initializeSectionToggles();
     initializeSidebarNavToggles();
@@ -706,6 +703,7 @@ function getOldApiStatus(payload) {
     const candidates = [];
     if (payload) candidates.push(payload);
     if (Array.isArray(payload?.Details) && payload.Details.length) candidates.push(payload.Details[0]);
+    if (Array.isArray(payload?.details) && payload.details.length) candidates.push(payload.details[0]);
     if (Array.isArray(payload?.Details01) && payload.Details01.length) candidates.push(payload.Details01[0]);
 
     for (const candidate of candidates) {
@@ -745,6 +743,7 @@ function renderTable(containerEl, rows, columns, emptyText = 'No records found')
 
     const data = Array.isArray(rows) ? rows : [];
     if (!data.length) {
+        if (Array.isArray(payload?.Details) && payload.Details.length) candidates.push(payload.Details[0]);
         containerEl.innerHTML = `<div style="padding: 12px; text-align: center; color: #5A6C7D; font-size: 12px;">${emptyText}</div>`;
         return;
     }
@@ -1140,7 +1139,7 @@ async function validateClientIdFromInput({ silentOnBlank = false } = {}) {
 
         // Ignore out-of-order responses
         if (seq !== __clientIdValidateSeq) return { ok: false, name: '' };
-
+        console.log(resp)
         const payload = resp?.raw ?? resp?.data ?? resp;
         const status = getOldApiStatus(payload);
         if (!status.ok) {
@@ -1150,13 +1149,14 @@ async function validateClientIdFromInput({ silentOnBlank = false } = {}) {
 
         const rawCandidate =
             payload?.Details ??
+            payload?.details ??
             payload?.data ??
             payload;
 
         // `rawCandidate` might be an array (common for p_GetIDDescription via CoreApi.normalizeResponse)
         const list = Array.isArray(rawCandidate)
             ? rawCandidate
-            : normalizeToArray(rawCandidate?.Details || rawCandidate?.Details01 || rawCandidate?.details);
+            : normalizeToArray(rawCandidate?.Details || rawCandidate?.Details01 || rawCandidate?.details || rawCandidate);
 
         const name = (list?.[0]?.Name ?? list?.[0]?.name ?? '').toString().trim();
 
@@ -1316,7 +1316,7 @@ async function handleClientSearch() {
                 // Populate the search fields
                 setField('clientIdSearch', id);
                 setField('clientNameSearch', name);
-
+                console.log(record);
                 // Enable View button
                 const btnViewClient = $('btnViewClient');
                 if (btnViewClient) btnViewClient.disabled = false;
@@ -1354,10 +1354,11 @@ async function handleViewClient() {
 
     // Always validate on View (covers: user typed ID, pasted ID, or edited after lookup)
     // validateClientIdFromInput() is cached to avoid unnecessary server calls.
-    const res = await validateClientIdFromInput({ silentOnBlank: false });
-    if (!res.ok) return;
-    clientName = res.name;
-
+    if (!clientName) {
+        const res = await validateClientIdFromInput({ silentOnBlank: false });
+        if (!res.ok) return;
+        clientName = res.name;
+    }
     if (!Client360Service || typeof Client360Service.viewClient360 !== 'function') {
         client360Toast('Client360Service.viewClient360 is not available.', 'error');
         return;
@@ -2359,8 +2360,8 @@ function handleCancel() {
 
     // Clear Passport Photo and Signature
     // (These are rendered as image placeholders/targets via loadClientImages)
-    try { loadClientImages(null, null); } catch (_) {}
-    try { closeClient360ImageZoom(); } catch (_) {}
+    try { loadClientImages(null, null); } catch (_) { }
+    try { closeClient360ImageZoom(); } catch (_) { }
 
     clearClient360DynamicUI();
 
@@ -2378,7 +2379,7 @@ function handleCancel() {
 
     // Refresh recent list to clear active highlight
     renderClient360RecentActivities();
-    
+
     client360Toast('View cleared', 'info');
 }
 
@@ -2386,7 +2387,7 @@ function handleCancel() {
 // Export functions for external use if needed
 window.Client360View = {
     viewClient: handleViewClient,
-    refreshData: function() {
+    refreshData: function () {
         if (currentClientData) {
             handleViewClient();
         }
