@@ -330,16 +330,19 @@ namespace kairo_ui.Services
                     tokenResponse.Username = token.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
                     tokenResponse.Roles = token.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
                     tokenResponse.Email = token.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-                    DateTime.TryParse(token.ValidFrom.ToString(), out DateTime validfrom);
+                    //DateTime.TryParse(token.ValidFrom.ToString(), out DateTime validfrom);
+                    DateTime.TryParse(DateTime.UtcNow.ToString(), out DateTime validfrom);
                     DateTime.TryParse(token.ValidTo.ToString(), out DateTime validTo);
                     TimeSpan tSpan = validTo - validfrom;
-                    tokenResponse.ExpiresIn = tSpan.Seconds;
+                    tokenResponse.ExpiresIn = tSpan.Seconds;    // (DateTime.UtcNow - token.ValidTo).Seconds;
                     tokenResponse.BranchId = token.Claims.FirstOrDefault(c => c.Type == "BranchId") != null ? int.Parse(token.Claims.FirstOrDefault(c => c.Type == "BranchId")?.Value ?? "0") : 0;
                     tokenResponse.UserId = token.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
                     tokenResponse.TokenType = "Bearer";
                     //tokenResponse.RefreshToken = tokenResponse.RefreshToken;
                     tokenResponse.Success = true;
                     StoreTokenInSession(tokenResponse);
+                    _logger.LogInformation("OAuth token exchange successful | Token: {@tkn}", tokenResponse);
+
                     _logger.LogInformation("OAuth token exchange successful | User: {UserId} | Token expires in: {ExpiresIn}s",
                         tokenResponse.UserId, tokenResponse.ExpiresIn);
 
