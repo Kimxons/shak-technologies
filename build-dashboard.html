@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kairo Build Dashboard</title>
     <style>
@@ -246,7 +247,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Kairo Build Dashboard</h1>
+            <h1>Kairo Build Dashboard</h1>
             <p>Select services to build and deploy</p>
         </div>
 
@@ -254,28 +255,28 @@
             <div class="service-grid">
                 <div class="service-card" data-service="kairo-ui">
                     <input type="checkbox" id="service-kairo-ui">
-                    <div class="service-icon">🎨</div>
+                    <div class="service-icon">[UI]</div>
                     <div class="service-name">kairo-ui</div>
                     <div class="service-info">Frontend (Razor Pages)</div>
                 </div>
 
                 <div class="service-card" data-service="account-management-api">
                     <input type="checkbox" id="service-account-management-api">
-                    <div class="service-icon">💼</div>
+                    <div class="service-icon">[ACC]</div>
                     <div class="service-name">Account API</div>
                     <div class="service-info">Account Management</div>
                 </div>
 
                 <div class="service-card" data-service="client-management-api">
                     <input type="checkbox" id="service-client-management-api">
-                    <div class="service-icon">👥</div>
+                    <div class="service-icon">[CLI]</div>
                     <div class="service-name">Client API</div>
                     <div class="service-info">Client Management</div>
                 </div>
 
                 <div class="service-card" data-service="systemcore-api">
                     <input type="checkbox" id="service-systemcore-api">
-                    <div class="service-icon">⚙️</div>
+                    <div class="service-icon">[SYS]</div>
                     <div class="service-name">SystemCore API</div>
                     <div class="service-info">Core Services</div>
                 </div>
@@ -289,7 +290,7 @@
                     Clear All
                 </button>
                 <button class="btn btn-primary" onclick="startBuild()" id="buildBtn">
-                    <span>🔨 Build Selected</span>
+                    <span>Build Selected</span>
                 </button>
             </div>
 
@@ -410,15 +411,16 @@
             buildBtn.innerHTML = '<div class="spinner"></div> <span>Building...</span>';
 
             addLog(`Starting build for ${selected.length} service(s)...`, 'info');
-            
+
             let completed = 0;
+            let successful = 0;
 
             for (const serviceName of selected) {
                 const config = serviceConfig[serviceName];
                 document.getElementById('currentService').textContent = serviceName;
-                
+
                 addLog(`Building ${config.name}...`, 'info');
-                
+
                 try {
                     // Call PowerShell backend to build
                     const response = await fetch('/build', {
@@ -428,10 +430,10 @@
                     });
 
                     if (response.ok) {
-                        addLog(`✅ ${config.name} built successfully`, 'success');
+                        addLog(`[OK] ${config.name} built successfully`, 'success');
                         addLog(`Pushing ${config.name} to Docker Hub...`, 'info');
-                        
-                        // Push to Docker Hub
+
+                        // Push to Docker Hub only if build succeeded
                         const pushResponse = await fetch('/push', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -439,15 +441,21 @@
                         });
 
                         if (pushResponse.ok) {
-                            addLog(`✅ ${config.name} pushed successfully`, 'success');
+                            addLog(`[OK] ${config.name} pushed successfully`, 'success');
+                            successful++;
                         } else {
-                            addLog(`❌ Failed to push ${config.name}`, 'error');
+                            addLog(`[ERROR] Failed to push ${config.name}`, 'error');
                         }
                     } else {
-                        addLog(`❌ Failed to build ${config.name}`, 'error');
+                        // Get error details from response
+                        const errorData = await response.json();
+                        addLog(`[ERROR] Failed to build ${config.name}`, 'error');
+                        if (errorData.message) {
+                            addLog(`[ERROR] ${errorData.message}`, 'error');
+                        }
                     }
                 } catch (error) {
-                    addLog(`❌ Error: ${error.message}`, 'error');
+                    addLog(`[ERROR] ${error.message}`, 'error');
                 }
 
                 completed++;
@@ -455,11 +463,11 @@
             }
 
             document.getElementById('currentService').textContent = 'Done!';
-            addLog(`🎉 All builds completed! (${completed}/${selected.length} successful)`, 'success');
+            addLog(`[COMPLETE] Processed ${completed} service(s), ${successful} successful`, successful === completed ? 'success' : 'warning');
             
             // Re-enable build button
             buildBtn.disabled = false;
-            buildBtn.innerHTML = '<span>🔨 Build Selected</span>';
+            buildBtn.innerHTML = '<span>Build Selected</span>';
         }
     </script>
 </body>
