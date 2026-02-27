@@ -137,14 +137,55 @@ namespace kairo_ui.Services
         public const string GET_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/GetAccountTransferDetails";
 
         // SHARED SEARCH MODAL ENDPOINTS:
-        public const string BASESHARED = "api/v1/Shared";
+        private const string BASESHARED = "api/v1/Shared";
+
         public const string GET_SYSTEM_SEARCH = BASESHARED + "/GetSystemSearch";
         public const string GET_SYSTEM_SEARCH_RESULT = BASESHARED + "/GetSystemSearchResult";
         public const string GET_ID_DESCRIPTION = BASESHARED + "/GetIDDescription";
 
-        //CLIENT ENDPOINTS
+        // SHARED STATEMENT ENDPOINTS (ClientManagement API):
+        public const string GET_ACCOUNT_TRANSACTIONS = BASESHARED + "/GetAccountTransactions";
+        public const string GET_BATCH_TRANSACTIONS = BASESHARED + "/GetBatchTransactionsList";
 
+        // CLIENT 360 ENDPOINT (ClientManagement API):
+        public const string GET_CLIENT_360 = BASESHARED + "/GetMember360";
+
+        // CLIENT MAINTENANCE ENDPOINTS:
         private const string BASECLIENTS = "api/v1/ClientMaintenance";
-        public const string GET_CLIENT_360 = BASECLIENTS + "/GetMember360";
+
+        // Client Basic Details
+        public const string GET_CLIENT_BASIC_DETAILS = BASECLIENTS + "/GetClientBasicDetails";
+        public const string CREATE_CLIENT_BASIC_DETAILS = BASECLIENTS + "/CreateClientBasicDetails";
+        public const string EDIT_CLIENT_BASIC_DETAILS = BASECLIENTS + "/EditClientBasicDetails";
+
+        // Client Address
+        public const string GET_CLIENT_ADDRESS = BASECLIENTS + "/GetClientAddress";
+        public const string CREATE_CLIENT_ADDRESS = BASECLIENTS + "/CreateClientAddress";
+        public const string EDIT_CLIENT_ADDRESS = BASECLIENTS + "/EditClientAddress";
+
+        // Client Documents
+        public const string GET_CLIENT_DOCUMENTS = BASECLIENTS + "/GetClientDocuments";
+        public const string CREATE_CLIENT_DOCUMENTS = BASECLIENTS + "/CreateClientDocuments";
+        public const string EDIT_CLIENT_DOCUMENTS = BASECLIENTS + "/EditClientDocuments";
+
+        // Client Relations
+        public const string GET_CLIENT_RELATIONS = BASECLIENTS + "/GetClientRelations";
+        public const string CREATE_CLIENT_RELATIONS = BASECLIENTS + "/CreateClientRelations";
+        public const string EDIT_CLIENT_RELATIONS = BASECLIENTS + "/EditClientRelations";
+
+        // Client Employment
+        public const string GET_CLIENT_EMPLOYMENT = BASECLIENTS + "/GetClientEmployment";
+        public const string CREATE_CLIENT_EMPLOYMENT = BASECLIENTS + "/CreateClientEmployment";
+        public const string EDIT_CLIENT_EMPLOYMENT = BASECLIENTS + "/EditClientEmployment";
+
+        // Client Individual
+        public const string GET_CLIENT_INDIVIDUAL = BASECLIENTS + "/GetClientIndividual";
+        public const string CREATE_CLIENT_INDIVIDUAL = BASECLIENTS + "/CreateClientIndividual";
+        public const string EDIT_CLIENT_INDIVIDUAL = BASECLIENTS + "/EditClientIndividual";
+
+        // Client Corporate
+        public const string GET_CLIENT_CORPORATE = BASECLIENTS + "/GetClientCorporate";
+        public const string CREATE_CLIENT_CORPORATE = BASECLIENTS + "/CreateClientCorporate";
+        public const string EDIT_CLIENT_CORPORATE = BASECLIENTS + "/EditClientCorporate";
     }
 }

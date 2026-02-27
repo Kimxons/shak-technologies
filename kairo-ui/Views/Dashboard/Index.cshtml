@@ -16,17 +16,18 @@
     <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
     <!-- Global Theme Manager - Load before any scripts -->
-    <script type="text/javascript" src="/js/theme-manager.js"></script>
+    @* <script type="text/javascript" src="/js/theme-manager.js"></script> *@
     <!-- Modal Theme Enforcement - Apply theme when modals open -->
     @* <script type="text/javascript"  src="js/modal-theme-enforcement.js"></script> *@
     <!-- Environment Configuration -->
-    <script type="text/javascript" src="/js/environment.js"></script>
+    @* <script type="text/javascript" src="/js/environment.js"></script> *@
     <!-- Auth Scripts -->
-    <script type="text/javascript" src="/js/auth/auth.config.js"></script>
-    <script type="text/javascript" src="/js/auth/auth.service.js"></script>
-    <script type="text/javascript" src="/js/services/shared/serviceLoader.js"></script>
+    @* <script type="text/javascript" src="/js/auth/auth.config.js"></script> *@
+    @* <script type="text/javascript" src="/js/auth/auth.service.js"></script> *@
+    @* <script type="text/javascript" src="/js/services/shared/serviceLoader.js"></script> *@
     <script type="text/javascript" src="/js/services/ai/aiService.js"></script>
     <script type="text/javascript" src="/js/app/app-core.js"></script>
     <style>
@@ -1179,7 +1180,7 @@
         }
 
         /* Extra safety: if dash-text is too light on a light background,
-                                                                                                                                                       ensure it stays visible. But --color-text should handle this. */
+                                                                                                                                                                               ensure it stays visible. But --color-text should handle this. */
 
         .feature-panel {
             background: var(--theme-bg-card, #ffffff) !important;
@@ -1504,10 +1505,9 @@
 
     <script type="text/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/app.js"></script>
 
     <!-- Shared Search Modal -->
-    <script src="/js/modules/shared/searchModal.js"></script>
+    <script type="text/javascript" src="/js/modules/shared/searchModal.js"></script>
 
     <script type="text/javascript" src="/js/modules/dashboard/dashboard.js"></script>
 </body>

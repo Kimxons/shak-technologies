@@ -41,7 +41,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     //options.Cookie.Expiration = TimeSpan.FromMinutes(cookieTimeoutMinutes);
     // Use a unique session cookie name to avoid conflicts with old encrypted cookies
     options.Cookie.Name = "KAIRO-AUTH-SESSION";
@@ -89,6 +89,14 @@ builder.Services.AddHttpClient("ClientManagementApi")
     {
         client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ClientManagementBaseUrl");
+    });
+
+builder.Services.AddHttpClient("AccountManagementApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
     });
 
 
