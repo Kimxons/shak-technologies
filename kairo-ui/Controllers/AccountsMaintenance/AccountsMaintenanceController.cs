@@ -237,8 +237,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_NOTES,
                     request
                 );
@@ -261,8 +268,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.UPDATE_NOTES,
                     request
                 );
@@ -289,8 +303,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_DOCUMENT,
                     request
                 );
@@ -313,8 +334,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_DOCUMENT,
                     request
                 );
@@ -337,8 +365,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_DOCUMENT,
                     request
                 );
@@ -361,8 +396,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_DOCUMENT,
                     request
                 );
@@ -389,8 +431,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_FREEZE,
                     request
                 );
@@ -413,8 +462,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_FREEZE,
                     request
                 );
@@ -437,8 +493,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.RELEASE_ACCOUNT_FREEZE,
                     request
                 );
@@ -465,8 +528,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_CHEQUE_BOOKS,
                     request
                 );
@@ -489,8 +559,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_CHEQUE_BOOK_REQUESTS,
                     request
                 );
@@ -513,8 +590,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.ADD_CHEQUE_BOOK,
                     request
                 );
@@ -541,8 +625,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_REMINDERS,
                     request
                 );
@@ -565,8 +656,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_REMINDER,
                     request
                 );
@@ -589,8 +687,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_REMINDER,
                     request
                 );
@@ -613,8 +718,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_REMINDER,
                     request
                 );
@@ -662,7 +774,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 // Call backend API through ApiService
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     "api/accounts/search",
                     requestData
                 );
@@ -696,8 +808,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 _logger.LogInformation("Get account request: {Request}", JsonSerializer.Serialize(requestData));
 
+                // Inject session data
+                requestData.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(requestData.OurBranchID))
+                {
+                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT,
                     requestData
                 );
@@ -738,7 +857,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 requestData.BankID = "00";
 
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.EDIT_ACCOUNT,
                     requestData
                 );
@@ -779,7 +898,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 requestData.BankID = "00";
 
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.CREATE_ACCOUNT,
                     requestData
                 );
@@ -810,7 +929,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.CREATE_ACCOUNT,
                     requestData
                 );
@@ -838,7 +957,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 // Note: Backend endpoint doesn't exist yet - this will need to be added to backend API
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT,
                     requestData
                 );
@@ -866,7 +985,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 // Note: Backend endpoint doesn't exist yet - this will need to be added to backend API
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT,
                     requestData
                 );
@@ -896,6 +1015,11 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     {
         public string? AccountNumber { get; set; }
         public string? AccountID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? ClientID { get; set; }
+        public string? OperatorID { get; set; }
+        public int Direction { get; set; }
+        public string? DirectionType { get; set; }
     }
 
     public class AccountUpdateRequest
@@ -931,12 +1055,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetNotesRequest
     {
         public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class UpdateNotesRequest
     {
         public string? AccountId { get; set; }
         public string? Notes { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     // ============================================================================
@@ -946,6 +1074,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     {
         public string? AccountId { get; set; }
         public string? DocumentId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class AddAccountDocumentRequest
@@ -957,6 +1087,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReceivedDate { get; set; }
         public string? Location { get; set; }
         public string? Remarks { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class UpdateAccountDocumentRequest
@@ -969,12 +1101,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReceivedDate { get; set; }
         public string? Location { get; set; }
         public string? Remarks { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class DeleteAccountDocumentRequest
     {
         public string? AccountId { get; set; }
         public string? DocumentId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     // ============================================================================
@@ -983,6 +1119,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetAccountFreezeRequest
     {
         public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class AddAccountFreezeRequest
@@ -991,12 +1129,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? FreezeAmount { get; set; }
         public string? FreezeReason { get; set; }
         public string? FreezeDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class ReleaseAccountFreezeRequest
     {
         public string? AccountId { get; set; }
         public string? FreezeId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     // ============================================================================
@@ -1005,11 +1147,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetChequeBooksRequest
     {
         public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class GetChequeBookRequestsRequest
     {
         public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class AddChequeBookRequest
@@ -1019,6 +1165,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? NoOfLeaves { get; set; }
         public string? ChequeStart { get; set; }
         public string? IssueDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     // ============================================================================
@@ -1027,6 +1175,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetAccountRemindersRequest
     {
         public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class AddAccountReminderRequest
@@ -1035,6 +1185,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderText { get; set; }
         public string? ReminderDate { get; set; }
         public string? ReminderType { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class UpdateAccountReminderRequest
@@ -1044,11 +1196,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderText { get; set; }
         public string? ReminderDate { get; set; }
         public string? ReminderType { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 
     public class DeleteAccountReminderRequest
     {
         public string? AccountId { get; set; }
         public string? ReminderId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 }

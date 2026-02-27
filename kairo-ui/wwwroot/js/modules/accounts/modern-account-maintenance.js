@@ -3757,9 +3757,31 @@
         if (Array.isArray(data)) return data[0] || null;
         if (typeof data !== 'object') return null;
 
-        // Start with a merged object to collect all detail arrays
+        // Start with a merged object to collect all fields
         const merged = {};
 
+        // NEW: Handle nested structure from backend
+        // Response: { AccountDetails: {...}, FinancialSummary: {...}, Supervision: {...} }
+        if (data.AccountDetails && typeof data.AccountDetails === 'object') {
+            console.log('[AccountMaintenance] Merging AccountDetails:', data.AccountDetails);
+            Object.assign(merged, data.AccountDetails);
+        }
+        if (data.FinancialSummary && typeof data.FinancialSummary === 'object') {
+            console.log('[AccountMaintenance] Merging FinancialSummary:', data.FinancialSummary);
+            Object.assign(merged, data.FinancialSummary);
+        }
+        if (data.Supervision && typeof data.Supervision === 'object') {
+            console.log('[AccountMaintenance] Merging Supervision:', data.Supervision);
+            Object.assign(merged, data.Supervision);
+        }
+
+        // If we found nested data, return the merged record
+        if (Object.keys(merged).length > 0) {
+            console.log('[AccountMaintenance] Merged record from nested objects:', merged);
+            return merged;
+        }
+
+        // LEGACY: Handle old array-based structure
         // First, include the main "Details" array if it exists
         const mainDetailsArr = data.Details || data.details;
         if (Array.isArray(mainDetailsArr) && mainDetailsArr.length && mainDetailsArr[0]) {
@@ -4015,21 +4037,30 @@
 
             const result = await response.json();
 
-            if (!result?.success) {
+            // Backend returns: { Details: {...}, ResponseCode: "00", ResponseMessage: "Success" }
+            const isSuccess = result?.ResponseCode === '00' || result?.ResponseCode === 0 || result?.success === true;
+
+            if (!isSuccess) {
                 console.error('[AccountMaintenance] GetAccount failed', result);
                 showPageLoader(false);
-                showErrorMessage(result?.message || 'Unable to load account details.');
+                showErrorMessage(result?.ResponseMessage || result?.message || 'Unable to load account details.');
                 return;
             }
 
-            // Check if response contains actual data
-            const hasData = result.data && (
-                (Array.isArray(result.data) && result.data.length > 0) ||
-                (result.data.Details && Array.isArray(result.data.Details) && result.data.Details.length > 0) ||
-                (result.data.Details01 && Array.isArray(result.data.Details01) && result.data.Details01.length > 0)
-            );
+            // Extract data from Details object
+            const data = result?.Details;
+            if (!data) {
+                console.warn('[AccountMaintenance] No Details in response', result);
+                showPageLoader(false);
+                showErrorMessage('No account data received from server.');
+                window.AccountMaintenanceState.isAccountLoaded = false;
+                return;
+            }
 
-            if (!hasData) {
+            // Check if response contains actual account data
+            const hasAccountData = data.AccountDetails && typeof data.AccountDetails === 'object';
+
+            if (!hasAccountData) {
                 console.warn('[AccountMaintenance] Account not found - empty response', result);
                 showPageLoader(false);
                 showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
@@ -4037,8 +4068,8 @@
                 return;
             }
 
-            // console.log('[AccountMaintenance] GetAccount success', result.data);
-            const bindResult = bindAccountToForm(result.data);
+            // console.log('[AccountMaintenance] GetAccount success', data);
+            const bindResult = bindAccountToForm(data);
             if (!bindResult?.ok) {
                 showPageLoader(false);
                 showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
@@ -4046,77 +4077,77 @@
                 return;
             }
 
-        if (!bindResult.boundCount) {
-            showPageLoader(false);
-            showErrorMessage(`Account data could not be loaded. Please verify the Account ID and try again.`);
-            window.AccountMaintenanceState.isAccountLoaded = false;
-            return;
-        }
+            if (!bindResult.boundCount) {
+                showPageLoader(false);
+                showErrorMessage(`Account data could not be loaded. Please verify the Account ID and try again.`);
+                window.AccountMaintenanceState.isAccountLoaded = false;
+                return;
+            }
 
-        // CRITICAL: Validate that we have ACTUAL account data from the API, not just empty records
-        // Check if the record from API actually contains account information
-        const recordAccountID = bindResult.record?.AccountID || bindResult.record?.AccountId || '';
-        const recordHasAccountData = recordAccountID && 
-                                     recordAccountID.trim() !== '' &&
-                                     (bindResult.record?.AccountName || 
-                                      bindResult.record?.Description || 
-                                      bindResult.record?.ShortName ||
-                                      bindResult.record?.BranchName ||
-                                      bindResult.record?.ClientID ||
-                                      bindResult.record?.ProductID);
-        
-        // Validate that we have a valid AccountID after binding
-        const accountIdEl = document.getElementById('AccountID');
-        const boundAccountID = accountIdEl?.value?.trim() || '';
-        
-        // Only validate AccountID if we're not in ADD mode and we had a requested AccountID
-        if (currentMode !== 'ADD' && payload.AccountID) {
-            // CRITICAL: Check if AccountID was actually bound from API record (not just user input)
-            // If record doesn't have AccountID or it doesn't match what we requested, it's invalid
-            if (!recordAccountID || recordAccountID.trim() === '') {
-                console.warn('[AccountMaintenance] API record does not contain AccountID - account not found');
-                showPageLoader(false);
-                showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-                window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
-                return;
+            // CRITICAL: Validate that we have ACTUAL account data from the API, not just empty records
+            // Check if the record from API actually contains account information
+            const recordAccountID = bindResult.record?.AccountID || bindResult.record?.AccountId || '';
+            const recordHasValidData = recordAccountID && 
+                                         recordAccountID.trim() !== '' &&
+                                         (bindResult.record?.AccountName || 
+                                          bindResult.record?.Description || 
+                                          bindResult.record?.ShortName ||
+                                          bindResult.record?.BranchName ||
+                                          bindResult.record?.ClientID ||
+                                          bindResult.record?.ProductID);
+
+            // Validate that we have a valid AccountID after binding
+            const accountIdEl = document.getElementById('AccountID');
+            const boundAccountID = accountIdEl?.value?.trim() || '';
+
+            // Only validate AccountID if we're not in ADD mode and we had a requested AccountID
+            if (currentMode !== 'ADD' && payload.AccountID) {
+                // CRITICAL: Check if AccountID was actually bound from API record (not just user input)
+                // If record doesn't have AccountID or it doesn't match what we requested, it's invalid
+                if (!recordAccountID || recordAccountID.trim() === '') {
+                    console.warn('[AccountMaintenance] API record does not contain AccountID - account not found');
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
+
+                // Check if AccountID from API matches what was requested
+                const normalizedRequested = payload.AccountID.replace(/\s+/g, '').toLowerCase();
+                const normalizedRecord = recordAccountID.replace(/\s+/g, '').toLowerCase();
+
+                if (normalizedRequested !== normalizedRecord && 
+                    !normalizedRecord.includes(normalizedRequested) &&
+                    !normalizedRequested.includes(normalizedRecord)) {
+                    console.warn('[AccountMaintenance] AccountID mismatch - requested:', payload.AccountID, 'API returned:', recordAccountID);
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
+
+                // Check if we have meaningful account data (not just AccountID)
+                if (!recordHasValidData) {
+                    console.warn('[AccountMaintenance] API record has AccountID but no other account data - account may not exist');
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
+
+                // If AccountID is completely missing after binding, that's an error
+                if (!boundAccountID || boundAccountID === '') {
+                    console.warn('[AccountMaintenance] AccountID is empty after binding - invalid account data');
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
             }
-            
-            // Check if AccountID from API matches what was requested
-            const normalizedRequested = payload.AccountID.replace(/\s+/g, '').toLowerCase();
-            const normalizedRecord = recordAccountID.replace(/\s+/g, '').toLowerCase();
-            
-            if (normalizedRequested !== normalizedRecord && 
-                !normalizedRecord.includes(normalizedRequested) &&
-                !normalizedRequested.includes(normalizedRecord)) {
-                console.warn('[AccountMaintenance] AccountID mismatch - requested:', payload.AccountID, 'API returned:', recordAccountID);
-                showPageLoader(false);
-                showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-                window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
-                return;
-            }
-            
-            // Check if we have meaningful account data (not just AccountID)
-            if (!recordHasAccountData) {
-                console.warn('[AccountMaintenance] API record has AccountID but no other account data - account may not exist');
-                showPageLoader(false);
-                showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-                window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
-                return;
-            }
-            
-            // If AccountID is completely missing after binding, that's an error
-            if (!boundAccountID || boundAccountID === '') {
-                console.warn('[AccountMaintenance] AccountID is empty after binding - invalid account data');
-                showPageLoader(false);
-                showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-                window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
-                return;
-            }
-        }
 
         // Set default zeros for rate and charge fields if they are empty (before formatting)
         const fieldsWithZeroDefaults = ['CreditRate', 'DebitRate', 'PenaltyRate', 'PendingCharges'];
@@ -4194,18 +4225,18 @@
 
         // Track recent activity (same pattern as Client Maintenance)
         trackRecentActivity(loadedBranchID, loadedAccountID);
-        
+
         // CRITICAL: Only show success message if we have ACTUAL account data loaded
         // All validation above should have caught invalid accounts, but double-check here
         // Reuse recordAccountID that was already declared above for validation
         const hasValidRecordAccountID = recordAccountID && recordAccountID.trim() !== '';
-        const hasAccountData = bindResult.boundCount > 0 && 
+        const hasValidBoundData = bindResult.boundCount > 0 && 
                                (loadedAccountName || loadedBranchName || loadedAccountTypeID || 
                                 document.getElementById('ShortName')?.value?.trim() ||
                                 document.getElementById('Address1')?.value?.trim() ||
                                 document.getElementById('ClientID')?.value?.trim() ||
                                 document.getElementById('ProductID')?.value?.trim());
-        
+
         // Only show success if:
         // 1. We have a valid AccountID from the API record
         // 2. We have actual account data bound (not just empty fields)
@@ -4217,14 +4248,14 @@
                                    recordAccountID === payload.AccountID ||
                                    recordAccountID.replace(/\s+/g, '').toLowerCase() === payload.AccountID.replace(/\s+/g, '').toLowerCase()
                                  ));
-        
-        if (hasValidRecordAccountID && hasAccountData && bindResult.boundCount > 0 && accountIDMatches && window.AccountMaintenanceState.isAccountLoaded) {
+
+        if (hasValidRecordAccountID && hasValidBoundData && bindResult.boundCount > 0 && accountIDMatches && window.AccountMaintenanceState.isAccountLoaded) {
             showSuccessMessage(`Account details loaded successfully. Account ID: ${loadedAccountID}`);
         } else {
             // Account was not actually loaded - this should have been caught above, but double-check
             console.error('[AccountMaintenance] Success message validation failed:', {
                 hasValidRecordAccountID,
-                hasAccountData,
+                hasValidBoundData,
                 boundCount: bindResult.boundCount,
                 accountIDMatches,
                 recordAccountID,
@@ -4232,7 +4263,7 @@
                 requestedAccountID: payload.AccountID
             });
             // Don't show error here as it should have been shown above - just don't show success
-            if (!hasValidRecordAccountID || !hasAccountData) {
+            if (!hasValidRecordAccountID || !hasValidBoundData) {
                 showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
                 window.AccountMaintenanceState.isAccountLoaded = false;
                 resetAllFormControls();
