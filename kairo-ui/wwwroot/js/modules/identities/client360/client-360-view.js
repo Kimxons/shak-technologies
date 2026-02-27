@@ -1475,6 +1475,9 @@ function mapMember360ToViewModel(member360, clientId, clientName) {
         remarks: '-',
         photo: normalizeImageSrc(member?.Photo),
         signature: normalizeImageSrc(member?.Sign),
+        photoId: member?.PhotoID,
+        signatureId: member?.SignID,
+        bioId: member?.BioID,
 
         // Treat TanAccountDetails as Savings/Main Products when it comes as a list
         accounts: mappedTanAccounts,
@@ -1485,7 +1488,7 @@ function mapMember360ToViewModel(member360, clientId, clientName) {
         depositsBalance: null,
         loans: member360?.Loans ?? [],
         loansBalance: null,
-        blockedDetails: [],
+        blockedDetails: member360.MoreDetails,
         groupMember: member360?.groups ?? [],
         standingInstructions: member360?.SIDetails ?? [],
         otherAccounts: member360?.OtherAccounts ?? [],
