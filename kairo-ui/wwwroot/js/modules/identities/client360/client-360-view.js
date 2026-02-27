@@ -1,7 +1,7 @@
 /* Client 360 View - JavaScript Controller */
 
 const CLIENT360_CONTROLLER_BASE = 'Identities/Client360';
-
+const MODULEID_CLIENT360 = 1234;
 function getAppCore() {
     const win = window;
     return win.AppCore ||
@@ -523,7 +523,7 @@ function initializeClient360Overlay() {
             return;
         }
 
-        // statement-view.html uses these messages in Account Maintenance overlay
+        // Statement View partial uses these messages in Account Maintenance overlay
         if (
             data.action === 'submoduleClosed' ||
             data.type === 'accountMaintenanceChildClose' ||
@@ -539,9 +539,10 @@ function seedClient360ChildState() {
     const clientId = currentClientData?.clientId || $('clientIdSearch')?.value?.trim() || '';
 
     window.Client360State = {
-        Source: 'Client360',
+     Source: 'Client360',
         ClientID: clientId,
-        OurBranchID: ctx?.OurBranchID || '',
+      ModuleID: MODULEID_CLIENT360,
+  OurBranchID: ctx?.OurBranchID || '',
         OperatorID: ctx?.OperatorID || '',
         BankID: ctx?.BankID || '00'
     };
@@ -550,18 +551,19 @@ function seedClient360ChildState() {
 function openClientAddressOverlay() {
     const clientId = currentClientData?.clientId || $('clientIdSearch')?.value?.trim() || '';
     if (!clientId) {
-        client360Toast('Please load a Client first.', 'warning');
+ client360Toast('Please load a Client first.', 'warning');
         return;
     }
 
     try {
-        seedClient360ChildState();
+ seedClient360ChildState();
         const url = new URL('../customer-management/DataEntry/client-address.html', window.location.href);
         url.searchParams.set('Source', 'Client360');
-        url.searchParams.set('ClientID', String(clientId));
+     url.searchParams.set('ClientID', String(clientId));
+        url.searchParams.set('ModuleID', String(MODULEID_CLIENT360));
 
-        openClient360Overlay(url.toString(), {
-            title: `Client Address - ${String(clientId)}`,
+   openClient360Overlay(url.toString(), {
+      title: `Client Address - ${String(clientId)}`,
             loadingText: 'Loading address...'
         });
     } catch (e) {
@@ -1309,7 +1311,7 @@ async function handleClientSearch() {
         // Open the search modal
         const selectedRecord = await searchModal.open({
             tableID: 'ClientID',
-            moduleID: '1000',
+            moduleID: MODULEID_CLIENT360,
             whereStmt: '',
             advFilterString: '',
             searchKey: initialSearchKey,
@@ -1390,8 +1392,8 @@ async function handleViewClient() {
             return;
         }
 
-        const detailsNode = payload?.Details01?.[0] || payload?.Details?.[0] || {};
-        const member360 = detailsNode?.Member360 || null;
+        const detailsNode = payload?.Details01?.[0] || payload?.Details?.[0] || payload?.Details || {};
+        const member360 = detailsNode?.Member360 || detailsNode || null;
         // Some responses return QuickLinks as a sibling tag next to Member360.
         const quickLinksFromNode = detailsNode?.QuickLinks ?? detailsNode?.Quicklinks ?? detailsNode?.QuickLink ?? null;
 
@@ -1540,6 +1542,7 @@ async function fetchClientData(clientId) {
             loans: [
                 { loanId: 'LOAN001', loanType: 'Personal Loan', balance: -36000.00, status: 'ACTIVE', dueDate: '2026-06-30' }
             ],
+
             loansBalance: -36000.00,
 
             // Optional sections (will only show if present)
@@ -1863,59 +1866,143 @@ function loadAccountsSection(accounts, balance) {
 function openAccountStatement(accountId, branchId = '') {
     try {
         const ctx = getContext();
-        const statementUrl = new URL('../account-maintenance/view/statement-view.html', window.location.href);
+   const statementUrl = new URL('Statement/Index', window.location.origin);
 
-        const branch = (branchId && String(branchId).trim() !== '') ? String(branchId).trim() : (ctx?.OurBranchID || '');
-        if (branch) statementUrl.searchParams.set('BranchID', branch);
-        if (accountId) statementUrl.searchParams.set('AccountID', String(accountId));
+      const branch = (branchId && String(branchId).trim() !== '') ? String(branchId).trim() : (ctx?.OurBranchID || '');
+        if (branch) statementUrl.searchParams.set('branchId', branch);
+  if (accountId) statementUrl.searchParams.set('accountId', String(accountId));
         statementUrl.searchParams.set('Source', 'Client360');
+        statementUrl.searchParams.set('moduleId', String(MODULEID_CLIENT360));
 
         // Statement module reads AccountMaintenanceState from window.parent when loaded in an iframe.
         // Seed it on the current window before opening the overlay.
-        window.AccountMaintenanceState = {
-            isAccountLoaded: true,
-            OurBranchID: branch || ctx?.OurBranchID || '',
-            AccountID: accountId || '',
-            OperatorID: ctx?.OperatorID || '',
-            ClientID: currentClientData?.clientId || ''
+  window.AccountMaintenanceState = {
+  isAccountLoaded: true,
+      OurBranchID: branch || ctx?.OurBranchID || '',
+    AccountID: accountId || '',
+         OperatorID: ctx?.OperatorID || '',
+    ClientID: currentClientData?.clientId || '',
+       ModuleID: MODULEID_CLIENT360
         };
 
         openClient360Overlay(statementUrl.toString(), {
-            title: `Statement View - ${String(accountId || '').trim() || 'Account'}`,
-            loadingText: 'Loading statement...'
-        });
-    } catch (e) {
+    title: `Statement View - ${String(accountId || '').trim() || 'Account'}`,
+loadingText: 'Loading statement...'
+});
+  } catch (e) {
         console.error('Failed to open statement view:', e);
-        client360Toast('Failed to open statement view: ' + (e?.message || e), 'error');
+  client360Toast('Failed to open statement view: ' + (e?.message || e), 'error');
     }
 }
 
 function openAccountSignatories(accountId, branchId = '') {
     try {
         const ctx = getContext();
-        const url = new URL('../account-maintenance/dataentry/account-signatories.html', window.location.href);
+    const url = new URL('../account-maintenance/dataentry/account-signatories.html', window.location.href);
 
-        const branch = (branchId && String(branchId).trim() !== '') ? String(branchId).trim() : (ctx?.OurBranchID || '');
-        if (branch) url.searchParams.set('BranchID', branch);
+ const branch = (branchId && String(branchId).trim() !== '') ? String(branchId).trim() : (ctx?.OurBranchID || '');
+      if (branch) url.searchParams.set('BranchID', branch);
         if (accountId) url.searchParams.set('AccountID', String(accountId));
-        url.searchParams.set('Source', 'Client360');
+url.searchParams.set('Source', 'Client360');
+        url.searchParams.set('ModuleID', String(MODULEID_CLIENT360));
 
         // Seed AccountMaintenanceState for embedded submodules
-        window.AccountMaintenanceState = {
-            isAccountLoaded: true,
-            OurBranchID: branch || ctx?.OurBranchID || '',
-            AccountID: accountId || '',
-            OperatorID: ctx?.OperatorID || '',
-            ClientID: currentClientData?.clientId || ''
+window.AccountMaintenanceState = {
+       isAccountLoaded: true,
+       OurBranchID: branch || ctx?.OurBranchID || '',
+ AccountID: accountId || '',
+    OperatorID: ctx?.OperatorID || '',
+        ClientID: currentClientData?.clientId || '',
+   ModuleID: MODULEID_CLIENT360
         };
 
-        openClient360Overlay(url.toString(), {
-            title: `Signatories - ${String(accountId || '').trim() || 'Account'}`,
+    openClient360Overlay(url.toString(), {
+          title: `Signatories - ${String(accountId || '').trim() || 'Account'}`,
             loadingText: 'Loading signatories...'
         });
     } catch (e) {
         console.error('Failed to open signatories view:', e);
-        client360Toast('Failed to open signatories view: ' + (e?.message || e), 'error');
+ client360Toast('Failed to open signatories view: ' + (e?.message || e), 'error');
+    }
+}
+
+function openLoanStatement(rowOrAccountId) {
+    try {
+    const ctx = getContext();
+  const rowObj = (rowOrAccountId && typeof rowOrAccountId === 'object') ? rowOrAccountId : null;
+        const accountId = rowObj ? extractAccountIdFromRow(rowObj) : rowOrAccountId;
+  const branchId = rowObj ? extractBranchIdFromRow(rowObj) : '';
+        const loanSeries = rowObj ? extractLoanSeriesFromRow(rowObj) : '';
+        const url = new URL('../loans/loan-maintenance/view/loan-statement.html', window.location.href);
+    url.searchParams.set('ModuleID', String(MODULEID_CLIENT360));
+
+ seedLoanMaintenanceContext({
+    branchId: branchId || ctx?.OurBranchID || '',
+    accountId: accountId || '',
+     loanSeries
+        });
+
+    openClient360Overlay(url.toString(), {
+            title: `Loan Statement - ${String(accountId || '').trim() || 'Account'}`,
+            loadingText: 'Loading loan statement...'
+  });
+    } catch (e) {
+      console.error('Failed to open loan statement view:', e);
+        client360Toast('Failed to open loan statement view: ' + (e?.message || e), 'error');
+}
+}
+
+function openLoanCollaterals(rowObj) {
+    try {
+   const ctx = getContext();
+  const accountId = extractAccountIdFromRow(rowObj);
+ const branchId = extractBranchIdFromRow(rowObj) || ctx?.OurBranchID || '';
+  const loanSeries = extractLoanSeriesFromRow(rowObj);
+
+        if (!accountId) {
+     client360Toast('Missing AccountID for Collaterals.', 'warning');
+   return;
+        }
+
+        seedLoanMaintenanceContext({ branchId, accountId, loanSeries });
+
+        const url = new URL('../loans/loan-maintenance/view/loan-collaterals.html', window.location.href);
+        url.searchParams.set('ModuleID', String(MODULEID_CLIENT360));
+        
+        openClient360Overlay(url.toString(), {
+            title: `Collaterals - ${String(accountId).trim()}`,
+          loadingText: 'Loading collaterals...'
+     });
+    } catch (e) {
+console.error('Failed to open loan collaterals view:', e);
+        client360Toast('Failed to open Collaterals: ' + (e?.message || e), 'error');
+    }
+}
+
+function openLoanGuarantors(rowObj) {
+    try {
+const ctx = getContext();
+        const accountId = extractAccountIdFromRow(rowObj);
+        const branchId = extractBranchIdFromRow(rowObj) || ctx?.OurBranchID || '';
+    const loanSeries = extractLoanSeriesFromRow(rowObj);
+
+        if (!accountId) {
+            client360Toast('Missing AccountID for Guarantors.', 'warning');
+ return;
+     }
+
+  seedLoanMaintenanceContext({ branchId, accountId, loanSeries });
+
+  const url = new URL('../loans/loan-maintenance/view/guarantors.html', window.location.href);
+        url.searchParams.set('ModuleID', String(MODULEID_CLIENT360));
+     
+        openClient360Overlay(url.toString(), {
+            title: `Guarantors - ${String(accountId).trim()}`,
+          loadingText: 'Loading guarantors...'
+        });
+    } catch (e) {
+    console.error('Failed to open loan guarantors view:', e);
+        client360Toast('Failed to open Guarantors: ' + (e?.message || e), 'error');
     }
 }
 
@@ -1931,11 +2018,11 @@ function seedLoanMaintenanceContext({ branchId = '', accountId = '', loanSeries 
         let el = document.getElementById(id);
         if (!el) {
             el = document.createElement('input');
-            el.type = 'hidden';
-            el.id = id;
-            document.body.appendChild(el);
+   el.type = 'hidden';
+   el.id = id;
+          document.body.appendChild(el);
         }
-        el.value = value ?? '';
+     el.value = value ?? '';
     };
 
     ensureHiddenInput('BranchID', ourBranchId);
@@ -1945,88 +2032,14 @@ function seedLoanMaintenanceContext({ branchId = '', accountId = '', loanSeries 
 
     // Some loan submodules also look for LoanMaintenanceState.
     window.LoanMaintenanceState = {
-        isAccountLoaded: true,
+      isAccountLoaded: true,
         OurBranchID: ourBranchId,
-        AccountID: accountId || '',
-        LoanSeries: series,
+AccountID: accountId || '',
+  LoanSeries: series,
         OperatorID: operatorId,
-        ClientID: currentClientData?.clientId || ''
+        ClientID: currentClientData?.clientId || '',
+  ModuleID: MODULEID_CLIENT360
     };
-}
-
-function openLoanStatement(rowOrAccountId) {
-    try {
-        const ctx = getContext();
-        const rowObj = (rowOrAccountId && typeof rowOrAccountId === 'object') ? rowOrAccountId : null;
-        const accountId = rowObj ? extractAccountIdFromRow(rowObj) : rowOrAccountId;
-        const branchId = rowObj ? extractBranchIdFromRow(rowObj) : '';
-        const loanSeries = rowObj ? extractLoanSeriesFromRow(rowObj) : '';
-        const url = new URL('../loans/loan-maintenance/view/loan-statement.html', window.location.href);
-
-        seedLoanMaintenanceContext({
-            branchId: branchId || ctx?.OurBranchID || '',
-            accountId: accountId || '',
-            loanSeries
-        });
-
-        openClient360Overlay(url.toString(), {
-            title: `Loan Statement - ${String(accountId || '').trim() || 'Account'}`,
-            loadingText: 'Loading loan statement...'
-        });
-    } catch (e) {
-        console.error('Failed to open loan statement view:', e);
-        client360Toast('Failed to open loan statement view: ' + (e?.message || e), 'error');
-    }
-}
-
-function openLoanCollaterals(rowObj) {
-    try {
-        const ctx = getContext();
-        const accountId = extractAccountIdFromRow(rowObj);
-        const branchId = extractBranchIdFromRow(rowObj) || ctx?.OurBranchID || '';
-        const loanSeries = extractLoanSeriesFromRow(rowObj);
-
-        if (!accountId) {
-            client360Toast('Missing AccountID for Collaterals.', 'warning');
-            return;
-        }
-
-        seedLoanMaintenanceContext({ branchId, accountId, loanSeries });
-
-        const url = new URL('../loans/loan-maintenance/view/loan-collaterals.html', window.location.href);
-        openClient360Overlay(url.toString(), {
-            title: `Collaterals - ${String(accountId).trim()}`,
-            loadingText: 'Loading collaterals...'
-        });
-    } catch (e) {
-        console.error('Failed to open loan collaterals view:', e);
-        client360Toast('Failed to open Collaterals: ' + (e?.message || e), 'error');
-    }
-}
-
-function openLoanGuarantors(rowObj) {
-    try {
-        const ctx = getContext();
-        const accountId = extractAccountIdFromRow(rowObj);
-        const branchId = extractBranchIdFromRow(rowObj) || ctx?.OurBranchID || '';
-        const loanSeries = extractLoanSeriesFromRow(rowObj);
-
-        if (!accountId) {
-            client360Toast('Missing AccountID for Guarantors.', 'warning');
-            return;
-        }
-
-        seedLoanMaintenanceContext({ branchId, accountId, loanSeries });
-
-        const url = new URL('../loans/loan-maintenance/view/guarantors.html', window.location.href);
-        openClient360Overlay(url.toString(), {
-            title: `Guarantors - ${String(accountId).trim()}`,
-            loadingText: 'Loading guarantors...'
-        });
-    } catch (e) {
-        console.error('Failed to open loan guarantors view:', e);
-        client360Toast('Failed to open Guarantors: ' + (e?.message || e), 'error');
-    }
 }
 
 function loadDepositsSection(deposits, balance) {
@@ -2042,7 +2055,7 @@ function loadDepositsSection(deposits, balance) {
         return;
     }
 
-    if (sectionEl) sectionEl.style.display = 'block';
+if (sectionEl) sectionEl.style.display = 'block';
     if (balanceEl) balanceEl.textContent = formatCurrency(balance);
 
     if (!contentEl) return;
@@ -2054,22 +2067,22 @@ function loadDepositsSection(deposits, balance) {
 
     renderCards(contentEl, rows, {
         emptyText: 'No deposits',
-        titleKeys: ['Product', 'DepositProduct', 'AccountName', 'AccountID', 'DepositID', 'Id'],
+     titleKeys: ['Product', 'DepositProduct', 'AccountName', 'AccountID', 'DepositID', 'Id'],
         badgeKeys: ['Status', 'DepositStatus', 'ProductTypeID', 'Type'],
         maxFields: 10,
-        primaryAction: {
-            label: 'View Statement',
-            buttonClassName: 'btn btn-sm client360-statement-btn w-100',
-            isEnabled: (r) => !!extractAccountIdFromRow(r),
+   primaryAction: {
+    label: 'View Statement',
+    buttonClassName: 'btn btn-sm client360-statement-btn w-100',
+      isEnabled: (r) => !!extractAccountIdFromRow(r),
             onClick: (r) => openAccountStatement(extractAccountIdFromRow(r), extractBranchIdFromRow(r))
-        },
+  },
         secondaryAction: {
-            label: 'Signatories',
-            buttonClassName: 'btn btn-sm client360-signatories-btn w-100',
-            isEnabled: (r) => !!extractAccountIdFromRow(r) && !isLikelyLoanRow(r),
-            onClick: (r) => openAccountSignatories(extractAccountIdFromRow(r), extractBranchIdFromRow(r))
+       label: 'Signatories',
+    buttonClassName: 'btn btn-sm client360-signatories-btn w-100',
+        isEnabled: (r) => !!extractAccountIdFromRow(r) && !isLikelyLoanRow(r),
+ onClick: (r) => openAccountSignatories(extractAccountIdFromRow(r), extractBranchIdFromRow(r))
         }
-    });
+ });
 }
 
 function loadLoansSection(loans, balance) {
@@ -2081,8 +2094,8 @@ function loadLoansSection(loans, balance) {
 
     // Only show if loans exist and are not empty
     if (!rows.length) {
-        if (sectionEl) sectionEl.style.display = 'none';
-        return;
+  if (sectionEl) sectionEl.style.display = 'none';
+return;
     }
 
     if (sectionEl) sectionEl.style.display = 'block';
@@ -2090,71 +2103,71 @@ function loadLoansSection(loans, balance) {
 
     // Header totals (visible even if the section is collapsed)
     try {
-        const headerSummaryEl = $('loansHeaderSummary');
-        const outstandingEl = $('loansOutstandingTotal');
+ const headerSummaryEl = $('loansHeaderSummary');
+    const outstandingEl = $('loansOutstandingTotal');
         const borrowedEl = $('loansAmountBorrowedTotal');
 
         const outstandingTotal = sumByCandidateKeys(rows, [
             'OutstandingLoan',
-            'Outstanding Loan',
-            'Outstanding_Loan',
-            'outstandingLoan',
-            'OutstandingBalance',
+    'Outstanding Loan',
+    'Outstanding_Loan',
+    'outstandingLoan',
+        'OutstandingBalance',
             'LoanOutstanding',
             'Outstanding'
         ]);
 
         const amountBorrowedTotal = sumByCandidateKeys(rows, [
-            'AmountBorrowed',
-            'Amount Borrowed',
-            'Amount_Borrowed',
-            'amountBorrowed',
-            'LoanAmount',
-            'DisbursedAmount',
+       'AmountBorrowed',
+   'Amount Borrowed',
+      'Amount_Borrowed',
+          'amountBorrowed',
+     'LoanAmount',
+       'DisbursedAmount',
             'Disbursed',
-            'Principal',
-            'PrincipalAmount'
+     'Principal',
+      'PrincipalAmount'
         ]);
 
         const hasTotals = (outstandingTotal !== null) || (amountBorrowedTotal !== null);
-        if (headerSummaryEl) headerSummaryEl.style.display = hasTotals ? 'flex' : 'none';
+    if (headerSummaryEl) headerSummaryEl.style.display = hasTotals ? 'flex' : 'none';
         if (outstandingEl) outstandingEl.textContent = outstandingTotal === null ? '-' : formatCurrency(outstandingTotal);
         if (borrowedEl) borrowedEl.textContent = amountBorrowedTotal === null ? '-' : formatCurrency(amountBorrowedTotal);
     } catch (e) {
-        console.warn('Failed to compute loan header totals:', e);
+  console.warn('Failed to compute loan header totals:', e);
     }
 
-    if (!contentEl) return;
+  if (!contentEl) return;
 
     if (balanceEl) {
         const hasBalance = balance !== undefined && balance !== null && String(balance).trim() !== '';
-        balanceEl.textContent = hasBalance ? formatCurrency(balance) : '';
+    balanceEl.textContent = hasBalance ? formatCurrency(balance) : '';
     }
 
     renderCards(contentEl, rows, {
         emptyText: 'No loans',
         titleKeys: ['LoanType', 'Product', 'LoanID', 'LoanId', 'AccountID', 'AccountId'],
         badgeKeys: ['Status', 'LoanStatus', 'ProductTypeID', 'Type'],
-        maxFields: 10,
-        actions: [
+      maxFields: 10,
+    actions: [
             {
-                label: 'View Statement',
-                buttonClassName: 'btn btn-sm client360-statement-btn',
-                isEnabled: (r) => !!extractAccountIdFromRow(r),
-                onClick: (r) => openLoanStatement(r)
-            },
+             label: 'View Statement',
+      buttonClassName: 'btn btn-sm client360-statement-btn',
+      isEnabled: (r) => !!extractAccountIdFromRow(r),
+      onClick: (r) => openLoanStatement(r)
+   },
             {
-                label: 'Collateral',
-                buttonClassName: 'btn btn-sm btn-outline-secondary',
-                isEnabled: (r) => !!extractAccountIdFromRow(r),
-                onClick: (r) => openLoanCollaterals(r)
-            },
-            {
-                label: 'Guarantors',
-                buttonClassName: 'btn btn-sm btn-outline-secondary',
-                isEnabled: (r) => !!extractAccountIdFromRow(r),
-                onClick: (r) => openLoanGuarantors(r)
-            }
+ label: 'Collateral',
+    buttonClassName: 'btn btn-sm btn-outline-secondary',
+      isEnabled: (r) => !!extractAccountIdFromRow(r),
+       onClick: (r) => openLoanCollaterals(r)
+      },
+    {
+            label: 'Guarantors',
+            buttonClassName: 'btn btn-sm btn-outline-secondary',
+       isEnabled: (r) => !!extractAccountIdFromRow(r),
+ onClick: (r) => openLoanGuarantors(r)
+          }
         ]
     });
 }
@@ -2174,11 +2187,11 @@ function loadBlockedDetailsSection(blockedDetails) {
     if (!contentEl) return;
 
     const rows = normalizeToArray(blockedDetails);
-    renderCards(contentEl, rows, {
+ renderCards(contentEl, rows, {
         emptyText: 'No blocked details',
-        titleKeys: ['blockId', 'BlockID', 'AccountID', 'AccountId', 'Id'],
-        badgeKeys: ['status', 'Status'],
-        maxFields: 10
+  titleKeys: ['blockId', 'BlockID', 'AccountID', 'AccountId', 'Id'],
+  badgeKeys: ['status', 'Status'],
+ maxFields: 10
     });
 }
 
@@ -2209,7 +2222,7 @@ function loadStandingInstructionsSection(standingInstructions) {
 
     // Only show if standing instructions exist and are not empty
     if (!rows.length) {
-        if (sectionEl) sectionEl.style.display = 'none';
+if (sectionEl) sectionEl.style.display = 'none';
         return;
     }
 
@@ -2220,7 +2233,7 @@ function loadStandingInstructionsSection(standingInstructions) {
     renderCards(contentEl, rows, {
         emptyText: 'No standing instructions',
         titleKeys: ['Instruction', 'InstructionType', 'Type', 'AccountID', 'AccountId', 'Id'],
-        badgeKeys: ['Status', 'Active', 'Frequency'],
+   badgeKeys: ['Status', 'Active', 'Frequency'],
         maxFields: 10
     });
 }
@@ -2231,7 +2244,7 @@ function loadOtherAccountsSection(otherAccounts) {
 
     const rows = normalizeToArray(otherAccounts);
     if (!rows.length) {
-        if (sectionEl) sectionEl.style.display = 'none';
+   if (sectionEl) sectionEl.style.display = 'none';
         return;
     }
 
@@ -2239,20 +2252,20 @@ function loadOtherAccountsSection(otherAccounts) {
     renderCards(contentEl, rows, {
         emptyText: 'No other accounts',
         titleKeys: ['Product', 'AccountName', 'AccountID', 'AccountId', 'Id'],
-        badgeKeys: ['ProductTypeID', 'Type', 'Status'],
-        maxFields: 10,
+   badgeKeys: ['ProductTypeID', 'Type', 'Status'],
+ maxFields: 10,
         primaryAction: {
-            label: 'View Statement',
-            buttonClassName: 'btn btn-sm client360-statement-btn w-100',
-            isEnabled: (r) => !!extractAccountIdFromRow(r),
+          label: 'View Statement',
+      buttonClassName: 'btn btn-sm client360-statement-btn w-100',
+         isEnabled: (r) => !!extractAccountIdFromRow(r),
             onClick: (r) => openAccountStatement(extractAccountIdFromRow(r), extractBranchIdFromRow(r))
-        },
+      },
         secondaryAction: {
-            label: 'Signatories',
-            buttonClassName: 'btn btn-sm client360-signatories-btn w-100',
-            isEnabled: (r) => !!extractAccountIdFromRow(r) && !isLikelyLoanRow(r),
+        label: 'Signatories',
+     buttonClassName: 'btn btn-sm client360-signatories-btn w-100',
+   isEnabled: (r) => !!extractAccountIdFromRow(r) && !isLikelyLoanRow(r),
             onClick: (r) => openAccountSignatories(extractAccountIdFromRow(r), extractBranchIdFromRow(r))
-        }
+}
     });
 }
 
@@ -2266,7 +2279,7 @@ function loadQuickLinks(quickLinks) {
     const rows = normalizeToArray(quickLinks);
 
     if (!rows.length) {
-        container.innerHTML = '<div style="padding: 8px 6px; color: #64748b; font-size: 11px;">No sub modules</div>';
+   container.innerHTML = '<div style="padding: 8px 6px; color: #64748b; font-size: 11px;">No sub modules</div>';
         return;
     }
 
@@ -2274,22 +2287,22 @@ function loadQuickLinks(quickLinks) {
         const title = link?.MenuDescription ?? link?.label ?? '';
         const moduleKey = link?.MenuURL ?? link?.action ?? link?.ModuleID ?? link?.ModuleId ?? link?.MenuID ?? link?.MenuId ?? link?.id ?? '';
 
-        const item = document.createElement('div');
+      const item = document.createElement('div');
         item.className = 'sidebar-item sidebar-item--enhanced';
-        item.style.cursor = 'pointer';
+  item.style.cursor = 'pointer';
 
-        item.innerHTML = `
-            <div class="sidebar-item__content">
-                <i class="bi bi-link-45deg sidebar-item__icon"></i>
-                <div class="sidebar-item__text">
-                    <div class="sidebar-item__title">${title}</div>
-                    <div class="sidebar-item__description">Open</div>
+    item.innerHTML = `
+          <div class="sidebar-item__content">
+     <i class="bi bi-link-45deg sidebar-item__icon"></i>
+     <div class="sidebar-item__text">
+  <div class="sidebar-item__title">${title}</div>
+          <div class="sidebar-item__description">Open</div>
                 </div>
-            </div>
+        </div>
         `;
 
         item.addEventListener('click', () => handleQuickLinkClick({ title, moduleKey, raw: link }));
-        container.appendChild(item);
+      container.appendChild(item);
     });
 }
 
@@ -2298,11 +2311,11 @@ function handleQuickLinkClick(link) {
     const moduleKey = String(link?.moduleKey || '').trim();
 
     if (!moduleKey) {
-        client360Toast(`${title}: route not provided`, 'warning');
-        return;
+   client360Toast(`${title}: route not provided`, 'warning');
+  return;
     }
 
-    // If MenuURL is a route/file, navigate. Otherwise just surface the key.
+// If MenuURL is a route/file, navigate. Otherwise just surface the key.
     const looksLikeUrl = /^https?:\/\//i.test(moduleKey);
     const looksLikeFile = /\.html(\?|#|$)/i.test(moduleKey);
     const looksLikePath = moduleKey.includes('/') || moduleKey.includes('\\');
@@ -2314,18 +2327,18 @@ function handleQuickLinkClick(link) {
     }
 
     if (typeof window.openClient360SubModule === 'function') {
-        window.openClient360SubModule(moduleKey, link?.raw);
-        return;
+   window.openClient360SubModule(moduleKey, link?.raw);
+   return;
     }
 
     if (looksLikeUrl) {
-        window.open(moduleKey, '_blank', 'noopener');
-        return;
+    window.open(moduleKey, '_blank', 'noopener');
+ return;
     }
 
-    if (looksLikeFile || looksLikePath) {
-        const url = new URL(moduleKey, window.location.href);
-        url.searchParams.set('t', String(Date.now()));
+if (looksLikeFile || looksLikePath) {
+  const url = new URL(moduleKey, window.location.href);
+ url.searchParams.set('t', String(Date.now()));
         window.location.href = url.toString();
         return;
     }
@@ -2339,7 +2352,7 @@ function handlePrint() {
         return;
     }
 
-    // Print stylesheet handles hiding action panel/search.
+  // Print stylesheet handles hiding action panel/search.
     window.print();
 }
 
@@ -2355,20 +2368,19 @@ function handleCancel() {
     setField('identificationNumber', '');
     setField('payrollNumber', '');
     setField('phoneNumber', '');
-    setField('employer', '');
+ setField('employer', '');
     setField('memberClass', '');
     setField('age', '');
     setField('identificationType', '');
     setField('clientStatus', '');
-    setField('branch', '');
+  setField('branch', '');
     setField('tanStatus', '');
-    setField('loanStatus', '');
+setField('loanStatus', '');
     setField('remarks', '');
 
     // Clear Passport Photo and Signature
-    // (These are rendered as image placeholders/targets via loadClientImages)
-    try { loadClientImages(null, null); } catch (_) { }
-    try { closeClient360ImageZoom(); } catch (_) { }
+  try { loadClientImages(null, null); } catch (_) {}
+    try { closeClient360ImageZoom(); } catch (_) {}
 
     clearClient360DynamicUI();
 
@@ -2386,17 +2398,16 @@ function handleCancel() {
 
     // Refresh recent list to clear active highlight
     renderClient360RecentActivities();
-
+    
     client360Toast('View cleared', 'info');
 }
-
 
 // Export functions for external use if needed
 window.Client360View = {
     viewClient: handleViewClient,
-    refreshData: function () {
-        if (currentClientData) {
-            handleViewClient();
+    refreshData: function() {
+    if (currentClientData) {
+        handleViewClient();
         }
     }
 };

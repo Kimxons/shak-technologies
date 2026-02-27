@@ -4,12 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - Enterprise Core Banking</title>
-    
+
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -17,12 +19,12 @@
 
     <!-- Core Scripts -->
     <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/environment.js"></script>
-    <script src="/js/auth/auth.config.js"></script>
-    <script src="/js/auth/auth.service.js"></script>
+    @* <script src="/js/environment.js"></script> *@
+    @* <script src="/js/auth/auth.config.js"></script> *@
+    @* <script src="/js/auth/auth.service.js"></script> *@
     <script src="/js/app/app-core.js"></script>
     <script src="/js/services/workflow/notificationService.js"></script>
-    
+
     <!-- Shared Search Modal -->
     <script src="/js/modules/shared/searchModal.js"></script>
 
