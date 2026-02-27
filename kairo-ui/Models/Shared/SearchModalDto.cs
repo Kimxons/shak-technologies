@@ -8,7 +8,7 @@ namespace kairo_ui.Models.Shared
         public string TableID { get; set; } = string.Empty;
         public string? WhereStmt { get; set; }
         public string? AdvFilterString { get; set; }
-        public string? SearchKey { get; set; }
+        public object? SearchKey { get; set; }
         public string? ModuleID { get; set; } = "1000";
         public int? PrevOrNext { get; set; } = 1; // 1=Next, -1=Previous, 0=No direction
         public int? PageSize { get; set; } = 10;
@@ -50,15 +50,15 @@ namespace kairo_ui.Models.Shared
     /// </summary>
     public class SearchModalViewModel
     {
-        public string TableID { get; set; } = string.Empty;
-        public string WhereStmt { get; set; } = string.Empty;
-        public string AdvFilterString { get; set; } = string.Empty;
-        public string SearchKey { get; set; } = string.Empty;
-        public string ModuleID { get; set; } = "1000";
+        public string? TableID { get; set; } = string.Empty;
+        public string? WhereStmt { get; set; } = string.Empty;
+        public string? AdvFilterString { get; set; } = string.Empty;
+        public object? SearchKey { get; set; } = string.Empty;
+        public string? ModuleID { get; set; } = "1000";
         public int PrevOrNext { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public string RefID { get; set; } = string.Empty;
+        public string? RefID { get; set; } = string.Empty;
         public SearchConfigDto? SearchConfig { get; set; }
-        public string SearchTitle { get; set; } = "Search";
+        public string? SearchTitle { get; set; } = "Search";
     }
 }

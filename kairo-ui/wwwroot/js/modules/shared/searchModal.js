@@ -299,7 +299,8 @@
                 }
             });
 
-            return JSON.stringify(filters);
+            /*return JSON.stringify(filters);*/
+            return filters;
         }
 
         /**
