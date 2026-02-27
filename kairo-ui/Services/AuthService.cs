@@ -120,14 +120,24 @@ namespace kairo_ui.Services
             _logger = logger;
 
             // Load OAuth settings
-            _oauthSettings = new OAuthSettings();
-            configuration.GetSection("OAuth").Bind(_oauthSettings);
+            //_oauthSettings = new OAuthSettings();
+            //configuration.GetSection("OAuth").Bind(_oauthSettings);
+            _oauthSettings = new()
+            {
+                AuthorizeEndpoint = configuration["OAuth:AuthorizeEndpoint"],
+                ClientId = configuration["OAuth:ClientId"],
+                ClientSecret = configuration["OAuth:ClientSecret"],
+                RedirectUri = configuration["OAuth:RedirectUri"],
+                ResponseType = configuration["OAuth:ResponseType"],
+                Scope = configuration["OAuth:Scope"],
+                TokenEndpoint = configuration["OAuth:TokenEndpoint"]
+            };
             apiBaseUrl = string.Empty;
             //apiBaseUrl = configuration?.GetValue<string>("ApiSettings:AuthBaseUrl") ?? "http://localhost:5001/api";
             //_authEndpoint = $"{apiBaseUrl}/Auth/token";
-            _authEndpoint =$"/Auth/token";
+            _authEndpoint = $"/Auth/token";
             _logger.LogInformation("AuthService initialized | OAuth ClientId: {ClientId} | AuthEndpoint: {AuthEndpoint}",
-                _oauthSettings.ClientId, _authEndpoint);
+                _oauthSettings!.ClientId, _authEndpoint);
         }
 
         /// <summary>
