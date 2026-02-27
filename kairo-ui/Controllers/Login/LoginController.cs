@@ -144,6 +144,8 @@ namespace kairo_ui.Controllers.login
                         object? apiReq = new { RequestID = HttpContext.Connection.Id, BankID = "00", OurBranchID = branch.BranchCode, OperatorID = tokenResponse.Username! };
 
                         var respApi = await _apiService.CreateAsync<ResponseDetail<JsonDocument>>("SystemCoreApi", ApiEndpoints.GET_SYSTEMBANKSETTINGS, apiReq);
+                        _logger.LogInformation("SystemBankSettings response | resp: {@res}", respApi);
+
                         if (respApi == null || respApi.Details == null)
                         {
                             _logger.LogError("SystemCoreApi  GET_SYSTEMBANKSETTINGS failed| response: {@resp}", respApi);
