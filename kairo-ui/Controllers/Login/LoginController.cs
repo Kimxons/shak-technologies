@@ -144,6 +144,15 @@ namespace kairo_ui.Controllers.login
                         object? apiReq = new { RequestID = HttpContext.Connection.Id, BankID = "00", OurBranchID = branch.BranchCode, OperatorID = tokenResponse.Username! };
 
                         var respApi = await _apiService.CreateAsync<ResponseDetail<JsonDocument>>("SystemCoreApi", ApiEndpoints.GET_SYSTEMBANKSETTINGS, apiReq);
+                        if (respApi == null || respApi.Details == null)
+                        {
+                            _logger.LogError("SystemCoreApi  GET_SYSTEMBANKSETTINGS failed| response: {@resp}", respApi);
+                            var viewModel = new LoginViewModel
+                            {
+                                ErrorMessage = "SystemCoreApi  GET_SYSTEMBANKSETTINGS failed"
+                            };
+                            return View("Index", viewModel);
+                        }
                         SystemBankSetting? bank = JsonSerializer.Deserialize<SystemBankSetting?>(respApi.Details!.RootElement.GetProperty("SystemBankSettingData").GetRawText()!)!;
                         HttpContext.Session.SetString("bank_name", bank!.BankName!);
 
