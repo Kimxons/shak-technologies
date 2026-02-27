@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kairo Build Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .service-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .service-card.selected {
+            background: #e7f3ff;
+            border-color: #667eea;
+        }
+
+        .service-card input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .service-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .service-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .service-info {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .progress-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .log-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .log-line {
+            margin: 5px 0;
+        }
+
+        .log-info { color: #4fc3f7; }
+        .log-success { color: #66bb6a; }
+        .log-error { color: #ef5350; }
+        .log-warning { color: #ffb74d; }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Kairo Build Dashboard</h1>
+            <p>Select services to build and deploy</p>
+        </div>
+
+        <div class="content">
+            <div class="service-grid">
+                <div class="service-card" data-service="kairo-ui">
+                    <input type="checkbox" id="service-kairo-ui">
+                    <div class="service-icon">🎨</div>
+                    <div class="service-name">kairo-ui</div>
+                    <div class="service-info">Frontend (Razor Pages)</div>
+                </div>
+
+                <div class="service-card" data-service="account-management-api">
+                    <input type="checkbox" id="service-account-management-api">
+                    <div class="service-icon">💼</div>
+                    <div class="service-name">Account API</div>
+                    <div class="service-info">Account Management</div>
+                </div>
+
+                <div class="service-card" data-service="client-management-api">
+                    <input type="checkbox" id="service-client-management-api">
+                    <div class="service-icon">👥</div>
+                    <div class="service-name">Client API</div>
+                    <div class="service-info">Client Management</div>
+                </div>
+
+                <div class="service-card" data-service="systemcore-api">
+                    <input type="checkbox" id="service-systemcore-api">
+                    <div class="service-icon">⚙️</div>
+                    <div class="service-name">SystemCore API</div>
+                    <div class="service-info">Core Services</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="selectAll()">
+                    Select All
+                </button>
+                <button class="btn btn-secondary" onclick="selectNone()">
+                    Clear All
+                </button>
+                <button class="btn btn-primary" onclick="startBuild()" id="buildBtn">
+                    <span>🔨 Build Selected</span>
+                </button>
+            </div>
+
+            <div class="progress-section" id="progressSection">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalServices">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="completedServices">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="currentService">-</div>
+                        <div class="stat-label">Current</div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar">0%</div>
+                </div>
+
+                <div class="log-output" id="logOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const serviceConfig = {
+            'kairo-ui': {
+                dockerfile: 'kairo-ui/Dockerfile',
+                image: 'jipheens/kairo-ui:latest',
+                name: 'kairo-ui (Frontend)'
+            },
+            'account-management-api': {
+                dockerfile: 'AccountManagement/Dockerfile',
+                image: 'jipheens/account-management-api:latest',
+                name: 'Account Management API'
+            },
+            'client-management-api': {
+                dockerfile: 'ClientManagement/Dockerfile',
+                image: 'jipheens/client-management-api:latest',
+                name: 'Client Management API'
+            },
+            'systemcore-api': {
+                dockerfile: 'SystemCoreApi/Dockerfile',
+                image: 'jipheens/systemcore-api:latest',
+                name: 'SystemCore API'
+            }
+        };
+
+        // Make service cards clickable
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                this.classList.toggle('selected', checkbox.checked);
+            });
+        });
+
+        function selectAll() {
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.querySelector('input[type="checkbox"]').checked = true;
+                card.classList.add('selected');
+            });
+        }
+
+        function selectNone() {
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.querySelector('input[type="checkbox"]').checked = false;
+                card.classList.remove('selected');
+            });
+        }
+
+        function getSelectedServices() {
+            const selected = [];
+            document.querySelectorAll('.service-card input:checked').forEach(checkbox => {
+                const serviceName = checkbox.id.replace('service-', '');
+                selected.push(serviceName);
+            });
+            return selected;
+        }
+
+        function addLog(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logOutput.appendChild(line);
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function updateProgress(current, total) {
+            const percentage = Math.round((current / total) * 100);
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressBar').textContent = percentage + '%';
+            document.getElementById('completedServices').textContent = current;
+        }
+
+        async function startBuild() {
+            const selected = getSelectedServices();
+            
+            if (selected.length === 0) {
+                alert('Please select at least one service to build!');
+                return;
+            }
+
+            // Show progress section
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('logOutput').innerHTML = '';
+            document.getElementById('totalServices').textContent = selected.length;
+            document.getElementById('completedServices').textContent = 0;
+            
+            // Disable build button
+            const buildBtn = document.getElementById('buildBtn');
+            buildBtn.disabled = true;
+            buildBtn.innerHTML = '<div class="spinner"></div> <span>Building...</span>';
+
+            addLog(`Starting build for ${selected.length} service(s)...`, 'info');
+            
+            let completed = 0;
+
+            for (const serviceName of selected) {
+                const config = serviceConfig[serviceName];
+                document.getElementById('currentService').textContent = serviceName;
+                
+                addLog(`Building ${config.name}...`, 'info');
+                
+                try {
+                    // Call PowerShell backend to build
+                    const response = await fetch('/build', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ service: serviceName, config: config })
+                    });
+
+                    if (response.ok) {
+                        addLog(`✅ ${config.name} built successfully`, 'success');
+                        addLog(`Pushing ${config.name} to Docker Hub...`, 'info');
+                        
+                        // Push to Docker Hub
+                        const pushResponse = await fetch('/push', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ image: config.image })
+                        });
+
+                        if (pushResponse.ok) {
+                            addLog(`✅ ${config.name} pushed successfully`, 'success');
+                        } else {
+                            addLog(`❌ Failed to push ${config.name}`, 'error');
+                        }
+                    } else {
+                        addLog(`❌ Failed to build ${config.name}`, 'error');
+                    }
+                } catch (error) {
+                    addLog(`❌ Error: ${error.message}`, 'error');
+                }
+
+                completed++;
+                updateProgress(completed, selected.length);
+            }
+
+            document.getElementById('currentService').textContent = 'Done!';
+            addLog(`🎉 All builds completed! (${completed}/${selected.length} successful)`, 'success');
+            
+            // Re-enable build button
+            buildBtn.disabled = false;
+            buildBtn.innerHTML = '<span>🔨 Build Selected</span>';
+        }
+    </script>
+</body>
+</html>
