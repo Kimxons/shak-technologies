@@ -324,10 +324,10 @@ if (startButton && startMenu) {
 
 // Populate Start Menu Grid
 window.addEventListener('load', () => {
-    if (typeof START_MENU_REGISTRY === 'undefined') {
-        console.error("START_MENU_REGISTRY not found.");
-        return;
-    }
+    //if (typeof START_MENU_REGISTRY === 'undefined') {
+    //    console.error("START_MENU_REGISTRY not found.");
+    //    return;
+    //}
     console.log("hapa ndipo");
     const grid = document.getElementById('startMenuGrid');
     const submenuView = document.getElementById('startMenuSubmenu');
@@ -422,22 +422,22 @@ window.addEventListener('load', () => {
                         });
                     }
 
-                    if (typeof START_MENU_REGISTRY !== 'undefined') {
-                        Object.entries(START_MENU_REGISTRY).forEach(([key, module]) => {
-                            if (!module) return;
+                    //if (typeof START_MENU_REGISTRY !== 'undefined') {
+                    //    Object.entries(START_MENU_REGISTRY).forEach(([key, module]) => {
+                    //        if (!module) return;
 
-                            // Check Module Title
-                            if (module.title && module.title.toLowerCase().includes(query)) {
-                                renderSearchResult(module.title, "Module", () => showSubmenu(module), 'fa-layer-group');
-                                hasResults = true;
-                            }
+                    //        // Check Module Title
+                    //        if (module.title && module.title.toLowerCase().includes(query)) {
+                    //            renderSearchResult(module.title, "Module", () => showSubmenu(module), 'fa-layer-group');
+                    //            hasResults = true;
+                    //        }
 
-                            // Check Items
-                            if (module.items) {
-                                searchItems(module.items, module.title);
-                            }
-                        });
-                    }
+                    //        // Check Items
+                    //        if (module.items) {
+                    //            searchItems(module.items, module.title);
+                    //        }
+                    //    });
+                    //}
 
                     if (!hasResults) {
                         searchResultsList.innerHTML = `
@@ -509,18 +509,18 @@ const windowState = new Map(); // modalId -> { minimized: bool, minimizing: bool
 let activeModalId = null;
 const modalIconMap = new Map();
 
-// 1. Build Icon Map
-window.addEventListener('load', () => {
-    if (typeof START_MENU_REGISTRY !== 'undefined') {
-        Object.values(START_MENU_REGISTRY).forEach(module => {
-            if (module.items) {
-                module.items.forEach(item => {
-                    if (item.modalId && item.icon) modalIconMap.set(item.modalId, item.icon);
-                });
-            }
-        });
-    }
-});
+//// 1. Build Icon Map
+//window.addEventListener('load', () => {
+//    if (typeof START_MENU_REGISTRY !== 'undefined') {
+//        Object.values(START_MENU_REGISTRY).forEach(module => {
+//            if (module.items) {
+//                module.items.forEach(item => {
+//                    if (item.modalId && item.icon) modalIconMap.set(item.modalId, item.icon);
+//                });
+//            }
+//        });
+//    }
+//});
 
 // 2. Window Manager: Handle Show (AUTO-MINIMIZE OTHERS)
 document.body.addEventListener('show.bs.modal', (e) => {
@@ -944,20 +944,20 @@ function renderAvailableActions(searchQuery = '') {
 
     // Flatten registry to get all actionable items
     const allItems = [];
-    if (typeof START_MENU_REGISTRY !== 'undefined') {
-        Object.values(START_MENU_REGISTRY).forEach(module => {
-            if (module.items) {
-                module.items.forEach(item => {
-                    if (item.label && item.modalId) {
-                        // Avoid duplicates by label+id
-                        if (!allItems.find(existing => existing.modalId === item.modalId && existing.label === item.label)) {
-                            allItems.push(item);
-                        }
-                    }
-                });
-            }
-        });
-    }
+    //if (typeof START_MENU_REGISTRY !== 'undefined') {
+    //    Object.values(START_MENU_REGISTRY).forEach(module => {
+    //        if (module.items) {
+    //            module.items.forEach(item => {
+    //                if (item.label && item.modalId) {
+    //                    // Avoid duplicates by label+id
+    //                    if (!allItems.find(existing => existing.modalId === item.modalId && existing.label === item.label)) {
+    //                        allItems.push(item);
+    //                    }
+    //                }
+    //            });
+    //        }
+    //    });
+    //}
 
     const filtered = allItems.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase()));
 
