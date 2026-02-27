@@ -337,7 +337,7 @@ namespace kairo_ui.Services
                     tokenResponse.BranchId = token.Claims.FirstOrDefault(c => c.Type == "BranchId") != null ? int.Parse(token.Claims.FirstOrDefault(c => c.Type == "BranchId")?.Value ?? "0") : 0;
                     tokenResponse.UserId = token.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
                     tokenResponse.TokenType = "Bearer";
-                    tokenResponse.RefreshToken = tokenResponse.RefreshToken;
+                    //tokenResponse.RefreshToken = tokenResponse.RefreshToken;
                     tokenResponse.Success = true;
                     StoreTokenInSession(tokenResponse);
                     _logger.LogInformation("OAuth token exchange successful | User: {UserId} | Token expires in: {ExpiresIn}s",
@@ -453,7 +453,10 @@ namespace kairo_ui.Services
         {
             var session = _httpContextAccessor.HttpContext?.Session;
             if (session == null)
+            {
+                _logger.LogError("Session not found when fetching Token Expiry");
                 return null;
+            }
 
             var expiryStr = session.GetString(TOKEN_EXPIRY_SESSION_KEY);
             if (expiryStr != null && DateTime.TryParse(expiryStr, out var expiry))
