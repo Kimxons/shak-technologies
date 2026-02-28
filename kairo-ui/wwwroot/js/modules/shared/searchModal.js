@@ -49,9 +49,10 @@
                     WhereStmt: options.whereStmt || '',
                     AdvFilterString: options.advFilterString || '',
                     SearchKey: options.searchKey || '',
-                    ModuleID: options.moduleID || '1000',
+                    ModuleID: options.moduleID || '100',
                     PrevOrNext: 0,
-                    PageSize: options.pageSize || 20
+                    PageSize: options.pageSize || 20,
+                    OurBranchID: options.ourbranchId || null
                 };
 
                 // Use AppCore to load the partial view
@@ -174,7 +175,8 @@
                         searchKey: config.searchKey,
                         moduleID: config.moduleID,
                         prevOrNext: config.prevOrNext,
-                        pageSize: config.pageSize
+                        pageSize: config.pageSize,
+                        ourbranchId: config.ourbranchId
                     });
                 }
 
@@ -213,7 +215,7 @@
                 const tableID = document.getElementById('search-table-id')?.value;
                 const whereStmt = document.getElementById('search-where-stmt')?.value || '';
                 const advFilter = document.getElementById('search-adv-filter')?.value || '';
-                const moduleID = document.getElementById('search-module-id')?.value || '1000';
+                const moduleID = document.getElementById('search-module-id')?.value || '100';
                 
                 // Get page size from dropdown
                 const pageSizeDropdown = document.getElementById('search-page-size');
@@ -232,7 +234,8 @@
                     ModuleID: moduleID,
                     PageSize: this.pageSize,
                     RefID: this.refID,
-                    PrevOrNext: this.prevOrNext
+                    PrevOrNext: this.prevOrNext,
+                    OurBranchID: this.currentConfig.ourbranchId || null
                 });
 
                 console.log('[SearchModal] Search response:', response);
