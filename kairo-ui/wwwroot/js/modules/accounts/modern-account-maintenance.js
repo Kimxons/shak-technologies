@@ -1530,6 +1530,10 @@
                 whereStmt += `ClientID='${sanitizeValue(clientId)}'`;
             }
 
+            // DEBUG: Log the whereStmt to verify it's being constructed
+            console.log('[AccountMaintenance] Account search whereStmt:', whereStmt);
+            console.log('[AccountMaintenance] BranchID:', branchId, 'ClientID:', clientId);
+
             let initialSearchKey = '';
             if (currentAccountId) {
                 initialSearchKey = `AccountID LIKE '%${currentAccountId}%'`;

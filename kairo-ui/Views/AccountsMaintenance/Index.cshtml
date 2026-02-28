@@ -434,8 +434,8 @@
                             <div class="col">
                                 <label class="label-blue">Branch</label>
                                 <div class="kairo-branch-control" data-kairo-branch-control>
-                                    <input type="text" id="BranchID" value="0101" class="kairo-branch-control__id" aria-label="Branch ID">
-                                    <input type="text" id="BranchName" value="Head Office" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                    <input type="text" id="BranchID" value="@Context.Session.GetString("branch_code")" class="kairo-branch-control__id" aria-label="Branch ID">
+                                    <input type="text" id="BranchName" value="@Context.Session.GetString("branch_name")" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
                                     <button type="button" class="btn-lookup kairo-branch-control__lookup" data-target-input="BranchID" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
