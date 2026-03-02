@@ -95,12 +95,12 @@ function openKairoWindow(module) {
         + '    <div class="modal-content">                                                                                            '
         + '        <div class="modal-header">                                                                                         '
         + '            <h4 class="modal-title mb-0">' + module.label + '</h4>                                                           '
-        + '            <div class="window-controls" data-window-controls>                                                             '
+        + '            <div class="window-controls" data-window-control>                                                             '
         + '                <button type="button" class="window-control" data-window-action="refresh" aria-label="Refresh window">     '
         + '                    <i class="fas fa-sync-alt"></i>                                                                        '
         + '                </button>                                                                                                  '
         + '                <button type="button" class="window-control" data-window-action="minimize" aria-label="Minimize window">   '
-        + '                    <i class="finvokeControllerAsyncar fa-window-minimize"></i>                                                                 '
+        + '                    <i class="fas fa-window-minimize"></i>                                                                 '
         + '                </button>                                                                                                  '
         + '                <button type="button" class="window-control" data-window-action="maximize" aria-label="Maximize window">   '
         + '                    <i class="far fa-square"></i>                                                                          '
@@ -140,6 +140,8 @@ function openKairoWindow(module) {
         $(".modal-backdrop").not(".stacked").last()
             .css("z-index", modalIndex - 1)
             .addClass("stacked");
+        // Attach window controls after modal is shown
+        attachWindowControls($newModal[0]);
     });
 
     var modal = new bootstrap.Modal($newModal[0]);
@@ -324,10 +326,10 @@ if (startButton && startMenu) {
 
 // Populate Start Menu Grid
 window.addEventListener('load', () => {
-    //if (typeof START_MENU_REGISTRY === 'undefined') {
-    //    console.error("START_MENU_REGISTRY not found.");
-    //    return;
-    //}
+    if (typeof START_MENU_REGISTRY === 'undefined') {
+        console.error("START_MENU_REGISTRY not found.");
+        return;
+    }
     console.log("hapa ndipo");
     const grid = document.getElementById('startMenuGrid');
     const submenuView = document.getElementById('startMenuSubmenu');
@@ -422,22 +424,22 @@ window.addEventListener('load', () => {
                         });
                     }
 
-                    //if (typeof START_MENU_REGISTRY !== 'undefined') {
-                    //    Object.entries(START_MENU_REGISTRY).forEach(([key, module]) => {
-                    //        if (!module) return;
+                    if (typeof START_MENU_REGISTRY !== 'undefined') {
+                        Object.entries(START_MENU_REGISTRY).forEach(([key, module]) => {
+                            if (!module) return;
 
-                    //        // Check Module Title
-                    //        if (module.title && module.title.toLowerCase().includes(query)) {
-                    //            renderSearchResult(module.title, "Module", () => showSubmenu(module), 'fa-layer-group');
-                    //            hasResults = true;
-                    //        }
+                            // Check Module Title
+                            if (module.title && module.title.toLowerCase().includes(query)) {
+                                renderSearchResult(module.title, "Module", () => showSubmenu(module), 'fa-layer-group');
+                                hasResults = true;
+                            }
 
-                    //        // Check Items
-                    //        if (module.items) {
-                    //            searchItems(module.items, module.title);
-                    //        }
-                    //    });
-                    //}
+                            // Check Items
+                            if (module.items) {
+                                searchItems(module.items, module.title);
+                            }
+                        });
+                    }
 
                     if (!hasResults) {
                         searchResultsList.innerHTML = `
@@ -509,18 +511,18 @@ const windowState = new Map(); // modalId -> { minimized: bool, minimizing: bool
 let activeModalId = null;
 const modalIconMap = new Map();
 
-//// 1. Build Icon Map
-//window.addEventListener('load', () => {
-//    if (typeof START_MENU_REGISTRY !== 'undefined') {
-//        Object.values(START_MENU_REGISTRY).forEach(module => {
-//            if (module.items) {
-//                module.items.forEach(item => {
-//                    if (item.modalId && item.icon) modalIconMap.set(item.modalId, item.icon);
-//                });
-//            }
-//        });
-//    }
-//});
+// 1. Build Icon Map
+window.addEventListener('load', () => {
+    if (typeof START_MENU_REGISTRY !== 'undefined') {
+        Object.values(START_MENU_REGISTRY).forEach(module => {
+            if (module.items) {
+                module.items.forEach(item => {
+                    if (item.modalId && item.icon) modalIconMap.set(item.modalId, item.icon);
+                });
+            }
+        });
+    }
+});
 
 // 2. Window Manager: Handle Show (AUTO-MINIMIZE OTHERS)
 document.body.addEventListener('show.bs.modal', (e) => {
@@ -944,20 +946,20 @@ function renderAvailableActions(searchQuery = '') {
 
     // Flatten registry to get all actionable items
     const allItems = [];
-    //if (typeof START_MENU_REGISTRY !== 'undefined') {
-    //    Object.values(START_MENU_REGISTRY).forEach(module => {
-    //        if (module.items) {
-    //            module.items.forEach(item => {
-    //                if (item.label && item.modalId) {
-    //                    // Avoid duplicates by label+id
-    //                    if (!allItems.find(existing => existing.modalId === item.modalId && existing.label === item.label)) {
-    //                        allItems.push(item);
-    //                    }
-    //                }
-    //            });
-    //        }
-    //    });
-    //}
+    if (typeof START_MENU_REGISTRY !== 'undefined') {
+        Object.values(START_MENU_REGISTRY).forEach(module => {
+            if (module.items) {
+                module.items.forEach(item => {
+                    if (item.label && item.modalId) {
+                        // Avoid duplicates by label+id
+                        if (!allItems.find(existing => existing.modalId === item.modalId && existing.label === item.label)) {
+                            allItems.push(item);
+                        }
+                    }
+                });
+            }
+        });
+    }
 
     const filtered = allItems.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -1059,4 +1061,163 @@ window.openQuickAction = function (modalId) {
     } else {
         console.warn('Quick Action: Modal not found', modalId);
     }
+};
+
+
+window.addEventListener("message", (event) => {
+    console.log(event);
+    const data = event?.data;
+    if (!data) return;
+
+    if (data.type === "kairo-modal-lock") {
+        const modalId = data.modalId;
+        if (!modalId) return;
+        const modalEl = document.getElementById(modalId);
+        if (!modalEl) return;
+
+        ensureWindowModalGuard(modalEl);
+
+        const current = Number(modalEl.dataset.childLockCount || "0");
+        const next = Math.max(0, current + (data.locked ? 1 : -1));
+        modalEl.dataset.childLockCount = String(next);
+        modalEl.dataset.childLock = next > 0 ? "true" : "false";
+    }
+    console.log(data);
+    // Handle window actions (minimize, maximize, close, refresh) from iframes
+    if (data.type === "kairo-action" && ["minimize", "maximize", "close", "refresh"].includes(data.action)) {
+        const action = data.action;
+        const modals = document.querySelectorAll(".legacy-modal");
+        modals.forEach((modalEl) => {
+            const iframe = modalEl.querySelector("iframe");
+            //if (iframe && iframe.contentWindow === event.source) {
+
+            if (iframe) {
+                if (action === "minimize" && typeof minimizeModal === "function") {
+                    minimizeModal(modalEl);
+                } else if (action === "maximize" && typeof toggleMaximizeModal === "function") {
+                    const btnMaximize = modalEl.querySelector('[data-window-action="maximize"]');
+                    toggleMaximizeModal(modalEl, btnMaximize);
+                } else if (action === "close" && typeof closeModalWindow === "function") {
+                    closeModalWindow(modalEl);
+                } else if (action === "refresh") {
+                    const btnRefresh = modalEl.querySelector('[data-window-action="refresh"]');
+                    // Reuse the refresh logic already in app.js if possible
+                    //if (btnRefresh) {
+                    //    btnRefresh.click();
+                    //} else {
+                        // Fallback refresh logic
+                        const src = iframe.src;
+                        iframe.src = src;
+                    //}
+                }
+            }
+        });
+    }
+});
+
+function attachWindowControls(modalElement) {
+    if (!modalElement) {
+        console.warn('[attachWindowControls] No modal element provided');
+        return;
+    }
+
+    const modalId = modalElement.id;
+    const controls = modalElement.querySelectorAll('[data-window-control]');
+
+    if (!controls) {
+        console.warn('[attachWindowControls] No window controls found for:', modalId);
+        return;
+    }
+
+    console.log('[attachWindowControls] Attaching controls for:', modalId);
+
+    //document.querySelectorAll('.de-title-btn[data-action]').forEach((btn) => {
+    controls[0].querySelectorAll(".window-control").forEach((btn) => {
+        console.log(btn);
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = btn.getAttribute('data-window-action');
+            console.log(action);
+            //handleWindowAction(action, btn);
+            window.parent?.postMessage?.({ type: 'kairo-action', modalId, action: action }, '*');
+        });
+    });
+
+
+}
+
+const minimizeOtherWindows = (nextModalId) => {
+    document.querySelectorAll(".legacy-modal.show").forEach((modalEl) => {
+        if (!modalEl.id || modalEl.id === nextModalId) return;
+        minimizeModal(modalEl);
+    });
+};
+const ensureTaskbarButton = (modalEl) => {
+    if (!taskbarContainer || !modalEl?.id) return null;
+    let button = getTaskbarButton(modalEl.id);
+    if (button) return button;
+    const iconClass = modalEl.dataset.windowIcon || "far fa-window-maximize";
+    const title = modalEl.dataset.windowTitle || modalEl.querySelector(".modal-title")?.textContent?.trim() || "Window";
+    button = document.createElement("button");
+    button.type = "button";
+    button.className = "taskbar-item";
+    button.dataset.taskbarModal = modalEl.id;
+    button.innerHTML = `<i class="${iconClass}"></i> <span>${title}</span>`;
+    button.addEventListener("click", () => {
+        const isVisible = modalEl.classList.contains("show");
+        if (isVisible) {
+            minimizeModal(modalEl);
+        } else {
+            minimizeOtherWindows(modalEl.id);
+            modalEl.dataset.windowState = "active";
+            bootstrapLib?.Modal.getOrCreateInstance(modalEl, modalOptions).show();
+        }
+    });
+    taskbarContainer.appendChild(button);
+    return button;
+};
+
+const closeStartMenu = () => {
+    if (!startMenu) return;
+    startMenu.classList.remove("is-visible");
+    startOverlay?.classList.remove("is-visible");
+};
+
+const minimizeModal = (modalEl) => {
+    if (!modalEl) return;
+    modalEl.dataset.windowState = "minimized";
+    ensureTaskbarButton(modalEl);
+    closeStartMenu();
+    bootstrapLib?.Modal.getOrCreateInstance(modalEl, modalOptions)?.hide();
+};
+
+const toggleMaximizeModal = (modalEl, trigger) => {
+    if (!modalEl) return;
+    const dialog = modalEl.querySelector(".modal-dialog");
+    if (!dialog) return;
+
+    // Reset any drag positioning so maximize can take full control.
+    dialog.style.removeProperty("position");
+    dialog.style.removeProperty("left");
+    dialog.style.removeProperty("top");
+    dialog.style.removeProperty("margin");
+
+    const isMaximized = dialog.classList.toggle("is-maximized");
+    const icon = trigger?.querySelector("i");
+    if (icon) {
+        icon.classList.toggle("fa-square", !isMaximized);
+        icon.classList.toggle("fa-clone", isMaximized);
+    }
+};
+
+const bootstrapLib = window.bootstrap;
+const modalOptions = {
+    backdrop: false,
+    focus: false,
+    keyboard: true
+};
+const closeModalWindow = (modalEl) => {
+    if (!modalEl) return;
+    modalEl.dataset.windowState = "closing";
+    bootstrapLib?.Modal.getOrCreateInstance(modalEl, modalOptions)?.hide();
 };
