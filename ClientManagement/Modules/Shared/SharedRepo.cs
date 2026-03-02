@@ -49,5 +49,47 @@ namespace ClientManagement.Modules.Shared
             };
             return respObj;
         }
+
+        public async Task<ResponseDetail<object>> GetAccountTransactions(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_TRANSACTIONS} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!)
+            ,
+                ResponseCode = respStr.ResponseCode
+            ,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
+
+        public async Task<ResponseDetail<object>> GetBatchTrxList(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_BATCH_TRX_LIST} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!)
+            ,
+                ResponseCode = respStr.ResponseCode
+            ,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
+
+        public async Task<ResponseDetail<object>> GetMember360(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_MEMBER360} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!)
+            ,
+                ResponseCode = respStr.ResponseCode
+            ,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
     }
 }

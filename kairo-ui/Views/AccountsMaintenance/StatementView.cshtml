@@ -1,21 +1,10 @@
 ﻿@{
-    // Migrated from: statement-view.html
+    ViewData["Title"] = "Statement View";
+    Layout = "_ApplicationLayout";
 }
-
 <!-- StatementView Submodule -->
 <div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-receipt am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Statement View</span>
-        </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="de-title-btn am-btn am-btn-secondary" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
-    </div>
-
+    
     <main class="main-container">
       <div class="form-content" role="region" aria-label="Statement View">
         <div class="form-card" data-main-form>
@@ -106,36 +95,35 @@
       </aside>
     </main>
   </div>
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/account/AccountService.js"></script>
-  <script src="view-base.js?v=20250128"></script>
-  <script src="statement-view.js?v=20250128"></script>
-  <script>
-    // Window control handlers
-    document.querySelectorAll('.de-title-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const action = btn.dataset.action;
-        if (action === 'refresh') {
-          location.reload();
-        } else if (action === 'maximize') {
-          const windowEl = document.querySelector('.window');
-          windowEl.classList.toggle('maximized');
-          window.parent.postMessage({ action: 'toggleSidebarForMaximize', isMaximized: windowEl.classList.contains('maximized') }, '*');
-        } else if (action === 'close') {
-          window.parent.postMessage({ action: 'submoduleClosed' }, '*');
-        }
-      });
-    });
-    // Notify parent when form opens
-    window.parent.postMessage({ action: 'submoduleOpened' }, '*');
-  </script>
 
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'StatementView') {
-        console.log('[StatementView] Submodule loaded');
-    }
-});
-</script>
+@section Scripts {
+    <script type="text/javascript" src="view-base.js?v=20250128"></script>
+    <script type="text/javascript" src="/js/modules/shared/statement-view.js?v=20250128"></script>
+    <script type="text/javascript">
+        // Window control handlers
+        document.querySelectorAll('.de-title-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const action = btn.dataset.action;
+            if (action === 'refresh') {
+              location.reload();
+            } else if (action === 'maximize') {
+              const windowEl = document.querySelector('.window');
+              windowEl.classList.toggle('maximized');
+              window.parent.postMessage({ action: 'toggleSidebarForMaximize', isMaximized: windowEl.classList.contains('maximized') }, '*');
+            } else if (action === 'close') {
+              window.parent.postMessage({ action: 'submoduleClosed' }, '*');
+            }
+          });
+        });
+        // Notify parent when form opens
+        window.parent.postMessage({ action: 'submoduleOpened' }, '*');
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener('submodule:loaded', function(e) {
+            if (e.detail.submoduleName === 'StatementView') {
+                console.log('[StatementView] Submodule loaded');
+            }
+        });
+    </script>
+}

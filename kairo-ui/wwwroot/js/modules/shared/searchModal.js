@@ -1,14 +1,17 @@
 /**
- * Shared Search Modal
- * Reusable search modal that integrates with app-core.js
- * Follows the MVC pattern with controller actions
+ * Search Modal - Theme-aware, App-Core integrated
+ * Reusable search modal that works with MVC SearchModal controller
  * 
  * Dependencies:
  * - app-core.js (AppCore global object)
+ * - SearchModal view from Views/Shared/_SearchModal.cshtml
  * 
  * Usage:
  * const searchModal = new SearchModal(window.AppCore);
- * await searchModal.open({ tableID: 'ClientID', onSelect: (row) => { ... } });
+ * searchModal.open({ 
+ *   tableID: 'ClientID', 
+ *   onSelect: (row) => { console.log('Selected:', row); }
+ * });
  */
 
 (function (global) {
@@ -23,131 +26,137 @@
 
             this.appCore = appCore;
             this.modalElement = null;
-            this.overlayElement = null;
-            this.bootstrapModal = null;
             this.isInitialized = false;
             this.currentConfig = null;
             this.selectedRow = null;
             this.currentResults = [];
+            this.currentPage = 0;
+            this.refID = ''; // Last value of KeyForNavigation for cursor-based pagination
+            this.prevOrNext = 0; // 0 = default/first, 1 = next, -1 = previous
+            this.pageSize = 20; // Default page size
+            this.keyForNavigation = ''; // Field name for navigation key
         }
 
         /**
-         * Initialize modal by loading HTML from controller
-         * @param {string} tableID - Table identifier for search
-         * @param {Object} options - Optional parameters (whereStmt, advFilterString, etc.)
+         * Load search modal HTML from controller and initialize
          */
-        async init(tableID, options = {}) {
+        async loadModal(tableID, options = {}) {
             try {
-                console.log('[SearchModal] Initializing modal for TableID:', tableID);
+                console.log('[SearchModal] Loading modal for TableID:', tableID);
 
-                // Build query parameters
                 const queryParams = {
                     TableID: tableID,
                     WhereStmt: options.whereStmt || '',
                     AdvFilterString: options.advFilterString || '',
                     SearchKey: options.searchKey || '',
                     ModuleID: options.moduleID || '1000',
-                    PrevOrNext: options.prevOrNext || 1,
-                    PageSize: options.pageSize || 10
+                    PrevOrNext: 0,
+                    PageSize: options.pageSize || 20
                 };
 
-                // Use AppCore.invokeControllerGetView to load the partial view (returns HTML)
+                // Use AppCore to load the partial view
                 const html = await this.appCore.invokeControllerGetViewAsync('SearchModal/Index', queryParams);
 
-                //console.log(html);
                 if (!html || typeof html !== 'string') {
-                    //if (!html) {
                     throw new Error('Failed to load search modal HTML');
                 }
 
                 console.log('[SearchModal] Modal HTML loaded successfully');
 
                 // Remove existing modal if present
-                const existingOverlay = document.getElementById('search-modal-overlay');
-                if (existingOverlay) {
-                    existingOverlay.remove();
+                const existingModal = document.getElementById('search-modal');
+                if (existingModal) {
+                    existingModal.remove();
                 }
 
                 // Insert modal HTML into DOM
                 document.body.insertAdjacentHTML('beforeend', html);
 
-                // Get references to modal elements
-                this.overlayElement = document.getElementById('search-modal-overlay');
-                this.modalElement = this.overlayElement?.querySelector('.modal-content');
+                // Get modal element
+                this.modalElement = document.getElementById('search-modal');
 
-                if (!this.overlayElement || !this.modalElement) {
-                    throw new Error('Modal elements not found in DOM after insertion');
+                if (!this.modalElement) {
+                    throw new Error('Modal element not found after insertion');
                 }
 
-                // Initialize Bootstrap modal
-                this.bootstrapModal = new bootstrap.Modal(this.overlayElement, {
-                    backdrop: 'static',
-                    keyboard: true
-                });
+                // Store keyForNavigation field name
+                const keyForNavField = document.getElementById('search-key-for-nav')?.value;
+                if (keyForNavField) {
+                    this.keyForNavigation = keyForNavField;
+                    console.log('[SearchModal] KeyForNavigation field:', this.keyForNavigation);
+                }
 
-                // Wire up event listeners
-                this.setupEventListeners();
-
+                // Attach event listeners
+                this.attachEventListeners();
+                
                 this.isInitialized = true;
-                console.log('[SearchModal] Initialization complete');
+                console.log('[SearchModal] Modal loaded and initialized');
 
                 return true;
             } catch (error) {
-                console.error('[SearchModal] Initialization error:', error);
+                console.error('[SearchModal] Load error:', error);
                 throw error;
             }
         }
 
         /**
-         * Setup all event listeners for modal interactions
+         * Attach all event listeners to modal elements
          */
-        setupEventListeners() {
-            const closeBtn = document.getElementById('search-modal-close-btn');
-            const cancelBtn = document.getElementById('search-cancel-btn');
-            const selectBtn = document.getElementById('search-select-btn');
-            const executeBtn = document.getElementById('search-execute-btn');
-            const clearBtn = document.getElementById('search-clear-btn');
+        attachEventListeners() {
+            const closeBtn = document.getElementById('search-modal-close');
+            const searchBtn = document.getElementById('search-modal-search-btn');
+            const okBtn = document.getElementById('search-modal-ok');
+            const prevBtn = document.getElementById('search-modal-nav-prev');
+            const nextBtn = document.getElementById('search-modal-nav-next');
 
-            // Close handlers
+            // Close handler
             closeBtn?.addEventListener('click', () => this.close());
-            cancelBtn?.addEventListener('click', () => this.close());
 
-            // Select button
-            selectBtn?.addEventListener('click', () => this.selectAndClose());
-
-            // Search execution
-            executeBtn?.addEventListener('click', () => this.executeSearch());
-
-            // Clear button
-            clearBtn?.addEventListener('click', () => this.clearCriteria());
-
-            // Handle Bootstrap modal hidden event
-            this.overlayElement?.addEventListener('hidden.bs.modal', () => {
-                this.cleanupModal();
+            // Search handler (reset pagination for new search)
+            searchBtn?.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.refID = ''; // Reset pagination for new search
+                this.prevOrNext = 0;
+                this.executeSearch();
             });
 
-            // Enter key in search fields triggers search
-            const searchInputs = document.querySelectorAll('.search-field-input');
+            // OK/Select handler
+            okBtn?.addEventListener('click', () => {
+                if (this.selectedRow) {
+                    this.selectAndClose();
+                }
+            });
+
+            // Navigation handlers
+            prevBtn?.addEventListener('click', () => this.previousPage());
+            nextBtn?.addEventListener('click', () => this.nextPage());
+
+            // Close on modal click (overlay)
+            this.modalElement?.addEventListener('click', (e) => {
+                if (e.target === this.modalElement) {
+                    this.close();
+                }
+            });
+
+            // Enter key in search fields
+            const searchInputs = document.querySelectorAll('[data-field]');
             searchInputs.forEach(input => {
                 input.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
+                        this.refID = ''; // Reset pagination for new search
+                        this.prevOrNext = 0;
                         this.executeSearch();
                     }
                 });
             });
+
+            // Row selection
+            this.attachRowClickHandlers();
         }
 
         /**
          * Open the search modal
-         * @param {Object} config - Configuration object
-         * @param {string} config.tableID - Table identifier (required)
-         * @param {string} [config.whereStmt] - WHERE clause filter
-         * @param {string} [config.advFilterString] - Advanced filter string
-         * @param {string} [config.searchKey] - Initial search key
-         * @param {string} [config.moduleID] - Module ID (default: '1000')
-         * @param {Function} [config.onSelect] - Callback when row is selected
-         * @returns {Promise<Object>} Resolves with selected record or null
          */
         async open(config) {
             try {
@@ -157,93 +166,86 @@
 
                 this.currentConfig = config;
 
-                // Initialize modal
-                await this.init(config.tableID, {
-                    whereStmt: config.whereStmt,
-                    advFilterString: config.advFilterString,
-                    searchKey: config.searchKey,
-                    moduleID: config.moduleID,
-                    prevOrNext: config.prevOrNext,
-                    pageSize: config.pageSize
-                });
-
-                // Show Bootstrap modal
-                if (this.bootstrapModal) {
-                    this.bootstrapModal.show();
+                // Load modal if not already loaded
+                if (!this.isInitialized) {
+                    await this.loadModal(config.tableID, {
+                        whereStmt: config.whereStmt,
+                        advFilterString: config.advFilterString,
+                        searchKey: config.searchKey,
+                        moduleID: config.moduleID,
+                        prevOrNext: config.prevOrNext,
+                        pageSize: config.pageSize
+                    });
                 }
 
-                console.log('[SearchModal] Modal opened for TableID:', config.tableID);
+                // Show modal
+                if (this.modalElement) {
+                    this.modalElement.style.display = 'flex';
+                    console.log('[SearchModal] Modal opened');
+                }
 
-                // Auto-execute search if SearchKey is provided
+                // Auto-search if searchKey provided
                 if (config.searchKey) {
                     setTimeout(() => this.executeSearch(), 300);
                 }
 
-                // Return promise for selection
-                return new Promise((resolve) => {
-                    this.resolveSelection = resolve;
-                });
             } catch (error) {
-                console.error('[SearchModal] Error opening modal:', error);
-                this.showToast?.('Failed to open search modal: ' + error.message, 'error');
-                throw error;
+                console.error('[SearchModal] Open error:', error);
+                this.appCore.showToastMessage?.('Failed to open search modal', 'error');
             }
         }
 
         /**
-         * Execute search using AppCore.invokeControllerAsync
+         * Execute search using app-core controller
          */
         async executeSearch() {
-            const loadingEl = document.getElementById('search-loading');
-            const resultsEl = document.getElementById('search-results-container');
-            const emptyEl = document.getElementById('search-empty-state');
-            const errorEl = document.getElementById('search-error-state');
-            const selectBtn = document.getElementById('search-select-btn');
+            const loadingEl = document.getElementById('search-modal-loading');
+            const resultsEl = document.getElementById('search-modal-results');
+            const emptyEl = document.getElementById('search-modal-empty');
 
             try {
                 // Show loading state
-                this.setResultsState('loading');
-                if (selectBtn) selectBtn.disabled = true;
+                this.showState('loading');
 
-                // Build search criteria from input fields
-                const searchCriteria = this.buildSearchCriteria();
+                // Build filter criteria from form
+                const filters = this.buildFilters();
 
                 const tableID = document.getElementById('search-table-id')?.value;
                 const whereStmt = document.getElementById('search-where-stmt')?.value || '';
                 const advFilter = document.getElementById('search-adv-filter')?.value || '';
                 const moduleID = document.getElementById('search-module-id')?.value || '1000';
+                
+                // Get page size from dropdown
+                const pageSizeDropdown = document.getElementById('search-page-size');
+                this.pageSize = pageSizeDropdown ? parseInt(pageSizeDropdown.value) : 20;
+                document.getElementById('search-ref-id').value = this.refID;
+                document.getElementById('search-prev-or-next').value = this.prevOrNext;
 
-                console.log('[SearchModal] Executing search with criteria:', {
-                    tableID,
-                    searchKey: searchCriteria,
-                    whereStmt,
-                    advFilter
-                });
+                console.log('[SearchModal] Executing search:', { tableID, filters, whereStmt, PageSize: this.pageSize, RefID: this.refID, PrevOrNext: this.prevOrNext });
 
-                // Use AppCore.invokeControllerAsync to call the Search endpoint
+                // Use AppCore to invoke controller with key-set pagination parameters
                 const response = await this.appCore.invokeControllerAsync('SearchModal/Search', {
                     TableID: tableID,
                     WhereStmt: whereStmt,
                     AdvFilterString: advFilter,
-                    SearchKey: searchCriteria,
+                    SearchKey: filters,
                     ModuleID: moduleID,
-                    PrevOrNext: this.currentConfig?.prevOrNext || 1,
-                    PageSize: this.currentConfig?.pageSize || 10
+                    PageSize: this.pageSize,
+                    RefID: this.refID,
+                    PrevOrNext: this.prevOrNext
                 });
 
                 console.log('[SearchModal] Search response:', response);
 
-                // Extract results from response
+                // Extract results
                 let results = [];
                 if (response?.success && response?.data) {
-                    // Handle various response formats
                     if (Array.isArray(response.data)) {
                         results = response.data;
-                    } else if (response.data.Details || response.data.details) {
-                        if (response.data.Details)
-                            results = Array.isArray(response.data.Details.SearchResults) ? response.data.Details.SearchResults : [response.data.Details.SearchResults];
-                        if (response.data.details)
-                            results = Array.isArray(response.data.details.SearchResults) ? response.data.details.SearchResults : [response.data.details.SearchResults];
+                    } else if (response.data.Details) {
+                        results = Array.isArray(response.data.Details) ? response.data.Details : [response.data.Details];
+                    } else if (response.data.details) {
+                        results = Array.isArray(response.data.details.SearchResults) ? response.data.details.SearchResults : [response.data.details.SearchResults];
                     } else if (response.data.Records) {
                         results = Array.isArray(response.data.Records) ? response.data.Records : [];
                     }
@@ -251,197 +253,192 @@
 
                 if (results && results.length > 0) {
                     this.currentResults = results;
+                    this.currentPage = 0;
+                    
+                    // Extract the last value of KeyForNavigation from results for next pagination
+                    const keyField = document.getElementById('search-key-for-nav')?.value;
+                    if (keyField && results.length > 0) {
+                        const lastRow = results[results.length - 1];
+                        this.refID = lastRow[keyField] || '';
+                        console.log('[SearchModal] Updated RefID:', this.refID);
+                    }
+                    
                     this.renderResults(results);
-                    this.setResultsState('results');
+                    this.showState('results');
                 } else {
-                    this.setResultsState('empty');
+                    this.showState('empty');
                 }
+
             } catch (error) {
                 console.error('[SearchModal] Search error:', error);
-                this.setResultsState('error', error.message || 'Search failed');
+                this.showState('empty');
+                this.appCore.showToastMessage?.('Search failed: ' + error.message, 'error');
             }
         }
 
         /**
-         * Build search criteria from input fields
-         * @returns {string} SQL-like search criteria string
+         * Build filter criteria from form inputs
          */
-        buildSearchCriteria() {
-            const inputs = document.querySelectorAll('.search-field-input');
-            const criteria = [];
+        buildFilters() {
+            const form = document.getElementById('search-modal-form');
+            const filters = {};
 
-            inputs.forEach(input => {
-                const value = input.value.trim();
-                if (value) {
-                    const field = input.dataset.field;
-                    const operator = document.querySelector(`.search-field-operator[data-field="${field}"]`)?.value || 'like';
+            const selects = form?.querySelectorAll('[data-field]');
+            selects?.forEach(input => {
+                const fieldName = input.getAttribute('data-field');
+                const value = input.value?.trim();
 
-                    let condition = '';
-                    switch (operator) {
-                        case 'equals':
-                            condition = `${field} = '${value}'`;
-                            break;
-                        case 'startswith':
-                            condition = `${field} LIKE '${value}%'`;
-                            break;
-                        case 'endswith':
-                            condition = `${field} LIKE '%${value}'`;
-                            break;
-                        case 'like':
-                        default:
-                            condition = `${field} LIKE '%${value}%'`;
-                            break;
-                    }
-                    criteria.push(condition);
+                if (value && input.tagName !== 'SELECT') {
+                    const selectEl = form.querySelector(`select[data-field="${fieldName}"]`);
+                    const mode = selectEl?.value || 'like';
+
+                    filters[fieldName] = {
+                        value: value,
+                        mode: mode
+                    };
                 }
             });
 
-            return criteria.join(' AND ');
+            /*return JSON.stringify(filters);*/
+            return filters;
         }
 
         /**
-         * Render search results in table
-         * @param {Array} results - Array of result records
+         * Render search results in table format
          */
         renderResults(results) {
             if (!results || results.length === 0) return;
 
-            const headerEl = document.getElementById('search-results-header');
-            const bodyEl = document.getElementById('search-results-body');
-            const countEl = document.getElementById('results-count');
+            const resultsEl = document.getElementById('search-modal-results');
+            resultsEl.innerHTML = '';
 
-            // Clear previous results
-            headerEl.innerHTML = '';
-            bodyEl.innerHTML = '';
-
-            // Get column names from first result
             const columns = Object.keys(results[0]);
 
-            // Render header
+            // Create table
+            const table = document.createElement('table');
+            table.className = 'search-modal-themed__table';
+
+            // Header
+            const headerRow = document.createElement('tr');
             columns.forEach(col => {
                 const th = document.createElement('th');
+                th.className = 'search-modal-themed__th';
                 th.textContent = col;
-                headerEl.appendChild(th);
+                headerRow.appendChild(th);
             });
+            table.appendChild(headerRow);
 
-            // Render rows
+            // Body
+            const tbody = document.createElement('tbody');
             results.forEach((row, index) => {
                 const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'search-modal-themed__tr' : 'search-modal-themed__tr search-modal-themed__tr--odd';
                 tr.dataset.index = index;
+                tr.dataset.rowData = JSON.stringify(row);
 
                 columns.forEach(col => {
                     const td = document.createElement('td');
+                    td.className = 'search-modal-themed__td';
                     td.textContent = row[col] ?? '';
                     tr.appendChild(td);
                 });
 
-                // Row click handler
-                tr.addEventListener('click', () => this.selectRow(index));
-
-                // Double-click to select immediately
+                // Double-click to select
                 tr.addEventListener('dblclick', () => {
                     this.selectRow(index);
                     this.selectAndClose();
                 });
 
-                bodyEl.appendChild(tr);
+                // Click to select
+                tr.addEventListener('click', () => this.selectRow(index));
+
+                tbody.appendChild(tr);
             });
 
-            // Update count
-            if (countEl) {
-                countEl.textContent = `${results.length} record${results.length !== 1 ? 's' : ''}`;
-            }
+            table.appendChild(tbody);
+            resultsEl.appendChild(table);
 
-            console.log('[SearchModal] Rendered', results.length, 'results');
+            // Attach row click handlers
+            this.attachRowClickHandlers();
+        }
+
+        /**
+         * Attach click handlers for result rows
+         */
+        attachRowClickHandlers() {
+            const rows = document.querySelectorAll('[data-row-data]');
+            rows.forEach(row => {
+                row.addEventListener('click', () => {
+                    const index = parseInt(row.dataset.index);
+                    this.selectRow(index);
+                });
+            });
         }
 
         /**
          * Select a row by index
-         * @param {number} index - Row index
          */
         selectRow(index) {
             // Remove previous selection
-            document.querySelectorAll('#search-results-body tr').forEach(r => {
-                r.classList.remove('selected');
+            document.querySelectorAll('[data-row-data]').forEach(row => {
+                row.classList.remove('search-modal-themed__tr--selected');
             });
 
-            // Mark current row as selected
-            const row = document.querySelector(`#search-results-body tr[data-index="${index}"]`);
+            // Select current row
+            const row = document.querySelector(`[data-row-data][data-index="${index}"]`);
             if (row) {
-                row.classList.add('selected');
+                row.classList.add('search-modal-themed__tr--selected');
+                const rowData = row.getAttribute('data-row-data');
+                this.selectedRow = JSON.parse(rowData);
+                console.log('[SearchModal] Row selected:', this.selectedRow);
             }
-
-            // Store selected data
-            this.selectedRow = this.currentResults[index];
-
-            // Enable select button
-            const selectBtn = document.getElementById('search-select-btn');
-            if (selectBtn) selectBtn.disabled = false;
-
-            console.log('[SearchModal] Row selected:', this.selectedRow);
         }
 
         /**
-         * Set results display state
-         * @param {string} state - 'loading', 'results', 'empty', or 'error'
-         * @param {string} [errorMessage] - Error message (for error state)
+         * Show/hide state
          */
-        setResultsState(state, errorMessage = '') {
-            const loadingEl = document.getElementById('search-loading');
-            const resultsEl = document.getElementById('search-results-container');
-            const emptyEl = document.getElementById('search-empty-state');
-            const errorEl = document.getElementById('search-error-state');
+        showState(state) {
+            const loadingEl = document.getElementById('search-modal-loading');
+            const resultsEl = document.getElementById('search-modal-results');
+            const emptyEl = document.getElementById('search-modal-empty');
 
-            // Hide all states
-            loadingEl.style.display = 'none';
-            resultsEl.style.display = 'none';
-            emptyEl.style.display = 'none';
-            errorEl.style.display = 'none';
+            // Hide all
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (resultsEl) resultsEl.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = 'none';
 
             // Show appropriate state
             switch (state) {
                 case 'loading':
-                    loadingEl.style.display = 'flex';
+                    if (loadingEl) loadingEl.style.display = 'block';
                     break;
                 case 'results':
-                    resultsEl.style.display = 'block';
+                    if (resultsEl) resultsEl.style.display = 'block';
                     break;
                 case 'empty':
-                    emptyEl.style.display = 'flex';
-                    break;
-                case 'error':
-                    errorEl.style.display = 'flex';
-                    const errorMsgEl = document.getElementById('search-error-message');
-                    if (errorMsgEl) errorMsgEl.textContent = errorMessage || 'An error occurred';
+                    if (emptyEl) emptyEl.style.display = 'block';
                     break;
             }
         }
 
         /**
-         * Clear all search criteria fields
+         * Previous page (key-set based pagation)
          */
-        clearCriteria() {
-            document.querySelectorAll('.search-field-input').forEach(input => {
-                input.value = '';
-            });
-
-            document.querySelectorAll('.search-field-operator').forEach(select => {
-                select.value = 'like';
-            });
-
-            // Clear results
-            this.setResultsState('empty');
-            this.selectedRow = null;
-            this.currentResults = [];
-
-            const selectBtn = document.getElementById('search-select-btn');
-            if (selectBtn) selectBtn.disabled = true;
-
-            console.log('[SearchModal] Criteria cleared');
+        async previousPage() {
+            this.prevOrNext = -1;
+            await this.executeSearch();
         }
 
         /**
-         * Select current row and close modal
+         * Next page (key-set based pagination)
+         */
+        async nextPage() {
+            this.prevOrNext = 1;
+            await this.executeSearch();
+        }
+
+        /**
+         * Select row and close modal
          */
         selectAndClose() {
             if (this.selectedRow) {
@@ -451,57 +448,35 @@
                 if (this.currentConfig?.onSelect) {
                     this.currentConfig.onSelect(this.selectedRow);
                 }
-
-                // Resolve promise
-                if (this.resolveSelection) {
-                    this.resolveSelection(this.selectedRow);
-                }
             }
 
             this.close();
         }
 
         /**
-         * Close the modal without selection
+         * Close the modal
          */
         close() {
-            if (this.bootstrapModal) {
-                this.bootstrapModal.hide();
+            if (this.modalElement) {
+                this.modalElement.style.display = 'none';
+                console.log('[SearchModal] Modal closed');
             }
         }
 
         /**
-         * Cleanup modal after it's hidden
+         * Destroy modal (remove from DOM)
          */
-        cleanupModal() {
-            if (this.overlayElement) {
-                this.overlayElement.remove();
+        destroy() {
+            if (this.modalElement) {
+                this.modalElement.remove();
             }
 
             this.modalElement = null;
-            this.overlayElement = null;
-            this.bootstrapModal = null;
             this.isInitialized = false;
             this.selectedRow = null;
             this.currentResults = [];
 
-            if (this.resolveSelection) {
-                this.resolveSelection(null);
-                this.resolveSelection = null;
-            }
-
-            console.log('[SearchModal] Modal closed and cleaned up');
-        }
-
-        /**
-         * Show toast notification (if available)
-         */
-        showToast(message, type = 'info') {
-            if (this.appCore?.showToast) {
-                this.appCore.showToast(message, type);
-            } else {
-                console.log(`[SearchModal] ${type.toUpperCase()}: ${message}`);
-            }
+            console.log('[SearchModal] Modal destroyed');
         }
     }
 

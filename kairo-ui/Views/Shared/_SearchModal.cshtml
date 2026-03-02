@@ -3,113 +3,69 @@
     Layout = null;
 }
 
-<!-- Search Modal with Bootstrap Structure and cm-lookup Styling -->
-<div class="modal fade" id="search-modal-overlay" tabindex="-1" 
-     aria-labelledby="searchModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content cm-lookup">
-            
-            <!-- Header -->
-            <div class="modal-header cm-lookup__header">
-                <div>
-                    <p class="cm-lookup__eyebrow mb-0">Data Search</p>
-                    <h5 class="modal-title" id="searchModalLabel">@Model.SearchTitle</h5>
-                </div>
-                <button type="button" class="btn-close btn-close-white" id="search-modal-close-btn" 
-                        data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+<link rel="stylesheet" href="/css/search-modal.css" />
 
-            <!-- Body -->
-            <div class="modal-body cm-lookup__body">
-                
-                <!-- Search Filters Form -->
-                <form class="cm-lookup__filters row g-3 align-items-end" id="search-criteria-form" onsubmit="return false;">
-                    @Html.AntiForgeryToken()
-                    @if (Model.SearchConfig?.SearchFields != null)
+<!-- Search Modal HTML -->
+<div id="search-modal" class="search-modal-themed" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index: 9999; justify-content: center; align-items: center;">
+    <div class="search-modal-themed__panel">
+        <div class="search-modal-themed__header">
+            <h5 id="search-modal-title" class="search-modal-themed__title">@(Model.SearchTitle ?? "Search Results")</h5>
+            <button type="button" id="search-modal-close" class="search-modal-themed__close" aria-label="Close">&times;</button>
+        </div>
+        <div class="search-modal-themed__criteria-wrap">
+            <form id="search-modal-form" class="search-modal-themed__criteria">
+                @Html.AntiForgeryToken()
+                @if (Model.SearchConfig?.SearchFields != null)
+                {
+                    foreach (var field in Model.SearchConfig.SearchFields.OrderBy(f => f.FieldOrder))
                     {
-                        foreach (var field in Model.SearchConfig.SearchFields.OrderBy(f => f.FieldOrder))
-                        {
-                            <div class="col-md-4">
-                                <label class="form-label">@field.DisplayName</label>
-                                <div class="input-group input-group-sm">
-                                    <select class="form-select search-field-operator" 
-                                            data-field="@field.FieldName"
-                                            aria-label="@field.DisplayName Filter Type" 
-                                            title="@field.DisplayName Filter Type">
-                                        <option value="like" selected>Contains</option>
-                                        <option value="equals">Exact</option>
-                                        <option value="startswith">Starts With</option>
-                                        <option value="endswith">Ends With</option>
-                                    </select>
-                                    <input type="text" 
-                                           class="form-control search-field-input" 
-                                           data-field="@field.FieldName"
-                                           placeholder="Enter @field.DisplayName.ToLower()..." 
-                                           title="@field.DisplayName Search Term"
-                                           autocomplete="off" />
-                                </div>
+                        <div class="search-modal-themed__field">
+                            <label class="search-modal-themed__label">@field.DisplayName</label>
+                            <div class="search-modal-themed__input-row">
+                                <select class="search-modal-themed__select" data-field="@field.FieldName" aria-label="@field.DisplayName Filter Type">
+                                    <option value="like" selected>Like</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="startswith">Starts</option>
+                                    <option value="endswith">Ends</option>
+                                </select>
+                                <input type="text"
+                                       class="search-modal-themed__input"
+                                       data-field="@field.FieldName"
+                                       placeholder="@field.DisplayName"
+                                       autocomplete="off" />
                             </div>
-                        }
+                        </div>
                     }
-                    
-                    <!-- Action Buttons -->
-                    <div class="col-md-4 text-md-end cm-lookup__actions">
-                        <button type="button" class="btn btn-outline-secondary" id="search-clear-btn">
-                            <i class="bi bi-arrow-clockwise me-1"></i>Reset
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="search-execute-btn">
-                            <i class="bi bi-search"></i> Search
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Results Section -->
-                <div class="cm-lookup__results card-surface mt-3">
-                    
-                    <!-- Results Table -->
-                    <div class="table-responsive" id="search-results-container" style="display: none;">
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <h6 class="mb-0 fw-semibold">Search Results</h6>
-                            <span id="results-count" class="badge bg-primary">0 records</span>
-                        </div>
-                        <table class="table table-sm table-hover align-middle mb-0 cm-lookup__table">
-                            <thead>
-                                <tr id="search-results-header"></tr>
-                            </thead>
-                            <tbody id="search-results-body"></tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Empty State -->
-                    <div class="cm-lookup__empty" id="search-empty-state">
-                        <i class="bi bi-search fs-1 text-muted d-block mb-2"></i>
-                        <p class="mb-0 text-muted">Enter at least one filter above and click Search.</p>
-                    </div>
-                    
-                    <!-- Loading State -->
-                    <div class="cm-lookup__loading d-none" id="search-loading">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 mb-0">Searching...</p>
-                    </div>
-
-                    <!-- Error State -->
-                    <div class="cm-lookup__empty d-none" id="search-error-state">
-                        <i class="bi bi-exclamation-triangle fs-1 text-danger d-block mb-2"></i>
-                        <p class="mb-0 text-danger" id="search-error-message">An error occurred</p>
-                    </div>
-                </div>
+                }
+            </form>
+            <div class="search-modal-themed__actions">
+                <button type="button" id="search-modal-search-btn" class="search-modal-themed__btn search-modal-themed__btn--secondary">Search</button>
             </div>
-
-            <!-- Footer -->
-            <div class="modal-footer cm-lookup__footer">
-                <small class="text-muted me-auto">Results from Core Banking System.</small>
-                <button type="button" class="btn btn-secondary btn-sm" id="search-cancel-btn" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-1"></i>Close
+        </div>
+        <div class="search-modal-themed__body">
+            <div id="search-modal-loading" class="search-modal-themed__loading" style="display:none;">Loading...</div>
+            <div id="search-modal-results" class="search-modal-themed__results" style="display:none;"></div>
+            <div id="search-modal-empty" class="search-modal-themed__empty" style="display:none;">No records found</div>
+        </div>
+        <div class="search-modal-themed__footer">
+            <div class="search-modal-themed__footer-left">
+                <h5 class="search-modal-themed__footer-label">Page Size:</h5>
+                <select id="search-page-size" class="search-modal-themed__select" aria-label="Page Size" style="flex: 0 0 auto; padding: 4px 8px;">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+            <div class="search-modal-themed__footer-center">
+                <button type="button" id="search-modal-ok" class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>
+            </div>
+            <div class="search-modal-themed__footer-right">
+                <button type="button" id="search-modal-nav-prev" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">
+                    <i class="bi bi-chevron-left"></i> Previous
                 </button>
-                <button type="button" class="btn btn-primary btn-sm" id="search-select-btn" disabled>
-                    <i class="bi bi-check-circle me-1"></i>Select
+                <button type="button" id="search-modal-nav-next" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">
+                    Next <i class="bi bi-chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -122,6 +78,8 @@
 <input type="hidden" id="search-adv-filter" value="@Model.AdvFilterString" />
 <input type="hidden" id="search-module-id" value="@Model.ModuleID" />
 <input type="hidden" id="search-key-for-nav" value="@(Model.SearchConfig?.KeyForNavigation ?? "")" />
+<input type="hidden" id="search-ref-id" value="" />
+<input type="hidden" id="search-prev-or-next" value="0" />
 
 <script>
     // Store modal state and configuration for JavaScript
@@ -131,8 +89,8 @@
         advFilterString: '@Model.AdvFilterString',
         moduleID: '@Model.ModuleID',
         searchKey: '@Model.SearchKey',
-        prevOrNext: @Model.PrevOrNext,
-        pageSize: @Model.PageSize,
+        prevOrNext: '@Model.PrevOrNext',
+        pageSize: '@Model.PageSize',
         keyForNavigation: '@(Model.SearchConfig?.KeyForNavigation ?? "")',
         searchConfig: @Html.Raw(Json.Serialize(Model.SearchConfig))
     };

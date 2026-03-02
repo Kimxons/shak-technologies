@@ -70,6 +70,7 @@ namespace kairo_ui.Controllers.Shared
                     ModuleID = request.ModuleID ?? "1000",
                     PrevOrNext = request.PrevOrNext ?? 1,
                     PageSize = request.PageSize ?? 10,
+                    RefID = request.RefID ?? string.Empty,
                     SearchConfig = searchConfig,
                     SearchTitle = $"Search {searchConfig.SearchName}"
                 };
@@ -125,6 +126,7 @@ namespace kairo_ui.Controllers.Shared
                     Filter = request.AdvFilterString ?? string.Empty,
                     SearchKey = request.SearchKey ?? string.Empty,
                     PrevOrNext = request.PrevOrNext ?? 1,
+                    Reference = request.RefID ?? string.Empty,
                     PageSize = request.PageSize ?? 10,
                     OurBranchID = request.OurBranchID,
                     OperatorID = request.OperatorID,
