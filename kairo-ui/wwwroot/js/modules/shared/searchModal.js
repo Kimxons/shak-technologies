@@ -184,10 +184,23 @@
                     throw new Error('tableID is required');
                 }
 
+                // Check if reload is needed (different TableID or not initialized)
+                const shouldReload = !this.isInitialized || 
+                                   (this.currentConfig && this.currentConfig.tableID !== config.tableID);
+
                 this.currentConfig = config;
 
-                // Load modal if not already loaded
-                if (!this.isInitialized) {
+                // Load modal if needed
+                if (shouldReload) {
+                    // Start fresh if reloading for a new table
+                    if (this.isInitialized) {
+                         // Reset state but keep the instance structure
+                         this.currentResults = [];
+                         this.selectedRow = null; 
+                         this.currentPage = 0;
+                         // Note: loadModal will replace the DOM element
+                    }
+                    
                     await this.loadModal(config.tableID, {
                         whereStmt: config.whereStmt,
                         advFilterString: config.advFilterString,
@@ -232,17 +245,14 @@
                 const filters = this.buildFilters();
 
                 const tableID = document.getElementById('search-table-id')?.value;
-                const whereStmt = document.getElementById('search-where-stmt')?.value || '';
+                const whereStmt = document.getElementById('search-where-statement')?.value || '';
                 const advFilter = document.getElementById('search-adv-filter')?.value || '';
-<<<<<<< HEAD
-                const moduleID = document.getElementById('search-module-id')?.value || '1000';
+                const moduleID = document.getElementById('search-module-id')?.value || '100';
 
                 console.log('[SearchModal] ✅ READING HIDDEN FIELDS - TableID:', tableID, '| WhereStmt:', whereStmt);
 
-=======
-                const moduleID = document.getElementById('search-module-id')?.value || '100';
+                //const moduleID = document.getElementById('search-module-id')?.value || '100';
                 
->>>>>>> 6933227ebb50a81d0fefeb7b156d023939953add
                 // Get page size from dropdown
                 const pageSizeDropdown = document.getElementById('search-page-size');
                 this.pageSize = pageSizeDropdown ? parseInt(pageSizeDropdown.value) : 20;

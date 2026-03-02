@@ -6,6 +6,29 @@
 @section Styles {
     <style>
         /* Account Maintenance specific styles */
+
+        /* Hide legacy headers and action panels in loaded submodules to prevent duplication */
+        #submodule-container .am-header,
+        #submodule-container .submodule-header,
+        #submodule-container .action-panel,
+        #submodule-container .am-header__right, /* AccountNotification case */
+        #submodule-container aside.action-panel { 
+            display: none !important; 
+        }
+
+        /* Reset legacy container styles that might conflict */
+        #submodule-container .window {
+            height: auto !important;
+            width: 100% !important;
+            position: static !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #submodule-container .main-container {
+            height: auto !important;
+            padding: 0 !important;
+        }
     </style>
 }
 
@@ -812,9 +835,12 @@
     </div>
 
 @section Scripts {
+    <!-- Core dependencies -->
+    <script src="~/js/app/app-core.js"></script>
+    <script src="~/js/modules/shared/searchModal.js"></script>
+
     <!-- Service dependencies -->
     <script src="~/js/services/shared/serviceLoader.js"></script>
-    <script src="~/js/services/shared/lookupService.js"></script>
 
     <!-- Account Maintenance Core -->
     <script src="~/js/modules/accounts/modern-account-maintenance.js"></script>

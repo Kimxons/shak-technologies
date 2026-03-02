@@ -73,7 +73,7 @@ namespace AccountManagement.Helpers
         public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate_V0";
 
         // Notes procedures
-        public const string UPDATE_NOTES = "p_UpdateNotes_V0";
+        public const string UPDATE_NOTES = "p_V8_UpdateNotes";
         public const string GET_NOTES = "p_GetNotes_V0";
 
         // Account Freezing procedures
