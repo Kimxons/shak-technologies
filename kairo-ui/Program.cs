@@ -18,9 +18,8 @@ builder.Host.UseSerilog((context, configuration) =>
             path: "logs/kairo-ui-.txt",
             rollingInterval: RollingInterval.Day,
             retainedFileCountLimit: 30,
-            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Properties} {Message:lj}{NewLine}{Exception}"
-        )
-);
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Properties} {Message:lj}{NewLine}{Exception}",
+            shared: true));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
