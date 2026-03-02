@@ -1,0 +1,410 @@
+---
+import { CONSULT_BOOKING_LINKS, SITE } from "@config";
+import Breadcrumbs from "@components/Breadcrumbs.astro";
+import Footer from "@components/Footer.astro";
+import Header from "@components/Header.astro";
+import LinkButton from "@components/LinkButton.astro";
+import Layout from "./Layout.astro";
+
+export interface Props {
+  frontmatter: {
+    title: string;
+    description?: string;
+  };
+}
+
+const { frontmatter } = Astro.props;
+const aboutDescription =
+  frontmatter.description ??
+  `About ${SITE.title}: consultancy-led AI strategy, implementation, and delivery support for teams building production systems.`;
+
+const deliveryRail = [
+  {
+    title: "Diagnose",
+    description: "Clarify business priorities, technical constraints, and outcome targets.",
+  },
+  {
+    title: "Design",
+    description: "Define architecture, rollout milestones, and ownership boundaries.",
+  },
+  {
+    title: "Deploy",
+    description: "Support execution with quality controls, governance, and enablement.",
+  },
+];
+
+const serviceLines = [
+  {
+    title: "AI Strategy and Roadmapping",
+    description:
+      "Prioritized initiatives tied to measurable business value and practical delivery windows.",
+  },
+  {
+    title: "Architecture and Delivery Design",
+    description:
+      "Technical blueprinting across data, model, and application layers for stable implementation.",
+  },
+  {
+    title: "Implementation and Rollout Advisory",
+    description:
+      "Hands-on build oversight, risk reduction, and launch support for production readiness.",
+  },
+  {
+    title: "Responsible AI and Governance",
+    description:
+      "Reliability, accountability, and monitoring frameworks for responsible long-term operations.",
+  },
+];
+
+const engagementTracks = [
+  "Advisory Sprint for fast diagnosis and strategy direction.",
+  "Delivery Partnership for architecture and implementation support.",
+  "Transformation Support for multi-team AI capability scaling.",
+];
+
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: `${frontmatter.title} | ${SITE.title}`,
+  description: aboutDescription,
+  url: new URL("about", SITE.website).href,
+  mainEntity: {
+    "@type": "Organization",
+    name: SITE.title,
+    url: SITE.website,
+  },
+};
+---
+
+<Layout
+  title={`${frontmatter.title} | ${SITE.title}`}
+  description={aboutDescription}
+  keywords={[
+    "about shak technologies",
+    "ai consultancy company",
+    "ai implementation partner",
+    "data science innovation africa",
+  ]}
+  schema={aboutSchema}
+>
+  <Header activeNav="about" />
+  <Breadcrumbs />
+  <main id="main-content">
+    <section id="about-hero">
+      <div class="hero-copy">
+        <span class="chip">Consultancy-Led AI Partner</span>
+        <h1>{frontmatter.title}</h1>
+        <p>{aboutDescription}</p>
+        <div class="hero-actions">
+          <LinkButton
+            href={CONSULT_BOOKING_LINKS.strategy30}
+            className="btn-primary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Book Strategy Call
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <path d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"></path>
+            </svg>
+          </LinkButton>
+          <LinkButton href="/consultancy" className="btn-secondary">
+            View Consultancy Services
+          </LinkButton>
+        </div>
+        <ul class="hero-tags" aria-label="Engagement context">
+          <li>International and local delivery</li>
+          <li>Consultancy is our core business</li>
+          <li>Courses as capability extension</li>
+        </ul>
+      </div>
+
+      <aside class="hero-rail" aria-label="Consultancy delivery path">
+        <p class="rail-kicker">Delivery Path</p>
+        <ol>
+          {deliveryRail.map((item, index) => (
+            <li>
+              <span class="step-index">{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h2>{item.title}</h2>
+                <p>{item.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </aside>
+    </section>
+
+    <section id="consultancy-lines" aria-labelledby="consultancy-lines-title">
+      <div class="section-heading">
+        <span class="chip">Consultancy Services</span>
+        <h2 id="consultancy-lines-title">Service lines built for accountable AI execution.</h2>
+      </div>
+      <div class="services-list">
+        {serviceLines.map((service, index) => (
+          <article class="service-line">
+            <span class="service-index">{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <h3>{service.title}</h3>
+              <p>{service.description}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="about-body">
+      <article class="about-prose prose prose-img:border-0">
+        <slot />
+      </article>
+
+      <aside class="engagement-rail">
+        <span class="aside-kicker">Engagement Models</span>
+        <h2>Structured support for different delivery stages.</h2>
+        <ul>
+          {engagementTracks.map(track => <li>{track}</li>)}
+        </ul>
+        <div class="aside-actions">
+          <LinkButton
+            href={CONSULT_BOOKING_LINKS.quick15}
+            className="btn-primary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Book 15-min Triage
+          </LinkButton>
+          <LinkButton href="/pricing" className="btn-secondary">
+            View Pricing
+          </LinkButton>
+        </div>
+      </aside>
+    </section>
+
+    <section id="about-cta">
+      <div class="cta-copy">
+        <h2>Need senior AI consultancy support that delivers in production?</h2>
+        <p>
+          Partner with Shak Technologies Ltd for strategy, architecture, and implementation
+          oversight that keeps business goals and engineering execution aligned.
+        </p>
+      </div>
+      <div class="cta-actions">
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.strategy30}
+          className="btn-primary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Book 30-min Strategy Session
+        </LinkButton>
+        <LinkButton href="/consultancy" className="btn-secondary">
+          Explore Consultancy Scope
+        </LinkButton>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-14 px-4 pb-20 sm:px-6;
+  }
+  #about-hero {
+    @apply relative grid gap-10 overflow-hidden py-8 sm:py-10;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+    background:
+      radial-gradient(circle at 12% 16%, rgba(var(--color-accent), 0.16), transparent 40%),
+      radial-gradient(circle at 86% 2%, rgba(255, 132, 98, 0.14), transparent 32%);
+  }
+  #about-hero::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0;
+    background-image:
+      linear-gradient(rgba(var(--color-accent), 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--color-accent), 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.75), transparent 88%);
+  }
+  @media (min-width: 1080px) {
+    #about-hero {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      column-gap: 2rem;
+      align-items: start;
+    }
+  }
+  .hero-copy,
+  .hero-rail {
+    @apply relative z-[1];
+  }
+  #about-hero :global(.chip) {
+    @apply border-skin-accent bg-skin-fill bg-opacity-80;
+    box-shadow: 0 0 0 1px rgba(var(--color-accent), 0.24);
+  }
+  #about-hero h1 {
+    @apply mt-5 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl;
+    text-wrap: balance;
+  }
+  #about-hero p {
+    @apply mt-4 max-w-3xl text-lg opacity-85;
+  }
+  .hero-actions {
+    @apply mt-7 flex flex-wrap gap-3;
+  }
+  .hero-actions :global(a.btn-primary),
+  .cta-actions :global(a.btn-primary) {
+    box-shadow: 0 10px 30px rgba(var(--color-accent), 0.26);
+  }
+  .hero-tags {
+    @apply mt-7 flex flex-wrap gap-2;
+  }
+  .hero-tags li {
+    @apply inline-flex rounded-full border border-dashed border-skin-line px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] opacity-85;
+  }
+  .hero-rail {
+    @apply border-l border-skin-line pl-5;
+  }
+  .rail-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-skin-accent;
+  }
+  .hero-rail ol {
+    @apply mt-3;
+  }
+  .hero-rail li {
+    @apply grid grid-cols-[auto,1fr] gap-3 border-b border-dashed border-skin-line py-3;
+  }
+  .hero-rail li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .step-index {
+    @apply text-xs font-semibold tracking-[0.18em] text-skin-accent;
+  }
+  .hero-rail h2 {
+    @apply text-xl font-semibold;
+  }
+  .hero-rail p {
+    @apply mt-1 text-sm opacity-80;
+  }
+
+  #consultancy-lines {
+    @apply grid gap-6;
+  }
+  .section-heading h2 {
+    @apply mt-4 max-w-4xl text-3xl font-semibold leading-tight sm:text-4xl;
+    text-wrap: balance;
+  }
+  .services-list {
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+  }
+  .service-line {
+    @apply grid grid-cols-[auto,1fr] gap-4 border-b border-dashed border-skin-line py-5;
+  }
+  .service-index {
+    @apply text-xs font-semibold tracking-[0.18em] text-skin-accent;
+  }
+  .service-line h3 {
+    @apply text-xl font-semibold;
+  }
+  .service-line p {
+    @apply mt-2 max-w-3xl opacity-85;
+  }
+
+  #about-body {
+    @apply grid gap-8;
+  }
+  @media (min-width: 1080px) {
+    #about-body {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      column-gap: 2.25rem;
+      align-items: start;
+    }
+  }
+  .about-prose {
+    @apply max-w-none;
+    line-height: 1.78;
+  }
+  .about-prose :global(h2) {
+    @apply mt-10 text-2xl font-semibold sm:text-3xl;
+    letter-spacing: -0.01em;
+  }
+  .about-prose :global(ul) {
+    @apply my-4;
+  }
+  .about-prose :global(p) {
+    @apply max-w-[74ch];
+  }
+  .about-prose :global(strong) {
+    @apply text-skin-base;
+    background: linear-gradient(
+      180deg,
+      transparent 38%,
+      rgba(var(--color-accent), 0.12) 38%
+    );
+  }
+  .engagement-rail {
+    @apply border-l-2 border-skin-accent pl-5;
+  }
+  @media (min-width: 1080px) {
+    .engagement-rail {
+      position: sticky;
+      top: 6rem;
+    }
+  }
+  .aside-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .engagement-rail h2 {
+    @apply mt-3 text-2xl font-semibold leading-tight;
+  }
+  .engagement-rail ul {
+    @apply mt-5;
+  }
+  .engagement-rail li {
+    @apply border-b border-dashed border-skin-line py-3 text-sm;
+  }
+  .engagement-rail li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .aside-actions {
+    @apply mt-6 flex flex-col gap-2;
+  }
+
+  #about-cta {
+    @apply grid gap-6 py-8;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+    background:
+      linear-gradient(90deg, rgba(var(--color-accent), 0.08), transparent 45%),
+      radial-gradient(circle at 90% 12%, rgba(var(--color-accent), 0.16), transparent 40%);
+  }
+  @media (min-width: 960px) {
+    #about-cta {
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 1.5rem;
+      align-items: center;
+    }
+  }
+  .cta-copy h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  .cta-copy p {
+    @apply mt-3 max-w-3xl opacity-85;
+  }
+  .cta-actions {
+    @apply flex flex-wrap gap-3;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #about-hero::before {
+      animation: grid-shift 20s linear infinite;
+    }
+  }
+  @keyframes grid-shift {
+    to {
+      transform: translateY(40px);
+    }
+  }
+</style>

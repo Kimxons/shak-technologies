@@ -1,0 +1,564 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import LinkButton from "@components/LinkButton.astro";
+import { CONSULT_BOOKING_LINKS, SITE, SOCIALS } from "@config";
+
+const emailContact =
+  SOCIALS.find(({ name, active }) => name === "Mail" && active)?.href ??
+  "mailto:kitongameshack9@gmail.com";
+const recipientEmail = emailContact.startsWith("mailto:")
+  ? emailContact.replace("mailto:", "")
+  : "kitongameshack9@gmail.com";
+const formSubmitEndpoint = `https://formsubmit.co/${recipientEmail}`;
+const formSubmitAjaxEndpoint = `https://formsubmit.co/ajax/${recipientEmail}`;
+const enrollNextURL = new URL("enroll", SITE.website);
+enrollNextURL.searchParams.set("submitted", "1");
+const formSubmitNextURL = enrollNextURL.href;
+
+const enrollmentSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: `Enroll | ${SITE.title}`,
+  description:
+    "Enroll in Shak Technologies Ltd online evening classes and request custom team training or consultancy support.",
+  url: new URL("enroll", SITE.website).href,
+  mainEntity: {
+    "@type": "Course",
+    name: "AI Systems Delivery Bootcamp (Cohort 01)",
+    provider: {
+      "@type": "Organization",
+      name: SITE.title,
+      url: SITE.website,
+    },
+    courseMode: "online",
+    educationalCredentialAwarded: "Verifiable certification",
+    timeRequired: "PT3H",
+  },
+};
+
+const countryOptions = [
+  { name: "Kenya", dial: "+254", nationality: "Kenyan" },
+  { name: "Uganda", dial: "+256", nationality: "Ugandan" },
+  { name: "Tanzania", dial: "+255", nationality: "Tanzanian" },
+  { name: "Rwanda", dial: "+250", nationality: "Rwandan" },
+  { name: "Ethiopia", dial: "+251", nationality: "Ethiopian" },
+  { name: "Nigeria", dial: "+234", nationality: "Nigerian" },
+  { name: "South Africa", dial: "+27", nationality: "South African" },
+  { name: "United Kingdom", dial: "+44", nationality: "British" },
+  { name: "United States", dial: "+1", nationality: "American" },
+  { name: "Canada", dial: "+1", nationality: "Canadian" },
+  { name: "India", dial: "+91", nationality: "Indian" },
+  { name: "Other", dial: "+000", nationality: "International" },
+] as const;
+
+const programTypes = [
+  "AI Systems Delivery Bootcamp (Cohort 01)",
+  "Corporate Team Cohort (Custom Scope)",
+  "Consultancy and Team Enablement",
+] as const;
+
+const leadIntents = [
+  "Course Enrollment",
+  "Team Training",
+  "Consultancy Support",
+] as const;
+
+const budgetBands = [
+  "Below 30,000 KES / under USD 250",
+  "30,000 to 80,000 KES / USD 250 to 600",
+  "80,000 to 250,000 KES / USD 600 to 2,000",
+  "250,000+ KES / USD 2,000+",
+] as const;
+
+const startTimelines = [
+  "Immediate (0 to 2 weeks)",
+  "This month",
+  "1 to 3 months",
+  "Exploring timeline",
+] as const;
+---
+
+<Layout
+  title={`Enroll | ${SITE.title}`}
+  description="Apply to join Shak Technologies Ltd online classes or request corporate training and consultancy support."
+  keywords={[
+    "enroll ai classes",
+    "online data science classes",
+    "ai training kenya",
+    "machine learning course enrollment",
+    "shak technologies enrollment",
+  ]}
+  schema={enrollmentSchema}
+>
+  <Header activeNav="courses" />
+  <main id="main-content">
+    <section id="enroll-hero" class="surface-card">
+      <span class="chip">Enrollment</span>
+      <h1>Secure your seat in our next online cohort.</h1>
+      <p>
+        Complete this form to start enrollment. We will review your details and
+        share the next steps for onboarding, payment guidance, and class start dates.
+      </p>
+      <div class="hero-actions">
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.quick15}
+          className="btn-secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Prefer a quick call?
+        </LinkButton>
+      </div>
+    </section>
+
+    <section id="enrollment-form" class="surface-card">
+      <h2>Enrollment Form</h2>
+      <p class="intro">
+        Fields marked as required help us process your enrollment faster.
+      </p>
+
+      <form
+        id="enroll-form"
+        action={formSubmitEndpoint}
+        method="POST"
+        data-recipient-email={recipientEmail}
+        data-ajax-endpoint={formSubmitAjaxEndpoint}
+        novalidate
+      >
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_subject" value="Enrollment Request - Online/Evening Classes" />
+        <input type="hidden" name="_next" value={formSubmitNextURL} />
+        <input type="hidden" name="leadSource" value="Website - /enroll" />
+        <input type="hidden" name="leadSegment" id="leadSegment" value="Local (Kenya)" />
+        <input type="hidden" name="leadRoute" id="leadRoute" value="Admissions Lead - Local" />
+        <input class="display-none" type="text" name="_honey" tabindex="-1" autocomplete="off" />
+        <div class="field-grid">
+          <label class="field">
+            <span>Full Name *</span>
+            <input
+              type="text"
+              name="fullName"
+              autocomplete="name"
+              placeholder="Your full name"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>Email Address *</span>
+            <input
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+
+          <label class="field field-wide">
+            <span>Country *</span>
+            <select name="country" id="country" required>
+              {
+                countryOptions.map(country => (
+                  <option
+                    value={country.name}
+                    data-dial={country.dial}
+                    data-nationality={country.nationality}
+                  >
+                    {country.name}
+                  </option>
+                ))
+              }
+            </select>
+          </label>
+
+          <div class="phone-row field-wide">
+            <label class="field dial-field">
+              <span>Code</span>
+              <input
+                id="dialCode"
+                name="dialCode"
+                type="text"
+                value={countryOptions[0].dial}
+                readonly
+              />
+            </label>
+            <label class="field phone-field">
+              <span>Phone Number *</span>
+              <input
+                type="tel"
+                name="phone"
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="712 345 678"
+                required
+              />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Nationality *</span>
+            <input
+              id="nationality"
+              type="text"
+              name="nationality"
+              value={countryOptions[0].nationality}
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>Gender *</span>
+            <select name="gender" required>
+              <option value="" selected disabled>Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </label>
+
+          <label class="field field-wide">
+            <span>Select Program Type *</span>
+            <select name="programType" required>
+              <option value="" selected disabled>Select program type</option>
+              {programTypes.map(option => <option value={option}>{option}</option>)}
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Primary Intent *</span>
+            <select name="leadIntent" id="leadIntent" required>
+              <option value="" selected disabled>Select intent</option>
+              {leadIntents.map(option => <option value={option}>{option}</option>)}
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Estimated Budget *</span>
+            <select name="budgetBand" required>
+              <option value="" selected disabled>Select budget range</option>
+              {budgetBands.map(option => <option value={option}>{option}</option>)}
+            </select>
+          </label>
+
+          <label class="field field-wide">
+            <span>Preferred Start Timeline *</span>
+            <select name="startTimeline" required>
+              <option value="" selected disabled>Select timeline</option>
+              {startTimelines.map(option => <option value={option}>{option}</option>)}
+            </select>
+          </label>
+
+          <label class="field field-wide">
+            <span>Learning Goals (Optional)</span>
+            <textarea
+              name="goals"
+              rows={4}
+              placeholder="What do you want to achieve from this program?"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary submit-btn">Submit Enrollment</button>
+          <p class="note">
+            Your details are sent directly to our admissions email.
+          </p>
+          <p id="form-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 sm:px-6;
+  }
+
+  #enroll-hero {
+    @apply mt-8 p-6 sm:p-8;
+  }
+  #enroll-hero h1 {
+    @apply mt-4 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl;
+  }
+  #enroll-hero p {
+    @apply mt-4 max-w-3xl text-lg opacity-85;
+  }
+  .hero-actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+
+  #enrollment-form {
+    @apply p-6 sm:p-8;
+  }
+  #enrollment-form h2 {
+    @apply text-3xl font-semibold;
+  }
+  .intro {
+    @apply mt-2 max-w-2xl opacity-80;
+  }
+
+  .field-grid {
+    display: grid;
+    gap: 0.9rem;
+    margin-top: 1.35rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .field > span {
+    @apply text-sm font-semibold;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    border: 1px solid rgb(var(--color-border));
+    background: rgba(var(--color-card), 0.82);
+    border-radius: 0.85rem;
+    padding: 0.82rem 0.95rem;
+    font-size: 1rem;
+    line-height: 1.35rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: rgb(var(--color-accent));
+    box-shadow: 0 0 0 3px rgba(var(--color-accent), 0.18);
+  }
+
+  .phone-row {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: minmax(98px, 130px) minmax(0, 1fr);
+  }
+  .dial-field input {
+    @apply font-semibold;
+  }
+
+  .form-actions {
+    @apply mt-6 flex flex-col gap-3;
+  }
+  .submit-btn {
+    @apply w-full justify-center py-3 text-base;
+  }
+  .note {
+    @apply text-sm opacity-75;
+  }
+  #form-status {
+    @apply text-sm font-medium;
+    min-height: 1.4rem;
+  }
+  #form-status[data-state="success"] {
+    color: rgb(var(--color-accent));
+  }
+  #form-status[data-state="error"] {
+    color: #b42318;
+  }
+
+  @media (min-width: 640px) {
+    .field-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .field-wide {
+      grid-column: span 2;
+    }
+  }
+</style>
+
+<script is:inline>
+  const setupEnrollForm = () => {
+    const form = document.querySelector("#enroll-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.initialized === "true") return;
+    form.dataset.initialized = "true";
+
+    const countrySelect = form.querySelector("#country");
+    const dialCodeInput = form.querySelector("#dialCode");
+    const nationalityInput = form.querySelector("#nationality");
+    const programTypeSelect = form.querySelector("select[name='programType']");
+    const leadIntentSelect = form.querySelector("#leadIntent");
+    const leadSegmentInput = form.querySelector("#leadSegment");
+    const leadRouteInput = form.querySelector("#leadRoute");
+    const statusEl = form.querySelector("#form-status");
+    const submitButton = form.querySelector("button[type='submit']");
+
+    const recipientEmailAddress =
+      form.dataset.recipientEmail ?? "kitongameshack9@gmail.com";
+    const formAjaxEndpoint =
+      form.dataset.ajaxEndpoint ??
+      form.action.replace("https://formsubmit.co/", "https://formsubmit.co/ajax/");
+    const defaultButtonText =
+      submitButton instanceof HTMLButtonElement
+        ? submitButton.textContent ?? "Submit Enrollment"
+        : "Submit Enrollment";
+
+    const syncCountryFields = () => {
+      if (
+        !(countrySelect instanceof HTMLSelectElement) ||
+        !(dialCodeInput instanceof HTMLInputElement) ||
+        !(nationalityInput instanceof HTMLInputElement)
+      ) {
+        return;
+      }
+
+      const selectedOption = countrySelect.selectedOptions[0];
+      const dial = selectedOption?.dataset?.dial ?? "";
+      const nationality = selectedOption?.dataset?.nationality ?? "";
+      dialCodeInput.value = dial;
+      nationalityInput.value = nationality;
+    };
+
+    const getLeadSegment = country => {
+      const regional = new Set(["Uganda", "Tanzania", "Rwanda", "Ethiopia", "Nigeria", "South Africa"]);
+      if (country === "Kenya") return "Local (Kenya)";
+      if (regional.has(country)) return "Regional (Africa)";
+      return "International";
+    };
+
+    const getLeadRoute = (segment, intent, programType) => {
+      const consultIntent =
+        intent === "Consultancy Support" ||
+        programType === "Consultancy and Team Enablement";
+      const teamIntent =
+        intent === "Team Training" || programType === "Corporate Team Cohort (Custom Scope)";
+
+      if (consultIntent) return `Consultancy Lead - ${segment}`;
+      if (teamIntent) return `Team Training Lead - ${segment}`;
+      return `Admissions Lead - ${segment}`;
+    };
+
+    const syncLeadRouting = () => {
+      const country =
+        countrySelect instanceof HTMLSelectElement ? countrySelect.value : "Kenya";
+      const intent =
+        leadIntentSelect instanceof HTMLSelectElement ? leadIntentSelect.value : "";
+      const programType =
+        programTypeSelect instanceof HTMLSelectElement ? programTypeSelect.value : "";
+
+      const segment = getLeadSegment(country);
+      const route = getLeadRoute(segment, intent, programType);
+
+      if (leadSegmentInput instanceof HTMLInputElement) leadSegmentInput.value = segment;
+      if (leadRouteInput instanceof HTMLInputElement) leadRouteInput.value = route;
+    };
+
+    const setStatus = (message, state = "") => {
+      if (!(statusEl instanceof HTMLElement)) return;
+      statusEl.textContent = message;
+      statusEl.dataset.state = state;
+    };
+
+    const setSubmittingState = isSubmitting => {
+      if (!(submitButton instanceof HTMLButtonElement)) return;
+      submitButton.disabled = isSubmitting;
+      submitButton.textContent = isSubmitting ? "Submitting..." : defaultButtonText;
+    };
+
+    countrySelect?.addEventListener("change", () => {
+      syncCountryFields();
+      syncLeadRouting();
+    });
+    leadIntentSelect?.addEventListener("change", syncLeadRouting);
+    programTypeSelect?.addEventListener("change", syncLeadRouting);
+    syncCountryFields();
+    syncLeadRouting();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("submitted") === "1") {
+      setStatus(
+        "Enrollment submitted successfully. Your details were emailed directly to admissions.",
+        "success"
+      );
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      setSubmittingState(true);
+      setStatus("Sending enrollment details...");
+
+      const formData = new FormData(form);
+      const fullName = String(formData.get("fullName") ?? "").trim();
+      const email = String(formData.get("email") ?? "").trim();
+      const country = String(formData.get("country") ?? "").trim();
+      const dialCode = String(formData.get("dialCode") ?? "").trim();
+      const phone = String(formData.get("phone") ?? "").trim();
+      const nationality = String(formData.get("nationality") ?? "").trim();
+      const gender = String(formData.get("gender") ?? "").trim();
+      const programType = String(formData.get("programType") ?? "").trim();
+      const leadIntent = String(formData.get("leadIntent") ?? "").trim();
+      const budgetBand = String(formData.get("budgetBand") ?? "").trim();
+      const startTimeline = String(formData.get("startTimeline") ?? "").trim();
+      const goals = String(formData.get("goals") ?? "").trim();
+      const leadSegment = String(formData.get("leadSegment") ?? "").trim();
+      const leadRoute = String(formData.get("leadRoute") ?? "").trim();
+
+      formData.set(
+        "_subject",
+        `[${leadRoute || "Admissions Lead"}] Enrollment Request - ${programType || "Online/Evening Classes"}`
+      );
+      formData.set("_captcha", "false");
+      formData.set("_template", "table");
+      formData.set("fullName", fullName);
+      formData.set("email", email);
+      formData.set("country", country);
+      formData.set("dialCode", dialCode);
+      formData.set("phone", phone);
+      formData.set("nationality", nationality);
+      formData.set("gender", gender);
+      formData.set("programType", programType);
+      formData.set("leadIntent", leadIntent);
+      formData.set("budgetBand", budgetBand);
+      formData.set("startTimeline", startTimeline);
+      formData.set("leadSegment", leadSegment || "Not classified");
+      formData.set("leadRoute", leadRoute || "Admissions Lead");
+      formData.set("goals", goals || "Not provided");
+
+      try {
+        const response = await fetch(formAjaxEndpoint, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
+        });
+
+        const result = await response.json().catch(() => null);
+        const hasFailed =
+          !response.ok ||
+          (result && (result.success === false || result.success === "false"));
+
+        if (hasFailed) {
+          throw new Error("Unable to submit enrollment form");
+        }
+
+        setStatus(
+          "Enrollment submitted successfully. Your details were emailed directly to admissions.",
+          "success"
+        );
+        form.reset();
+        syncCountryFields();
+      } catch {
+        setStatus(
+          `Submission failed. Please try again or email ${recipientEmailAddress} directly.`,
+          "error"
+        );
+      } finally {
+        setSubmittingState(false);
+      }
+    });
+  };
+
+  document.addEventListener("DOMContentLoaded", setupEnrollForm);
+  document.addEventListener("astro:after-swap", setupEnrollForm);
+</script>

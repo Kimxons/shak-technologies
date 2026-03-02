@@ -1,0 +1,492 @@
+---
+import { CONSULT_BOOKING_LINKS } from "@config";
+---
+
+<aside class="book-call-nudge" data-book-call-nudge hidden aria-live="polite" data-product-paths="/product,/pricing,/services,/consulting" data-ai-paths="/blog/ai,/ai,/ml,/genai,/llm">
+  <button type="button" class="nudge-launcher" aria-expanded="false" aria-controls="book-call-nudge-panel">
+    <span class="launcher-dot" aria-hidden="true"></span>
+    <span>Get AI Strategy Clarity</span>
+  </button>
+
+  <div id="book-call-nudge-panel" class="nudge-panel" role="dialog" aria-modal="true" aria-label="Book AI strategy call" aria-hidden="true">
+    <button type="button" class="nudge-close" data-nudge-close aria-label="Close">
+      <svg viewBox="0 0 24 24">
+        <path d="M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41 6.3 6.3-6.3 6.29 1.41 1.42 6.3-6.3 6.29 6.3 1.42-1.42-6.3-6.29 6.3-6.3z"></path>
+      </svg>
+    </button>
+
+    <p class="nudge-kicker" data-nudge-kicker>Strategic AI Advisory</p>
+    <h2 data-nudge-headline>Turn AI from noise into leverage.</h2>
+    <p class="nudge-copy" data-nudge-copy>Walk away with a clear execution path — architecture, tooling, rollout sequence, and ROI framing.</p>
+
+    <ul class="nudge-benefits" data-nudge-benefits>
+      <li>Prioritized AI roadmap tailored to your team.</li>
+      <li>Architecture validation before budget commitment.</li>
+      <li>Execution framework your team can deploy immediately.</li>
+    </ul>
+
+    <div class="nudge-trust" data-nudge-trust>
+      <span>Direct. Practical. No fluff.</span>
+    </div>
+
+    <div class="nudge-actions">
+      <a href={CONSULT_BOOKING_LINKS.quick15} target="_blank" rel="noopener noreferrer" class="btn-primary nudge-btn" data-nudge-cta data-cta-kind="quick15">
+        15-Min Clarity Call
+      </a>
+      <a href={CONSULT_BOOKING_LINKS.strategy30} target="_blank" rel="noopener noreferrer" class="btn-secondary nudge-btn" data-nudge-cta data-cta-kind="strategy30">
+        30-Min Deep Strategy
+      </a>
+    </div>
+
+    <button type="button" class="nudge-snooze" data-nudge-snooze>Not now</button>
+  </div>
+</aside>
+
+<style>
+.book-call-nudge {
+  position: fixed;
+  right: clamp(1rem, 2vw, 1.6rem);
+  bottom: clamp(1rem, 2vw, 1.4rem);
+  z-index: 90;
+  width: min(94vw, 28rem);
+}
+
+.nudge-launcher {
+  @apply inline-flex items-center gap-3 rounded-full border border-skin-line bg-skin-card px-6 py-3 text-base font-semibold shadow-md transition;
+  backdrop-filter: blur(12px);
+}
+
+.nudge-launcher:hover { transform: translateY(-2px); }
+
+.launcher-dot {
+  width: .6rem;
+  height: .6rem;
+  border-radius: 999px;
+  background: hsl(var(--accent));
+  animation: dotPulse 2.6s ease-out infinite;
+}
+
+.nudge-panel {
+  @apply relative mt-3 rounded-3xl border border-skin-line p-6 shadow-2xl;
+  background: linear-gradient(165deg, rgba(var(--color-card), .98), rgba(var(--color-card), .92));
+  backdrop-filter: blur(14px);
+  transform: translateY(12px) scale(.98);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 240ms ease, opacity 240ms ease;
+}
+
+.book-call-nudge.is-open .nudge-panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.book-call-nudge.is-open .nudge-launcher { display: none; }
+
+.nudge-close {
+  @apply absolute right-4 top-4 rounded-full border border-skin-line bg-skin-fill p-1.5;
+}
+
+.nudge-close svg { @apply h-4 w-4; }
+
+.nudge-kicker { @apply text-xs font-semibold uppercase tracking-widest text-skin-accent; }
+
+.nudge-panel h2 { @apply mt-2 text-3xl font-semibold leading-tight; }
+
+.nudge-copy { @apply mt-3 text-base opacity-85; }
+
+.nudge-benefits { @apply mt-4 space-y-2 text-sm opacity-85; }
+
+.nudge-benefits li { position: relative; padding-left: 1.2rem; }
+
+.nudge-benefits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .45rem;
+  width: .5rem;
+  height: .5rem;
+  border-radius: 999px;
+  background: hsl(var(--accent));
+}
+
+.nudge-trust { @apply mt-4 text-xs font-semibold uppercase tracking-wider text-skin-accent; }
+
+.nudge-actions { @apply mt-5 grid gap-3; }
+
+.nudge-btn { @apply inline-flex w-full justify-center text-sm; }
+
+.nudge-snooze { @apply mt-4 text-sm font-semibold opacity-70 transition hover:opacity-100; }
+
+@keyframes dotPulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--color-accent), .4); }
+  70% { box-shadow: 0 0 0 10px rgba(var(--color-accent), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--color-accent), 0); }
+}
+</style>
+
+<script is:inline>
+const setupBookCallNudge = () => {
+  const prev = window.__bookCallNudgeStore;
+  if (prev?.cleanup) prev.cleanup();
+
+  const root = document.querySelector("[data-book-call-nudge]");
+  if (!(root instanceof HTMLElement)) return;
+
+  const panel = root.querySelector(".nudge-panel");
+  const launcher = root.querySelector(".nudge-launcher");
+  const closeBtn = root.querySelector("[data-nudge-close]");
+  const snoozeBtn = root.querySelector("[data-nudge-snooze]");
+  const headlineEl = root.querySelector("[data-nudge-headline]");
+  const kickerEl = root.querySelector("[data-nudge-kicker]");
+  const copyEl = root.querySelector("[data-nudge-copy]");
+  const benefitsEl = root.querySelector("[data-nudge-benefits]");
+  const trustEl = root.querySelector("[data-nudge-trust]");
+  const ctas = Array.from(root.querySelectorAll("[data-nudge-cta]"));
+
+  if (!(panel instanceof HTMLElement) || !(launcher instanceof HTMLButtonElement)) return;
+
+  const LS_CONVERTED = "ai_nudge_converted";
+  const LS_DISMISS = "ai_nudge_dismiss_until";
+  const SS_SHOWN = "ai_nudge_session";
+  const LS_VISITS = "ai_nudge_visits";
+  const LS_PROFILE = "ai_nudge_profile_v1";
+  const LS_BOOKED = "ai_nudge_booked_v1";
+
+  const TIMED_DELAY_MS = 6500;
+  const URGENCY_VISIT_THRESHOLD = 2;
+  const SHORT_COOLDOWN_MS = 45 * 60 * 1000;
+  const SNOOZE_MS = 24 * 60 * 60 * 1000;
+
+  const cleanupFns = [];
+  const on = (t, e, h, o) => { t.addEventListener(e, h, o); cleanupFns.push(() => t.removeEventListener(e, h, o)); };
+
+  const now = Date.now();
+  const dismissedUntil = Number(localStorage.getItem(LS_DISMISS) || 0);
+  const converted = localStorage.getItem(LS_CONVERTED) === "true";
+  const sessionShown = sessionStorage.getItem(SS_SHOWN) === "true";
+  const bookedCache = (() => {
+    try {
+      const raw = localStorage.getItem(LS_BOOKED);
+      if (!raw) return { booked: false, exp: 0 };
+      const v = JSON.parse(raw);
+      if (!v || typeof v !== "object") return { booked: false, exp: 0 };
+      return { booked: !!v.booked, exp: Number(v.exp || 0) };
+    } catch { return { booked: false, exp: 0 }; }
+  })();
+
+  const isSuppressed = () => {
+    if (converted) return true;
+    if (dismissedUntil > Date.now()) return true;
+    if (sessionShown) return true;
+    if (bookedCache.booked && bookedCache.exp > Date.now()) return true;
+    return false;
+  };
+
+  if (isSuppressed()) { root.hidden = true; return; }
+
+  const visitCount = (() => {
+    const next = Number(localStorage.getItem(LS_VISITS) || 0) + 1;
+    localStorage.setItem(LS_VISITS, String(next));
+    return next;
+  })();
+
+  const parseList = v => String(v || "").split(",").map(s => s.trim()).filter(Boolean);
+  const productPaths = parseList(root.dataset.productPaths);
+  const aiPaths = parseList(root.dataset.aiPaths);
+  const path = (location.pathname || "/").toLowerCase();
+
+  const isProductContext = productPaths.some(p => p && path.startsWith(p.toLowerCase()));
+  const isAiContext = aiPaths.some(p => p && path.startsWith(p.toLowerCase()));
+
+  const ref = (() => {
+    try { return new URL(document.referrer || ""); } catch { return null; }
+  })();
+
+  const refHost = (ref?.hostname || "").toLowerCase();
+  const isSearchRef = /google\.|bing\.|duckduckgo\.|yahoo\./.test(refHost);
+  const isSocialRef = /twitter\.|t\.co|x\.com|linkedin\.|facebook\.|instagram\.|reddit\.|tiktok\./.test(refHost);
+  const isDirect = !document.referrer;
+
+  const withTimeout = (p, ms) => {
+    const ac = new AbortController();
+    const to = setTimeout(() => ac.abort(), ms);
+    return { ac, run: Promise.resolve().then(() => p(ac.signal)).finally(() => clearTimeout(to)) };
+  };
+
+  const readProfile = () => {
+    try {
+      const raw = localStorage.getItem(LS_PROFILE);
+      if (!raw) return null;
+      const v = JSON.parse(raw);
+      if (!v || typeof v !== "object") return null;
+      if (Number(v.exp || 0) <= Date.now()) return null;
+      return v;
+    } catch { return null; }
+  };
+
+  const writeProfile = (v, ttlMs) => {
+    const payload = { ...v, exp: Date.now() + ttlMs };
+    localStorage.setItem(LS_PROFILE, JSON.stringify(payload));
+    return payload;
+  };
+
+  const setBookedCache = (booked, ttlMs) => {
+    localStorage.setItem(LS_BOOKED, JSON.stringify({ booked: !!booked, exp: Date.now() + ttlMs }));
+  };
+
+  const track = (action, meta = {}) => {
+    window.dataLayer?.push({ event: "ai_nudge", action, visitCount, ...meta });
+  };
+
+  const setText = (kicker, headline, copy, benefits, trust) => {
+    if (kickerEl) kickerEl.textContent = kicker;
+    if (headlineEl) headlineEl.textContent = headline;
+    if (copyEl) copyEl.textContent = copy;
+    if (Array.isArray(benefits) && benefitsEl instanceof HTMLElement) {
+      benefitsEl.innerHTML = benefits.map(t => `<li>${String(t)}</li>`).join("");
+    }
+    if (trustEl) trustEl.textContent = trust;
+  };
+
+  const personaByReferrer = () => {
+    if (isSearchRef) return "search";
+    if (isSocialRef) return "social";
+    if (isDirect) return "direct";
+    return "referral";
+  };
+
+  const frameByContext = () => {
+    if (isAiContext) return "ai_blog";
+    if (isProductContext) return "product";
+    return "generic";
+  };
+
+  const urgency = visitCount >= URGENCY_VISIT_THRESHOLD;
+
+  const buildMessage = (company = {}) => {
+    const refPersona = personaByReferrer();
+    const ctx = frameByContext();
+    const size = String(company.size || "").toLowerCase();
+    const seg =
+      size.includes("enterprise") || size.includes("1000") || size.includes("500+") || size.includes("1000+")
+        ? "enterprise"
+        : size.includes("mid") || size.includes("100-") || size.includes("200") || size.includes("50-")
+          ? "mid"
+          : size ? "smb" : "unknown";
+
+    const base = {
+      kicker: "Strategic AI Advisory",
+      headline: "Turn AI from noise into leverage.",
+      copy: "Walk away with a clear execution path — architecture, tooling, rollout sequence, and ROI framing.",
+      benefits: [
+        "Prioritized AI roadmap tailored to your team.",
+        "Architecture validation before budget commitment.",
+        "Execution framework your team can deploy immediately."
+      ],
+      trust: "Direct. Practical. No fluff."
+    };
+
+    const ctxFrames = {
+      ai_blog: {
+        kicker: "AI Implementation Review",
+        headline: "Stop reading theory. Start shipping.",
+        copy: "Translate what you just learned into a deliverable plan: data, architecture, evaluation, rollout.",
+        benefits: [
+          "Pick the best first AI use-case for your org.",
+          "Define the fastest architecture that actually works.",
+          "Get a rollout checklist your team can execute."
+        ],
+        trust: "Practical execution, not vibes."
+      },
+      product: {
+        kicker: "Solution Fit Check",
+        headline: "Validate the architecture before you build it.",
+        copy: "We’ll stress-test feasibility, integration points, and delivery sequence so you avoid expensive detours.",
+        benefits: [
+          "Confirm feasibility + integration approach.",
+          "Reduce scope bloat while keeping ROI.",
+          "Get a clean delivery plan with milestones."
+        ],
+        trust: "Less risk. Faster delivery."
+      },
+      generic: base
+    };
+
+    const refTweaks = {
+      search: { headline: "Found us via search? Let’s make it worth it.", kicker: "Fast Clarity Session" },
+      social: { headline: "Seen enough threads. Time for a plan.", kicker: "Practical Advisory" },
+      direct: { headline: "Ready to turn ideas into outcomes?", kicker: "AI Execution Advisory" },
+      referral: { headline: "Let’s map the fastest path to impact.", kicker: "Execution Planning" }
+    };
+
+    const sizeTweaks = {
+      enterprise: {
+        copy: "We’ll align architecture, governance, and rollout so you can ship safely across teams and systems.",
+        trust: "Enterprise-grade decisions, made fast."
+      },
+      mid: {
+        copy: "We’ll design the simplest architecture that scales and a rollout plan your team can execute this quarter.",
+        trust: "Momentum without technical debt."
+      },
+      smb: {
+        copy: "We’ll pick one high-ROI use-case and map the quickest build path without overengineering.",
+        trust: "Speed + clarity, no bloat."
+      },
+      unknown: {}
+    };
+
+    const urgentTweaks = urgency
+      ? {
+          kicker: "Limited Advisory Slots",
+          headline: "Don’t let this sit in backlog again.",
+          trust: "Quick call. Concrete next steps."
+        }
+      : {};
+
+    const merged = { ...ctxFrames[ctx], ...refTweaks[refPersona], ...sizeTweaks[seg], ...urgentTweaks };
+    return { ...base, ...merged, seg, ctx, refPersona };
+  };
+
+  const openState = { shown: false };
+
+  const open = reason => {
+    if (openState.shown) return;
+    if (document.visibilityState !== "visible") return;
+    openState.shown = true;
+    sessionStorage.setItem(SS_SHOWN, "true");
+    root.hidden = false;
+    root.classList.add("is-open");
+    panel.setAttribute("aria-hidden", "false");
+    launcher.setAttribute("aria-expanded", "true");
+    root.dataset.trigger = reason;
+    track("shown", { reason });
+  };
+
+  const close = cooldown => {
+    root.classList.remove("is-open");
+    panel.setAttribute("aria-hidden", "true");
+    launcher.setAttribute("aria-expanded", "false");
+    if (cooldown) localStorage.setItem(LS_DISMISS, String(Date.now() + cooldown));
+    track("closed");
+  };
+
+  const hardHide = () => {
+    root.hidden = true;
+    root.classList.remove("is-open");
+    panel.setAttribute("aria-hidden", "true");
+    launcher.setAttribute("aria-expanded", "false");
+  };
+
+  const maybeFetchProfile = async () => {
+    const cached = readProfile();
+    if (cached) return cached;
+
+    const doFetch = async signal => {
+      const res = await fetch("/api/enrich", { method: "GET", headers: { "Accept": "application/json" }, signal, credentials: "same-origin" });
+      if (!res.ok) return null;
+      const json = await res.json().catch(() => null);
+      if (!json || typeof json !== "object") return null;
+      const company = json.company || json;
+      const size = company.size || company.companySize || company.employeeRange || company.employees || null;
+      const name = company.name || company.companyName || null;
+      const domain = company.domain || company.companyDomain || null;
+      return writeProfile({ company: { size, name, domain } }, 6 * 60 * 60 * 1000);
+    };
+
+    try {
+      const { run } = withTimeout(doFetch, 900);
+      return await run;
+    } catch {
+      return null;
+    }
+  };
+
+  const maybeCheckBooked = async () => {
+    if (bookedCache.exp > Date.now()) return bookedCache.booked;
+
+    const doFetch = async signal => {
+      const res = await fetch("/api/has-booked", { method: "GET", headers: { "Accept": "application/json" }, signal, credentials: "same-origin" });
+      if (!res.ok) return false;
+      const json = await res.json().catch(() => null);
+      const booked = !!(json && (json.booked === true || json.hasBooked === true));
+      setBookedCache(booked, 24 * 60 * 60 * 1000);
+      return booked;
+    };
+
+    try {
+      const { run } = withTimeout(doFetch, 900);
+      return await run;
+    } catch {
+      return false;
+    }
+  };
+
+  const applyMessaging = async () => {
+    const booked = await maybeCheckBooked();
+    if (booked) { hardHide(); track("suppressed", { reason: "booked" }); return; }
+
+    const profile = await maybeFetchProfile();
+    const msg = buildMessage(profile?.company || {});
+    setText(msg.kicker, msg.headline, msg.copy, msg.benefits, msg.trust);
+    root.dataset.segment = msg.seg;
+    root.dataset.context = msg.ctx;
+    root.dataset.referrer = msg.refPersona;
+    track("prepared", { segment: msg.seg, context: msg.ctx, referrer: msg.refPersona, urgency });
+  };
+
+  root.hidden = false;
+
+  let timedId = 0;
+  let scrollArmed = true;
+  let exitArmed = true;
+
+  const openTimed = () => open("timed");
+
+  const onScroll = () => {
+    if (!scrollArmed) return;
+    const denom = Math.max(1, document.body.scrollHeight - window.innerHeight);
+    const depth = window.scrollY / denom;
+    if (depth >= 0.5) { scrollArmed = false; open("scroll"); }
+  };
+
+  const onMouseMove = e => {
+    if (!exitArmed) return;
+    if (e.clientY <= 8) { exitArmed = false; open("exit-intent"); }
+  };
+
+  const onVisibility = () => {
+    if (document.visibilityState === "visible") track("visible");
+  };
+
+  on(window, "scroll", onScroll, { passive: true });
+  on(document, "mousemove", onMouseMove);
+  on(document, "visibilitychange", onVisibility);
+
+  on(launcher, "click", () => open("manual"));
+  if (closeBtn instanceof HTMLButtonElement) on(closeBtn, "click", () => close(SHORT_COOLDOWN_MS));
+  if (snoozeBtn instanceof HTMLButtonElement) on(snoozeBtn, "click", () => close(SNOOZE_MS));
+
+  ctas.forEach(a => {
+    if (!(a instanceof HTMLAnchorElement)) return;
+    on(a, "click", () => {
+      localStorage.setItem(LS_CONVERTED, "true");
+      track("cta_click", { kind: a.dataset.ctaKind || "unknown" });
+      close();
+    });
+  });
+
+  timedId = window.setTimeout(openTimed, TIMED_DELAY_MS);
+  cleanupFns.push(() => window.clearTimeout(timedId));
+
+  applyMessaging();
+
+  window.__bookCallNudgeStore = {
+    cleanup: () => cleanupFns.forEach(fn => fn())
+  };
+};
+
+document.addEventListener("DOMContentLoaded", setupBookCallNudge);
+document.addEventListener("astro:after-swap", setupBookCallNudge);
+</script>

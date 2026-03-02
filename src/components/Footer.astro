@@ -1,0 +1,183 @@
+---
+import Hr from "./Hr.astro";
+import Socials from "./Socials.astro";
+import LinkButton from "./LinkButton.astro";
+import { CONSULT_BOOKING_LINKS, SITE } from "@config";
+
+interface Props {
+  noMarginTop?: boolean;
+}
+
+const { noMarginTop = false } = Astro.props;
+const currentYear = new Date().getFullYear();
+---
+
+<footer class:list={["w-full site-footer", { "mt-auto": !noMarginTop }]}>
+  <Hr noPadding />
+  <div class="footer-shell">
+    <div class="footer-top">
+      <div class="message-block">
+        <span class="chip">Consultancy Core + Training Track</span>
+        <h2>Lead with reliable AI delivery, then upskill your team as you scale.</h2>
+        <p>
+          Shak Technologies Ltd works with organizations that need practical AI execution:
+          from architecture and implementation support to team enablement through applied
+          training.
+        </p>
+      </div>
+
+      <div class="booking-block">
+        <p class="booking-label">Start Here</p>
+        <ul class="booking-links">
+          <li>
+            <a href={CONSULT_BOOKING_LINKS.quick15} target="_blank" rel="noopener noreferrer">
+              15-Minute Triage Call
+              <span>Fast qualification for urgent delivery decisions.</span>
+            </a>
+          </li>
+          <li>
+            <a href={CONSULT_BOOKING_LINKS.strategy30} target="_blank" rel="noopener noreferrer">
+              30-Minute Strategy Session
+              <span>Scope architecture, milestones, and execution path.</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-middle">
+      <div class="cta-row">
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.strategy30}
+          className="btn-primary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Book Consultancy Call
+        </LinkButton>
+        <LinkButton href="/consultancy" className="btn-secondary">
+          Explore Consultancy Services
+        </LinkButton>
+        <a href="/courses" class="footer-link">Explore Training Courses</a>
+      </div>
+
+      <nav aria-label="Footer links">
+        <ul class="utility-links">
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/research">Research</a></li>
+          <li><a href="/posts">Insights</a></li>
+          <li><a href="/enroll">Enroll</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="copyright-wrapper">
+        <span>&copy; {currentYear}</span>
+        <span class="separator">|</span>
+        <span>{SITE.author}. All rights reserved.</span>
+      </div>
+      <Socials centered />
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    @apply pb-9;
+  }
+  .footer-shell {
+    @apply relative mt-8 grid gap-8 pt-8;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+  }
+  .footer-shell::before {
+    content: "";
+    @apply pointer-events-none absolute left-0 top-0 h-px w-full;
+    background: linear-gradient(
+      90deg,
+      rgba(var(--color-border), 0) 0%,
+      rgba(var(--color-accent), 0.38) 48%,
+      rgba(var(--color-border), 0) 100%
+    );
+  }
+  .footer-top {
+    @apply grid gap-8;
+  }
+  @media (min-width: 980px) {
+    .footer-top {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      column-gap: 2.25rem;
+      align-items: start;
+    }
+  }
+  .message-block h2 {
+    @apply mt-4 max-w-4xl text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .message-block > p {
+    @apply mt-4 max-w-3xl text-base opacity-85;
+  }
+  .booking-block {
+    @apply self-start;
+  }
+  .booking-label {
+    @apply text-xs font-semibold uppercase tracking-[0.22em] text-skin-accent;
+  }
+  .booking-links {
+    @apply mt-3;
+  }
+  .booking-links li {
+    @apply border-b border-dashed border-skin-line;
+  }
+  .booking-links li:last-child {
+    border-bottom: 0;
+  }
+  .booking-links a {
+    @apply block py-3 no-underline transition;
+  }
+  .booking-links a:hover {
+    color: hsl(var(--accent));
+    transform: translateX(2px);
+  }
+  .booking-links a span {
+    @apply mt-1 block text-sm opacity-75;
+  }
+  .footer-middle {
+    @apply grid gap-5 border-t border-skin-line border-opacity-85 pt-6;
+  }
+  @media (min-width: 980px) {
+    .footer-middle {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: 1.5rem;
+    }
+  }
+  .cta-row {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .footer-link {
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .footer-link::after {
+    content: "\2192";
+  }
+  .utility-links {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .utility-links a {
+    @apply inline-flex rounded-full border border-skin-line px-3 py-1 text-xs font-semibold uppercase tracking-wide no-underline transition;
+  }
+  .utility-links a:hover {
+    border-color: hsl(var(--accent));
+    color: hsl(var(--accent));
+  }
+  .footer-bottom {
+    @apply flex flex-col gap-5 border-t border-skin-line border-opacity-75 pt-5 sm:flex-row sm:items-center sm:justify-between;
+  }
+  .copyright-wrapper {
+    @apply flex flex-col items-start whitespace-nowrap text-sm opacity-75 sm:flex-row sm:items-center;
+  }
+  .separator {
+    @apply hidden sm:inline px-2;
+  }
+</style>

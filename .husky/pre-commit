@@ -1,0 +1,4 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+export PATH="$PATH:/home/shak/.nvm/versions/node/v18.17.1/bin"

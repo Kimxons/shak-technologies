@@ -1,0 +1,564 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import LinkButton from "@components/LinkButton.astro";
+import { CONSULT_BOOKING_LINKS, SITE } from "@config";
+
+const onlinePlan = {
+  title: "AI Systems Delivery Bootcamp (Cohort 01)",
+  monthlyKes: 7500,
+  totalKes: 30000,
+  monthlyUsdApprox: 58,
+  totalUsdApprox: 231,
+  description: "Online evening sessions from 7:00 PM to 10:00 PM EAT",
+  features: [
+    "4 months learning + 2 months internship",
+    "3 hours/day, Monday to Thursday",
+    "Weekly build reviews and mentorship support",
+    "Verifiable certification on completion",
+  ],
+};
+
+const currencyOptions = [
+  { code: "KES", label: "KES (Local)" },
+  { code: "USD", label: "USD (International)" },
+] as const;
+
+const consultancyDrivers = [
+  "Business scope, technical depth, and expected delivery outcomes",
+  "Engagement model: advisory, implementation support, or team enablement",
+  "Timeline, stakeholder cadence, and level of execution involvement",
+  "Governance, documentation, and quality assurance requirements",
+];
+
+const consultancyModels = [
+  {
+    title: "Advisory Retainer",
+    summary: "Ongoing strategic and technical guidance for leadership and product teams.",
+    useCase: "Best for teams needing weekly architecture and roadmap decisions.",
+  },
+  {
+    title: "Implementation Sprint",
+    summary: "Hands-on support to unblock delivery and move priority AI initiatives to production.",
+    useCase: "Best for teams with active builds and tight execution timelines.",
+  },
+  {
+    title: "Team Enablement Program",
+    summary: "Consultancy plus practical training to raise internal capability and execution standards.",
+    useCase: "Best for organizations building durable in-house AI capability.",
+  },
+];
+
+const paymentNotes = [
+  "Local clients can be invoiced in KES.",
+  "International clients can be invoiced in USD.",
+  "Final pricing is shared after scope alignment and call discovery.",
+];
+
+const faqs = [
+  {
+    question: "Do you have fixed consultancy rates?",
+    answer:
+      "No. Consultancy is scope-based to ensure pricing matches actual goals, complexity, and delivery ownership.",
+  },
+  {
+    question: "Can I pay course fees in installments?",
+    answer:
+      "Yes. The cohort fee is structured in monthly installments across the learning phase.",
+  },
+  {
+    question: "Do you support international clients?",
+    answer:
+      "Yes. Consultancy is available globally, and invoices can be issued in USD for international engagements.",
+  },
+  {
+    question: "Is training only local?",
+    answer:
+      "Training is delivered online in evening EAT sessions, which supports both regional and international participants.",
+  },
+];
+
+const pricingSchema = {
+  "@context": "https://schema.org",
+  "@type": "OfferCatalog",
+  name: "Training and Consultancy Pricing",
+  itemListElement: [
+    {
+      "@type": "Offer",
+      name: onlinePlan.title,
+      priceCurrency: "KES",
+      price: "7500",
+      url: new URL("enroll", SITE.website).href,
+      description: `${onlinePlan.description}. ${onlinePlan.totalKes.toLocaleString()} KES total.`,
+      category: "Online Education",
+    },
+    {
+      "@type": "Offer",
+      name: "Consultancy Services",
+      url: new URL("consultancy", SITE.website).href,
+      description:
+        "Custom consultancy fees determined by scope, implementation timeline, and engagement model.",
+      category: "Consulting",
+    },
+  ],
+};
+---
+
+<Layout
+  title={`Pricing | ${SITE.title}`}
+  description="Consultancy pricing for international and local clients, plus clear cohort training fees."
+  keywords={[
+    "ai consultancy pricing",
+    "ai training fees",
+    "local and international pricing",
+    "machine learning consulting rates",
+    "shak technologies pricing",
+  ]}
+  schema={pricingSchema}
+>
+  <Header activeNav="pricing" />
+  <main id="main-content">
+    <section id="pricing-hero">
+      <span class="chip">Pricing</span>
+      <h1>Clear training fees. Scope-based consultancy pricing.</h1>
+      <p>
+        We serve both local and international clients. Training has a defined cohort
+        price, while consultancy fees are customized after discovery and scope alignment.
+      </p>
+
+      <div class="hero-paths">
+        <article class="path-row">
+          <p class="path-kicker">Global and Regional Teams</p>
+          <h2>Consultancy Engagements</h2>
+          <p>
+            Pricing is proposal-based after a strategy call to match your delivery
+            scope, timeline, and technical requirements.
+          </p>
+          <div class="path-actions">
+            <LinkButton
+              href={CONSULT_BOOKING_LINKS.strategy30}
+              className="btn-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book Strategy Call
+            </LinkButton>
+            <LinkButton href="/consultancy" className="btn-secondary">
+              Explore Consultancy
+            </LinkButton>
+          </div>
+        </article>
+
+        <article class="path-row">
+          <p class="path-kicker">Local and International Professionals</p>
+          <h2>Cohort Training</h2>
+          <p>
+            Evening online training with structured mentorship for practical AI
+            implementation and delivery outcomes.
+          </p>
+          <div class="path-actions">
+            <LinkButton href="/enroll" className="btn-primary">Start Enrollment</LinkButton>
+            <LinkButton href="/courses" className="btn-secondary">View Curriculum</LinkButton>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="training-pricing" class="section-block">
+      <div class="section-heading">
+        <h2>Training Pricing (Dual Currency)</h2>
+        <p>
+          Cohort pricing is fixed in KES, with USD reference values for international planning.
+        </p>
+      </div>
+
+      <div class="currency-toggle" role="radiogroup" aria-label="Pricing currency">
+        {
+          currencyOptions.map((option, index) => (
+            <button
+              type="button"
+              class={`currency-btn ${index === 0 ? "is-active" : ""}`}
+              data-currency={option.code}
+              aria-pressed={index === 0 ? "true" : "false"}
+            >
+              {option.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <article class="tuition-panel">
+        <div class="tuition-intro">
+          <h3>{onlinePlan.title}</h3>
+          <p>{onlinePlan.description}</p>
+        </div>
+
+        <div class="tuition-price-wrap">
+          <p
+            class="price"
+            data-price-kes={`${onlinePlan.monthlyKes.toLocaleString()} KES/month`}
+            data-price-usd={`USD ${onlinePlan.monthlyUsdApprox.toLocaleString()}/month (approx)`}
+          >
+            {onlinePlan.monthlyKes.toLocaleString()} KES/month
+          </p>
+          <p
+            class="total"
+            data-total-kes={`(${onlinePlan.totalKes.toLocaleString()} KES total)`}
+            data-total-usd={`(USD ${onlinePlan.totalUsdApprox.toLocaleString()} total, approx)`}
+          >
+            ({onlinePlan.totalKes.toLocaleString()} KES total)
+          </p>
+          <p class="currency-note">
+            USD values are indicative for international planning. Final invoices are issued in the
+            agreed billing currency.
+          </p>
+        </div>
+
+        <ul class="tuition-features">
+          {onlinePlan.features.map(item => <li>{item}</li>)}
+        </ul>
+
+        <div class="tuition-actions">
+          <LinkButton href="/enroll" className="btn-primary">Apply Now</LinkButton>
+          <LinkButton
+            href={CONSULT_BOOKING_LINKS.quick15}
+            className="btn-secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Talk to Admissions
+          </LinkButton>
+        </div>
+      </article>
+    </section>
+
+    <section id="consultancy-pricing" class="section-block">
+      <div class="section-heading">
+        <h2>Consultancy Pricing Framework</h2>
+        <p>
+          Consultancy fees are intentionally customized to protect delivery quality and
+          align with your actual implementation needs.
+        </p>
+      </div>
+
+      <ul class="drivers-list">
+        {consultancyDrivers.map(item => <li>{item}</li>)}
+      </ul>
+
+      <div class="model-list">
+        {
+          consultancyModels.map(item => (
+            <article class="model-row">
+              <h3>{item.title}</h3>
+              <p>{item.summary}</p>
+              <p class="model-use">{item.useCase}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="consult-actions">
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.strategy30}
+          className="btn-primary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Get Scoped Proposal
+        </LinkButton>
+        <LinkButton href="/consultancy" className="btn-secondary">
+          Review Service Scope
+        </LinkButton>
+      </div>
+    </section>
+
+    <section id="payment-context" class="section-block">
+      <div class="section-heading">
+        <h2>Local and International Billing</h2>
+      </div>
+      <ul class="payment-list">
+        {paymentNotes.map(item => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section id="faq" class="section-block">
+      <div class="section-heading">
+        <h2>Frequently Asked Questions</h2>
+      </div>
+      <div class="faq-list">
+        {
+          faqs.map(item => (
+            <details class="faq-item">
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="final-cta">
+      <h2>Ready to move forward?</h2>
+      <p>
+        Choose your next step based on your need: enroll in cohort training or
+        book a strategy call for consultancy scoping.
+      </p>
+      <div class="hero-actions">
+        <LinkButton href="/enroll" className="btn-primary">Enroll in Cohort 01</LinkButton>
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.strategy30}
+          className="btn-secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Book Consultancy Call
+        </LinkButton>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 sm:px-6;
+  }
+
+  #pricing-hero {
+    @apply mt-8 border-y border-skin-line py-10;
+  }
+  #pricing-hero h1 {
+    @apply mt-4 max-w-5xl text-4xl font-bold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  #pricing-hero > p {
+    @apply mt-4 max-w-3xl text-lg leading-relaxed opacity-85;
+  }
+
+  .hero-paths {
+    @apply mt-8 grid gap-5;
+  }
+  .path-row {
+    @apply relative border-b border-dashed border-skin-line pb-5;
+  }
+  .path-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .path-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .path-row h2 {
+    @apply mt-2 text-2xl font-semibold;
+  }
+  .path-row > p {
+    @apply mt-2 max-w-3xl opacity-80;
+  }
+  .path-actions {
+    @apply mt-4 flex flex-wrap gap-3;
+  }
+
+  .section-block {
+    @apply border-t border-skin-line pt-14;
+  }
+  .section-heading h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  .section-heading p {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+
+  .currency-toggle {
+    @apply mt-6 inline-flex rounded-full border border-skin-line p-1;
+  }
+  .currency-btn {
+    @apply rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  .currency-btn.is-active {
+    background: rgba(var(--color-accent), 0.14);
+    color: hsl(var(--accent));
+  }
+
+  .tuition-panel {
+    @apply mt-6 border-y border-skin-line py-7;
+  }
+  .tuition-intro h3 {
+    @apply text-2xl font-semibold;
+  }
+  .tuition-intro p {
+    @apply mt-2 opacity-80;
+  }
+  .tuition-price-wrap {
+    @apply mt-5;
+  }
+  .price {
+    @apply text-3xl font-bold text-skin-accent;
+  }
+  .total {
+    @apply mt-1 text-sm font-medium opacity-75;
+  }
+  .currency-note {
+    @apply mt-3 max-w-2xl text-xs leading-relaxed opacity-75;
+  }
+  .tuition-features {
+    @apply mt-6 grid gap-2;
+  }
+  .tuition-features li {
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm;
+  }
+  .tuition-features li::before {
+    content: "";
+    @apply absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .tuition-features li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .tuition-actions {
+    @apply mt-7 flex flex-wrap gap-3;
+  }
+
+  .drivers-list {
+    @apply mt-8 grid gap-2;
+  }
+  .drivers-list li {
+    @apply relative border-b border-skin-line py-3 pl-5 text-sm;
+  }
+  .drivers-list li::before {
+    content: "";
+    @apply absolute left-0 top-5 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .drivers-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .model-list {
+    @apply mt-8 grid gap-2;
+  }
+  .model-row {
+    @apply border-b border-dashed border-skin-line py-4;
+  }
+  .model-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .model-row h3 {
+    @apply text-xl font-semibold;
+  }
+  .model-row p {
+    @apply mt-2 opacity-80;
+  }
+  .model-use {
+    @apply text-sm text-skin-accent;
+  }
+
+  .consult-actions,
+  .hero-actions {
+    @apply mt-7 flex flex-wrap gap-3;
+  }
+
+  .payment-list {
+    @apply mt-8 grid gap-2;
+  }
+  .payment-list li {
+    @apply relative border-b border-skin-line py-3 pl-5;
+  }
+  .payment-list li::before {
+    content: "";
+    @apply absolute left-0 top-5 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .payment-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .faq-list {
+    @apply mt-7 grid gap-3;
+  }
+  .faq-item {
+    @apply border border-skin-line rounded-xl px-4 py-3;
+  }
+  .faq-item summary {
+    @apply cursor-pointer text-base font-semibold;
+  }
+  .faq-item p {
+    @apply mt-2 text-sm leading-relaxed opacity-80;
+  }
+
+  #final-cta {
+    @apply border-y border-skin-line py-10;
+  }
+  #final-cta h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+  }
+  #final-cta p {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+
+  @media (min-width: 920px) {
+    .hero-paths {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 1.4rem;
+    }
+    .path-row {
+      border-bottom: 0;
+      padding-bottom: 0;
+      padding-right: 1rem;
+    }
+    .path-row:first-child {
+      border-right: 1px dashed rgba(var(--color-border), 0.82);
+      padding-right: 1.4rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const toggle = document.querySelector(".currency-toggle");
+    if (!(toggle instanceof HTMLElement)) return;
+
+    const buttons = Array.from(toggle.querySelectorAll(".currency-btn"));
+    const priceEl = document.querySelector(".price");
+    const totalEl = document.querySelector(".total");
+    if (!(priceEl instanceof HTMLElement) || !(totalEl instanceof HTMLElement)) return;
+
+    const setCurrency = currency => {
+      const isUsd = currency === "USD";
+      const nextPrice = isUsd ? priceEl.dataset.priceUsd : priceEl.dataset.priceKes;
+      const nextTotal = isUsd ? totalEl.dataset.totalUsd : totalEl.dataset.totalKes;
+      if (nextPrice) priceEl.textContent = nextPrice;
+      if (nextTotal) totalEl.textContent = nextTotal;
+
+      buttons.forEach(button => {
+        const active = button.dataset.currency === currency;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    };
+
+    const detectPreferredCurrency = () => {
+      try {
+        const localeRegion =
+          typeof Intl !== "undefined" && "Locale" in Intl
+            ? new Intl.Locale(navigator.language).region
+            : "";
+        return localeRegion === "KE" ? "KES" : "USD";
+      } catch {
+        return "KES";
+      }
+    };
+
+    buttons.forEach(button => {
+      button.addEventListener("click", () => setCurrency(button.dataset.currency ?? "KES"));
+    });
+
+    setCurrency(detectPreferredCurrency());
+  })();
+</script>

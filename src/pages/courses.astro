@@ -1,0 +1,529 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import LinkButton from "@components/LinkButton.astro";
+import { CONSULT_BOOKING_LINKS, SITE, SOCIALS } from "@config";
+
+const emailContact =
+  SOCIALS.find(({ name, active }) => name === "Mail" && active)?.href ??
+  "mailto:kitongameshack9@gmail.com";
+
+const featuredCourse = {
+  title: "AI Systems Delivery Bootcamp (Cohort 01)",
+  mode: "Online Evening Cohort",
+  duration: "4 months learning + 2 months internship",
+  schedule: "Monday to Thursday • 7:00 PM to 10:00 PM EAT",
+  credential: "Verifiable certification",
+  focus:
+    "A consultancy-aligned training program for professionals and teams that need practical AI architecture, implementation quality, and production execution discipline.",
+};
+
+const curriculumPhases = [
+  {
+    phase: "Phase 01",
+    window: "Weeks 1-3",
+    title: "Strategy and System Scoping",
+    description:
+      "Define high-value use cases, success metrics, and technical constraints before implementation starts.",
+    deliverable: "AI opportunity map + technical scope brief",
+  },
+  {
+    phase: "Phase 02",
+    window: "Weeks 4-7",
+    title: "Data and Architecture Foundations",
+    description:
+      "Set up data flows, feature readiness, architecture baselines, and implementation plans aligned to delivery capacity.",
+    deliverable: "Architecture blueprint + implementation roadmap",
+  },
+  {
+    phase: "Phase 03",
+    window: "Weeks 8-11",
+    title: "GenAI and Model Workflows",
+    description:
+      "Build model and retrieval workflows with structured outputs, evaluation criteria, and safety guardrails.",
+    deliverable: "Working AI workflow with evaluation baseline",
+  },
+  {
+    phase: "Phase 04",
+    window: "Weeks 12-16",
+    title: "Deployment and Delivery Readiness",
+    description:
+      "Harden reliability, observability, and rollout planning so systems can be shipped with confidence.",
+    deliverable: "Production-ready deployment package",
+  },
+  {
+    phase: "Phase 05",
+    window: "Internship",
+    title: "Applied Delivery Experience",
+    description:
+      "Work on practical projects with mentorship and review loops to strengthen professional execution standards.",
+    deliverable: "Portfolio-ready project + delivery review",
+  },
+];
+
+const graduationOutcomes = [
+  "One end-to-end AI system with documented architecture and delivery decisions",
+  "Stronger judgment on tradeoffs across speed, quality, and reliability",
+  "Hands-on experience with implementation reviews and rollout checkpoints",
+  "Verifiable certification plus internship exposure for practical credibility",
+];
+
+const deliveryPillars = [
+  {
+    title: "Live Instruction",
+    description:
+      "Focused sessions for architecture clarity, engineering tradeoffs, and production thinking.",
+  },
+  {
+    title: "Build Reviews",
+    description:
+      "Weekly technical reviews to identify blockers early and improve implementation quality.",
+  },
+  {
+    title: "Mentor Access",
+    description:
+      "Practical guidance during labs and project work for faster, higher-quality execution.",
+  },
+];
+
+const fitFor = [
+  "Engineers and analysts transitioning from theory to delivery",
+  "Product and technical leads owning AI implementation decisions",
+  "Teams that need practical execution standards, not passive content",
+  "Professionals building portfolio-quality systems for career growth",
+];
+
+const notFitFor = [
+  "Learners looking for passive, self-paced video-only programs",
+  "Teams without bandwidth to attend evening sessions consistently",
+  "Projects needing generic templates instead of tailored architecture thinking",
+];
+
+const upcomingTracks = [
+  "Production NLP Systems",
+  "Data Engineering for ML Teams",
+  "Applied Generative AI Engineering",
+];
+
+const coursesSchema = {
+  "@context": "https://schema.org",
+  "@type": "Course",
+  name: featuredCourse.title,
+  description:
+    "Consultancy-backed online evening AI training focused on architecture, implementation quality, and production delivery.",
+  provider: {
+    "@type": "Organization",
+    name: SITE.title,
+    url: SITE.website,
+  },
+  courseMode: "online",
+  educationalCredentialAwarded: featuredCourse.credential,
+  timeRequired: "P4M",
+  teaches: curriculumPhases.map(item => item.title),
+};
+---
+
+<Layout
+  title={`Courses | ${SITE.title}`}
+  description="Consultancy-backed AI training by Shak Technologies Ltd with a flagship online evening cohort."
+  keywords={[
+    "ai consultancy training",
+    "online ai bootcamp",
+    "ai systems delivery cohort",
+    "machine learning implementation training",
+    "shak technologies courses",
+  ]}
+  schema={coursesSchema}
+>
+  <Header activeNav="courses" />
+  <main id="main-content">
+    <section id="courses-hero">
+      <div class="hero-grid">
+        <div class="hero-main">
+          <span class="chip">Flagship Training • Cohort 01</span>
+          <h1>Consultancy-backed training for teams and professionals shipping AI.</h1>
+          <p>{featuredCourse.focus}</p>
+
+          <dl class="hero-facts">
+            <div>
+              <dt>Mode</dt>
+              <dd>{featuredCourse.mode}</dd>
+            </div>
+            <div>
+              <dt>Duration</dt>
+              <dd>{featuredCourse.duration}</dd>
+            </div>
+            <div>
+              <dt>Schedule</dt>
+              <dd>{featuredCourse.schedule}</dd>
+            </div>
+            <div>
+              <dt>Credential</dt>
+              <dd>{featuredCourse.credential}</dd>
+            </div>
+          </dl>
+
+          <div class="hero-actions">
+            <LinkButton href="/enroll" className="btn-primary">Enroll in Cohort 01</LinkButton>
+            <LinkButton
+              href={CONSULT_BOOKING_LINKS.strategy30}
+              className="btn-secondary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Request Team Training
+            </LinkButton>
+            <a href="/consultancy" class="hero-text-link">Consultancy Services</a>
+          </div>
+        </div>
+
+        <aside class="hero-rail">
+          <p class="rail-kicker">By Graduation</p>
+          <h2>You leave with a deployable AI system, not just notes.</h2>
+          <ul>
+            {graduationOutcomes.map(item => <li>{item}</li>)}
+          </ul>
+          <a
+            href={CONSULT_BOOKING_LINKS.quick15}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rail-link"
+          >
+            Speak to Admissions
+          </a>
+        </aside>
+      </div>
+    </section>
+
+    <section id="curriculum" class="section-block">
+      <div class="section-heading">
+        <h2>Cohort 01 Curriculum Blueprint</h2>
+        <p>
+          A phased training model designed around how consultancy engagements move
+          from strategy to deployment.
+        </p>
+      </div>
+
+      <ol class="curriculum-track">
+        {
+          curriculumPhases.map((item, index) => (
+            <li class="curriculum-step">
+              <span class="step-badge">0{index + 1}</span>
+              <div class="step-content">
+                <p class="step-meta">{item.phase} • {item.window}</p>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <p class="step-deliverable">
+                  <strong>Deliverable:</strong> {item.deliverable}
+                </p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section id="delivery" class="section-block">
+      <div class="section-heading">
+        <h2>How Learning Is Delivered</h2>
+        <p>
+          The format is high-accountability and implementation-first so participants
+          can execute, not just consume content.
+        </p>
+      </div>
+
+      <div class="delivery-layout">
+        <div class="delivery-list">
+          {
+            deliveryPillars.map(item => (
+              <article class="delivery-row">
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
+            ))
+          }
+        </div>
+
+        <div class="delivery-panel">
+          <h3>Who This Fits Best</h3>
+          <ul class="plain-list">
+            {fitFor.map(item => <li>{item}</li>)}
+          </ul>
+
+          <h3>Not Ideal If</h3>
+          <ul class="plain-list muted-list">
+            {notFitFor.map(item => <li>{item}</li>)}
+          </ul>
+
+          <LinkButton href="/enroll" className="btn-primary">Apply for Cohort 01</LinkButton>
+        </div>
+      </div>
+    </section>
+
+    <section id="upcoming" class="section-block">
+      <div class="section-heading">
+        <h2>Upcoming Tracks</h2>
+        <p>Next training lines after Cohort 01 intake cycles.</p>
+      </div>
+      <ul class="upcoming-list">
+        {upcomingTracks.map(track => <li>{track}</li>)}
+      </ul>
+    </section>
+
+    <section id="courses-cta">
+      <h2>Ready to secure your seat?</h2>
+      <p>
+        Start enrollment for Cohort 01 or schedule a short call if you need guidance
+        on fit, team enrollment, or consultancy alignment.
+      </p>
+      <div class="hero-actions">
+        <LinkButton href="/enroll" className="btn-primary">Start Enrollment</LinkButton>
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.quick15}
+          className="btn-secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Book 15-min Call
+        </LinkButton>
+        <LinkButton href={emailContact} className="btn-secondary">Email Admissions</LinkButton>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 sm:px-6;
+  }
+
+  #courses-hero {
+    @apply mt-8;
+  }
+  .hero-grid {
+    @apply grid gap-10 py-9;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+  }
+  @media (min-width: 1100px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      align-items: start;
+      column-gap: 2.5rem;
+    }
+  }
+
+  .hero-main h1 {
+    @apply mt-5 max-w-4xl text-4xl font-bold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  .hero-main p {
+    @apply mt-5 max-w-3xl text-lg leading-relaxed opacity-85;
+  }
+
+  .hero-facts {
+    @apply mt-7 grid gap-3;
+  }
+  .hero-facts div {
+    @apply border-b border-dashed border-skin-line pb-3;
+  }
+  .hero-facts dt {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .hero-facts dd {
+    @apply mt-1 text-sm font-medium;
+  }
+  @media (min-width: 840px) {
+    .hero-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem 1.2rem;
+    }
+  }
+
+  .hero-actions {
+    @apply mt-7 flex flex-wrap items-center gap-3;
+  }
+  .hero-text-link {
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .hero-text-link::after {
+    content: "\2192";
+    transition: transform 180ms ease;
+  }
+  .hero-text-link:hover::after {
+    transform: translateX(2px);
+  }
+
+  .hero-rail {
+    @apply relative pl-7;
+    border-left: 1px solid rgba(var(--color-border), 0.84);
+  }
+  .hero-rail::before {
+    content: "";
+    @apply absolute left-0 top-0 h-20 w-px;
+    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
+  }
+  .rail-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .hero-rail h2 {
+    @apply mt-3 text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .hero-rail ul {
+    @apply mt-4 grid gap-0;
+  }
+  .hero-rail li {
+    @apply border-b border-dashed border-skin-line py-3 pl-5 text-sm leading-relaxed;
+    position: relative;
+  }
+  .hero-rail li::before {
+    content: "";
+    @apply absolute left-0 top-5 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .hero-rail li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .rail-link {
+    @apply mt-6 inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .rail-link::after {
+    content: "\2192";
+  }
+
+  .section-block {
+    @apply border-t border-skin-line pt-14;
+  }
+  .section-heading h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  .section-heading p {
+    @apply mt-3 max-w-2xl opacity-80;
+  }
+
+  .curriculum-track {
+    @apply mt-8 grid gap-2;
+  }
+  .curriculum-step {
+    @apply grid grid-cols-[auto_1fr] gap-3 border-b border-dashed border-skin-line py-4;
+  }
+  .curriculum-step:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .step-badge {
+    @apply mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-skin-line text-xs font-semibold tracking-wide text-skin-accent;
+  }
+  .step-meta {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .step-content h3 {
+    @apply mt-1 text-xl font-semibold;
+  }
+  .step-content p {
+    @apply mt-2 leading-relaxed opacity-80;
+  }
+  .step-deliverable strong {
+    @apply text-skin-base;
+  }
+
+  .delivery-layout {
+    @apply mt-8 grid gap-8;
+  }
+  @media (min-width: 1000px) {
+    .delivery-layout {
+      grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+      align-items: start;
+      column-gap: 2.4rem;
+    }
+  }
+  .delivery-list {
+    @apply grid gap-2;
+  }
+  .delivery-row {
+    @apply border-b border-skin-line py-4;
+  }
+  .delivery-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .delivery-row h3 {
+    @apply text-xl font-semibold;
+  }
+  .delivery-row p {
+    @apply mt-2 opacity-80;
+  }
+
+  .delivery-panel {
+    @apply relative pl-7;
+    border-left: 1px solid rgba(var(--color-border), 0.84);
+  }
+  .delivery-panel::before {
+    content: "";
+    @apply absolute left-0 top-0 h-14 w-px;
+    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
+  }
+  .delivery-panel h3 {
+    @apply text-xl font-semibold;
+  }
+  .delivery-panel h3 + .plain-list {
+    @apply mt-3;
+  }
+  .delivery-panel h3:not(:first-child) {
+    @apply mt-6;
+  }
+  .plain-list {
+    @apply grid gap-2;
+  }
+  .plain-list li {
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm leading-relaxed;
+  }
+  .plain-list li::before {
+    content: "";
+    @apply absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .plain-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .muted-list li {
+    opacity: 0.78;
+  }
+  .delivery-panel :global(a.btn-primary) {
+    @apply mt-7;
+  }
+
+  .upcoming-list {
+    @apply mt-8 grid gap-2;
+  }
+  .upcoming-list li {
+    @apply relative border-b border-skin-line py-4 pl-7 text-lg font-medium;
+  }
+  .upcoming-list li::before {
+    content: "";
+    @apply absolute left-2 top-6 h-2 w-2 rounded-full bg-skin-accent;
+  }
+  .upcoming-list li::after {
+    content: "\2192";
+    @apply absolute right-2 top-4 text-sm text-skin-accent;
+  }
+  .upcoming-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  #courses-cta {
+    @apply border-y border-skin-line py-10;
+  }
+  #courses-cta h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  #courses-cta p {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+</style>

@@ -1,0 +1,407 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Layout from "@layouts/Layout.astro";
+import Breadcrumbs from "@components/Breadcrumbs.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import Pagination from "@components/Pagination.astro";
+import Datetime from "@components/Datetime";
+import LinkButton from "@components/LinkButton.astro";
+import getUniqueTags from "@utils/getUniqueTags";
+import { CONSULT_BOOKING_LINKS, SITE } from "@config";
+
+export interface Props {
+  currentPage: number;
+  totalPages: number;
+  paginatedPosts: CollectionEntry<"blog">[];
+  allPosts?: CollectionEntry<"blog">[];
+}
+
+const { currentPage, totalPages, paginatedPosts, allPosts = paginatedPosts } = Astro.props;
+const [leadPost, ...otherPosts] = paginatedPosts;
+const topicTags = getUniqueTags(allPosts).slice(0, 10);
+const postsCanonical =
+  currentPage > 1
+    ? new URL(`posts/${currentPage}`, SITE.website).href
+    : new URL("posts", SITE.website).href;
+
+const insightsSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: `Insights | ${SITE.title}`,
+  description:
+    "Practical AI engineering insights from Shak Technologies Ltd on systems, tooling, and delivery.",
+  url: postsCanonical,
+  isPartOf: {
+    "@type": "WebSite",
+    name: SITE.title,
+    url: SITE.website,
+  },
+};
+
+const streamStats = [
+  { label: "Published Insights", value: `${allPosts.length}+` },
+  { label: "Focus", value: "AI Delivery and Architecture" },
+  { label: "Audience", value: "Leaders, Builders, Teams" },
+];
+
+const editorialFocus = [
+  "Production implementation patterns and decision frameworks",
+  "Architecture trade-offs from real consulting and training work",
+  "Practical guidance for shipping reliable AI systems",
+];
+---
+
+<Layout
+  title={`Insights | ${SITE.title}`}
+  description="Practical AI engineering insights, implementation patterns, and delivery lessons from Shak Technologies Ltd."
+  canonicalURL={postsCanonical}
+  keywords={[
+    "ai insights",
+    "machine learning engineering articles",
+    "genai architecture blog",
+    "data science implementation guides",
+  ]}
+  schema={insightsSchema}
+>
+  <Header activeNav="posts" />
+  <Breadcrumbs />
+
+  <main id="insights-main">
+    <section id="insights-hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="chip">Insights Hub</span>
+          <h1>Practical insights for teams shipping real AI systems.</h1>
+          <p>
+            Learn from implementation patterns, architecture trade-offs, and
+            delivery lessons drawn from consultancy engagements and training programs.
+          </p>
+
+          <div class="hero-actions">
+            <LinkButton
+              href={CONSULT_BOOKING_LINKS.strategy30}
+              className="btn-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book Strategy Call
+            </LinkButton>
+            <LinkButton href="/consultancy" className="btn-secondary">Explore Consultancy</LinkButton>
+            <a href="/courses" class="hero-text-link">View Courses</a>
+          </div>
+
+          <ul class="hero-stats">
+            {
+              streamStats.map(stat => (
+                <li>
+                  <span class="stat-label">{stat.label}</span>
+                  <span class="stat-value">{stat.value}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <aside class="hero-rail">
+          <p class="rail-kicker">Editorial Focus</p>
+          <h2>Built for decision-makers and implementation teams.</h2>
+          <ul>
+            {editorialFocus.map(item => <li>{item}</li>)}
+          </ul>
+          <a href="/search" class="rail-link">Search all insights</a>
+        </aside>
+      </div>
+    </section>
+
+    {
+      topicTags.length > 0 && (
+        <section id="topics" aria-label="Popular insight topics">
+          <p class="topics-kicker">Browse by topic</p>
+          <div class="topic-strip">
+            {topicTags.map(topic => (
+              <a href={`/tags/${topic.tag}`} class="topic-pill">
+                {topic.tagName}
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <section id="insights-feed" class="section-block">
+      {
+        leadPost && (
+          <article class="featured-insight">
+            <p class="feature-kicker">Featured Insight</p>
+            <h2>
+              <a href={`/posts/${leadPost.slug}`}>{leadPost.data.title}</a>
+            </h2>
+            <Datetime
+              pubDatetime={leadPost.data.pubDatetime}
+              modDatetime={leadPost.data.modDatetime}
+              className="mt-3 text-sm"
+            />
+            <p class="feature-summary">{leadPost.data.description}</p>
+
+            {
+              (leadPost.data.tags ?? []).length > 0 && (
+                <p class="feature-tags">{(leadPost.data.tags ?? []).slice(0, 3).join(" • ")}</p>
+              )
+            }
+
+            <div class="feature-actions">
+              <LinkButton href={`/posts/${leadPost.slug}`} className="btn-primary">
+                Read Full Insight
+              </LinkButton>
+              <LinkButton
+                href={CONSULT_BOOKING_LINKS.quick15}
+                className="btn-secondary"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Discuss With Our Team
+              </LinkButton>
+            </div>
+          </article>
+        )
+      }
+
+      {
+        otherPosts.length > 0 && (
+          <div class="feed-list-wrap">
+            <h3>More Insights</h3>
+            <ul class="feed-list">
+              {otherPosts.map(({ data, slug }) => (
+                <li class="feed-row">
+                  <div class="feed-main">
+                    <a href={`/posts/${slug}`} class="feed-title">
+                      {data.title}
+                    </a>
+                    <Datetime
+                      pubDatetime={data.pubDatetime}
+                      modDatetime={data.modDatetime}
+                      className="mt-2 text-sm"
+                    />
+                    <p class="feed-summary">{data.description}</p>
+                    {
+                      (data.tags ?? []).length > 0 && (
+                        <p class="feed-tags">{(data.tags ?? []).slice(0, 3).join(" • ")}</p>
+                      )
+                    }
+                  </div>
+                  <a href={`/posts/${slug}`} class="feed-arrow" aria-label={`Read ${data.title}`}>
+                    &#8594;
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </section>
+  </main>
+
+  <Pagination
+    {currentPage}
+    {totalPages}
+    prevUrl={`/posts${currentPage - 1 !== 1 ? "/" + (currentPage - 1) : ""}`}
+    nextUrl={`/posts/${currentPage + 1}`}
+  />
+
+  <Footer noMarginTop={totalPages > 1} />
+</Layout>
+
+<style>
+  #insights-main {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-10 sm:px-6;
+  }
+
+  #insights-hero {
+    @apply pt-4;
+  }
+  .hero-grid {
+    @apply grid gap-10 py-9;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+  }
+  @media (min-width: 1080px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      align-items: start;
+      column-gap: 2.4rem;
+    }
+  }
+
+  .hero-copy h1 {
+    @apply mt-5 max-w-4xl text-4xl font-bold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  .hero-copy > p {
+    @apply mt-4 max-w-3xl text-lg opacity-85;
+  }
+  .hero-actions {
+    @apply mt-7 flex flex-wrap gap-3;
+  }
+  .hero-text-link {
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .hero-text-link::after {
+    content: "\2192";
+  }
+
+  .hero-stats {
+    @apply mt-7 grid gap-2;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    padding-top: 1rem;
+  }
+  .hero-stats li {
+    @apply border-b border-dashed border-skin-line pb-2;
+  }
+  .hero-stats li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .stat-label {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .stat-value {
+    @apply mt-1 block text-sm font-semibold;
+  }
+  @media (min-width: 760px) {
+    .hero-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+    .hero-stats li {
+      border-bottom: 0;
+      padding-bottom: 0;
+      border-right: 1px dashed rgba(var(--color-border), 0.76);
+      padding-right: 0.7rem;
+    }
+    .hero-stats li:last-child {
+      border-right: 0;
+      padding-right: 0;
+    }
+  }
+
+  .hero-rail {
+    @apply relative pl-7;
+    border-left: 1px solid rgba(var(--color-border), 0.82);
+  }
+  .hero-rail::before {
+    content: "";
+    @apply absolute left-0 top-0 h-20 w-px;
+    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
+  }
+  .rail-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .hero-rail h2 {
+    @apply mt-3 text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .hero-rail ul {
+    @apply mt-4 grid gap-2;
+  }
+  .hero-rail li {
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm opacity-85;
+  }
+  .hero-rail li::before {
+    content: "";
+    @apply absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .hero-rail li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .rail-link {
+    @apply mt-6 inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .rail-link::after {
+    content: "\2192";
+  }
+
+  #topics {
+    @apply mt-2;
+  }
+  .topics-kicker {
+    @apply text-xs font-semibold uppercase tracking-widest opacity-75;
+  }
+  .topic-strip {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+  .topic-pill {
+    @apply rounded-full border border-skin-line px-3 py-1.5 text-sm font-medium no-underline hover:border-skin-accent hover:text-skin-accent;
+  }
+
+  .section-block {
+    @apply border-t border-skin-line pt-12;
+  }
+  .featured-insight {
+    @apply border-b border-skin-line pb-8;
+  }
+  .feature-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .featured-insight h2 {
+    @apply mt-3 max-w-4xl text-3xl font-semibold leading-tight sm:text-4xl;
+    text-wrap: balance;
+  }
+  .featured-insight h2 a {
+    @apply no-underline hover:text-skin-accent;
+  }
+  .feature-summary {
+    @apply mt-4 max-w-3xl opacity-85;
+  }
+  .feature-tags {
+    @apply mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-skin-accent;
+  }
+  .feature-actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+
+  .feed-list-wrap {
+    @apply mt-8;
+  }
+  .feed-list-wrap h3 {
+    @apply text-2xl font-semibold;
+  }
+  .feed-list {
+    @apply mt-3 grid gap-1;
+  }
+  .feed-row {
+    @apply grid gap-3 border-b border-skin-line py-4;
+    align-items: start;
+  }
+  .feed-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  @media (min-width: 860px) {
+    .feed-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 0.9rem;
+    }
+  }
+  .feed-title {
+    @apply text-xl font-semibold no-underline;
+  }
+  .feed-title:hover {
+    color: hsl(var(--accent));
+  }
+  .feed-summary {
+    @apply mt-2 opacity-80;
+  }
+  .feed-tags {
+    @apply mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-skin-accent;
+  }
+  .feed-arrow {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-full border border-skin-line text-xl no-underline transition;
+  }
+  .feed-arrow:hover {
+    border-color: hsl(var(--accent));
+    color: hsl(var(--accent));
+    transform: translateX(2px);
+  }
+</style>

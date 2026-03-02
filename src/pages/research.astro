@@ -1,0 +1,544 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import LinkButton from "@components/LinkButton.astro";
+import { SITE, SOCIALS, CONSULT_BOOKING_LINKS } from "@config";
+
+const emailContact =
+  SOCIALS.find(({ name, active }) => name === "Mail" && active)?.href ??
+  "mailto:kitongameshack9@gmail.com";
+
+const heroMetrics = [
+  { label: "Research Areas", value: "06" },
+  { label: "Featured Publications", value: "03" },
+  { label: "Collaboration Focus", value: "Global + Africa" },
+];
+
+const researchAreas = [
+  {
+    title: "AI in Education",
+    aim: "Intelligent tutoring and personalized learning workflows",
+    impact:
+      "Design systems that adapt to learner context and improve completion outcomes in constrained environments.",
+  },
+  {
+    title: "Data Science for Social Impact",
+    aim: "Applied analytics for healthcare, agriculture, and urban systems",
+    impact:
+      "Build deployable models that can support decision-making where infrastructure and data quality vary.",
+  },
+  {
+    title: "Ethical AI and Governance",
+    aim: "Fairness, transparency, and accountability in AI systems",
+    impact:
+      "Embed governance into design and deployment so models scale with trust and regulatory readiness.",
+  },
+  {
+    title: "Natural Language Processing",
+    aim: "NLP advancement for African languages",
+    impact:
+      "Expand datasets and language tooling for inclusive AI products across underrepresented languages.",
+  },
+  {
+    title: "Industry 4.0 and IoT",
+    aim: "Smart systems for manufacturing and infrastructure",
+    impact:
+      "Combine sensors, edge intelligence, and prediction models for quality, efficiency, and resilience.",
+  },
+  {
+    title: "Computer Vision",
+    aim: "Visual intelligence for medical, agricultural, and planning use cases",
+    impact:
+      "Develop robust vision pipelines that perform reliably with practical compute and deployment constraints.",
+  },
+];
+
+const operatingPrinciples = [
+  {
+    title: "Applied Research Discipline",
+    description:
+      "Projects are scoped to move beyond publication and into practical implementation pathways.",
+  },
+  {
+    title: "Responsible Innovation",
+    description:
+      "Ethics, governance, and transparency are integrated from ideation through deployment.",
+  },
+  {
+    title: "Cross-Sector Collaboration",
+    description:
+      "Academic, industry, and policy partnerships are used to maximize real-world impact.",
+  },
+];
+
+const publications2025 = [
+  {
+    type: "Journal Article",
+    date: "October 2025",
+    title:
+      "Adaptive Learning Systems: Personalized Education Through AI in Sub-Saharan Africa",
+    authors: "John Doe, Jane Smith, Robert Johnson, et al.",
+    summary:
+      "A framework for adaptive learning under low-bandwidth constraints while preserving personalization quality and measurable learner progression.",
+    journal: "Journal of Educational Technology",
+    volume: "Vol. 45, Issue 3",
+  },
+  {
+    type: "Conference Paper",
+    date: "July 2025",
+    title: "Lightweight Evaluation Frameworks for Production GenAI in Resource-Constrained Teams",
+    authors: "Mary Wanjiru, Kevin Otieno, Susan Muli, et al.",
+    summary:
+      "Introduces an evaluation loop that balances response quality, reliability, and operational cost for real product teams.",
+    journal: "Proceedings of Applied AI Systems Conference",
+    volume: "Track: MLOps and Evaluation",
+  },
+  {
+    type: "Research Report",
+    date: "March 2025",
+    title: "Responsible NLP Pipelines for Underrepresented African Languages",
+    authors: "Meshack Kitonga, Grace Njeri, Daniel Mwangi",
+    summary:
+      "Documents data collection, annotation quality controls, and governance patterns for building safer, more inclusive NLP systems.",
+    journal: "Shak Technologies Research Lab",
+    volume: "Research Series 2025-01",
+  },
+];
+
+const partnerLogos = [
+  "Partner Logo",
+  "Partner Logo",
+  "Partner Logo",
+  "Partner Logo",
+  "Partner Logo",
+  "Partner Logo",
+  "Partner Logo",
+  "Partner Logo",
+];
+
+const researchSchema = {
+  "@context": "https://schema.org",
+  "@type": "ResearchOrganization",
+  name: SITE.title,
+  url: SITE.website,
+  description:
+    "Research and innovation initiatives in AI, data science, educational technology, and responsible AI deployment.",
+  areaOfResearch: researchAreas.map(area => area.title),
+};
+---
+
+<Layout
+  title={`Research and Innovation | ${SITE.title}`}
+  description="Research initiatives in data science, AI, and educational technology."
+  keywords={[
+    "ai research",
+    "data science research",
+    "ethical ai governance",
+    "nlp african languages",
+    "shak technologies research",
+  ]}
+  schema={researchSchema}
+>
+  <Header activeNav="research" />
+  <main id="main-content">
+    <section id="research-hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="chip">Research and Innovation</span>
+          <h1>Advancing practical AI research with measurable real-world impact.</h1>
+          <p>
+            Our research program focuses on translating data science and AI insights
+            into deployable systems for education, industry, and social development.
+          </p>
+          <div class="hero-actions">
+            <LinkButton href="#publications" className="btn-primary">View Publications</LinkButton>
+            <LinkButton href="#partnerships" className="btn-secondary">Research Partnerships</LinkButton>
+          </div>
+          <ul class="hero-metrics">
+            {
+              heroMetrics.map(metric => (
+                <li>
+                  <span class="metric-label">{metric.label}</span>
+                  <span class="metric-value">{metric.value}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <aside class="hero-rail">
+          <p class="rail-kicker">Research Charter</p>
+          <h2>From scientific insight to implementation readiness.</h2>
+          <p>
+            We run research with deployment in mind, balancing innovation depth,
+            technical rigor, and responsible AI standards.
+          </p>
+          <ul>
+            {operatingPrinciples.map(item => <li>{item.title}</li>)}
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="areas" class="section-block">
+      <div class="section-heading">
+        <h2>Research Areas</h2>
+        <p>
+          Key initiatives where we are actively pushing methodology, tooling,
+          and implementation patterns.
+        </p>
+      </div>
+
+      <ol class="area-track">
+        {
+          researchAreas.map((area, index) => (
+            <li class="area-row">
+              <span class="area-index">0{index + 1}</span>
+              <div class="area-content">
+                <h3>{area.title}</h3>
+                <p class="area-aim">{area.aim}</p>
+                <p class="area-impact">{area.impact}</p>
+                <a href="#publications">Learn more</a>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section id="principles" class="section-block">
+      <div class="section-heading">
+        <h2>How We Lead Research</h2>
+      </div>
+      <ul class="principle-list">
+        {
+          operatingPrinciples.map(item => (
+            <li class="principle-row">
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="publications" class="section-block">
+      <div class="section-heading">
+        <h2>Recent Publications</h2>
+        <p>
+          Selected 2025 outputs from our research team across journals, conference work,
+          and applied research reporting.
+        </p>
+      </div>
+
+      <div class="year-filter">
+        <span class="is-active">2025</span>
+        <span>2024</span>
+        <span>2023</span>
+      </div>
+
+      <div class="publication-feed">
+        {
+          publications2025.map(paper => (
+            <article class="publication-row">
+              <div class="paper-meta">
+                <span>{paper.type}</span>
+                <span>{paper.date}</span>
+              </div>
+              <div class="paper-copy">
+                <h3>{paper.title}</h3>
+                <p class="authors">Authors: {paper.authors}</p>
+                <p>{paper.summary}</p>
+                <p class="journal">
+                  Published in: {paper.journal}
+                  <span aria-hidden="true"> • </span>
+                  {paper.volume}
+                </p>
+              </div>
+              <div class="paper-actions">
+                <a href="#publications">Read Paper</a>
+                <a href="#publications">Download PDF</a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="publication-cta">
+        <LinkButton href="#publications" className="btn-secondary">View All 2025 Publications</LinkButton>
+      </div>
+    </section>
+
+    <section id="partnerships" class="section-block">
+      <div class="section-heading">
+        <h2>Research Collaborations</h2>
+        <p>
+          We collaborate with academic institutions, industry teams, and public-sector
+          stakeholders to accelerate applied research outcomes.
+        </p>
+      </div>
+
+      <div class="partner-strip">
+        {partnerLogos.map(label => <div class="partner-tile">{label}</div>)}
+      </div>
+
+      <div class="partner-cta">
+        <h3>Interested in partnering with us?</h3>
+        <p>
+          We welcome collaboration proposals for joint studies, implementation pilots,
+          and applied AI research programs.
+        </p>
+        <div class="hero-actions">
+          <LinkButton href={emailContact} className="btn-primary">Contact Research Team</LinkButton>
+          <LinkButton
+            href={CONSULT_BOOKING_LINKS.strategy30}
+            className="btn-secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Book Strategy Call
+          </LinkButton>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 sm:px-6;
+  }
+
+  #research-hero {
+    @apply mt-8;
+  }
+  .hero-grid {
+    @apply grid gap-10 py-10;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+  }
+  @media (min-width: 1080px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      align-items: start;
+      column-gap: 2.4rem;
+    }
+  }
+
+  .hero-copy h1 {
+    @apply mt-4 max-w-4xl text-4xl font-bold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  .hero-copy > p {
+    @apply mt-4 max-w-3xl text-lg leading-relaxed opacity-85;
+  }
+  .hero-actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+
+  .hero-metrics {
+    @apply mt-7 grid gap-2;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    padding-top: 1rem;
+  }
+  .hero-metrics li {
+    @apply border-b border-dashed border-skin-line pb-2;
+  }
+  .hero-metrics li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .metric-label {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .metric-value {
+    @apply mt-1 block text-base font-semibold;
+  }
+  @media (min-width: 760px) {
+    .hero-metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .hero-metrics li {
+      border-bottom: 0;
+      padding-bottom: 0;
+      border-right: 1px dashed rgba(var(--color-border), 0.76);
+      padding-right: 0.75rem;
+    }
+    .hero-metrics li:last-child {
+      border-right: 0;
+      padding-right: 0;
+    }
+  }
+
+  .hero-rail {
+    @apply relative pl-7;
+    border-left: 1px solid rgba(var(--color-border), 0.82);
+  }
+  .hero-rail::before {
+    content: "";
+    @apply absolute left-0 top-0 h-20 w-px;
+    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
+  }
+  .rail-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .hero-rail h2 {
+    @apply mt-3 text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .hero-rail p {
+    @apply mt-3 text-sm leading-relaxed opacity-80;
+  }
+  .hero-rail ul {
+    @apply mt-5 grid gap-2;
+  }
+  .hero-rail li {
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm;
+  }
+  .hero-rail li::before {
+    content: "";
+    @apply absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .hero-rail li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .section-block {
+    @apply border-t border-skin-line pt-14;
+  }
+  .section-heading h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  .section-heading p {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+
+  .area-track {
+    @apply mt-8 grid gap-2;
+  }
+  .area-row {
+    @apply grid grid-cols-[auto_1fr] gap-3 border-b border-dashed border-skin-line py-4;
+  }
+  .area-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .area-index {
+    @apply mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-skin-line text-xs font-semibold text-skin-accent;
+  }
+  .area-content h3 {
+    @apply text-xl font-semibold;
+  }
+  .area-aim {
+    @apply mt-1 text-sm font-medium text-skin-accent;
+  }
+  .area-impact {
+    @apply mt-2 text-sm leading-relaxed opacity-80;
+  }
+  .area-content a {
+    @apply mt-3 inline-flex items-center text-sm font-semibold text-skin-accent no-underline;
+  }
+  .area-content a::after {
+    content: "\2192";
+    margin-left: 0.3rem;
+  }
+
+  .principle-list {
+    @apply mt-8 grid gap-2;
+  }
+  .principle-row {
+    @apply grid gap-2 border-b border-skin-line py-4;
+  }
+  .principle-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  @media (min-width: 960px) {
+    .principle-row {
+      grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+      align-items: start;
+      gap: 1.4rem;
+    }
+  }
+  .principle-row h3 {
+    @apply text-xl font-semibold;
+  }
+  .principle-row p {
+    @apply opacity-80;
+  }
+
+  .year-filter {
+    @apply mt-6 flex gap-2;
+  }
+  .year-filter span {
+    @apply rounded-full border border-skin-line px-4 py-1 text-sm font-semibold;
+  }
+  .year-filter .is-active {
+    @apply border-skin-accent text-skin-accent;
+  }
+
+  .publication-feed {
+    @apply mt-6 grid gap-2;
+  }
+  .publication-row {
+    @apply grid gap-4 border-b border-skin-line py-5;
+  }
+  .publication-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  @media (min-width: 1040px) {
+    .publication-row {
+      grid-template-columns: minmax(0, 13rem) minmax(0, 1fr) auto;
+      column-gap: 1.2rem;
+      align-items: start;
+    }
+  }
+  .paper-meta {
+    @apply flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-skin-accent;
+  }
+  .paper-copy h3 {
+    @apply text-2xl font-semibold;
+  }
+  .paper-copy p {
+    @apply mt-2 opacity-80;
+  }
+  .authors {
+    @apply text-sm;
+  }
+  .journal {
+    @apply text-sm font-medium;
+  }
+  .paper-actions {
+    @apply flex items-start gap-4;
+  }
+  .paper-actions a {
+    @apply text-sm font-semibold text-skin-accent underline decoration-dashed underline-offset-4;
+    white-space: nowrap;
+  }
+  .publication-cta {
+    @apply mt-6;
+  }
+
+  .partner-strip {
+    @apply mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4;
+  }
+  .partner-tile {
+    @apply flex min-h-24 items-center justify-center border border-skin-line text-center text-sm font-semibold opacity-80;
+  }
+
+  .partner-cta {
+    @apply mt-6 border-y border-skin-line py-8;
+  }
+  .partner-cta h3 {
+    @apply text-2xl font-semibold;
+  }
+  .partner-cta p {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+</style>

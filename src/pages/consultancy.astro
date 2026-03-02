@@ -1,0 +1,645 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import LinkButton from "@components/LinkButton.astro";
+import { CONSULT_BOOKING_LINKS, SITE, SOCIALS } from "@config";
+
+const emailContact =
+  SOCIALS.find(({ name, active }) => name === "Mail" && active)?.href ??
+  "mailto:kitongameshack9@gmail.com";
+const recipientEmail = emailContact.startsWith("mailto:")
+  ? emailContact.replace("mailto:", "")
+  : "kitongameshack9@gmail.com";
+const consultFormEndpoint = `https://formsubmit.co/${recipientEmail}`;
+const consultFormAjaxEndpoint = `https://formsubmit.co/ajax/${recipientEmail}`;
+const consultNextURL = new URL("consultancy", SITE.website);
+consultNextURL.searchParams.set("submitted", "1");
+const consultFormNextURL = consultNextURL.href;
+
+const consultingOffers = [
+  {
+    id: "strategy",
+    title: "AI Product Strategy",
+    description:
+      "Define the right AI roadmap, identify high-impact use cases, and align technical delivery with business goals.",
+  },
+  {
+    id: "architecture",
+    title: "Architecture and Implementation",
+    description:
+      "Design robust GenAI and ML architecture, improve reliability, and support your team through implementation.",
+  },
+  {
+    id: "enablement",
+    title: "Team Enablement",
+    description:
+      "Train engineers and analysts through practical sessions focused on shipping secure, measurable AI systems.",
+  },
+];
+
+const bookingOptions = [
+  {
+    title: "15-Min Discovery",
+    duration: "Quick Fit Check",
+    description:
+      "A focused call to understand your goal and identify the best engagement path.",
+    href: CONSULT_BOOKING_LINKS.quick15,
+  },
+  {
+    title: "30-Min Strategy Session",
+    duration: "Deep Planning",
+    description:
+      "Detailed discussion on architecture, delivery priorities, and consulting scope.",
+    href: CONSULT_BOOKING_LINKS.strategy30,
+  },
+  {
+    title: "Secret Meeting",
+    duration: "Private Link",
+    description:
+      "Reserved private booking link for direct and confidential coordination.",
+    href: CONSULT_BOOKING_LINKS.secret,
+  },
+] as const;
+
+const consultCountryOptions = [
+  "Kenya",
+  "Uganda",
+  "Tanzania",
+  "Rwanda",
+  "Ethiopia",
+  "Nigeria",
+  "South Africa",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "India",
+  "Other",
+] as const;
+
+const teamSizes = ["1-5", "6-20", "21-50", "51-200", "200+"] as const;
+const consultingBudgets = [
+  "Under 250,000 KES / under USD 2,000",
+  "250,000 to 1M KES / USD 2,000 to 8,000",
+  "1M to 5M KES / USD 8,000 to 40,000",
+  "5M+ KES / USD 40,000+",
+] as const;
+const deliveryTimelines = [
+  "Immediate (0 to 2 weeks)",
+  "This month",
+  "1 to 3 months",
+  "3+ months",
+] as const;
+
+const consultancySchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "AI and ML Consultancy",
+  description:
+    "Implementation-focused consultancy for AI product strategy, architecture, and team enablement.",
+  provider: {
+    "@type": "Organization",
+    name: SITE.title,
+    url: SITE.website,
+  },
+  areaServed: "Global",
+  serviceType: "AI Strategy and Engineering Advisory",
+};
+
+const leadershipStandards = [
+  "Executive and engineering alignment from kickoff to deployment.",
+  "Decision-ready roadmaps with clear priorities, trade-offs, and milestones.",
+  "Implementation oversight to reduce delivery risk and timeline drift.",
+  "Capability transfer so internal teams can sustain momentum independently.",
+];
+
+const deliveryPhases = [
+  {
+    title: "Advisory Alignment",
+    description:
+      "Define strategic priorities, success metrics, and governance expectations with leadership stakeholders.",
+  },
+  {
+    title: "Technical Blueprint",
+    description:
+      "Design architecture, operating model, and implementation sequence based on your current stack and team maturity.",
+  },
+  {
+    title: "Execution and Enablement",
+    description:
+      "Support rollout, review delivery quality, and upskill teams for durable internal capability.",
+  },
+];
+---
+
+<Layout
+  title={`Consultancy | ${SITE.title}`}
+  description="AI and ML consultancy services by Shak Technologies Ltd."
+  keywords={[
+    "ai consultancy",
+    "machine learning consulting",
+    "genai product strategy",
+    "ai implementation partner",
+    "shak technologies consultancy",
+  ]}
+  schema={consultancySchema}
+>
+  <Header activeNav="consultancy" />
+  <main id="main-content">
+    <section id="consultancy-hero" class="surface-card">
+      <span class="chip">Consultancy</span>
+      <h1>AI and ML consulting built for execution, not theory.</h1>
+      <p>
+        We work with founders, product teams, and engineering leaders to design
+        and ship practical AI capabilities with strong technical foundations.
+      </p>
+      <div class="hero-actions">
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.quick15}
+          className="btn-primary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Book 15-Min Discovery
+        </LinkButton>
+        <LinkButton
+          href={CONSULT_BOOKING_LINKS.strategy30}
+          className="btn-secondary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Book 30-Min Strategy
+        </LinkButton>
+      </div>
+    </section>
+
+    <section id="offers">
+      <div class="section-heading">
+        <h2>How We Can Help</h2>
+      </div>
+      <div class="offers-grid">
+        {
+          consultingOffers.map(offer => (
+            <article id={offer.id} class="surface-card offer-card scroll-mt-28">
+              <h3>{offer.title}</h3>
+              <p>{offer.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="leadership-standard" class="surface-card">
+      <h2>Consultancy Standard for Leadership Teams</h2>
+      <p>
+        Engagements are built for decision-makers who need strategic clarity and
+        technical certainty, not generic consulting deliverables.
+      </p>
+      <ul>
+        {leadershipStandards.map(item => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section id="delivery-phases">
+      <div class="section-heading">
+        <h2>How We Deliver</h2>
+      </div>
+      <div class="phase-grid">
+        {
+          deliveryPhases.map((phase, index) => (
+            <article class="surface-card phase-card">
+              <span class="phase-index">0{index + 1}</span>
+              <h3>{phase.title}</h3>
+              <p>{phase.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="book-call" class="scroll-mt-28">
+      <div class="section-heading">
+        <h2>Book your consultancy call</h2>
+        <p>
+          Choose the slot that matches your need, or send your brief directly by
+          email if you prefer async coordination.
+        </p>
+      </div>
+      <div class="booking-grid">
+        {
+          bookingOptions.map(option => (
+            <article class="surface-card booking-card">
+              <span class="booking-duration">{option.duration}</span>
+              <h3>{option.title}</h3>
+              <p>{option.description}</p>
+              <LinkButton
+                href={option.href}
+                className="btn-primary mt-5 w-full justify-center"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Book on Cal.com
+              </LinkButton>
+            </article>
+          ))
+        }
+      </div>
+      <div class="surface-card booking-inline">
+        <h3>Direct Booking Form</h3>
+        <p>Complete your 30-minute strategy booking directly on this page.</p>
+        <iframe
+          src={CONSULT_BOOKING_LINKS.strategy30}
+          title="Cal.com booking for 30 minute strategy session"
+          loading="lazy"
+          class="cal-frame"
+        ></iframe>
+        <p class="booking-note">
+          Need a custom engagement scope?
+          <a href={emailContact}>Send your brief via email</a>.
+        </p>
+      </div>
+      <div class="surface-card booking-request">
+        <h3>Booking Request Form</h3>
+        <p>
+          Prefer us to contact you directly? Submit this form and the details
+          will be emailed straight to our consultancy inbox.
+        </p>
+        <form
+          id="consult-form"
+          action={consultFormEndpoint}
+          method="POST"
+          data-recipient-email={recipientEmail}
+          data-ajax-endpoint={consultFormAjaxEndpoint}
+          novalidate
+        >
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="_subject" value="Consultancy Booking Request" />
+          <input type="hidden" name="_next" value={consultFormNextURL} />
+          <input type="hidden" name="leadSource" value="Website - /consultancy" />
+          <input type="hidden" name="leadSegment" id="consultLeadSegment" value="Local (Kenya)" />
+          <input type="hidden" name="leadRoute" id="consultLeadRoute" value="Consultancy Lead - Local" />
+          <input class="display-none" type="text" name="_honey" tabindex="-1" autocomplete="off" />
+          <div class="consult-form-grid">
+            <label class="consult-field">
+              <span>Full Name *</span>
+              <input type="text" name="fullName" required autocomplete="name" />
+            </label>
+            <label class="consult-field">
+              <span>Email Address *</span>
+              <input type="email" name="email" required autocomplete="email" />
+            </label>
+            <label class="consult-field">
+              <span>Company</span>
+              <input type="text" name="company" autocomplete="organization" />
+            </label>
+            <label class="consult-field">
+              <span>Country/Region *</span>
+              <select name="country" id="consultCountry" required>
+                <option value="" selected disabled>Select country</option>
+                {consultCountryOptions.map(option => <option value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label class="consult-field">
+              <span>Engagement Type *</span>
+              <select name="engagementType" required>
+                <option value="" selected disabled>Select engagement</option>
+                <option value="Strategy and Advisory">Strategy and Advisory</option>
+                <option value="Architecture and Implementation">Architecture and Implementation</option>
+                <option value="Team Enablement and Training">Team Enablement and Training</option>
+              </select>
+            </label>
+            <label class="consult-field">
+              <span>Preferred Call Type *</span>
+              <select name="callType" required>
+                <option value="" selected disabled>Select call type</option>
+                <option value="15-Min Discovery">15-Min Discovery</option>
+                <option value="30-Min Strategy">30-Min Strategy</option>
+              </select>
+            </label>
+            <label class="consult-field">
+              <span>Team Size *</span>
+              <select name="teamSize" required>
+                <option value="" selected disabled>Select team size</option>
+                {teamSizes.map(option => <option value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label class="consult-field">
+              <span>Estimated Budget *</span>
+              <select name="budgetBand" required>
+                <option value="" selected disabled>Select budget range</option>
+                {consultingBudgets.map(option => <option value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label class="consult-field">
+              <span>Preferred Timeline *</span>
+              <select name="timeline" required>
+                <option value="" selected disabled>Select timeline</option>
+                {deliveryTimelines.map(option => <option value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label class="consult-field consult-field-wide">
+              <span>Project Brief *</span>
+              <textarea
+                name="brief"
+                rows={4}
+                required
+                placeholder="Share your goal, current challenge, and expected outcomes."
+              ></textarea>
+            </label>
+          </div>
+          <div class="consult-form-actions">
+            <button type="submit" class="btn-primary consult-submit">
+              Submit Booking Request
+            </button>
+            <p id="consult-form-status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 sm:px-6;
+  }
+  #consultancy-hero {
+    @apply mt-8 p-6 sm:p-8;
+  }
+  #consultancy-hero h1 {
+    @apply mt-4 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl;
+  }
+  #consultancy-hero p {
+    @apply mt-4 max-w-3xl text-lg opacity-85;
+  }
+  .hero-actions {
+    @apply mt-6 flex flex-wrap items-center gap-3;
+  }
+  .section-heading h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+  }
+  .offers-grid {
+    @apply mt-6 grid gap-4 sm:grid-cols-3;
+  }
+  .offer-card {
+    @apply p-5;
+  }
+  .offer-card h3 {
+    @apply text-xl font-semibold;
+  }
+  .offer-card p {
+    @apply mt-3 opacity-80;
+  }
+  #leadership-standard {
+    @apply p-6 sm:p-8;
+  }
+  #leadership-standard h2 {
+    @apply text-3xl font-semibold;
+  }
+  #leadership-standard p {
+    @apply mt-3 max-w-3xl opacity-85;
+  }
+  #leadership-standard ul {
+    @apply mt-5 grid gap-3;
+  }
+  #leadership-standard li {
+    @apply relative rounded-xl border border-skin-line bg-skin-fill bg-opacity-45 px-4 py-3 pl-9 text-sm;
+  }
+  #leadership-standard li::before {
+    content: "";
+    @apply absolute left-4 top-[1.05rem] h-2 w-2 rounded-full bg-skin-accent;
+  }
+  .phase-grid {
+    @apply mt-6 grid gap-4 sm:grid-cols-3;
+  }
+  .phase-card {
+    @apply p-5;
+  }
+  .phase-index {
+    @apply text-xs font-semibold uppercase tracking-widest text-skin-accent;
+  }
+  .phase-card h3 {
+    @apply mt-3 text-2xl font-semibold;
+  }
+  .phase-card p {
+    @apply mt-2 opacity-80;
+  }
+  .booking-grid {
+    @apply mt-6 grid gap-4 sm:grid-cols-3;
+  }
+  .booking-card {
+    @apply flex flex-col p-5;
+  }
+  .booking-duration {
+    @apply text-xs font-semibold uppercase tracking-widest text-skin-accent;
+  }
+  .booking-card h3 {
+    @apply mt-3 text-xl font-semibold;
+  }
+  .booking-card p {
+    @apply mt-2 opacity-80;
+  }
+  .booking-inline {
+    @apply mt-5 p-5 sm:p-6;
+  }
+  .booking-inline h3 {
+    @apply text-2xl font-semibold;
+  }
+  .booking-inline p {
+    @apply mt-2 opacity-80;
+  }
+  .cal-frame {
+    @apply mt-4 h-[720px] w-full rounded-xl border border-skin-line bg-skin-fill;
+  }
+  .booking-note {
+    @apply mt-4 text-sm;
+  }
+  .booking-note a {
+    @apply underline decoration-dashed underline-offset-4 hover:text-skin-accent;
+  }
+  .booking-request {
+    @apply mt-5 p-5 sm:p-6;
+  }
+  .booking-request h3 {
+    @apply text-2xl font-semibold;
+  }
+  .booking-request p {
+    @apply mt-2 opacity-80;
+  }
+  .consult-form-grid {
+    @apply mt-5 grid gap-3 sm:grid-cols-2;
+  }
+  .consult-field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .consult-field > span {
+    @apply text-sm font-semibold;
+  }
+  .consult-field input,
+  .consult-field select,
+  .consult-field textarea {
+    border: 1px solid rgb(var(--color-border));
+    background: rgba(var(--color-card), 0.82);
+    border-radius: 0.85rem;
+    padding: 0.78rem 0.92rem;
+    font-size: 0.98rem;
+    line-height: 1.35rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .consult-field input:focus,
+  .consult-field select:focus,
+  .consult-field textarea:focus {
+    outline: none;
+    border-color: rgb(var(--color-accent));
+    box-shadow: 0 0 0 3px rgba(var(--color-accent), 0.18);
+  }
+  .consult-field-wide {
+    grid-column: 1 / -1;
+  }
+  .consult-form-actions {
+    @apply mt-4 flex flex-col gap-2;
+  }
+  .consult-submit {
+    @apply w-full justify-center py-3;
+  }
+  #consult-form-status {
+    @apply text-sm font-medium;
+    min-height: 1.4rem;
+  }
+  #consult-form-status[data-state="success"] {
+    color: rgb(var(--color-accent));
+  }
+  #consult-form-status[data-state="error"] {
+    color: #b42318;
+  }
+</style>
+
+<script is:inline>
+  const setupConsultForm = () => {
+    const form = document.querySelector("#consult-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.initialized === "true") return;
+    form.dataset.initialized = "true";
+
+    const statusEl = form.querySelector("#consult-form-status");
+    const submitButton = form.querySelector("button[type='submit']");
+    const countrySelect = form.querySelector("#consultCountry");
+    const leadSegmentInput = form.querySelector("#consultLeadSegment");
+    const leadRouteInput = form.querySelector("#consultLeadRoute");
+    const recipientEmailAddress =
+      form.dataset.recipientEmail ?? "kitongameshack9@gmail.com";
+    const formAjaxEndpoint =
+      form.dataset.ajaxEndpoint ??
+      form.action.replace("https://formsubmit.co/", "https://formsubmit.co/ajax/");
+    const defaultButtonText =
+      submitButton instanceof HTMLButtonElement
+        ? submitButton.textContent ?? "Submit Booking Request"
+        : "Submit Booking Request";
+
+    const setStatus = (message, state = "") => {
+      if (!(statusEl instanceof HTMLElement)) return;
+      statusEl.textContent = message;
+      statusEl.dataset.state = state;
+    };
+
+    const setSubmittingState = isSubmitting => {
+      if (!(submitButton instanceof HTMLButtonElement)) return;
+      submitButton.disabled = isSubmitting;
+      submitButton.textContent = isSubmitting ? "Submitting..." : defaultButtonText;
+    };
+
+    const getLeadSegment = country => {
+      const regional = new Set(["Uganda", "Tanzania", "Rwanda", "Ethiopia", "Nigeria", "South Africa"]);
+      if (country === "Kenya") return "Local (Kenya)";
+      if (regional.has(country)) return "Regional (Africa)";
+      return "International";
+    };
+
+    const syncLeadRouting = () => {
+      const country =
+        countrySelect instanceof HTMLSelectElement ? countrySelect.value : "Kenya";
+      const segment = getLeadSegment(country || "Kenya");
+      const route = `Consultancy Lead - ${segment}`;
+      if (leadSegmentInput instanceof HTMLInputElement) leadSegmentInput.value = segment;
+      if (leadRouteInput instanceof HTMLInputElement) leadRouteInput.value = route;
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("submitted") === "1") {
+      setStatus(
+        "Booking request submitted successfully. Details were emailed directly.",
+        "success"
+      );
+    }
+    countrySelect?.addEventListener("change", syncLeadRouting);
+    syncLeadRouting();
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      setSubmittingState(true);
+      setStatus("Sending booking request...");
+
+      const formData = new FormData(form);
+      const callType = String(formData.get("callType") ?? "").trim();
+      const country = String(formData.get("country") ?? "").trim();
+      const leadSegment = String(formData.get("leadSegment") ?? "").trim();
+      const leadRoute = String(formData.get("leadRoute") ?? "").trim();
+      const engagementType = String(formData.get("engagementType") ?? "").trim();
+      const teamSize = String(formData.get("teamSize") ?? "").trim();
+      const budgetBand = String(formData.get("budgetBand") ?? "").trim();
+      const timeline = String(formData.get("timeline") ?? "").trim();
+      formData.set(
+        "_subject",
+        `[${leadRoute || "Consultancy Lead"}] Consultancy Request - ${callType || "General Inquiry"}`
+      );
+      formData.set("_captcha", "false");
+      formData.set("_template", "table");
+      formData.set("country", country || "Not provided");
+      formData.set("leadSegment", leadSegment || "Not classified");
+      formData.set("leadRoute", leadRoute || "Consultancy Lead");
+      formData.set("engagementType", engagementType || "Not provided");
+      formData.set("teamSize", teamSize || "Not provided");
+      formData.set("budgetBand", budgetBand || "Not provided");
+      formData.set("timeline", timeline || "Not provided");
+
+      try {
+        const response = await fetch(formAjaxEndpoint, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
+        });
+
+        const result = await response.json().catch(() => null);
+        const hasFailed =
+          !response.ok ||
+          (result && (result.success === false || result.success === "false"));
+
+        if (hasFailed) {
+          throw new Error("Unable to submit consultancy form");
+        }
+
+        setStatus(
+          "Booking request submitted successfully. Details were emailed directly.",
+          "success"
+        );
+        form.reset();
+      } catch {
+        setStatus(
+          `Submission failed. Please try again or email ${recipientEmailAddress} directly.`,
+          "error"
+        );
+      } finally {
+        setSubmittingState(false);
+      }
+    });
+  };
+
+  document.addEventListener("DOMContentLoaded", setupConsultForm);
+  document.addEventListener("astro:after-swap", setupConsultForm);
+</script>
