@@ -129,6 +129,12 @@
     function showSystemToast(message, options = {}) {
         const variant = options && options.variant ? options.variant : 'info';
         
+        // Check for inline alert target (for account load success)
+        if (options.useInlineAlert) {
+            showInlineAlert(message, variant);
+            return;
+        }
+
         // Try AppCore first
         if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
             window.AppCore.showNotification(message, variant);
@@ -150,8 +156,64 @@
         }
     }
 
-    function showErrorMessage(message) {
-        showSystemToast(message, { variant: 'error' });
+    function showErrorMessage(message, options = {}) {
+        showSystemToast(message, { ...options, variant: 'error' });
+    }
+
+    // Custom inline alert implementation matching the user's screenshot style
+    function showInlineAlert(message, variant) {
+        const searchSection = document.querySelector('[data-section="search"] .section-content') || 
+                            document.querySelector('.kairo-search-panel') || 
+                            document.getElementById('accountMaintenanceForm')?.closest('.card-body');
+
+        if (!searchSection) {
+            // Fallback to toast if no container found
+            // Use AppCore or fallback logic from showSystemToast, but avoid infinite recursion
+            // Directly call AppCore/toastr here as fallback
+            if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+                window.AppCore.showNotification(message, variant);
+            } else {
+                alert(message);
+            }
+            return;
+        }
+
+        // Remove existing alerts to prevent stacking
+        const existingAlert = searchSection.querySelector('.kairo-inline-alert');
+        if (existingAlert) existingAlert.remove();
+
+        const alertDiv = document.createElement('div');
+        const alertClass = variant === 'success' ? 'alert-success' : 
+                          variant === 'error' ? 'alert-danger' : 
+                          variant === 'warning' ? 'alert-warning' : 'alert-info';
+        
+        const iconClass = variant === 'success' ? 'bi-check-circle-fill' : 
+                         variant === 'error' ? 'bi-exclamation-triangle-fill' : 
+                         variant === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill';
+
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show kairo-inline-alert`;
+        alertDiv.role = 'alert';
+        alertDiv.style.marginTop = '10px';
+        alertDiv.style.marginBottom = '10px';
+        alertDiv.style.display = 'flex';
+        alertDiv.style.alignItems = 'center';
+
+        alertDiv.innerHTML = `
+            <i class="bi ${iconClass} me-2"></i>
+            <div>${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        // Insert at the top of the search section
+        searchSection.insertBefore(alertDiv, searchSection.firstChild);
+
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv && alertDiv.parentNode) {
+                // Fade out effect could be added here
+                alertDiv.remove();
+            }
+        }, 5000);
     }
 
     function copyThemeVarsToDocument(targetDoc) {
@@ -957,12 +1019,32 @@
                 const targetInputId = this.dataset.targetInput;
                 if (!targetInputId) return;
 
-                // Determine config
-                const config = LOOKUP_CONFIG[targetInputId] || {
+                // Determine config (Create a fresh object to avoid global mutation)
+                const baseConfig = LOOKUP_CONFIG[targetInputId] || {
                     tableID: targetInputId.replace('ID', ''), // Fallback
                     keyField: targetInputId,
                     nameField: targetInputId.replace('ID', 'Name')
                 };
+                
+                // Shallow copy to allow dynamic whereStmt without polluting global config
+                const config = { ...baseConfig };
+
+                // Dynamic Logic for Account Lookup Filtering
+                if (targetInputId === 'AccountID') {
+                    const branchId = document.getElementById('BranchID')?.value || '';
+                    const clientId = document.getElementById('ClientID')?.value || '';
+                    
+                    let whereParts = [];
+                    // Using standard SQL syntax for search modal filtering
+                    // Assuming columns are BranchID and ClientID
+                    if (branchId) whereParts.push(`BranchID = '${branchId}'`);
+                    if (clientId) whereParts.push(`ClientID = '${clientId}'`);
+                    
+                    if (whereParts.length > 0) {
+                        config.whereStmt = whereParts.join(' AND ');
+                        console.log(`[AccountMaintenance] Applying filter to Account Lookup: ${config.whereStmt}`);
+                    }
+                }
 
                 console.log(`[AccountMaintenance] Opening lookup for ${targetInputId}`, config);
 
@@ -972,6 +1054,7 @@
 
                 searchModal.open({
                     tableID: config.tableID,
+                    whereStmt: config.whereStmt, // Pass dynamic whereStmt
                     onSelect: (selectedRow) => {
                         if (!selectedRow) return;
 
@@ -1129,26 +1212,55 @@
                     window.AccountMaintenanceState.CurrencyID = account.CurrencyID || '';
                     window.AccountMaintenanceState.isAccountLoaded = true;
 
-                    // Populate Form Fields
-                    const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
-                    inputs.forEach(el => {
-                        // Match element ID to property name (case-insensitive)
-                        // Exclude AccountID as it triggered this
-                        if (el.id && el.id !== 'AccountID') { 
-                            let key = Object.keys(account).find(k => k.toLowerCase() === el.id.toLowerCase());
-                            
-                            // Special mapping for common mismatches
-                            if (!key && el.id === 'BranchID') key = 'OurBranchID';
-                            if (!key && el.id === 'AccountTitle') key = 'AccountName';
-                            if (!key && el.id === 'Product') key = 'ProductName';
+                    // Comprehensive field mapping for UI elements matching API properties
+                    const fieldMap = {
+                        'BranchID': 'OurBranchID',
+                        'AccountTitle': 'AccountName',
+                        'Product': 'ProductName',
+                        'SalesOfficerID': 'AccountOfficerID', // UI ID -> JSON Property
+                        'SalesOfficerName': 'AccountOfficerName',
+                        'AccountTypeID': 'AccountClassID',
+                        'AccountTypeName': 'AccountClassName',
+                        'PhoneHome': 'Phone1',
+                        'PhoneWork': 'Phone2',
+                        'Fax': 'FaxNo' // If needed
+                    };
 
-                            if (key && account[key] !== null && account[key] !== undefined) {
+                    // Populate Form Fields (Inputs, Selects, and Display Spans)
+                    const elements = document.querySelectorAll('input:not([type="hidden"]), select, textarea, .behind-scene-value, .audit-value');
+                    
+                    elements.forEach(el => {
+                        const fieldName = el.id;
+                        // Skip if no ID or is the search trigger
+                        if (!fieldName || fieldName === 'AccountID') return;
+
+                        // 1. Direct case-insensitive match
+                        let key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                        
+                        // 2. Mapped match
+                        if (!key && fieldMap[fieldName]) {
+                             // Find the actual key in data using the mapped name
+                             key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
+                        }
+
+                        // 3. Fallback for specific variations if needed
+                        if (!key && fieldName.endsWith('ID')) {
+                             // e.g. CurrencyID -> CurrencyId
+                             key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                        }
+
+                        if (key && account[key] !== null && account[key] !== undefined) {
+                            if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
                                 if (el.type === 'checkbox') {
                                     el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
                                 } else {
                                     el.value = account[key];
                                 }
+                                // Dispatch change events for inputs
                                 el.dispatchEvent(new Event('change', { bubbles: true }));
+                            } else {
+                                // Handle display spans (Account Snapshot, Audit Trail)
+                                el.textContent = account[key];
                             }
                         }
                     });
@@ -1167,18 +1279,21 @@
                         loadClientDetails(account.ClientID);
                     }
                     
-                    showSystemToast('Account details loaded successfully', { variant: 'success' });
+                    showSystemToast(`Account details loaded successfully. Account ID: ${account.AccountID || accountId}`, { 
+                        variant: 'success', 
+                        useInlineAlert: true 
+                    });
                 } else {
-                    showErrorMessage('Account details empty or invalid');
+                    showErrorMessage('Account details empty or invalid', { useInlineAlert: true });
                 }
             } else {
                 const msg = result.message || (data && data.ResponseMessage) || 'Failed to load account details';
-                showErrorMessage(msg);
+                showErrorMessage(msg, { useInlineAlert: true });
             }
 
         } catch (error) {
             console.error('[AccountMaintenance] Error loading account:', error);
-            showErrorMessage('Error loading account details: ' + error.message);
+            showErrorMessage('Error loading account details: ' + error.message, { useInlineAlert: true });
         } finally {
             showPageLoader(false);
         }

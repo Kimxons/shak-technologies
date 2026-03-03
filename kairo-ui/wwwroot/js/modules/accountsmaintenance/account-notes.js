@@ -201,8 +201,11 @@ window.AccountNotesModule = (function () {
         getAccountContext();
 
         try {
+            // Construct SearchKey in format [OurBranchID:AccountID]
+            const searchKey = `[${state.branchId}:${state.accountId}]`;
+
             const payload = {
-                SearchKey: state.accountId,
+                SearchKey: searchKey,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
                 ModuleID: state.moduleId
@@ -281,8 +284,11 @@ window.AccountNotesModule = (function () {
                 return;
             }
 
+            // Construct SearchKey in format [OurBranchID:AccountID]
+            const searchKey = `[${state.branchId}:${state.accountId}]`;
+
             const payload = {
-                SearchKey: state.accountId,
+                SearchKey: searchKey,
                 Notes: notes,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
