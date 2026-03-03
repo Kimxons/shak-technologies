@@ -9,10 +9,11 @@ namespace kairo_ui.Models.Shared
         public string? WhereStmt { get; set; }
         public string? AdvFilterString { get; set; }
         public object? SearchKey { get; set; }
-        public string? ModuleID { get; set; } = "1000";
+        public string? ModuleID { get; set; } = "100";
         public int? PrevOrNext { get; set; } = 1; // 1=Next, -1=Previous, 0=No direction
         public int? PageSize { get; set; } = 10;
         public string? RefID { get; set; } = string.Empty; // Last value of KeyForNavigation for cursor-based pagination
+        public string? OurBranchID { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -41,7 +42,6 @@ namespace kairo_ui.Models.Shared
     /// </summary>
     public class SearchResultRequestDto : SearchModalRequestDto
     {
-        public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }
 
@@ -54,11 +54,12 @@ namespace kairo_ui.Models.Shared
         public string? WhereStmt { get; set; } = string.Empty;
         public string? AdvFilterString { get; set; } = string.Empty;
         public object? SearchKey { get; set; } = string.Empty;
-        public string? ModuleID { get; set; } = "1000";
+        public string? ModuleID { get; set; } = "100";
         public int PrevOrNext { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public string? RefID { get; set; } = string.Empty;
         public SearchConfigDto? SearchConfig { get; set; }
         public string? SearchTitle { get; set; } = "Search";
+        public string? OurBranchID { get; set; } = string.Empty;
     }
 }

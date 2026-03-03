@@ -12,7 +12,8 @@ namespace AccountManagement.Helpers
         public const string UPDATE_CLIENT = "p_UpdateClient_V0";
         public const string CREATE_CLIENT = "p_CreateClient_V0";
 
-        public const string GET_ACCOUNT = "p_SearchAccounts_V0";
+        //public const string GET_ACCOUNT = "p_SearchAccounts_V0";
+        public const string GET_ACCOUNT = "p_V8_GetAccountCustomers";
         public const string UPDATE_ACCOUNT = "p_UpdateCustomerAccount_V0";
         public const string CREATE_ACCOUNT = "p_CreateCustomerAccount_V0";
 
@@ -72,7 +73,7 @@ namespace AccountManagement.Helpers
         public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate_V0";
 
         // Notes procedures
-        public const string UPDATE_NOTES = "p_UpdateNotes_V0";
+        public const string UPDATE_NOTES = "p_V8_UpdateNotes";
         public const string GET_NOTES = "p_GetNotes_V0";
 
         // Account Freezing procedures

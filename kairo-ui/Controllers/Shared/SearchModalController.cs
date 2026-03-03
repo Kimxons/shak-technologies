@@ -67,12 +67,13 @@ namespace kairo_ui.Controllers.Shared
                     WhereStmt = request.WhereStmt ?? string.Empty,
                     AdvFilterString = request.AdvFilterString ?? string.Empty,
                     SearchKey = request.SearchKey ?? string.Empty,
-                    ModuleID = request.ModuleID ?? "1000",
+                    ModuleID = request.ModuleID ?? "100",
                     PrevOrNext = request.PrevOrNext ?? 1,
                     PageSize = request.PageSize ?? 10,
                     RefID = request.RefID ?? string.Empty,
                     SearchConfig = searchConfig,
-                    SearchTitle = $"Search {searchConfig.SearchName}"
+                    SearchTitle = $"Search {searchConfig.SearchName}",
+                    OurBranchID = request.OurBranchID ?? HttpContext.Session.GetString("OurBranchID") ?? HttpContext.Session.GetString("branch_code") ?? string.Empty
                 };
 
                 _logger.LogInformation($"[SearchModal] Returning search modal view for {searchConfig.SearchName}");
@@ -118,7 +119,7 @@ namespace kairo_ui.Controllers.Shared
 
                 // Get session values for OurBranchID and OperatorID if not provided
                 request.OurBranchID ??= HttpContext.Session.GetString("OurBranchID") ?? HttpContext.Session.GetString("branch_code") ?? string.Empty;
-                request.OperatorID ??= HttpContext.Session.GetString("OperatorID") ?? HttpContext.Session.GetString("user_name") ?? string.Empty;
+                request.OperatorID = HttpContext.Session.GetString("OperatorID") ?? HttpContext.Session.GetString("user_name") ?? string.Empty;
 
                 _logger.LogInformation($"[SearchModal] Search params - TableID: {request.TableID}, Branch: {request.OurBranchID}, Operator: {request.OperatorID}");
 
@@ -137,7 +138,7 @@ namespace kairo_ui.Controllers.Shared
                     OurBranchID = request.OurBranchID,
                     OperatorID = request.OperatorID,
                     LoggedInUserId = request.OperatorID,
-                    ModuleID = request.ModuleID ?? "1000",
+                    ModuleID = request.ModuleID ?? "100",
                     LanguageID = "en"
                 };
 

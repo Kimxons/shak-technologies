@@ -1,26 +1,40 @@
-@{
+﻿@{
     ViewData["Title"] = "Account Maintenance";
-    Layout = "";
+    Layout = "_ApplicationLayout";
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Account Maintenance - Professional Banking Solution</title>
 
-    <!-- Bootstrap & Icons -->
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+@section Styles {
+    <style>
+        /* Account Maintenance specific styles */
 
-    <!-- Global App Styles (NO page-specific CSS) -->
-    <link rel="stylesheet" href="/css/styles.css" />
+        /* Hide legacy headers and action panels in loaded submodules to prevent duplication */
+        #submodule-container .am-header,
+        #submodule-container .submodule-header,
+        #submodule-container .action-panel,
+        #submodule-container .am-header__right, /* AccountNotification case */
+        #submodule-container aside.action-panel { 
+            display: none !important; 
+        }
 
-    <!-- App Core - CRITICAL for controller communication -->
-    <script src="/js/app/app-core.js"></script>
-</head>
-<body data-page="account-maintenance">
+        /* Reset legacy container styles that might conflict */
+        #submodule-container .window {
+            height: auto !important;
+            width: 100% !important;
+            position: static !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #submodule-container .main-container {
+            height: auto !important;
+            padding: 0 !important;
+        }
+    </style>
+}
+
+<form id="accountMaintenanceForm" style="display:none;">
     @Html.AntiForgeryToken()
+</form>
 
     <!-- Reminder Modal Popup - System Theme Styled -->
     <div id="reminderModal" class="reminder-modal" role="dialog" aria-labelledby="reminderModalTitle" aria-modal="true" hidden>
@@ -443,8 +457,8 @@
                             <div class="col">
                                 <label class="label-blue">Branch</label>
                                 <div class="kairo-branch-control" data-kairo-branch-control>
-                                    <input type="text" id="BranchID" value="0101" class="kairo-branch-control__id" aria-label="Branch ID">
-                                    <input type="text" id="BranchName" value="Head Office" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                    <input type="text" id="BranchID" value="@Context.Session.GetString("branch_code")" class="kairo-branch-control__id" aria-label="Branch ID">
+                                    <input type="text" id="BranchName" value="@Context.Session.GetString("branch_name")" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
                                     <button type="button" class="btn-lookup kairo-branch-control__lookup" data-target-input="BranchID" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
@@ -820,298 +834,15 @@
         </div>
     </div>
 
-    <!-- Product Lookup Modal -->
-    <div class="modal fade" id="productLookupModal" tabindex="-1" aria-labelledby="productLookupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="mb-0 small">Account Maintenance</p>
-                        <h5 class="modal-title" id="productLookupModalLabel">Find a Product</h5>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-sm btn-outline-light" id="productSearchRefresh" aria-label="Refresh">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <form class="row g-3 align-items-end mb-3" id="productLookupForm">
-                        <div class="col-md-4">
-                            <label class="form-label">Product ID</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="productSearchModeId">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="productSearchId" placeholder="e.g. SAV001" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Product Name</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="productSearchModeName">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="productSearchName" placeholder="Product name" />
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="productSearchReset"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
-                            <button type="submit" class="btn btn-primary btn-sm" id="productSearchSubmit"><i class="bi bi-search"></i> Search</button>
-                        </div>
-                    </form>
-                    <div class="position-relative am-search-results-area">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Product ID</th>
-                                        <th scope="col">Product Name</th>
-                                        <th scope="col" class="text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productSearchResults"></tbody>
-                            </table>
-                        </div>
-                        <div id="productSearchEmpty" class="text-center py-5 text-muted">Enter at least one filter above and click Search to query products.</div>
-                        <div id="productSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
-                            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <small class="text-muted me-auto">Results powered by the Shared/GetSystemSearch endpoint.</small>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Account Lookup Modal -->
-    <div class="modal fade" id="accountLookupModal" tabindex="-1" aria-labelledby="accountLookupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="mb-0 small">Account Maintenance</p>
-                        <h5 class="modal-title" id="accountLookupModalLabel">Find an Existing Account</h5>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-sm btn-outline-light" id="accountSearchRefresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <form class="row g-3 align-items-end mb-3" id="accountLookupForm">
-                        <div class="col-md-4">
-                            <label class="form-label">Account ID</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="accountSearchModeId">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="accountSearchId" placeholder="e.g. 001000001" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Account Name</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="accountSearchModeName">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="accountSearchName" placeholder="Account name" />
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="accountSearchReset"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
-                            <button type="submit" class="btn btn-primary btn-sm" id="accountSearchSubmit"><i class="bi bi-search"></i> Search</button>
-                        </div>
-                    </form>
-                    <div class="position-relative am-search-results-area">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Account ID</th>
-                                        <th scope="col">Account Name</th>
-                                        <th scope="col">Client Name</th>
-                                        <th scope="col" class="text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="accountSearchResults"></tbody>
-                            </table>
-                        </div>
-                        <div id="accountSearchEmpty" class="text-center py-5 text-muted">Enter at least one filter above and click Search to query accounts.</div>
-                        <div id="accountSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
-                            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <small class="text-muted me-auto">Results powered by the Shared/GetSystemSearch endpoint.</small>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Branch Lookup Modal -->
-    <div class="modal fade" id="branchLookupModal" tabindex="-1" aria-labelledby="branchLookupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="mb-0 small">Account Maintenance</p>
-                        <h5 class="modal-title" id="branchLookupModalLabel">Find a Branch</h5>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-sm btn-outline-light" id="branchSearchRefresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <form class="row g-3 align-items-end mb-3" id="branchLookupForm">
-                        <div class="col-md-4">
-                            <label class="form-label">Branch ID</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="branchSearchModeId">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="branchSearchId" placeholder="e.g. 0101" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Branch Name</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="branchSearchModeName">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="branchSearchName" placeholder="Branch name" />
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="branchSearchReset"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
-                            <button type="submit" class="btn btn-primary btn-sm" id="branchSearchSubmit"><i class="bi bi-search"></i> Search</button>
-                        </div>
-                    </form>
-                    <div class="position-relative am-search-results-area">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Branch ID</th>
-                                        <th scope="col">Branch Name</th>
-                                        <th scope="col" class="text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="branchSearchResults"></tbody>
-                            </table>
-                        </div>
-                        <div id="branchSearchEmpty" class="text-center py-5 text-muted">Enter at least one filter above and click Search to query branches.</div>
-                        <div id="branchSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
-                            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <small class="text-muted me-auto">Results powered by the Shared/GetSystemSearch endpoint.</small>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Client Lookup Modal -->
-    <div class="modal fade" id="clientLookupModal" tabindex="-1" aria-labelledby="clientLookupModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="mb-0 small">Account Maintenance</p>
-                        <h5 class="modal-title" id="clientLookupModalLabel">Find an Existing Client</h5>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-sm btn-outline-light" id="clientSearchRefresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <form class="row g-3 align-items-end mb-3" id="clientLookupForm">
-                        <div class="col-md-4">
-                            <label class="form-label">Client ID</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="clientSearchModeId">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="clientSearchId" placeholder="e.g. CSK00092" />
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Name</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="clientSearchModeName">
-                                    <option value="Like">Contains</option>
-                                    <option value="Exact">Exact</option>
-                                </select>
-                                <input type="text" class="form-control" id="clientSearchName" placeholder="Client name" />
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clientSearchReset"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
-                            <button type="submit" class="btn btn-primary btn-sm" id="clientSearchSubmit"><i class="bi bi-search"></i> Search</button>
-                        </div>
-                    </form>
-                    <div class="position-relative am-search-results-area">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Client ID</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col" class="text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clientSearchResults"></tbody>
-                            </table>
-                        </div>
-                        <div id="clientSearchEmpty" class="text-center py-5 text-muted">Enter at least one filter above and click Search to query Core Banking clients.</div>
-                        <div id="clientSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
-                            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <small class="text-muted me-auto">Results powered by the Shared/GetSystemSearch endpoint.</small>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Environment Configuration -->
-    <script src="/js/environment.js"></script>
+@section Scripts {
+    <!-- Core dependencies -->
+    <script src="~/js/app/app-core.js"></script>
+    <script src="~/js/modules/shared/searchModal.js"></script>
 
     <!-- Service dependencies -->
-    <script src="/js/services/shared/serviceLoader.js"></script>
-    <script src="/js/services/shared/coreApi.js"></script>
-    <script src="/js/services/shared/lookupService.js"></script>
-    <script src="/js/services/shared/searchService.js"></script>
-    <script src="/js/shared/search-modal.js"></script>
-    <script src="/js/services/account/accountservice.js"></script>
+    <script src="~/js/services/shared/serviceLoader.js"></script>
 
-    <!-- Main Account Maintenance Logic -->
-    <script src="/js/modules/accountsmaintenance/window-controls.js"></script>
-    <script src="/js/modules/accountsmaintenance/submodule-loader.js"></script>
-    <script src="/js/modules/accounts/modern-account-maintenance.js"></script>
-</body>
-</html>
+    <!-- Account Maintenance Core -->
+    <script src="~/js/modules/accounts/modern-account-maintenance.js"></script>
+}
+
