@@ -206,6 +206,7 @@ window.AccountNotesModule = (function () {
 
             const payload = {
                 SearchKey: searchKey,
+                SearchID: searchKey, // Adding SearchID for backend compatibility (p_GetNotes_V0)
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
                 ModuleID: state.moduleId
@@ -289,6 +290,7 @@ window.AccountNotesModule = (function () {
 
             const payload = {
                 SearchKey: searchKey,
+                SearchID: searchKey, // Adding SearchID for backend compatibility
                 Notes: notes,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
@@ -441,6 +443,14 @@ window.AccountNotesModule = (function () {
      * Show message
      */
     function showMessage(message, type, iconClass) {
+        // 1. Try parent's toast system first (Global feedback)
+        if (window.parent && typeof window.parent.showSystemToast === 'function') {
+            window.parent.showSystemToast(message, { variant: type });
+        } else if (typeof window.showSystemToast === 'function') {
+            window.showSystemToast(message, { variant: type });
+        }
+
+        // 2. Also update submodule's internal message panel (Local feedback)
         const panel = document.getElementById('notesMessagePanel');
         if (!panel) return;
 

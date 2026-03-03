@@ -237,6 +237,12 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Mapping SearchKey to SearchID for backend SP compatibility (p_GetNotes_V0)
+                if (string.IsNullOrEmpty(request.SearchID) && !string.IsNullOrEmpty(request.SearchKey))
+                {
+                    request.SearchID = request.SearchKey;
+                }
+
                 // Inject session data
                 request.OperatorID = HttpContext.Session.GetString("user_name");
                 if (string.IsNullOrEmpty(request.OurBranchID))
@@ -267,6 +273,12 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Mapping SearchKey to SearchID for backend SP compatibility
+                if (string.IsNullOrEmpty(request.SearchID) && !string.IsNullOrEmpty(request.SearchKey))
+                {
+                    request.SearchID = request.SearchKey;
+                }
 
                 // Inject session data
                 request.OperatorID = HttpContext.Session.GetString("user_name");
@@ -1055,16 +1067,22 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetNotesRequest
     {
         public string? AccountId { get; set; }
+        public string? SearchKey { get; set; }
+        public string? SearchID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public int? ModuleID { get; set; }
     }
 
     public class UpdateNotesRequest
     {
         public string? AccountId { get; set; }
+        public string? SearchKey { get; set; }
+        public string? SearchID { get; set; }
         public string? Notes { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public int? ModuleID { get; set; }
     }
 
     // ============================================================================

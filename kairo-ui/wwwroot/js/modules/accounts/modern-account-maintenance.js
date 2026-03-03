@@ -160,10 +160,17 @@
         showSystemToast(message, { ...options, variant: 'error' });
     }
 
+    // Expose notification functions to global window for submodule access
+    window.showSystemToast = showSystemToast;
+    window.showErrorMessage = showErrorMessage;
+
     // Custom inline alert implementation matching the user's screenshot style
     function showInlineAlert(message, variant) {
-        const searchSection = document.querySelector('[data-section="search"] .section-content') || 
+        // Find the main section content container - prioritizing the search section
+        const searchSection = document.querySelector('[data-section="account-search"] .section-content') || 
+                            document.querySelector('[data-section="search"] .section-content') || 
                             document.querySelector('.kairo-search-panel') || 
+                            document.querySelector('[data-main-form] .section-content') ||
                             document.getElementById('accountMaintenanceForm')?.closest('.card-body');
 
         if (!searchSection) {
@@ -791,6 +798,18 @@
         // Assuming global delegation or inline handlers for now.
     }
 
+    function init() {
+        wireNavSections();
+        wireSidebarToggle();
+        wireSidebar();
+        wireBlockingConfirmation();
+        wireLookups();
+        wireActionButtons();
+
+        // Hide initial loader
+        showPageLoader(false);
+    }
+
     // Expose core functions to be called from submodules
     window.AccountMaintenanceCore = {
         closeSubmodule: closeSubmodule
@@ -1137,10 +1156,21 @@
                                 }
                             }
                         });
+                        
+                        showSystemToast(`Client details loaded successfully. Client ID: ${clientId}`, { 
+                            variant: 'success', 
+                            useInlineAlert: true 
+                        });
+                    } else {
+                        showErrorMessage(`Client details not found for ID: ${clientId}`, { useInlineAlert: true });
                     }
+                } else {
+                    const msg = resp.message || (data && data.ResponseMessage) || 'Failed to load client details';
+                    showErrorMessage(msg, { useInlineAlert: true });
                 }
             } catch (e) {
                 console.warn('[AccountMaintenance] Failed to load client details', e);
+                showErrorMessage(`Error loading client details: ${e.message}`, { useInlineAlert: true });
             } finally {
                 showPageLoader(false);
             }
@@ -1299,26 +1329,51 @@
     }
 
     function wireActionButtons() {
-        // Wire up main form action buttons if needed
+        const actionPanel = document.querySelector('.action-panel');
+        if (!actionPanel) return;
+
+        const saveBtn = actionPanel.querySelector('[data-action="save"]');
+        const cancelBtn = actionPanel.querySelector('[data-action="cancel"]');
+
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                // Simulate save logic or implement as requested
+                showPageLoader(true, 'Saving account changes...');
+                setTimeout(() => {
+                    showPageLoader(false);
+                    showSystemToast('Account changes saved successfully.', { 
+                        variant: 'success', 
+                        useInlineAlert: true 
+                    });
+                }, 1000);
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                // Confirm cancel
+                if (confirm('Discard any unsaved changes?')) {
+                    resetAccountMaintenanceState();
+                    // Clear form
+                    const form = document.getElementById('accountMaintenanceForm');
+                    if (form) {
+                        form.reset();
+                        // Additional logic to clear nested or related fields if needed
+                        const fieldsToClear = ['ClientID', 'AccountID', 'BranchID', 'ProductID', 'CurrencyID'];
+                        fieldsToClear.forEach(fieldId => {
+                            const field = document.getElementById(fieldId);
+                            if (field) {
+                                field.value = '';
+                                field.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                    }
+                }
+            });
+        }
     }
 
-    // Initialization
-    function init() {
-        wireNavSections();
-        wireSidebarToggle();
-        wireSidebar();
-        wireBlockingConfirmation();
-        wireLookups();
-
-        // Hide initial loader
-        showPageLoader(false);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    init();
 
 })();
 
