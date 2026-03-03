@@ -1033,13 +1033,12 @@
                 if (targetInputId === 'AccountID') {
                     const branchId = document.getElementById('BranchID')?.value || '';
                     const clientId = document.getElementById('ClientID')?.value || '';
-                    
+
                     let whereParts = [];
-                    // Using standard SQL syntax for search modal filtering
-                    // Assuming columns are BranchID and ClientID
-                    if (branchId) whereParts.push(`BranchID = '${branchId}'`);
+                    // Backend uses OurBranchID column
+                    if (branchId) whereParts.push(`OurBranchID = '${branchId}'`);
                     if (clientId) whereParts.push(`ClientID = '${clientId}'`);
-                    
+
                     if (whereParts.length > 0) {
                         config.whereStmt = whereParts.join(' AND ');
                         console.log(`[AccountMaintenance] Applying filter to Account Lookup: ${config.whereStmt}`);
@@ -1174,7 +1173,7 @@
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Server returned error ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
