@@ -95,6 +95,12 @@ namespace kairo_ui.Controllers.Shared
         {
             try
             {
+                if (request == null)
+                {
+                    _logger.LogWarning("[SearchModal] Null request payload");
+                    return BadRequest(new { success = false, message = "Invalid search request payload" });
+                }
+
                 _logger.LogInformation($"[SearchModal] Executing search for TableID: {request.TableID}");
 
                 // Validate authentication
