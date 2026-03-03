@@ -1793,27 +1793,27 @@ textarea.form-control {
   color: var(--info, #3498DB);
 }
 
-/* ===== AM Message Panel (Toast Notification) ===== */
+/* ===== AM Message Panel (Subtle Popup) ===== */
 .am-message-panel {
   position: fixed;
-  top: 60px;
+  top: 70px;
   left: 20px;
-  transform: translateX(-100%);
-  z-index: 99999;
+  transform: translateX(-110%);
+  z-index: 10000;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
+  gap: 12px;
+  padding: 10px 16px;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-left: 4px solid #3b82f6;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   font-size: 13px;
-  color: var(--color-text, var(--color-text-primary, #1e293b));
+  color: #1e293b;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-left: 4px solid #3b82f6;
+  max-width: 450px;
 }
 
 .am-message-panel.show {
@@ -1822,54 +1822,73 @@ textarea.form-control {
   visibility: visible;
 }
 
-.am-message-panel.hidden {
-  display: none;
+.am-message-panel i:first-child {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
-.am-message-panel i {
-  font-size: 18px;
+#messagePanelText {
+  flex: 1;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.am-message-panel__close {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
-.am-message-panel .message-text {
-  flex: 1;
+.am-message-panel__close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #475569;
 }
 
-/* Info (default) */
-.am-message-panel.info {
-  border-left-color: #3b82f6;
+.am-message-panel__close i {
+  font-size: 16px !important;
 }
 
-.am-message-panel.info i {
-  color: #3b82f6;
-}
-
-/* Success */
+/* Variant Success */
 .am-message-panel.success {
-  border-left-color: #22c55e;
+  background-color: #f0fdf4 !important;
+  border-left-color: #22c55e !important;
+  color: #166534 !important;
 }
+.am-message-panel.success i:first-child { color: #22c55e !important; }
 
-.am-message-panel.success i {
-  color: #22c55e;
-}
-
-/* Warning */
-.am-message-panel.warning {
-  border-left-color: #f59e0b;
-}
-
-.am-message-panel.warning i {
-  color: #f59e0b;
-}
-
-/* Error */
+/* Variant Error */
 .am-message-panel.error {
-  border-left-color: #ef4444;
+  background-color: #fef2f2 !important;
+  border-left-color: #ef4444 !important;
+  color: #991b1b !important;
 }
+.am-message-panel.error i:first-child { color: #ef4444 !important; }
 
-.am-message-panel.error i {
-  color: #ef4444;
+/* Variant Warning */
+.am-message-panel.warning {
+  background-color: #fffbeb !important;
+  border-left-color: #f59e0b !important;
+  color: #92400e !important;
 }
+.am-message-panel.warning i:first-child { color: #f59e0b !important; }
+
+/* Variant Info */
+.am-message-panel.info {
+  background-color: #eff6ff !important;
+  border-left-color: #3b82f6 !important;
+  color: #1e40af !important;
+}
+.am-message-panel.info i:first-child { color: #3b82f6 !important; }
 
 /* ================================================================
    Account Maintenance Module CSS - Moved to Global Styles

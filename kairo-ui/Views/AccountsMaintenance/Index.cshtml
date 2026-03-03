@@ -29,6 +29,15 @@
             height: auto !important;
             padding: 0 !important;
         }
+
+        /* Ensure the persistent alert stays at the top of the form content area */
+        #accountMaintenanceAlertContainer {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: inherit;
+            width: 100%;
+        }
     </style>
 }
 
@@ -103,6 +112,9 @@
     <div class="am-message-panel" id="amMessagePanel">
         <i class="bi bi-info-circle"></i>
         <span id="messagePanelText"></span>
+        <button type="button" class="am-message-panel__close" onclick="this.parentElement.classList.remove('show')" aria-label="Close">
+            <i class="bi bi-x"></i>
+        </button>
     </div>
 
     <!-- Page Loading Overlay -->
@@ -446,6 +458,9 @@
 
             <!-- Form Content -->
             <div class="form-content">
+                <!-- Persistent Alert Container (Common Notifications) -->
+                <div id="accountMaintenanceAlertContainer" class="px-2"></div>
+
                 <!-- Submodule Content Container (dynamically loaded partial views) -->
                 <div id="submodule-container" class="submodule-container">
                     <!-- Default view: Account Search and Details -->

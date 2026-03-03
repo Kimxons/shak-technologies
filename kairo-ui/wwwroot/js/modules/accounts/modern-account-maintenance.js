@@ -129,19 +129,29 @@
     function showSystemToast(message, options = {}) {
         const variant = options && options.variant ? options.variant : 'info';
 
-        // 1. Try AppCore original subtle notification system first (Preferred "sattle" look)
+        if (options.useInlineAlert) {
+            // Check if we already have this same message displayed to avoid duplicate banners
+            const container = document.getElementById('accountMaintenanceAlertContainer');
+            if (container && container.innerText.includes(message)) {
+                console.log(`[Notification] Skipping duplicate alert: ${message}`);
+                return;
+            }
+            showInlineAlert(message, variant);
+            return; // Explicitly return to prevent the bubble from also appearing
+        }
+
         if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
             window.AppCore.showNotification(message, variant);
             return;
         }
 
-        // 2. Try global toastr if available (backward compatibility)
+        // 3. Fallback: Try global toastr if available
         if (window.toastr && typeof window.toastr[variant] === 'function') {
             window.toastr[variant](message);
             return;
         }
 
-        // 3. Last resort - Centralized NotificationService (Client 360 style)
+        // 4. Last resort - Centralized NotificationService (Client 360 style)
         if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
             window.NotificationService.showToast(message, variant);
             return;
@@ -164,63 +174,53 @@
     window.showSystemToast = showSystemToast;
     window.showErrorMessage = showErrorMessage;
 
-    // Custom inline alert implementation matching the user's screenshot style
     function showInlineAlert(message, variant) {
-        // Find the main section content container - prioritizing the search section
-        const searchSection = document.querySelector('[data-section="account-search"] .section-content') || 
-                            document.querySelector('[data-section="search"] .section-content') || 
-                            document.querySelector('.kairo-search-panel') || 
-                            document.querySelector('[data-main-form] .section-content') ||
-                            document.getElementById('accountMaintenanceForm')?.closest('.card-body');
+        // Target the persistent container at the top of form-content
+        const container = document.getElementById('accountMaintenanceAlertContainer');
 
-        if (!searchSection) {
-            // Fallback to toast if no container found
-            // Use AppCore or fallback logic from showSystemToast, but avoid infinite recursion
-            // Directly call AppCore/toastr here as fallback
+        if (!container) {
+            // Fallback for submodules or cases where the main container is missing
             if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
                 window.AppCore.showNotification(message, variant);
             } else {
-                alert(message);
+                console.log(`[${variant.toUpperCase()}] ${message}`);
             }
             return;
         }
 
-        // Remove existing alerts to prevent stacking
-        const existingAlert = searchSection.querySelector('.kairo-inline-alert');
-        if (existingAlert) existingAlert.remove();
+        // Remove existing alerts to prevent stacking multiple banners
+        container.innerHTML = '';
 
         const alertDiv = document.createElement('div');
         const alertClass = variant === 'success' ? 'alert-success' : 
                           variant === 'error' ? 'alert-danger' : 
                           variant === 'warning' ? 'alert-warning' : 'alert-info';
-        
-        const iconClass = variant === 'success' ? 'bi-check-circle-fill' : 
-                         variant === 'error' ? 'bi-exclamation-triangle-fill' : 
-                         variant === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill';
 
-        alertDiv.className = `alert ${alertClass} alert-dismissible fade show kairo-inline-alert`;
+        const iconClass = variant === 'success' ? 'bi-check-circle' : 
+                         variant === 'error' ? 'bi-exclamation-octagon' : 
+                         variant === 'warning' ? 'bi-exclamation-triangle' : 'bi-info-circle';
+
+        alertDiv.className = `alert ${alertClass} fade show kairo-inline-alert`;
         alertDiv.role = 'alert';
-        alertDiv.style.marginTop = '10px';
-        alertDiv.style.marginBottom = '10px';
+        alertDiv.style.marginTop = '8px';
+        alertDiv.style.marginBottom = '8px';
+        alertDiv.style.padding = '0.35rem 0.75rem'; // Narrow strip style
         alertDiv.style.display = 'flex';
         alertDiv.style.alignItems = 'center';
+        alertDiv.style.borderWidth = '1px'; 
+        alertDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; 
+        alertDiv.style.minHeight = 'auto';
 
         alertDiv.innerHTML = `
-            <i class="bi ${iconClass} me-2"></i>
-            <div>${message}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <i class="bi ${iconClass} me-2" style="font-size: 1.1rem;"></i>
+            <div style="font-weight: 600; font-size: 13px; line-height: 1.2; flex: 1;">${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.5rem; font-size: 0.65rem; margin: 0;"></button>
         `;
 
-        // Insert at the top of the search section
-        searchSection.insertBefore(alertDiv, searchSection.firstChild);
+        // Insert into container
+        container.appendChild(alertDiv);
 
-        // Auto dismiss after 5 seconds
-        setTimeout(() => {
-            if (alertDiv && alertDiv.parentNode) {
-                // Fade out effect could be added here
-                alertDiv.remove();
-            }
-        }, 5000);
+        // AUTO-DISMISS REMOVED: Banner stays until user clicks 'X'.
     }
 
     function copyThemeVarsToDocument(targetDoc) {
@@ -1309,19 +1309,20 @@
                     }
                     
                     showSystemToast(`Account details loaded successfully. Account ID: ${account.AccountID || accountId}`, { 
-                        variant: 'success'
+                        variant: 'success', 
+                        useInlineAlert: true 
                     });
                 } else {
-                    showErrorMessage('Account details empty or invalid');
+                    showErrorMessage('Account details empty or invalid', { useInlineAlert: true });
                 }
             } else {
                 const msg = result.message || (data && data.ResponseMessage) || 'Failed to load account details';
-                showErrorMessage(msg);
+                showErrorMessage(msg, { useInlineAlert: true });
             }
 
         } catch (error) {
             console.error('[AccountMaintenance] Error loading account:', error);
-            showErrorMessage('Error loading account details: ' + error.message);
+            showErrorMessage('Error loading account details: ' + error.message, { useInlineAlert: true });
         } finally {
             showPageLoader(false);
         }
@@ -1341,7 +1342,8 @@
                 setTimeout(() => {
                     showPageLoader(false);
                     showSystemToast('Account changes saved successfully.', { 
-                        variant: 'success'
+                        variant: 'success',
+                        useInlineAlert: true
                     });
                 }, 1000);
             });

@@ -589,10 +589,25 @@
             // Try to use existing message panel if available
             const messagePanel = document.querySelector('.am-message-panel');
             const messagePanelText = document.getElementById('messagePanelText');
+            const messagePanelIcon = messagePanel ? messagePanel.querySelector('i') : null;
 
             if (messagePanel && messagePanelText) {
+                // Update class for colors
                 messagePanel.className = `am-message-panel show ${type}`;
+
+                // Update text
                 messagePanelText.textContent = message;
+
+                // Update icon if present
+                if (messagePanelIcon) {
+                    const iconMap = {
+                        'success': 'bi-check-circle',
+                        'error': 'bi-exclamation-octagon',
+                        'warning': 'bi-exclamation-triangle',
+                        'info': 'bi-info-circle'
+                    };
+                    messagePanelIcon.className = `bi ${iconMap[type] || 'bi-info-circle'}`;
+                }
 
                 if (duration > 0) {
                     setTimeout(() => {
