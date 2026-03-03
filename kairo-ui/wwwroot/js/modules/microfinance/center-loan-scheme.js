@@ -6,6 +6,9 @@
 (function() {
     'use strict';
 
+    const SEARCH_MODAL_PREFIX = (window.Environment?.searchModalPrefix || 'mfs').toString();
+    const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || window.Environment?.microfinanceModuleId || '5010');
+
     // =========================================================================
     // State Management
     // =========================================================================
@@ -29,6 +32,49 @@
         const operatorID = e.operatorID || e.operatorId || 
                            sessionStorage.getItem('OperatorID') || localStorage.getItem('OperatorID') || 'CSADM';
         return { bankID, ourBranchID, operatorID };
+    }
+
+    // Format date as MM/DD/YYYY HH:mm:ss (matches OldAPI samples)
+    function formatSmallDateTime(date = new Date()) {
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const mm = pad2(date.getMonth() + 1);
+        const dd = pad2(date.getDate());
+        const yyyy = String(date.getFullYear());
+        const hh = pad2(date.getHours());
+        const mi = pad2(date.getMinutes());
+        const ss = pad2(date.getSeconds());
+        return `${mm}/${dd}/${yyyy} ${hh}:${mi}:${ss}`;
+    }
+
+    async function mcsSearchServiceOrCoreApi(payload) {
+        const service = window.SearchService;
+        if (service && typeof service.search === 'function') {
+            return service.search(payload);
+        }
+
+        // Same-origin fallback (CSP-safe)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort('Search request timeout (>30000ms)'), 30000);
+        try {
+            const response = await fetch('/SearchModal/Search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload || {}),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Search request failed (${response.status}): ${text}`);
+            }
+
+            return await response.json();
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 
     // =========================================================================
@@ -98,53 +144,212 @@
     // =========================================================================
     // Search Dialog Management
     // =========================================================================
+    let sharedSearchModal = null;
+
     const searchDialogConfig = {
         'scheme': {
-            url: '../../common/searchDialogs/group-loan-scheme-search/group-loan-scheme-search.html',
             title: 'Loan Scheme Search',
             targetId: 'SchemeId',
-            targetName: 'Description'
+            targetName: 'Description',
+            tableID: 'GroupDefaultSchemeID',
+            moduleIDOverride: 5060,
+            searchFields: [
+                { name: 'schemeId', label: 'Scheme ID', column: 'LoanSchemeID' },
+                { name: 'schemeName', label: 'Scheme Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'LoanSchemeID', label: 'Scheme ID' },
+                { key: 'Description', label: 'Scheme Name' },
+                { key: 'GroupProductID', label: 'Group Product ID' }
+            ],
+            getAdvFilterString: () => {
+                const groupProductId = document.getElementById('LoanProductId')?.value?.trim() || '';
+                return `GroupProductID ='${groupProductId.replace(/'/g, "''")}' AND SchemeTypeID = 'P'`;
+            }
         },
         'loan-product': {
-            url: '../../common/searchDialogs/scheme-product-search/scheme-product-search.html',
             title: 'Loan Product Search',
             targetId: 'LoanProductId',
-            targetName: 'LoanProductName'
+            targetName: 'LoanProductName',
+            tableID: 'schemeproductid',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `BankID ='${safeBankId}' AND ProductTypeID in ('LN')`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'SchemeProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'SchemeProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
         },
         'advance-type': {
-            url: '../../common/searchDialogs/wf-advance-type-search/wf-advance-type-search.html',
             title: 'Advance Type Search',
             targetId: 'AdvanceTypeId',
-            targetName: 'AdvanceTypeName'
+            targetName: 'AdvanceTypeName',
+            tableID: 'WFAdvTypeActiveID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID, ourBranchID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                const safeBranchId = String(ourBranchID || '').replace(/'/g, "''");
+                return `ModuleID in ('LN') AND BankID ='${safeBankId}' AND OurBranchID ='${safeBranchId}'`;
+            },
+            searchFields: [
+                { name: 'advanceTypeId', label: 'Advance Type ID', column: 'WFAdvTypeID' },
+                { name: 'advanceTypeName', label: 'Advance Type Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'WFAdvTypeID', label: 'Advance Type ID' },
+                { key: 'Description', label: 'Advance Type Name' }
+            ]
         },
         'collection-product': {
-            url: '../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%3D%27SB%27',
             title: 'Collection Product Search',
             targetId: 'CenterCollectionProductId',
-            targetName: 'CenterCollectionProductName'
+            targetName: 'CenterCollectionProductName',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            advFilterString: "ProductTypeID='SB'",
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
         },
         'deposit-product-primary': {
-            url: "../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%20in(%27SB%27%2C%20%27CS%27)%20AND%20BankID%20%3D%2700%27%20AND%20ProductCategoryID%3D%27A%27",
             title: 'Deposit Product Search',
             targetId: 'DepositProductIdPrimary',
-            targetName: 'DepositProductNamePrimary'
+            targetName: 'DepositProductNamePrimary',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
         },
         'deposit-product-secondary': {
-            url: "../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%20in(%27SB%27%2C%20%27CS%27)%20AND%20BankID%20%3D%2700%27%20AND%20ProductCategoryID%3D%27A%27",
             title: 'Deposit Product Search',
             targetId: 'DepositProductIdSecondary',
-            targetName: 'DepositProductNameSecondary'
+            targetName: 'DepositProductNameSecondary',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
         },
         'deposit-product-additional': {
-            url: "../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%20in(%27SB%27%2C%20%27CS%27)%20AND%20BankID%20%3D%2700%27%20AND%20ProductCategoryID%3D%27A%27",
             title: 'Deposit Product Search',
             targetId: 'DepositProductIdAdditional',
-            targetName: 'DepositProductNameAdditional'
+            targetName: 'DepositProductNameAdditional',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
         }
     };
 
-    function canUseSearchDialogs() {
-        return isAddMode || isEditMode;
+    function ensureSharedSearchModal() {
+        if (sharedSearchModal) return sharedSearchModal;
+
+        if (typeof window.SearchModal !== 'function') {
+            return null;
+        }
+
+        sharedSearchModal = new window.SearchModal({
+            prefix: SEARCH_MODAL_PREFIX,
+            moduleID: DEFAULT_SEARCH_MODULE_ID,
+            getOperatorId: () => getEnv().operatorID || 'web_portal',
+            getOurBranchId: () => getEnv().ourBranchID || '',
+            searchFn: async (payload) => {
+                const env = getEnv();
+                const searchPayload = {
+                    OperatorID: env.operatorID || payload.OperatorID || 'web_portal',
+                    OurBranchID: env.ourBranchID || payload.OurBranchID || '',
+                    ModuleID: payload.ModuleID || DEFAULT_SEARCH_MODULE_ID,
+                    ...payload
+                };
+
+                // Use the same pattern as Account Maintenance: SearchService if present, else CoreApi OldAPI
+                return mcsSearchServiceOrCoreApi(searchPayload);
+            },
+            onError: (err) => {
+                console.error('[CenterLoanScheme] Search error:', err);
+                showError(err?.message || 'Search failed. Please try again.');
+            }
+        });
+
+        return sharedSearchModal;
+    }
+
+    function mapSelectedData(lookupType, data) {
+        if (!data) return;
+
+        if (lookupType === 'scheme') {
+            const schemeId = data.LoanSchemeID || data.SchemeId || data.ID || '';
+            const schemeIdField = document.getElementById('SchemeId');
+            if (schemeIdField) {
+                schemeIdField.value = schemeId;
+            }
+            handleView();
+            return;
+        }
+
+        const config = searchDialogConfig[lookupType];
+        if (!config) return;
+
+        const idField = document.getElementById(config.targetId);
+        const nameField = document.getElementById(config.targetName);
+
+        if (idField) {
+            idField.value = data.LoanSchemeID || data.SchemeProductID || data.WFAdvTypeID || data.GroupProductID || data.ProductID || data.ID || '';
+        }
+
+        if (nameField) {
+            nameField.value = data.Description || data.GroupProductName || data.ProductName || data.AdvanceTypeName || data.Name || '';
+        }
     }
 
     function openSearchDialog(lookupType) {
@@ -154,80 +359,41 @@
             return;
         }
 
-        // Store the active search context
-        activeSearchContext = config;
-
-        // Get the search modal elements
-        const searchModal = document.getElementById('searchModal');
-        const searchModalTitle = document.getElementById('searchModalTitle');
-        const searchModalFrame = document.getElementById('searchModalFrame');
-
-        if (!searchModal || !searchModalFrame) {
-            showError('Search dialog not available');
+        const sharedModal = ensureSharedSearchModal();
+        if (!sharedModal || !config.tableID) {
+            showError('Shared search dialog is not available.');
             return;
         }
 
-        // Set modal title and iframe source
-        if (searchModalTitle) {
-            searchModalTitle.textContent = config.title;
-        }
-        // Append noheader parameter to hide the search dialog's internal header
-        const separator = config.url.includes('?') ? '&' : '?';
-        searchModalFrame.src = config.url + separator + 'noheader=1';
+        const advFilterString = typeof config.getAdvFilterString === 'function'
+            ? config.getAdvFilterString()
+            : (config.advFilterString || '');
 
-        // Show the modal using Bootstrap
-        const modal = new bootstrap.Modal(searchModal);
-        modal.show();
+        sharedModal.open({
+            title: config.title,
+            tableID: config.tableID,
+            moduleIDOverride: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
+            whereStmt: '',
+            advFilterString,
+            searchFields: config.searchFields || [],
+            displayFields: config.displayFields || [],
+            onSelect: (record) => mapSelectedData(lookupType, record)
+        });
     }
 
     async function handleSearchSelection(data) {
         if (!activeSearchContext || !data) return;
 
-        const { targetId, targetName } = activeSearchContext;
         const lookupType = Object.keys(searchDialogConfig).find(
-            key => searchDialogConfig[key].targetId === targetId
+            key => searchDialogConfig[key].targetId === activeSearchContext.targetId
         );
 
-        // For scheme search, set the SchemeId and call handleView to fetch fresh data
-        if (lookupType === 'scheme') {
-            const schemeId = data.LoanSchemeID || data.SchemeId || data.ID || '';
-            
-            // Set the SchemeId field first
-            const schemeIdField = document.getElementById('SchemeId');
-            if (schemeIdField) {
-                schemeIdField.value = schemeId;
-            }
-
-            // Clear the context and close the modal BEFORE fetching
-            activeSearchContext = null;
-            const searchModal = document.getElementById('searchModal');
-            if (searchModal) {
-                const modal = bootstrap.Modal.getInstance(searchModal);
-                if (modal) modal.hide();
-            }
-
-            // Fetch and populate the form with fresh data from API
-            await handleView();
-            return;
-        } else {
-            // For other lookups, just populate the ID and Name fields
-            const idField = document.getElementById(targetId);
-            const nameField = document.getElementById(targetName);
-
-            if (idField) {
-                // Support SchemeProductID and WFAdvTypeID from the new search dialogs
-                idField.value = data.LoanSchemeID || data.SchemeProductID || data.WFAdvTypeID || data.GroupProductID || data.ProductID || data.ID || '';
-            }
-
-            if (nameField) {
-                nameField.value = data.Description || data.GroupProductName || data.ProductName || data.AdvanceTypeName || data.Name || '';
-            }
+        if (lookupType) {
+            mapSelectedData(lookupType, data);
         }
 
-        // Clear the context
         activeSearchContext = null;
 
-        // Close the modal
         const searchModal = document.getElementById('searchModal');
         if (searchModal) {
             const modal = bootstrap.Modal.getInstance(searchModal);
@@ -779,24 +945,24 @@
 
         // Primary Collateral Details
         setFieldValue('PrimaryCollateral', data.PrimaryCollateral);
-        setFieldValue('PrimaryCollateralName', data.PrimaryCollateralName);
+        setFieldValue('PrimaryCollateralName', data.PrimaryCollateralID || '');
         setFieldValue('DepositProductIdPrimary', data.DepositProductIdPrimary);
         setFieldValue('DepositProductNamePrimary', data.DepositProductNamePrimary);
         setFieldValue('SavingToLoanRatio', data.SavingToLoanRatio);
         setFieldValue('SLRecoveryType', data.SLRecoveryType);
-        setCheckboxValue('CollectSavingWithInstallment', data.CollectSavingWithInstallment);
-        setFieldValue('SavingsCollectionType', data.SavingsCollectionType);
-        setFieldValue('SavingsValue', data.SavingsValue);
+        setCheckboxValue('CollectSavingWithInstallment', data.CollectSavingWithInst);
+        setFieldValue('SavingsCollectionType', data.SavingsTypeID);
+        setFieldValue('SavingsValue', data.SavingsAmount);
 
         // Secondary Collateral Details
         setFieldValue('SecondaryCollateral', data.SecondaryCollateral);
-        setFieldValue('SecondaryCollateralName', data.SecondaryCollateralName);
+        setFieldValue('SecondaryCollateralName', data.SecondaryCollateralID || '');
         setFieldValue('DepositProductIdSecondary', data.DepositProductIdSecondary);
         setFieldValue('DepositProductNameSecondary', data.DepositProductNameSecondary);
 
         // Additional Collateral Details
         setFieldValue('AdditionalCollateral', data.AdditionalCollateral);
-        setFieldValue('AdditionalCollateralName', data.AdditionalCollateralName);
+        setFieldValue('AdditionalCollateralName', data.AdditionalCollateralID || '');
         setFieldValue('DepositProductIdAdditional', data.DepositProductIdAdditional);
         setFieldValue('DepositProductNameAdditional', data.DepositProductNameAdditional);
 
@@ -1589,13 +1755,14 @@
     // Initialization
     // =========================================================================
     async function initialize() {
-        
+
         // Load services if available
         if (window.ServiceLoader) {
             try {
                 await window.ServiceLoader.loadCore();
-                await window.ServiceLoader.loadScript('../../../assets/js/services/shared/lookupService.js');
-                await window.ServiceLoader.loadScript('../../../assets/js/services/microfinance/groupService.js');
+                await window.ServiceLoader.loadLookupService();
+                await window.ServiceLoader.loadSearchService();
+                await window.ServiceLoader.loadScript('/js/services/microfinance/groupService.js');
             } catch (error) {
                 console.warn('Could not load services:', error);
             }
