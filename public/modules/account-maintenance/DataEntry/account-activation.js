@@ -1,4 +1,4 @@
-(function () {
+window.AccountActivationModule = (function () {
   // ============================================
   // STATE VARIABLES
   // ============================================
@@ -614,8 +614,14 @@
   }
 
   // ============================================
-  // DOCUMENT READY
+  // PUBLIC API
   // ============================================
-  document.addEventListener('DOMContentLoaded', initializeForm);
+  return {
+    init: initializeForm,
+    save: handleSave,
+    edit: handleEdit,
+    cancel: handleCancel,
+    refresh: loadAccountActivationData || (() => location.reload())
+  };
 })();
 

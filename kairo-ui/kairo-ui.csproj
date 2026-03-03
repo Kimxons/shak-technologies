@@ -19,6 +19,7 @@
   <ItemGroup>
     <Folder Include="Controllers\Dashboard\" />
     <Folder Include="Views\Dashboard\" />
+    <Folder Include="wwwroot\js\constants\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -19,12 +19,13 @@
 
     class SearchModal {
         constructor(appCore) {
-            if (!appCore) {
-                console.error('[SearchModal] AppCore is required');
-                throw new Error('AppCore is required for SearchModal');
+            // Support both direct injection and global fallback
+            this.appCore = appCore || global.AppCore || window.AppCore;
+
+            if (!this.appCore) {
+                console.error('[SearchModal] AppCore is required but not found in arguments or globally');
             }
 
-            this.appCore = appCore;
             this.modalElement = null;
             this.isInitialized = false;
             this.currentConfig = null;
@@ -49,9 +50,10 @@
                     WhereStmt: options.whereStmt || '',
                     AdvFilterString: options.advFilterString || '',
                     SearchKey: options.searchKey || '',
-                    ModuleID: options.moduleID || '1000',
+                    ModuleID: options.moduleID || '100',
                     PrevOrNext: 0,
-                    PageSize: options.pageSize || 20
+                    PageSize: options.pageSize || 20,
+                    OurBranchID: options.ourbranchId || null
                 };
 
                 // Use AppCore to load the partial view
@@ -63,11 +65,30 @@
 
                 console.log('[SearchModal] Modal HTML loaded successfully');
 
-                // Remove existing modal if present
+                // CRITICAL: Remove existing modal AND hidden fields before inserting new ones
                 const existingModal = document.getElementById('search-modal');
                 if (existingModal) {
                     existingModal.remove();
                 }
+
+                // Remove all hidden fields to prevent duplicates
+                const hiddenFieldIds = [
+                    'search-table-id',
+                    'search-where-stmt',
+                    'search-adv-filter',
+                    'search-module-id',
+                    'search-key-for-nav',
+                    'search-ref-id',
+                    'search-prev-or-next'
+                ];
+
+                hiddenFieldIds.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.remove();
+                        console.log('[SearchModal] Removed old hidden field before loading:', fieldId);
+                    }
+                });
 
                 // Insert modal HTML into DOM
                 document.body.insertAdjacentHTML('beforeend', html);
@@ -88,7 +109,7 @@
 
                 // Attach event listeners
                 this.attachEventListeners();
-                
+
                 this.isInitialized = true;
                 console.log('[SearchModal] Modal loaded and initialized');
 
@@ -164,18 +185,46 @@
                     throw new Error('tableID is required');
                 }
 
+                if (!this.appCore) {
+                     this.appCore = window.AppCore;
+                }
+
+                // Check if reload is needed (different TableID or not initialized)
+                const shouldReload = !this.isInitialized || 
+                                   (this.currentConfig && this.currentConfig.tableID !== config.tableID);
+
                 this.currentConfig = config;
 
-                // Load modal if not already loaded
-                if (!this.isInitialized) {
+                // Load modal if needed
+                if (shouldReload) {
+                    // Start fresh if reloading for a new table
+                    if (this.isInitialized) {
+                         // Reset state but keep the instance structure
+                         this.currentResults = [];
+                         this.selectedRow = null; 
+                         this.currentPage = 0;
+                         // Note: loadModal will replace the DOM element
+                    }
+
                     await this.loadModal(config.tableID, {
                         whereStmt: config.whereStmt,
                         advFilterString: config.advFilterString,
                         searchKey: config.searchKey,
                         moduleID: config.moduleID,
                         prevOrNext: config.prevOrNext,
-                        pageSize: config.pageSize
+                        pageSize: config.pageSize,
+                        ourbranchId: config.ourbranchId
                     });
+                } else {
+                    // CRITICAL: Update hidden fields even if we skip reload
+                    const whereInput = document.getElementById('search-where-stmt');
+                    if (whereInput) {
+                        whereInput.value = config.whereStmt || '';
+                        console.log('[SearchModal] Updated existing WhereStmt in DOM:', whereInput.value);
+                    }
+
+                    const advInput = document.getElementById('search-adv-filter');
+                    if (advInput) advInput.value = config.advFilterString || '';
                 }
 
                 // Show modal
@@ -184,8 +233,9 @@
                     console.log('[SearchModal] Modal opened');
                 }
 
-                // Auto-search if searchKey provided
-                if (config.searchKey) {
+                // Auto-search if searchKey OR whereStmt provided (ensures filtered lookups show results immediately)
+                if (config.searchKey || config.whereStmt) {
+                    console.log('[SearchModal] Auto-triggering search...');
                     setTimeout(() => this.executeSearch(), 300);
                 }
 
@@ -213,7 +263,11 @@
                 const tableID = document.getElementById('search-table-id')?.value;
                 const whereStmt = document.getElementById('search-where-stmt')?.value || '';
                 const advFilter = document.getElementById('search-adv-filter')?.value || '';
-                const moduleID = document.getElementById('search-module-id')?.value || '1000';
+                const moduleID = document.getElementById('search-module-id')?.value || '100';
+
+                console.log('[SearchModal] ✅ READING HIDDEN FIELDS - TableID:', tableID, '| WhereStmt:', whereStmt);
+
+                //const moduleID = document.getElementById('search-module-id')?.value || '100';
                 
                 // Get page size from dropdown
                 const pageSizeDropdown = document.getElementById('search-page-size');
@@ -232,7 +286,8 @@
                     ModuleID: moduleID,
                     PageSize: this.pageSize,
                     RefID: this.refID,
-                    PrevOrNext: this.prevOrNext
+                    PrevOrNext: this.prevOrNext,
+                    OurBranchID: this.currentConfig.ourbranchId || null
                 });
 
                 console.log('[SearchModal] Search response:', response);

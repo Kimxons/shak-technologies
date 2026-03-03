@@ -1,0 +1,484 @@
+/**
+ * Account Notes - JavaScript Implementation
+ * Follows Client360 pattern
+ */
+
+(function (global) {
+    'use strict';
+
+    console.log('✅ [ACCOUNT-NOTES] Module loading...');
+
+    // ============================================================================
+    // SERVICE LAYER (Matches Client360 pattern exactly)
+    // ============================================================================
+
+    const ACCOUNT_MAINTENANCE_CONTROLLER_BASE = 'AccountsMaintenance';
+
+    function getAppCore() {
+        const win = window;
+        return win.AppCore ||
+            (win.parent && win.parent !== win && win.parent.AppCore) ||
+            (win.top && win.top !== win && win.top.AppCore) ||
+            null;
+    }
+
+    function invokeAccountMaintenanceController(action, requestData) {
+        return new Promise((resolve, reject) => {
+            const appCore = getAppCore();
+            if (!appCore || typeof appCore.invokeController !== 'function') {
+                reject(new Error('AppCore is not available (AppCore.invokeController not found)'));
+                return;
+            }
+
+            const endpoint = `${ACCOUNT_MAINTENANCE_CONTROLLER_BASE}/${action}`;
+            appCore.invokeController(endpoint, requestData || {}, (error, response) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(response);
+                }
+            });
+        });
+    }
+
+    const AccountMaintenanceService = {
+        getNotes(requestData) {
+            return invokeAccountMaintenanceController('api/get-notes', requestData);
+        },
+        updateNotes(requestData) {
+            return invokeAccountMaintenanceController('api/update-notes', requestData);
+        }
+    };
+
+    global.AccountMaintenanceService = AccountMaintenanceService;
+
+    // ============================================================================
+    // UTILITY FUNCTIONS (Same as Client360)
+    // ============================================================================
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function setField(id, value) {
+        const el = $(id);
+        if (!el) return;
+
+        const v = value ?? '';
+        if ('value' in el) {
+            el.value = v;
+            return;
+        }
+
+        el.textContent = v;
+    }
+
+    function getOldApiStatus(payload) {
+        const candidates = [];
+        if (payload) candidates.push(payload);
+        if (Array.isArray(payload?.Details) && payload.Details.length) candidates.push(payload.Details[0]);
+        if (Array.isArray(payload?.Details01) && payload.Details01.length) candidates.push(payload.Details01[0]);
+
+        for (const candidate of candidates) {
+            const code = candidate?.ResponseCode ?? candidate?.responseCode ?? candidate?.Status ?? candidate?.status ?? candidate?.code;
+            if (code === undefined || code === null) continue;
+            const normalized = String(code).trim();
+            const ok = normalized === '' || normalized === '00' || normalized === '0' || normalized.toLowerCase() === 'ok' || normalized.toLowerCase() === 'success';
+            const message = candidate?.ResponseMessage ?? candidate?.responseMessage ?? candidate?.Message ?? candidate?.message ?? '';
+            return { ok, code: normalized, message };
+        }
+
+        return { ok: true, code: '', message: '' };
+    }
+
+    // ============================================================================
+    // UI STATE & DOM
+    // ============================================================================
+
+    // State
+    let currentAccountId = null;
+    let isEditMode = false;
+    let originalNotes = '';
+
+    // DOM Elements
+    let notesTextarea = null;
+    let auditFields = {};
+
+    /**
+     * Initialize the module
+     */
+    function init() {
+        console.log('[ACCOUNT-NOTES] Initializing...');
+
+        // Get DOM elements
+        notesTextarea = $('notes');
+
+        // Get audit fields
+        auditFields = {
+            createdBy: $('CreatedBy'),
+            modifiedBy: $('ModifiedBy'),
+            supervisedBy: $('SupervisedBy'),
+            createdOn: $('CreatedOn'),
+            modifiedOn: $('ModifiedOn'),
+            supervisedOn: $('SupervisedOn')
+        };
+
+        // Listen for parent button clicks (following Client360 pattern)
+        window.addEventListener('message', handleParentMessage);
+
+        // If running in parent window (not iframe), listen for direct button events
+        if (window === window.parent) {
+            wireParentButtons();
+        }
+
+        // Initial state: View mode (read-only)
+        setMode('view');
+
+        console.log('✅ [ACCOUNT-NOTES] Initialized successfully');
+    }
+
+    /**
+     * Wire up parent form buttons (when not in iframe)
+     */
+    function wireParentButtons() {
+        const parentDoc = document;
+        const btnView = parentDoc.querySelector('[data-action="view"]');
+        const btnEdit = parentDoc.querySelector('.action-panel [data-action="edit"]');
+        const btnSave = parentDoc.querySelector('[data-action="save"]');
+        const btnCancel = parentDoc.querySelector('[data-action="cancel"]');
+
+        if (btnView) btnView.addEventListener('click', handleView);
+        if (btnEdit) btnEdit.addEventListener('click', handleEdit);
+        if (btnSave) btnSave.addEventListener('click', handleSave);
+        if (btnCancel) btnCancel.addEventListener('click', handleCancel);
+    }
+
+    /**
+     * Handle messages from parent window (when in iframe)
+     */
+    function handleParentMessage(event) {
+        const data = event?.data;
+        if (!data) return;
+
+        // Handle parent button actions
+        if (data.action === 'view' && data.source === 'AccountMaintenance') {
+            handleView();
+        } else if (data.action === 'edit' && data.source === 'AccountMaintenance') {
+            handleEdit();
+        } else if (data.action === 'save' && data.source === 'AccountMaintenance') {
+            handleSave();
+        } else if (data.action === 'cancel' && data.source === 'AccountMaintenance') {
+            handleCancel();
+        } else if (data.action === 'accountSelected') {
+            // Account selection from parent
+            const accountId = data.accountId;
+            if (accountId) loadNotes(accountId);
+        }
+    }
+
+    /**
+     * Load notes for account
+     */
+    async function loadNotes(accountId) {
+        try {
+            console.log('[ACCOUNT-NOTES] Loading notes for account:', accountId);
+
+            currentAccountId = accountId;
+            showLoading(true);
+
+            // Use service layer (matches Client360 pattern)
+            const response = await AccountMaintenanceService.getNotes({
+                AccountId: accountId
+            });
+
+            console.log('[ACCOUNT-NOTES] Response:', response);
+
+            // Check old API status pattern
+            const status = getOldApiStatus(response);
+            if (!status.ok) {
+                showMessage(status.message || 'Failed to load notes', 'error');
+                return;
+            }
+
+            // Extract data from response
+            const data = response?.Data || response?.data || {};
+
+            // Populate notes
+            if (notesTextarea) {
+                notesTextarea.value = data.Notes || '';
+                originalNotes = data.Notes || '';
+            }
+
+            // Populate audit fields
+            populateAuditFields(data);
+
+            showMessage('Notes loaded successfully', 'success');
+        } catch (error) {
+            console.error('[ACCOUNT-NOTES] Error loading notes:', error);
+            showMessage('Error loading notes: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /**
+     * Handle View button click
+     */
+    function handleView() {
+        setMode('view');
+        showMessage('View mode enabled', 'info');
+    }
+
+    /**
+     * Handle Edit button click
+     */
+    function handleEdit() {
+        if (!currentAccountId) {
+            showMessage('Please select an account first', 'warning');
+            return;
+        }
+
+        setMode('edit');
+        notesTextarea.focus();
+        showMessage('Edit mode enabled', 'info');
+    }
+
+    /**
+     * Handle Save button click
+     */
+    async function handleSave() {
+        if (!currentAccountId) {
+            showMessage('No account selected', 'error');
+            return;
+        }
+
+        const notes = notesTextarea.value.trim();
+
+        // Validation
+        if (!validateNotes(notes)) {
+            return;
+        }
+
+        // Check if notes changed
+        if (notes === originalNotes) {
+            showMessage('No changes to save', 'info');
+            setMode('view');
+            return;
+        }
+
+        try {
+            console.log('[ACCOUNT-NOTES] Saving notes...');
+            showLoading(true);
+
+            // Use service layer (matches Client360 pattern)
+            const response = await AccountMaintenanceService.updateNotes({
+                AccountId: currentAccountId,
+                Notes: notes
+            });
+
+            console.log('[ACCOUNT-NOTES] Save response:', response);
+
+            // Check old API status pattern
+            const status = getOldApiStatus(response);
+            if (!status.ok) {
+                showMessage(status.message || 'Failed to save notes', 'error');
+                return;
+            }
+
+            originalNotes = notes;
+            showMessage('Notes saved successfully', 'success');
+            setMode('view');
+
+            // Reload to get updated audit fields
+            await loadNotes(currentAccountId);
+        } catch (error) {
+            console.error('[ACCOUNT-NOTES] Error saving notes:', error);
+            showMessage('Error saving notes: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /**
+     * Validate notes input
+     */
+    function validateNotes(notes) {
+        // Clear previous validation errors
+        if (notesTextarea) {
+            notesTextarea.classList.remove('is-invalid');
+        }
+
+        // Check if notes exceed maximum length (e.g., 2000 characters)
+        const maxLength = 2000;
+        if (notes.length > maxLength) {
+            showMessage(`Notes cannot exceed ${maxLength} characters. Current: ${notes.length}`, 'error');
+            if (notesTextarea) {
+                notesTextarea.classList.add('is-invalid');
+                notesTextarea.focus();
+            }
+            return false;
+        }
+
+        // Optional: Check for invalid characters if needed
+        // const invalidChars = /[<>]/g;
+        // if (invalidChars.test(notes)) {
+        //     showMessage('Notes contain invalid characters (< or >)', 'error');
+        //     if (notesTextarea) notesTextarea.classList.add('is-invalid');
+        //     return false;
+        // }
+
+        return true;
+    }
+
+    /**
+     * Handle Cancel button click
+     */
+    function handleCancel() {
+        // Restore original notes
+        if (notesTextarea) {
+            notesTextarea.value = originalNotes;
+        }
+
+        setMode('view');
+        showMessage('Changes cancelled', 'info');
+    }
+
+    /**
+     * Set mode (view/edit)
+     */
+    function setMode(mode) {
+        isEditMode = mode === 'edit';
+
+        // Update textarea state
+        if (notesTextarea) {
+            notesTextarea.readOnly = !isEditMode;
+            notesTextarea.classList.toggle('readonly', !isEditMode);
+        }
+
+        // Notify parent about mode change so it can update button states
+        notifyParentModeChange(mode);
+    }
+
+    /**
+     * Notify parent window about mode change
+     */
+    function notifyParentModeChange(mode) {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                action: 'submoduleModeChange',
+                source: 'AccountNotes',
+                mode: mode
+            }, '*');
+        }
+    }
+
+    /**
+     * Populate audit fields
+     */
+    function populateAuditFields(data) {
+        if (auditFields.createdBy) auditFields.createdBy.textContent = data.CreatedBy || '-';
+        if (auditFields.modifiedBy) auditFields.modifiedBy.textContent = data.ModifiedBy || '-';
+        if (auditFields.supervisedBy) auditFields.supervisedBy.textContent = data.SupervisedBy || '-';
+        if (auditFields.createdOn) auditFields.createdOn.textContent = data.CreatedOn || '-';
+        if (auditFields.modifiedOn) auditFields.modifiedOn.textContent = data.ModifiedOn || '-';
+        if (auditFields.supervisedOn) auditFields.supervisedOn.textContent = data.SupervisedOn || '-';
+    }
+
+    /**
+     * Show loading overlay
+     */
+    function showLoading(show) {
+        const overlay = document.querySelector('.loading-overlay');
+        if (overlay) {
+            overlay.hidden = !show;
+        }
+    }
+
+    /**
+     * Show message to user (following Client360 pattern)
+     */
+    function showMessage(message, type = 'info') {
+        console.log(`[ACCOUNT-NOTES] ${type.toUpperCase()}: ${message}`);
+
+        const normalizedType = String(type || 'info').toLowerCase();
+
+        // Prefer centralized NotificationService (used elsewhere in the app)
+        if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
+            window.NotificationService.showToast(message, normalizedType, 4000);
+            return;
+        }
+
+        // Next, use an app-provided global toast if present
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, normalizedType);
+            return;
+        }
+
+        // Bootstrap 5 toast fallback
+        if (window.bootstrap && typeof window.bootstrap.Toast === 'function') {
+            const variantMap = {
+                success: 'success',
+                info: 'info',
+                warning: 'warning',
+                warn: 'warning',
+                error: 'danger',
+                danger: 'danger'
+            };
+            const variant = variantMap[normalizedType] || 'info';
+
+            let container = document.getElementById('account-notes-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'account-notes-toast-container';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '11000';
+                document.body.appendChild(container);
+            }
+
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-bg-${variant} border-0`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${String(message ?? '')}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `.trim();
+
+            container.appendChild(toastEl);
+            const toast = new window.bootstrap.Toast(toastEl, { delay: 4000 });
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+            toast.show();
+            return;
+        }
+
+        // Last resort: console log
+        console.log(`[${normalizedType.toUpperCase()}] ${message}`);
+    }
+
+    /**
+     * Public API (exported for parent window access)
+     */
+    global.AccountNotes = {
+        init,
+        loadNotes,
+        handleView,
+        handleEdit,
+        handleSave,
+        handleCancel,
+        isEditMode: () => isEditMode,
+        hasUnsavedChanges: () => notesTextarea?.value?.trim() !== originalNotes
+    };
+
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    console.log('✅ [ACCOUNT-NOTES] Module loaded');
+
+})(typeof window !== 'undefined' ? window : global);
