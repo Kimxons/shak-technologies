@@ -128,26 +128,26 @@
     // Helper notification functions to resolve ReferenceErrors
     function showSystemToast(message, options = {}) {
         const variant = options && options.variant ? options.variant : 'info';
-        
-        // Check for inline alert target (for account load success)
-        if (options.useInlineAlert) {
-            showInlineAlert(message, variant);
-            return;
-        }
 
-        // Try AppCore first
+        // 1. Try AppCore original subtle notification system first (Preferred "sattle" look)
         if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
             window.AppCore.showNotification(message, variant);
             return;
         }
 
-        // Try global toastr if available (common in legacy apps)
+        // 2. Try global toastr if available (backward compatibility)
         if (window.toastr && typeof window.toastr[variant] === 'function') {
             window.toastr[variant](message);
             return;
         }
 
-        // Fallback to console
+        // 3. Last resort - Centralized NotificationService (Client 360 style)
+        if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
+            window.NotificationService.showToast(message, variant);
+            return;
+        }
+
+        // 4. Final Fallback to console
         console.log(`[${variant.toUpperCase()}] ${message}`);
         
         // rudimentary fallback
@@ -1309,20 +1309,19 @@
                     }
                     
                     showSystemToast(`Account details loaded successfully. Account ID: ${account.AccountID || accountId}`, { 
-                        variant: 'success', 
-                        useInlineAlert: true 
+                        variant: 'success'
                     });
                 } else {
-                    showErrorMessage('Account details empty or invalid', { useInlineAlert: true });
+                    showErrorMessage('Account details empty or invalid');
                 }
             } else {
                 const msg = result.message || (data && data.ResponseMessage) || 'Failed to load account details';
-                showErrorMessage(msg, { useInlineAlert: true });
+                showErrorMessage(msg);
             }
 
         } catch (error) {
             console.error('[AccountMaintenance] Error loading account:', error);
-            showErrorMessage('Error loading account details: ' + error.message, { useInlineAlert: true });
+            showErrorMessage('Error loading account details: ' + error.message);
         } finally {
             showPageLoader(false);
         }
@@ -1342,8 +1341,7 @@
                 setTimeout(() => {
                     showPageLoader(false);
                     showSystemToast('Account changes saved successfully.', { 
-                        variant: 'success', 
-                        useInlineAlert: true 
+                        variant: 'success'
                     });
                 }, 1000);
             });
