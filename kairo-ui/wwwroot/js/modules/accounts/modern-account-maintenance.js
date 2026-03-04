@@ -1134,6 +1134,34 @@
                                     checkAndAutoPopulateClientDetails();
                                 } else if (targetInputId === 'ProductID') {
                                     window.AccountMaintenanceState.ProductID = val;
+                                    
+                                    // Extract CurrencyID and MinimumBalance from product selection
+                                    // and populate Account Snapshot fields
+                                    const currencyId = getVal(selectedRow, 'CurrencyID');
+                                    const minimumBalance = getVal(selectedRow, 'MinimumBalance');
+                                    
+                                    if (currencyId !== null) {
+                                        const currencyEl = document.getElementById('CurrencyID');
+                                        if (currencyEl) {
+                                            currencyEl.textContent = currencyId;
+                                            console.log('[AccountMaintenance] Set CurrencyID from Product:', currencyId);
+                                        }
+                                        window.AccountMaintenanceState.CurrencyID = currencyId;
+                                    }
+                                    
+                                    if (minimumBalance !== null) {
+                                        const minBalEl = document.getElementById('MinimumBalance');
+                                        if (minBalEl) {
+                                            // Format as currency if available
+                                            const formatted = typeof minimumBalance === 'number' 
+                                                ? minimumBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                : minimumBalance;
+                                            minBalEl.textContent = formatted;
+                                            console.log('[AccountMaintenance] Set MinimumBalance from Product:', formatted);
+                                        }
+                                        window.AccountMaintenanceState.MinimumBalance = minimumBalance;
+                                    }
+                                    
                                     // In ADD mode, check if both Client and Product are selected before auto-populating
                                     checkAndAutoPopulateClientDetails();
                                 }
@@ -1251,31 +1279,51 @@
                         }
                     }
 
-                    // Populate contact fields if available and empty (or in ADD mode)
+                    // Populate all account detail fields if available and in ADD mode
+                    // Map API field names to form field IDs
                     const fieldMappings = {
-                        'Mobile': 'Mobile',
-                        'PhoneHome': 'PhoneHome',
-                        'Phone1': 'PhoneHome',
-                        'EmailID': 'EmailID',
-                        'ContactPerson': 'ContactPerson'
+                        // Text input fields
+                        'Address1': ['Address1'],
+                        'Address2': ['Address2'],
+                        'PhoneHome': ['Phone1', 'PhoneHome'],   // API may return Phone1 or PhoneHome
+                        'PhoneWork': ['Phone2', 'PhoneWork'],   // API may return Phone2 or PhoneWork
+                        'FaxNo': ['Fax'],
+                        'Mobile': ['Mobile', 'MobileNo'],
+                        'EmailID': ['Email', 'EmailID'],
+                        'ContactPerson': ['ContactPerson']
                     };
 
-                    Object.entries(fieldMappings).forEach(([formField, dataField]) => {
-                        const input = document.getElementById(formField);
-                        if (input && details[dataField]) {
-                            // Only populate if empty or in ADD mode
-                            if (!input.value || isAddMode) {
-                                input.value = details[dataField];
+                    // Populate input fields
+                    Object.entries(fieldMappings).forEach(([formFieldId, apiFields]) => {
+                        const input = document.getElementById(formFieldId);
+                        if (input && isAddMode) {
+                            // Try each API field name until we find a value
+                            for (const apiField of apiFields) {
+                                if (details[apiField] !== null && details[apiField] !== undefined && details[apiField] !== '') {
+                                    input.value = details[apiField];
+                                    console.log(`[AccountMaintenance] Populated ${formFieldId} from ${apiField}:`, details[apiField]);
+                                    break;
+                                }
                             }
                         }
                     });
 
-                    // Alternative field names from API
+                    // Handle SELECT dropdown fields (City, Country)
                     if (isAddMode) {
-                        // Try alternative contact fields
-                        const mobileInput = document.getElementById('Mobile');
-                        if (mobileInput && !mobileInput.value && (details.Mobile || details.MobileNo)) {
-                            mobileInput.value = details.Mobile || details.MobileNo || '';
+                        // CityID dropdown
+                        const citySelect = document.getElementById('CityID');
+                        if (citySelect && details.CityID) {
+                            citySelect.value = details.CityID;
+                            citySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            console.log('[AccountMaintenance] Set CityID:', details.CityID);
+                        }
+
+                        // CountryID dropdown
+                        const countrySelect = document.getElementById('CountryID');
+                        if (countrySelect && details.CountryID) {
+                            countrySelect.value = details.CountryID;
+                            countrySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            console.log('[AccountMaintenance] Set CountryID:', details.CountryID);
                         }
                     }
 
