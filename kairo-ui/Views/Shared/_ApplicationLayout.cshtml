@@ -30,8 +30,14 @@
     <script src="/js/app/app-core.js"></script>
     <script src="/js/services/workflow/notificationService.js"></script>
 
+    <!-- Session Expiry Monitor - Handles session re-authentication -->
+    <script src="/js/session-monitor.js"></script>
+
     <!-- Shared Search Modal -->
     <script src="/js/modules/shared/searchModal.js"></script>
+
+    <!-- Session Expiry Re-Authentication Modal -->
+    @Html.Partial("_SessionExpiredModal")
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

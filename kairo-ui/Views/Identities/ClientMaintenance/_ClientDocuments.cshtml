@@ -23,32 +23,20 @@
             <div class="form-row four-col">
                 <div class="col">
                     <label class="label-blue" for="ddl_documentId" id="lbl_documentId">Document ID</label>
-                    <select id="ddl_documentId" name="documentId" data-document-field="DocumentID" class="bs-select">
+                    <select id="ddl_documentId" name="documentId" data-document-field="DocumentID" class="bs-select" asp-items="@(documentIdOptions.Skip(1))">
                         <option value="">Select...</option>
-                        @foreach (var option in documentIdOptions)
-                        {
-                            <option value="@option.Value">@option.Text</option>
-                        }
                     </select>
                 </div>
                 <div class="col">
                     <label class="label-blue" for="ddl_documentType" id="lbl_documentType">Document Type</label>
-                    <select id="ddl_documentType" name="documentType" data-document-field="DocumentTypeID" class="bs-select">
+                    <select id="ddl_documentType" name="documentType" data-document-field="DocumentTypeID" class="bs-select" asp-items="@(documentTypeOptions.Skip(1))">
                         <option value="">Select...</option>
-                        @foreach (var option in documentTypeOptions)
-                        {
-                            <option value="@option.Value">@option.Text</option>
-                        }
                     </select>
                 </div>
                 <div class="col">
                     <label class="label-blue" for="ddl_documentLocation" id="lbl_documentLocation">Location</label>
-                    <select id="ddl_documentLocation" name="documentLocation" data-document-field="LocationID" class="bs-select">
+                    <select id="ddl_documentLocation" name="documentLocation" data-document-field="LocationID" class="bs-select" asp-items="@(documentLocationOptions.Skip(1))">
                         <option value="">Select...</option>
-                        @foreach (var option in documentLocationOptions)
-                        {
-                            <option value="@option.Value">@option.Text</option>
-                        }
                     </select>
                 </div>
                 <div class="col">

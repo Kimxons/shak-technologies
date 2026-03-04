@@ -28,7 +28,7 @@
         @if (Model.SubModules != null)
         {
             <!-- Data Entry Section -->
-            <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
+            <div class="nav-section nav-section--card is-open expanded" data-nav-section data-section-name="Data Entry">
                 <div class="nav-header nav-header--card" data-tooltip="Data Entry">
                     <div class="nav-header__content">
                         <i class="bi bi-folder-fill nav-header__icon"></i>
@@ -36,18 +36,18 @@
                     </div>
                     <div class="nav-header__badge">
                         <span class="nav-badge">22</span>
-                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="false" aria-controls="nav-dataentry">
+                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="nav-dataentry">
                             <i class="bi bi-chevron-down"></i>
                         </button>
                     </div>
                 </div>
-                <div class="nav-items nav-items--card" id="nav-dataentry" hidden>
+                <div class="nav-items nav-items--card" id="nav-dataentry">
                     @foreach (Module smodule in Model.SubModules.Where(s => s.ModuleTypeID!.Equals("D", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.MenuItemOrder))
                     {
-                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.ModuleName" data-tooltip="@smodule.MenuDescription">
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.MenuURL" data-tooltip="@smodule.MenuDescription">
                             <div class="sidebar-item__content">
                                 @* <i class="bi bi-file-earmark-text-fill sidebar-item__icon"></i> *@
-                                @Html.Raw(smodule.ModuleIcon)
+                                @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill sidebar-item__icon'></i>")
                                 <div class="sidebar-item__text">
                                     <div class="sidebar-item__title">@smodule.MenuDescription</div>
                                     <div class="sidebar-item__description">@smodule.ModuleName</div>
@@ -72,16 +72,16 @@
                         </button>
                     </div>
                 </div>
-                <div class="nav-items nav-items--card" id="nav-view" hidden>
+                <div class="nav-items nav-items--card" id="nav-view">
                     @foreach (Module smodule in Model.SubModules.Where(s => s.ModuleTypeID!.Equals("V", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.MenuItemOrder))
                     {
-                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="statement-view" data-tooltip="Statement View">
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.MenuURL" data-tooltip="@smodule.MenuDescription">
                             <div class="sidebar-item__content">
                                 @* <i class="bi bi-receipt sidebar-item__icon"></i> *@
-                                @Html.Raw(smodule.ModuleIcon)
+                                @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill sidebar-item__icon'></i>")
                                 <div class="sidebar-item__text">
                                     <div class="sidebar-item__title">@smodule.MenuDescription</div>
-                                    <div class="sidebar-item__description">View @smodule.ModuleName</div>
+                                    <div class="sidebar-item__description">@smodule.ModuleName</div>
                                 </div>
                             </div>
                         </div>

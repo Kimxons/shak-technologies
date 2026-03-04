@@ -5,7 +5,7 @@
 }
 
 <div class="window" data-client-maintenance data-module-id="@moduleId">
-    
+
     <div class="main-container">
         <!-- Left Sidebar (loaded via AJAX) -->
         <div id="sidebarContainer"></div>
@@ -74,24 +74,40 @@
             </div>
         </div>
 
+
         <!-- Right Action Panel -->
-        <div class="action-panel" id="actionPanel">
+        <div class="action-panel" id="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" type="button" data-record-nav="prev" disabled aria-label="Previous Record">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span>Client</span>
+                <button class="btn-nav green" type="button" data-record-nav="next" disabled aria-label="Next Record">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+            <div class="spacer"></div>
             <div class="action-buttons">
-                <button type="button" class="btn-action" data-cm-action="save" title="Save">
-                    <i class="bi bi-floppy"></i>
-                    <span>Save</span>
+                <button class="btn-action btn-view" type="button" data-action-btn="view" data-shell-mode="View">
+                    <i class="bi bi-eye me-1"></i>View
                 </button>
-                <button type="button" class="btn-action" data-cm-action="submit" title="Submit">
-                    <i class="bi bi-send"></i>
-                    <span>Submit</span>
+                <button class="btn-action" type="button" data-action-btn="new" data-shell-mode="Add">
+                    <i class="bi bi-plus-circle me-1"></i>Add
                 </button>
-                <button type="button" class="btn-view" data-cm-action="view" title="View">
-                    <i class="bi bi-eye"></i>
-                    <span>View</span>
+                <button class="btn-action" type="button" data-action-btn="edit" data-shell-mode="Update" disabled>
+                    <i class="bi bi-pencil-square me-1"></i>Edit
                 </button>
-                <button type="button" class="btn-cancel" data-cm-action="cancel" title="Cancel">
-                    <i class="bi bi-x-circle"></i>
-                    <span>Cancel</span>
+                <button class="btn-action btn-supervision" type="button" data-action-btn="supervise" disabled>
+                    <i class="bi bi-shield-check me-1"></i>Supervision
+                </button>
+                <button class="btn-action btn-save" type="button" data-submit-action="save">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+                <button class="btn-action" type="button" data-submit-action="clear">
+                    <i class="bi bi-eraser me-1"></i>Clear
+                </button>
+                <button class="btn-action btn-cancel" type="button" data-submit-action="cancel">
+                    <i class="bi bi-x-circle me-1"></i><span data-action-label>Cancel</span>
                 </button>
             </div>
         </div>

@@ -1,9 +1,9 @@
-@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    var clientAreaOptions = ViewData["KycClientAreaOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var personalStatusOptions = ViewData["KycPersonalStatusOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var closeLawSuitOptions = ViewData["KycCloseLawSuitOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var cnfsoOptions = ViewData["KycCnfsoOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var clientAreaOptions = ViewData["KycClientAreaOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var personalStatusOptions = ViewData["KycPersonalStatusOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var closeLawSuitOptions = ViewData["KycCloseLawSuitOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var cnfsoOptions = ViewData["KycCnfsoOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <div class="form-section" data-section="client-kyc" data-cm-tab="kyc">
@@ -31,13 +31,13 @@
                         <input type="checkbox" class="bs-checkbox" id="chk_kycUnderLawSuit" name="UnderLawSuit" />
                     </div>
                 </div>
-                <div class="col"><label for="ddl_kycClientArea" id="lbl_kycClientArea">Client Area</label><select id="ddl_kycClientArea" name="ClientArea" class="bs-select"><option value="">Select...</option>@foreach (var option in clientAreaOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                <div class="col"><label for="ddl_kycPersonalStatus" id="lbl_kycPersonalStatus">Personal Status</label><select id="ddl_kycPersonalStatus" name="PersonalStatus" class="bs-select"><option value="">Select...</option>@foreach (var option in personalStatusOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                <div class="col"><label for="ddl_kycClientArea" id="lbl_kycClientArea">Client Area</label><select id="ddl_kycClientArea" name="ClientArea" class="bs-select" asp-items="@(clientAreaOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="ddl_kycPersonalStatus" id="lbl_kycPersonalStatus">Personal Status</label><select id="ddl_kycPersonalStatus" name="PersonalStatus" class="bs-select" asp-items="@(personalStatusOptions.Skip(1))"><option value="">Select...</option></select></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label for="ddl_kycCloseLawSuit" id="lbl_kycCloseLawSuit">Close Law suit</label><select id="ddl_kycCloseLawSuit" name="CloseLawSuit" class="bs-select"><option value="">Select...</option>@foreach (var option in closeLawSuitOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                <div class="col"><label for="ddl_kycCnfso" id="lbl_kycCnfso">CNFSO</label><select id="ddl_kycCnfso" name="CNFSO" class="bs-select"><option value="">Select...</option>@foreach (var option in cnfsoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                <div class="col"><label for="ddl_kycCloseLawSuit" id="lbl_kycCloseLawSuit">Close Law suit</label><select id="ddl_kycCloseLawSuit" name="CloseLawSuit" class="bs-select" asp-items="@(closeLawSuitOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="ddl_kycCnfso" id="lbl_kycCnfso">CNFSO</label><select id="ddl_kycCnfso" name="CNFSO" class="bs-select" asp-items="@(cnfsoOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label for="txt_kycNbeImportAccount" id="lbl_kycNbeImportAccount">NBE Import Account</label><input id="txt_kycNbeImportAccount" name="NBEImportAccountID" class="bs-input-text" /></div>
                 <div class="col"><label for="txt_kycNbeExportAccount" id="lbl_kycNbeExportAccount">NBE Export Account</label><input id="txt_kycNbeExportAccount" name="NBEExportAccountID" class="bs-input-text" /></div>
             </div>
