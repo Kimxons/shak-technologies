@@ -1,5 +1,7 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-notification.html
+    var frequencyOptions = ViewData["FrequencyOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountNotification Submodule -->
@@ -26,7 +28,13 @@
                 <div class="row g-2 mb-2">
                   <div class="col-6">
                     <label class="label-blue" for="frequency">Notification Frequency</label>
-                    <select id="frequency" name="frequency" class="bs-select form-control"><option value="">--Select--</option></select>
+                    <select id="frequency" name="frequency" class="bs-select form-control">
+                      <option value="">--Select--</option>
+                      @foreach (var option in frequencyOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
+                    </select>
                   </div>
                   <div class="col-6">
                     <label class="label-blue" for="dayOfMonth">No. of Days</label>

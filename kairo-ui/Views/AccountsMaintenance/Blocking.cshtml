@@ -1,6 +1,9 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // No layout - this is a partial view loaded dynamically
     // Migrated from: public/modules/account-maintenance/DataEntry/account-blocking-unblocking.html
+    var blockedReasonOptions = ViewData["BlockedReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var unBlockedReasonOptions = ViewData["UnBlockedReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Blocking Submodule - Original HTML Preserved -->
@@ -34,6 +37,10 @@
                     <label class="label-blue" for="reason">Reason</label>
                     <select id="reason" name="reason" class="bs-select form-control">
                       <option value="">Select...</option>
+                      @foreach (var option in blockedReasonOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                   <div class="col-6">

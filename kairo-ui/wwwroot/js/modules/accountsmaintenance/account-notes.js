@@ -443,14 +443,16 @@ window.AccountNotesModule = (function () {
      * Show message
      */
     function showMessage(message, type, iconClass) {
-        // 1. Try parent's toast system first (Global feedback)
-        if (window.parent && typeof window.parent.showSystemToast === 'function') {
-            window.parent.showSystemToast(message, { variant: type });
-        } else if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(message, { variant: type });
+        // 1. Use global system only for critical errors
+        if (type === 'error') {
+            if (window.parent && typeof window.parent.showSystemToast === 'function') {
+                window.parent.showSystemToast(message, { variant: type });
+            } else if (typeof window.showSystemToast === 'function') {
+                window.showSystemToast(message, { variant: type });
+            }
         }
 
-        // 2. Also update submodule's internal message panel (Local feedback)
+        // 2. Always show submodule's internal message panel (Preferred "sattle" local feedback)
         const panel = document.getElementById('notesMessagePanel');
         if (!panel) return;
 

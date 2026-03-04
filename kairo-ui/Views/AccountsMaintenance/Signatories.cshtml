@@ -1,6 +1,9 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // No layout - this is a partial view loaded dynamically
     // Migrated from: public/modules/account-maintenance/DataEntry/account-signatories.html
+    var signatoryTypeOptions = ViewData["SignatoryTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var mandatesOptions = ViewData["MandatesOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Signatories Submodule - Original HTML Preserved -->
@@ -50,6 +53,10 @@
                   <label class="label-blue" for="signatoryType">Signatory Type</label>
                   <select id="signatoryType" name="signatoryType" class="bs-select form-control">
                     <option value="">Select...</option>
+                    @foreach (var option in signatoryTypeOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
                   </select>
                 </div>
                 <div class="col">
@@ -66,6 +73,10 @@
                   <label for="mandates">Mandates</label>
                   <select id="mandates" name="mandates" class="bs-select form-control">
                     <option value="">Select...</option>
+                    @foreach (var option in mandatesOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
                   </select>
                 </div>
               </div>

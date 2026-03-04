@@ -1,6 +1,8 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // No layout - this is a partial view loaded dynamically
     // Migrated from: public/modules/account-maintenance/DataEntry/account-closing.html
+    var accountCloseReasonOptions = ViewData["AccountCloseReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Closing Submodule - Original HTML Preserved -->
@@ -54,6 +56,10 @@
                       <label class="label-blue" for="reason">Reason</label>
                       <select id="reason" name="reason" class="bs-select">
                         <option value="">Select Reason</option>
+                        @foreach (var option in accountCloseReasonOptions)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
                       </select>
                     </div>
                   </div>

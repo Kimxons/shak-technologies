@@ -1,5 +1,7 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-cheque-book.html
+    var bookTypeOptions = ViewData["BookTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- ChequeBook Submodule -->
@@ -66,7 +68,13 @@
                 </div>
                 <div class="col">
                   <label class="label-blue" for="bookType">Book Type</label>
-                  <select id="bookType" name="bookType" class="bs-select form-control"><option value="">-- Select Book Type --</option></select>
+                  <select id="bookType" name="bookType" class="bs-select form-control">
+                    <option value="">-- Select Book Type --</option>
+                    @foreach (var option in bookTypeOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
+                  </select>
                 </div>
               </div>
               <div class="form-row">
