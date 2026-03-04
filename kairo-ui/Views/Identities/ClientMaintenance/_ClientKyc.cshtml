@@ -1,0 +1,123 @@
+@using CBS.Entities.SystemCore
+@{
+    var clientAreaOptions = ViewData["KycClientAreaOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var personalStatusOptions = ViewData["KycPersonalStatusOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var closeLawSuitOptions = ViewData["KycCloseLawSuitOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var cnfsoOptions = ViewData["KycCnfsoOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+}
+
+<div class="form-section" data-section="client-kyc" data-cm-tab="kyc">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-shield-check"></i>Other Details (KYC)</span>
+        <button id="btn_toggleClientKyc" type="button" class="section-toggle-btn" aria-label="Toggle KYC" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientKyc" autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdKyc" value="@ViewData["ModuleId"]" />
+
+            <div class="form-row four-col">
+                <div class="col">
+                    <div class="bs-field bs-inline">
+                        <label class="bs-label" for="chk_kycBlackList">Black List</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_kycBlackList" name="BlackList" />
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="bs-field bs-inline">
+                        <label class="bs-label" for="chk_kycUnderLawSuit">Under Law suit</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_kycUnderLawSuit" name="UnderLawSuit" />
+                    </div>
+                </div>
+                <div class="col"><label for="ddl_kycClientArea" id="lbl_kycClientArea">Client Area</label><select id="ddl_kycClientArea" name="ClientArea" class="bs-select"><option value="">Select...</option>@foreach (var option in clientAreaOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                <div class="col"><label for="ddl_kycPersonalStatus" id="lbl_kycPersonalStatus">Personal Status</label><select id="ddl_kycPersonalStatus" name="PersonalStatus" class="bs-select"><option value="">Select...</option>@foreach (var option in personalStatusOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+            </div>
+
+            <div class="form-row four-col">
+                <div class="col"><label for="ddl_kycCloseLawSuit" id="lbl_kycCloseLawSuit">Close Law suit</label><select id="ddl_kycCloseLawSuit" name="CloseLawSuit" class="bs-select"><option value="">Select...</option>@foreach (var option in closeLawSuitOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                <div class="col"><label for="ddl_kycCnfso" id="lbl_kycCnfso">CNFSO</label><select id="ddl_kycCnfso" name="CNFSO" class="bs-select"><option value="">Select...</option>@foreach (var option in cnfsoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                <div class="col"><label for="txt_kycNbeImportAccount" id="lbl_kycNbeImportAccount">NBE Import Account</label><input id="txt_kycNbeImportAccount" name="NBEImportAccountID" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_kycNbeExportAccount" id="lbl_kycNbeExportAccount">NBE Export Account</label><input id="txt_kycNbeExportAccount" name="NBEExportAccountID" class="bs-input-text" /></div>
+            </div>
+
+            <div class="form-row four-col">
+                <div class="col"><label for="txt_kycTradeLicenseNo" id="lbl_kycTradeLicenseNo">Trade License No</label><input id="txt_kycTradeLicenseNo" name="TradeLicenseNo" class="bs-input-text" /></div>
+            </div>
+
+            <!-- PEP Section -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="form-row two-col align-items-center">
+                    <div class="col"><label class="mb-0 fw-semibold">Politically Exposed Person</label></div>
+                    <div class="col">
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="IsPEP" id="rad_pepYes" value="Y" />
+                                <label class="form-check-label" for="rad_pepYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="IsPEP" id="rad_pepNo" value="N" />
+                                <label class="form-check-label" for="rad_pepNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-none mt-3" data-kyc-section="pep-details">
+                    <div class="form-row four-col">
+                        <div class="col"><label for="txt_pepOrg" id="lbl_pepOrg">Organization Name</label><input id="txt_pepOrg" name="PEPOrganization" class="bs-input-text" /></div>
+                        <div class="col"><label for="txt_pepPosition" id="lbl_pepPosition">Position</label><input id="txt_pepPosition" name="PEPPosition" class="bs-input-text" /></div>
+                        <div class="col"><label for="txt_pepSpouse" id="lbl_pepSpouse">Spouse Name</label><input id="txt_pepSpouse" name="PEPSpouseName" class="bs-input-text" /></div>
+                        <div class="col"><label for="txt_pepChild" id="lbl_pepChild">Child's Name</label><input id="txt_pepChild" name="PEPChildName" class="bs-input-text" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- US Person Section -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="form-row two-col align-items-center">
+                    <div class="col"><label class="mb-0 fw-semibold">US Person</label></div>
+                    <div class="col">
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="IsUSPerson" id="rad_usPersonYes" value="Y" />
+                                <label class="form-check-label" for="rad_usPersonYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="IsUSPerson" id="rad_usPersonNo" value="N" />
+                                <label class="form-check-label" for="rad_usPersonNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-none mt-3" data-kyc-section="us-details">
+                    <div class="form-row three-col">
+                        <div class="col"><label for="txt_ssn" id="lbl_ssn">Social Security No</label><input id="txt_ssn" name="SSN" class="bs-input-text" /></div>
+                        <div class="col"><label for="txt_eid" id="lbl_eid">Employee ID</label><input id="txt_eid" name="EID" class="bs-input-text" /></div>
+                        <div class="col"><label for="txt_ustin" id="lbl_ustin">US TIN</label><input id="txt_ustin" name="USTIN" class="bs-input-text" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <div class="form-row two-col align-items-center">
+                    <div class="col"><label class="mb-0 fw-semibold">Data Cleansed</label></div>
+                    <div class="col">
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="IsDataCleansed" id="rad_dataCleansedYes" value="Y" />
+                                <label class="form-check-label" for="rad_dataCleansedYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="IsDataCleansed" id="rad_dataCleansedNo" value="N" />
+                                <label class="form-check-label" for="rad_dataCleansedNo">No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-kyc.js"></script>

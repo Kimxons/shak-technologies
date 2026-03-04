@@ -2820,10 +2820,16 @@
     }
 
     syncActionButtons() {
-      const saveBtn = document.querySelector('[data-submit-action="save"]');
-      const approveBtn = document.querySelector('[data-submit-action="approve"]');
-      const clearBtn = document.querySelector('[data-submit-action="clear"]');
-      const cancelBtn = document.querySelector('[data-submit-action="cancel"]');
+      const saveButtons = Array.from(document.querySelectorAll('[data-submit-action="save"]'));
+      const approveButtons = Array.from(document.querySelectorAll('[data-submit-action="approve"]'));
+      const clearButtons = Array.from(document.querySelectorAll('[data-submit-action="clear"]'));
+      const cancelButtons = Array.from(document.querySelectorAll('[data-submit-action="cancel"]'));
+
+      const setHidden = (buttons, hidden) => {
+        buttons.forEach((button) => {
+          button.hidden = hidden;
+        });
+      };
 
       // Mode switch buttons
       const viewBtn = document.querySelector('[data-action-btn="view"]');
@@ -2837,22 +2843,28 @@
 
       // Workflow buttons based on page function
       if (this.state.pageFunction === "Supervise") {
-        if (approveBtn) approveBtn.hidden = false;
-        if (saveBtn) saveBtn.hidden = true;
-        if (clearBtn) clearBtn.hidden = true;
+        setHidden(approveButtons, false);
+        setHidden(saveButtons, true);
+        setHidden(clearButtons, true);
       } else if (this.state.pageFunction === "View") {
-        if (approveBtn) approveBtn.hidden = true;
-        if (saveBtn) saveBtn.hidden = true;
-        if (clearBtn) clearBtn.hidden = true;
+        setHidden(approveButtons, true);
+        setHidden(saveButtons, true);
+        setHidden(clearButtons, true);
       } else {
-        if (approveBtn) approveBtn.hidden = true;
-        if (saveBtn) saveBtn.hidden = false;
-        if (clearBtn) clearBtn.hidden = this.state.pageFunction !== "Add";
+        setHidden(approveButtons, true);
+        setHidden(saveButtons, false);
+        setHidden(clearButtons, this.state.pageFunction !== "Add");
       }
 
-      if (cancelBtn) {
-        cancelBtn.textContent = this.state.pageFunction === "View" ? "Close" : "Cancel";
-      }
+      const cancelLabel = this.state.pageFunction === "View" ? "Close" : "Cancel";
+      cancelButtons.forEach((button) => {
+        const label = button.querySelector('[data-action-label]');
+        if (label) {
+          label.textContent = cancelLabel;
+        } else {
+          button.textContent = cancelLabel;
+        }
+      });
 
       // Mode switch button states
       // View button: disabled in Add mode (to prevent leaving unsaved new record)

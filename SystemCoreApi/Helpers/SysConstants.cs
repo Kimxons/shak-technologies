@@ -18,5 +18,9 @@
         public const string UPDATE_SYSTEM_BANK_SETTING = "p_V8_UpdateSystemBankSetting";
         public const string DELETE_SYSTEM_BANK_SETTING = "p_V8_DeleteSystemBankSetting";
 
+        public const string GET_RECENT_ACTIVITIES = "p_V8_GetRecentActivities";
+        public const string ADD_RECENT_ACTIVITY = "p_V8_AddRecentActivity";
+        
+        public const string GET_WORKFLOW_STAGE = "p_V8_GetWorkFlowStage";
     }
 }

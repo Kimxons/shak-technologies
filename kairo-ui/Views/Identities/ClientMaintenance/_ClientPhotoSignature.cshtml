@@ -1,0 +1,78 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var imageTypeOptions = ViewData["ImageTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-section" data-section="client-photo-signature" data-cm-tab="photo-signature">
+    <div class="section-header" data-section-toggle>
+  <span class="section-header__title"><i class="bi bi-image"></i>Photo &amp; Signature</span>
+  <button id="btn_toggleClientPhotoSignature" type="button" class="section-toggle-btn" aria-label="Toggle Photo and Signature" aria-expanded="true">
+   <i class="bi bi-chevron-up"></i>
+      </button>
+    </div>
+ <div class="section-content" data-section-content>
+        <form id="frm_clientPhotoSignature" data-photo-signature-form autocomplete="off" novalidate>
+        <!-- Hidden fields for page context -->
+    <input type="hidden" id="moduleIdPhotoSignature" value="@ViewData["ModuleId"]" />
+
+<h5 class="mb-3">Photo &amp; Signature Management</h5>
+
+    <div class="form-row mb-3">
+   <label class="label-blue" for="imageType" id="lbl_photoType">Image Type</label>
+ <select id="imageType" name="photoType" data-photo-field="ImageTypeID" class="bs-select">
+    <option value="">Select Type...</option>
+      @foreach (var option in imageTypeOptions)
+{
+      <option value="@option.Value">@option.Text</option>
+        }
+     </select>
+    </div>
+
+            <div class="d-flex gap-2 mb-4">
+       <button id="btn_browsePhotoSignature" type="button" class="btn btn-outline-primary" data-photo-action="file"><i class="bi bi-folder2-open me-1"></i>Browse File...</button>
+       <button id="btn_capturePhotoSignature" type="button" class="btn btn-outline-primary" data-photo-action="capture"><i class="bi bi-camera me-1"></i>Capture from Camera</button>
+    <button id="btn_uploadPhotoSignature" type="button" class="btn btn-primary ms-auto" data-photo-action="upload"><i class="bi bi-cloud-upload me-1"></i>Upload Current Image</button>
+   <button id="btn_clearPhotoSignature" type="button" class="btn btn-outline-secondary" data-photo-action="clear"><i class="bi bi-trash me-1"></i>Clear Selection</button>
+   </div>
+
+            <div class="form-row mb-4">
+                <div class="preview-box border rounded bg-light d-flex align-items-center justify-content-center position-relative">
+                    <img id="photoPreview" class="img-fluid" alt="Preview" style="display:none;" />
+                    <video id="photoCameraVideo" autoplay style="display:none;"></video>
+                    <canvas id="photoCameraCanvas" style="display:none;"></canvas>
+                    <div class="text-center p-4" data-photo-placeholder>
+                        <i class="bi bi-image text-muted fs-1"></i>
+                        <p class="text-muted small mt-2">No image selected or captured.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <button id="btn_snapshotPhotoSignature" type="button" class="btn btn-sm btn-success" data-photo-action="snapshot" disabled><i class="bi bi-camera-fill me-1"></i>Take Snapshot</button>
+                <button id="btn_cancelCameraPhotoSignature" type="button" class="btn btn-sm btn-outline-danger" data-photo-action="cancel-snapshot" disabled><i class="bi bi-x-circle me-1"></i>Cancel Camera</button>
+            </div>
+
+            <input id="photoFileInput" name="photoFile" data-photo-field="File" class="d-none" type="file" accept="image/*" />
+        </form>
+
+        <div class="section-header py-1 mb-2 bg-light border">
+            <span class="small fw-bold px-2">RECENTLY UPLOADED</span>
+        </div>
+        <div class="table-responsive border rounded bg-white mb-4">
+            <table class="table table-sm table-hover mb-0" data-table="photo-signature">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-2">Type</th>
+                        <th>Description</th>
+                        <th>Uploaded On</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_clientPhotoSignatureBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-photo-signature.js"></script>
