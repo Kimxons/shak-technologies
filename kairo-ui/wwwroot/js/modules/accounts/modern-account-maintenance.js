@@ -582,6 +582,9 @@
                     // Update the main action panel for the loaded submodule
                     updateActionPanelForSubmodule(submoduleName);
 
+                    // Wire up lookup buttons in the loaded submodule
+                    wireLookups();
+
                     // Special Handling for migrated modules with 'init' method
                     if (submoduleName === 'AccountActivation' && window.AccountActivationModule && window.AccountActivationModule.init) {
                         window.AccountActivationModule.init();
@@ -1007,13 +1010,30 @@
     // Lookup Configuration
     // Matched with Client 360 and System Search configurations
     const LOOKUP_CONFIG = {
+        // PascalCase field names (used in main screen)
         'BranchID': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
         'ClientID': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
         'ProductID': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
         'AccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'LiquidationAccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'SalesOfficerID': { tableID: 'OfficerID', keyField: 'OfficerID', nameField: 'OfficerName' },
-        'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' }
+        'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' },
+        // camelCase field names (used in child pages)
+        'branchId': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
+        'accountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'clientId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
+        'productId': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
+        'nomineeId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
+        'signatoryId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
+        'groupId': { tableID: 'GroupID', keyField: 'GroupID', nameField: 'GroupName' },
+        'chargeId': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
+        'requestRef': { tableID: 'StopPaymentID', keyField: 'RequestRef', nameField: 'Description' },
+        'referenceId': { tableID: 'FreezeID', keyField: 'ReferenceID', nameField: 'Description' },
+        'reminderId': { tableID: 'ReminderID', keyField: 'ReminderID', nameField: 'Description' },
+        'transactionId': { tableID: 'TransactionID', keyField: 'TransactionID', nameField: 'Description' },
+        'accountTransferId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'txnAccountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'payableAt': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' }
     };
 
     function wireLookups() {
@@ -1282,6 +1302,25 @@
                             if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
                                 if (el.type === 'checkbox') {
                                     el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
+                                } else if (el.tagName === 'SELECT') {
+                                    // For SELECT elements, ensure the option exists before setting
+                                    const value = String(account[key]);
+                                    const optionExists = Array.from(el.options).some(opt => opt.value === value);
+                                    
+                                    if (!optionExists && value) {
+                                        // Try to find a corresponding Name field for the label
+                                        const nameKey = key.replace(/ID$/i, 'Name');
+                                        const label = account[nameKey] || value;
+                                        
+                                        // Add the missing option
+                                        const newOption = document.createElement('option');
+                                        newOption.value = value;
+                                        newOption.textContent = label;
+                                        el.appendChild(newOption);
+                                        console.log(`[AccountMaintenance] Added missing option to ${fieldName}: ${value} (${label})`);
+                                    }
+                                    
+                                    el.value = value;
                                 } else {
                                     el.value = account[key];
                                 }

@@ -1,6 +1,13 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     ViewData["Title"] = "Account Maintenance";
     Layout = "_ApplicationLayout";
+
+    var cityOptions = ViewData["CityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["CountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var operatingModeOptions = ViewData["OperatingModeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var accountClassOptions = ViewData["AccountClassOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var accountOfficerOptions = ViewData["AccountOfficerOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 @section Styles {
@@ -558,12 +565,20 @@
                                 <label>City</label>
                                 <select id="CityID" class="bs-select">
                                     <option value="">Select City</option>
+                                    @foreach (var option in cityOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
                                 <label>Country</label>
                                 <select id="CountryID" class="bs-select">
                                     <option value="">Select Country</option>
+                                    @foreach (var option in countryOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                         </div>
@@ -600,6 +615,10 @@
                                 <label class="label-blue">Operating Mode</label>
                                 <select id="OperatingModeID" class="bs-select">
                                     <option value="">Select Operating Mode</option>
+                                    @foreach (var option in operatingModeOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -613,12 +632,20 @@
                                 <label class="label-blue">Account Class</label>
                                 <select id="AccountClassID" class="bs-select">
                                     <option value="">Select Account Class</option>
+                                    @foreach (var option in accountClassOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
                                 <label class="label-blue">Account Officer</label>
                                 <select id="AccountOfficerID" class="bs-select">
                                     <option value="">Select Account Officer</option>
+                                    @foreach (var option in accountOfficerOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">

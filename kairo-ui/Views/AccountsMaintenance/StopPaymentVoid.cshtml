@@ -1,5 +1,7 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-stop-payment-void.html
+    var stopPaymentReasonOptions = ViewData["StopPaymentReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- StopPaymentVoid Submodule -->
@@ -73,7 +75,13 @@
             <div class="row g-2 mb-2">
               <div class="col-6">
                 <label class="label-blue am-label" for="reasonId">Reason</label>
-                <select id="reasonId" class="bs-select form-control am-select"><option>--Select--</option></select>
+                <select id="reasonId" class="bs-select form-control am-select">
+                  <option value="">--Select--</option>
+                  @foreach (var option in stopPaymentReasonOptions)
+                  {
+                      <option value="@option.Value">@option.Text</option>
+                  }
+                </select>
               </div>
               <div class="col-6">
                 <label class="de-label am-label" for="voidDate">Void Date</label>

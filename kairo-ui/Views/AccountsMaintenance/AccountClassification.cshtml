@@ -1,5 +1,8 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-classification.html
+    var classificationCodeOptions = ViewData["ClassificationCodeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var classificationSubCodeOptions = ViewData["ClassificationSubCodeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountClassification Submodule -->
@@ -32,13 +35,21 @@
                   <div class="col-6">
                     <label class="label-blue" for="classificationCode">Classification Code</label>
                     <select id="classificationCode" name="classificationCode" class="bs-select form-control">
-                      <option>--Select--</option>
+                      <option value="">--Select--</option>
+                      @foreach (var option in classificationCodeOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                   <div class="col-6">
                     <label class="label-blue" for="classificationSubCode">Classification Sub Code</label>
                     <select id="classificationSubCode" name="classificationSubCode" class="bs-select form-control">
-                      <option></option>
+                      <option value="">--Select--</option>
+                      @foreach (var option in classificationSubCodeOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                 </div>

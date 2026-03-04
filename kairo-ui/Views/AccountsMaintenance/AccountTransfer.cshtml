@@ -1,5 +1,8 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-transfer.html
+    var transferTypeOptions = ViewData["TransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var transferReasonOptions = ViewData["TransferReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountTransfer Submodule -->
@@ -57,6 +60,10 @@
                 <label class="label-blue am-label" for="reason">Reason</label>
                 <select id="reason" name="reason" class="bs-select form-control am-select">
                   <option value="">--Select--</option>
+                  @foreach (var option in transferTypeOptions)
+                  {
+                      <option value="@option.Value">@option.Text</option>
+                  }
                 </select>
               </div>
             </div>

@@ -1,5 +1,7 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: signature-photo.html
+    var operatingModeOptions = ViewData["OperatingModeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- SignaturePhoto Submodule -->
@@ -39,7 +41,11 @@
                 <div class="col-6">
                   <label class="label-blue" for="operatingMode">Operating Mode</label>
                   <select id="operatingMode" name="operatingMode" class="bs-select form-control">
-                    <option>--Select--</option>
+                    <option value="">--Select--</option>
+                    @foreach (var option in operatingModeOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
                   </select>
                 </div>
                 <div class="col-6">
