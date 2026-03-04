@@ -17,6 +17,7 @@ namespace kairo_ui.Controllers.Dashboard
     public class DashboardController : Controller
     {
         private readonly IApiService _apiService;
+        private readonly IApiCachedService _apiCachedService;
         private readonly IAuthService _authService;
         private readonly ILogger<DashboardController> _logger;
 
@@ -28,10 +29,12 @@ namespace kairo_ui.Controllers.Dashboard
 
         public DashboardController(
             IApiService apiService,
+            IApiCachedService apiCachedService,
             IAuthService authService,
             ILogger<DashboardController> logger)
         {
             _apiService = apiService;
+            _apiCachedService = apiCachedService;
             _authService = authService;
             _logger = logger;
         }
@@ -58,6 +61,23 @@ namespace kairo_ui.Controllers.Dashboard
                     BranchCode = HttpContext.Session.GetString("branch_code") ?? "001",
                     CurrentDate = DateTime.Now
                 };
+
+                // Load bank settings from cache - used across the application
+                // This is cached for 4 hours with high priority
+                try
+                {
+                    var bankSettings = await _apiCachedService.GetSystemBankSettingsAsync();
+                    if (bankSettings != null)
+                    {
+                        // Update session/viewmodel with bank settings if needed
+                        viewModel.BankName = $"{bankSettings.BankID} · {bankSettings.BankName ?? viewModel.BankName}";
+                        _logger.LogInformation("Loaded bank settings from cache: {BankName}", bankSettings.BankName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load bank settings from cache, using session values");
+                }
 
                 // Load start menu and resources
                 var startMenuData = await LoadStartMenuAndResources();
@@ -215,7 +235,8 @@ namespace kairo_ui.Controllers.Dashboard
         }
 
         /// <summary>
-        /// Fetches main modules from the API
+        /// Fetches main modules from the API with caching (4-hour cache)
+        /// Uses ApiCachedService for automatic caching with SystemCodesPolicy
         /// </summary>
         private async Task<List<MainModule>> FetchMainModules(List<string> lsmodules)
         {
@@ -224,12 +245,12 @@ namespace kairo_ui.Controllers.Dashboard
                 _logger.LogInformation("Fetching main modules");
                 string auth_userJson = HttpContext.Session.GetString("auth_user")!;
                 JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
-                //string auth_tokenJson = HttpContext.Session.GetString("auth_token")!;
-                //JsonDocument jsonAuthToken = JsonDocument.Parse(auth_tokenJson);
+                var userName = jsonAuthUser.RootElement.GetProperty("username").GetString()!;
 
-                var apiReq = new { RequestID = HttpContext.Connection.Id, Modules = lsmodules, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() };
-                var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<MainModule>>>("SystemCoreApi", ApiEndpoints.GET_MAINMODULES, apiReq);
-                var mainModules = response!.Details?.ToList() ?? [];
+                // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
+                // Main modules are automatically cached and shared across requests
+                var mainModules = await _apiCachedService.GetMainModulesAsync(lsmodules, userName);
+     
                 _logger.LogInformation("Fetched {Count} main modules", mainModules.Count);
                 return mainModules;
             }
@@ -241,29 +262,30 @@ namespace kairo_ui.Controllers.Dashboard
         }
 
         /// <summary>
-        /// Fetches all modules from the API
+        /// Fetches all modules from the API with caching (1-hour cache)
+        /// Uses ApiCachedService for automatic caching with ModuleStructurePolicy
         /// </summary>
         private async Task<List<CBS.Entities.SystemCore.Module>> FetchModules()
         {
             try
-            {
-                _logger.LogInformation("Fetching modules");
-                string auth_userJson = HttpContext.Session.GetString("auth_user")!;
-                JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
+         {
+       _logger.LogInformation("Fetching modules");
+              string auth_userJson = HttpContext.Session.GetString("auth_user")!;
+      JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
+      var userName = jsonAuthUser.RootElement.GetProperty("username").GetString()!;
 
-                var apiReq = new { RequestID = HttpContext.Connection.Id, UserName = jsonAuthUser.RootElement.GetProperty("username").GetString() };
-                var response = await _apiService.CreateAsync<ResponseDetail<IEnumerable<CBS.Entities.SystemCore.Module>>>("SystemCoreApi", ApiEndpoints.GET_MODULES, apiReq);
-
-                //var response = await _apiService.GetAsync<CBS.Entities.SystemCore.Module>("modules");
-                var modules = response?.Details!.ToList() ?? [];
-                _logger.LogInformation("Fetched {Count} modules", modules.Count);
-                return modules;
-            }
-            catch (Exception ex)
+    // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
+   // Modules are automatically cached and shared across requests
+          var modules = await _apiCachedService.GetModulesAsync(userName);
+        
+ _logger.LogInformation("Fetched {Count} modules", modules.Count);
+  return modules;
+    }
+        catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching modules");
-                return [];
-            }
+       _logger.LogError(ex, "Error fetching modules");
+        return [];
+         }
         }
 
         /// <summary>

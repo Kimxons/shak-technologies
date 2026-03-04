@@ -12,7 +12,8 @@ namespace AccountManagement.Helpers
         public const string UPDATE_CLIENT = "p_UpdateClient_V0";
         public const string CREATE_CLIENT = "p_CreateClient_V0";
 
-        public const string GET_ACCOUNT = "p_SearchAccounts_V0";
+        //public const string GET_ACCOUNT = "p_SearchAccounts_V0";
+        public const string GET_ACCOUNT = "p_V8_GetAccountCustomers";
         public const string UPDATE_ACCOUNT = "p_UpdateCustomerAccount_V0";
         public const string CREATE_ACCOUNT = "p_CreateCustomerAccount_V0";
 

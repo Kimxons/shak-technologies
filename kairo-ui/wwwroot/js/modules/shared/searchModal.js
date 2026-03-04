@@ -64,11 +64,30 @@
 
                 console.log('[SearchModal] Modal HTML loaded successfully');
 
-                // Remove existing modal if present
+                // CRITICAL: Remove existing modal AND hidden fields before inserting new ones
                 const existingModal = document.getElementById('search-modal');
                 if (existingModal) {
                     existingModal.remove();
                 }
+
+                // Remove all hidden fields to prevent duplicates
+                const hiddenFieldIds = [
+                    'search-table-id',
+                    'search-where-stmt',
+                    'search-adv-filter',
+                    'search-module-id',
+                    'search-key-for-nav',
+                    'search-ref-id',
+                    'search-prev-or-next'
+                ];
+
+                hiddenFieldIds.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.remove();
+                        console.log('[SearchModal] Removed old hidden field before loading:', fieldId);
+                    }
+                });
 
                 // Insert modal HTML into DOM
                 document.body.insertAdjacentHTML('beforeend', html);
@@ -89,7 +108,7 @@
 
                 // Attach event listeners
                 this.attachEventListeners();
-                
+
                 this.isInitialized = true;
                 console.log('[SearchModal] Modal loaded and initialized');
 
@@ -215,8 +234,10 @@
                 const tableID = document.getElementById('search-table-id')?.value;
                 const whereStmt = document.getElementById('search-where-stmt')?.value || '';
                 const advFilter = document.getElementById('search-adv-filter')?.value || '';
-                const moduleID = document.getElementById('search-module-id')?.value || '100';
-                
+                const moduleID = document.getElementById('search-module-id')?.value || '1000';
+
+                console.log('[SearchModal] ✅ READING HIDDEN FIELDS - TableID:', tableID, '| WhereStmt:', whereStmt);
+
                 // Get page size from dropdown
                 const pageSizeDropdown = document.getElementById('search-page-size');
                 this.pageSize = pageSizeDropdown ? parseInt(pageSizeDropdown.value) : 20;

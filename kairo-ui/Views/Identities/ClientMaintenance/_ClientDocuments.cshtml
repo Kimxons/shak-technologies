@@ -1,0 +1,109 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var documentIdOptions = ViewData["DocumentIdOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var documentTypeOptions = ViewData["DocumentTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var documentLocationOptions = ViewData["DocumentLocationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-section" data-section="client-documents" data-cm-tab="documents">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-file-earmark-text"></i>Documents</span>
+        <button id="btn_toggleClientDocuments" type="button" class="section-toggle-btn" aria-label="Toggle Documents" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientDocuments" data-documents-form autocomplete="off" novalidate>
+            <!-- Hidden fields for page context -->
+            <input type="hidden" id="moduleIdDocuments" value="@ViewData["ModuleId"]" />
+
+            <h5 class="mb-4">Document Management</h5>
+
+            <div class="form-row four-col">
+                <div class="col">
+                    <label class="label-blue" for="ddl_documentId" id="lbl_documentId">Document ID</label>
+                    <select id="ddl_documentId" name="documentId" data-document-field="DocumentID" class="bs-select">
+                        <option value="">Select...</option>
+                        @foreach (var option in documentIdOptions)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="ddl_documentType" id="lbl_documentType">Document Type</label>
+                    <select id="ddl_documentType" name="documentType" data-document-field="DocumentTypeID" class="bs-select">
+                        <option value="">Select...</option>
+                        @foreach (var option in documentTypeOptions)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="ddl_documentLocation" id="lbl_documentLocation">Location</label>
+                    <select id="ddl_documentLocation" name="documentLocation" data-document-field="LocationID" class="bs-select">
+                        <option value="">Select...</option>
+                        @foreach (var option in documentLocationOptions)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="fil_documentFile" id="lbl_documentFile">Document Image</label>
+                    <input id="fil_documentFile" name="documentFile" data-document-field="Image" class="bs-input-text" type="file" accept="image/*,.pdf,.doc,.docx" />
+                </div>
+            </div>
+
+            <div class="form-row four-col">
+                <div class="col-6">
+                    <label for="txt_documentRemarks" id="lbl_documentRemarks">Remarks</label>
+                    <input id="txt_documentRemarks" name="documentRemarks" data-document-field="Remarks" class="bs-input-text" />
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="txt_documentReceivedBy" id="lbl_documentReceivedBy">Received By</label>
+                    <div class="kairo-control" data-kairo-control>
+                        <input id="txt_documentReceivedBy" name="documentReceivedBy" data-document-field="ReceivedBy" class="bs-input-text" />
+                        <input id="txt_documentReceivedByName" class="bs-input-text" placeholder="Search Client..." readonly />
+                        <button type="button" class="btn-lookup" data-document-action="lookup-receiver" aria-label="Find document receiver"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="dt_documentReceivedDate" id="lbl_documentReceivedDate">Received Date</label>
+                    <input id="dt_documentReceivedDate" name="documentReceivedDate" data-document-field="ReceivedDate" class="bs-input-text" type="date" />
+                </div>
+            </div>
+        </form>
+
+        <div class="d-flex justify-content-center gap-2 my-4">
+            <button id="btn_newClientDocuments" type="button" class="btn btn-sm btn-outline-primary" data-document-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+            <button id="btn_alterClientDocuments" type="button" class="btn btn-sm btn-outline-primary" data-document-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
+            <button id="btn_deleteClientDocuments" type="button" class="btn btn-sm btn-outline-danger" data-document-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
+            <button id="btn_updateClientDocuments" type="button" class="btn btn-sm btn-primary" data-document-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
+            <button id="btn_clearClientDocuments" type="button" class="btn btn-sm btn-outline-secondary" data-document-action="clear">Clear</button>
+        </div>
+
+        <div class="section-header py-1 mb-2 bg-light border">
+            <span class="small fw-bold px-2">UPLOADED DOCUMENTS</span>
+        </div>
+        <div class="table-responsive border rounded bg-white mb-4">
+            <table class="table table-sm table-hover mb-0" data-table="documents">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-2">Document</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Received By</th>
+                        <th>Date</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_clientDocumentsBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-documents.js"></script>

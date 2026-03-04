@@ -107,12 +107,20 @@
     // PAGE LOADER UTILITY
     // ============================================================================
     function showPageLoader(show, message = 'Loading account...') {
-        const overlay = document.getElementById('pageLoadingOverlay');
-        const textEl = document.getElementById('pageLoadingText');
-        if (!overlay) return;
-        
-        if (textEl) textEl.textContent = message;
-        overlay.hidden = !show;
+        try {
+            const overlay = document.getElementById('pageLoadingOverlay');
+            const textEl = document.getElementById('pageLoadingText');
+
+            if (!overlay) {
+                console.warn('[showPageLoader] pageLoadingOverlay element not found');
+                return;
+            }
+
+            if (textEl) textEl.textContent = message;
+            overlay.hidden = !show;
+        } catch (error) {
+            console.error('[showPageLoader] Error:', error);
+        }
     }
 
     function copyThemeVarsToDocument(targetDoc) {
@@ -845,30 +853,34 @@
     const sanitizeValue = (val = '') => String(val || '').replace(/'/g, "''").trim();
     const getInputValue = (id) => (document.getElementById(id)?.value || '').trim();
 
-    let searchModalInstance = null;
+    /**
+     * Get AppCore instance (same pattern as Client360)
+     */
+    function getAppCore() {
+        const win = window;
+        return win.AppCore ||
+            (win.parent && win.parent !== win && win.parent.AppCore) ||
+            (win.top && win.top !== win && win.top.AppCore) ||
+            null;
+    }
 
-    function ensureSearchModal() {
-        if (searchModalInstance) return searchModalInstance;
+    /**
+     * Show toast message (following Client360 pattern)
+     */
+    function accountMaintenanceToast(message, type = 'info') {
+        const normalizedType = String(type || 'info').toLowerCase();
 
-        if (typeof window.SearchModal !== 'function' || !window.SearchService) {
-            console.warn('[AccountMaintenance] SearchModal/SearchService not available');
-            return null;
+        if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
+            window.NotificationService.showToast(message, normalizedType, 4000);
+            return;
         }
 
-        searchModalInstance = new window.SearchModal({
-            prefix: 'amm',
-            moduleID: '1000',
-            getOperatorId: () => window.AccountMaintenanceState?.OperatorID || 'web_portal',
-            getOurBranchId: () => getInputValue('BranchID') || window.AccountMaintenanceState?.OurBranchID || '',
-            onError: (err) => {
-                console.error('[AccountMaintenance] Search error:', err);
-                if (typeof showSystemToast === 'function') {
-                    showSystemToast(err?.message || 'Search failed. Please try again.', { title: 'Search', variant: 'danger' });
-                }
-            }
-        });
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, normalizedType);
+            return;
+        }
 
-        return searchModalInstance;
+        console.log(`[${normalizedType.toUpperCase()}] ${message}`);
     }
 
     function wireLookupButtons() {
@@ -919,45 +931,7 @@
             if (!clientIdInput.value.trim()) clientNameInput.value = '';
         });
         
-        // Auto-fill client name when user tabs away (for paste scenarios)
-        clientIdInput.addEventListener('blur', async () => {
-            const clientIdVal = clientIdInput.value.trim();
-            if (!clientIdVal) {
-                clientNameInput.value = '';
-                return;
-            }
-            
-            // Skip if client name already populated
-            if (clientNameInput.value.trim()) return;
-            
-            try {
-                const service = window.ClientService || window.SearchService;
-                if (!service) return;
-                
-                const payload = {
-                    TableID: 'ClientID',
-                    WhereStmt: `ClientID = '${clientIdVal.replace(/'/g, "''")}'`,
-                    AdvFilterString: '',
-                    PrevOrNext: '1',
-                    RefID: '',
-                    OperatorID: 'web_portal',
-                    ModuleID: 1000,
-                    OurBranchID: document.getElementById('BranchID')?.value || ''
-                };
-                
-                const response = service.searchClients ? await service.searchClients(payload) : await service.search(payload);
-                let rows = response?.Details?.SearchResults || response?.Details || response?.SearchResults || [];
-                if (!Array.isArray(rows)) rows = rows ? [rows] : [];
-                
-                if (rows.length > 0) {
-                    const client = rows[0];
-                    const clientName = client.ClientName || client.FullName || client.Name || client.Description || '';
-                    clientNameInput.value = clientName;
-                }
-            } catch (err) {
-                console.error('[AccountMaintenance] Failed to auto-fill client name:', err);
-            }
-        });
+        // Auto-fill disabled - use lookup button instead
     }
 
     function wireProductControl() {
@@ -980,36 +954,7 @@
             // Skip if product name already populated (unless in ADD mode where we also fetch opening details)
             const hasName = productNameInput.value.trim();
             
-            // Fetch product name if not already populated
-            if (!hasName) {
-                try {
-                    const service = window.ProductService || window.SearchService;
-                    if (service) {
-                        const payload = {
-                            TableID: 'ProductID',
-                            WhereStmt: `ProductID = '${productIdVal.replace(/'/g, "''")}'`,
-                            AdvFilterString: '',
-                            PrevOrNext: '1',
-                            RefID: '',
-                            OperatorID: 'web_portal',
-                            ModuleID: 1000,
-                            OurBranchID: document.getElementById('BranchID')?.value || ''
-                        };
-                        
-                        const response = service.searchProducts ? await service.searchProducts(payload) : await service.search(payload);
-                        let rows = response?.Details?.SearchResults || response?.Details || response?.SearchResults || [];
-                        if (!Array.isArray(rows)) rows = rows ? [rows] : [];
-                        
-                        if (rows.length > 0) {
-                            const product = rows[0];
-                            const productName = product.ProductName || product.Description || product.Name || '';
-                            productNameInput.value = productName;
-                        }
-                    }
-                } catch (err) {
-                    console.error('[AccountMaintenance] Failed to auto-fill product name:', err);
-                }
-            }
+            // Auto-fill disabled - use lookup button instead
 
             // Fetch opening details on blur when in ADD mode and both ClientID and ProductID have values
             const clientIdVal = document.getElementById('ClientID')?.value?.trim() || '';
@@ -1040,57 +985,9 @@
             if (!branchIdInput.value.trim()) branchNameInput.value = '';
         });
 
-        // performBranchLookup - same pattern as loan maintenance (client maintenance)
-        const performBranchLookup = async () => {
-            const branchIdVal = branchIdInput.value.trim();
-            if (!branchIdVal) {
-                branchNameInput.value = '';
-                return;
-            }
-
-            try {
-                if (!window.SearchService || typeof window.SearchService.searchClients !== 'function') {
-                    console.warn('[AccountMaintenance] SearchService.searchClients not available');
-                    return;
-                }
-
-                const whereStmt = `OurBranchID = '${branchIdVal.replace(/'/g, "''")}'`;
-                const response = await window.SearchService.searchClients({
-                    TableID: 'BranchID',
-                    WhereStmt: whereStmt,
-                    AdvFilterString: '',
-                    PrevOrNext: '1',
-                    RefID: '',
-                    OperatorID: (window.AuthService?.getSession?.()?.operatorId || window.AuthService?.getSession?.()?.operatorID || 'web_portal'),
-                    ModuleID: '1000',
-                    OurBranchID: branchIdVal,
-                    SearchKey: ''
-                });
-
-                const responseData = response?.Details || response?.Data || [];
-                if (responseData && responseData.length > 0) {
-                    const record = responseData[0];
-                    const displayValue = record.BranchName || record.Name || '';
-                    branchNameInput.value = displayValue;
-                } else {
-                    branchNameInput.value = '';
-                }
-            } catch (err) {
-                console.error('[AccountMaintenance] BranchID blur lookup failed:', err);
-                branchNameInput.value = '';
-            }
-        };
-
-        // Auto-fill branch name when user tabs away from branch ID field (blur)
-        branchIdInput.addEventListener('blur', performBranchLookup);
-
-        // Also trigger on Enter key (same as loan maintenance pattern)
-        branchIdInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                performBranchLookup();
-            }
-        });
+        // Auto-fill disabled - use lookup button instead
+        branchIdInput.addEventListener('blur', () => {});
+        branchIdInput.addEventListener('keydown', () => {});
     }
 
     // ============================================================================
@@ -1505,864 +1402,338 @@
     }
 
     // ============================================================================
-    // BRANCH SEARCH PANEL
+    // GLOBAL SEARCH FUNCTIONS (Following Client360 pattern)
     // ============================================================================
 
+    /**
+     * Open Branch Search using global SearchModal (Client360 pattern)
+     */
     function openBranchSearchPanel() {
-        const modal = ensureSearchModal();
-        if (!modal) return;
-
-        const branchIdVal = getInputValue('BranchID');
-        const baseWhere = branchIdVal ? `OurBranchID='${sanitizeValue(branchIdVal)}'` : '';
-
-        modal.open({
-            title: 'Find Branch',
-            tableID: 'BranchID',
-            whereStmt: baseWhere,
-            searchFields: [
-                { name: 'branchId', label: 'Branch ID', column: 'OurBranchID' },
-                { name: 'branchName', label: 'Branch Name', column: 'BranchName' }
-            ],
-            displayFields: [
-                { key: 'OurBranchID', label: 'Branch ID' },
-                { key: 'BranchName', label: 'Branch Name' }
-            ],
-            onSelect: (record) => {
-                const bid = record.OurBranchID || record.BranchID || record.BranchId || record.branchId || '';
-                const bname = record.BranchName || record.Description || record.Name || '';
-                const input = document.getElementById('BranchID');
-                const nameInput = document.getElementById('BranchName');
-                if (input) input.value = bid;
-                if (nameInput) nameInput.value = bname;
-            }
-        });
-    }
-
-    function closeBranchSearchPanel() {
-        const modalElement = document.getElementById('branchLookupModal');
-        if (!modalElement) return;
-        
-        const ModalCtor = window.bootstrap?.Modal;
-        if (ModalCtor) {
-            const modalInstance = ModalCtor.getInstance(modalElement);
-            if (modalInstance) modalInstance.hide();
-        }
-    }
-
-    function resetBranchSearchPanel() {
-        const form = document.getElementById('branchLookupForm');
-        const results = document.getElementById('branchSearchResults');
-        const empty = document.getElementById('branchSearchEmpty');
-        const loading = document.getElementById('branchSearchLoading');
-        if (form) form.reset();
-        if (results) results.innerHTML = '';
-        if (empty) {
-            empty.style.display = 'block';
-            empty.textContent = 'Enter at least one filter above and click Search to query branches.';
-        }
-        if (loading) loading.classList.add('d-none');
-    }
-
-    async function performBranchSearch(event) {
-        if (event) event.preventDefault();
-        const idValue = (document.getElementById('branchSearchId')?.value || '').trim();
-        const nameValue = (document.getElementById('branchSearchName')?.value || '').trim();
-        const idMode = document.getElementById('branchSearchModeId')?.value || 'Like';
-        const nameMode = document.getElementById('branchSearchModeName')?.value || 'Like';
-        const results = document.getElementById('branchSearchResults');
-        const empty = document.getElementById('branchSearchEmpty');
-        const loading = document.getElementById('branchSearchLoading');
-
-        if (results) results.innerHTML = '';
-        if (empty) empty.style.display = 'none';
-        if (loading) loading.classList.remove('d-none');
-
-        const clauses = [];
-        const buildClause = (col, mode, val) => {
-            if (!val) return null;
-            const safe = val.replace(/'/g, "''");
-            return mode === 'Exact' ? `${col} = '${safe}'` : `${col} like '%${safe}%'`;
-        };
-        const idClause = buildClause('OurBranchID', idMode, idValue);
-        const nameClause = buildClause('BranchName', nameMode, nameValue);
-        [idClause, nameClause].forEach(c => c && clauses.push(c));
-
-        const whereStmt = clauses.join(' AND ');
-        if (!whereStmt) {
-            if (loading) loading.style.display = 'none';
-            if (empty) {
-                empty.textContent = 'Enter at least one filter above and click Search.';
-                empty.style.display = 'block';
-            }
+        if (!window.SearchModal) {
+            accountMaintenanceToast('Search modal is not available.', 'error');
             return;
         }
 
-        const payload = {
-            TableID: 'BranchID',
-            WhereStmt: whereStmt,
-            AdvFilterString: '',
-            PrevOrNext: '1',
-            RefID: '',
-            OperatorID: 'web_portal',
-            ModuleID: 1000,
-            OurBranchID: document.getElementById('BranchID')?.value || ''
-        };
+        const appCore = getAppCore();
+        if (!appCore) {
+            accountMaintenanceToast('AppCore is not available.', 'error');
+            return;
+        }
 
         try {
-            const service = window.ClientService || window.SearchService;
-            if (!service || typeof service.searchClients !== 'function' && typeof service.search !== 'function') {
-                throw new Error('Branch search service not available');
-            }
-            const response = service.searchClients ? await service.searchClients(payload) : await service.search(payload);
-            let rows = response?.Details?.SearchResults || response?.Details || response?.SearchResults || [];
-            if (!Array.isArray(rows)) rows = rows ? [rows] : [];
-            if (!rows.length) {
-                if (empty) {
-                    empty.textContent = 'No branches matched the filters.';
-                    empty.style.display = 'block';
+            const searchModal = new window.SearchModal(appCore);
+
+            searchModal.open({
+                tableID: 'BranchID',
+                moduleID: '1000',
+                whereStmt: '',
+                advFilterString: '',
+                searchKey: '',
+                onSelect: (record) => {
+                    const branchId = record?.OurBranchID ?? record?.BranchID ?? record?.BranchId ?? '';
+                    const branchName = record?.BranchName ?? record?.Description ?? record?.Name ?? '';
+
+                    const branchIdInput = document.getElementById('BranchID');
+                    const branchNameInput = document.getElementById('BranchName');
+
+                    if (branchIdInput) branchIdInput.value = branchId;
+                    if (branchNameInput) branchNameInput.value = branchName;
+
+                    accountMaintenanceToast(`Branch ${branchId} selected successfully`, 'success');
                 }
-                return;
-            }
-            if (results) {
-                results.innerHTML = rows.map((r, idx) => {
-                    const bid = r.OurBranchID || r.BranchID || r.BranchId || r.branchId || '';
-                    const name = r.BranchName || r.Description || r.Name || '';
-                    return `<tr class="am-search-result-row" data-result-index="${idx}">
-                        <td>${bid}</td>
-                        <td>${name}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-primary" data-result-index="${idx}">Select</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-                results.querySelectorAll('button[data-result-index]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const idx = Number(btn.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const bid = row?.OurBranchID || row?.BranchID || row?.BranchId || row?.branchId || '';
-                        const bname = row?.BranchName || row?.Description || row?.Name || '';
-                        const input = document.getElementById('BranchID');
-                        if (input) input.value = bid;
-                        const nameInput = document.getElementById('BranchName');
-                        if (nameInput) nameInput.value = bname;
-                        closeBranchSearchPanel();
-                    });
-                });
-                results.querySelectorAll('tr[data-result-index]').forEach(tr => {
-                    tr.addEventListener('dblclick', () => {
-                        const idx = Number(tr.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const bid = row?.OurBranchID || row?.BranchID || row?.BranchId || row?.branchId || '';
-                        const bname = row?.BranchName || row?.Description || row?.Name || '';
-                        const input = document.getElementById('BranchID');
-                        if (input) input.value = bid;
-                        const nameInput = document.getElementById('BranchName');
-                        if (nameInput) nameInput.value = bname;
-                        closeBranchSearchPanel();
-                    });
-                });
-            }
-        } catch (err) {
-            console.error('[AccountMaintenance] Branch search failed:', err);
-            if (empty) {
-                empty.textContent = err?.message || 'Search failed';
-                empty.style.display = 'block';
-            }
-        } finally {
-            if (loading) loading.classList.add('d-none');
+            });
+        } catch (error) {
+            console.error('[AccountMaintenance] Branch search error:', error);
+            accountMaintenanceToast('Failed to open branch search: ' + error.message, 'error');
         }
     }
 
-    function wireBranchSearchPanel() {
-        const form = document.getElementById('branchLookupForm');
-        const submitBtn = document.getElementById('branchSearchSubmit');
-        const resetBtn = document.getElementById('branchSearchReset');
-        const refreshBtn = document.getElementById('branchSearchRefresh');
-        
-        if (form) form.addEventListener('submit', performBranchSearch);
-        if (submitBtn) submitBtn.addEventListener('click', performBranchSearch);
-        if (resetBtn) resetBtn.addEventListener('click', (e) => { e.preventDefault(); resetBranchSearchPanel(); });
-        if (refreshBtn) refreshBtn.addEventListener('click', (e) => { e.preventDefault(); resetBranchSearchPanel(); });
-        
-        document.addEventListener('keydown', (e) => {
-            const modalElement = document.getElementById('branchLookupModal');
-            if (!modalElement) return;
-            const ModalCtor = window.bootstrap?.Modal;
-            if (!ModalCtor) return;
-            const instance = ModalCtor.getInstance(modalElement);
-            if (!instance) return;
-            if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
-                const activeEl = document.activeElement;
-                if (activeEl && (activeEl.id === 'branchSearchId' || activeEl.id === 'branchSearchName')) {
-                    e.preventDefault();
-                    performBranchSearch(e);
-                }
-            }
-        });
-    }
-
-    // ============================================================================
-    // CLIENT SEARCH PANEL
-    // ============================================================================
-
+    /**
+     * Open Client Search using global SearchModal (Client360 pattern)
+     */
     function openClientSearchPanel() {
-        const modal = ensureSearchModal();
-        if (!modal) return;
-
-        const branchIdVal = getInputValue('BranchID');
-        const baseWhere = branchIdVal ? `OurBranchID='${sanitizeValue(branchIdVal)}'` : '';
-
-        modal.open({
-            title: 'Find Client',
-            tableID: 'clientId',
-            whereStmt: baseWhere,
-            searchFields: [
-                { name: 'clientId', label: 'Client ID', column: 'ClientID' },
-                { name: 'clientName', label: 'Name', column: 'Name' }
-            ],
-            displayFields: [
-                { key: 'ClientID', label: 'Client ID' },
-                { key: 'Name', label: 'Name' }
-            ],
-            onSelect: (record) => {
-                const cid = record.ClientID || record.clientId || record.ID || '';
-                const cname = record.ClientName || record.Name || record.Description || '';
-                const idInput = document.getElementById('ClientID');
-                const nameInput = document.getElementById('ClientName');
-                if (idInput) idInput.value = cid;
-                if (nameInput) nameInput.value = cname;
-            }
-        });
-    }
-
-    function closeClientSearchPanel() {
-        const modalElement = document.getElementById('clientLookupModal');
-        if (!modalElement) return;
-
-        const ModalCtor = window.bootstrap?.Modal;
-        if (ModalCtor) {
-            const modalInstance = ModalCtor.getInstance(modalElement);
-            if (modalInstance) modalInstance.hide();
-        }
-    }
-
-    function resetClientSearchPanel() {
-        const form = document.getElementById('clientLookupForm');
-        const results = document.getElementById('clientSearchResults');
-        const empty = document.getElementById('clientSearchEmpty');
-        const loading = document.getElementById('clientSearchLoading');
-        if (form) form.reset();
-        if (results) results.innerHTML = '';
-        if (empty) {
-            empty.style.display = 'block';
-            empty.textContent = 'Enter at least one filter above and click Search to query Core Banking clients.';
-        }
-        if (loading) loading.classList.add('d-none');
-    }
-
-    async function performClientSearch(event) {
-        if (event) event.preventDefault();
-        const idValue = (document.getElementById('clientSearchId')?.value || '').trim();
-        const nameValue = (document.getElementById('clientSearchName')?.value || '').trim();
-        const idMode = document.getElementById('clientSearchModeId')?.value || 'Like';
-        const nameMode = document.getElementById('clientSearchModeName')?.value || 'Like';
-        const results = document.getElementById('clientSearchResults');
-        const empty = document.getElementById('clientSearchEmpty');
-        const loading = document.getElementById('clientSearchLoading');
-
-        if (results) results.innerHTML = '';
-        if (empty) empty.style.display = 'none';
-        if (loading) loading.classList.remove('d-none');
-
-        const clauses = [];
-        const buildClause = (col, mode, val) => {
-            if (!val) return null;
-            const safe = val.replace(/'/g, "''");
-            return mode === 'Exact' ? `${col} = '${safe}'` : `${col} like '%${safe}%'`;
-        };
-        const idClause = buildClause('clientId', idMode, idValue);
-        const nameClause = buildClause('Name', nameMode, nameValue);
-        [idClause, nameClause].forEach(c => c && clauses.push(c));
-
-        const whereStmt = clauses.join(' AND ');
-        if (!whereStmt) {
-            if (loading) loading.style.display = 'none';
-            if (empty) {
-                empty.textContent = 'Enter at least one filter above and click Search.';
-                empty.style.display = 'block';
-            }
+        if (!window.SearchModal) {
+            accountMaintenanceToast('Search modal is not available.', 'error');
             return;
         }
 
-        const payload = {
-            TableID: 'clientId',
-            WhereStmt: whereStmt,
-            AdvFilterString: '',
-            PrevOrNext: '1',
-            RefID: '',
-            OperatorID: 'web_portal',
-            ModuleID: 1000,
-            OurBranchID: document.getElementById('BranchID')?.value || ''
-        };
+        const appCore = getAppCore();
+        if (!appCore) {
+            accountMaintenanceToast('AppCore is not available.', 'error');
+            return;
+        }
 
         try {
-            const service = window.ClientService || window.SearchService;
-            if (!service || typeof service.searchClients !== 'function' && typeof service.search !== 'function') {
-                throw new Error('Client search service not available');
+            const currentClientId = getInputValue('ClientID');
+            const currentClientName = getInputValue('ClientName');
+
+            let initialSearchKey = '';
+            if (currentClientId) {
+                initialSearchKey += `ClientID LIKE '%${currentClientId}%'`;
             }
-            const response = service.searchClients ? await service.searchClients(payload) : await service.search(payload);
-            let rows = response?.Details?.SearchResults || response?.Details || response?.SearchResults || [];
-            if (!Array.isArray(rows)) rows = rows ? [rows] : [];
-            if (!rows.length) {
-                if (empty) {
-                    empty.textContent = 'No clients matched the filters.';
-                    empty.style.display = 'block';
-                }
-                return;
+            if (currentClientName) {
+                if (initialSearchKey) initialSearchKey += ' AND ';
+                initialSearchKey += `Name LIKE '%${currentClientName}%'`;
             }
-            if (results) {
-                results.innerHTML = rows.map((r, idx) => {
-                    const cid = r.ClientID || r.clientId || '';
-                    const name = r.Name || r.fullName || r.Description || '';
-                    return `<tr class="am-search-result-row" data-result-index="${idx}">
-                        <td>${cid}</td>
-                        <td>${name}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-primary" data-result-index="${idx}">Select</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-                results.querySelectorAll('button[data-result-index]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const idx = Number(btn.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const cid = row?.ClientID || row?.clientId || '';
-                        const cname = row?.Name || row?.fullName || row?.Description || '';
-                        const input = document.getElementById('ClientID');
-                        if (input) input.value = cid;
-                        const nameInput = document.getElementById('ClientName');
-                        if (nameInput) nameInput.value = cname;
-                        closeClientSearchPanel();
-                    });
-                });
-                results.querySelectorAll('tr[data-result-index]').forEach(tr => {
-                    tr.addEventListener('dblclick', () => {
-                        const idx = Number(tr.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const cid = row?.ClientID || row?.clientId || '';
-                        const cname = row?.Name || row?.fullName || row?.Description || '';
-                        const input = document.getElementById('ClientID');
-                        if (input) input.value = cid;
-                        const nameInput = document.getElementById('ClientName');
-                        if (nameInput) nameInput.value = cname;
-                        closeClientSearchPanel();
-                    });
-                });
-            }
-        } catch (err) {
-            console.error('[AccountMaintenance] Client search failed:', err);
-            if (empty) {
-                empty.textContent = err?.message || 'Search failed';
-                empty.style.display = 'block';
-            }
-        } finally {
-            if (loading) loading.classList.add('d-none');
-        }
-    }
 
-    function wireClientSearchPanel() {
-        const form = document.getElementById('clientLookupForm');
-        const submitBtn = document.getElementById('clientSearchSubmit');
-        const resetBtn = document.getElementById('clientSearchReset');
-        const refreshBtn = document.getElementById('clientSearchRefresh');
+            const searchModal = new window.SearchModal(appCore);
 
-        if (form) form.addEventListener('submit', performClientSearch);
-        if (submitBtn) submitBtn.addEventListener('click', performClientSearch);
-        if (resetBtn) resetBtn.addEventListener('click', (e) => { e.preventDefault(); resetClientSearchPanel(); });
-        if (refreshBtn) refreshBtn.addEventListener('click', (e) => { e.preventDefault(); resetClientSearchPanel(); });
+            searchModal.open({
+                tableID: 'ClientID',
+                moduleID: '1000',
+                whereStmt: '',
+                advFilterString: '',
+                searchKey: initialSearchKey,
+                onSelect: (record) => {
+                    const clientId = record?.ClientID ?? record?.clientId ?? '';
+                    const clientName = record?.Name ?? record?.ClientName ?? record?.clientName ?? '';
 
-        document.addEventListener('keydown', (e) => {
-            const modalElement = document.getElementById('clientLookupModal');
-            if (!modalElement) return;
-            const isVisible = modalElement.classList.contains('show');
-            if (e.key === 'Escape' && isVisible) closeClientSearchPanel();
-        });
-    }
-
-    // Account Search Functions
-    function openAccountSearchPanel({ targetId = 'AccountID', targetNameId = 'AccountName' } = {}) {
-        const modal = ensureSearchModal();
-        if (!modal) return;
-
-        const branchIdVal = getInputValue('BranchID');
-        const clientIdVal = getInputValue('ClientID');
-        const filters = [];
-        if (branchIdVal) filters.push(`OurBranchID='${sanitizeValue(branchIdVal)}'`);
-        if (clientIdVal) filters.push(`ClientID='${sanitizeValue(clientIdVal)}'`);
-        const baseWhere = filters.join(' AND ');
-
-        modal.open({
-            title: 'Find Account',
-            tableID: 'AccountID',
-            whereStmt: baseWhere,
-            searchFields: [
-                { name: 'accountId', label: 'Account ID', column: 'AccountID' },
-                { name: 'accountName', label: 'Account Name', column: 'Description' },
-                { name: 'clientName', label: 'Client Name', column: 'ClientName' }
-            ],
-            displayFields: [
-                { key: 'AccountID', label: 'Account ID' },
-                { key: 'Description', label: 'Account Name' },
-                { key: 'ClientName', label: 'Client Name' }
-            ],
-            onSelect: (record) => {
-                const aid = record.AccountID || record.accountId || record.ID || '';
-                const desc = record.Description || record.accountName || record.AccountName || record.Name || '';
-                const cname = record.ClientName || record.clientName || record.Client || '';
-                const idInput = document.getElementById(targetId);
-                const nameInput = document.getElementById(targetNameId);
-                if (idInput) idInput.value = aid;
-                if (nameInput) nameInput.value = desc || cname;
-
-                // Populate client fields if empty when selecting main account
-                if (targetId === 'AccountID') {
                     const clientIdInput = document.getElementById('ClientID');
                     const clientNameInput = document.getElementById('ClientName');
-                    if (clientIdInput && !clientIdInput.value && (record.ClientID || record.clientId)) {
-                        clientIdInput.value = record.ClientID || record.clientId || '';
-                    }
-                    if (clientNameInput && !clientNameInput.value) {
-                        clientNameInput.value = cname || clientIdInput?.value || '';
-                    }
-                    tryGetAccount(0);
+
+                    if (clientIdInput) clientIdInput.value = clientId;
+                    if (clientNameInput) clientNameInput.value = clientName;
+
+                    accountMaintenanceToast(`Client ${clientId} selected successfully`, 'success');
                 }
-            }
-        });
-    }
-
-    function closeAccountSearchPanel() {
-        const modalElement = document.getElementById('accountLookupModal');
-        if (!modalElement) return;
-
-        const ModalCtor = window.bootstrap?.Modal;
-        if (ModalCtor) {
-            const modalInstance = ModalCtor.getInstance(modalElement);
-            if (modalInstance) modalInstance.hide();
+            });
+        } catch (error) {
+            console.error('[AccountMaintenance] Client search error:', error);
+            accountMaintenanceToast('Failed to open client search: ' + error.message, 'error');
         }
     }
 
-    function resetAccountSearchPanel() {
-        const form = document.getElementById('accountLookupForm');
-        const results = document.getElementById('accountSearchResults');
-        const empty = document.getElementById('accountSearchEmpty');
-        const loading = document.getElementById('accountSearchLoading');
-        if (form) form.reset();
-        if (results) results.innerHTML = '';
-        if (empty) {
-            empty.style.display = 'block';
-            empty.textContent = 'Enter at least one filter above and click Search to query accounts.';
-        }
-        if (loading) loading.classList.add('d-none');
-    }
-
-    async function performAccountSearch(event) {
-        if (event) event.preventDefault();
-        const idValue = (document.getElementById('accountSearchId')?.value || '').trim();
-        const nameValue = (document.getElementById('accountSearchName')?.value || '').trim();
-        const idMode = document.getElementById('accountSearchModeId')?.value || 'Like';
-        const nameMode = document.getElementById('accountSearchModeName')?.value || 'Like';
-        const results = document.getElementById('accountSearchResults');
-        const empty = document.getElementById('accountSearchEmpty');
-        const loading = document.getElementById('accountSearchLoading');
-
-        if (results) results.innerHTML = '';
-        if (empty) empty.style.display = 'none';
-        if (loading) loading.classList.remove('d-none');
-
-        const clauses = [];
-        const buildClause = (col, mode, val) => {
-            if (!val) return null;
-            const safe = val.replace(/'/g, "''");
-            return mode === 'Exact' ? `${col} = '${safe}'` : `${col} like '%${safe}%'`;
-        };
-        const idClause = buildClause('AccountID', idMode, idValue);
-        const nameClause = buildClause('Description', nameMode, nameValue);
-        [idClause, nameClause].forEach(c => c && clauses.push(c));
-
-        const whereStmt = clauses.join(' AND ');
-        if (!whereStmt) {
-            if (loading) loading.style.display = 'none';
-            if (empty) {
-                empty.textContent = 'Enter at least one filter above and click Search.';
-                empty.style.display = 'block';
-            }
+    /**
+     * Open Account Search using global SearchModal (Client360 pattern)
+     */
+    function openAccountSearchPanel({ targetId = 'AccountID', targetNameId = 'AccountName' } = {}) {
+        if (!window.SearchModal) {
+            accountMaintenanceToast('Search modal is not available.', 'error');
             return;
         }
 
-        const payload = {
-            TableID: 'AccountID',
-            WhereStmt: whereStmt,
-            AdvFilterString: '',
-            PrevOrNext: '1',
-            RefID: '',
-            OperatorID: 'web_portal',
-            ModuleID: 1000,
-            OurBranchID: document.getElementById('BranchID')?.value || ''
-        };
+        const appCore = getAppCore();
+        if (!appCore) {
+            accountMaintenanceToast('AppCore is not available.', 'error');
+            return;
+        }
 
         try {
-            const service = window.ClientService || window.SearchService;
-            if (!service || typeof service.searchClients !== 'function' && typeof service.search !== 'function') {
-                throw new Error('Search service not available');
+            const branchId = getInputValue('BranchID');
+            const clientId = getInputValue('ClientID');
+            const currentAccountId = getInputValue(targetId);
+
+            let whereStmt = '';
+            if (branchId) whereStmt += `OurBranchID='${sanitizeValue(branchId)}'`;
+            if (clientId) {
+                if (whereStmt) whereStmt += ' AND ';
+                whereStmt += `ClientID='${sanitizeValue(clientId)}'`;
             }
-            const response = service.searchClients ? await service.searchClients(payload) : await service.search(payload);
-            let rows = response?.Details?.SearchResults || response?.Details || response?.SearchResults || [];
-            if (!Array.isArray(rows)) rows = rows ? [rows] : [];
-            if (!rows.length) {
-                if (empty) {
-                    empty.textContent = 'No accounts matched the filters.';
-                    empty.style.display = 'block';
+
+            // DEBUG: Log the whereStmt to verify it's being constructed
+            console.log('[AccountMaintenance] Account search whereStmt:', whereStmt);
+            console.log('[AccountMaintenance] BranchID:', branchId, 'ClientID:', clientId);
+
+            let initialSearchKey = '';
+            if (currentAccountId) {
+                initialSearchKey = `AccountID LIKE '%${currentAccountId}%'`;
+            }
+
+            const searchModal = new window.SearchModal(appCore);
+
+            searchModal.open({
+                tableID: 'AccountID',
+                moduleID: '1000',
+                whereStmt: whereStmt,
+                advFilterString: '',
+                searchKey: initialSearchKey,
+                onSelect: (record) => {
+                    const accountId = record?.AccountID ?? record?.accountId ?? '';
+                    const accountName = record?.Description ?? record?.AccountName ?? record?.Name ?? '';
+                    const clientIdFromRecord = record?.ClientID ?? record?.clientId ?? '';
+                    const clientNameFromRecord = record?.ClientName ?? record?.clientName ?? '';
+
+                    const accountIdInput = document.getElementById(targetId);
+                    const accountNameInput = document.getElementById(targetNameId);
+
+                    if (accountIdInput) accountIdInput.value = accountId;
+                    if (accountNameInput) accountNameInput.value = accountName;
+
+                    // Populate client fields if empty when selecting main account
+                    if (targetId === 'AccountID') {
+                        const clientIdInput = document.getElementById('ClientID');
+                        const clientNameInput = document.getElementById('ClientName');
+
+                        if (clientIdInput && !clientIdInput.value && clientIdFromRecord) {
+                            clientIdInput.value = clientIdFromRecord;
+                        }
+                        if (clientNameInput && !clientNameInput.value && clientNameFromRecord) {
+                            clientNameInput.value = clientNameFromRecord;
+                        }
+
+                        // Trigger tryGetAccount after selection
+                        setTimeout(() => tryGetAccount(0), 100);
+                    }
+
+                    accountMaintenanceToast(`Account ${accountId} selected successfully`, 'success');
                 }
-                return;
-            }
-            if (results) {
-                results.innerHTML = rows.map((r, idx) => {
-                    const aid = r.AccountID || r.accountId || '';
-                    const desc = r.Description || r.description || '';
-                    const clientName = r.ClientName || r.Name || '';
-                    return `<tr class="am-search-result-row" data-result-index="${idx}">
-                        <td>${aid}</td>
-                        <td>${desc}</td>
-                        <td>${clientName}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-primary" data-result-index="${idx}">Select</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-                results.querySelectorAll('button[data-result-index]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const idx = Number(btn.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const aid = row?.AccountID || row?.accountId || '';
-                        const desc = row?.Description || row?.description || '';
-                        const input = document.getElementById('AccountID');
-                        if (input) input.value = aid;
-                        const nameInput = document.getElementById('AccountName');
-                        if (nameInput) nameInput.value = desc;
-                        closeAccountSearchPanel();
-
-                        // Trigger tryGetAccount after selection
-                        tryGetAccount(0);
-                    });
-                });
-                results.querySelectorAll('tr[data-result-index]').forEach(tr => {
-                    tr.addEventListener('dblclick', () => {
-                        const idx = Number(tr.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const aid = row?.AccountID || row?.accountId || '';
-                        const desc = row?.Description || row?.description || '';
-                        const input = document.getElementById('AccountID');
-                        if (input) input.value = aid;
-                        const nameInput = document.getElementById('AccountName');
-                        if (nameInput) nameInput.value = desc;
-                        closeAccountSearchPanel();
-
-                        // Trigger tryGetAccount after selection
-                        tryGetAccount(0);
-                    });
-                });
-            }
-        } catch (err) {
-            console.error('[AccountMaintenance] Account search failed:', err);
-            if (empty) {
-                empty.textContent = err?.message || 'Search failed';
-                empty.style.display = 'block';
-            }
-        } finally {
-            if (loading) loading.classList.add('d-none');
+            });
+        } catch (error) {
+            console.error('[AccountMaintenance] Account search error:', error);
+            accountMaintenanceToast('Failed to open account search: ' + error.message, 'error');
         }
     }
 
-    function wireAccountSearchPanel() {
-        const form = document.getElementById('accountLookupForm');
-        const submitBtn = document.getElementById('accountSearchSubmit');
-        const resetBtn = document.getElementById('accountSearchReset');
-        const refreshBtn = document.getElementById('accountSearchRefresh');
-
-        if (form) form.addEventListener('submit', performAccountSearch);
-        if (submitBtn) submitBtn.addEventListener('click', performAccountSearch);
-        if (resetBtn) resetBtn.addEventListener('click', (e) => { e.preventDefault(); resetAccountSearchPanel(); });
-        if (refreshBtn) refreshBtn.addEventListener('click', (e) => { e.preventDefault(); resetAccountSearchPanel(); });
-
-        document.addEventListener('keydown', (e) => {
-            const modalElement = document.getElementById('accountLookupModal');
-            if (!modalElement) return;
-            const isVisible = modalElement.classList.contains('show');
-            if (e.key === 'Escape' && isVisible) closeAccountSearchPanel();
-        });
-    }
-
-    // Product Search Functions
+    /**
+     * Open Product Search using global SearchModal (Client360 pattern)
+     */
     function openProductSearchPanel() {
-        const modal = ensureSearchModal();
-        if (!modal) return;
-
-        const branchIdVal = getInputValue('BranchID');
-        const baseWhere = ""; //branchIdVal ? `OurBranchID='${sanitizeValue(branchIdVal)}'` : '';
-
-        modal.open({
-            title: 'Find Product',
-            tableID: 'ProductID',
-            whereStmt: baseWhere || '1=1',
-            searchFields: [
-                { name: 'productId', label: 'Product ID', column: 'ProductID' },
-                { name: 'productName', label: 'Product Name', column: 'Description' }
-            ],
-            displayFields: [
-                { key: 'ProductID', label: 'Product ID' },
-                { key: 'Description', label: 'Product Name' }
-            ],
-            onSelect: (record) => {
-                const pid = record.ProductID || record.productId || record.ID || '';
-                const desc = record.Description || record.ProductName || record.Name || '';
-                const idInput = document.getElementById('ProductID');
-                const nameInput = document.getElementById('ProductName');
-                if (idInput) idInput.value = pid;
-                if (nameInput) nameInput.value = desc;
-
-                if (currentMode === 'ADD') {
-                    setTimeout(() => {
-                        fetchAccountOpeningDetails();
-                    }, 50);
-                }
-            }
-        });
-    }
-
-    function openPassbookSearch() {
-        const modal = ensureSearchModal();
-        if (!modal) return;
-
-        const branchIdVal = getInputValue('BranchID');
-        const baseWhere = branchIdVal ? `OurBranchID='${sanitizeValue(branchIdVal)}'` : '';
-
-        modal.open({
-            title: 'Find Passbook',
-            tableID: 'PassbookSerialID',
-            whereStmt: baseWhere,
-            searchFields: [
-                { name: 'passbookId', label: 'Passbook Serial ID', column: 'PBSerialID' },
-                { name: 'passbookName', label: 'Passbook Name', column: 'PassbookName' }
-            ],
-            displayFields: [
-                { key: 'PBSerialID', label: 'Passbook Serial ID' },
-                { key: 'PassbookName', label: 'Passbook Name' }
-            ],
-            onSelect: (record) => {
-                const pid = record.PBSerialID || record.PassbookSerialID || record.PassBookSerialID || record.ID || '';
-                const pname = record.PassbookName || record.PassBookName || record.Description || '';
-                const idInput = document.getElementById('PassbookSerialID');
-                const nameInput = document.getElementById('PassbookSerialName');
-                if (idInput) idInput.value = pid;
-                if (nameInput) nameInput.value = pname || pid;
-            }
-        });
-    }
-
-    function openSalesOfficerSearch() {
-        const modal = ensureSearchModal();
-        if (!modal) return;
-
-        const branchIdVal = getInputValue('BranchID');
-        const baseWhere = branchIdVal ? `BranchID='${sanitizeValue(branchIdVal)}'` : '';
-
-        modal.open({
-            title: 'Find Sales Officer',
-            tableID: 'OperatorID',
-            whereStmt: baseWhere,
-            searchFields: [
-                { name: 'officerId', label: 'Officer ID', column: 'OperatorID' },
-                { name: 'officerName', label: 'Officer Name', column: 'Name' }
-            ],
-            displayFields: [
-                { key: 'OperatorID', label: 'Officer ID' },
-                { key: 'Name', label: 'Officer Name' }
-            ],
-            onSelect: (record) => {
-                const oid = record.OperatorID || record.OfficerID || record.UserID || record.ID || '';
-                const oname = record.Name || record.FullName || record.Description || '';
-                const idInput = document.getElementById('SalesOfficerID');
-                const nameInput = document.getElementById('SalesOfficerName');
-                if (idInput) idInput.value = oid;
-                if (nameInput) nameInput.value = oname || oid;
-            }
-        });
-    }
-
-    function closeProductSearchPanel() {
-        const modalElement = document.getElementById('productLookupModal');
-        if (!modalElement) return;
-
-        const ModalCtor = window.bootstrap?.Modal;
-        if (ModalCtor) {
-            const modalInstance = ModalCtor.getInstance(modalElement);
-            if (modalInstance) modalInstance.hide();
+        if (!window.SearchModal) {
+            accountMaintenanceToast('Search modal is not available.', 'error');
+            return;
         }
-    }
 
-    function resetProductSearchPanel() {
-        const form = document.getElementById('productLookupForm');
-        const results = document.getElementById('productSearchResults');
-        const empty = document.getElementById('productSearchEmpty');
-        const loading = document.getElementById('productSearchLoading');
-        if (form) form.reset();
-        if (results) results.innerHTML = '';
-        if (empty) {
-            empty.style.display = 'block';
-            empty.textContent = 'Enter at least one filter above and click Search to query products.';
+        const appCore = getAppCore();
+        if (!appCore) {
+            accountMaintenanceToast('AppCore is not available.', 'error');
+            return;
         }
-        if (loading) loading.classList.add('d-none');
-    }
-
-    async function performProductSearch(event) {
-        if (event) event.preventDefault();
-        const idValue = (document.getElementById('productSearchId')?.value || '').trim();
-        const nameValue = (document.getElementById('productSearchName')?.value || '').trim();
-        const idMode = document.getElementById('productSearchModeId')?.value || 'Like';
-        const nameMode = document.getElementById('productSearchModeName')?.value || 'Like';
-        const results = document.getElementById('productSearchResults');
-        const empty = document.getElementById('productSearchEmpty');
-        const loading = document.getElementById('productSearchLoading');
-
-        if (results) results.innerHTML = '';
-        if (empty) empty.style.display = 'none';
-        if (loading) loading.classList.remove('d-none');
-
-        const clauses = [];
-        const buildClause = (col, mode, val) => {
-            if (!val) return null;
-            const safe = val.replace(/'/g, "''");
-            return mode === 'Exact' ? `${col} = '${safe}'` : `${col} like '%${safe}%'`;
-        };
-        const idClause = buildClause('ProductID', idMode, idValue);
-        const nameClause = buildClause('Description', nameMode, nameValue);
-        [idClause, nameClause].forEach(c => c && clauses.push(c));
-
-        const whereStmt = clauses.join(' AND ');
-
-        const payload = {
-            TableID: 'ProductID',
-            WhereStmt: whereStmt || '1=1',
-            AdvFilterString: '',
-            PrevOrNext: '1',
-            RefID: '',
-            OperatorID: 'web_portal',
-            ModuleID: 1000,
-            OurBranchID: document.getElementById('BranchID')?.value || ''
-        };
 
         try {
-            const service = window.ClientService || window.SearchService;
-            if (!service || typeof service.searchClients !== 'function' && typeof service.search !== 'function') {
-                throw new Error('Search service not available');
+            const currentProductId = getInputValue('ProductID');
+            const currentProductName = getInputValue('ProductName');
+
+            let initialSearchKey = '';
+            if (currentProductId) {
+                initialSearchKey += `ProductID LIKE '%${currentProductId}%'`;
             }
-            const response = service.searchClients ? await service.searchClients(payload) : await service.search(payload);
-            let rows = response?.Details?.SearchResults || response?.Details || response?.SearchResults || [];
-            if (!Array.isArray(rows)) rows = rows ? [rows] : [];
-            if (!rows.length) {
-                if (empty) {
-                    empty.textContent = 'No products matched the filters.';
-                    empty.style.display = 'block';
+            if (currentProductName) {
+                if (initialSearchKey) initialSearchKey += ' AND ';
+                initialSearchKey += `Description LIKE '%${currentProductName}%'`;
+            }
+
+            const searchModal = new window.SearchModal(appCore);
+
+            searchModal.open({
+                tableID: 'ProductID',
+                moduleID: '1000',
+                whereStmt: '',
+                advFilterString: '',
+                searchKey: initialSearchKey,
+                onSelect: (record) => {
+                    const productId = record?.ProductID ?? record?.productId ?? '';
+                    const productName = record?.Description ?? record?.ProductName ?? record?.Name ?? '';
+
+                    const productIdInput = document.getElementById('ProductID');
+                    const productNameInput = document.getElementById('ProductName');
+
+                    if (productIdInput) productIdInput.value = productId;
+                    if (productNameInput) productNameInput.value = productName;
+
+                    accountMaintenanceToast(`Product ${productId} selected successfully`, 'success');
+
+                    // Trigger opening details fetch in ADD mode
+                    if (currentMode === 'ADD') {
+                        setTimeout(() => fetchAccountOpeningDetails(), 100);
+                    }
                 }
-                return;
-            }
-            if (results) {
-                results.innerHTML = rows.map((r, idx) => {
-                    const pid = r.ProductID || r.productId || '';
-                    const desc = r.Description || r.description || r.Name || '';
-                    return `<tr class="am-search-result-row" data-result-index="${idx}">
-                        <td>${pid}</td>
-                        <td>${desc}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-primary" data-result-index="${idx}">Select</button>
-                        </td>
-                    </tr>`;
-                }).join('');
-                results.querySelectorAll('button[data-result-index]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const idx = Number(btn.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const pid = row?.ProductID || row?.productId || '';
-                        const desc = row?.Description || row?.description || row?.Name || '';
-                        const input = document.getElementById('ProductID');
-                        if (input) input.value = pid;
-                        const nameInput = document.getElementById('ProductName');
-                        if (nameInput) nameInput.value = desc;
-                        closeProductSearchPanel();
-                        // Trigger opening details fetch after product selection
-                        // console.log('[Product Search Button] Product selected, Mode:', currentMode, 'ProductID:', pid);
-                        setTimeout(() => {
-                            if (currentMode === 'ADD') {
-                                // console.log('[Product Search Button] Calling fetchAccountOpeningDetails...');
-                                fetchAccountOpeningDetails();
-                            } else {
-                                // console.log('[Product Search Button] Not in ADD mode, skipping fetch');
-                            }
-                        }, 100);
-                    });
-                });
-                results.querySelectorAll('tr[data-result-index]').forEach(tr => {
-                    tr.addEventListener('dblclick', () => {
-                        const idx = Number(tr.getAttribute('data-result-index'));
-                        const row = rows[idx];
-                        const pid = row?.ProductID || row?.productId || '';
-                        const desc = row?.Description || row?.description || row?.Name || '';
-                        const input = document.getElementById('ProductID');
-                        if (input) input.value = pid;
-                        const nameInput = document.getElementById('ProductName');
-                        if (nameInput) nameInput.value = desc;
-                        closeProductSearchPanel();
-                        // Trigger opening details fetch after product selection
-                        // console.log('[Product Search DblClick] Product selected, Mode:', currentMode, 'ProductID:', pid);
-                        setTimeout(() => {
-                            if (currentMode === 'ADD') {
-                                // console.log('[Product Search DblClick] Calling fetchAccountOpeningDetails...');
-                                fetchAccountOpeningDetails();
-                            } else {
-                                // console.log('[Product Search DblClick] Not in ADD mode, skipping fetch');
-                            }
-                        }, 100);
-                    });
-                });
-            }
-        } catch (err) {
-            console.error('[AccountMaintenance] Product search failed:', err);
-            if (empty) {
-                empty.textContent = err?.message || 'Search failed';
-                empty.style.display = 'block';
-            }
-        } finally {
-            if (loading) loading.classList.add('d-none');
+            });
+        } catch (error) {
+            console.error('[AccountMaintenance] Product search error:', error);
+            accountMaintenanceToast('Failed to open product search: ' + error.message, 'error');
         }
     }
 
-    function wireProductSearchPanel() {
-        const form = document.getElementById('productLookupForm');
-        const submitBtn = document.getElementById('productSearchSubmit');
-        const resetBtn = document.getElementById('productSearchReset');
-        const refreshBtn = document.getElementById('productSearchRefresh');
+    /**
+     * Open Passbook Search using global SearchModal
+     */
+    function openPassbookSearch() {
+        if (!window.SearchModal) {
+            accountMaintenanceToast('Search modal is not available.', 'error');
+            return;
+        }
 
-        if (form) form.addEventListener('submit', performProductSearch);
-        if (submitBtn) submitBtn.addEventListener('click', performProductSearch);
-        if (resetBtn) resetBtn.addEventListener('click', (e) => { e.preventDefault(); resetProductSearchPanel(); });
-        if (refreshBtn) refreshBtn.addEventListener('click', (e) => { e.preventDefault(); resetProductSearchPanel(); });
+        const appCore = getAppCore();
+        if (!appCore) {
+            accountMaintenanceToast('AppCore is not available.', 'error');
+            return;
+        }
 
-        document.addEventListener('keydown', (e) => {
-            const modalElement = document.getElementById('productLookupModal');
-            if (!modalElement) return;
-            const isVisible = modalElement.classList.contains('show');
-            if (e.key === 'Escape' && isVisible) closeProductSearchPanel();
-        });
+        try {
+            const branchId = getInputValue('BranchID');
+            const whereStmt = branchId ? `OurBranchID='${sanitizeValue(branchId)}'` : '';
+
+            const searchModal = new window.SearchModal(appCore);
+
+            searchModal.open({
+                tableID: 'PassbookSerialID',
+                moduleID: '1000',
+                whereStmt: whereStmt,
+                advFilterString: '',
+                searchKey: '',
+                onSelect: (record) => {
+                    const passbookId = record?.PBSerialID ?? record?.PassbookSerialID ?? record?.PassBookSerialID ?? '';
+                    const passbookName = record?.PassbookName ?? record?.PassBookName ?? record?.Description ?? '';
+
+                    const idInput = document.getElementById('PassbookSerialID');
+                    const nameInput = document.getElementById('PassbookSerialName');
+
+                    if (idInput) idInput.value = passbookId;
+                    if (nameInput) nameInput.value = passbookName || passbookId;
+
+                    accountMaintenanceToast(`Passbook ${passbookId} selected successfully`, 'success');
+                }
+            });
+        } catch (error) {
+            console.error('[AccountMaintenance] Passbook search error:', error);
+            accountMaintenanceToast('Failed to open passbook search: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Open Sales Officer Search using global SearchModal
+     */
+    function openSalesOfficerSearch() {
+        if (!window.SearchModal) {
+            accountMaintenanceToast('Search modal is not available.', 'error');
+            return;
+        }
+
+        const appCore = getAppCore();
+        if (!appCore) {
+            accountMaintenanceToast('AppCore is not available.', 'error');
+            return;
+        }
+
+        try {
+            const branchId = getInputValue('BranchID');
+            const whereStmt = branchId ? `BranchID='${sanitizeValue(branchId)}'` : '';
+
+            const searchModal = new window.SearchModal(appCore);
+
+            searchModal.open({
+                tableID: 'OperatorID',
+                moduleID: '1000',
+                whereStmt: whereStmt,
+                advFilterString: '',
+                searchKey: '',
+                onSelect: (record) => {
+                    const officerId = record?.OperatorID ?? record?.OfficerID ?? record?.UserID ?? '';
+                    const officerName = record?.Name ?? record?.FullName ?? record?.Description ?? '';
+
+                    const idInput = document.getElementById('SalesOfficerID');
+                    const nameInput = document.getElementById('SalesOfficerName');
+
+                    if (idInput) idInput.value = officerId;
+                    if (nameInput) nameInput.value = officerName || officerId;
+
+                    accountMaintenanceToast(`Officer ${officerId} selected successfully`, 'success');
+                }
+            });
+        } catch (error) {
+            console.error('[AccountMaintenance] Sales officer search error:', error);
+            accountMaintenanceToast('Failed to open sales officer search: ' + error.message, 'error');
+        }
     }
 
     function wirePlusButtons() {
@@ -2428,10 +1799,10 @@
     async function handleUnclearBalanceInfo(fieldId, label, valueEl) {
         const { branchIdInput } = findBranchInputs();
         const accountIdInput = document.getElementById('AccountID');
-        
+
         const branchId = branchIdInput ? String(branchIdInput.value || '').trim() : '';
         const accountId = accountIdInput ? String(accountIdInput.value || '').trim() : '';
-        
+
         if (!branchId || !accountId) {
             showSystemToast('Branch ID and Account ID are required to view unclear balance details.', { 
                 title: 'Missing Information', 
@@ -2439,23 +1810,29 @@
             });
             return;
         }
-        
+
         try {
-            const accountservice = await ensureaccountserviceLoaded();
-            if (!accountservice?.getUnClearBalance) {
-                showSystemToast('Service not available.', { title: 'System Error', variant: 'danger' });
-                return;
-            }
-            
             const payload = {
                 OurBranchID: branchId,
                 AccountID: accountId
             };
-            
-            // console.log('[AccountMaintenance] Fetching unclear balance details:', payload);
-            
-            const result = await accountservice.getUnClearBalance(payload);
-            
+
+            // Call Kairo UI controller directly
+            const response = await fetch('/AccountsMaintenance/GetUnClearBalance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
             if (result && result.ResponseData) {
                 showInfoDetailModal(result.ResponseData, label, 'unclearBalance', {
                     icon: 'bi-clock-history',
@@ -2469,7 +1846,7 @@
             } else {
                 showSystemToast('No unclear balance details found.', { title: 'Information', variant: 'info' });
             }
-            
+
         } catch (error) {
             console.error('[AccountMaintenance] Error fetching unclear balance:', error);
             showSystemToast('Failed to load unclear balance details.', { title: 'Error', variant: 'danger' });
@@ -3493,7 +2870,7 @@
     async function saveAccount() {
         // Clear previous validation errors
         clearAllFieldErrors();
-        
+
         const validation = validateSaveAction();
         if (!validation.ok) {
             // Use inline validation display instead of toast
@@ -3502,25 +2879,35 @@
         }
 
         const payload = buildSavePayload();
-        const accountservice = window.accountservice;
-        if (!accountservice || typeof accountservice.saveAccount !== 'function') {
-            showErrorMessage('accountservice not available for saving.');
-            return;
-        }
 
         const saveBtn = Array.from(document.querySelectorAll('.btn-action')).find(b => b.textContent.trim() === 'Save');
         if (saveBtn) saveBtn.disabled = true;
+
         try {
-            const response = await accountservice.saveAccount(payload);
+            // Call Kairo UI controller directly
+            const response = await fetch('/AccountsMaintenance/SaveAccount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
 
             // Log the full database response
-            // console.log('[AccountMaintenance] Save response from database:', response);
+            // console.log('[AccountMaintenance] Save response from database:', result);
 
             // Extract Account ID from response Details array
             let accountId = '';
-            if (response?.Details && Array.isArray(response.Details) && response.Details.length > 0) {
+            if (result?.Details && Array.isArray(result.Details) && result.Details.length > 0) {
                 // Try to get the account ID from the first detail object
-                const firstDetail = response.Details[0];
+                const firstDetail = result.Details[0];
                 // The account ID might be in an empty key "" or under AccountID property
                 accountId = firstDetail[''] || firstDetail.AccountID || firstDetail.accountId || '';
             }
@@ -4069,42 +3456,7 @@
         highlightInvalidField(el);
     }
 
-    // --- Service / Data binding (Loan Maintenance pattern) ---
-
-    const __loadedScripts = new Map();
-    function loadScriptOnce(src) {
-        const url = String(src || '').trim();
-        if (!url) return Promise.reject(new Error('Missing script src'));
-        if (__loadedScripts.has(url)) return __loadedScripts.get(url);
-
-        const promise = new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = url;
-            script.async = true;
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
-            document.head.appendChild(script);
-        });
-
-        __loadedScripts.set(url, promise);
-        return promise;
-    }
-
-    async function ensureaccountserviceLoaded() {
-        if (window.accountservice?.getAccount) return window.accountservice;
-
-        // Prefer the shared loader if available; otherwise load it.
-        if (!window.ServiceLoader) {
-            await loadScriptOnce('/assets/js/services/shared/serviceLoader.js');
-        }
-
-        // Load core dependencies needed by accountservice (Environment, CoreBankingConfig, CoreApi)
-        await window.ServiceLoader.loadCore();
-
-        // Load accountservice itself
-        await loadScriptOnce('/assets/js/services/account/accountservice.js');
-        return window.accountservice;
-    }
+    // --- Service / Data binding (Direct Controller pattern - like Account Notes) ---
 
     function getOperatorId() {
         try {
@@ -4409,9 +3761,31 @@
         if (Array.isArray(data)) return data[0] || null;
         if (typeof data !== 'object') return null;
 
-        // Start with a merged object to collect all detail arrays
+        // Start with a merged object to collect all fields
         const merged = {};
 
+        // NEW: Handle nested structure from backend
+        // Response: { AccountDetails: {...}, FinancialSummary: {...}, Supervision: {...} }
+        if (data.AccountDetails && typeof data.AccountDetails === 'object') {
+            console.log('[AccountMaintenance] Merging AccountDetails:', data.AccountDetails);
+            Object.assign(merged, data.AccountDetails);
+        }
+        if (data.FinancialSummary && typeof data.FinancialSummary === 'object') {
+            console.log('[AccountMaintenance] Merging FinancialSummary:', data.FinancialSummary);
+            Object.assign(merged, data.FinancialSummary);
+        }
+        if (data.Supervision && typeof data.Supervision === 'object') {
+            console.log('[AccountMaintenance] Merging Supervision:', data.Supervision);
+            Object.assign(merged, data.Supervision);
+        }
+
+        // If we found nested data, return the merged record
+        if (Object.keys(merged).length > 0) {
+            console.log('[AccountMaintenance] Merged record from nested objects:', merged);
+            return merged;
+        }
+
+        // LEGACY: Handle old array-based structure
         // First, include the main "Details" array if it exists
         const mainDetailsArr = data.Details || data.details;
         if (Array.isArray(mainDetailsArr) && mainDetailsArr.length && mainDetailsArr[0]) {
@@ -4625,13 +3999,6 @@
     async function tryGetAccount(direction = 0) {
         // Show page loader
         showPageLoader(true, 'Loading account...');
-        
-        const accountservice = await ensureaccountserviceLoaded();
-        if (!accountservice?.getAccount) {
-            showPageLoader(false);
-            showErrorMessage('Account service is not available.');
-            return;
-        }
 
         const { branchIdInput } = findBranchInputs();
         const clientIdInput = findHeaderTextInput('ClientID');
@@ -4640,7 +4007,7 @@
         // Sanitize AccountID before using it in payload
         const rawAccountID = accountIdInput ? String(accountIdInput.value || '').trim() : '';
         const sanitizedAccountID = sanitizeAccountID(rawAccountID);
-        
+
         // Update the input field with sanitized value if it changed
         if (accountIdInput && rawAccountID !== sanitizedAccountID) {
             accountIdInput.value = sanitizedAccountID;
@@ -4655,135 +4022,136 @@
             DirectionType: direction === 0 ? 'A' : 'N'
         };
 
-        if (!payload.OurBranchID || (!payload.AccountID && currentMode !== 'ADD')) {
-            // Show inline errors for missing fields
-            // Note: In ADD mode, AccountID is not required (it's generated by the database)
-            const viewValidation = {
-                ok: false,
-                invalidEls: [],
-                fieldMessages: [],
-                messages: []
-            };
-            if (!payload.OurBranchID) {
-                viewValidation.invalidEls.push(branchIdInput);
-                viewValidation.fieldMessages.push('Branch is required');
-                viewValidation.messages.push('Branch is required');
-            }
-            if (!payload.AccountID && currentMode !== 'ADD') {
-                viewValidation.invalidEls.push(accountIdInput);
-                viewValidation.fieldMessages.push('Account ID is required');
-                viewValidation.messages.push('Account ID is required');
-            }
-            viewValidation.focusEl = viewValidation.invalidEls[0];
-            displayValidationErrors(viewValidation);
-            showPageLoader(false);
-            return;
-        }
-
         // console.log('[AccountMaintenance] Calling dbo.p_GetAccountCustomers', payload);
-        const result = await accountservice.getAccount(payload);
-        if (!result?.success) {
-            console.error('[AccountMaintenance] GetAccount failed', result);
-            showPageLoader(false);
-            showErrorMessage(result?.message || 'Unable to load account details.');
-            return;
-        }
 
-        // Check if response contains actual data
-        const hasData = result.data && (
-            (Array.isArray(result.data) && result.data.length > 0) ||
-            (result.data.Details && Array.isArray(result.data.Details) && result.data.Details.length > 0) ||
-            (result.data.Details01 && Array.isArray(result.data.Details01) && result.data.Details01.length > 0)
-        );
-        
-        if (!hasData) {
-            console.warn('[AccountMaintenance] Account not found - empty response', result);
-            showPageLoader(false);
-            showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-            window.AccountMaintenanceState.isAccountLoaded = false;
-            return;
-        }
+        try {
+            // Call Kairo UI controller directly (same pattern as Account Notes)
+            const response = await fetch('/AccountsMaintenance/get-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify(payload)
+            });
 
-        // console.log('[AccountMaintenance] GetAccount success', result.data);
-        const bindResult = bindAccountToForm(result.data);
-        if (!bindResult?.ok) {
-            showPageLoader(false);
-            showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-            window.AccountMaintenanceState.isAccountLoaded = false;
-            return;
-        }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        if (!bindResult.boundCount) {
-            showPageLoader(false);
-            showErrorMessage(`Account data could not be loaded. Please verify the Account ID and try again.`);
-            window.AccountMaintenanceState.isAccountLoaded = false;
-            return;
-        }
+            const result = await response.json();
 
-        // CRITICAL: Validate that we have ACTUAL account data from the API, not just empty records
-        // Check if the record from API actually contains account information
-        const recordAccountID = bindResult.record?.AccountID || bindResult.record?.AccountId || '';
-        const recordHasAccountData = recordAccountID && 
-                                     recordAccountID.trim() !== '' &&
-                                     (bindResult.record?.AccountName || 
-                                      bindResult.record?.Description || 
-                                      bindResult.record?.ShortName ||
-                                      bindResult.record?.BranchName ||
-                                      bindResult.record?.ClientID ||
-                                      bindResult.record?.ProductID);
-        
-        // Validate that we have a valid AccountID after binding
-        const accountIdEl = document.getElementById('AccountID');
-        const boundAccountID = accountIdEl?.value?.trim() || '';
-        
-        // Only validate AccountID if we're not in ADD mode and we had a requested AccountID
-        if (currentMode !== 'ADD' && payload.AccountID) {
-            // CRITICAL: Check if AccountID was actually bound from API record (not just user input)
-            // If record doesn't have AccountID or it doesn't match what we requested, it's invalid
-            if (!recordAccountID || recordAccountID.trim() === '') {
-                console.warn('[AccountMaintenance] API record does not contain AccountID - account not found');
+            // Backend returns: { Details: {...}, ResponseCode: "00", ResponseMessage: "Success" }
+            const isSuccess = result?.ResponseCode === '00' || result?.ResponseCode === 0 || result?.success === true;
+
+            if (!isSuccess) {
+                console.error('[AccountMaintenance] GetAccount failed', result);
+                showPageLoader(false);
+                showErrorMessage(result?.ResponseMessage || result?.message || 'Unable to load account details.');
+                return;
+            }
+
+            // Extract data from Details object
+            const data = result?.Details;
+            if (!data) {
+                console.warn('[AccountMaintenance] No Details in response', result);
+                showPageLoader(false);
+                showErrorMessage('No account data received from server.');
+                window.AccountMaintenanceState.isAccountLoaded = false;
+                return;
+            }
+
+            // Check if response contains actual account data
+            const hasAccountData = data.AccountDetails && typeof data.AccountDetails === 'object';
+
+            if (!hasAccountData) {
+                console.warn('[AccountMaintenance] Account not found - empty response', result);
                 showPageLoader(false);
                 showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
                 window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
                 return;
             }
-            
-            // Check if AccountID from API matches what was requested
-            const normalizedRequested = payload.AccountID.replace(/\s+/g, '').toLowerCase();
-            const normalizedRecord = recordAccountID.replace(/\s+/g, '').toLowerCase();
-            
-            if (normalizedRequested !== normalizedRecord && 
-                !normalizedRecord.includes(normalizedRequested) &&
-                !normalizedRequested.includes(normalizedRecord)) {
-                console.warn('[AccountMaintenance] AccountID mismatch - requested:', payload.AccountID, 'API returned:', recordAccountID);
+
+            // console.log('[AccountMaintenance] GetAccount success', data);
+            const bindResult = bindAccountToForm(data);
+            if (!bindResult?.ok) {
                 showPageLoader(false);
                 showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
                 window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
                 return;
             }
-            
-            // Check if we have meaningful account data (not just AccountID)
-            if (!recordHasAccountData) {
-                console.warn('[AccountMaintenance] API record has AccountID but no other account data - account may not exist');
+
+            if (!bindResult.boundCount) {
                 showPageLoader(false);
-                showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                showErrorMessage(`Account data could not be loaded. Please verify the Account ID and try again.`);
                 window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
                 return;
             }
-            
-            // If AccountID is completely missing after binding, that's an error
-            if (!boundAccountID || boundAccountID === '') {
-                console.warn('[AccountMaintenance] AccountID is empty after binding - invalid account data');
-                showPageLoader(false);
-                showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
-                window.AccountMaintenanceState.isAccountLoaded = false;
-                resetAllFormControls();
-                return;
+
+            // CRITICAL: Validate that we have ACTUAL account data from the API, not just empty records
+            // Check if the record from API actually contains account information
+            const recordAccountID = bindResult.record?.AccountID || bindResult.record?.AccountId || '';
+            const recordHasValidData = recordAccountID && 
+                                         recordAccountID.trim() !== '' &&
+                                         (bindResult.record?.AccountName || 
+                                          bindResult.record?.Description || 
+                                          bindResult.record?.ShortName ||
+                                          bindResult.record?.BranchName ||
+                                          bindResult.record?.ClientID ||
+                                          bindResult.record?.ProductID);
+
+            // Validate that we have a valid AccountID after binding
+            const accountIdEl = document.getElementById('AccountID');
+            const boundAccountID = accountIdEl?.value?.trim() || '';
+
+            // Only validate AccountID if we're not in ADD mode and we had a requested AccountID
+            if (currentMode !== 'ADD' && payload.AccountID) {
+                // CRITICAL: Check if AccountID was actually bound from API record (not just user input)
+                // If record doesn't have AccountID or it doesn't match what we requested, it's invalid
+                if (!recordAccountID || recordAccountID.trim() === '') {
+                    console.warn('[AccountMaintenance] API record does not contain AccountID - account not found');
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
+
+                // Check if AccountID from API matches what was requested
+                const normalizedRequested = payload.AccountID.replace(/\s+/g, '').toLowerCase();
+                const normalizedRecord = recordAccountID.replace(/\s+/g, '').toLowerCase();
+
+                if (normalizedRequested !== normalizedRecord && 
+                    !normalizedRecord.includes(normalizedRequested) &&
+                    !normalizedRequested.includes(normalizedRecord)) {
+                    console.warn('[AccountMaintenance] AccountID mismatch - requested:', payload.AccountID, 'API returned:', recordAccountID);
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
+
+                // Check if we have meaningful account data (not just AccountID)
+                if (!recordHasValidData) {
+                    console.warn('[AccountMaintenance] API record has AccountID but no other account data - account may not exist');
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
+
+                // If AccountID is completely missing after binding, that's an error
+                if (!boundAccountID || boundAccountID === '') {
+                    console.warn('[AccountMaintenance] AccountID is empty after binding - invalid account data');
+                    showPageLoader(false);
+                    showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
+                    window.AccountMaintenanceState.isAccountLoaded = false;
+                    resetAllFormControls();
+                    return;
+                }
             }
-        }
 
         // Set default zeros for rate and charge fields if they are empty (before formatting)
         const fieldsWithZeroDefaults = ['CreditRate', 'DebitRate', 'PenaltyRate', 'PendingCharges'];
@@ -4861,18 +4229,18 @@
 
         // Track recent activity (same pattern as Client Maintenance)
         trackRecentActivity(loadedBranchID, loadedAccountID);
-        
+
         // CRITICAL: Only show success message if we have ACTUAL account data loaded
         // All validation above should have caught invalid accounts, but double-check here
         // Reuse recordAccountID that was already declared above for validation
         const hasValidRecordAccountID = recordAccountID && recordAccountID.trim() !== '';
-        const hasAccountData = bindResult.boundCount > 0 && 
+        const hasValidBoundData = bindResult.boundCount > 0 && 
                                (loadedAccountName || loadedBranchName || loadedAccountTypeID || 
                                 document.getElementById('ShortName')?.value?.trim() ||
                                 document.getElementById('Address1')?.value?.trim() ||
                                 document.getElementById('ClientID')?.value?.trim() ||
                                 document.getElementById('ProductID')?.value?.trim());
-        
+
         // Only show success if:
         // 1. We have a valid AccountID from the API record
         // 2. We have actual account data bound (not just empty fields)
@@ -4884,14 +4252,14 @@
                                    recordAccountID === payload.AccountID ||
                                    recordAccountID.replace(/\s+/g, '').toLowerCase() === payload.AccountID.replace(/\s+/g, '').toLowerCase()
                                  ));
-        
-        if (hasValidRecordAccountID && hasAccountData && bindResult.boundCount > 0 && accountIDMatches && window.AccountMaintenanceState.isAccountLoaded) {
+
+        if (hasValidRecordAccountID && hasValidBoundData && bindResult.boundCount > 0 && accountIDMatches && window.AccountMaintenanceState.isAccountLoaded) {
             showSuccessMessage(`Account details loaded successfully. Account ID: ${loadedAccountID}`);
         } else {
             // Account was not actually loaded - this should have been caught above, but double-check
             console.error('[AccountMaintenance] Success message validation failed:', {
                 hasValidRecordAccountID,
-                hasAccountData,
+                hasValidBoundData,
                 boundCount: bindResult.boundCount,
                 accountIDMatches,
                 recordAccountID,
@@ -4899,15 +4267,22 @@
                 requestedAccountID: payload.AccountID
             });
             // Don't show error here as it should have been shown above - just don't show success
-            if (!hasValidRecordAccountID || !hasAccountData) {
+            if (!hasValidRecordAccountID || !hasValidBoundData) {
                 showErrorMessage(`Account not found. Please verify the Account ID and try again.`);
                 window.AccountMaintenanceState.isAccountLoaded = false;
                 resetAllFormControls();
             }
         }
-        
+
         // Re-wire info buttons after form is fully loaded and bound
         wireInfoButtons();
+
+        } catch (error) {
+            console.error('[AccountMaintenance] Error fetching account:', error);
+            showPageLoader(false);
+            showErrorMessage('Failed to load account details. Please try again.');
+            window.AccountMaintenanceState.isAccountLoaded = false;
+        }
     }
 
     /**
@@ -4974,12 +4349,6 @@
 
     async function fetchAccountOpeningDetails() {
         // console.log('[fetchAccountOpeningDetails] Function called');
-        const accountservice = await ensureaccountserviceLoaded();
-        if (!accountservice?.getAccountOpeningDetails) {
-            console.error('[AccountMaintenance] Account service is not available');
-            showErrorMessage('Account service is not available.');
-            return;
-        }
 
         const { branchIdInput } = findBranchInputs();
         const clientId = document.getElementById('ClientID')?.value?.trim() || '';
@@ -5019,7 +4388,7 @@
         }
 
         try {
-            // Pass only the data fields - CoreApi.makeRequestEnvelope will wrap them properly
+            // Pass only the data fields
             const payload = {
                 OurBranchID: branchId,
                 ClientID: clientId,
@@ -5027,7 +4396,22 @@
             };
 
             // console.log('[AccountMaintenance] Fetching opening details with payload:', payload);
-            const result = await accountservice.getAccountOpeningDetails(payload);
+
+            // Call Kairo UI controller directly
+            const response = await fetch('/AccountsMaintenance/GetAccountOpeningDetails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
 
             // console.log('[AccountMaintenance] Opening details raw result:', result);
 
@@ -5234,17 +4618,26 @@
     function wireActionButtons() {
         document.querySelectorAll('.btn-action').forEach(btn => {
             btn.addEventListener('click', async function () {
-                const action = this.textContent;
-                console.log('Action: ' + action);
+                const action = this.textContent.trim();
+                console.log('[AccountMaintenance] Action button clicked:', action);
 
+                // Check if a submodule is active and delegate to it
+                const submoduleFrame = document.querySelector('[data-child-iframe]');
+                if (submoduleFrame && submoduleFrame.contentWindow) {
+                    const delegated = delegateActionToSubmodule(action, submoduleFrame);
+                    if (delegated) {
+                        console.log('[AccountMaintenance] Action delegated to submodule');
+                        return;
+                    }
+                }
+
+                // Original parent form actions
                 if (action === 'View') {
                     currentMode = 'VIEW';
-                    // Clear previous validation errors
                     clearAllFieldErrors();
-                    
+
                     const result = validateViewAction();
                     if (!result.ok) {
-                        // Use inline validation display
                         displayValidationErrors(result);
                         return;
                     }
@@ -5263,17 +4656,14 @@
 
                 if (action === 'Edit') {
                     currentMode = 'EDIT';
-                    // Enable Account Name, City, and Country for editing
                     const editableFields = ['AccountName', 'CityID', 'CountryID'];
                     editableFields.forEach(fieldId => {
                         const field = document.getElementById(fieldId);
                         if (field) {
                             field.disabled = false;
                             field.readOnly = false;
-                            // console.log('[AccountMaintenance] Enabled field for editing:', fieldId);
                         }
                     });
-                    // console.log('[AccountMaintenance] Edit mode enabled - Account Name, City, and Country can be changed');
                 }
 
                 if (action === 'Save') {
@@ -5284,21 +4674,55 @@
                         console.error('[AccountMaintenance] Save handler failed', error);
                     }
                 }
-                
+
                 if (action === 'Cancel') {
                     handleCancelAction();
-                    return; // Don't change underline state
+                    return;
                 }
 
-                // Remove underline from all
+                // Update button underline state
                 document.querySelectorAll('.btn-action').forEach(b => b.classList.remove('underline'));
-
-                // Add underline to clicked
                 if (action === 'View' || action === 'Add' || action === 'Edit') {
                     this.classList.add('underline');
                 }
             });
         });
+    }
+
+    /**
+     * Delegate action to active submodule
+     * Returns true if delegated successfully, false otherwise
+     */
+    function delegateActionToSubmodule(action, submoduleFrame) {
+        try {
+            const submoduleWindow = submoduleFrame.contentWindow;
+            if (!submoduleWindow) return false;
+
+            // Check for AccountNotes module
+            if (submoduleWindow.AccountNotes) {
+                if (action === 'View') {
+                    submoduleWindow.AccountNotes.handleView();
+                    return true;
+                } else if (action === 'Edit') {
+                    submoduleWindow.AccountNotes.handleEdit();
+                    return true;
+                } else if (action === 'Save') {
+                    submoduleWindow.AccountNotes.handleSave();
+                    return true;
+                } else if (action === 'Cancel') {
+                    submoduleWindow.AccountNotes.handleCancel();
+                    return true;
+                }
+            }
+
+            // Check for other submodule APIs (Documents, ChequeBook, etc.)
+            // Add more submodule checks here as they're implemented
+
+            return false;
+        } catch (error) {
+            console.warn('[AccountMaintenance] Could not delegate to submodule:', error);
+            return false;
+        }
     }
     
     /**
@@ -5646,11 +5070,14 @@
         });
     }
     document.addEventListener('DOMContentLoaded', function () {
-        showPageLoader(true, 'Initializing form...');
-        
+        console.log('[AccountMaintenance] DOMContentLoaded fired - starting initialization');
+
         try {
-        // Clear any existing validation summaries on page load/refresh
-        hideValidationSummary();
+            showPageLoader(true, 'Initializing form...');
+            console.log('[AccountMaintenance] Starting initialization...');
+
+            // Clear any existing validation summaries on page load/refresh
+            hideValidationSummary();
         
         // Reset blur state on page load
         resetBlurState();
@@ -5680,16 +5107,21 @@
         wireSidebar();
         wireBlockingConfirmation();
         wireRecentActivities();
-        loadRecentActivityService().then(function () { loadRecentActivities(); });
+        console.log('[AccountMaintenance] Loading recent activities service...');
+        loadRecentActivityService()
+            .then(function () { 
+                console.log('[AccountMaintenance] Recent activities service loaded');
+                loadRecentActivities(); 
+            })
+            .catch(function(err) {
+                console.error('[AccountMaintenance] Failed to load recent activities:', err);
+                // Don't block page load if this fails
+            });
         wireSidebarToggle();
         wireSubmoduleSearch();
         updateBadgeCounts();
         wireOverlayClose();
         wireLookupButtons();
-        wireBranchSearchPanel();
-        wireClientSearchPanel();
-        wireAccountSearchPanel();
-        wireProductSearchPanel();
         wireBranchControl();
         wireClientControl();
         wireProductControl();
@@ -5732,7 +5164,11 @@
         });
 
         // Populate City and Country dropdowns
-        populateDropdowns();
+        console.log('[AccountMaintenance] Populating dropdowns...');
+        populateDropdowns().catch(function(err) {
+            console.error('[AccountMaintenance] Failed to populate dropdowns:', err);
+            // Don't block page load if this fails
+        });
 
         // Clear validation styling once the user starts correcting input.
         // This includes all required fields for save and view actions
@@ -5764,8 +5200,13 @@
         } catch {
             // ignore
         }
-        
+
+        } catch (error) {
+            console.error('[AccountMaintenance] CRITICAL ERROR during initialization:', error);
+            showPageLoader(false); // Force hide loader on error
+            showErrorMessage('Failed to initialize Account Maintenance: ' + error.message);
         } finally {
+            console.log('[AccountMaintenance] Initialization complete - hiding loader');
             // Always reveal form and hide loader (even on error, so user is not stuck)
             document.body.classList.add('page-ready');
             showPageLoader(false);

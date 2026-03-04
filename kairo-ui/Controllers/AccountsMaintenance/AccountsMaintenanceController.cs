@@ -222,6 +222,526 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         #endregion
 
+        #region API Endpoints - Channel to Backend API
+
+        // ============================================================================
+        // NOTES
+        // ============================================================================
+
+        [HttpPost]
+        [Route("api/get-notes")]
+        public async Task<IActionResult> GetNotes([FromBody] GetNotesRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_NOTES,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting notes");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/update-notes")]
+        public async Task<IActionResult> UpdateNotes([FromBody] UpdateNotesRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_NOTES,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating notes");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        // ============================================================================
+        // DOCUMENTS
+        // ============================================================================
+
+        [HttpPost]
+        [Route("api/get-account-document")]
+        public async Task<IActionResult> GetAccountDocument([FromBody] GetAccountDocumentRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT_DOCUMENT,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account document");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-account-document")]
+        public async Task<IActionResult> AddAccountDocument([FromBody] AddAccountDocumentRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_ACCOUNT_DOCUMENT,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding account document");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/update-account-document")]
+        public async Task<IActionResult> UpdateAccountDocument([FromBody] UpdateAccountDocumentRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_DOCUMENT,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account document");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/delete-account-document")]
+        public async Task<IActionResult> DeleteAccountDocument([FromBody] DeleteAccountDocumentRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.DELETE_ACCOUNT_DOCUMENT,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting account document");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        // ============================================================================
+        // FREEZE/RELEASE
+        // ============================================================================
+
+        [HttpPost]
+        [Route("api/get-account-freeze")]
+        public async Task<IActionResult> GetAccountFreeze([FromBody] GetAccountFreezeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT_FREEZE,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account freeze");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-account-freeze")]
+        public async Task<IActionResult> AddAccountFreeze([FromBody] AddAccountFreezeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_ACCOUNT_FREEZE,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding account freeze");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/release-account-freeze")]
+        public async Task<IActionResult> ReleaseAccountFreeze([FromBody] ReleaseAccountFreezeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.RELEASE_ACCOUNT_FREEZE,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error releasing account freeze");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        // ============================================================================
+        // CHEQUE BOOK
+        // ============================================================================
+
+        [HttpPost]
+        [Route("api/get-cheque-books")]
+        public async Task<IActionResult> GetChequeBooks([FromBody] GetChequeBooksRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_CHEQUE_BOOKS,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting cheque books");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/get-cheque-book-requests")]
+        public async Task<IActionResult> GetChequeBookRequests([FromBody] GetChequeBookRequestsRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_CHEQUE_BOOK_REQUESTS,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting cheque book requests");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-cheque-book")]
+        public async Task<IActionResult> AddChequeBook([FromBody] AddChequeBookRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_CHEQUE_BOOK,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding cheque book");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        // ============================================================================
+        // REMINDERS
+        // ============================================================================
+
+        [HttpPost]
+        [Route("api/get-account-reminders")]
+        public async Task<IActionResult> GetAccountReminders([FromBody] GetAccountRemindersRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT_REMINDERS,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account reminders");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-account-reminder")]
+        public async Task<IActionResult> AddAccountReminder([FromBody] AddAccountReminderRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_ACCOUNT_REMINDER,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding account reminder");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/update-account-reminder")]
+        public async Task<IActionResult> UpdateAccountReminder([FromBody] UpdateAccountReminderRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_REMINDER,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account reminder");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/delete-account-reminder")]
+        public async Task<IActionResult> DeleteAccountReminder([FromBody] DeleteAccountReminderRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.DELETE_ACCOUNT_REMINDER,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting account reminder");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// API endpoint - Search accounts
         /// </summary>
@@ -254,7 +774,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 // Call backend API through ApiService
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
+                    "AccountManagementApi",
                     "api/accounts/search",
                     requestData
                 );
@@ -288,9 +808,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 _logger.LogInformation("Get account request: {Request}", JsonSerializer.Serialize(requestData));
 
+                // Inject session data
+                requestData.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(requestData.OurBranchID))
+                {
+                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
-                    "api/accounts/details",
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT,
                     requestData
                 );
 
@@ -330,8 +857,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 requestData.BankID = "00";
 
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
-                    "api/accounts/update",
+                    "AccountManagementApi",
+                    ApiEndpoints.EDIT_ACCOUNT,
                     requestData
                 );
 
@@ -371,8 +898,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 requestData.BankID = "00";
 
                 var response = await _apiService.CreateAsync<JsonElement>(
-                    "SystemCoreApi",
-                    "api/accounts/create",
+                    "AccountManagementApi",
+                    ApiEndpoints.CREATE_ACCOUNT,
                     requestData
                 );
 
@@ -386,6 +913,89 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                     Success = false,
                     ErrorMessage = $"Error creating account: {ex.Message}"
                 });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Save account (used by Add mode in frontend)
+        /// </summary>
+        [HttpPost]
+        [Route("SaveAccount")]
+        public async Task<IActionResult> SaveAccount([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.CREATE_ACCOUNT,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving account");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get account opening details (for Add mode)
+        /// </summary>
+        [HttpPost]
+        [Route("GetAccountOpeningDetails")]
+        public async Task<IActionResult> GetAccountOpeningDetails([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Note: Backend endpoint doesn't exist yet - this will need to be added to backend API
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account opening details");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get unclear balance details
+        /// </summary>
+        [HttpPost]
+        [Route("GetUnClearBalance")]
+        public async Task<IActionResult> GetUnClearBalance([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Note: Backend endpoint doesn't exist yet - this will need to be added to backend API
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unclear balance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
     }
@@ -405,6 +1015,11 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     {
         public string? AccountNumber { get; set; }
         public string? AccountID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? ClientID { get; set; }
+        public string? OperatorID { get; set; }
+        public int Direction { get; set; }
+        public string? DirectionType { get; set; }
     }
 
     public class AccountUpdateRequest
@@ -432,5 +1047,164 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
+    }
+
+    // ============================================================================
+    // NOTES Request DTOs
+    // ============================================================================
+    public class GetNotesRequest
+    {
+        public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class UpdateNotesRequest
+    {
+        public string? AccountId { get; set; }
+        public string? Notes { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    // ============================================================================
+    // DOCUMENTS Request DTOs
+    // ============================================================================
+    public class GetAccountDocumentRequest
+    {
+        public string? AccountId { get; set; }
+        public string? DocumentId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class AddAccountDocumentRequest
+    {
+        public string? AccountId { get; set; }
+        public string? DocumentType { get; set; }
+        public string? DocumentClass { get; set; }
+        public string? ReceivedBy { get; set; }
+        public string? ReceivedDate { get; set; }
+        public string? Location { get; set; }
+        public string? Remarks { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class UpdateAccountDocumentRequest
+    {
+        public string? AccountId { get; set; }
+        public string? DocumentId { get; set; }
+        public string? DocumentType { get; set; }
+        public string? DocumentClass { get; set; }
+        public string? ReceivedBy { get; set; }
+        public string? ReceivedDate { get; set; }
+        public string? Location { get; set; }
+        public string? Remarks { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class DeleteAccountDocumentRequest
+    {
+        public string? AccountId { get; set; }
+        public string? DocumentId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    // ============================================================================
+    // FREEZE/RELEASE Request DTOs
+    // ============================================================================
+    public class GetAccountFreezeRequest
+    {
+        public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class AddAccountFreezeRequest
+    {
+        public string? AccountId { get; set; }
+        public string? FreezeAmount { get; set; }
+        public string? FreezeReason { get; set; }
+        public string? FreezeDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class ReleaseAccountFreezeRequest
+    {
+        public string? AccountId { get; set; }
+        public string? FreezeId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    // ============================================================================
+    // CHEQUE BOOK Request DTOs
+    // ============================================================================
+    public class GetChequeBooksRequest
+    {
+        public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class GetChequeBookRequestsRequest
+    {
+        public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class AddChequeBookRequest
+    {
+        public string? AccountId { get; set; }
+        public string? BookType { get; set; }
+        public string? NoOfLeaves { get; set; }
+        public string? ChequeStart { get; set; }
+        public string? IssueDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    // ============================================================================
+    // REMINDERS Request DTOs
+    // ============================================================================
+    public class GetAccountRemindersRequest
+    {
+        public string? AccountId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class AddAccountReminderRequest
+    {
+        public string? AccountId { get; set; }
+        public string? ReminderText { get; set; }
+        public string? ReminderDate { get; set; }
+        public string? ReminderType { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class UpdateAccountReminderRequest
+    {
+        public string? AccountId { get; set; }
+        public string? ReminderId { get; set; }
+        public string? ReminderText { get; set; }
+        public string? ReminderDate { get; set; }
+        public string? ReminderType { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class DeleteAccountReminderRequest
+    {
+        public string? AccountId { get; set; }
+        public string? ReminderId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 }

@@ -377,10 +377,17 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeSidebarNavToggles();
     wireClient360SidebarToggle();
     initializeClient360Overlay();
-    loadBranchInfo();
+    
 
     // Recent Activities (sidebar)
     renderClient360RecentActivities();
+
+
+
+    //wireRecentActivities();
+    //wireSidebarToggle();
+    //wireSubmoduleSearch();
+    //wireOverlaySubmodule();
 
     // Initial state: Print/Cancel disabled until a client loads successfully
     setClient360UiState('initial');
@@ -1272,10 +1279,6 @@ function initializeSectionToggles() {
     });
 }
 
-function loadBranchInfo() {
-    // Branch info is no longer needed in the UI
-    // Client ID will be the primary search field
-}
 
 async function handleClientSearch() {
     // Check if SearchModal is available
@@ -1879,14 +1882,14 @@ function openAccountStatement(accountId, branchId = '') {
 
         // Statement module reads AccountMaintenanceState from window.parent when loaded in an iframe.
         // Seed it on the current window before opening the overlay.
-        window.AccountMaintenanceState = {
-            isAccountLoaded: true,
-            OurBranchID: branch || ctx?.OurBranchID || '',
-            AccountID: accountId || '',
-            OperatorID: ctx?.OperatorID || '',
-            ClientID: currentClientData?.clientId || '',
-            ModuleID: MODULEID_CLIENT360
-        };
+        //window.AccountMaintenanceState = {
+        //    isAccountLoaded: true,
+        //    OurBranchID: branch || ctx?.OurBranchID || '',
+        //    AccountID: accountId || '',
+        //    OperatorID: ctx?.OperatorID || '',
+        //    ClientID: currentClientData?.clientId || '',
+        //    ModuleID: MODULEID_CLIENT360
+        //};
 
         openClient360Overlay(statementUrl.toString(), {
             title: `Statement View - ${String(accountId || '').trim() || 'Account'}`,

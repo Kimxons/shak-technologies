@@ -1,0 +1,475 @@
+@using CBS.Entities.SystemCore
+@{
+    ViewData["Title"] = "Client Supervision";
+    Layout = "_ApplicationLayout";
+
+    var clientTypeOptions = ViewData["SupervisionClientTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var titleOptions = ViewData["SupervisionTitleOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var genderOptions = ViewData["SupervisionGenderOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var residentOptions = ViewData["SupervisionResidentOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var countryOptions = ViewData["SupervisionCountryOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var literacyLevelOptions = ViewData["SupervisionLiteracyLevelOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var identificationTypeOptions = ViewData["SupervisionIdentificationTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var maritalStatusOptions = ViewData["SupervisionMaritalStatusOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var constitutionOptions = ViewData["SupervisionConstitutionOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var lineOfBusinessOptions = ViewData["SupervisionLineOfBusinessOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var addressTypeOptions = ViewData["SupervisionAddressTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var regionOptions = ViewData["SupervisionRegionOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var employmentStatusOptions = ViewData["SupervisionEmploymentStatusOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var companyTypeOptions = ViewData["SupervisionCompanyTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var occupationOptions = ViewData["SupervisionOccupationOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var yesNoOptions = ViewData["SupervisionYesNoOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+}
+
+@section Styles {
+    <style>
+        .multi-select-dropdown {
+            position: relative;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .multi-select-dropdown.open {
+            z-index: 99998 !important;
+        }
+
+        .multi-select-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+            background-color: #fff;
+            cursor: pointer;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .multi-select-btn:hover {
+            background-color: #f8f9fa;
+        }
+
+        .multi-select-options {
+            position: fixed;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            margin-top: 0.25rem;
+            max-height: 400px;
+            min-width: 300px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            z-index: 99999 !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            display: none;
+        }
+
+        .multi-select-header {
+            padding: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .multi-select-list {
+            padding: 0.25rem 0;
+        }
+
+        .multi-select-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            margin: 0;
+            transition: background-color 0.15s;
+            background-color: white;
+            user-select: none;
+        }
+
+        .multi-select-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .multi-select-option input[type="checkbox"] {
+            margin-right: 0.5rem;
+            cursor: pointer;
+        }
+
+        .preview-box {
+            height: 200px;
+        }
+
+        .sv-hidden {
+            display: none !important;
+        }
+    </style>
+}
+
+<div class="window">
+    <div class="main-container main-container--with-panel">
+        <main id="dv_clientSupervisionMain" class="form-content" role="region" aria-label="Client Supervision">
+            <div class="am-message-panel" id="dv_messagePanel">
+                <div class="am-message-panel__content">
+                    <i class="bi bi-info-circle"></i>
+                    <span id="spn_messageText"></span>
+                </div>
+
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleId" value="@ViewData["ModuleId"]" />
+
+            </div>
+
+            <div class="form-card" id="dv_centralKycCard">
+                <div class="form-section" id="dv_centralKycSection" data-section="central-kyc">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-shield-check"></i> Central KYC</span>
+                        <button type="button" id="btn_toggleCentralKyc" class="section-toggle-btn" aria-label="Toggle Central KYC" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <form id="frm_supervisionFilters" autocomplete="off">
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="label-blue" id="lbl_branchList" for="btn_branchFilter">Branch List</label>
+                                    <div class="multi-select-dropdown" id="dv_branchDropdown">
+                                        <button type="button" class="form-select multi-select-btn" id="btn_branchFilter" aria-label="Select branches">
+                                            <span id="spn_branchFilterText">--Select Branches--</span>
+                                            <i class="bi bi-chevron-down ms-auto"></i>
+                                        </button>
+                                        <div class="multi-select-options" id="dv_branchFilterOptions">
+                                            <div class="multi-select-header">
+                                                <label class="multi-select-option" id="lbl_selectAllBranches" for="chk_selectAllBranches">
+                                                    <input type="checkbox" id="chk_selectAllBranches">
+                                                    <span>Select All</span>
+                                                </label>
+                                            </div>
+                                            <div class="multi-select-list" id="dv_branchCheckboxList"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="label-blue" id="lbl_clientIdSearch" for="txt_clientIdSearch">Client ID</label>
+                                    <div class="input-group">
+                                        <input type="text" id="txt_clientIdSearch" class="form-control" />
+                                        <button id="btn_searchClient" class="btn btn-outline-secondary" type="button" aria-label="Search client">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card" id="dv_pendingSupervisionCard">
+                <div class="form-section" id="dv_pendingSupervisionSection" data-section="pending-supervision">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-hourglass-split"></i> Pending Supervision <span id="spn_recordCount" class="badge bg-warning ms-2">0 records</span></span>
+                        <button type="button" id="btn_togglePendingSupervision" class="section-toggle-btn" aria-label="Toggle Pending Supervision" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm" id="tbl_supervision">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th></th>
+                                        <th>Client ID</th>
+                                        <th>Client Type</th>
+                                        <th>Account ID</th>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Opening Date</th>
+                                        <th>Branch</th>
+                                        <th>Inputter</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl_supervisionBody">
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">
+                                            <i class="bi bi-inbox"></i> No pending supervisions found
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card" id="dv_clientDetailsSection">
+                <div class="form-section" id="dv_clientDetailsWrapper" data-section="client-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-person-badge"></i> Client Details</span>
+                        <button type="button" id="btn_toggleClientDetails" class="section-toggle-btn" aria-label="Toggle Client Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <ul class="nav nav-tabs" id="tbl_clientDetailsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="btn_tabPersonal" data-bs-toggle="tab" data-bs-target="#dv_tabPersonal" type="button" role="tab">Personal</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="btn_tabCorporate" data-bs-toggle="tab" data-bs-target="#dv_tabCorporate" type="button" role="tab">Corporate</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="btn_tabAddress" data-bs-toggle="tab" data-bs-target="#dv_tabAddress" type="button" role="tab">Address</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="btn_tabEmployment" data-bs-toggle="tab" data-bs-target="#dv_tabEmployment" type="button" role="tab">Employment</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="btn_tabOther" data-bs-toggle="tab" data-bs-target="#dv_tabOther" type="button" role="tab">Other Details</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="btn_tabImages" data-bs-toggle="tab" data-bs-target="#dv_tabImages" type="button" role="tab">Images</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="dv_clientDetailsTabContent">
+                            <div class="tab-pane fade show active" id="dv_tabPersonal" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_clientId" for="txt_clientId">ClientID</label><input type="text" id="txt_clientId" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_clientType" for="ddl_clientType">Client Type</label><select id="ddl_clientType" class="form-select" disabled><option value=""></option>@foreach (var option in clientTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_title" for="ddl_title">Title</label><select id="ddl_title" class="form-select" disabled><option value=""></option>@foreach (var option in titleOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_firstName" for="txt_firstName">First Name</label><input type="text" id="txt_firstName" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_middleName" for="txt_middleName">Middle Name</label><input type="text" id="txt_middleName" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_lastName" for="txt_lastName">Last Name</label><input type="text" id="txt_lastName" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_dob" for="txt_dob">DOB</label><input type="text" id="txt_dob" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_gender" for="ddl_gender">Gender</label><select id="ddl_gender" class="form-select" disabled><option value=""></option>@foreach (var option in genderOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_resident" for="ddl_resident">Resident</label><select id="ddl_resident" class="form-select" disabled><option value=""></option>@foreach (var option in residentOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_nationality" for="ddl_nationality">Nationality</label><select id="ddl_nationality" class="form-select" disabled><option value=""></option>@foreach (var option in countryOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_literacyLevel" for="ddl_literacyLevel">Literacy Level</label><select id="ddl_literacyLevel" class="form-select" disabled><option value=""></option>@foreach (var option in literacyLevelOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_issuedBy" for="txt_issuedBy">IssuedBy</label><input type="text" id="txt_issuedBy" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_identificationType" for="ddl_identificationType">Identification Type</label><select id="ddl_identificationType" class="form-select" disabled><option value=""></option>@foreach (var option in identificationTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_identificationNo" for="txt_identificationNo">IdentificationNo</label><input type="text" id="txt_identificationNo" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_identificationIssueDate" for="txt_identificationIssueDate">Identification Issue Date</label><input type="text" id="txt_identificationIssueDate" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_identificationExpiryDate" for="txt_identificationExpiryDate">Identification Expiry Date</label><input type="text" id="txt_identificationExpiryDate" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_maritalStatus" for="ddl_maritalStatus">Marital Status</label><select id="ddl_maritalStatus" class="form-select" disabled><option value=""></option>@foreach (var option in maritalStatusOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_motherName" for="txt_motherName">Mother Name</label><input type="text" id="txt_motherName" class="form-control" readonly></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dv_tabCorporate" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpClientId" for="txt_corpClientId">ClientID</label><input type="text" id="txt_corpClientId" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpClientType" for="ddl_corpClientType">Client Type</label><select id="ddl_corpClientType" class="form-select" disabled><option value=""></option>@foreach (var option in clientTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpClientName" for="txt_corpClientName">Client Name</label><input type="text" id="txt_corpClientName" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpCompanyName" for="txt_corpCompanyName">Company Name</label><input type="text" id="txt_corpCompanyName" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpConstitution" for="ddl_corpConstitution">Constitution</label><select id="ddl_corpConstitution" class="form-select" disabled><option value=""></option>@foreach (var option in constitutionOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpLineOfBusiness" for="ddl_corpLineOfBusiness">Line Of Business</label><select id="ddl_corpLineOfBusiness" class="form-select" disabled><option value=""></option>@foreach (var option in lineOfBusinessOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationType" for="ddl_corpIdentificationType">IdentificationType</label><select id="ddl_corpIdentificationType" class="form-select" disabled><option value=""></option>@foreach (var option in identificationTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationNo" for="txt_corpIdentificationNo">IdentificationNo</label><input type="text" id="txt_corpIdentificationNo" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpRegDate" for="txt_corpRegDate">Date Of Registration</label><input type="text" id="txt_corpRegDate" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpIssuedBy" for="txt_corpIssuedBy">Issued By</label><input type="text" id="txt_corpIssuedBy" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationIssueDate" for="txt_corpIdentificationIssueDate">IdentificationIssueDate</label><input type="text" id="txt_corpIdentificationIssueDate" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationExpiryDate" for="txt_corpIdentificationExpiryDate">Identification Expiry Date</label><input type="text" id="txt_corpIdentificationExpiryDate" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpTin" for="txt_corpTin">TIN Number</label><input type="text" id="txt_corpTin" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpCountry" for="txt_corpCountry">Country Of Incorporation</label><input type="text" id="txt_corpCountry" class="form-control" readonly></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dv_tabAddress" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressType" for="ddl_addressType">AddressType</label><select id="ddl_addressType" class="form-select" disabled><option value=""></option>@foreach (var option in addressTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_address1" for="txt_address1">Address1</label><input type="text" id="txt_address1" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressCountry" for="ddl_addressCountry">Country</label><select id="ddl_addressCountry" class="form-select" disabled><option value=""></option>@foreach (var option in countryOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressRegion" for="ddl_addressRegion">Region</label><select id="ddl_addressRegion" class="form-select" disabled><option value=""></option>@foreach (var option in regionOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressCity" for="txt_addressCity">City</label><input type="text" id="txt_addressCity" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressSubCity" for="txt_addressSubCity">Sub-City/Zone</label><input type="text" id="txt_addressSubCity" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressWereda" for="txt_addressWereda">Wereda</label><input type="text" id="txt_addressWereda" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressKebele" for="txt_addressKebele">Kebele</label><input type="text" id="txt_addressKebele" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressHouseNo" for="txt_addressHouseNo">HouseNumber</label><input type="text" id="txt_addressHouseNo" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressMobile" for="txt_addressMobile">Mobile</label><input type="text" id="txt_addressMobile" class="form-control" readonly></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dv_tabEmployment" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_empStatus" for="ddl_empStatus">Salaried/ Self Employed</label><select id="ddl_empStatus" class="form-select" disabled><option value=""></option>@foreach (var option in employmentStatusOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_empCompanyType" for="ddl_empCompanyType">CompanyType</label><select id="ddl_empCompanyType" class="form-select" disabled><option value=""></option>@foreach (var option in companyTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_empOccupation" for="ddl_empOccupation">Occupation</label><select id="ddl_empOccupation" class="form-select" disabled><option value=""></option>@foreach (var option in occupationOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_empPosition" for="txt_empPosition">Position</label><input type="text" id="txt_empPosition" class="form-control" readonly></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_empMonthlyIncome" for="txt_empMonthlyIncome">Average Monthly Income</label><input type="text" id="txt_empMonthlyIncome" class="form-control" readonly></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_empAnnualIncome" for="txt_empAnnualIncome">Average Annual Income</label><input type="text" id="txt_empAnnualIncome" class="form-control" readonly></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dv_tabOther" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_pep" for="ddl_pep">Politically Exposed Person</label><select id="ddl_pep" class="form-select" disabled><option value=""></option>@foreach (var option in yesNoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_usPerson" for="ddl_usPerson">US Person</label><select id="ddl_usPerson" class="form-select" disabled><option value=""></option>@foreach (var option in yesNoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="form-group"><label class="label-blue" id="lbl_dataCleansed" for="ddl_dataCleansed">Data Cleansed</label><select id="ddl_dataCleansed" class="form-select" disabled><option value=""></option>@foreach (var option in yesNoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="dv_tabImages" role="tabpanel">
+                                <div class="p-3">
+                                    <div class="row mb-4">
+                                        <div class="col-md-6 text-center">
+                                            <label class="label-blue d-block mb-2" id="lbl_photoPreview" for="img_photoPreview">Photo</label>
+                                            <div class="preview-box border rounded bg-light d-flex align-items-center justify-content-center">
+                                                <img id="img_photoPreview" class="img-fluid sv-hidden" alt="Photo" style="max-height: 190px;">
+                                                <div id="dv_noPhotoText" class="text-center p-3">
+                                                    <i class="bi bi-person-bounding-box text-muted" style="font-size: 3rem;"></i>
+                                                    <p class="text-muted small mt-2">No photo available</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-center">
+                                            <label class="label-blue d-block mb-2" id="lbl_signaturePreview" for="img_signaturePreview">Signature</label>
+                                            <div class="preview-box border rounded bg-light d-flex align-items-center justify-content-center">
+                                                <img id="img_signaturePreview" class="img-fluid sv-hidden" alt="Signature" style="max-height: 190px;">
+                                                <div id="dv_noSignatureText" class="text-center p-3">
+                                                    <i class="bi bi-pen text-muted" style="font-size: 3rem;"></i>
+                                                    <p class="text-muted small mt-2">No signature available</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="section-header py-1 mb-2 bg-light border">
+                                        <span class="small fw-bold px-2">UPLOADED IMAGES</span>
+                                    </div>
+                                    <div class="table-responsive border rounded bg-white">
+                                        <table class="table table-sm table-hover mb-0" id="tbl_photoSignature">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="ps-2">#</th>
+                                                    <th>Type</th>
+                                                    <th>Description</th>
+                                                    <th>Uploaded On</th>
+                                                    <th class="text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbl_photoSignatureBody">
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted py-3"><i class="bi bi-image"></i> No images found</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside id="dv_actionPanel" class="action-panel" role="complementary" aria-label="Client Supervision Actions">
+            <div class="action-buttons">
+                <button type="button" id="btn_view" class="btn-action" disabled data-action="view" aria-label="View selected client">
+                    <i class="bi bi-eye"></i>
+                    <span>View</span>
+                </button>
+                <button type="button" id="btn_approve" class="btn-action btn-action--success" disabled data-action="approve" aria-label="Approve selected supervision">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Approve</span>
+                </button>
+                <button type="button" id="btn_reject" class="btn-action btn-delete" disabled data-action="reject" aria-label="Reject selected supervision">
+                    <i class="bi bi-x-circle-fill"></i>
+                    <span>Reject</span>
+                </button>
+                <button type="button" id="btn_close" class="btn-action" data-action="close" aria-label="Close client supervision">
+                    <i class="bi bi-door-open"></i>
+                    <span>Close</span>
+                </button>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<div class="modal fade" id="mdl_supervisionReject" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Reject Supervision</h5>
+                <button type="button" id="btn_closeRejectModal" class="btn-close" data-bs-dismiss="modal" aria-label="Close rejection dialog"></button>
+            </div>
+            <div class="modal-body">
+                <form id="frm_supervisionReject">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i>
+                        You are about to reject this supervision. Please provide a reason.
+                    </div>
+                    <div class="mb-3">
+                        <label id="lbl_supervisionRejectRemarks" for="txa_supervisionRejectRemarks" class="form-label">Rejection Remarks <span class="text-danger">*</span></label>
+                        <textarea id="txa_supervisionRejectRemarks" class="form-control" rows="4" required minlength="10" placeholder="Enter reason for rejection (minimum 10 characters)"></textarea>
+                        <div class="invalid-feedback">Please provide a valid rejection reason (minimum 10 characters).</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn_cancelReject" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x"></i> Cancel</button>
+                <button type="button" class="btn btn-danger" id="btn_confirmSupervisionReject"><i class="bi bi-check"></i> Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/modules/identities/client-supervision/client-supervision.js"></script>
+}

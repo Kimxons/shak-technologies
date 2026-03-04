@@ -1,0 +1,337 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # NGINX Reverse Proxy
+  # ============================================
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - kairo-ui
+
+  # ============================================
+  # FRONTEND - Razor Pages UI (NEW - .NET 9)
+  # Replaces: kairo_frontend
+  # ============================================
+  kairo-ui:
+    container_name: kairo-ui
+    image: jipheens/kairo-ui:latest
+    build:
+      context: .
+      dockerfile: kairo-ui/Dockerfile
+    expose:
+      - "80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ApiSettings__IdentityAccessManagentBaseUrl=http://iam-api:80/api
+      - ApiSettings__SystemCoreBaseUrl=http://systemcore-api:80/api
+      - ApiSettings__ClientManagementBaseUrl=http://client-management-api:80/api
+      - ApiSettings__AccountManagementBaseUrl=http://account-management-api:80/api
+      - ApiSettings__HttpClientTimeoutSeconds=60
+      - OAuth__ClientId=kairoUI
+      - OAuth__ClientSecret=iam-client-secret-change-in-production
+      - OAuth__TokenEndpoint=http://iam-api:80/api/Account/Login
+    mem_limit: 512m
+    restart: unless-stopped
+    volumes:
+      - kairo-ui-logs:/app/logs
+    networks:
+      - app-network
+    depends_on:
+      - iam-api
+      - systemcore-api
+      - client-management-api
+      - account-management-api
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # CLIENT MANAGEMENT API (NEW - .NET 9)
+  # Replaces: client-maintenance
+  # ============================================
+  client-management-api:
+    container_name: client-management-api
+    image: jipheens/client-management-api:latest
+    build:
+      context: .
+      dockerfile: ClientManagement/Dockerfile
+    ports:
+      - "3306:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - AppSettings__DBType=SQLSERVER
+      - AppSettings__DBServerName=172.16.2.42\\SQL2022,3020
+      - AppSettings__DatabaseName=BRNET_TSEDEY
+      - AppSettings__BRUserName=ZAeuErdlFU6Sqye67u2MqxVAcivNQOM42iqslajFRLo=
+      - AppSettings__BRUserPassword=Z9DFQqbapr+TQsNUI33x7ahse2ZnI6S0Qgy9LY6FuZM=
+      - AppSettings__AppName=ClientManagement
+      - AppSettings__ValidIssuer=www.example.com
+      - AppSettings__ValidAudience=www.example.com
+      - AppSettings__UserKey=MTcyLjE2LjIuNDJcU1FMXzIwMTk
+      - AppSettings__CORS=https://kairo.craftsilicon.com,http://kairo-ui:80
+    mem_limit: 512m
+    restart: unless-stopped
+    volumes:
+      - client-mgmt-logs:/app/Logs
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # ACCOUNT MANAGEMENT API (NEW - .NET 9)
+  # Replaces: account-maintenance
+  # ============================================
+  account-management-api:
+    container_name: account-management-api
+    image: jipheens/account-management-api:latest
+    build:
+      context: .
+      dockerfile: AccountManagement/Dockerfile
+    ports:
+      - "3307:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - AppSettings__DBType=SQLSERVER
+      - AppSettings__DBServerName=172.16.2.42\\SQL2022,3020
+      - AppSettings__DatabaseName=BRNET_TSEDEY
+      - AppSettings__BRUserName=ZAeuErdlFU6Sqye67u2MqxVAcivNQOM42iqslajFRLo=
+      - AppSettings__BRUserPassword=Z9DFQqbapr+TQsNUI33x7ahse2ZnI6S0Qgy9LY6FuZM=
+      - AppSettings__AppName=AccountManagement
+      - AppSettings__commandtimeout=380
+      - AppSettings__ValidIssuer=www.example.com
+      - AppSettings__ValidAudience=www.example.com
+      - AppSettings__UserKey=MTcyLjE2LjIuNDJcU1FMXzIwMTk
+      - AppSettings__CORS=https://kairo.craftsilicon.com,http://kairo-ui:80
+    mem_limit: 512m
+    restart: unless-stopped
+    volumes:
+      - account-mgmt-logs:/app/Logs
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # SYSTEM CORE API (NEW - .NET 9)
+  # ============================================
+  systemcore-api:
+    container_name: systemcore-api
+    image: jipheens/systemcore-api:latest
+    build:
+      context: .
+      dockerfile: SystemCoreApi/Dockerfile
+    ports:
+      - "3311:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - AppSettings__dbtype=SQLSERVER
+      - AppSettings__dbservername=172.16.2.42\\SQL2022,3020
+      - AppSettings__databasename=BRNET_TSEDEY
+      - AppSettings__brusername=ZAeuErdlFU6Sqye67u2MqxVAcivNQOM42iqslajFRLo=
+      - AppSettings__bruserpassword=Z9DFQqbapr+TQsNUI33x7ahse2ZnI6S0Qgy9LY6FuZM=
+      - AppSettings__appname=SystemCoreApi
+      - AppSettings__commandtimeout=380
+      - AppSettings__validissuer=www.example.com
+      - AppSettings__validaudience=www.example.com
+      - AppSettings__userkey=MTcyLjE2LjIuNDJcU1FMXzIwMTk
+      - AppSettings__cors=https://kairo.craftsilicon.com,http://kairo-ui:80
+    mem_limit: 512m
+    restart: unless-stopped
+    volumes:
+      - systemcore-logs:/app/logs
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # MICROFINANCE SERVICE (EXISTING)
+  # ============================================
+  microfinance:
+    container_name: core_banking_microfinance
+    image: jipheens/core_banking_system:latest
+    ports:
+      - "3308:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - SERVICE_TYPE=Microfinance
+      - API_PREFIX=/api/microfinance
+    mem_limit: 400m
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # FACE SIGNATURE DETECTION (EXISTING)
+  # ============================================
+  face-signature-detection:
+    image: jipheens/face-signature-detection:with-libs
+    container_name: face-signature-detection
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 --threads 4 --timeout 120 app:app
+    ports:
+      - "5104:5000"
+    restart: unless-stopped
+    networks:
+      - app-network
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # CLIENT DOCUMENT API (EXISTING)
+  # ============================================
+  client-document-api:
+    image: jipheens/client_document_api:latest
+    container_name: client-document-api
+    ports:
+      - "5102:80"
+    restart: unless-stopped
+    networks:
+      - app-network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    volumes:
+      - client-doc-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "dotnet", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ============================================
+  # IAM SOLUTION API (EXISTING)
+  # ============================================
+  iam-api:
+    container_name: iam-solution-api
+    image: jipheens/iam-solution-api:latest
+    ports:
+      - "3309:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=172.16.2.3,3020;Database=Kairo_Auth;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - ConnectionStrings__KairoConnection=Server=172.16.2.3,3020;Database=Kairo_Auth;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - AppSettings__DBServerName=172.16.2.3,3020
+      - AppSettings__DatabaseName=Kairo_Auth
+      - AppSettings__BRUserName=ZAeuErdlFU6Sqye67u2MqxVAcivNQOM42iqslajFRLo=
+      - AppSettings__BRUserPassword=Z9DFQqbapr+TQsNUI33x7ahse2ZnI6S0Qgy9LY6FuZM=
+      - AppSettings__ValidIssuer=www.example.com
+      - AppSettings__ValidAudience=www.example.com
+      - AppSettings__CORS=https://kairo.craftsilicon.com,http://kairo-ui:80
+      - AppSettings__UserKey=MTcyLjE2LjIuNDJcU1FMXzIwMTk
+      - CorsSettings__AllowedOrigins=https://kairo.craftsilicon.com,http://kairo-ui:80
+      - Jwt__Secret=your-256-bit-secret-key-must-be-at-least-256-bits-long-for-HS256
+      - EmailSettings__SmtpUsername=your-email@gmail.com
+      - EmailSettings__SmtpPassword=your-app-password
+      - OAuth__ClientSecret=iam-client-secret-change-in-production
+    mem_limit: 512m
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "dotnet", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - iam-logs:/app/logs
+
+  # ============================================
+  # IAM WEB CLIENT (EXISTING)
+  # ============================================
+  iam-webclient:
+    container_name: iam-web-client
+    image: jipheens/iam-web-client:latest
+    ports:
+      - "3310:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ApiSettings__BaseUrl=http://iam-api:80/api
+    mem_limit: 512m
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      - iam-api
+    healthcheck:
+      test: ["CMD", "dotnet", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  kairo-ui-logs:
+    driver: local
+  client-mgmt-logs:
+    driver: local
+  account-mgmt-logs:
+    driver: local
+  systemcore-logs:
+    driver: local
+  nginx-logs:
+    driver: local
+  client-doc-uploads:
+    driver: local
+  iam-logs:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

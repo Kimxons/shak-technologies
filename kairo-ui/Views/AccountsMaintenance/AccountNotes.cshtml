@@ -73,15 +73,6 @@
           </div>
         </div>
       </div>
-
-      <div class="action-panel" aria-label="Form actions">        
-        <div class="action-buttons">
-          <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>          
-          <button class="btn-action" type="button" data-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
-          <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-lg me-1"></i>Cancel</button>          
-        </div>
-      </div>
     </main>
 
     <div class="am-message-panel" role="alert" aria-live="polite">
@@ -96,12 +87,10 @@
 
   <script src="../../../assets/js/config.js"></script>
   <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/account/accountservice.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-notes.js?v=20250128"></script>
+
+  <!-- NEW: Account Notes Implementation using AppCore -->
+  <script src="/js/modules/accountsmaintenance/account-notes.js"></script>
+
   <script>
     // Submodule state tracking
     let activeSubmodule = 'account-notes';
