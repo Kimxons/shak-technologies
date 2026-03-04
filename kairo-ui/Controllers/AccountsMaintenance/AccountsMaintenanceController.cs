@@ -1271,6 +1271,70 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         }
 
         /// <summary>
+        /// API endpoint - Get client basic details (for account creation auto-populate)
+        /// </summary>
+        [HttpPost]
+        [Route("get-client-basic-details")]
+        public async Task<IActionResult> GetClientBasicDetails([FromBody] GetClientBasicDetailsRequest requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                {
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+                }
+
+                _logger.LogInformation("Get client basic details request: {Request}", JsonSerializer.Serialize(requestData));
+
+                // Inject session data with fallbacks (following Client360 pattern)
+                if (string.IsNullOrWhiteSpace(requestData.OperatorID))
+                {
+                    requestData.OperatorID = HttpContext.Session.GetString("user_name") 
+                        ?? HttpContext.Session.GetString("user_id") 
+                        ?? "web_portal";
+                }
+                
+                if (string.IsNullOrWhiteSpace(requestData.OurBranchID))
+                {
+                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code") 
+                        ?? HttpContext.Session.GetString("branch_id") 
+                        ?? "0101";
+                }
+
+                // Build proper request object matching ClientBasicDetails entity structure
+                var apiRequest = new
+                {
+                    ClientID = requestData.ClientID,
+                    OurBranchID = requestData.OurBranchID,
+                    OperatorID = requestData.OperatorID,
+                    ClientTypeID = "I", // Default to Individual, API will return correct value
+                    RequestId = HttpContext.Connection.Id,
+                    RequestSource = "KAIRO-UI",
+                    CreatedBy = requestData.OperatorID
+                };
+
+                _logger.LogInformation("Sending to ClientManagement API: {ApiRequest}", JsonSerializer.Serialize(apiRequest));
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "ClientManagementApi",
+                    ApiEndpoints.GET_CLIENT_BASIC_DETAILS,
+                    apiRequest
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving client basic details");
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    ErrorMessage = $"Error retrieving client details: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
         /// API endpoint - Save account (used by Add mode in frontend)
         /// </summary>
         [HttpPost]
@@ -1378,29 +1442,119 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
     public class AccountUpdateRequest
     {
+        // Key identifiers
         public string? AccountNumber { get; set; }
         public string? AccountID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? ClientID { get; set; }
+        public string? ProductID { get; set; }
+        
+        // Account details
         public string? AccountName { get; set; }
+        public string? Name { get; set; }  // Database column name (t_AccountCustomer.Name)
+        public string? ShortName { get; set; }
         public string? ProductCode { get; set; }
         public string? CurrencyCode { get; set; }
+        public string? CurrencyID { get; set; }
         public string? Status { get; set; }
+        
+        // Address fields
+        public string? Address1 { get; set; }
+        public string? Address2 { get; set; }
+        public string? CityID { get; set; }
+        public string? CountryID { get; set; }
+        
+        // Contact fields
+        public string? PhoneHome { get; set; }
+        public string? Phone1 { get; set; }  // API field name
+        public string? PhoneWork { get; set; }
+        public string? Phone2 { get; set; }  // API field name
+        public string? FaxNo { get; set; }
+        public string? Mobile { get; set; }
+        public string? EmailID { get; set; }
+        public string? ContactPerson { get; set; }
+        
+        // Operating details
+        public string? OperatingModeID { get; set; }
+        public string? OperatingInstructions { get; set; }
+        
+        // Classification and officers
+        public string? AccountClassID { get; set; }
+        public string? AccountOfficerID { get; set; }
+        public string? LiquidationAccountID { get; set; }
+        public string? SalesOfficerID { get; set; }
+        
+        // Passbook
+        public string? PassbookSerialID { get; set; }
+        public bool? ExemptPassBook { get; set; }
+        
+        // System fields (injected by server)
         public string? UserID { get; set; }
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
+        
+        // Update tracking
+        public int? UpdateCount { get; set; }
+        public string? ModifiedBy { get; set; }
     }
 
     public class AccountCreateRequest
     {
+        // Key identifiers
         public string? ClientID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? ProductID { get; set; }
+        
+        // Account details
         public string? AccountName { get; set; }
+        public string? Name { get; set; }  // Database column name (t_AccountCustomer.Name)
+        public string? ShortName { get; set; }
         public string? ProductCode { get; set; }
         public string? CurrencyCode { get; set; }
+        public string? CurrencyID { get; set; }
         public string? AccountTypeCode { get; set; }
+        
+        // Address fields
+        public string? Address1 { get; set; }
+        public string? Address2 { get; set; }
+        public string? CityID { get; set; }
+        public string? CountryID { get; set; }
+        
+        // Contact fields
+        public string? PhoneHome { get; set; }
+        public string? Phone1 { get; set; }  // API field name
+        public string? PhoneWork { get; set; }
+        public string? Phone2 { get; set; }  // API field name
+        public string? FaxNo { get; set; }
+        public string? Mobile { get; set; }
+        public string? EmailID { get; set; }
+        public string? ContactPerson { get; set; }
+        
+        // Operating details
+        public string? OperatingModeID { get; set; }
+        public string? OperatingInstructions { get; set; }
+        
+        // Classification and officers
+        public string? AccountClassID { get; set; }
+        public string? AccountOfficerID { get; set; }
+        public string? LiquidationAccountID { get; set; }
+        public string? SalesOfficerID { get; set; }
+        
+        // Passbook
+        public string? PassbookSerialID { get; set; }
+        public bool? ExemptPassBook { get; set; }
+        
+        // System fields (injected by server)
         public string? UserID { get; set; }
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
+        public string? CreatedBy { get; set; }
+        
+        // Opening details (not nullable)
+        public string? OpenedBy { get; set; }
+        public string? OpenedDate { get; set; }
     }
 
     // ============================================================================
@@ -1564,6 +1718,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     {
         public string? AccountId { get; set; }
         public string? ReminderId { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    // ============================================================================
+    // CLIENT DETAILS Request DTO (for account creation auto-populate)
+    // ============================================================================
+    public class GetClientBasicDetailsRequest
+    {
+        public string? ClientID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }
