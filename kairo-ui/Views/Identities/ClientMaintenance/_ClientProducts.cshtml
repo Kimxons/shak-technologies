@@ -1,0 +1,53 @@
+<div class="form-section" data-section="client-products" data-cm-tab="products">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-grid"></i>Products &amp; Services</span>
+        <button id="btn_toggleClientProducts" type="button" class="section-toggle-btn" aria-label="Toggle Products and Services" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientProducts" autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdProducts" value="@ViewData["ModuleId"]" />
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">ELIGIBLE PRODUCTS</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white" data-products-container>
+                        <table class="table table-sm mb-0" data-table="products">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Product</th>
+                                    <th>Type</th>
+                                    <th class="text-center">Select</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientProductsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">SERVICE CHANNELS</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white" data-services-container>
+                        <table class="table table-sm mb-0" data-table="services">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Service</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Active</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientServicesBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-products.js"></script>

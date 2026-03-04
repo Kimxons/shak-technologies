@@ -263,12 +263,10 @@
                 const tableID = document.getElementById('search-table-id')?.value;
                 const whereStmt = document.getElementById('search-where-stmt')?.value || '';
                 const advFilter = document.getElementById('search-adv-filter')?.value || '';
-                const moduleID = document.getElementById('search-module-id')?.value || '100';
+                const moduleID = document.getElementById('search-module-id')?.value || '1000';
 
                 console.log('[SearchModal] ✅ READING HIDDEN FIELDS - TableID:', tableID, '| WhereStmt:', whereStmt);
 
-                //const moduleID = document.getElementById('search-module-id')?.value || '100';
-                
                 // Get page size from dropdown
                 const pageSizeDropdown = document.getElementById('search-page-size');
                 this.pageSize = pageSizeDropdown ? parseInt(pageSizeDropdown.value) : 20;

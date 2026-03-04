@@ -1,0 +1,56 @@
+<div class="form-section" data-section="client-submit" data-cm-tab="submit">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-check2-circle"></i>Submit</span>
+        <button id="btn_toggleClientSubmit" type="button" class="section-toggle-btn" aria-label="Toggle Submit" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+                    <!-- Hidden fields for page context -->
+                    <input type="hidden" id="moduleIdSubmit" value="@ViewData["ModuleId"]" />
+
+        <header class="cm-summary-header d-flex justify-content-between gap-3 flex-wrap">
+            <div>
+                <p class="cm-summary-eyebrow">Workflow summary</p>
+                <h3 class="cm-summary-title" data-client-name>Choose a client to begin</h3>
+                <p class="text-muted mb-0" data-client-summary>Capture the essentials, validate lookup data, then proceed with workflow actions on the right rail.</p>
+            </div>
+            <div class="cm-summary-status d-flex flex-column align-items-end">
+                <span class="badge text-bg-primary" data-client-status>Draft</span>
+                <span class="badge text-bg-secondary mt-1" data-client-workflow>Pending</span>
+            </div>
+        </header>
+        <div class="cm-summary-badges">
+            <span class="cm-summary-pill" data-summary="mode">Add</span>
+            <span class="cm-summary-pill" data-summary="clientId">—</span>
+            <span class="cm-summary-pill" data-summary="clientType">—</span>
+            <span class="cm-summary-pill" data-summary="relationshipManager">—</span>
+            <span class="cm-summary-pill" data-page-function-pill>Mode · Add</span>
+        </div>
+        <div class="cm-summary-grid">
+            <article class="summary-card">
+                <p class="summary-label">Client Name</p>
+                <p class="summary-value" data-client-segment>Segment · —</p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Client ID</p>
+                <p class="summary-value" data-summary="clientId">—</p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Relationship Manager</p>
+                <p class="summary-value" data-client-rm>—</p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Opened On</p>
+                <p class="summary-value" data-client-opened>—</p>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Last Modified</p>
+                <p class="summary-value" data-client-modified>—</p>
+            </article>
+        </div>
+        <p class="cm-submit-hint">Review the summary above. When ready, click Save to complete the final save and harmonize all changes.</p>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-submit.js"></script>

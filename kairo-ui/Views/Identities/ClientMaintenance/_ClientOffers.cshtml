@@ -1,0 +1,43 @@
+<div class="form-section" data-section="client-offers" data-cm-tab="offers">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-gift"></i>Special Offers</span>
+        <button id="btn_toggleClientOffers" type="button" class="section-toggle-btn" aria-label="Toggle Special Offers" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientOffers" autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdOffers" value="@ViewData["ModuleId"]" />
+
+            <div class="form-row two-col">
+                <div class="col">
+                    <div class="bs-field bs-inline mb-3">
+                        <label class="bs-label" for="chk_offerCanSendGreetings">Can Send Greetings</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_offerCanSendGreetings" name="CanSendGreetings" />
+                    </div>
+                    <div class="bs-field bs-inline mb-3">
+                        <label class="bs-label" for="chk_offerCanSendAssociateSpecialOffer">Can Send Associate Special Offer</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_offerCanSendAssociateSpecialOffer" name="CanSendAssociateSpecialOffer" />
+                    </div>
+                    <div class="bs-field bs-inline mb-3">
+                        <label class="bs-label" for="chk_offerCanSendOurSpecialOffers">Can Send Our Special Offers</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_offerCanSendOurSpecialOffers" name="CanSendOurSpecialOffers" />
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="bs-field bs-inline mb-3">
+                        <label class="bs-label" for="chk_offerEStatementRequired">Statement Online</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_offerEStatementRequired" name="eStatementRequired" />
+                    </div>
+                    <div class="bs-field bs-inline mb-3">
+                        <label class="bs-label" for="chk_offerMobileAlertRequired">Mobile Alert</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_offerMobileAlertRequired" name="MobileAlertRequired" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-offers.js"></script>

@@ -220,6 +220,192 @@
         });
     }
 
+    function buildControllerUrl(endpoint, requestData, useQueryString) {
+        const baseUrl = global.location?.origin || window.location.origin;
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        let fullUrl = `${baseUrl}${cleanEndpoint}`;
+
+        if (useQueryString && requestData && typeof requestData === 'object') {
+            const queryParams = new URLSearchParams();
+            Object.keys(requestData).forEach((key) => {
+                const value = requestData[key];
+                if (value !== null && value !== undefined && value !== '') {
+                    queryParams.append(key, value);
+                }
+            });
+            if (queryParams.toString()) {
+                fullUrl += `?${queryParams.toString()}`;
+            }
+        }
+
+        return fullUrl;
+    }
+
+    function buildControllerHeaders({ includeJsonContentType = true, extraHeaders = {} } = {}) {
+        const headers = {
+            'X-Requested-With': 'XMLHttpRequest',
+            ...extraHeaders
+        };
+
+        if (includeJsonContentType) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        const xsrfToken = getXsrfToken();
+        if (xsrfToken) {
+            headers[getXsrfHeaderName()] = xsrfToken;
+        }
+
+        return headers;
+    }
+
+    function createHttpError(response, responseData) {
+        const message =
+            responseData?.Message ||
+            responseData?.message ||
+            responseData?.ErrorMessage ||
+            responseData?.errorMessage ||
+            `HTTP ${response.status}: ${response.statusText}`;
+        const error = new Error(message);
+        error.status = response.status;
+        error.response = responseData;
+        return error;
+    }
+
+    async function readControllerResponse(response, responseType = 'json') {
+        if (responseType === 'blob') {
+            return await response.blob();
+        }
+
+        if (responseType === 'text') {
+            return await response.text();
+        }
+
+        const bodyText = await response.text();
+        if (!bodyText) {
+            return { Success: response.ok, Message: response.statusText };
+        }
+
+        try {
+            return JSON.parse(bodyText);
+        } catch (parseError) {
+            return {
+                Success: response.ok,
+                Message: response.statusText,
+                RawBody: bodyText
+            };
+        }
+    }
+
+    async function invokeControllerByMethod(endpoint, method, requestData, callback, options = {}) {
+        try {
+            if (!endpoint || typeof endpoint !== 'string') {
+                const error = new Error('Endpoint is required and must be a string');
+                if (callback) callback(error, null, 400);
+                return;
+            }
+
+            if (callback && typeof callback !== 'function') {
+                console.error('❌ [CONTROLLER] Invalid callback');
+                return;
+            }
+
+            const verb = (method || 'POST').toUpperCase();
+            const useQueryString = options.useQueryString ?? (verb === 'GET');
+            const responseType = options.responseType || 'json';
+            const body = options.body !== undefined ? options.body : requestData;
+            const isFormData = body instanceof FormData;
+            const includeJsonContentType = !isFormData && options.includeJsonContentType !== false;
+
+            const fullUrl = buildControllerUrl(endpoint, useQueryString ? requestData : null, useQueryString);
+            const headers = buildControllerHeaders({
+                includeJsonContentType,
+                extraHeaders: options.headers || {}
+            });
+
+            const fetchOptions = {
+                method: verb,
+                headers,
+                credentials: 'include'
+            };
+
+            if (verb !== 'GET' && verb !== 'HEAD') {
+                if (isFormData) {
+                    fetchOptions.body = body;
+                    delete fetchOptions.headers['Content-Type'];
+                } else if (body !== undefined && body !== null) {
+                    fetchOptions.body = includeJsonContentType ? JSON.stringify(body) : body;
+                }
+            }
+
+            const response = await fetch(fullUrl, fetchOptions);
+            const responseData = await readControllerResponse(response, responseType);
+
+            if (response.ok) {
+                if (callback) callback(null, responseData, response.status);
+                return;
+            }
+
+            const error = createHttpError(response, responseData);
+            if (callback) callback(error, responseData, response.status);
+        } catch (error) {
+            if (callback) callback(error, null, 0);
+        }
+    }
+
+    async function invokeControllerByMethodAsync(endpoint, method, requestData, options = {}) {
+        return new Promise((resolve, reject) => {
+            invokeControllerByMethod(endpoint, method, requestData, (error, response) => {
+                if (error) reject(error);
+                else resolve(response);
+            }, options);
+        });
+    }
+
+    async function invokeControllerUpdate(endpoint, requestData, callback) {
+        return invokeControllerByMethod(endpoint, 'PUT', requestData, callback);
+    }
+
+    async function invokeControllerUpdateAsync(endpoint, requestData) {
+        return invokeControllerByMethodAsync(endpoint, 'PUT', requestData);
+    }
+
+    async function invokeControllerDelete(endpoint, requestData, callback) {
+        return invokeControllerByMethod(endpoint, 'DELETE', requestData, callback, { useQueryString: false });
+    }
+
+    async function invokeControllerDeleteAsync(endpoint, requestData) {
+        return invokeControllerByMethodAsync(endpoint, 'DELETE', requestData, { useQueryString: false });
+    }
+
+    async function invokeControllerMultipart(endpoint, formData, callback, method = 'POST') {
+        return invokeControllerByMethod(endpoint, method, null, callback, {
+            body: formData,
+            includeJsonContentType: false
+        });
+    }
+
+    async function invokeControllerMultipartAsync(endpoint, formData, method = 'POST') {
+        return invokeControllerByMethodAsync(endpoint, method, null, {
+            body: formData,
+            includeJsonContentType: false
+        });
+    }
+
+    async function invokeControllerDownload(endpoint, requestData, callback) {
+        return invokeControllerByMethod(endpoint, 'GET', requestData, callback, {
+            responseType: 'blob',
+            useQueryString: true
+        });
+    }
+
+    async function invokeControllerDownloadAsync(endpoint, requestData) {
+        return invokeControllerByMethodAsync(endpoint, 'GET', requestData, {
+            responseType: 'blob',
+            useQueryString: true
+        });
+    }
+
     /**
      * Generic method to invoke MVC controller endpoints with GET request
      * Converts requestData to query string parameters
@@ -647,10 +833,20 @@
     const AppCore = {
         invokeController,
         invokeControllerAsync,
+        invokeControllerByMethod,
+        invokeControllerByMethodAsync,
         invokeControllerGet,
         invokeControllerGetAsync,
         invokeControllerGetView,
         invokeControllerGetViewAsync,
+        invokeControllerUpdate,
+        invokeControllerUpdateAsync,
+        invokeControllerDelete,
+        invokeControllerDeleteAsync,
+        invokeControllerMultipart,
+        invokeControllerMultipartAsync,
+        invokeControllerDownload,
+        invokeControllerDownloadAsync,
         getXsrfToken,
         getXsrfHeaderName,
         log,

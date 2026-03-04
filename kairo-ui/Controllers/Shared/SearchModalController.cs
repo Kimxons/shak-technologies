@@ -11,17 +11,20 @@ namespace kairo_ui.Controllers.Shared
     {
         private readonly IAuthService _authService;
         private readonly IApiService _apiService;
+        private readonly IApiCachedService _apiCachedService;
         private readonly IConfiguration _config;
         private readonly ILogger<SearchModalController> _logger;
 
         public SearchModalController(
             IAuthService authService,
             IApiService apiService,
+            IApiCachedService apiCachedService,
             IConfiguration configuration,
             ILogger<SearchModalController> logger)
         {
             _authService = authService;
             _apiService = apiService;
+            _apiCachedService = apiCachedService;
             _config = configuration;
             _logger = logger;
         }
@@ -183,30 +186,13 @@ namespace kairo_ui.Controllers.Shared
             {
                 _logger.LogInformation($"[SearchModal] Fetching search config for TableID: {tableID}");
 
-                var configRequestData = new
+                // Use cached service for search configuration
+                var searchConfig = await _apiCachedService.GetSearchConfigurationAsync(tableID);
+
+                if (searchConfig != null)
                 {
-                    SearchID = tableID
-                };
-
-                // Call SystemCoreApi GetSystemSearch endpoint using IApiService
-                var response = await _apiService.CreateAsync<ResponseDetail<object>>("SystemCoreApi", ApiEndpoints.GET_SYSTEM_SEARCH, configRequestData);
-
-                _logger.LogInformation($"[SearchModal] Config response received - ResponseCode: {response?.ResponseCode}");
-
-                if (response?.ResponseCode == "00" && response.Details != null)
-                {
-                    // Parse the Details object to SearchConfigDto
-                    var detailsJson = JsonSerializer.Serialize(response.Details);
-                    var searchConfig = JsonSerializer.Deserialize<SearchConfigDto>(detailsJson, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    if (searchConfig != null)
-                    {
-                        _logger.LogInformation($"[SearchModal] Search config loaded - SearchID: {searchConfig.SearchID}, Fields: {searchConfig.SearchFields.Count}");
-                        return searchConfig;
-                    }
+                    _logger.LogInformation($"[SearchModal] Search config loaded - SearchID: {searchConfig.SearchID}, Fields: {searchConfig.SearchFields.Count}");
+                    return searchConfig;
                 }
 
                 _logger.LogWarning($"[SearchModal] No valid search configuration found for TableID: {tableID}");

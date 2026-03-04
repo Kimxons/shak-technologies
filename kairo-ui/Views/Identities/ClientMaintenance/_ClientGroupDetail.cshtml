@@ -1,0 +1,57 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var joinOnOptions = ViewData["GroupJoinOnOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-section" data-section="client-group-detail" data-cm-tab="group-detail">
+    <div class="section-header" data-section-toggle>
+      <span class="section-header__title"><i class="bi bi-diagram-3"></i>Group Detail</span>
+  <button id="btn_toggleClientGroupDetail" type="button" class="section-toggle-btn" aria-label="Toggle Group Detail" aria-expanded="true">
+ <i class="bi bi-chevron-up"></i>
+ </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientGroupDetail" autocomplete="off" novalidate>
+      <!-- Hidden fields for page context -->
+  <input type="hidden" id="moduleIdGroupDetail" value="@ViewData["ModuleId"]" />
+
+    <div class="form-row two-col">
+    <div class="col">
+   <label for="txt_groupCenterId" id="lbl_groupCenterId">Center ID</label>
+     <div class="kairo-control" data-kairo-control>
+      <input id="txt_groupCenterId" name="CenterID" class="bs-input-text" />
+  <input id="txt_groupCenterName" placeholder="Center Name" class="bs-input-text" readonly />
+       <button type="button" class="btn-lookup" aria-label="Search center"><i class="bi bi-search"></i></button>
+             </div>
+  </div>
+         <div class="col">
+      <label class="label-blue" for="txt_groupId" id="lbl_groupId">Group ID</label>
+   <div class="kairo-control" data-kairo-control>
+   <input id="txt_groupId" name="GroupID" class="bs-input-text" required />
+         <input id="txt_groupName" placeholder="Group Name" class="bs-input-text" readonly />
+   <button type="button" class="btn-lookup" aria-label="Search group"><i class="bi bi-search"></i></button>
+     </div>
+       </div>
+    </div>
+
+    <div class="form-row four-col">
+      <div class="col">
+    <label class="label-blue" for="ddl_groupJoinOn" id="lbl_groupJoinOn">Join On</label>
+    <select id="ddl_groupJoinOn" name="JoinOn" class="bs-select" required asp-items="@(joinOnOptions.Skip(1))">
+   <option value="">Select...</option>
+       </select>
+   </div>
+        <div class="col"><label class="label-blue" for="txt_groupMaxGroupLoans" id="lbl_groupMaxGroupLoans">Max Group Loans</label><input id="txt_groupMaxGroupLoans" name="MaxGroupLoans" class="bs-input-text" type="number" min="0" required /></div>
+  <div class="col"><label class="label-blue" for="txt_groupMaxGroupLoanLimit" id="lbl_groupMaxGroupLoanLimit">Max Group Loan Limit</label><input id="txt_groupMaxGroupLoanLimit" name="MaxGroupLoanLimit" class="bs-input-text" type="number" step="0.01" required /></div>
+   </div>
+
+            <div class="form-row four-col">
+                <div class="col"><label for="txt_groupMaxOtherLoans" id="lbl_groupMaxOtherLoans">Max Other Loans</label><input id="txt_groupMaxOtherLoans" name="MaxOtherLoans" class="bs-input-text" type="number" min="0" /></div>
+                <div class="col"><label for="txt_groupMaxOtherLoanLimit" id="lbl_groupMaxOtherLoanLimit">Max Other Loan Limit</label><input id="txt_groupMaxOtherLoanLimit" name="MaxOtherLoanLimit" class="bs-input-text" type="number" step="0.01" /></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-group-detail.js"></script>
