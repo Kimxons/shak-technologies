@@ -1082,27 +1082,27 @@ window.addEventListener("message", (event) => {
         modalEl.dataset.childLockCount = String(next);
         modalEl.dataset.childLock = next > 0 ? "true" : "false";
     }
-    
+
     // Handle window actions (minimize, maximize, close, refresh) from iframes
     if (data.type === "kairo-action" && ["minimize", "maximize", "close", "refresh"].includes(data.action)) {
         const action = data.action;
-      const modals = document.querySelectorAll(".legacy-modal");
+        const modals = document.querySelectorAll(".legacy-modal");
         modals.forEach((modalEl) => {
-      const iframe = modalEl.querySelector("iframe");
+            const iframe = modalEl.querySelector("iframe");
 
-     if (iframe) {
+            if (iframe) {
                 if (action === "minimize" && typeof minimizeModal === "function") {
-            minimizeModal(modalEl);
-            } else if (action === "maximize" && typeof toggleMaximizeModal === "function") {
-    const btnMaximize = modalEl.querySelector('[data-window-action="maximize"]');
-       toggleMaximizeModal(modalEl, btnMaximize);
-       } else if (action === "close" && typeof closeModalWindow === "function") {
-  closeModalWindow(modalEl);
-    } else if (action === "refresh") {
-    const btnRefresh = modalEl.querySelector('[data-window-action="refresh"]');
-           const src = iframe.src;
-    iframe.src = src;
-            }
+                    minimizeModal(modalEl);
+                } else if (action === "maximize" && typeof toggleMaximizeModal === "function") {
+                    const btnMaximize = modalEl.querySelector('[data-window-action="maximize"]');
+                    toggleMaximizeModal(modalEl, btnMaximize);
+                } else if (action === "close" && typeof closeModalWindow === "function") {
+                    closeModalWindow(modalEl);
+                } else if (action === "refresh") {
+                    const btnRefresh = modalEl.querySelector('[data-window-action="refresh"]');
+                    const src = iframe.src;
+                    iframe.src = src;
+                }
             }
         });
     }
@@ -1110,7 +1110,7 @@ window.addEventListener("message", (event) => {
     // Delegate submodule messages to SidebarManager if available
     if (window.SidebarManager && ['submoduleClose', 'submoduleOpen', 'submoduleReset'].includes(data.type)) {
         if (data.type === 'submoduleClose') window.SidebarManager.closeChildForm();
-     if (data.type === 'submoduleOpen' && data.submoduleUrl) window.SidebarManager.openChildForm(data.submoduleUrl);
+        if (data.type === 'submoduleOpen' && data.submoduleUrl) window.SidebarManager.openChildForm(data.submoduleUrl);
         if (data.type === 'submoduleReset') window.SidebarManager.resetToDefaultState();
     }
 });
