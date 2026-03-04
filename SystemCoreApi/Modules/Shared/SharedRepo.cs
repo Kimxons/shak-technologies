@@ -23,6 +23,7 @@ namespace SystemCoreApi.Modules.Shared
             };
             return respObj;
         }
+
         public async Task<ResponseDetail<object>> GetSystemSearchResult(string requestJson, CancellationToken cancellationToken = default)
         {
             ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_SYSTEMSEARCH_RESULT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
@@ -36,6 +37,7 @@ namespace SystemCoreApi.Modules.Shared
             };
             return respObj;
         }
+
         public async Task<ResponseDetail<object>> GetSystemCodes(string requestJson, CancellationToken cancellationToken = default)
         {
             ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_SYSTEMCODES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
@@ -49,6 +51,7 @@ namespace SystemCoreApi.Modules.Shared
             };
             return respObj;
         }
+
         public async Task<ResponseDetail<object>> GetIDDescription(string requestJson, CancellationToken cancellationToken = default)
         {
             ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ID_DESCRIPTION} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
@@ -58,6 +61,44 @@ namespace SystemCoreApi.Modules.Shared
             ,
                 ResponseCode = respStr.ResponseCode
             ,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
+
+        public async Task<ResponseDetail<object>> GetRecentActivities(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_RECENT_ACTIVITIES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!)
+             ,
+                ResponseCode = respStr.ResponseCode
+         ,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
+
+        public async Task<ResponseDetail<object>> AddRecentActivity(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_RECENT_ACTIVITY} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
+                ResponseCode = respStr.ResponseCode,
+                ResponseMessage = respStr.ResponseMessage
+            };
+            return respObj;
+        }
+
+        public async Task<ResponseDetail<object>> GetWorkflowStage(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.SharedData.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_WORKFLOW_STAGE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<object> respObj = new()
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
+                ResponseCode = respStr.ResponseCode,
                 ResponseMessage = respStr.ResponseMessage
             };
             return respObj;

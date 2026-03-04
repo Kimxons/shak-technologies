@@ -1,0 +1,103 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var titleOptions = ViewData["TitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var genderOptions = ViewData["GenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var nationalityOptions = ViewData["NationalityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var residentOptions = ViewData["ResidentOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var identificationTypeOptions = ViewData["IdentificationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var literacyLevelOptions = ViewData["LiteracyLevelOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var maritalStatusOptions = ViewData["MaritalStatusOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var bloodGroupOptions = ViewData["BloodGroupOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationshipManagerOptions = ViewData["RelationshipManagerOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-section" data-section="client-personal" data-cm-tab="personal">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-person-vcard"></i>Personal</span>
+        <button id="btn_toggleClientPersonal" type="button" class="section-toggle-btn" aria-label="Toggle Personal" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientPersonal" autocomplete="off" novalidate>
+            <!-- Hidden fields for page context -->
+            <input type="hidden" id="moduleIdPersonal" value="@ViewData["ModuleId"]" />
+
+            <!-- ROW 1: Title, First Name, Middle Name, Last Name -->
+            <div class="form-row four-col">
+                <div class="col"><label class="label-blue" for="ddl_personalTitle" id="lbl_personalTitle">Title</label><select id="ddl_personalTitle" name="TitleID" class="bs-select" asp-items="@(titleOptions.Skip(1))"><option value="">Select title</option></select></div>
+                <div class="col"><label class="label-blue" for="txt_personalFirstName" id="lbl_personalFirstName">First Name</label><input id="txt_personalFirstName" name="FirstName" class="bs-input-text" maxlength="100" required /></div>
+                <div class="col"><label for="txt_personalMiddleName" id="lbl_personalMiddleName">Middle Name</label><input id="txt_personalMiddleName" name="MiddleName" class="bs-input-text" maxlength="100" /></div>
+                <div class="col"><label class="label-blue" for="txt_personalLastName" id="lbl_personalLastName">Last Name</label><input id="txt_personalLastName" name="LastName" class="bs-input-text" maxlength="100" required /></div>
+            </div>
+
+            <!-- ROW 2: Gender, DOB, Age, Age As On -->
+            <div class="form-row four-col">
+                <div class="col"><label class="label-blue" for="ddl_personalGender" id="lbl_personalGender">Gender</label><select id="ddl_personalGender" name="GenderID" class="bs-select" asp-items="@(genderOptions.Skip(1))"><option value="">Select gender</option></select></div>
+                <div class="col"><label class="label-blue" for="dt_personalDob" id="lbl_personalDob">Date Of Birth</label><input id="dt_personalDob" name="DateOfBirth" class="bs-input-text" type="date" required /></div>
+                <div class="col"><label for="txt_personalAge" id="lbl_personalAge">Age</label><input id="txt_personalAge" name="Age" class="bs-input-text" placeholder="Auto" readonly /></div>
+                <div class="col"><label for="txt_personalAgeAsOn" id="lbl_personalAgeAsOn">Age As On</label><input id="txt_personalAgeAsOn" name="AgeAsOn" class="bs-input-text" placeholder="Derived" readonly /></div>
+            </div>
+
+            <!-- ROW 3: Nationality, Resident Status, ID Type, ID Number -->
+            <div class="form-row four-col">
+                <div class="col"><label class="label-blue" for="ddl_personalNationality" id="lbl_personalNationality">Nationality</label><select id="ddl_personalNationality" name="NationalityID" class="bs-select" asp-items="@(nationalityOptions.Skip(1))"><option value="">Select country</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_personalResidentStatus" id="lbl_personalResidentStatus">Resident Status</label><select id="ddl_personalResidentStatus" name="ResidentID" class="bs-select" required asp-items="@(residentOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_personalIdType" id="lbl_personalIdType">Identification Type</label><select id="ddl_personalIdType" name="IdentificationTypeID" class="bs-select" required asp-items="@(identificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col">
+                    <label class="label-blue" for="txt_personalIdNumber" id="lbl_personalIdNumber">Identification No</label>
+                    <div class="kairo-control" data-kairo-control>
+                        <input id="txt_personalIdNumber" name="NationalId" class="bs-input-text" maxlength="50" required />
+                        <span class="bs-input-text d-none"></span>
+                        <button type="button" class="btn-lookup" aria-label="ID Lookup"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 4: Issue Date, Issued By, Expiry Date, Literacy Level -->
+            <div class="form-row four-col">
+                <div class="col"><label for="dt_personalIssueDate" id="lbl_personalIssueDate">Issue Date</label><input id="dt_personalIssueDate" name="IDIssueDate" class="bs-input-text" type="date" /></div>
+                <div class="col"><label for="txt_personalIssuedBy" id="lbl_personalIssuedBy">Issued By</label><input id="txt_personalIssuedBy" name="IssuedBy" class="bs-input-text" /></div>
+                <div class="col"><label for="dt_personalExpiryDate" id="lbl_personalExpiryDate">Expiry Date</label><input id="dt_personalExpiryDate" name="IDExpiryDate" class="bs-input-text" type="date" /></div>
+                <div class="col"><label for="ddl_personalLiteracyLevel" id="lbl_personalLiteracyLevel">Literacy Level</label><select id="ddl_personalLiteracyLevel" name="LiteracyLevel" class="bs-select" asp-items="@(literacyLevelOptions.Skip(1))"><option value="">Select...</option></select></div>
+            </div>
+
+            <!-- ROW 5: Marital Status, House Members, Children, Dependents -->
+            <div class="form-row four-col">
+                <div class="col"><label for="ddl_personalMaritalStatus" id="lbl_personalMaritalStatus">Marital Status</label><select id="ddl_personalMaritalStatus" name="MaritalStatus" class="bs-select" asp-items="@(maritalStatusOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="txt_personalHouseMembers" id="lbl_personalHouseMembers">No. Of House Members</label><input id="txt_personalHouseMembers" name="NumberOfHouseMembers" class="bs-input-text" type="number" min="0" required /></div>
+                <div class="col"><label for="txt_personalChildren" id="lbl_personalChildren">No. Of Children</label><input id="txt_personalChildren" name="NumberOfChildren" class="bs-input-text" type="number" min="0" /></div>
+                <div class="col"><label for="txt_personalDependents" id="lbl_personalDependents">No. Of Dependents</label><input id="txt_personalDependents" name="NumberOfDependents" class="bs-input-text" type="number" min="0" /></div>
+            </div>
+
+            <!-- ROW 6: Mother Name, Blood Group, Can Donate Blood, Opened By -->
+            <div class="form-row four-col">
+                <div class="col"><label class="label-blue" for="txt_personalMotherName" id="lbl_personalMotherName">Mother Name</label><input id="txt_personalMotherName" name="MotherName" class="bs-input-text" maxlength="100" required /></div>
+                <div class="col"><label for="ddl_personalBloodGroup" id="lbl_personalBloodGroup">Blood Group</label><select id="ddl_personalBloodGroup" name="BloodGroup" class="bs-select" asp-items="@(bloodGroupOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col">
+                    <div class="bs-field bs-inline">
+                        <label class="bs-label" for="chk_personalCanDonateBlood">Can Donate Blood</label>
+                        <input type="checkbox" class="bs-checkbox" id="chk_personalCanDonateBlood" name="CanDonateBlood" />
+                    </div>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="txt_personalOpenedBy" id="lbl_personalOpenedBy">Opened By</label>
+                    <div class="kairo-user-control" data-kairo-user-control>
+                        <input id="txt_personalOpenedBy" name="CreatedBy" class="bs-input-text uppercase" readonly />
+                        <input id="txt_personalOpenedByName" class="bs-input-text" placeholder="User Name" readonly />
+                        <button type="button" class="btn-lookup" aria-label="User Lookup"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 7: Relationship Manager, Opened On -->
+            <div class="form-row two-col">
+                <div class="col"><label class="label-blue" for="ddl_personalRelationshipManager" id="lbl_personalRelationshipManager">Relationship Manager</label><select id="ddl_personalRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select an option</option></select></div>
+                <div class="col"><label for="dt_personalOpenedOn" id="lbl_personalOpenedOn">Opened On</label><input id="dt_personalOpenedOn" name="OpenedOn" class="bs-input-text" type="date" readonly /></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-personal.js"></script>

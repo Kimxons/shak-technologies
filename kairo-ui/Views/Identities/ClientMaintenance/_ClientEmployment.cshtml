@@ -1,0 +1,85 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+  var occupationOptions = ViewData["EmploymentOccupationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+ var designationOptions = ViewData["EmploymentDesignationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+  var companyTypeOptions = ViewData["EmploymentCompanyTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+var businessOwnershipOptions = ViewData["EmploymentBusinessOwnershipOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var businessLineOptions = ViewData["EmploymentBusinessLineOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-section" data-section="client-employment" data-cm-tab="employment">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-briefcase"></i>Employment</span>
+        <button id="btn_toggleClientEmployment" type="button" class="section-toggle-btn" aria-label="Toggle Employment" aria-expanded="true">
+   <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+   <!-- Hidden fields for page context -->
+    <input type="hidden" id="moduleIdEmployment" value="@ViewData["ModuleId"]" />
+
+        <form id="frm_clientEmployment" autocomplete="off" novalidate>
+      <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>All figures are monthly based.</p>
+
+        <div class="form-row two-col mb-3">
+<div class="col">
+             <label class="bs-label">Income Type</label>
+  <div class="d-flex align-items-center gap-4">
+   <label class="d-flex align-items-center gap-2">
+ <input class="bs-radio" type="radio" name="IsSalaried" id="rad_incomeSalaried" value="true" checked />
+          <span>Salaried</span>
+        </label>
+          <label class="d-flex align-items-center gap-2">
+  <input class="bs-radio" type="radio" name="IsSalaried" id="rad_incomeSelf" value="false" />
+         <span>Self Employed</span>
+        </label>
+    </div>
+     </div>
+       </div>
+
+            <div class="form-row four-col">
+       <div class="col"><label class="label-blue" for="ddl_employmentOccupation" id="lbl_employmentOccupation">Occupation</label><select id="ddl_employmentOccupation" name="Occupation" class="bs-select" required asp-items="@(occupationOptions.Skip(1))"><option value="">Select...</option></select></div>
+  <div class="col"><label class="label-blue" for="ddl_employmentDesignation" id="lbl_employmentDesignation">Position</label><select id="ddl_employmentDesignation" name="Designation" class="bs-select" required asp-items="@(designationOptions.Skip(1))"><option value="">Select...</option></select></div>
+<div class="col"><label class="label-blue" for="ddl_employmentCompanyType" id="lbl_employmentCompanyType">Company Type</label><select id="ddl_employmentCompanyType" name="CompanyType" class="bs-select" required asp-items="@(companyTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
+<div class="col"><label for="dt_employmentWorkingSince" id="lbl_employmentWorkingSince">Working Since</label><input id="dt_employmentWorkingSince" name="WorkingSince" class="bs-input-text" type="date" /></div>
+  </div>
+
+  <div class="form-row four-col">
+    <div class="col"><label for="txt_employmentCompanyName" id="lbl_employmentCompanyName">Company Name</label><input id="txt_employmentCompanyName" name="EmploymentCompanyName" class="bs-input-text" /></div>
+    <div class="col"><label for="txt_employmentCompanyCode" id="lbl_employmentCompanyCode">Company Code</label><input id="txt_employmentCompanyCode" name="EmploymentCompanyCode" class="bs-input-text" /></div>
+      <div class="col"><label for="txt_employmentWorkPermit" id="lbl_employmentWorkPermit">Work Permit No</label><input id="txt_employmentWorkPermit" name="WorkPermitNo" class="bs-input-text" /></div>
+   <div class="col"><label class="label-blue" for="txt_employmentMonthlyIncome" id="lbl_employmentMonthlyIncome">Avg Monthly Income</label><input id="txt_employmentMonthlyIncome" name="MonthlyIncome" class="bs-input-text text-end" required /></div>
+  </div>
+
+            <div class="form-row four-col">
+ <div class="col"><label class="label-blue" for="txt_employmentAnnualIncome" id="lbl_employmentAnnualIncome">Avg Annual Income</label><input id="txt_employmentAnnualIncome" name="AverageAnnualIncome" class="bs-input-text text-end" readonly /></div>
+    <div class="col"><label for="txt_employmentOtherIncome" id="lbl_employmentOtherIncome">Other Income</label><input id="txt_employmentOtherIncome" name="OtherIncome" class="bs-input-text text-end" /></div>
+     <div class="col"><label for="txt_employmentTotalIncome" id="lbl_employmentTotalIncome">Total Income</label><input id="txt_employmentTotalIncome" name="TotalIncome" class="bs-input-text text-end" readonly /></div>
+     <div class="col"><label for="txt_employmentRentExpenses" id="lbl_employmentRentExpenses">Rent Expenses</label><input id="txt_employmentRentExpenses" name="RentExpenses" class="bs-input-text text-end" /></div>
+   </div>
+
+  <div class="form-row four-col">
+  <div class="col"><label for="txt_employmentOtherExpenses" id="lbl_employmentOtherExpenses">Other Expenses</label><input id="txt_employmentOtherExpenses" name="OtherExpenses" class="bs-input-text text-end" /></div>
+      <div class="col"><label for="txt_employmentTotalExpenses" id="lbl_employmentTotalExpenses">Total Expenses</label><input id="txt_employmentTotalExpenses" name="TotalExpenses" class="bs-input-text text-end" readonly /></div>
+<div class="col"><label for="txt_employmentNetSavings" id="lbl_employmentNetSavings">Net Savings</label><input id="txt_employmentNetSavings" name="NetSavings" class="bs-input-text text-end" readonly /></div>
+     </div>
+
+<!-- Self Employed Section -->
+ <div id="selfEmployedSection" class="mt-4 pt-3 border-top d-none" data-employment-for="self-employed">
+    <h6 class="mb-3 text-primary">Self Employment Details</h6>
+        <div class="form-row four-col">
+      <div class="col"><label class="label-blue" for="ddl_employmentBusinessOwnership" id="lbl_employmentBusinessOwnership">Business Ownership</label><select id="ddl_employmentBusinessOwnership" name="BusinessOwnership" class="bs-select" asp-items="@(businessOwnershipOptions.Skip(1))"><option value="">Select...</option></select></div>
+      <div class="col"><label class="label-blue" for="ddl_employmentBusinessLine" id="lbl_employmentBusinessLine">Business Line</label><select id="ddl_employmentBusinessLine" name="BusinessLine" class="bs-select" asp-items="@(businessLineOptions.Skip(1))"><option value="">Select...</option></select></div>
+       <div class="col"><label for="txt_employmentBusinessStartedYear" id="lbl_employmentBusinessStartedYear">Year Started</label><input id="txt_employmentBusinessStartedYear" name="BusinessStartedYear" class="bs-input-text" type="number" min="1900" max="2100" /></div>
+     <div class="col"><label for="txt_employmentNumberOfEmployees" id="lbl_employmentNumberOfEmployees">No. Employees</label><input id="txt_employmentNumberOfEmployees" name="NumberOfEmployees" class="bs-input-text" type="number" min="0" /></div>
+       </div>
+        <div class="form-row">
+      <div class="col"><label for="txa_employmentComments" id="lbl_employmentComments">Comments</label><textarea id="txa_employmentComments" name="EmploymentComments" class="bs-input-text" rows="2"></textarea></div>
+          </div>
+        </div>
+        </form>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-employment.js"></script>

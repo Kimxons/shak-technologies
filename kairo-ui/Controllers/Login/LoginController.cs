@@ -139,7 +139,7 @@ namespace kairo_ui.Controllers.login
                         HttpContext.Session.SetString("roles", JsonSerializer.Serialize(tokenResponse.Roles)!);
                         var branch = await _authService.GetByIdAsync<BranchSetting>(ApiEndpoints.GET_BRANCHSETTINGS_IAM, tokenResponse.BranchId);
                         HttpContext.Session.SetString("branch_code", branch.BranchCode);
-
+                        HttpContext.Session.SetString("branch_name", branch.BranchName);
 
                         object? apiReq = new { RequestID = HttpContext.Connection.Id, BankID = "00", OurBranchID = branch.BranchCode, OperatorID = tokenResponse.Username! };
 

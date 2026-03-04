@@ -1180,7 +1180,7 @@
         }
 
         /* Extra safety: if dash-text is too light on a light background,
-                                                                                                                                                                               ensure it stays visible. But --color-text should handle this. */
+                                                                                                                                                                                       ensure it stays visible. But --color-text should handle this. */
 
         .feature-panel {
             background: var(--theme-bg-card, #ffffff) !important;
@@ -1506,10 +1506,19 @@
     <script type="text/javascript" src="/lib/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Session Expiry Monitor - Handles session re-authentication -->
+    <script type="text/javascript" src="/js/session-monitor.js"></script>
+    
     <!-- Shared Search Modal -->
     <script type="text/javascript" src="/js/modules/shared/searchModal.js"></script>
-
+    
+    <!-- Dashboard - Main dashboard functionality -->
+    <!-- Note: sidebar.js is loaded from _SideBarPartial.cshtml for better separation of concerns -->
     <script type="text/javascript" src="/js/modules/dashboard/dashboard.js"></script>
-</body>
-
-</html>
+    
+    <!-- Session Expiry Re-Authentication Modal -->
+    @Html.Partial("_SessionExpiredModal")
+    
+    </body>
+    
+    </html>

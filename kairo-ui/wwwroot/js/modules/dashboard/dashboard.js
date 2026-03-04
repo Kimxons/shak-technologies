@@ -89,6 +89,10 @@ function resetStartMenuViews() {
 let modalIndex = 1050;
 //Global openKairoWindow function to open menu windows
 function openKairoWindow(module) {
+
+    let moduleUrl = new URL(module.route, window.location.origin);
+    moduleUrl.searchParams.set("ModuleID", module.moduleId);
+
     let kmodal = '  <div class="modal fade legacy-modal legacy-modal--workspace" id="modal_' + module.modalId + '" data-window-title="' + module.label + '"		'
         + ' data-window-icon="fas fa-users" tabindex="-1" aria-hidden="true">                                                         '
         + '<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">                                          '
@@ -113,7 +117,7 @@ function openKairoWindow(module) {
         + '        </div>                                                                                                             '
         //+ '        <div class="modal-body modal-body-content" style="height:75vh;">                                                                        '
         + '        <div class="modal-body modal-body--iframe" >                                                                        '
-        + '            <iframe class="legacy-modal__iframe" src="' + module.route + '"                  '
+        + '            <iframe class="legacy-modal__iframe" src="' + moduleUrl.toString() + '"                  '
         + '                    title="' + module.label + '" loading="lazy"></iframe>                                          '
         + '        </div>                                                                                                             '
         + '    </div>                                                                                                                 '
@@ -171,7 +175,9 @@ function showSubmenu(module) {
                 label: item.MenuDescription,
                 icon: item.ModuleIcon ?? 'fas fa-circle',
                 route: item.MenuURL,
-                modalId: item.ModuleID
+                modalId: item.ModuleID,
+                moduleId: item.ModuleID
+
             }))
         };
     }
@@ -1082,14 +1088,13 @@ window.addEventListener("message", (event) => {
         modalEl.dataset.childLockCount = String(next);
         modalEl.dataset.childLock = next > 0 ? "true" : "false";
     }
-    console.log(data);
+
     // Handle window actions (minimize, maximize, close, refresh) from iframes
     if (data.type === "kairo-action" && ["minimize", "maximize", "close", "refresh"].includes(data.action)) {
         const action = data.action;
         const modals = document.querySelectorAll(".legacy-modal");
         modals.forEach((modalEl) => {
             const iframe = modalEl.querySelector("iframe");
-            //if (iframe && iframe.contentWindow === event.source) {
 
             if (iframe) {
                 if (action === "minimize" && typeof minimizeModal === "function") {
@@ -1101,17 +1106,18 @@ window.addEventListener("message", (event) => {
                     closeModalWindow(modalEl);
                 } else if (action === "refresh") {
                     const btnRefresh = modalEl.querySelector('[data-window-action="refresh"]');
-                    // Reuse the refresh logic already in app.js if possible
-                    //if (btnRefresh) {
-                    //    btnRefresh.click();
-                    //} else {
-                        // Fallback refresh logic
-                        const src = iframe.src;
-                        iframe.src = src;
-                    //}
+                    const src = iframe.src;
+                    iframe.src = src;
                 }
             }
         });
+    }
+
+    // Delegate submodule messages to SidebarManager if available
+    if (window.SidebarManager && ['submoduleClose', 'submoduleOpen', 'submoduleReset'].includes(data.type)) {
+        if (data.type === 'submoduleClose') window.SidebarManager.closeChildForm();
+        if (data.type === 'submoduleOpen' && data.submoduleUrl) window.SidebarManager.openChildForm(data.submoduleUrl);
+        if (data.type === 'submoduleReset') window.SidebarManager.resetToDefaultState();
     }
 });
 

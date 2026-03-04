@@ -1,0 +1,118 @@
+@{
+    ViewData["Title"] = "Client Maintenance";
+    Layout = "_ApplicationLayout";
+    var moduleId = (ViewData["ModuleId"]?.ToString() ?? string.Empty);
+}
+
+<div class="window" data-client-maintenance data-module-id="@moduleId">
+
+    <div class="main-container">
+        <!-- Left Sidebar (loaded via AJAX) -->
+        <div id="sidebarContainer"></div>
+
+        <!-- Main Form Content -->
+        <div class="form-content">
+            <div class="form-card">
+                <div class="section-header">
+                    <span class="section-header__title"><i class="bi bi-person-vcard me-1"></i>Client Maintenance Workflow</span>
+                </div>
+
+                <div class="section-content">
+                    <div class="form-row two-col mb-3" data-cm-main-search>
+                        <div class="col">
+                            <label class="label-blue" for="txt_mainClientId">Client ID</label>
+                            <div class="kairo-client-control" data-kairo-client-control>
+                                <input type="text" id="txt_mainClientId" placeholder="e.g. CSK00092" />
+                                <input type="text" id="txt_mainClientName" placeholder="Client Name" readonly />
+                                <button type="button" class="btn-lookup" data-main-client-search aria-label="Search client">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label class="label-blue" for="txt_mainApplicationId">Application ID</label>
+                            <div class="kairo-control" data-kairo-control>
+                                <input type="text" id="txt_mainApplicationId" placeholder="Workflow Request ID" />
+                                <input type="text" id="txt_mainApplicationName" placeholder="Application Description" readonly />
+                                <button type="button" class="btn-lookup" data-main-application-search aria-label="Search application">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs mb-3" id="nav_clientMaintenanceTabs" role="tablist">
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientPersonal" class="nav-link active" data-bs-toggle="tab" data-bs-target="#dv_tabClientPersonal" type="button" role="tab">Personal</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientCorporate" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientCorporate" type="button" role="tab">Corporate</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientAddress" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientAddress" type="button" role="tab">Address</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientRelations" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientRelations" type="button" role="tab">Relations</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientEmployment" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientEmployment" type="button" role="tab">Employment</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientOffers" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientOffers" type="button" role="tab">Offers</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientGroupDetail" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientGroupDetail" type="button" role="tab">Group Detail</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientKyc" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientKyc" type="button" role="tab">Other Details</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientProducts" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientProducts" type="button" role="tab">Products & Services</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientPhotoSignature" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientPhotoSignature" type="button" role="tab">Photo & Signature</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientDocuments" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientDocuments" type="button" role="tab">Documents</button></li>
+                        <li class="nav-item" role="presentation"><button id="btn_tabClientSubmit" class="nav-link" data-bs-toggle="tab" data-bs-target="#dv_tabClientSubmit" type="button" role="tab">Submit</button></li>
+                    </ul>
+
+                    <div class="tab-content border rounded p-3 bg-white" id="dv_clientMaintenanceTabContent">
+                        <div class="tab-pane fade show active" id="dv_tabClientPersonal" role="tabpanel" data-cm-partial="Personal"></div>
+                        <div class="tab-pane fade" id="dv_tabClientCorporate" role="tabpanel" data-cm-partial="Corporate"></div>
+                        <div class="tab-pane fade" id="dv_tabClientAddress" role="tabpanel" data-cm-partial="Address"></div>
+                        <div class="tab-pane fade" id="dv_tabClientRelations" role="tabpanel" data-cm-partial="Relations"></div>
+                        <div class="tab-pane fade" id="dv_tabClientEmployment" role="tabpanel" data-cm-partial="Employment"></div>
+                        <div class="tab-pane fade" id="dv_tabClientOffers" role="tabpanel" data-cm-partial="Offers"></div>
+                        <div class="tab-pane fade" id="dv_tabClientGroupDetail" role="tabpanel" data-cm-partial="GroupDetail"></div>
+                        <div class="tab-pane fade" id="dv_tabClientKyc" role="tabpanel" data-cm-partial="Kyc"></div>
+                        <div class="tab-pane fade" id="dv_tabClientProducts" role="tabpanel" data-cm-partial="Products"></div>
+                        <div class="tab-pane fade" id="dv_tabClientPhotoSignature" role="tabpanel" data-cm-partial="PhotoSignature"></div>
+                        <div class="tab-pane fade" id="dv_tabClientDocuments" role="tabpanel" data-cm-partial="Documents"></div>
+                        <div class="tab-pane fade" id="dv_tabClientSubmit" role="tabpanel" data-cm-partial="Submit"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Right Action Panel -->
+        <div class="action-panel" id="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" type="button" data-record-nav="prev" disabled aria-label="Previous Record">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span>Client</span>
+                <button class="btn-nav green" type="button" data-record-nav="next" disabled aria-label="Next Record">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+            <div class="spacer"></div>
+            <div class="action-buttons">
+                <button class="btn-action btn-view" type="button" data-action-btn="view" data-shell-mode="View">
+                    <i class="bi bi-eye me-1"></i>View
+                </button>
+                <button class="btn-action" type="button" data-action-btn="new" data-shell-mode="Add">
+                    <i class="bi bi-plus-circle me-1"></i>Add
+                </button>
+                <button class="btn-action" type="button" data-action-btn="edit" data-shell-mode="Update" disabled>
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </button>
+                <button class="btn-action btn-supervision" type="button" data-action-btn="supervise" disabled>
+                    <i class="bi bi-shield-check me-1"></i>Supervision
+                </button>
+                <button class="btn-action btn-save" type="button" data-submit-action="save">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+                <button class="btn-action" type="button" data-submit-action="clear">
+                    <i class="bi bi-eraser me-1"></i>Clear
+                </button>
+                <button class="btn-action btn-cancel" type="button" data-submit-action="cancel">
+                    <i class="bi bi-x-circle me-1"></i><span data-action-label>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/validation-utils.js?v=20260302"></script>
+<script src="~/js/modules/identities/client-maintenance/client-maintenance.js?v=20260302"></script>
