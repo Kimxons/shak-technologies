@@ -1495,8 +1495,7 @@
                         }
                     });
 
-                    // Trigger Client Load if ClientID is present
-                    // Populate ClientID input first if not already set (lookup sets it, but direct load via URL might not)
+                    // Populate ClientID input if not already set
                     if (account.ClientID) {
                         const clientInput = document.getElementById('ClientID');
                         if (clientInput) {
@@ -1505,8 +1504,12 @@
                                 clientInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
                         }
-                        // Always load client details to fill secondary client fields (Name, etc.)
-                        loadClientDetails(account.ClientID);
+                        // Set ClientName from account data (if available)
+                        const clientNameInput = document.getElementById('ClientName');
+                        if (clientNameInput && account.ClientName) {
+                            clientNameInput.value = account.ClientName;
+                        }
+                        // Note: loadClientDetails is only called in ADD mode via checkAndAutoPopulateClientDetails
                     }
                     
                     showSystemToast(`Account details loaded successfully. Account ID: ${account.AccountID || accountId}`, { 
