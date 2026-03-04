@@ -20,12 +20,8 @@
 
     <div class="form-row mb-3">
    <label class="label-blue" for="imageType" id="lbl_photoType">Image Type</label>
- <select id="imageType" name="photoType" data-photo-field="ImageTypeID" class="bs-select">
+ <select id="imageType" name="photoType" data-photo-field="ImageTypeID" class="bs-select" asp-items="@(imageTypeOptions.Skip(1))">
     <option value="">Select Type...</option>
-      @foreach (var option in imageTypeOptions)
-{
-      <option value="@option.Value">@option.Text</option>
-        }
      </select>
     </div>
 

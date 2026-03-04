@@ -1,6 +1,7 @@
 using kairo_ui.Models.Identities.ClientApproval;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
 using CBS.Entities.SystemCore;
 
@@ -47,13 +48,13 @@ namespace kairo_ui.Controllers.Identities.ClientApproval
                 const int MODULE_ID_CLIENT_APPROVAL = 6961;
                 ViewData["ModuleId"] = MODULE_ID_CLIENT_APPROVAL.ToString();
 
-                var systemCodes = await _apiCachedService.GetMultipleSystemCodeOptionsAsync(new[]
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
                     "ClientTypeID"
                 });
 
-                systemCodes.TryGetValue("ClientTypeID", out var clientTypeOptions);
-                ViewData["ClientTypeOptions"] = clientTypeOptions ?? new List<SystemCodeDetail>();
+                dropdownOptions.TryGetValue("ClientTypeID", out var clientTypeOptions);
+                ViewData["ClientTypeOptions"] = clientTypeOptions ?? Enumerable.Empty<SelectListItem>();
 
                 _logger.LogInformation("Client Approval page loaded successfully");
                 return PartialView();

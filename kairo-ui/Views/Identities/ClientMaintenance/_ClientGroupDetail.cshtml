@@ -38,12 +38,8 @@
     <div class="form-row four-col">
       <div class="col">
     <label class="label-blue" for="ddl_groupJoinOn" id="lbl_groupJoinOn">Join On</label>
-    <select id="ddl_groupJoinOn" name="JoinOn" class="bs-select" required>
+    <select id="ddl_groupJoinOn" name="JoinOn" class="bs-select" required asp-items="@(joinOnOptions.Skip(1))">
    <option value="">Select...</option>
-  @foreach (var option in joinOnOptions)
-      {
-     <option value="@option.Value">@option.Text</option>
-         }
        </select>
    </div>
         <div class="col"><label class="label-blue" for="txt_groupMaxGroupLoans" id="lbl_groupMaxGroupLoans">Max Group Loans</label><input id="txt_groupMaxGroupLoans" name="MaxGroupLoans" class="bs-input-text" type="number" min="0" required /></div>

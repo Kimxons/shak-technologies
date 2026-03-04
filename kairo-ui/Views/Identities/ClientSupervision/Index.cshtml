@@ -1,24 +1,24 @@
-@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Client Supervision";
     Layout = "_ApplicationLayout";
 
-    var clientTypeOptions = ViewData["SupervisionClientTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var titleOptions = ViewData["SupervisionTitleOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var genderOptions = ViewData["SupervisionGenderOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var residentOptions = ViewData["SupervisionResidentOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var countryOptions = ViewData["SupervisionCountryOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var literacyLevelOptions = ViewData["SupervisionLiteracyLevelOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var identificationTypeOptions = ViewData["SupervisionIdentificationTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var maritalStatusOptions = ViewData["SupervisionMaritalStatusOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var constitutionOptions = ViewData["SupervisionConstitutionOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var lineOfBusinessOptions = ViewData["SupervisionLineOfBusinessOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var addressTypeOptions = ViewData["SupervisionAddressTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var regionOptions = ViewData["SupervisionRegionOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var employmentStatusOptions = ViewData["SupervisionEmploymentStatusOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var companyTypeOptions = ViewData["SupervisionCompanyTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var occupationOptions = ViewData["SupervisionOccupationOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
-    var yesNoOptions = ViewData["SupervisionYesNoOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var clientTypeOptions = ViewData["SupervisionClientTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var titleOptions = ViewData["SupervisionTitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var genderOptions = ViewData["SupervisionGenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var residentOptions = ViewData["SupervisionResidentOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["SupervisionCountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var literacyLevelOptions = ViewData["SupervisionLiteracyLevelOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var identificationTypeOptions = ViewData["SupervisionIdentificationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var maritalStatusOptions = ViewData["SupervisionMaritalStatusOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var constitutionOptions = ViewData["SupervisionConstitutionOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var lineOfBusinessOptions = ViewData["SupervisionLineOfBusinessOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var addressTypeOptions = ViewData["SupervisionAddressTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var regionOptions = ViewData["SupervisionRegionOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var employmentStatusOptions = ViewData["SupervisionEmploymentStatusOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var companyTypeOptions = ViewData["SupervisionCompanyTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var occupationOptions = ViewData["SupervisionOccupationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var yesNoOptions = ViewData["SupervisionYesNoOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 @section Styles {
@@ -240,10 +240,10 @@
                                 <div class="p-3">
                                     <div class="form-row two-col">
                                         <div class="form-group"><label class="label-blue" id="lbl_clientId" for="txt_clientId">ClientID</label><input type="text" id="txt_clientId" class="form-control" readonly></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_clientType" for="ddl_clientType">Client Type</label><select id="ddl_clientType" class="form-select" disabled><option value=""></option>@foreach (var option in clientTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_clientType" for="ddl_clientType">Client Type</label><select id="ddl_clientType" class="form-select" disabled asp-items="@(clientTypeOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_title" for="ddl_title">Title</label><select id="ddl_title" class="form-select" disabled><option value=""></option>@foreach (var option in titleOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_title" for="ddl_title">Title</label><select id="ddl_title" class="form-select" disabled asp-items="@(titleOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_firstName" for="txt_firstName">First Name</label><input type="text" id="txt_firstName" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
@@ -252,18 +252,18 @@
                                     </div>
                                     <div class="form-row two-col">
                                         <div class="form-group"><label class="label-blue" id="lbl_dob" for="txt_dob">DOB</label><input type="text" id="txt_dob" class="form-control" readonly></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_gender" for="ddl_gender">Gender</label><select id="ddl_gender" class="form-select" disabled><option value=""></option>@foreach (var option in genderOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_gender" for="ddl_gender">Gender</label><select id="ddl_gender" class="form-select" disabled asp-items="@(genderOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_resident" for="ddl_resident">Resident</label><select id="ddl_resident" class="form-select" disabled><option value=""></option>@foreach (var option in residentOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_nationality" for="ddl_nationality">Nationality</label><select id="ddl_nationality" class="form-select" disabled><option value=""></option>@foreach (var option in countryOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_resident" for="ddl_resident">Resident</label><select id="ddl_resident" class="form-select" disabled asp-items="@(residentOptions.Skip(1))"><option value=""></option></select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_nationality" for="ddl_nationality">Nationality</label><select id="ddl_nationality" class="form-select" disabled asp-items="@(countryOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_literacyLevel" for="ddl_literacyLevel">Literacy Level</label><select id="ddl_literacyLevel" class="form-select" disabled><option value=""></option>@foreach (var option in literacyLevelOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_literacyLevel" for="ddl_literacyLevel">Literacy Level</label><select id="ddl_literacyLevel" class="form-select" disabled asp-items="@(literacyLevelOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_issuedBy" for="txt_issuedBy">IssuedBy</label><input type="text" id="txt_issuedBy" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_identificationType" for="ddl_identificationType">Identification Type</label><select id="ddl_identificationType" class="form-select" disabled><option value=""></option>@foreach (var option in identificationTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_identificationType" for="ddl_identificationType">Identification Type</label><select id="ddl_identificationType" class="form-select" disabled asp-items="@(identificationTypeOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_identificationNo" for="txt_identificationNo">IdentificationNo</label><input type="text" id="txt_identificationNo" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
@@ -271,7 +271,7 @@
                                         <div class="form-group"><label class="label-blue" id="lbl_identificationExpiryDate" for="txt_identificationExpiryDate">Identification Expiry Date</label><input type="text" id="txt_identificationExpiryDate" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_maritalStatus" for="ddl_maritalStatus">Marital Status</label><select id="ddl_maritalStatus" class="form-select" disabled><option value=""></option>@foreach (var option in maritalStatusOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_maritalStatus" for="ddl_maritalStatus">Marital Status</label><select id="ddl_maritalStatus" class="form-select" disabled asp-items="@(maritalStatusOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_motherName" for="txt_motherName">Mother Name</label><input type="text" id="txt_motherName" class="form-control" readonly></div>
                                     </div>
                                 </div>
@@ -281,18 +281,18 @@
                                 <div class="p-3">
                                     <div class="form-row two-col">
                                         <div class="form-group"><label class="label-blue" id="lbl_corpClientId" for="txt_corpClientId">ClientID</label><input type="text" id="txt_corpClientId" class="form-control" readonly></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_corpClientType" for="ddl_corpClientType">Client Type</label><select id="ddl_corpClientType" class="form-select" disabled><option value=""></option>@foreach (var option in clientTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpClientType" for="ddl_corpClientType">Client Type</label><select id="ddl_corpClientType" class="form-select" disabled asp-items="@(clientTypeOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
                                         <div class="form-group"><label class="label-blue" id="lbl_corpClientName" for="txt_corpClientName">Client Name</label><input type="text" id="txt_corpClientName" class="form-control" readonly></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_corpCompanyName" for="txt_corpCompanyName">Company Name</label><input type="text" id="txt_corpCompanyName" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_corpConstitution" for="ddl_corpConstitution">Constitution</label><select id="ddl_corpConstitution" class="form-select" disabled><option value=""></option>@foreach (var option in constitutionOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_corpLineOfBusiness" for="ddl_corpLineOfBusiness">Line Of Business</label><select id="ddl_corpLineOfBusiness" class="form-select" disabled><option value=""></option>@foreach (var option in lineOfBusinessOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpConstitution" for="ddl_corpConstitution">Constitution</label><select id="ddl_corpConstitution" class="form-select" disabled asp-items="@(constitutionOptions.Skip(1))"><option value=""></option></select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpLineOfBusiness" for="ddl_corpLineOfBusiness">Line Of Business</label><select id="ddl_corpLineOfBusiness" class="form-select" disabled asp-items="@(lineOfBusinessOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationType" for="ddl_corpIdentificationType">IdentificationType</label><select id="ddl_corpIdentificationType" class="form-select" disabled><option value=""></option>@foreach (var option in identificationTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationType" for="ddl_corpIdentificationType">IdentificationType</label><select id="ddl_corpIdentificationType" class="form-select" disabled asp-items="@(identificationTypeOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_corpIdentificationNo" for="txt_corpIdentificationNo">IdentificationNo</label><input type="text" id="txt_corpIdentificationNo" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
@@ -313,12 +313,12 @@
                             <div class="tab-pane fade" id="dv_tabAddress" role="tabpanel">
                                 <div class="p-3">
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_addressType" for="ddl_addressType">AddressType</label><select id="ddl_addressType" class="form-select" disabled><option value=""></option>@foreach (var option in addressTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressType" for="ddl_addressType">AddressType</label><select id="ddl_addressType" class="form-select" disabled asp-items="@(addressTypeOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_address1" for="txt_address1">Address1</label><input type="text" id="txt_address1" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_addressCountry" for="ddl_addressCountry">Country</label><select id="ddl_addressCountry" class="form-select" disabled><option value=""></option>@foreach (var option in countryOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_addressRegion" for="ddl_addressRegion">Region</label><select id="ddl_addressRegion" class="form-select" disabled><option value=""></option>@foreach (var option in regionOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressCountry" for="ddl_addressCountry">Country</label><select id="ddl_addressCountry" class="form-select" disabled asp-items="@(countryOptions.Skip(1))"><option value=""></option></select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_addressRegion" for="ddl_addressRegion">Region</label><select id="ddl_addressRegion" class="form-select" disabled asp-items="@(regionOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
                                         <div class="form-group"><label class="label-blue" id="lbl_addressCity" for="txt_addressCity">City</label><input type="text" id="txt_addressCity" class="form-control" readonly></div>
@@ -338,11 +338,11 @@
                             <div class="tab-pane fade" id="dv_tabEmployment" role="tabpanel">
                                 <div class="p-3">
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_empStatus" for="ddl_empStatus">Salaried/ Self Employed</label><select id="ddl_empStatus" class="form-select" disabled><option value=""></option>@foreach (var option in employmentStatusOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_empCompanyType" for="ddl_empCompanyType">CompanyType</label><select id="ddl_empCompanyType" class="form-select" disabled><option value=""></option>@foreach (var option in companyTypeOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_empStatus" for="ddl_empStatus">Salaried/ Self Employed</label><select id="ddl_empStatus" class="form-select" disabled asp-items="@(employmentStatusOptions.Skip(1))"><option value=""></option></select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_empCompanyType" for="ddl_empCompanyType">CompanyType</label><select id="ddl_empCompanyType" class="form-select" disabled asp-items="@(companyTypeOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_empOccupation" for="ddl_empOccupation">Occupation</label><select id="ddl_empOccupation" class="form-select" disabled><option value=""></option>@foreach (var option in occupationOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_empOccupation" for="ddl_empOccupation">Occupation</label><select id="ddl_empOccupation" class="form-select" disabled asp-items="@(occupationOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"><label class="label-blue" id="lbl_empPosition" for="txt_empPosition">Position</label><input type="text" id="txt_empPosition" class="form-control" readonly></div>
                                     </div>
                                     <div class="form-row two-col">
@@ -355,11 +355,11 @@
                             <div class="tab-pane fade" id="dv_tabOther" role="tabpanel">
                                 <div class="p-3">
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_pep" for="ddl_pep">Politically Exposed Person</label><select id="ddl_pep" class="form-select" disabled><option value=""></option>@foreach (var option in yesNoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
-                                        <div class="form-group"><label class="label-blue" id="lbl_usPerson" for="ddl_usPerson">US Person</label><select id="ddl_usPerson" class="form-select" disabled><option value=""></option>@foreach (var option in yesNoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_pep" for="ddl_pep">Politically Exposed Person</label><select id="ddl_pep" class="form-select" disabled asp-items="@(yesNoOptions.Skip(1))"><option value=""></option></select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_usPerson" for="ddl_usPerson">US Person</label><select id="ddl_usPerson" class="form-select" disabled asp-items="@(yesNoOptions.Skip(1))"><option value=""></option></select></div>
                                     </div>
                                     <div class="form-row two-col">
-                                        <div class="form-group"><label class="label-blue" id="lbl_dataCleansed" for="ddl_dataCleansed">Data Cleansed</label><select id="ddl_dataCleansed" class="form-select" disabled><option value=""></option>@foreach (var option in yesNoOptions) {<option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>}</select></div>
+                                        <div class="form-group"><label class="label-blue" id="lbl_dataCleansed" for="ddl_dataCleansed">Data Cleansed</label><select id="ddl_dataCleansed" class="form-select" disabled asp-items="@(yesNoOptions.Skip(1))"><option value=""></option></select></div>
                                         <div class="form-group"></div>
                                     </div>
                                 </div>

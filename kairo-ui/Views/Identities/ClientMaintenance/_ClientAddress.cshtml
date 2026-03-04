@@ -21,12 +21,8 @@ var addressTypeOptions = ViewData["AddressTypeOptions"] as IEnumerable<SelectLis
        <div class="form-row four-col">
     <div class="col">
          <label class="label-blue" for="ddl_addressType" id="lbl_addressType">Address Type</label>
-  <select id="ddl_addressType" name="addressType" data-address-field="AddressTypeID" class="bs-select">
+  <select id="ddl_addressType" name="addressType" data-address-field="AddressTypeID" class="bs-select" asp-items="@(addressTypeOptions.Skip(1))">
       <option value="">Select...</option>
-      @foreach (var option in addressTypeOptions)
-      {
-          <option value="@option.Value">@option.Text</option>
-      }
   </select>
   </div>
     <div class="col">

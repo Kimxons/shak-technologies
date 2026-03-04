@@ -1,6 +1,7 @@
 using kairo_ui.Models.Identities.ClientSupervision;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
 using CBS.Entities.SystemCore;
 
@@ -41,7 +42,7 @@ namespace kairo_ui.Controllers.Identities.ClientSupervision
                 const int MODULE_ID_CLIENT_SUPERVISION = 7080;
                 ViewData["ModuleId"] = MODULE_ID_CLIENT_SUPERVISION.ToString();
 
-                var systemCodes = await _apiCachedService.GetMultipleSystemCodeOptionsAsync(new[]
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
                     "ClientTypeID",
                     "TitleID",
@@ -61,44 +62,45 @@ namespace kairo_ui.Controllers.Identities.ClientSupervision
                     "YN"
                 });
 
-                systemCodes.TryGetValue("ClientTypeID", out var clientTypeOptions);
-                systemCodes.TryGetValue("TitleID", out var titleOptions);
-                systemCodes.TryGetValue("GenderID", out var genderOptions);
-                systemCodes.TryGetValue("ResidentID", out var residentOptions);
-                systemCodes.TryGetValue("CountryID", out var countryOptions);
-                systemCodes.TryGetValue("LiteracyLevelID", out var literacyLevelOptions);
-                systemCodes.TryGetValue("IdentificationTypeID", out var identificationTypeOptions);
-                systemCodes.TryGetValue("MaritalStatusID", out var maritalStatusOptions);
-                systemCodes.TryGetValue("BusinessOwnershipID", out var constitutionOptions);
-                systemCodes.TryGetValue("BusinessLineID", out var lineOfBusinessOptions);
-                systemCodes.TryGetValue("AddressTypeID", out var addressTypeOptions);
-                systemCodes.TryGetValue("RegionID", out var regionOptions);
-                systemCodes.TryGetValue("EmploymentStatusID", out var employmentStatusOptions);
-                systemCodes.TryGetValue("CompanyTypeID", out var companyTypeOptions);
-                systemCodes.TryGetValue("OccupationID", out var occupationOptions);
-                systemCodes.TryGetValue("YN", out var yesNoOptions);
+                dropdownOptions.TryGetValue("ClientTypeID", out var clientTypeOptions);
+                dropdownOptions.TryGetValue("TitleID", out var titleOptions);
+                dropdownOptions.TryGetValue("GenderID", out var genderOptions);
+                dropdownOptions.TryGetValue("ResidentID", out var residentOptions);
+                dropdownOptions.TryGetValue("CountryID", out var countryOptions);
+                dropdownOptions.TryGetValue("LiteracyLevelID", out var literacyLevelOptions);
+                dropdownOptions.TryGetValue("IdentificationTypeID", out var identificationTypeOptions);
+                dropdownOptions.TryGetValue("MaritalStatusID", out var maritalStatusOptions);
+                dropdownOptions.TryGetValue("BusinessOwnershipID", out var constitutionOptions);
+                dropdownOptions.TryGetValue("BusinessLineID", out var lineOfBusinessOptions);
+                dropdownOptions.TryGetValue("AddressTypeID", out var addressTypeOptions);
+                dropdownOptions.TryGetValue("RegionID", out var regionOptions);
+                dropdownOptions.TryGetValue("EmploymentStatusID", out var employmentStatusOptions);
+                dropdownOptions.TryGetValue("CompanyTypeID", out var companyTypeOptions);
+                dropdownOptions.TryGetValue("OccupationID", out var occupationOptions);
+                dropdownOptions.TryGetValue("YN", out var yesNoOptions);
 
-                yesNoOptions ??= new List<SystemCodeDetail>
+                yesNoOptions ??= new List<SelectListItem>
                 {
-                    new() { SubCodeID = "Y", CodeDescription = "Yes", DisplayOrder = 1 },
-                    new() { SubCodeID = "N", CodeDescription = "No", DisplayOrder = 2 }
+                    new SelectListItem { Value = "", Text = "Select..." },
+                    new SelectListItem { Value = "Y", Text = "Yes" },
+                    new SelectListItem { Value = "N", Text = "No" }
                 };
 
-                ViewData["SupervisionClientTypeOptions"] = clientTypeOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionTitleOptions"] = titleOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionGenderOptions"] = genderOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionResidentOptions"] = residentOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionCountryOptions"] = countryOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionLiteracyLevelOptions"] = literacyLevelOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionIdentificationTypeOptions"] = identificationTypeOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionMaritalStatusOptions"] = maritalStatusOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionConstitutionOptions"] = constitutionOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionLineOfBusinessOptions"] = lineOfBusinessOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionAddressTypeOptions"] = addressTypeOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionRegionOptions"] = regionOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionEmploymentStatusOptions"] = employmentStatusOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionCompanyTypeOptions"] = companyTypeOptions ?? new List<SystemCodeDetail>();
-                ViewData["SupervisionOccupationOptions"] = occupationOptions ?? new List<SystemCodeDetail>();
+                ViewData["SupervisionClientTypeOptions"] = clientTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionTitleOptions"] = titleOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionGenderOptions"] = genderOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionResidentOptions"] = residentOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionCountryOptions"] = countryOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionLiteracyLevelOptions"] = literacyLevelOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionIdentificationTypeOptions"] = identificationTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionMaritalStatusOptions"] = maritalStatusOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionConstitutionOptions"] = constitutionOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionLineOfBusinessOptions"] = lineOfBusinessOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionAddressTypeOptions"] = addressTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionRegionOptions"] = regionOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionEmploymentStatusOptions"] = employmentStatusOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionCompanyTypeOptions"] = companyTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["SupervisionOccupationOptions"] = occupationOptions ?? Enumerable.Empty<SelectListItem>();
                 ViewData["SupervisionYesNoOptions"] = yesNoOptions;
 
                 _logger.LogInformation("Client Supervision loaded successfully");

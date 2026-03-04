@@ -31,7 +31,7 @@ namespace ClientManagement.Modules.ClientMaintenance
         private readonly IClientCorporateRepo _repoClientCorporate = repoClientCorporate;
 
         [HttpPost("GetClientBasicDetails")]
-        public async Task<IActionResult> GetClientBasicDetails([FromBody] InDataRequest<ClientBasicDetails?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientBasicDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;

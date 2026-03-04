@@ -380,6 +380,7 @@ async function loadTabPartial(config) {
 
 async function loadSidebar(moduleId) {
     const sidebarContainer = document.getElementById('sidebarContainer');
+    //const sidebarContainer = document.getElementsByClassName('main-container');
     if (!sidebarContainer) return;
 
     try {
@@ -402,10 +403,11 @@ async function loadSidebar(moduleId) {
 
         const html = await response.text();
         sidebarContainer.innerHTML = html;
+        //sidebarContainer.insertAdjacentHTML('afterbegin', html);
 
         // Initialize sidebar JavaScript if the script is available
-        if (typeof window.initializeSidebar === 'function') {
-            window.initializeSidebar();
+        if (typeof window.SidebarManager.init === 'function') {
+            window.SidebarManager.init();
         }
     } catch (error) {
         console.error('[Client Maintenance] Error loading sidebar:', error);
@@ -418,10 +420,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!shell) return;
 
     window.ClientMaintenanceCore.moduleId = shell.getAttribute('data-module-id') || '';
-    
+
     // Load sidebar first
     await loadSidebar(window.ClientMaintenanceCore.moduleId);
-    
+
     // Initialize main client search
     initMainClientSearch(shell);
 

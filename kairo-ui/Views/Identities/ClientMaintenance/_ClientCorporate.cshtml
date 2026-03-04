@@ -23,14 +23,14 @@
      <!-- ROW 1: Company Name, Constitution, Line of Business, Description -->
       <div class="form-row four-col">
      <div class="col"><label class="label-blue" for="txt_corporateCompanyName" id="lbl_corporateCompanyName">Company Name</label><input id="txt_corporateCompanyName" name="CompanyName" class="bs-input-text" required /></div>
-  <div class="col"><label class="label-blue" for="ddl_corporateConstitution" id="lbl_corporateConstitution">Constitution</label><select id="ddl_corporateConstitution" name="BusinessOwnershipID" class="bs-select" required><option value="">Select...</option>@foreach (var option in businessOwnershipOptions) {<option value="@option.Value">@option.Text</option>}</select></div>
-   <div class="col"><label class="label-blue" for="ddl_corporateLineOfBusiness" id="lbl_corporateLineOfBusiness">Line Of Business</label><select id="ddl_corporateLineOfBusiness" name="BusinessLineID" class="bs-select" required><option value="">Select...</option>@foreach (var option in businessLineOptions) {<option value="@option.Value">@option.Text</option>}</select></div>
+  <div class="col"><label class="label-blue" for="ddl_corporateConstitution" id="lbl_corporateConstitution">Constitution</label><select id="ddl_corporateConstitution" name="BusinessOwnershipID" class="bs-select" required asp-items="@(businessOwnershipOptions.Skip(1))"><option value="">Select...</option></select></div>
+   <div class="col"><label class="label-blue" for="ddl_corporateLineOfBusiness" id="lbl_corporateLineOfBusiness">Line Of Business</label><select id="ddl_corporateLineOfBusiness" name="BusinessLineID" class="bs-select" required asp-items="@(businessLineOptions.Skip(1))"><option value="">Select...</option></select></div>
     <div class="col"><label for="txt_corporateDescription" id="lbl_corporateDescription">Description</label><input id="txt_corporateDescription" name="BusinessDescription" class="bs-input-text" /></div>
   </div>
 
       <!-- ROW 2: ID Type, Registration Date, Registration No, Registered Office -->
     <div class="form-row four-col">
-  <div class="col"><label class="label-blue" for="ddl_corporateIdType" id="lbl_corporateIdType">Identification Type</label><select id="ddl_corporateIdType" name="IdentificationTypeID" class="bs-select" required><option value="">Select...</option>@foreach (var option in identificationTypeOptions) {<option value="@option.Value">@option.Text</option>}</select></div>
+  <div class="col"><label class="label-blue" for="ddl_corporateIdType" id="lbl_corporateIdType">Identification Type</label><select id="ddl_corporateIdType" name="IdentificationTypeID" class="bs-select" required asp-items="@(identificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
     <div class="col"><label class="label-blue" for="dt_corporateRegDate" id="lbl_corporateRegDate">Reg. Date</label><input id="dt_corporateRegDate" name="RegistrationDate" class="bs-input-text" type="date" required /></div>
      <div class="col"><label class="label-blue" for="txt_corporateRegNo" id="lbl_corporateRegNo">Reg. No.</label><input id="txt_corporateRegNo" name="RegistrationNumber" class="bs-input-text" required /></div>
    <div class="col"><label for="txt_corporateRegOffice" id="lbl_corporateRegOffice">Registered Office</label><input id="txt_corporateRegOffice" name="RegisteredOffice" class="bs-input-text" /></div>
@@ -46,7 +46,7 @@
 
       <!-- ROW 4: Country of Incorporation, ID Issue Date, Issued By, ID Expiry Date -->
      <div class="form-row four-col">
-<div class="col"><label for="ddl_corporateCountryOfIncorporation" id="lbl_corporateCountryOfIncorporation">Country of Incorporation</label><select id="ddl_corporateCountryOfIncorporation" name="CountryOfIncorporation" class="bs-select"><option value="">Select...</option>@foreach (var option in countryOptions) {<option value="@option.Value">@option.Text</option>}</select></div>
+<div class="col"><label for="ddl_corporateCountryOfIncorporation" id="lbl_corporateCountryOfIncorporation">Country of Incorporation</label><select id="ddl_corporateCountryOfIncorporation" name="CountryOfIncorporation" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
      <div class="col"><label for="dt_corporateIssueDate" id="lbl_corporateIssueDate">ID Issue Date</label><input id="dt_corporateIssueDate" name="CorporateIssueDate" class="bs-input-text" type="date" /></div>
    <div class="col"><label for="txt_corporateIssuedBy" id="lbl_corporateIssuedBy">Issued By</label><input id="txt_corporateIssuedBy" name="CorporateIssueBy" class="bs-input-text" /></div>
       <div class="col"><label for="dt_corporateExpiryDate" id="lbl_corporateExpiryDate">ID Expiry Date</label><input id="dt_corporateExpiryDate" name="CorporateExpireDate" class="bs-input-text" type="date" /></div>
@@ -76,7 +76,7 @@
   <!-- ROW 7: Opened By, Relationship Manager, Opened On -->
       <div class="form-row four-col">
 <div class="col"><label class="label-blue" for="txt_corporateOpenedBy" id="lbl_corporateOpenedBy">Opened By</label><input id="txt_corporateOpenedBy" name="OpenedBy" class="bs-input-text uppercase" readonly /></div>
-  <div class="col"><label class="label-blue" for="ddl_corporateRelationshipManager" id="lbl_corporateRelationshipManager">Relationship Manager</label><select id="ddl_corporateRelationshipManager" name="RelationshipManagerID" class="bs-select" required><option value="">Select...</option>@foreach (var option in relationshipManagerOptions) {<option value="@option.Value">@option.Text</option>}</select></div>
+  <div class="col"><label class="label-blue" for="ddl_corporateRelationshipManager" id="lbl_corporateRelationshipManager">Relationship Manager</label><select id="ddl_corporateRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select...</option></select></div>
      <div class="col"><label for="dt_corporateOpenedOn" id="lbl_corporateOpenedOn">Opened On</label><input id="dt_corporateOpenedOn" name="OpenedOn" class="bs-input-text" type="date" readonly /></div>
     <div class="col"></div>
          </div>

@@ -1,8 +1,8 @@
-@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Client Approval";
     Layout = "_ApplicationLayout";
-    var clientTypeOptions = ViewData["ClientTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var clientTypeOptions = ViewData["ClientTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 @section Styles {
@@ -276,12 +276,8 @@
             <!-- Client Type -->
             <div class="form-group">
                 <label class="form-label small fw-600" id="lbl_clientType" for="ddl_clientType">Client Type <span class="text-danger">*</span></label>
-                <select id="ddl_clientType" class="form-select form-select-sm">
+                <select id="ddl_clientType" class="form-select form-select-sm" asp-items="@(clientTypeOptions.Skip(1))">
                     <option value="">Select Type...</option>
-                    @foreach (var option in clientTypeOptions)
-                    {
-                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
-                    }
                 </select>
             </div>
 

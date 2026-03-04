@@ -1433,6 +1433,7 @@ function mapMember360ToViewModel(member360, clientId, clientName) {
     // Backward compatible: some payloads treat TanAccountDetails as meta (Branch/TanStatus), others as the savings accounts list.
     const tanMeta = (!Array.isArray(tanRaw) && tanRaw && typeof tanRaw === 'object') ? tanRaw : {};
     const tanAccounts = normalizeToArray(tanRaw);
+    //console.log(tanAccounts);
 
     const mappedTanAccounts = tanAccounts
         .map(a => ({
@@ -1447,6 +1448,7 @@ function mapMember360ToViewModel(member360, clientId, clientName) {
         }))
         .filter(a => a.accountId || a.accountName);
 
+    //console.log(mappedTanAccounts);
     const accountsBalance = mappedTanAccounts.reduce((sum, a) => sum + safeNumber(a.balance), 0);
 
     const normalizeImageSrc = (value) => {
