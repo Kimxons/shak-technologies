@@ -46,7 +46,7 @@ builder.Services.AddSingleton<CacheMetrics>();
 // Configure memory cache with size limit
 builder.Services.AddMemoryCache(options =>
 {
-  options.SizeLimit = cacheOptions.MemoryCacheSizeLimitMB * 1024 * 1024; // Convert MB to bytes
+    options.SizeLimit = cacheOptions.MemoryCacheSizeLimitMB * 1024 * 1024; // Convert MB to bytes
     options.ExpirationScanFrequency = TimeSpan.FromMinutes(5); // Scan for expired entries every 5 minutes
 });
 
@@ -56,23 +56,23 @@ if (cacheOptions.EnableDistributedCache && !string.IsNullOrWhiteSpace(cacheOptio
     // Note: To enable Redis, install the package first:
     // dotnet add package Microsoft.Extensions.Caching.StackExchangeRedis
     // Then uncomment and use this configuration:
-    
+
     // builder.Services.AddStackExchangeRedisCache(options =>
     // {
     //     options.Configuration = cacheOptions.RedisConnectionString;
     //     options.InstanceName = cacheOptions.RedisInstanceName;
     // });
-    
+
     // For now, use in-memory distributed cache as fallback
     builder.Services.AddDistributedMemoryCache();
-    
+
     var cacheLogger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Program");
     cacheLogger.LogWarning("Redis requested but using in-memory fallback. Install Microsoft.Extensions.Caching.StackExchangeRedis package for Redis support.");
 }
 else
 {
     // Use in-memory distributed cache for development
-  builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddDistributedMemoryCache();
 }
 
 // Register distributed cache service
@@ -85,7 +85,7 @@ builder.Services.AddSingleton<IHybridCacheService, HybridCacheService>();
 builder.Services.AddSingleton<IProductionCachingRepository, ProductionCachingRepository>();
 
 // Keep backward compatibility - register legacy interface with same implementation
-builder.Services.AddSingleton<ICachingRepository>(sp => 
+builder.Services.AddSingleton<ICachingRepository>(sp =>
     sp.GetRequiredService<IProductionCachingRepository>());
 
 // Register cached API service (wraps API calls with caching)
@@ -115,15 +115,15 @@ var cookieTimeoutMinutes = builder.Configuration.GetValue<int>("Session:CookieTi
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(sessionTimeoutMinutes);
-  options.Cookie.HttpOnly = true;
+    options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-  options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     //options.Cookie.Expiration = TimeSpan.FromMinutes(cookieTimeoutMinutes);
     // Use a unique session cookie name to avoid conflicts with old encrypted cookies
     options.Cookie.Name = "KAIRO-AUTH-SESSION";
 });
-    
+
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Program");
 logger.LogInformation("Configuration loaded | ApiTimeout: {ApiTimeoutSeconds}s | SessionTimeout: {SessionTimeoutMinutes}min",
     apiTimeoutSeconds, sessionTimeoutMinutes);
@@ -148,7 +148,7 @@ builder.Services.AddHttpClient("IdentityAccessManagentApi")
   .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
     {
-   client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:IdentityAccessManagentBaseUrl");
     });
 
@@ -156,8 +156,8 @@ builder.Services.AddHttpClient("SystemCoreApi")
     .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
     {
- client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
-   client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:SystemCoreBaseUrl");
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:SystemCoreBaseUrl");
     });
 
 builder.Services.AddHttpClient("ClientManagementApi")
@@ -172,9 +172,9 @@ builder.Services.AddHttpClient("AccountManagementApi")
     .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
  {
-    client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+     client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
      client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
-  });
+ });
 
 
 builder.Services.AddHttpClient("AccountManagementApi")
@@ -183,6 +183,14 @@ builder.Services.AddHttpClient("AccountManagementApi")
     {
         client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
+    });
+
+builder.Services.AddHttpClient("OldApi")
+ .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
     });
 
 

@@ -207,10 +207,10 @@
 
         // Check if another submodule is already active
         if (activeSubmodule) {
-            showSystemToast(`Please close '${activeSubmodule}' first`);
+            showSystemToast(`Please close '${activeSubmodule}' first`, { timeoutMs: 4000 });
             return;
         }
-
+        //console.log(getOverlayElements());
         const { iframe } = getOverlayElements();
         if (!submoduleUrl || !iframe) return;
 
@@ -283,6 +283,68 @@
         }));
     }
 
+
+    function ensureToastContainer() {
+        let el = document.querySelector('[data-kairo-toast-container]');
+        if (el) return el;
+        el = document.createElement('div');
+        el.className = 'kairo-toast-container';
+        el.setAttribute('data-kairo-toast-container', '');
+        el.setAttribute('aria-live', 'polite');
+        el.setAttribute('aria-relevant', 'additions');
+        document.body.appendChild(el);
+        return el;
+    }
+
+    function showToast(message, { title = 'Validation', variant = 'danger', timeoutMs = 9000 } = {}) {
+        const container = ensureToastContainer();
+
+        const toast = document.createElement('div');
+        toast.className = `kairo-toast kairo-toast--${variant}`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-atomic', 'true');
+
+        const body = document.createElement('div');
+        body.className = 'kairo-toast__body';
+        body.textContent = String(message || '');
+
+        const remove = () => {
+            try {
+                toast.classList.remove('is-show');
+                setTimeout(() => toast.remove(), 160);
+            } catch {
+                // ignore
+            }
+        };
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'kairo-toast__close';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.innerHTML = '<i class="bi bi-x"></i>';
+        closeBtn.addEventListener('click', remove);
+
+        toast.appendChild(body);
+        toast.appendChild(closeBtn);
+        container.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('is-show'), 0);
+        if (timeoutMs && timeoutMs > 0) setTimeout(remove, timeoutMs);
+    }
+
+    /**
+     * Show system-level toast (only for non-field errors like network, server errors)
+     * This is the ONLY place toasts should be used - for system messages, not validation
+     */
+    function showSystemToast(message, { title = 'Notice', variant = 'info', timeoutMs = 5000 } = {}) {
+        // Limit to one toast at a time - remove existing
+        const container = ensureToastContainer();
+        const existingToasts = container.querySelectorAll('.kairo-toast');
+        existingToasts.forEach(t => t.remove());
+
+        // Call original toast with shorter timeout for system messages
+        showToast(message, { title, variant, timeoutMs });
+    }
     // ============================================================================
     // SECTION MANAGEMENT
     // ============================================================================
@@ -369,8 +431,8 @@
     // ============================================================================
 
     function wireSidebarToggle() {
-        /*const sidebar = document.getElementById('main-sidebar');*/
-        const sidebar = document.getElementById('sidebarContainer');
+        const sidebar = document.getElementById('main-sidebar');
+        //const sidebar = document.getElementById('sidebarContainer');
         const toggle = document.getElementById('sidebarToggle');
         const mainContainer = document.querySelector('.main-container');
 

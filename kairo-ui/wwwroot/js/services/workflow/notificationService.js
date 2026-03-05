@@ -2,7 +2,7 @@
  * Notification Service
  * Provides centralized toast notifications for the application
  */
-(function(global) {
+(function (global) {
     'use strict';
 
     const NotificationService = {
@@ -66,7 +66,7 @@
                 transform: translateX(100%);
                 transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             `;
-            
+
             // Allow HTML in message for bolding etc, but sanitize if needed (assuming internal trusted strings here)
             toast.innerHTML = `
                 <span style="font-size: 18px; line-height: 1;">${icon[type] || icon.info}</span>
@@ -96,8 +96,9 @@
                     }
                 }, duration);
             }
-        },
+        }
 
+        ,
         success(message, duration) {
             this.showToast(message, 'success', duration);
         },
