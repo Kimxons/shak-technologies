@@ -6,6 +6,36 @@
 (function() {
     'use strict';
 
+    const SEARCH_MODAL_PREFIX = (window.Environment?.searchModalPrefix || 'mfs').toString();
+    const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || window.Environment?.microfinanceModuleId || '5010');
+
+    function getAppCore() {
+        const win = window;
+        return win.AppCore || (win.parent && win.parent !== win && win.parent.AppCore) || (win.top && win.top !== win && win.top.AppCore) || null;
+    }
+
+    // =========================================================================
+    // Service Invoker (Client360 pattern)
+    // =========================================================================
+    function invokeCenterLoanController(action, requestData) {
+        return new Promise((resolve, reject) => {
+            const appCore = getAppCore();
+            if (!appCore || typeof appCore.invokeController !== 'function') {
+                reject(new Error('AppCore is not available (AppCore.invokeController not found)'));
+                return;
+            }
+
+            const endpoint = `MicroFinance/${action}`;
+            appCore.invokeController(endpoint, requestData || {}, (error, response) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(response);
+                }
+            });
+        });
+    }
+
     // =========================================================================
     // State Management
     // =========================================================================
@@ -98,136 +128,328 @@
     // =========================================================================
     // Search Dialog Management
     // =========================================================================
-    const searchDialogConfig = {
-        'scheme': {
-            url: '../../common/searchDialogs/group-loan-scheme-search/group-loan-scheme-search.html',
-            title: 'Loan Scheme Search',
-            targetId: 'SchemeId',
-            targetName: 'Description'
-        },
-        'loan-product': {
-            url: '../../common/searchDialogs/scheme-product-search/scheme-product-search.html',
-            title: 'Loan Product Search',
-            targetId: 'LoanProductId',
-            targetName: 'LoanProductName'
-        },
-        'advance-type': {
-            url: '../../common/searchDialogs/wf-advance-type-search/wf-advance-type-search.html',
-            title: 'Advance Type Search',
-            targetId: 'AdvanceTypeId',
-            targetName: 'AdvanceTypeName'
-        },
-        'collection-product': {
-            url: '../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%3D%27SB%27',
-            title: 'Collection Product Search',
-            targetId: 'CenterCollectionProductId',
-            targetName: 'CenterCollectionProductName'
-        },
-        'deposit-product-primary': {
-            url: "../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%20in(%27SB%27%2C%20%27CS%27)%20AND%20BankID%20%3D%2700%27%20AND%20ProductCategoryID%3D%27A%27",
-            title: 'Deposit Product Search',
-            targetId: 'DepositProductIdPrimary',
-            targetName: 'DepositProductNamePrimary'
-        },
-        'deposit-product-secondary': {
-            url: "../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%20in(%27SB%27%2C%20%27CS%27)%20AND%20BankID%20%3D%2700%27%20AND%20ProductCategoryID%3D%27A%27",
-            title: 'Deposit Product Search',
-            targetId: 'DepositProductIdSecondary',
-            targetName: 'DepositProductNameSecondary'
-        },
-        'deposit-product-additional': {
-            url: "../../common/searchDialogs/product-search/product-search.html?advFilter=ProductTypeID%20in(%27SB%27%2C%20%27CS%27)%20AND%20BankID%20%3D%2700%27%20AND%20ProductCategoryID%3D%27A%27",
-            title: 'Deposit Product Search',
-            targetId: 'DepositProductIdAdditional',
-            targetName: 'DepositProductNameAdditional'
-        }
-    };
+    let sharedSearchModal = null;
 
     function canUseSearchDialogs() {
         return isAddMode || isEditMode;
     }
 
+    const searchDialogConfig = {
+        'scheme': {
+            title: 'Loan Scheme Search',
+            targetId: 'SchemeId',
+            targetName: 'Description',
+            tableID: 'GroupDefaultSchemeID',
+            moduleIDOverride: 5060,
+            searchFields: [
+                { name: 'schemeId', label: 'Scheme ID', column: 'LoanSchemeID' },
+                { name: 'schemeName', label: 'Scheme Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'LoanSchemeID', label: 'Scheme ID' },
+                { key: 'Description', label: 'Scheme Name' },
+                { key: 'GroupProductID', label: 'Group Product ID' }
+            ],
+            getAdvFilterString: () => {
+                const groupProductId = document.getElementById('LoanProductId')?.value?.trim() || '';
+                if (groupProductId != '') {
+                    return `GroupProductID ='${groupProductId.replace(/'/g, "''")}' AND SchemeTypeID = 'P'`;
+                }
+                else {
+                    return `SchemeTypeID = 'P'`;
+ }
+                
+            }
+        },
+        'loan-product': {
+            title: 'Loan Product Search',
+            targetId: 'LoanProductId',
+            targetName: 'LoanProductName',
+            tableID: 'schemeproductid',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `BankID ='${safeBankId}' AND ProductTypeID in ('LN')`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'SchemeProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'SchemeProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
+        },
+        'advance-type': {
+            title: 'Advance Type Search',
+            targetId: 'AdvanceTypeId',
+            targetName: 'AdvanceTypeName',
+            tableID: 'WFAdvTypeActiveID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID, ourBranchID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                const safeBranchId = String(ourBranchID || '').replace(/'/g, "''");
+                return `ModuleID in ('LN') AND BankID ='${safeBankId}' AND OurBranchID ='${safeBranchId}'`;
+            },
+            searchFields: [
+                { name: 'advanceTypeId', label: 'Advance Type ID', column: 'WFAdvTypeID' },
+                { name: 'advanceTypeName', label: 'Advance Type Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'WFAdvTypeID', label: 'Advance Type ID' },
+                { key: 'Description', label: 'Advance Type Name' }
+            ]
+        },
+        'collection-product': {
+            title: 'Collection Product Search',
+            targetId: 'CenterCollectionProductId',
+            targetName: 'CenterCollectionProductName',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            advFilterString: "ProductTypeID='SB'",
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
+        },
+        'deposit-product-primary': {
+            title: 'Deposit Product Search',
+            targetId: 'DepositProductIdPrimary',
+            targetName: 'DepositProductNamePrimary',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
+        },
+        'deposit-product-secondary': {
+            title: 'Deposit Product Search',
+            targetId: 'DepositProductIdSecondary',
+            targetName: 'DepositProductNameSecondary',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
+        },
+        'deposit-product-additional': {
+            title: 'Deposit Product Search',
+            targetId: 'DepositProductIdAdditional',
+            targetName: 'DepositProductNameAdditional',
+            tableID: 'ProductID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
+            getAdvFilterString: () => {
+                const { bankID } = getEnv();
+                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
+            },
+            searchFields: [
+                { name: 'productId', label: 'Product ID', column: 'ProductID' },
+                { name: 'productName', label: 'Product Name', column: 'Description' }
+            ],
+            displayFields: [
+                { key: 'ProductID', label: 'Product ID' },
+                { key: 'Description', label: 'Product Name' },
+                { key: 'ProductTypeID', label: 'Product Type' }
+            ]
+        }
+    };
+
+    function ensureSharedSearchModal() {
+        // Always recreate if appCore methods are missing, don't cache broken instances
+        if (sharedSearchModal) {
+            // Verify it has working appCore
+            const hasInvokeView = typeof sharedSearchModal.appCore?.invokeControllerGetViewAsync === 'function';
+            const hasInvokeAsync = typeof sharedSearchModal.appCore?.invokeControllerAsync === 'function';
+            
+            if (hasInvokeView && hasInvokeAsync) {
+                console.log('[CenterLoanScheme] Reusing existing SearchModal instance');
+                return sharedSearchModal;
+            }
+            
+            console.warn('[CenterLoanScheme] SearchModal exists but appCore methods missing, recreating...');
+            sharedSearchModal = null;
+        }
+
+        if (typeof window.SearchModal !== 'function') {
+            console.error('[CenterLoanScheme] window.SearchModal is not available');
+            return null;
+        }
+
+        const appCore = getAppCore();
+        if (!appCore) {
+            console.error('[CenterLoanScheme] AppCore is not available for SearchModal.');
+            return null;
+        }
+
+        console.log('[CenterLoanScheme] Creating new SearchModal with appCore:', appCore);
+
+        // Polyfill AppCore methods expected by SearchModal when missing
+        if (typeof appCore.invokeControllerGetViewAsync !== 'function') {
+            console.log('[CenterLoanScheme] Polyfilling invokeControllerGetViewAsync');
+            appCore.invokeControllerGetViewAsync = async (endpoint, query) => {
+                const qs = new URLSearchParams(query || {}).toString();
+                const resp = await fetch(`/${endpoint}?${qs}`, { credentials: 'same-origin' });
+                if (!resp.ok) {
+                    const text = await resp.text();
+                    throw new Error(`Failed to load view (${resp.status}): ${text}`);
+                }
+                return resp.text();
+            };
+        }
+        if (typeof appCore.invokeControllerAsync !== 'function') {
+            console.log('[CenterLoanScheme] Polyfilling invokeControllerAsync');
+            appCore.invokeControllerAsync = async (endpoint, data) => {
+                const resp = await fetch(`/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(data || {})
+                });
+                if (!resp.ok) {
+                    const text = await resp.text();
+                    throw new Error(`Request failed (${resp.status}): ${text}`);
+                }
+                return resp.json();
+            };
+        }
+
+        // Initialize SearchModal exactly like member360 does
+        sharedSearchModal = new window.SearchModal(appCore);
+        console.log('[CenterLoanScheme] SearchModal created successfully:', sharedSearchModal);
+
+        return sharedSearchModal;
+    }
+
+    function mapSelectedData(lookupType, data) {
+        if (!data) return;
+
+        if (lookupType === 'scheme') {
+            const schemeId = data.LoanSchemeID || data.SchemeId || data.ID || '';
+            const schemeIdField = document.getElementById('SchemeId');
+            if (schemeIdField) {
+                schemeIdField.value = schemeId;
+            }
+            handleView();
+            return;
+        }
+
+        const config = searchDialogConfig[lookupType];
+        if (!config) return;
+
+        const idField = document.getElementById(config.targetId);
+        const nameField = document.getElementById(config.targetName);
+
+        if (idField) {
+            idField.value = data.LoanSchemeID || data.SchemeProductID || data.WFAdvTypeID || data.GroupProductID || data.ProductID || data.ID || '';
+        }
+
+        if (nameField) {
+            nameField.value = data.Description || data.GroupProductName || data.ProductName || data.AdvanceTypeName || data.Name || '';
+        }
+    }
+
     function openSearchDialog(lookupType) {
+        console.log('[CenterLoanScheme] openSearchDialog called with lookupType:', lookupType);
+        
         const config = searchDialogConfig[lookupType];
         if (!config) {
+            console.error('[CenterLoanScheme] No config found for lookupType:', lookupType);
             showWarning(`Unknown lookup type: ${lookupType}`);
             return;
         }
 
-        // Store the active search context
-        activeSearchContext = config;
+        console.log('[CenterLoanScheme] Config found:', config);
 
-        // Get the search modal elements
-        const searchModal = document.getElementById('searchModal');
-        const searchModalTitle = document.getElementById('searchModalTitle');
-        const searchModalFrame = document.getElementById('searchModalFrame');
-
-        if (!searchModal || !searchModalFrame) {
-            showError('Search dialog not available');
+        const sharedModal = ensureSharedSearchModal();
+        if (!sharedModal) {
+            console.error('[CenterLoanScheme] ensureSharedSearchModal returned null');
+            showError('Shared search dialog is not available.');
+            return;
+        }
+        
+        if (!config.tableID) {
+            console.error('[CenterLoanScheme] config.tableID is missing');
+            showError('Search configuration is incomplete (missing tableID).');
             return;
         }
 
-        // Set modal title and iframe source
-        if (searchModalTitle) {
-            searchModalTitle.textContent = config.title;
-        }
-        // Append noheader parameter to hide the search dialog's internal header
-        const separator = config.url.includes('?') ? '&' : '?';
-        searchModalFrame.src = config.url + separator + 'noheader=1';
+        console.log('[CenterLoanScheme] SearchModal instance:', sharedModal);
 
-        // Show the modal using Bootstrap
-        const modal = new bootstrap.Modal(searchModal);
-        modal.show();
+        const advFilterString = typeof config.getAdvFilterString === 'function'
+            ? config.getAdvFilterString()
+            : (config.advFilterString || '');
+
+        console.log('[CenterLoanScheme] Opening search with config:', {
+            tableID: config.tableID,
+            moduleID: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
+            whereStmt: '',
+            advFilterString,
+            searchKey: ''
+        });
+
+        try {
+            sharedModal.open({
+                tableID: config.tableID,
+                moduleID: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
+                whereStmt: '',
+                advFilterString,
+                searchKey: '',
+                onSelect: (record) => {
+                    console.log('[CenterLoanScheme] Record selected:', record);
+                    mapSelectedData(lookupType, record);
+                }
+            });
+            console.log('[CenterLoanScheme] sharedModal.open() called successfully');
+        } catch (error) {
+            console.error('[CenterLoanScheme] Error calling sharedModal.open():', error);
+            showError('Failed to open search dialog: ' + error.message);
+        }
     }
 
     async function handleSearchSelection(data) {
         if (!activeSearchContext || !data) return;
 
-        const { targetId, targetName } = activeSearchContext;
         const lookupType = Object.keys(searchDialogConfig).find(
-            key => searchDialogConfig[key].targetId === targetId
+            key => searchDialogConfig[key].targetId === activeSearchContext.targetId
         );
 
-        // For scheme search, set the SchemeId and call handleView to fetch fresh data
-        if (lookupType === 'scheme') {
-            const schemeId = data.LoanSchemeID || data.SchemeId || data.ID || '';
-            
-            // Set the SchemeId field first
-            const schemeIdField = document.getElementById('SchemeId');
-            if (schemeIdField) {
-                schemeIdField.value = schemeId;
-            }
-
-            // Clear the context and close the modal BEFORE fetching
-            activeSearchContext = null;
-            const searchModal = document.getElementById('searchModal');
-            if (searchModal) {
-                const modal = bootstrap.Modal.getInstance(searchModal);
-                if (modal) modal.hide();
-            }
-
-            // Fetch and populate the form with fresh data from API
-            await handleView();
-            return;
-        } else {
-            // For other lookups, just populate the ID and Name fields
-            const idField = document.getElementById(targetId);
-            const nameField = document.getElementById(targetName);
-
-            if (idField) {
-                // Support SchemeProductID and WFAdvTypeID from the new search dialogs
-                idField.value = data.LoanSchemeID || data.SchemeProductID || data.WFAdvTypeID || data.GroupProductID || data.ProductID || data.ID || '';
-            }
-
-            if (nameField) {
-                nameField.value = data.Description || data.GroupProductName || data.ProductName || data.AdvanceTypeName || data.Name || '';
-            }
+        if (lookupType) {
+            mapSelectedData(lookupType, data);
         }
 
-        // Clear the context
         activeSearchContext = null;
 
-        // Close the modal
         const searchModal = document.getElementById('searchModal');
         if (searchModal) {
             const modal = bootstrap.Modal.getInstance(searchModal);
@@ -243,6 +465,7 @@
         
         if (!schemeId) {
             showWarning('Please enter a Scheme ID to view');
+            document.getElementById('SchemeId')?.focus();
             return;
         }
 
@@ -779,24 +1002,24 @@
 
         // Primary Collateral Details
         setFieldValue('PrimaryCollateral', data.PrimaryCollateral);
-        setFieldValue('PrimaryCollateralName', data.PrimaryCollateralName);
+        setFieldValue('PrimaryCollateralName', data.PrimaryCollateralID || '');
         setFieldValue('DepositProductIdPrimary', data.DepositProductIdPrimary);
         setFieldValue('DepositProductNamePrimary', data.DepositProductNamePrimary);
         setFieldValue('SavingToLoanRatio', data.SavingToLoanRatio);
         setFieldValue('SLRecoveryType', data.SLRecoveryType);
-        setCheckboxValue('CollectSavingWithInstallment', data.CollectSavingWithInstallment);
-        setFieldValue('SavingsCollectionType', data.SavingsCollectionType);
-        setFieldValue('SavingsValue', data.SavingsValue);
+        setCheckboxValue('CollectSavingWithInstallment', data.CollectSavingWithInst);
+        setFieldValue('SavingsCollectionType', data.SavingsTypeID);
+        setFieldValue('SavingsValue', data.SavingsAmount);
 
         // Secondary Collateral Details
         setFieldValue('SecondaryCollateral', data.SecondaryCollateral);
-        setFieldValue('SecondaryCollateralName', data.SecondaryCollateralName);
+        setFieldValue('SecondaryCollateralName', data.SecondaryCollateralID || '');
         setFieldValue('DepositProductIdSecondary', data.DepositProductIdSecondary);
         setFieldValue('DepositProductNameSecondary', data.DepositProductNameSecondary);
 
         // Additional Collateral Details
         setFieldValue('AdditionalCollateral', data.AdditionalCollateral);
-        setFieldValue('AdditionalCollateralName', data.AdditionalCollateralName);
+        setFieldValue('AdditionalCollateralName', data.AdditionalCollateralID || '');
         setFieldValue('DepositProductIdAdditional', data.DepositProductIdAdditional);
         setFieldValue('DepositProductNameAdditional', data.DepositProductNameAdditional);
 
@@ -961,7 +1184,7 @@
 
         try {
             // Check if GroupService is available
-            if (!window.GroupService) {
+            if (!window.GroupService || typeof window.GroupService.getGroupLoanSchemes !== 'function') {
                 showError('GroupService not available. Please ensure services are loaded.');
                 console.error('GroupService not found');
                 return null;
@@ -969,75 +1192,16 @@
 
             const response = await window.GroupService.getGroupLoanSchemes(requestData);
 
+            console.log('[CenterLoanScheme] loadSchemeData Response:', response);
+
             // Handle response - data is in response.data.Details01
-            const details = response?.data?.Details01 || response?.ResponseData || [];
+            const details = response?.data?.Details01 || response?.Details01 || response?.ResponseData || [];
             const data = Array.isArray(details) ? details[0] : details;
 
             if (data && data.LoanSchemeID) {
-                // Log raw API checkbox values for debugging
-
-
-                // Map API response to form fields based on actual response structure
-                currentScheme = {
-                    SchemeId: data.LoanSchemeID || '',
-                    Description: data.Description || '',
-                    LoanProductId: data.LoanProductID || '',
-                    LoanProductName: data.LoanProductName || '',
-                    LoanProductCurrencyId: data.LoanProductCurrencyID || '',
-                    GroupCycleTypeId: data.LoanCycleTypeID || '',
-                    CycleWiseGroupLoanMenu: toBoolean(data.IsStaggered),
-                    InstallmentFrequency: data.InstallmentFrequency || data.InstallmentFrequencyID || '',
-                    LoanAmountRestricted: toBoolean(data.RestrictLoanAmount),
-                    AdvanceTypeId: data.WFAdvTypeID || '',
-                    AdvanceTypeName: data.WFAdvTypeName || '',
-                    CenterCollectionProductId: data.GroupCollectionProductID || '',
-                    CenterCollectionProductName: data.GroupCollectionProductName || '',
-                    // Required Collateral checkboxes - use toBoolean for proper conversion
-                    PrimaryCollateralRequired: toBoolean(data.PrimaryCollateralReq),
-                    SecondaryCollateralRequired: toBoolean(data.SecondaryCollateralReq),
-                    AdditionalCollateralRequired: toBoolean(data.AdditionalCollateralReq),
-                    // Primary Collateral Details
-                    PrimaryCollateral: data.PrimaryCollateralID || '',
-                    PrimaryCollateralName: data.PrimaryCollateralID || '', // Use ID as name if no separate name field
-                    DepositProductIdPrimary: data.PrimaryProductID || '',
-                    DepositProductNamePrimary: data.PrimaryProductName || '',
-                    SavingToLoanRatio: data.SavingToLoanRatio || '',
-                    SLRecoveryType: data.SLRecoveryType || '',
-                    CollectSavingWithInstallment: toBoolean(data.CollectSavingWithInst),
-                    SavingsCollectionType: data.SavingsTypeID || '',
-                    SavingsValue: data.SavingsAmount || '',
-                    // Secondary Collateral Details
-                    SecondaryCollateral: data.SecondaryCollateralID || '',
-                    SecondaryCollateralName: data.SecondaryCollateralID || '',
-                    DepositProductIdSecondary: data.SecondaryProductID || '',
-                    DepositProductNameSecondary: data.SecondaryProductName || '',
-                    // Additional Collateral Details
-                    AdditionalCollateral: data.AdditionalCollateralID || '',
-                    AdditionalCollateralName: data.AdditionalCollateralID || '',
-                    DepositProductIdAdditional: data.AdditionalProductID || '',
-                    DepositProductNameAdditional: data.AdditionalProductName || '',
-                    // Additional fields
-                    MinLoanAmount: data.MinLoanAmount || '',
-                    MaxLoanAmount: data.MaxLoanAmount || '',
-                    MinLoanTerm: data.MinLoanTerm || '',
-                    MaxLoanTerm: data.MaxLoanTerm || '',
-                    IsUsed: data.IsUsed || 0,
-                    UpdateCount: data.UpdateCount || 0,
-                    CanChangeLoanProductID: data.CanChangeLoanProductID || 0,
-                    // Audit fields (store raw values for API, formatted for display)
-                    CreatedBy: data.CreatedBy || '',
-                    CreatedOn: data.CreatedOn || '',
-                    CreatedOnDisplay: formatDateTime(data.CreatedOn),
-                    ModifiedBy: data.ModifiedBy || '',
-                    ModifiedOn: data.ModifiedOn || '',
-                    ModifiedOnDisplay: formatDateTime(data.ModifiedOn),
-                    SupervisedBy: data.SupervisedBy || '',
-                    SupervisedOn: data.SupervisedOn || '',
-                    SupervisedOnDisplay: formatDateTime(data.SupervisedOn)
-                };
-
+                // Map API response using the view model mapper
+                currentScheme = mapSchemeDataToViewModel(data);
                 populateForm(currentScheme);
-                
                 
                 updateActionButtons('view');
                 return currentScheme;
@@ -1055,45 +1219,85 @@
         }
     }
 
-    /**
-     * Format date/time for display using GlobalUtils
-     */
-    function formatDateTime(dateStr) {
-        if (!dateStr) return '';
-        if (window.GlobalUtils && window.GlobalUtils.formatDateTime) {
-            return window.GlobalUtils.formatDateTime(dateStr);
+    // Helper function to extract status from OldAPI responses (Client360 pattern)
+    function getOldApiStatus(payload) {
+        const candidates = [];
+        if (payload) candidates.push(payload);
+        if (Array.isArray(payload?.Details) && payload.Details.length) candidates.push(payload.Details[0]);
+        if (Array.isArray(payload?.details) && payload.details.length) candidates.push(payload.details[0]);
+        if (Array.isArray(payload?.Details01) && payload.Details01.length) candidates.push(payload.Details01[0]);
+
+        for (const candidate of candidates) {
+            const code = candidate?.ResponseCode ?? candidate?.responseCode ?? candidate?.Status ?? candidate?.status ?? candidate?.code;
+            if (code === undefined || code === null) continue;
+            const normalized = String(code).trim();
+            const ok = normalized === '' || normalized === '00' || normalized === '0' || normalized.toLowerCase() === 'ok' || normalized.toLowerCase() === 'success';
+            const message = candidate?.ResponseMessage ?? candidate?.responseMessage ?? candidate?.Message ?? candidate?.message ?? '';
+            return { ok, code: normalized, message };
         }
-        // Fallback if GlobalUtils not available
-        try {
-            const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
-            return date.toLocaleString();
-        } catch {
-            return dateStr;
-        }
+
+        return { ok: true, code: '', message: '' };
     }
 
-    /**
-     * Format date/time for API submission using GlobalUtils (SQL smalldatetime compatible)
-     */
-    function formatDateForApi(dateStr) {
-        if (!dateStr) return '';
-        if (window.GlobalUtils && window.GlobalUtils.parseDateInput) {
-            const isoDate = window.GlobalUtils.parseDateInput(dateStr);
-            if (isoDate) {
-                // Add time component for smalldatetime
-                return isoDate + 'T00:00:00';
-            }
-        }
-        // Fallback if GlobalUtils not available
-        try {
-            const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return '';
-            // Format as YYYY-MM-DDTHH:mm:ss for SQL smalldatetime
-            return date.toISOString().slice(0, 19);
-        } catch {
-            return '';
-        }
+    // Map API response to view model (Client360 pattern)
+    function mapSchemeDataToViewModel(data) {
+        return {
+            SchemeId: data.LoanSchemeID || '',
+            Description: data.Description || '',
+            LoanProductId: data.LoanProductID || '',
+            LoanProductName: data.LoanProductName || '',
+            LoanProductCurrencyId: data.LoanProductCurrencyID || '',
+            GroupCycleTypeId: data.LoanCycleTypeID || '',
+            CycleWiseGroupLoanMenu: toBoolean(data.IsStaggered),
+            InstallmentFrequency: data.InstallmentFrequency || data.InstallmentFrequencyID || '',
+            LoanAmountRestricted: toBoolean(data.RestrictLoanAmount),
+            AdvanceTypeId: data.WFAdvTypeID || '',
+            AdvanceTypeName: data.WFAdvTypeName || '',
+            CenterCollectionProductId: data.GroupCollectionProductID || '',
+            CenterCollectionProductName: data.GroupCollectionProductName || '',
+            // Required Collateral checkboxes
+            PrimaryCollateralRequired: toBoolean(data.PrimaryCollateralReq),
+            SecondaryCollateralRequired: toBoolean(data.SecondaryCollateralReq),
+            AdditionalCollateralRequired: toBoolean(data.AdditionalCollateralReq),
+            // Primary Collateral Details
+            PrimaryCollateral: data.PrimaryCollateralID || '',
+            PrimaryCollateralName: data.PrimaryCollateralID || '',
+            DepositProductIdPrimary: data.PrimaryProductID || '',
+            DepositProductNamePrimary: data.PrimaryProductName || '',
+            SavingToLoanRatio: data.SavingToLoanRatio || '',
+            SLRecoveryType: data.SLRecoveryType || '',
+            CollectSavingWithInstallment: toBoolean(data.CollectSavingWithInst),
+            SavingsCollectionType: data.SavingsTypeID || '',
+            SavingsValue: data.SavingsAmount || '',
+            // Secondary Collateral Details
+            SecondaryCollateral: data.SecondaryCollateralID || '',
+            SecondaryCollateralName: data.SecondaryCollateralID || '',
+            DepositProductIdSecondary: data.SecondaryProductID || '',
+            DepositProductNameSecondary: data.SecondaryProductName || '',
+            // Additional Collateral Details
+            AdditionalCollateral: data.AdditionalCollateralID || '',
+            AdditionalCollateralName: data.AdditionalCollateralID || '',
+            DepositProductIdAdditional: data.AdditionalProductID || '',
+            DepositProductNameAdditional: data.AdditionalProductName || '',
+            // Additional fields
+            MinLoanAmount: data.MinLoanAmount || '',
+            MaxLoanAmount: data.MaxLoanAmount || '',
+            MinLoanTerm: data.MinLoanTerm || '',
+            MaxLoanTerm: data.MaxLoanTerm || '',
+            IsUsed: data.IsUsed || 0,
+            UpdateCount: data.UpdateCount || 0,
+            CanChangeLoanProductID: data.CanChangeLoanProductID || 0,
+            // Audit fields
+            CreatedBy: data.CreatedBy || '',
+            CreatedOn: data.CreatedOn || '',
+            CreatedOnDisplay: formatDateTime(data.CreatedOn),
+            ModifiedBy: data.ModifiedBy || '',
+            ModifiedOn: data.ModifiedOn || '',
+            ModifiedOnDisplay: formatDateTime(data.ModifiedOn),
+            SupervisedBy: data.SupervisedBy || '',
+            SupervisedOn: data.SupervisedOn || '',
+            SupervisedOnDisplay: formatDateTime(data.SupervisedOn)
+        };
     }
 
     /**
@@ -1111,20 +1315,23 @@
         };
 
         try {
-            if (!window.GroupService) {
+            if (!window.GroupService || typeof window.GroupService.getGroupLoanSchemes !== 'function') {
                 console.warn('GroupService not available for fetching schemes list');
                 return;
             }
 
             const response = await window.GroupService.getGroupLoanSchemes(requestData);
             
+            console.log('[CenterLoanScheme] fetchAllSchemes Response:', response);
+
             // Handle response - data is in response.data.Details01
-            const details = response?.data?.Details01 || response?.ResponseData || [];
+            const details = response?.data?.Details01 || response?.Details01 || response?.ResponseData || [];
             schemesList = Array.isArray(details) ? details : [details];
             
             // Filter out empty entries
             schemesList = schemesList.filter(s => s && s.LoanSchemeID);
             
+            console.log(`[CenterLoanScheme] Loaded ${schemesList.length} schemes for navigation`);
 
             // Load the first scheme if available
             if (schemesList.length > 0) {
@@ -1135,520 +1342,4 @@
             console.error('Error fetching all schemes:', error);
         }
     }
-
-    // =========================================================================
-    // Child Form Management
-    // =========================================================================
-    function openChildForm(formName) {
-        const childInline = document.querySelector('[data-child-inline]');
-        const childIframe = document.querySelector('[data-child-iframe]');
-        const mainForm = document.querySelector('[data-main-form]');
-        const mainContainer = document.querySelector('.main-container');
-
-        if (!childInline || !childIframe || !mainForm || !mainContainer) {
-            console.error('Required elements for child form not found.');
-            return;
-        }
-
-        const formConfig = {
-            'center-loan-menu': { url: 'dataEntry/center-loan-menu.html' },
-            'products': { url: 'dataEntry/products.html' }
-        };
-
-        const config = formConfig[formName];
-        if (config) {
-            
-            // Animate: Hide main form, show child form
-            mainContainer.classList.add('child-opening');
-            childInline.hidden = false;
-            
-            // Load iframe
-            childIframe.onload = function() {
-            };
-            childIframe.onerror = function() {
-                console.error('Iframe failed to load:', config.url);
-            };
-            childIframe.src = config.url;
-            
-            // Small delay to ensure CSS transitions work
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    mainContainer.classList.add('child-open');
-                    childInline.classList.add('is-visible');
-                    childInline.classList.remove('is-closing');
-                    
-                    // Clean up opening state after animation
-                    setTimeout(() => {
-                        mainContainer.classList.remove('child-opening');
-                        mainForm.hidden = true;
-                    }, 350);
-                });
-            });
-        } else {
-            console.error('No config found for form:', formName);
-        }
-    }
-
-    function closeChildForm() {
-        const childInline = document.querySelector('[data-child-inline]');
-        const childIframe = document.querySelector('[data-child-iframe]');
-        const mainForm = document.querySelector('[data-main-form]');
-        const mainContainer = document.querySelector('.main-container');
-
-        if (!childInline || !mainContainer) return;
-        
-        // Animate: Hide child form, show main form
-        mainContainer.classList.add('child-closing');
-        childInline.classList.add('is-closing');
-        childInline.classList.remove('is-visible');
-        
-        // Show main form immediately for the animation
-        if (mainForm) mainForm.hidden = false;
-        
-        // Wait for animation to complete
-        setTimeout(() => {
-            childInline.hidden = true;
-            mainContainer.classList.remove('child-open', 'child-closing');
-            if (childIframe) childIframe.src = 'about:blank';
-        }, 350);
-    }
-
-    // =========================================================================
-    // Sidebar Management
-    // =========================================================================
-    function initSidebar() {
-        // Sidebar toggle
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.getElementById('main-sidebar');
-        
-        if (sidebarToggle && sidebar) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                const isExpanded = !sidebar.classList.contains('collapsed');
-                sidebarToggle.setAttribute('aria-expanded', isExpanded);
-            });
-        }
-
-        // Nav section toggles
-        document.querySelectorAll('.nav-arrow--card').forEach(arrow => {
-            arrow.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const section = this.closest('.nav-section');
-                const items = section.querySelector('.nav-items--card');
-                const isOpen = section.classList.toggle('is-open');
-                
-                this.setAttribute('aria-expanded', isOpen);
-                items.hidden = !isOpen;
-                
-                const icon = this.querySelector('i');
-                icon.className = isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
-            });
-        });
-
-        // Sidebar item click handlers
-        document.querySelectorAll('.sidebar-item[data-child-form]').forEach(item => {
-            item.addEventListener('click', function() {
-                // Check if a scheme is loaded before allowing access to data entry pages
-                if (!currentScheme) {
-                    showWarning('Please load a scheme first before accessing data entry pages.');
-                    return;
-                }
-                
-                const formName = this.dataset.childForm;
-                openChildForm(formName);
-            });
-        });
-
-        // Sidebar search functionality
-        const submoduleSearch = document.getElementById('submoduleSearch');
-        const navSections = document.querySelectorAll('.nav-section[data-nav-section]');
-
-        if (submoduleSearch && navSections.length > 0) {
-            submoduleSearch.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-
-                navSections.forEach(section => {
-                    const items = section.querySelectorAll('.sidebar-item');
-                    let sectionHasVisibleItems = false;
-
-                    items.forEach(item => {
-                        const title = item.querySelector('.sidebar-item__title')?.textContent.toLowerCase() || '';
-                        const description = item.querySelector('.sidebar-item__description')?.textContent.toLowerCase() || '';
-                        const isMatch = title.includes(searchTerm) || description.includes(searchTerm);
-                        
-                        item.hidden = !isMatch;
-                        if (isMatch) {
-                            sectionHasVisibleItems = true;
-                        }
-                    });
-
-                    // Toggle section visibility based on search results
-                    const navItems = section.querySelector('.nav-items--card');
-                    const navArrow = section.querySelector('.nav-arrow--card');
-                    const arrowIcon = navArrow?.querySelector('i');
-
-                    if (searchTerm.length > 0) {
-                        if (sectionHasVisibleItems) {
-                            if (!section.classList.contains('is-open')) {
-                                section.classList.add('is-open');
-                                navItems.hidden = false;
-                                if (navArrow) navArrow.setAttribute('aria-expanded', 'true');
-                                if (arrowIcon) arrowIcon.className = 'bi bi-chevron-up';
-                            }
-                        } else {
-                            if (section.classList.contains('is-open')) {
-                                section.classList.remove('is-open');
-                                navItems.hidden = true;
-                                if (navArrow) navArrow.setAttribute('aria-expanded', 'false');
-                                if (arrowIcon) arrowIcon.className = 'bi bi-chevron-down';
-                            }
-                        }
-                    } else {
-                        items.forEach(item => item.hidden = false);
-                    }
-                });
-            });
-        }
-    }
-
-    // =========================================================================
-    // Section Toggles
-    // =========================================================================
-    function initSectionToggles() {
-        document.querySelectorAll('[data-section-toggle]').forEach(header => {
-            header.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('[data-section-content]');
-                const btn = this.querySelector('.section-toggle-btn');
-                const icon = btn.querySelector('i');
-                const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-                
-                btn.setAttribute('aria-expanded', !isExpanded);
-                content.hidden = isExpanded;
-                icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
-            });
-        });
-    }
-
-    // =========================================================================
-    // Event Listeners
-    // =========================================================================
-    function initEventListeners() {
-        // Lookup button handlers
-        document.querySelectorAll('[data-mcs-lookup]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const lookupType = this.getAttribute('data-mcs-lookup');
-                
-                // Scheme search is always available (needed to view/load a scheme)
-                // Other lookups require Add or Edit mode
-                if (lookupType !== 'scheme' && !canUseSearchDialogs()) {
-                    showWarning('Search is only available in Add or Edit mode.');
-                    return;
-                }
-                
-                openSearchDialog(lookupType);
-            });
-        });
-
-        // Action button handlers
-        document.querySelectorAll('[data-mcs-action]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const actionType = this.getAttribute('data-mcs-action');
-                
-                switch (actionType) {
-                    case 'view':
-                        handleView();
-                        break;
-                    case 'add':
-                        handleAdd();
-                        break;
-                    case 'edit':
-                        handleEdit();
-                        break;
-                    case 'delete':
-                        handleDelete();
-                        break;
-                    case 'save':
-                        handleSave();
-                        break;
-                    case 'cancel':
-                        handleCancel();
-                        break;
-                }
-            });
-        });
-
-        // Navigation buttons
-        document.querySelectorAll('.btn-nav').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const label = this.getAttribute('aria-label') || '';
-                
-                if (label.toLowerCase().includes('previous')) {
-                    handlePrevious();
-                } else if (label.toLowerCase().includes('next')) {
-                    handleNext();
-                }
-            });
-        });
-
-        // Collateral checkbox change handlers - toggle section visibility
-        const collateralCheckboxes = ['PrimaryCollateralRequired', 'SecondaryCollateralRequired', 'AdditionalCollateralRequired'];
-        collateralCheckboxes.forEach(checkboxId => {
-            const checkbox = document.getElementById(checkboxId);
-            if (checkbox) {
-                checkbox.addEventListener('change', updateCollateralSectionsVisibility);
-            }
-        });
-
-        // Listen for messages from child iframes
-        window.addEventListener('message', function(event) {
-            if (event.data === 'closeChildForm' || event.data?.action === 'submoduleClosed') {
-                closeChildForm();
-            }
-            
-            // Handle request for scheme data from child forms (e.g., Products)
-            if (event.data?.action === 'requestSchemeData') {
-                const childIframe = document.querySelector('[data-child-iframe]');
-                if (childIframe && childIframe.contentWindow && currentScheme) {
-                    childIframe.contentWindow.postMessage({
-                        action: 'schemeData',
-                        data: currentScheme
-                    }, '*');
-                }
-            }
-            
-            // Handle request to open search dialog from child iframe (center-loan-menu)
-            if (event.data?.action === 'openSearchDialog') {
-                openSearchDialogForChild(event.data);
-            }
-            
-            // Handle search selection from modal iframe
-            // Support multiple message formats from different search dialogs
-            if (event.data?.type === 'GROUP_LOAN_SCHEME_SELECTED') {
-                // Group Loan Scheme search dialog format
-                handleSearchSelection(event.data.data || {
-                    LoanSchemeID: event.data.schemeId,
-                    Description: event.data.schemeName,
-                    GroupProductID: event.data.groupProductId
-                });
-            } else if (event.data?.type === 'GROUP_PRODUCT_SELECTED') {
-                // Group Product search dialog format
-                handleSearchSelection(event.data.data || {
-                    GroupProductID: event.data.productId,
-                    GroupProductName: event.data.productName
-                });
-            } else if (event.data?.type === 'SCHEME_PRODUCT_SELECTED') {
-                // Scheme Product search dialog format (for loan products)
-                handleSearchSelection(event.data.data || {
-                    SchemeProductID: event.data.productId,
-                    Description: event.data.productName,
-                    ProductTypeID: event.data.productTypeId
-                });
-            } else if (event.data?.type === 'WF_ADVANCE_TYPE_SELECTED') {
-                // WF Advance Type search dialog format
-                handleSearchSelection(event.data.data || {
-                    WFAdvTypeID: event.data.advanceTypeId,
-                    Description: event.data.advanceTypeName,
-                    ModuleID: event.data.moduleId
-                });
-            } else if (event.data?.type === 'PRODUCT_SELECTED') {
-                // Generic Product search dialog format (for collection/deposit products)
-                handleSearchSelection(event.data.data || {
-                    ProductID: event.data.productId,
-                    Description: event.data.productName,
-                    ProductTypeID: event.data.productTypeId,
-                    CurrencyID: event.data.currencyId
-                });
-            } else if (event.data?.type === 'LOAN_CYCLE_SELECTED') {
-                // Loan Cycle search - relay to child iframe
-                relaySearchSelectionToChild(event.data);
-            } else if (event.data?.action === 'searchSelected' && event.data?.data) {
-                // Generic search selected format
-                handleSearchSelection(event.data.data);
-            }
-        });
-        
-        // Track which child requested the search
-        let childSearchSource = null;
-        
-        /**
-         * Open search dialog requested by child iframe
-         */
-        function openSearchDialogForChild(requestData) {
-            const { lookupType, title, url, source } = requestData;
-            
-            // Store which child requested the search
-            childSearchSource = source;
-            
-            const searchModal = document.getElementById('searchModal');
-            const searchModalTitle = document.getElementById('searchModalTitle');
-            const searchModalFrame = document.getElementById('searchModalFrame');
-
-            if (!searchModal || !searchModalFrame) {
-                console.error('Search modal elements not found');
-                return;
-            }
-
-            // Set modal title
-            if (searchModalTitle) {
-                searchModalTitle.textContent = title || 'Search';
-            }
-            
-            // Set iframe source with noheader parameter
-            const separator = url.includes('?') ? '&' : '?';
-            searchModalFrame.src = url + separator + 'noheader=1';
-
-            // Show the modal
-            const modal = new bootstrap.Modal(searchModal);
-            modal.show();
-        }
-        
-        /**
-         * Relay search selection back to child iframe
-         */
-        function relaySearchSelectionToChild(selectionData) {
-            const childIframe = document.querySelector('[data-child-iframe]');
-            if (childIframe && childIframe.contentWindow) {
-                childIframe.contentWindow.postMessage(selectionData, '*');
-            }
-            
-            // Close the search modal
-            const searchModal = document.getElementById('searchModal');
-            if (searchModal) {
-                const bsModal = bootstrap.Modal.getInstance(searchModal);
-                if (bsModal) {
-                    bsModal.hide();
-                }
-            }
-            
-            // Clear the source tracker
-            childSearchSource = null;
-        }
-
-        // Search modal close cleanup
-        const searchModal = document.getElementById('searchModal');
-        if (searchModal) {
-            searchModal.addEventListener('hidden.bs.modal', function() {
-                const searchModalFrame = document.getElementById('searchModalFrame');
-                if (searchModalFrame) {
-                    searchModalFrame.src = 'about:blank';
-                }
-                activeSearchContext = null;
-            });
-        }
-
-        // Field blur handlers for auto-lookup
-        setupFieldBlurHandlers();
-    }
-
-    function setupFieldBlurHandlers() {
-        // Scheme ID - fetch details on blur or Enter key
-        const schemeIdField = document.getElementById('SchemeId');
-        if (schemeIdField) {
-            // Handle Enter key press
-            schemeIdField.addEventListener('keydown', async function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const schemeId = this.value.trim();
-                    if (schemeId && schemeId !== lastFetchedSchemeId) {
-                        lastFetchedSchemeId = schemeId;
-                        await handleView();
-                    }
-                }
-            });
-
-            // Handle blur (navigate out of field)
-            schemeIdField.addEventListener('blur', async function() {
-                const schemeId = this.value.trim();
-                if (schemeId && schemeId !== lastFetchedSchemeId) {
-                    lastFetchedSchemeId = schemeId;
-                    await handleView();
-                }
-            });
-        }
-
-        // Loan Product ID - fetch details on blur
-        const loanProductField = document.getElementById('LoanProductId');
-        if (loanProductField) {
-            loanProductField.addEventListener('blur', async function() {
-                const productId = this.value.trim();
-                if (productId && (isAddMode || isEditMode)) {
-                    // TODO: Implement actual lookup
-                    console.log('Fetching product details for:', productId);
-                }
-            });
-        }
-    }
-
-    // =========================================================================
-    // Initialization
-    // =========================================================================
-    async function initialize() {
-        
-        // Load services if available
-        if (window.ServiceLoader) {
-            try {
-                await window.ServiceLoader.loadCore();
-                await window.ServiceLoader.loadScript('../../../assets/js/services/shared/lookupService.js');
-                await window.ServiceLoader.loadScript('../../../assets/js/services/microfinance/groupService.js');
-            } catch (error) {
-                console.warn('Could not load services:', error);
-            }
-        }
-
-        // Initialize components
-        initSidebar();
-        initSectionToggles();
-        initEventListeners();
-
-        // Fetch loan schemes on page load FIRST (for navigation purposes)
-        await fetchAllSchemes();
-
-        // Set form mode to default (only View button enabled)
-        setFormMode('default');
-
-        // Update collateral sections visibility based on loaded data
-        updateCollateralSectionsVisibility();
-
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-        initialize();
-    }
-
-    // Expose functions for external use
-    window.CenterLoanScheme = {
-        openChildForm,
-        closeChildForm,
-        handleView,
-        handleAdd,
-        handleEdit,
-        handleDelete,
-        handleSave,
-        handleCancel,
-        showToast,
-        showSuccess,
-        showError,
-        showWarning,
-        showInfo,
-        // Expose getCurrentScheme for child forms to access parent data
-        getCurrentScheme: function() {
-            return currentScheme;
-        }
-    };
-
-    // Also expose currentScheme directly on window for iframe access
-    Object.defineProperty(window, 'currentScheme', {
-        get: function() { return currentScheme; },
-        configurable: true
-    });
-
 })();
