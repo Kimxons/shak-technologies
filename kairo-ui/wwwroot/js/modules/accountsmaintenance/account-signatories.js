@@ -60,6 +60,15 @@ window.AccountSignatoriesModule = (function () {
     }
 
     function showMessage(msg, type) {
+        // Re-resolve messageBar lazily if not found initially
+        if (!messageBar) messageBar = document.querySelector('.de-message-bar');
+
+        // Always use parent toast system for prominent notifications
+        if (typeof window.showSystemToast === 'function') {
+            window.showSystemToast(msg, { variant: type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info' });
+        }
+
+        // Also update the inline message bar
         if (!messageBar) return;
         const icon = messageBar.querySelector('i');
         const span = messageBar.querySelector('span');
