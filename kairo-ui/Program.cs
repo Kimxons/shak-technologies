@@ -135,7 +135,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthenticationHandler>();
 
 builder.Services.AddScoped<IApiService, ApiService>();
+
+
 builder.Services.AddScoped<IOldApiService, OldApiService>();
+
+// Register Common Utilities Service for shared utility methods
+builder.Services.AddScoped<ICommonUtilitiesService, CommonUtilitiesService>();
+
 // Register Authentication Service with configurable timeout
 builder.Services.AddHttpClient<IAuthService, AuthService>()
     .ConfigureHttpClient(client =>
@@ -176,15 +182,6 @@ builder.Services.AddHttpClient("AccountManagementApi")
      client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
      client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
  });
-
-
-builder.Services.AddHttpClient("AccountManagementApi")
- .AddHttpMessageHandler<AuthenticationHandler>()
-    .ConfigureHttpClient(client =>
-    {
-        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
-        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
-    });
 
 builder.Services.AddHttpClient("OldApi")
  .AddHttpMessageHandler<AuthenticationHandler>()

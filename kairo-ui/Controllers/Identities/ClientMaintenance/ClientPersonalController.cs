@@ -7,21 +7,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
     [Route("Identities/ClientMaintenance/Personal")]
-    public class ClientPersonalController : ClientMaintenanceControllerBase
+    public class ClientPersonalController : Controller
     {
+        private readonly IAuthService _authService;
+        private readonly IApiService _apiService;
+        private readonly ICommonUtilitiesService _commonUtilities;
         private readonly IApiCachedService _apiCachedService;
+        private readonly ILogger<ClientPersonalController> _logger;
 
-        public ClientPersonalController(IAuthService authService, IApiService apiService, IApiCachedService apiCachedService, ILogger<ClientPersonalController> logger)
-            : base(authService, apiService, logger)
+        public ClientPersonalController(IAuthService authService, IApiService apiService, ICommonUtilitiesService commonUtilities, IApiCachedService apiCachedService, ILogger<ClientPersonalController> logger)
         {
+            _authService = authService;
+            _apiService = apiService;
+            _commonUtilities = commonUtilities;
             _apiCachedService = apiCachedService;
+            _logger = logger;
         }
 
         [HttpGet]
         [Route("Index")]
         public async Task<IActionResult> Index(string? moduleId = null, string? clientId = null, string? requestId = null)
         {
-            if (!AuthService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
 
             ViewData["ModuleId"] = moduleId ?? string.Empty;
             ViewData["ClientId"] = clientId ?? string.Empty;
@@ -66,22 +73,94 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error loading Personal tab dropdown options");
+                _logger.LogError(ex, "Error loading Personal tab dropdown options");
             }
 
             return PartialView("~/Views/Identities/ClientMaintenance/_ClientPersonal.cshtml");
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.GET_CLIENT_INDIVIDUAL, requestData, "client-maintenance.personal.get", requestData?.ModuleID);
+        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.personal.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_INDIVIDUAL, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.personal.get");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("create")]
-        public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_INDIVIDUAL, requestData, "client-maintenance.personal.create", requestData?.ModuleID);
+        public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.personal.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_INDIVIDUAL, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.personal.create");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("update")]
-        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_INDIVIDUAL, requestData, "client-maintenance.personal.update", requestData?.ModuleID);
+        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.personal.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_INDIVIDUAL, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.personal.update");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("delete")]
-        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_INDIVIDUAL, requestData, "client-maintenance.personal.delete", requestData?.ModuleID);
+        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.personal.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_INDIVIDUAL, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.personal.delete");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
     }
 }
