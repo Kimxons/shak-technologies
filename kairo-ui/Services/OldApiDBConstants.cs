@@ -2,6 +2,7 @@
 {
     public static class OldApiDBConstants
     {
-        public const string GET_SEARCHRESULT = "p_GetSearchResult";
+        public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
+
     }
 }

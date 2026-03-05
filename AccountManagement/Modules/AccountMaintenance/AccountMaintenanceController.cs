@@ -579,6 +579,15 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> GetAccountTransferDetails([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetAccountTransferDetails, "GetAccountTransferDetails", cancellationToken);
 
+        // Account Signatory (OperatedBy) endpoints
+        [HttpPost("GetAccountSignatories")]
+        public async Task<IActionResult> GetAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.GetAccountSignatories, "GetAccountSignatories", cancellationToken);
+
+        [HttpPost("AddEditAccountSignatories")]
+        public async Task<IActionResult> AddEditAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.AddEditAccountSignatories, "AddEditAccountSignatories", cancellationToken);
+
         private async Task<IActionResult> HandleRequest(InData reqDat, Func<string, CancellationToken, Task<ResponseDetail<object>>> operation, string methodName, CancellationToken cancellationToken)
         {
             LogLevel logLevel = LogLevel.None;

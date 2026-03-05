@@ -71,13 +71,20 @@
                 </div>
                 <div class="col">
                   <label for="mandates">Mandates</label>
-                  <select id="mandates" name="mandates" class="bs-select form-control">
-                    <option value="">Select...</option>
-                    @foreach (var option in mandatesOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
-                  </select>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="mandatesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                      Select Mandates
+                    </button>
+                    <div class="dropdown-menu w-100 p-2" id="mandatesDropdownMenu" aria-labelledby="mandatesDropdown" style="max-height: 200px; overflow-y: auto;">
+                      @foreach (var option in mandatesOptions)
+                      {
+                        <div class="form-check">
+                          <input class="form-check-input" type="checkbox" name="mandates" value="@option.Value" id="mandate-@option.Value">
+                          <label class="form-check-label" for="mandate-@option.Value">@option.Text</label>
+                        </div>
+                      }
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="form-row">
@@ -208,6 +215,48 @@
             </div>
           </div>
 
+          <!-- SIGNATURE AND PHOTO SECTION -->
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <div class="form-section" data-section="signature">
+                <div class="section-header" data-section-toggle>
+                  <span class="section-header__title"><i class="bi bi-pen"></i>Signature</span>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="zoom-sig" title="Zoom"><i class="bi bi-zoom-in"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="download-sig" title="Download"><i class="bi bi-download"></i></button>
+                    <button type="button" class="section-toggle-btn" aria-label="Toggle Signature" aria-expanded="true">
+                      <i class="bi bi-chevron-up"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="section-content" data-section-content>
+                  <div class="text-center p-4 border rounded bg-light" id="signatureImage" style="min-height: 180px; max-height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <span class="text-muted"><i class="bi bi-pen fs-1 d-block mb-2"></i>No signature available</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-section" data-section="photo">
+                <div class="section-header" data-section-toggle>
+                  <span class="section-header__title"><i class="bi bi-camera"></i>Photo</span>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="zoom-photo" title="Zoom"><i class="bi bi-zoom-in"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="download-photo" title="Download"><i class="bi bi-download"></i></button>
+                    <button type="button" class="section-toggle-btn" aria-label="Toggle Photo" aria-expanded="true">
+                      <i class="bi bi-chevron-up"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="section-content" data-section-content>
+                  <div class="text-center p-4 border rounded bg-light" id="photoImage" style="min-height: 180px; max-height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <span class="text-muted"><i class="bi bi-person-bounding-box fs-1 d-block mb-2"></i>No photo available</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -232,16 +281,8 @@
     <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
   </div>
 
-  <!-- Service Scripts -->
-  <script src="/js/config.js"></script>
-  <script src="/js/environment.js"></script>
-  <script src="/js/services/shared/coreApi.js"></script>
-  <script src="/js/services/shared/lookupService.js"></script>
-  <script src="/js/services/shared/searchService.js"></script>
-  <script src="/js/shared/search-modal.js"></script>
-  <script src="/js/services/account/OtherAccountService.js"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-signatories.js?v=20250128n"></script>
+  <!-- Module Script -->
+  <script src="~/js/modules/accountsmaintenance/account-signatories.js"></script>
 
   <!-- Window Controls -->
   <script>
