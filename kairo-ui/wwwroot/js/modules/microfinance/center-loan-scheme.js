@@ -286,69 +286,22 @@
     };
 
     function ensureSharedSearchModal() {
-        // Always recreate if appCore methods are missing, don't cache broken instances
-        if (sharedSearchModal) {
-            // Verify it has working appCore
-            const hasInvokeView = typeof sharedSearchModal.appCore?.invokeControllerGetViewAsync === 'function';
-            const hasInvokeAsync = typeof sharedSearchModal.appCore?.invokeControllerAsync === 'function';
-            
-            if (hasInvokeView && hasInvokeAsync) {
-                console.log('[CenterLoanScheme] Reusing existing SearchModal instance');
-                return sharedSearchModal;
-            }
-            
-            console.warn('[CenterLoanScheme] SearchModal exists but appCore methods missing, recreating...');
-            sharedSearchModal = null;
+        // Member360 pattern: create a fresh instance with AppCore available
+        const appCore = getAppCore();
+        if (!appCore) {
+            console.error('[CenterLoanScheme] AppCore not available for SearchModal');
+            showError('Search dialog unavailable (AppCore missing).');
+            return null;
         }
 
         if (typeof window.SearchModal !== 'function') {
             console.error('[CenterLoanScheme] window.SearchModal is not available');
+            showError('Search dialog script not loaded.');
             return null;
         }
 
-        const appCore = getAppCore();
-        if (!appCore) {
-            console.error('[CenterLoanScheme] AppCore is not available for SearchModal.');
-            return null;
-        }
-
-        console.log('[CenterLoanScheme] Creating new SearchModal with appCore:', appCore);
-
-        // Polyfill AppCore methods expected by SearchModal when missing
-        if (typeof appCore.invokeControllerGetViewAsync !== 'function') {
-            console.log('[CenterLoanScheme] Polyfilling invokeControllerGetViewAsync');
-            appCore.invokeControllerGetViewAsync = async (endpoint, query) => {
-                const qs = new URLSearchParams(query || {}).toString();
-                const resp = await fetch(`/${endpoint}?${qs}`, { credentials: 'same-origin' });
-                if (!resp.ok) {
-                    const text = await resp.text();
-                    throw new Error(`Failed to load view (${resp.status}): ${text}`);
-                }
-                return resp.text();
-            };
-        }
-        if (typeof appCore.invokeControllerAsync !== 'function') {
-            console.log('[CenterLoanScheme] Polyfilling invokeControllerAsync');
-            appCore.invokeControllerAsync = async (endpoint, data) => {
-                const resp = await fetch(`/${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(data || {})
-                });
-                if (!resp.ok) {
-                    const text = await resp.text();
-                    throw new Error(`Request failed (${resp.status}): ${text}`);
-                }
-                return resp.json();
-            };
-        }
-
-        // Initialize SearchModal exactly like member360 does
-        sharedSearchModal = new window.SearchModal(appCore);
-        console.log('[CenterLoanScheme] SearchModal created successfully:', sharedSearchModal);
-
-        return sharedSearchModal;
+        // Always create new to avoid stale DOM/state issues
+        return new window.SearchModal(appCore);
     }
 
     function mapSelectedData(lookupType, data) {
@@ -380,61 +333,34 @@
     }
 
     function openSearchDialog(lookupType) {
-        console.log('[CenterLoanScheme] openSearchDialog called with lookupType:', lookupType);
-        
         const config = searchDialogConfig[lookupType];
         if (!config) {
-            console.error('[CenterLoanScheme] No config found for lookupType:', lookupType);
             showWarning(`Unknown lookup type: ${lookupType}`);
             return;
         }
 
-        console.log('[CenterLoanScheme] Config found:', config);
-
-        const sharedModal = ensureSharedSearchModal();
-        if (!sharedModal) {
-            console.error('[CenterLoanScheme] ensureSharedSearchModal returned null');
+        const modal = ensureSharedSearchModal();
+        if (!modal || !config.tableID) {
             showError('Shared search dialog is not available.');
             return;
         }
-        
-        if (!config.tableID) {
-            console.error('[CenterLoanScheme] config.tableID is missing');
-            showError('Search configuration is incomplete (missing tableID).');
-            return;
-        }
-
-        console.log('[CenterLoanScheme] SearchModal instance:', sharedModal);
 
         const advFilterString = typeof config.getAdvFilterString === 'function'
             ? config.getAdvFilterString()
             : (config.advFilterString || '');
 
-        console.log('[CenterLoanScheme] Opening search with config:', {
+        const { ourBranchID } = getEnv();
+
+        modal.open({
+            title: config.title,
             tableID: config.tableID,
-            moduleID: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
+            moduleID: config.moduleIDOverride || 5010,
             whereStmt: '',
             advFilterString,
-            searchKey: ''
+            searchKey: '',
+            ourbranchId: ourBranchID,
+            onSelect: (record) => mapSelectedData(lookupType, record)
         });
-
-        try {
-            sharedModal.open({
-                tableID: config.tableID,
-                moduleID: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
-                whereStmt: '',
-                advFilterString,
-                searchKey: '',
-                onSelect: (record) => {
-                    console.log('[CenterLoanScheme] Record selected:', record);
-                    mapSelectedData(lookupType, record);
-                }
-            });
-            console.log('[CenterLoanScheme] sharedModal.open() called successfully');
-        } catch (error) {
-            console.error('[CenterLoanScheme] Error calling sharedModal.open():', error);
-            showError('Failed to open search dialog: ' + error.message);
-        }
     }
 
     async function handleSearchSelection(data) {
@@ -846,9 +772,9 @@
                 if (btnCancel) btnCancel.disabled = false;
                 break;
             case 'view-with-data':
-                // Results found: Edit/Delete enabled, View/Add disabled
+                // Results found: enable Add for new entry, Edit/Delete enabled
                 if (btnView) btnView.disabled = true;
-                if (btnAdd) btnAdd.disabled = true;
+                if (btnAdd) btnAdd.disabled = false;
                 if (btnEdit) btnEdit.disabled = false;
                 if (btnDelete) btnDelete.disabled = false;
                 if (btnSave) btnSave.disabled = true;
@@ -1183,14 +1109,8 @@
         };
 
         try {
-            // Check if GroupService is available
-            if (!window.GroupService || typeof window.GroupService.getGroupLoanSchemes !== 'function') {
-                showError('GroupService not available. Please ensure services are loaded.');
-                console.error('GroupService not found');
-                return null;
-            }
-
-            const response = await window.GroupService.getGroupLoanSchemes(requestData);
+            // Call server controller (OldAPI) without exposing procedure names in JS
+            const response = await invokeCenterLoanController('group-loan-schemes', requestData);
 
             console.log('[CenterLoanScheme] loadSchemeData Response:', response);
 
@@ -1315,12 +1235,7 @@
         };
 
         try {
-            if (!window.GroupService || typeof window.GroupService.getGroupLoanSchemes !== 'function') {
-                console.warn('GroupService not available for fetching schemes list');
-                return;
-            }
-
-            const response = await window.GroupService.getGroupLoanSchemes(requestData);
+            const response = await invokeCenterLoanController('group-loan-schemes', requestData);
             
             console.log('[CenterLoanScheme] fetchAllSchemes Response:', response);
 
@@ -1342,4 +1257,50 @@
             console.error('Error fetching all schemes:', error);
         }
     }
+
+    // =========================================================================
+    // Event Wiring (member360-style lookup trigger)
+    // =========================================================================
+    function wireLookupButtons() {
+        document.querySelectorAll('[data-mcs-lookup]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const lookupType = btn.dataset.mcsLookup;
+                if (!lookupType) {
+                    showWarning('Lookup type missing on button');
+                    return;
+                }
+                openSearchDialog(lookupType);
+            });
+        });
+    }
+
+    function wireActionButtons() {
+        const actionMap = {
+            view: handleView,
+            add: handleAdd,
+            edit: handleEdit,
+            delete: handleDelete,
+            save: handleSave,
+            cancel: handleCancel,
+            previous: handlePrevious,
+            next: handleNext
+        };
+
+        Object.entries(actionMap).forEach(([action, handler]) => {
+            const btn = document.querySelector(`[data-mcs-action="${action}"]`);
+            if (btn && typeof handler === 'function') {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handler();
+                });
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        wireLookupButtons();
+        wireActionButtons();
+        setFormMode('default');
+    });
 })();
