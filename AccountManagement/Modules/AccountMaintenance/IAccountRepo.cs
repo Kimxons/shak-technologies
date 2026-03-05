@@ -111,6 +111,10 @@ namespace AccountManagement.Modules.AccountMaintenance
         public Task<ResponseDetail<object>> AddAccountTransferDetails(string requestJson, CancellationToken cancellationToken = default);
         public Task<ResponseDetail<object>> GetAccountTransferDetails(string requestJson, CancellationToken cancellationToken = default);
 
+        // Account signatory (OperatedBy) operations
+        public Task<ResponseDetail<object>> GetAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
+        public Task<ResponseDetail<object>> AddEditAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
+
         // Generic routed execution (whitelisted procedures only)
         public Task<ResponseDetail<object>> ExecuteProcedure(string procedureName, string requestJson, CancellationToken cancellationToken = default);
     }

@@ -825,5 +825,27 @@ namespace AccountManagement.Modules.AccountMaintenance
                 ResponseMessage = respStr.ResponseMessage
             };
         }
+
+        // Account signatory (OperatedBy) operations
+        public async Task<ResponseDetail<object>> GetAccountSignatories(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_SIGNATORIES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            return new ResponseDetail<object>
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
+                ResponseCode = respStr.ResponseCode,
+                ResponseMessage = respStr.ResponseMessage
+            };
+        }
+        public async Task<ResponseDetail<object>> AddEditAccountSignatories(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_EDIT_ACCOUNT_SIGNATORIES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            return new ResponseDetail<object>
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
+                ResponseCode = respStr.ResponseCode,
+                ResponseMessage = respStr.ResponseMessage
+            };
+        }
     }
 }
