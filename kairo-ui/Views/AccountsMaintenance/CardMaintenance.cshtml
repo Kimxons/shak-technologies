@@ -1,5 +1,10 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: card-maintenance.html
+    var cardProviderOptions = ViewData["CardProviderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var cardTypeOptions = ViewData["CardTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var cardDeactivationReasonOptions = ViewData["CardDeactivationReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var cardStatusOptions = ViewData["CardStatusOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- CardMaintenance Submodule -->
@@ -40,6 +45,10 @@
                     <label class="label-blue">Card Provider</label>
                     <select id="cardProvider" class="bs-select form-control">
                       <option value="">--Select--</option>
+                      @foreach (var option in cardProviderOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                   <div class="col-3">
@@ -50,6 +59,10 @@
                     <label class="label-blue">CardType</label>
                     <select id="cardType" class="bs-select form-control">
                       <option value="">--Select--</option>
+                      @foreach (var option in cardTypeOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                 </div>
@@ -149,6 +162,10 @@
                     <label class="label">Reason</label>
                     <select id="reason" class="bs-select form-control">
                       <option value="">--Select--</option>
+                      @foreach (var option in cardDeactivationReasonOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                   <div class="col-3">
@@ -167,6 +184,10 @@
                     <label class="label">Status</label>
                     <select id="status" class="bs-select form-control">
                       <option value="">--Select--</option>
+                      @foreach (var option in cardStatusOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                   <div class="col-3">

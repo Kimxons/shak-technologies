@@ -1,11 +1,50 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     ViewData["Title"] = "Account Maintenance";
     Layout = "_ApplicationLayout";
+
+    var cityOptions = ViewData["CityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["CountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var operatingModeOptions = ViewData["OperatingModeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var accountClassOptions = ViewData["AccountClassOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var accountOfficerOptions = ViewData["AccountOfficerOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 @section Styles {
     <style>
         /* Account Maintenance specific styles */
+
+        /* Hide legacy headers and action panels in loaded submodules to prevent duplication */
+        #submodule-container .am-header,
+        #submodule-container .submodule-header,
+        #submodule-container .action-panel,
+        #submodule-container .am-header__right, /* AccountNotification case */
+        #submodule-container aside.action-panel { 
+            display: none !important; 
+        }
+
+        /* Reset legacy container styles that might conflict */
+        #submodule-container .window {
+            height: auto !important;
+            width: 100% !important;
+            position: static !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #submodule-container .main-container {
+            height: auto !important;
+            padding: 0 !important;
+        }
+
+        /* Ensure the persistent alert stays at the top of the form content area */
+        #accountMaintenanceAlertContainer {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: inherit;
+            width: 100%;
+        }
     </style>
 }
 
@@ -75,6 +114,15 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Original Subtle Message Panel -->
+    <div class="am-message-panel" id="amMessagePanel">
+        <i class="bi bi-info-circle"></i>
+        <span id="messagePanelText"></span>
+        <button type="button" class="am-message-panel__close" onclick="this.parentElement.classList.remove('show')" aria-label="Close">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
 
     <!-- Page Loading Overlay -->
     <div id="pageLoadingOverlay" class="page-loading-overlay">
@@ -417,6 +465,9 @@
 
             <!-- Form Content -->
             <div class="form-content">
+                <!-- Persistent Alert Container (Common Notifications) -->
+                <div id="accountMaintenanceAlertContainer" class="px-2"></div>
+
                 <!-- Submodule Content Container (dynamically loaded partial views) -->
                 <div id="submodule-container" class="submodule-container">
                     <!-- Default view: Account Search and Details -->
@@ -514,12 +565,20 @@
                                 <label>City</label>
                                 <select id="CityID" class="bs-select">
                                     <option value="">Select City</option>
+                                    @foreach (var option in cityOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
                                 <label>Country</label>
                                 <select id="CountryID" class="bs-select">
                                     <option value="">Select Country</option>
+                                    @foreach (var option in countryOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                         </div>
@@ -556,6 +615,10 @@
                                 <label class="label-blue">Operating Mode</label>
                                 <select id="OperatingModeID" class="bs-select">
                                     <option value="">Select Operating Mode</option>
+                                    @foreach (var option in operatingModeOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -569,12 +632,20 @@
                                 <label class="label-blue">Account Class</label>
                                 <select id="AccountClassID" class="bs-select">
                                     <option value="">Select Account Class</option>
+                                    @foreach (var option in accountClassOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
                                 <label class="label-blue">Account Officer</label>
                                 <select id="AccountOfficerID" class="bs-select">
                                     <option value="">Select Account Officer</option>
+                                    @foreach (var option in accountOfficerOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -801,20 +872,23 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn-action btn-view" type="button"><i class="bi bi-eye me-1"></i>View</button>
-                    <button class="btn-action" type="button"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                    <button class="btn-action" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                    <button class="btn-action" type="button" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
-                    <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                    <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                    <button class="btn-action btn-add" type="button" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    <button class="btn-action btn-edit" type="button" data-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn-action btn-save" type="button" data-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
 @section Scripts {
+    <!-- Core dependencies -->
+    <script src="~/js/app/app-core.js"></script>
+    <script src="~/js/modules/shared/searchModal.js"></script>
+
     <!-- Service dependencies -->
     <script src="~/js/services/shared/serviceLoader.js"></script>
-    <script src="~/js/services/shared/lookupService.js"></script>
 
     <!-- Account Maintenance Core -->
     <script src="~/js/modules/accounts/modern-account-maintenance.js"></script>

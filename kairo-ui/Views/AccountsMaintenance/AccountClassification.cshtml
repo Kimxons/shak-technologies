@@ -1,10 +1,13 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-classification.html
+    var classificationCodeOptions = ViewData["ClassificationCodeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var classificationSubCodeOptions = ViewData["ClassificationSubCodeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountClassification Submodule -->
 <div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar">
+    <div class="am-header" role="banner" aria-label="Window title bar" style="display:none !important">
       <div class="am-header__left">
         <i class="bi bi-tags am-header__icon" aria-hidden="true"></i>
         <span class="am-header__title">Account Classification</span>
@@ -32,13 +35,21 @@
                   <div class="col-6">
                     <label class="label-blue" for="classificationCode">Classification Code</label>
                     <select id="classificationCode" name="classificationCode" class="bs-select form-control">
-                      <option>--Select--</option>
+                      <option value="">--Select--</option>
+                      @foreach (var option in classificationCodeOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                   <div class="col-6">
                     <label class="label-blue" for="classificationSubCode">Classification Sub Code</label>
                     <select id="classificationSubCode" name="classificationSubCode" class="bs-select form-control">
-                      <option></option>
+                      <option value="">--Select--</option>
+                      @foreach (var option in classificationSubCodeOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
                     </select>
                   </div>
                 </div>
@@ -87,7 +98,7 @@
         </div>
 
         <!-- Right Action Panel Sidebar -->
-        <div class="action-panel">
+        <div class="action-panel" style="display:none !important">
           <div class="action-buttons">
             <button class="btn-action" type="button" data-action="add" title="Add New">
               <i class="bi bi-plus-circle me-1"></i>Add
@@ -118,14 +129,7 @@
     </div>
   </div>
 
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/account/accountClassificationService.js?v=20260209"></script>
-  <script src="../../../assets/js/services/Account/AccountService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-classification.js?v=20260209"></script>
+  <script src="~/js/modules/accountsmaintenance/account-classification.js?v=20250527"></script>
 
 <script>
 document.addEventListener('submodule:loaded', function(e) {

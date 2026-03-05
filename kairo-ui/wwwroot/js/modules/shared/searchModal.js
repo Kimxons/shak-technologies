@@ -19,12 +19,13 @@
 
     class SearchModal {
         constructor(appCore) {
-            if (!appCore) {
-                console.error('[SearchModal] AppCore is required');
-                throw new Error('AppCore is required for SearchModal');
+            // Support both direct injection and global fallback
+            this.appCore = appCore || global.AppCore || window.AppCore;
+
+            if (!this.appCore) {
+                console.error('[SearchModal] AppCore is required but not found in arguments or globally');
             }
 
-            this.appCore = appCore;
             this.modalElement = null;
             this.isInitialized = false;
             this.currentConfig = null;
@@ -184,10 +185,27 @@
                     throw new Error('tableID is required');
                 }
 
+                if (!this.appCore) {
+                     this.appCore = window.AppCore;
+                }
+
+                // Check if reload is needed (different TableID or not initialized)
+                const shouldReload = !this.isInitialized || 
+                                   (this.currentConfig && this.currentConfig.tableID !== config.tableID);
+
                 this.currentConfig = config;
 
-                // Load modal if not already loaded
-                if (!this.isInitialized) {
+                // Load modal if needed
+                if (shouldReload) {
+                    // Start fresh if reloading for a new table
+                    if (this.isInitialized) {
+                         // Reset state but keep the instance structure
+                         this.currentResults = [];
+                         this.selectedRow = null; 
+                         this.currentPage = 0;
+                         // Note: loadModal will replace the DOM element
+                    }
+
                     await this.loadModal(config.tableID, {
                         whereStmt: config.whereStmt,
                         advFilterString: config.advFilterString,
@@ -197,6 +215,16 @@
                         pageSize: config.pageSize,
                         ourbranchId: config.ourbranchId
                     });
+                } else {
+                    // CRITICAL: Update hidden fields even if we skip reload
+                    const whereInput = document.getElementById('search-where-stmt');
+                    if (whereInput) {
+                        whereInput.value = config.whereStmt || '';
+                        console.log('[SearchModal] Updated existing WhereStmt in DOM:', whereInput.value);
+                    }
+
+                    const advInput = document.getElementById('search-adv-filter');
+                    if (advInput) advInput.value = config.advFilterString || '';
                 }
 
                 // Show modal
@@ -205,8 +233,9 @@
                     console.log('[SearchModal] Modal opened');
                 }
 
-                // Auto-search if searchKey provided
-                if (config.searchKey) {
+                // Auto-search if searchKey OR whereStmt provided (ensures filtered lookups show results immediately)
+                if (config.searchKey || config.whereStmt) {
+                    console.log('[SearchModal] Auto-triggering search...');
                     setTimeout(() => this.executeSearch(), 300);
                 }
 

@@ -1,5 +1,7 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-cancel-stop-payment.html
+    var cancelStopPaymentReasonOptions = ViewData["CancelStopPaymentReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- CancelStopPayment Submodule -->
@@ -87,7 +89,13 @@
                 </div>
                 <div class="col-6">
                   <label class="label-blue" for="reasonId">Reason ID</label>
-                  <select id="reasonId" name="reasonId" class="bs-select form-control"><option>--Select--</option></select>
+                  <select id="reasonId" name="reasonId" class="bs-select form-control">
+                    <option value="">--Select--</option>
+                    @foreach (var option in cancelStopPaymentReasonOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
+                  </select>
                 </div>
                 <div class="col-6">
                   <label for="reasonText">Reason</label>

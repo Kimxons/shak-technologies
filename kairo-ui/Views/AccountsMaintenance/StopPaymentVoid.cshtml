@@ -1,5 +1,7 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-stop-payment-void.html
+    var stopPaymentReasonOptions = ViewData["StopPaymentReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- StopPaymentVoid Submodule -->
@@ -73,7 +75,13 @@
             <div class="row g-2 mb-2">
               <div class="col-6">
                 <label class="label-blue am-label" for="reasonId">Reason</label>
-                <select id="reasonId" class="bs-select form-control am-select"><option>--Select--</option></select>
+                <select id="reasonId" class="bs-select form-control am-select">
+                  <option value="">--Select--</option>
+                  @foreach (var option in stopPaymentReasonOptions)
+                  {
+                      <option value="@option.Value">@option.Text</option>
+                  }
+                </select>
               </div>
               <div class="col-6">
                 <label class="de-label am-label" for="voidDate">Void Date</label>
@@ -128,16 +136,7 @@
     <footer class="de-status-bar" role="status">Ready</footer>
     <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
   </div>
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/shared/searchService.js"></script>
-  <script src="../../../assets/js/shared/search-modal.js"></script>
-  <script src="../../../assets/js/services/Account/AccountService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-stop-payment-void.js?v=20250128"></script>
+  <script src="~/js/modules/accountsmaintenance/account-stop-payment.js?v=20250527"></script>
 
 <script>
 document.addEventListener('submodule:loaded', function(e) {
