@@ -11,12 +11,14 @@ namespace kairo_ui.Controllers.Identities.Client360
     {
         private readonly IAuthService _authService;
         private readonly IApiService _apiService;
+        private readonly IOldApiService _oldApiService;
         private readonly IConfiguration _config;
         private readonly ILogger<Client360Controller> _logger;
 
         public Client360Controller(
             IAuthService authService,
             IApiService apiService,
+            IOldApiService oldapiService,
             IConfiguration configuration,
             ILogger<Client360Controller> logger)
         {
@@ -24,6 +26,7 @@ namespace kairo_ui.Controllers.Identities.Client360
             _apiService = apiService;
             _config = configuration;
             _logger = logger;
+            _oldApiService = oldapiService;
         }
 
         [Route("Index")]
@@ -121,6 +124,7 @@ namespace kairo_ui.Controllers.Identities.Client360
                 _logger.LogInformation("Client 360 view request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_360, requestData);
+                //var response = await _oldApiService.CreateAsync<JsonElement>("OldApi", OldApiDBConstants.GET_SEARCHRESULT, requestData);
                 return Ok(response);
             }
             catch (Exception ex)

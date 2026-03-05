@@ -283,10 +283,10 @@ function initMainClientSearch(shell) {
     const appCore = getAppCore();
     if (!appCore || !window.SearchModal) return;
 
-    const searchModal = new window.SearchModal(appCore);
-
     clientSearchBtn?.addEventListener('click', (event) => {
         event.preventDefault();
+        let searchModal = new window.SearchModal(appCore);
+
         searchModal.open({
             title: 'Client Search',
             tableID: 'ClientID',
@@ -311,6 +311,8 @@ function initMainClientSearch(shell) {
 
     applicationSearchBtn?.addEventListener('click', (event) => {
         event.preventDefault();
+        let searchModal = new window.SearchModal(appCore);
+
         searchModal.open({
             title: 'Find Pipeline Application',
             tableID: 'WFClientID',
@@ -406,7 +408,7 @@ async function loadSidebar(moduleId) {
         //sidebarContainer.insertAdjacentHTML('afterbegin', html);
 
         // Initialize sidebar JavaScript if the script is available
-        if (typeof window.SidebarManager.init === 'function') {
+        if (window.SidebarManager && typeof window.SidebarManager.init === 'function') {
             window.SidebarManager.init();
         }
     } catch (error) {
