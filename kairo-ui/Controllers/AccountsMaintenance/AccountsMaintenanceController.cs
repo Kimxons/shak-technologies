@@ -645,6 +645,78 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         }
 
         // ============================================================================
+        // SIGNATORIES
+        // ============================================================================
+
+        [HttpPost]
+        [Route("api/get-account-signatories")]
+        public async Task<IActionResult> GetAccountSignatories([FromBody] GetAccountSignatoriesRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Mapping SearchKey to SearchID for backend SP compatibility
+                if (string.IsNullOrEmpty(request.SearchID) && !string.IsNullOrEmpty(request.SearchKey))
+                {
+                    request.SearchID = request.SearchKey;
+                }
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT_SIGNATORIES,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account signatories");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-edit-account-signatories")]
+        public async Task<IActionResult> AddEditAccountSignatories([FromBody] AddEditAccountSignatoriesRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_EDIT_ACCOUNT_SIGNATORIES,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding/editing account signatories");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        // ============================================================================
         // DOCUMENTS
         // ============================================================================
 
@@ -2643,6 +2715,42 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public int? ModuleID { get; set; }
+    }
+
+    // ============================================================================
+    // SIGNATORIES Request DTOs
+    // ============================================================================
+    public class GetAccountSignatoriesRequest
+    {
+        public string? AccountId { get; set; }
+        public string? SearchKey { get; set; }
+        public string? SearchID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public int? ModuleID { get; set; }
+    }
+
+    public class AddEditAccountSignatoriesRequest
+    {
+        public string? AccountId { get; set; }
+        public string? SearchKey { get; set; }
+        public string? SearchID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public int? ModuleID { get; set; }
+        public string? OperatingModeID { get; set; }
+        public string? OperatingInstructionID { get; set; }
+        public string? SignatoriesXml { get; set; }  // XML format: <ListOfSignatory><Signatory>...</Signatory></ListOfSignatory>
+    }
+
+    public class SignatoryItem
+    {
+        public string? OperatingSeq { get; set; }
+        public string? ClientID { get; set; }
+        public string? ClientName { get; set; }
+        public string? SignatoryTypeID { get; set; }
+        public string? SignatoryTypeName { get; set; }
+        public string? RowAction { get; set; }  // ADD, UPDATE, REMOVE
     }
 
     // ============================================================================

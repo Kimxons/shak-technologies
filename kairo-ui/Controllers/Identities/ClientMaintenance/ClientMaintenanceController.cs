@@ -1,23 +1,28 @@
 using kairo_ui.Models.Identities.ClientMaintenance;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
     [Route("Identities/ClientMaintenance")]
     public class ClientMaintenanceController : ClientMaintenanceControllerBase
     {
+        private readonly IApiCachedService _apiCachedService;
+
         public ClientMaintenanceController(
             IAuthService authService,
             IApiService apiService,
+            IApiCachedService apiCachedService,
             ILogger<ClientMaintenanceController> logger)
             : base(authService, apiService, logger)
         {
+            _apiCachedService = apiCachedService;
         }
 
         [HttpGet]
         [Route("Index")]
-        public IActionResult Index(string? moduleId = null, string? clientId = null, string? requestId = null)
+        public async Task<IActionResult> Index(string? moduleId = null, string? clientId = null, string? requestId = null)
         {
             if (!AuthService.IsAuthenticated())
             {
@@ -29,6 +34,27 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             ViewData["ClientId"] = clientId ?? string.Empty;
             ViewData["RequestId"] = requestId ?? string.Empty;
             ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(clientId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
+
+            try
+            {
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "ClientTypeID",
+                    "ClientGroupID"
+                });
+
+                dropdownOptions.TryGetValue("ClientTypeID", out var clientTypeOptions);
+                dropdownOptions.TryGetValue("ClientGroupID", out var clientGroupOptions);
+
+                ViewData["ClientTypeOptions"] = clientTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["ClientGroupOptions"] = clientGroupOptions ?? Enumerable.Empty<SelectListItem>();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading Client Maintenance top-section dropdown options");
+                ViewData["ClientTypeOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["ClientGroupOptions"] = Enumerable.Empty<SelectListItem>();
+            }
 
             return PartialView();
         }

@@ -92,6 +92,10 @@ namespace kairo_ui.Services
         public const string UPDATE_NOTES = BASEACCOUNTS + "/UpdateNotes";
         public const string GET_NOTES = BASEACCOUNTS + "/GetNotes";
 
+        // Signatories
+        public const string GET_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/GetAccountSignatories";
+        public const string ADD_EDIT_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/AddEditAccountSignatories";
+
         // Account Freeze
         public const string ADD_ACCOUNT_FREEZE = BASEACCOUNTS + "/AddAccountFreeze";
         public const string UPDATE_ACCOUNT_FREEZE = BASEACCOUNTS + "/UpdateAccountFreeze";
