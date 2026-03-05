@@ -1,6 +1,8 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Interest Rates Submodule - Clean Migration
     // Per UI Guidelines: No inline styles, only reference styles.css
+    var interestRateTypeOptions = ViewData["InterestRateTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- InterestRates Submodule -->
@@ -38,6 +40,10 @@
                                     <label class="label-blue" for="rateType">Rate Type</label>
                                     <select id="rateType" name="rateType" class="bs-select">
                                         <option value="">--Select--</option>
+                                        @foreach (var option in interestRateTypeOptions)
+                                        {
+                                            <option value="@option.Value">@option.Text</option>
+                                        }
                                     </select>
                                 </div>
                                 <div class="col">
@@ -197,6 +203,8 @@
         </div>
     </div>
 </div>
+
+<script src="~/js/modules/accountsmaintenance/account-interest-rates.js?v=20250527"></script>
 
 <script>
 document.addEventListener('submodule:loaded', function(e) {

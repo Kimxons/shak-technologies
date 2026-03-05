@@ -1,5 +1,7 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: client-portfolio.html
+    var portfolioTypeOptions = ViewData["PortfolioTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- ClientPortfolio Submodule -->
@@ -16,6 +18,10 @@
               <label class="label" for="portfolioType">Client Portfolio Type</label>
               <select id="portfolioType" name="portfolioType" class="bs-select form-control">
                 <option value="">--Select--</option>
+                @foreach (var option in portfolioTypeOptions)
+                {
+                    <option value="@option.Value">@option.Text</option>
+                }
               </select>
             </div>
           </div>

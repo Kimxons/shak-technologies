@@ -128,26 +128,36 @@
     // Helper notification functions to resolve ReferenceErrors
     function showSystemToast(message, options = {}) {
         const variant = options && options.variant ? options.variant : 'info';
-        
-        // Check for inline alert target (for account load success)
+
         if (options.useInlineAlert) {
+            // Check if we already have this same message displayed to avoid duplicate banners
+            const container = document.getElementById('accountMaintenanceAlertContainer');
+            if (container && container.innerText.includes(message)) {
+                console.log(`[Notification] Skipping duplicate alert: ${message}`);
+                return;
+            }
             showInlineAlert(message, variant);
-            return;
+            return; // Explicitly return to prevent the bubble from also appearing
         }
 
-        // Try AppCore first
         if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
             window.AppCore.showNotification(message, variant);
             return;
         }
 
-        // Try global toastr if available (common in legacy apps)
+        // 3. Fallback: Try global toastr if available
         if (window.toastr && typeof window.toastr[variant] === 'function') {
             window.toastr[variant](message);
             return;
         }
 
-        // Fallback to console
+        // 4. Last resort - Centralized NotificationService (Client 360 style)
+        if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
+            window.NotificationService.showToast(message, variant);
+            return;
+        }
+
+        // 4. Final Fallback to console
         console.log(`[${variant.toUpperCase()}] ${message}`);
         
         // rudimentary fallback
@@ -164,63 +174,53 @@
     window.showSystemToast = showSystemToast;
     window.showErrorMessage = showErrorMessage;
 
-    // Custom inline alert implementation matching the user's screenshot style
     function showInlineAlert(message, variant) {
-        // Find the main section content container - prioritizing the search section
-        const searchSection = document.querySelector('[data-section="account-search"] .section-content') || 
-                            document.querySelector('[data-section="search"] .section-content') || 
-                            document.querySelector('.kairo-search-panel') || 
-                            document.querySelector('[data-main-form] .section-content') ||
-                            document.getElementById('accountMaintenanceForm')?.closest('.card-body');
+        // Target the persistent container at the top of form-content
+        const container = document.getElementById('accountMaintenanceAlertContainer');
 
-        if (!searchSection) {
-            // Fallback to toast if no container found
-            // Use AppCore or fallback logic from showSystemToast, but avoid infinite recursion
-            // Directly call AppCore/toastr here as fallback
+        if (!container) {
+            // Fallback for submodules or cases where the main container is missing
             if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
                 window.AppCore.showNotification(message, variant);
             } else {
-                alert(message);
+                console.log(`[${variant.toUpperCase()}] ${message}`);
             }
             return;
         }
 
-        // Remove existing alerts to prevent stacking
-        const existingAlert = searchSection.querySelector('.kairo-inline-alert');
-        if (existingAlert) existingAlert.remove();
+        // Remove existing alerts to prevent stacking multiple banners
+        container.innerHTML = '';
 
         const alertDiv = document.createElement('div');
         const alertClass = variant === 'success' ? 'alert-success' : 
                           variant === 'error' ? 'alert-danger' : 
                           variant === 'warning' ? 'alert-warning' : 'alert-info';
-        
-        const iconClass = variant === 'success' ? 'bi-check-circle-fill' : 
-                         variant === 'error' ? 'bi-exclamation-triangle-fill' : 
-                         variant === 'warning' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill';
 
-        alertDiv.className = `alert ${alertClass} alert-dismissible fade show kairo-inline-alert`;
+        const iconClass = variant === 'success' ? 'bi-check-circle' : 
+                         variant === 'error' ? 'bi-exclamation-octagon' : 
+                         variant === 'warning' ? 'bi-exclamation-triangle' : 'bi-info-circle';
+
+        alertDiv.className = `alert ${alertClass} fade show kairo-inline-alert`;
         alertDiv.role = 'alert';
-        alertDiv.style.marginTop = '10px';
-        alertDiv.style.marginBottom = '10px';
+        alertDiv.style.marginTop = '8px';
+        alertDiv.style.marginBottom = '8px';
+        alertDiv.style.padding = '0.35rem 0.75rem'; // Narrow strip style
         alertDiv.style.display = 'flex';
         alertDiv.style.alignItems = 'center';
+        alertDiv.style.borderWidth = '1px'; 
+        alertDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; 
+        alertDiv.style.minHeight = 'auto';
 
         alertDiv.innerHTML = `
-            <i class="bi ${iconClass} me-2"></i>
-            <div>${message}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <i class="bi ${iconClass} me-2" style="font-size: 1.1rem;"></i>
+            <div style="font-weight: 600; font-size: 13px; line-height: 1.2; flex: 1;">${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.5rem; font-size: 0.65rem; margin: 0;"></button>
         `;
 
-        // Insert at the top of the search section
-        searchSection.insertBefore(alertDiv, searchSection.firstChild);
+        // Insert into container
+        container.appendChild(alertDiv);
 
-        // Auto dismiss after 5 seconds
-        setTimeout(() => {
-            if (alertDiv && alertDiv.parentNode) {
-                // Fade out effect could be added here
-                alertDiv.remove();
-            }
-        }, 5000);
+        // AUTO-DISMISS REMOVED: Banner stays until user clicks 'X'.
     }
 
     function copyThemeVarsToDocument(targetDoc) {
@@ -581,6 +581,9 @@
 
                     // Update the main action panel for the loaded submodule
                     updateActionPanelForSubmodule(submoduleName);
+
+                    // Wire up lookup buttons in the loaded submodule
+                    wireLookups();
 
                     // Special Handling for migrated modules with 'init' method
                     if (submoduleName === 'AccountActivation' && window.AccountActivationModule && window.AccountActivationModule.init) {
@@ -1007,13 +1010,30 @@
     // Lookup Configuration
     // Matched with Client 360 and System Search configurations
     const LOOKUP_CONFIG = {
+        // PascalCase field names (used in main screen)
         'BranchID': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
         'ClientID': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
         'ProductID': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
         'AccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'LiquidationAccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'SalesOfficerID': { tableID: 'OfficerID', keyField: 'OfficerID', nameField: 'OfficerName' },
-        'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' }
+        'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' },
+        // camelCase field names (used in child pages)
+        'branchId': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
+        'accountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'clientId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
+        'productId': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
+        'nomineeId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
+        'signatoryId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
+        'groupId': { tableID: 'GroupID', keyField: 'GroupID', nameField: 'GroupName' },
+        'chargeId': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
+        'requestRef': { tableID: 'StopPaymentID', keyField: 'RequestRef', nameField: 'Description' },
+        'referenceId': { tableID: 'FreezeID', keyField: 'ReferenceID', nameField: 'Description' },
+        'reminderId': { tableID: 'ReminderID', keyField: 'ReminderID', nameField: 'Description' },
+        'transactionId': { tableID: 'TransactionID', keyField: 'TransactionID', nameField: 'Description' },
+        'accountTransferId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'txnAccountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'payableAt': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' }
     };
 
     function wireLookups() {
@@ -1035,23 +1055,25 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                const targetInputId = this.dataset.targetInput;
+                // Support both data-target-input (main screen) and data-lookup (child pages)
+                const targetInputId = this.dataset.targetInput || this.dataset.lookup;
                 if (!targetInputId) return;
 
                 // Determine config (Create a fresh object to avoid global mutation)
                 const baseConfig = LOOKUP_CONFIG[targetInputId] || {
-                    tableID: targetInputId.replace('ID', ''), // Fallback
+                    tableID: targetInputId.replace(/Id$/i, '').replace(/ID$/i, ''), // Fallback
                     keyField: targetInputId,
-                    nameField: targetInputId.replace('ID', 'Name')
+                    nameField: targetInputId.replace(/Id$/i, 'Name').replace(/ID$/i, 'Name')
                 };
                 
                 // Shallow copy to allow dynamic whereStmt without polluting global config
                 const config = { ...baseConfig };
 
                 // Dynamic Logic for Account Lookup Filtering
-                if (targetInputId === 'AccountID') {
-                    const branchId = document.getElementById('BranchID')?.value || '';
-                    const clientId = document.getElementById('ClientID')?.value || '';
+                if (config.tableID === 'AccountID') {
+                    // Support both PascalCase (BranchID) and camelCase (branchId)
+                    const branchId = document.getElementById('BranchID')?.value || document.getElementById('branchId')?.value || '';
+                    const clientId = document.getElementById('ClientID')?.value || document.getElementById('clientId')?.value || '';
 
                     let whereParts = [];
                     // Backend uses OurBranchID column
@@ -1078,10 +1100,6 @@
 
                         console.log('[AccountMaintenance] Lookup selected:', selectedRow);
 
-                        // Populate Input Fields
-                        const idInput = document.getElementById(targetInputId);
-                        const nameInput = document.getElementById(targetInputId.replace('ID', 'Name'));
-
                         // Helper to find property case-insensitively
                         const getVal = (row, key) => {
                             if (!row || !key) return null;
@@ -1089,22 +1107,63 @@
                             return k ? row[k] : null;
                         };
 
+                        // Find the ID input
+                        const idInput = document.getElementById(targetInputId);
+
+                        // Find the Name input - handle both branchId -> branchName and BranchID -> BranchName
+                        const nameInputId = targetInputId.replace(/Id$/i, 'Name').replace(/ID$/, 'Name');
+                        const nameInput = document.getElementById(nameInputId) ||
+                            (idInput && idInput.closest('[data-kairo-branch-control], [data-kairo-account-control], [data-kairo-client-control], [data-kairo-product-control], [data-kairo-user-control], [data-kairo-control]')?.querySelector('[class*="__name"]'));
+
                         if (idInput) {
                             const val = getVal(selectedRow, config.keyField) || getVal(selectedRow, 'ID');
                             if (val !== null) {
                                 idInput.value = val;
                                 // Dispatch change to trigger any attached listeners
                                 idInput.dispatchEvent(new Event('change', { bubbles: true }));
-                                
+                                idInput.dispatchEvent(new Event('blur', { bubbles: true }));
 
-                                // Update Global State & Load Details
+                                // Update Global State & Load Details (for main screen lookups)
                                 if (targetInputId === 'AccountID') {
                                     window.AccountMaintenanceState.AccountID = val;
                                     window.AccountMaintenanceState.isAccountLoaded = true;
                                     loadAccountDetails(val);
                                 } else if (targetInputId === 'ClientID') {
                                     window.AccountMaintenanceState.ClientID = val;
-                                    loadClientDetails(val);
+                                    // In ADD mode, check if both Client and Product are selected before auto-populating
+                                    checkAndAutoPopulateClientDetails();
+                                } else if (targetInputId === 'ProductID') {
+                                    window.AccountMaintenanceState.ProductID = val;
+                                    
+                                    // Extract CurrencyID and MinimumBalance from product selection
+                                    // and populate Account Snapshot fields
+                                    const currencyId = getVal(selectedRow, 'CurrencyID');
+                                    const minimumBalance = getVal(selectedRow, 'MinimumBalance');
+                                    
+                                    if (currencyId !== null) {
+                                        const currencyEl = document.getElementById('CurrencyID');
+                                        if (currencyEl) {
+                                            currencyEl.textContent = currencyId;
+                                            console.log('[AccountMaintenance] Set CurrencyID from Product:', currencyId);
+                                        }
+                                        window.AccountMaintenanceState.CurrencyID = currencyId;
+                                    }
+                                    
+                                    if (minimumBalance !== null) {
+                                        const minBalEl = document.getElementById('MinimumBalance');
+                                        if (minBalEl) {
+                                            // Format as currency if available
+                                            const formatted = typeof minimumBalance === 'number' 
+                                                ? minimumBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                : minimumBalance;
+                                            minBalEl.textContent = formatted;
+                                            console.log('[AccountMaintenance] Set MinimumBalance from Product:', formatted);
+                                        }
+                                        window.AccountMaintenanceState.MinimumBalance = minimumBalance;
+                                    }
+                                    
+                                    // In ADD mode, check if both Client and Product are selected before auto-populating
+                                    checkAndAutoPopulateClientDetails();
                                 }
                             }
                         }
@@ -1121,63 +1180,186 @@
                 });
             });
         });
+
+        console.log(`[AccountMaintenance] Wired ${lookupBtns.length} lookup buttons`);
     }
 
-    // Load Client Details Logic
+    /**
+     * Check if both Client and Product are selected, then auto-populate client details
+     * Only triggers in ADD mode
+     */
+    function checkAndAutoPopulateClientDetails() {
+        // Only auto-populate in ADD mode
+        if (currentMode !== 'ADD') {
+            console.log('[AccountMaintenance] Not in ADD mode, skipping auto-populate');
+            return;
+        }
+
+        const clientId = document.getElementById('ClientID')?.value || window.AccountMaintenanceState.ClientID;
+        const productId = document.getElementById('ProductID')?.value || window.AccountMaintenanceState.ProductID;
+
+        console.log('[AccountMaintenance] Checking auto-populate conditions:', { clientId, productId, mode: currentMode });
+
+        if (clientId && productId) {
+            console.log('[AccountMaintenance] Both Client and Product selected, fetching client details...');
+            loadClientDetails(clientId);
+        } else {
+            if (!clientId) {
+                console.log('[AccountMaintenance] Waiting for Client selection...');
+            }
+            if (!productId) {
+                console.log('[AccountMaintenance] Waiting for Product selection...');
+            }
+        }
+    }
+
+    /**
+     * Load Client Details for Account Creation (auto-populate)
+     * Uses the /AccountsMaintenance/get-client-basic-details endpoint
+     * @param {string} clientId - The ClientID to fetch details for
+     */
     async function loadClientDetails(clientId) {
         if (!clientId) return;
         
-        // Use existing Client360Service if available, or fetch
-        if (window.Client360Service && typeof window.Client360Service.viewClient360 === 'function') {
-            showPageLoader(true, 'Fetching client details...');
-            try {
-                const criteria = {
-                   ClientID: clientId,
-                   OurBranchID: window.AccountMaintenanceState.OurBranchID || '',
-                   OperatorID: window.AccountMaintenanceState.OperatorID || ''
-                };
-                const resp = await window.Client360Service.viewClient360(criteria);
-                const data = resp.raw || resp.data || resp;
-                
-                if (resp && (resp.success || data.ResponseCode === '000')) {
-                    // Populate other fields if possible
-                    // Looking for inputs matching data keys
-                    const details = data.Details || data.Details01 || (Array.isArray(data) ? data[0] : data);
-                    
-                    if (details) {
-                        const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea');
-                        inputs.forEach(el => {
-                            if (el.id && el.id !== 'ClientID' && el.id !== 'ClientName') {
-                                // Try verify against details properties
-                                const key = Object.keys(details).find(k => k.toLowerCase() === el.id.toLowerCase());
-                                if (key && details[key] !== null) {
-                                    el.value = details[key];
-                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+        // Only auto-populate in ADD mode to avoid overwriting existing account data
+        const isAddMode = currentMode === 'ADD';
+        
+        showPageLoader(true, 'Fetching client details...');
+        
+        try {
+            const requestData = {
+                ClientID: clientId,
+                OurBranchID: window.AccountMaintenanceState.OurBranchID || sessionStorage.getItem('branch_code') || '',
+                OperatorID: sessionStorage.getItem('UserId') || sessionStorage.getItem('user_name') || ''
+            };
+
+            console.log('[AccountMaintenance] Fetching client basic details:', requestData);
+
+            const response = await fetch('/AccountsMaintenance/get-client-basic-details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server returned error ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const data = result.data || result;
+            const isSuccess = result.success || (data && (data.ResponseCode === '00' || data.ResponseCode === '000'));
+
+            if (isSuccess) {
+                // Get the client details - could be array or single object
+                const details = Array.isArray(data.Details) ? data.Details[0] : (data.Details || data);
+
+                if (details) {
+                    console.log('[AccountMaintenance] Client details received:', details);
+
+                    // Update ClientName field
+                    const clientNameInput = document.getElementById('ClientName');
+                    if (clientNameInput) {
+                        clientNameInput.value = details.Name || `${details.FirstName || ''} ${details.MiddleName || ''} ${details.LastName || ''}`.trim();
+                    }
+
+                    // In ADD mode, populate AccountName with client name as default
+                    if (isAddMode) {
+                        const accountNameInput = document.getElementById('AccountName');
+                        if (accountNameInput) {
+                            accountNameInput.value = details.Name || `${details.FirstName || ''} ${details.MiddleName || ''} ${details.LastName || ''}`.trim();
+                        }
+
+                        // Populate ShortName with first name or abbreviated
+                        const shortNameInput = document.getElementById('ShortName');
+                        if (shortNameInput && !shortNameInput.value) {
+                            shortNameInput.value = details.FirstName || (details.Name || '').substring(0, 20);
+                        }
+                    }
+
+                    // Populate all account detail fields if available and in ADD mode
+                    // Map API field names to form field IDs
+                    const fieldMappings = {
+                        // Text input fields
+                        'Address1': ['Address1'],
+                        'Address2': ['Address2'],
+                        'PhoneHome': ['Phone1', 'PhoneHome'],   // API may return Phone1 or PhoneHome
+                        'PhoneWork': ['Phone2', 'PhoneWork'],   // API may return Phone2 or PhoneWork
+                        'FaxNo': ['Fax'],
+                        'Mobile': ['Mobile', 'MobileNo'],
+                        'EmailID': ['Email', 'EmailID'],
+                        'ContactPerson': ['ContactPerson']
+                    };
+
+                    // Populate input fields
+                    Object.entries(fieldMappings).forEach(([formFieldId, apiFields]) => {
+                        const input = document.getElementById(formFieldId);
+                        if (input && isAddMode) {
+                            // Try each API field name until we find a value
+                            for (const apiField of apiFields) {
+                                if (details[apiField] !== null && details[apiField] !== undefined && details[apiField] !== '') {
+                                    input.value = details[apiField];
+                                    console.log(`[AccountMaintenance] Populated ${formFieldId} from ${apiField}:`, details[apiField]);
+                                    break;
                                 }
                             }
-                        });
-                        
-                        showSystemToast(`Client details loaded successfully. Client ID: ${clientId}`, { 
-                            variant: 'success', 
-                            useInlineAlert: true 
-                        });
-                    } else {
-                        showErrorMessage(`Client details not found for ID: ${clientId}`, { useInlineAlert: true });
+                        }
+                    });
+
+                    // Handle SELECT dropdown fields (City, Country)
+                    if (isAddMode) {
+                        // CityID dropdown
+                        const citySelect = document.getElementById('CityID');
+                        if (citySelect && details.CityID) {
+                            citySelect.value = details.CityID;
+                            citySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            console.log('[AccountMaintenance] Set CityID:', details.CityID);
+                        }
+
+                        // CountryID dropdown
+                        const countrySelect = document.getElementById('CountryID');
+                        if (countrySelect && details.CountryID) {
+                            countrySelect.value = details.CountryID;
+                            countrySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            console.log('[AccountMaintenance] Set CountryID:', details.CountryID);
+                        }
+                    }
+
+                    showSystemToast(`Client details loaded: ${details.Name || clientId}. You can now edit the Account Name.`, { 
+                        variant: 'success', 
+                        useInlineAlert: true 
+                    });
+
+                    // In ADD mode, focus on AccountName to allow editing
+                    if (isAddMode) {
+                        // Use setTimeout to ensure DOM updates are complete
+                        setTimeout(() => {
+                            const accountNameInput = document.getElementById('AccountName');
+                            if (accountNameInput) {
+                                accountNameInput.focus();
+                                accountNameInput.select(); // Select the text so user can easily replace or edit
+                                // Also remove readonly/disabled if present
+                                accountNameInput.readOnly = false;
+                                accountNameInput.disabled = false;
+                                console.log('[AccountMaintenance] AccountName field focused and ready for editing');
+                            }
+                        }, 100);
                     }
                 } else {
-                    const msg = resp.message || (data && data.ResponseMessage) || 'Failed to load client details';
-                    showErrorMessage(msg, { useInlineAlert: true });
+                    console.warn('[AccountMaintenance] No client details in response');
+                    showErrorMessage(`Client details not found for ID: ${clientId}`, { useInlineAlert: true });
                 }
-            } catch (e) {
-                console.warn('[AccountMaintenance] Failed to load client details', e);
-                showErrorMessage(`Error loading client details: ${e.message}`, { useInlineAlert: true });
-            } finally {
-                showPageLoader(false);
+            } else {
+                const msg = result.message || data?.ResponseMessage || 'Failed to load client details';
+                showErrorMessage(msg, { useInlineAlert: true });
             }
-        } else {
-             console.warn('[AccountMaintenance] Client360Service not found, checking legacy path');
-             // Fallback to direct fetch if service not found - mimicking old successful behavior
-             // ... implementation if needed
+        } catch (error) {
+            console.error('[AccountMaintenance] Error loading client details:', error);
+            showErrorMessage(`Error loading client details: ${error.message}`, { useInlineAlert: true });
+        } finally {
+            showPageLoader(false);
         }
     }
 
@@ -1282,6 +1464,25 @@
                             if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
                                 if (el.type === 'checkbox') {
                                     el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
+                                } else if (el.tagName === 'SELECT') {
+                                    // For SELECT elements, ensure the option exists before setting
+                                    const value = String(account[key]);
+                                    const optionExists = Array.from(el.options).some(opt => opt.value === value);
+                                    
+                                    if (!optionExists && value) {
+                                        // Try to find a corresponding Name field for the label
+                                        const nameKey = key.replace(/ID$/i, 'Name');
+                                        const label = account[nameKey] || value;
+                                        
+                                        // Add the missing option
+                                        const newOption = document.createElement('option');
+                                        newOption.value = value;
+                                        newOption.textContent = label;
+                                        el.appendChild(newOption);
+                                        console.log(`[AccountMaintenance] Added missing option to ${fieldName}: ${value} (${label})`);
+                                    }
+                                    
+                                    el.value = value;
                                 } else {
                                     el.value = account[key];
                                 }
@@ -1294,8 +1495,7 @@
                         }
                     });
 
-                    // Trigger Client Load if ClientID is present
-                    // Populate ClientID input first if not already set (lookup sets it, but direct load via URL might not)
+                    // Populate ClientID input if not already set
                     if (account.ClientID) {
                         const clientInput = document.getElementById('ClientID');
                         if (clientInput) {
@@ -1304,14 +1504,21 @@
                                 clientInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
                         }
-                        // Always load client details to fill secondary client fields (Name, etc.)
-                        loadClientDetails(account.ClientID);
+                        // Set ClientName from account data (if available)
+                        const clientNameInput = document.getElementById('ClientName');
+                        if (clientNameInput && account.ClientName) {
+                            clientNameInput.value = account.ClientName;
+                        }
+                        // Note: loadClientDetails is only called in ADD mode via checkAndAutoPopulateClientDetails
                     }
                     
                     showSystemToast(`Account details loaded successfully. Account ID: ${account.AccountID || accountId}`, { 
                         variant: 'success', 
                         useInlineAlert: true 
                     });
+
+                    // Update button states after successful load
+                    updateButtonStates();
                 } else {
                     showErrorMessage('Account details empty or invalid', { useInlineAlert: true });
                 }
@@ -1328,49 +1535,470 @@
         }
     }
 
-    function wireActionButtons() {
-        const actionPanel = document.querySelector('.action-panel');
-        if (!actionPanel) return;
+    // ============================================================================
+    // ACCOUNT CREATE / UPDATE LOGIC
+    // ============================================================================
 
-        const saveBtn = actionPanel.querySelector('[data-action="save"]');
-        const cancelBtn = actionPanel.querySelector('[data-action="cancel"]');
+    /**
+     * Collect all form data from the main account maintenance form
+     * @returns {Object} Form data object
+     */
+    function collectAccountFormData() {
+        const formData = {};
+        
+        // Define the fields to collect (matching form input IDs)
+        const fields = [
+            // Key identifiers
+            'AccountID', 'BranchID', 'ClientID', 'ProductID',
+            // Account details  
+            'AccountName', 'ShortName', 
+            // Address
+            'Address1', 'Address2', 'CityID', 'CountryID',
+            // Contact
+            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
+            // Operating
+            'OperatingModeID', 'OperatingInstructions',
+            // Classification
+            'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID', 'SalesOfficerID',
+            // Passbook
+            'PassbookSerialID'
+        ];
 
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function() {
-                // Simulate save logic or implement as requested
-                showPageLoader(true, 'Saving account changes...');
-                setTimeout(() => {
-                    showPageLoader(false);
-                    showSystemToast('Account changes saved successfully.', { 
-                        variant: 'success', 
-                        useInlineAlert: true 
-                    });
-                }, 1000);
-            });
+        fields.forEach(fieldId => {
+            const el = document.getElementById(fieldId);
+            if (el) {
+                formData[fieldId] = el.value || '';
+            }
+        });
+
+        // Handle checkbox separately
+        const exemptPassbook = document.getElementById('ExemptPassBook');
+        if (exemptPassbook) {
+            formData.ExemptPassBook = exemptPassbook.checked;
         }
 
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                // Confirm cancel
-                if (confirm('Discard any unsaved changes?')) {
-                    resetAccountMaintenanceState();
-                    // Clear form
-                    const form = document.getElementById('accountMaintenanceForm');
-                    if (form) {
-                        form.reset();
-                        // Additional logic to clear nested or related fields if needed
-                        const fieldsToClear = ['ClientID', 'AccountID', 'BranchID', 'ProductID', 'CurrencyID'];
-                        fieldsToClear.forEach(fieldId => {
-                            const field = document.getElementById(fieldId);
-                            if (field) {
-                                field.value = '';
-                                field.dispatchEvent(new Event('change', { bubbles: true }));
-                            }
-                        });
+        // Map UI field names to API field names where different
+        formData.OurBranchID = formData.BranchID || '';
+        formData.Phone1 = formData.PhoneHome || '';
+        formData.Phone2 = formData.PhoneWork || '';
+        
+        // Map AccountName to Name for database (t_AccountCustomer expects Name column)
+        formData.Name = formData.AccountName || '';
+
+        // Add ModifiedBy/CreatedBy from session (required for update/create)
+        const operatorId = sessionStorage.getItem('UserId') || 
+                           sessionStorage.getItem('UserID') || 
+                           sessionStorage.getItem('OperatorID') || 
+                           sessionStorage.getItem('operatorId') ||
+                           window.AccountMaintenanceState.OperatorID || '';
+        formData.ModifiedBy = operatorId;
+        formData.CreatedBy = operatorId;
+
+        // Add OpenedBy and OpenedDate for account creation (not nullable)
+        formData.OpenedBy = operatorId;
+        formData.OpenedDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+        return formData;
+    }
+
+    /**
+     * Validate required fields before save
+     * @param {Object} formData - The collected form data
+     * @param {boolean} isCreate - Whether this is a create (true) or update (false)
+     * @returns {Object} { isValid: boolean, errors: string[] }
+     */
+    function validateAccountForm(formData, isCreate) {
+        const errors = [];
+
+        if (isCreate) {
+            // For create: require ClientID, ProductID, and AccountName
+            if (!formData.ClientID) errors.push('Client ID is required');
+            if (!formData.ProductID) errors.push('Product ID is required');
+            if (!formData.AccountName && !formData.Name) errors.push('Account Name is required');
+        } else {
+            // For update: require AccountID and AccountName
+            if (!formData.AccountID) errors.push('Account ID is required');
+            if (!formData.AccountName && !formData.Name) errors.push('Account Name is required');
+        }
+
+        // Common validations
+        if (!formData.OurBranchID && !formData.BranchID) {
+            errors.push('Branch ID is required');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
+    }
+
+    /**
+     * Create a new account
+     */
+    async function createAccount() {
+        const formData = collectAccountFormData();
+        
+        // Validate for create
+        const validation = validateAccountForm(formData, true);
+        if (!validation.isValid) {
+            showErrorMessage('Validation failed: ' + validation.errors.join(', '), { useInlineAlert: true });
+            return;
+        }
+
+        showPageLoader(true, 'Creating account...');
+
+        try {
+            const response = await fetch('/AccountsMaintenance/create-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server returned error ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const data = result.data || result;
+            const isSuccess = result.success || (data && (data.ResponseCode === '000' || data.ResponseCode === '00'));
+
+            if (isSuccess) {
+                const newAccountId = data.AccountID || data.Details?.AccountID || '';
+                
+                showSystemToast(`Account created successfully. Account ID: ${newAccountId}`, {
+                    variant: 'success',
+                    useInlineAlert: true
+                });
+
+                // If we got a new AccountID, load it
+                if (newAccountId) {
+                    const accountIdInput = document.getElementById('AccountID');
+                    if (accountIdInput) {
+                        accountIdInput.value = newAccountId;
+                        accountIdInput.dispatchEvent(new Event('change', { bubbles: true }));
                     }
+                    // Load the newly created account
+                    await loadAccountDetails(newAccountId);
+                }
+
+                // Switch back to VIEW mode
+                currentMode = 'VIEW';
+            } else {
+                const msg = result.message || data?.ResponseMessage || 'Failed to create account';
+                showErrorMessage(msg, { useInlineAlert: true });
+            }
+        } catch (error) {
+            console.error('[AccountMaintenance] Error creating account:', error);
+            showErrorMessage('Error creating account: ' + error.message, { useInlineAlert: true });
+        } finally {
+            showPageLoader(false);
+        }
+    }
+
+    /**
+     * Update an existing account
+     */
+    async function updateAccount() {
+        const formData = collectAccountFormData();
+        
+        // Validate for update
+        const validation = validateAccountForm(formData, false);
+        if (!validation.isValid) {
+            showErrorMessage('Validation failed: ' + validation.errors.join(', '), { useInlineAlert: true });
+            return;
+        }
+
+        showPageLoader(true, 'Updating account...');
+
+        try {
+            const response = await fetch('/AccountsMaintenance/update-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server returned error ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const data = result.data || result;
+            const isSuccess = result.success || (data && (data.ResponseCode === '000' || data.ResponseCode === '00'));
+
+            if (isSuccess) {
+                // Reload account to get fresh data first (this will show its own toast)
+                await loadAccountDetails(formData.AccountID);
+
+                // Switch back to VIEW mode
+                currentMode = 'VIEW';
+
+                // Show success notification AFTER reload so it doesn't get overwritten
+                showSystemToast(`Account updated successfully. Account ID: ${formData.AccountID}`, {
+                    variant: 'success',
+                    useInlineAlert: true
+                });
+            } else {
+                const msg = result.message || data?.ResponseMessage || 'Failed to update account';
+                showErrorMessage(msg, { useInlineAlert: true });
+            }
+        } catch (error) {
+            console.error('[AccountMaintenance] Error updating account:', error);
+            showErrorMessage('Error updating account: ' + error.message, { useInlineAlert: true });
+        } finally {
+            showPageLoader(false);
+        }
+    }
+
+    /**
+     * Save account - determines whether to create or update based on mode
+     */
+    async function saveAccount() {
+        if (currentMode === 'ADD') {
+            await createAccount();
+        } else {
+            // Default to update if account is loaded
+            if (window.AccountMaintenanceState.isAccountLoaded && window.AccountMaintenanceState.AccountID) {
+                await updateAccount();
+            } else {
+                showErrorMessage('No account loaded. Please load an account first or use Add to create a new one.', { useInlineAlert: true });
+            }
+        }
+    }
+
+    /**
+     * Clear the form for adding a new account
+     */
+    function clearFormForAdd() {
+        // Reset global state first (this sets currentMode = 'VIEW')
+        resetAccountMaintenanceState();
+        
+        // Then set to ADD mode AFTER reset
+        currentMode = 'ADD';
+
+        // Clear all form fields
+        const fieldsToClear = [
+            'AccountID', 'AccountName', 'ShortName',
+            'Address1', 'Address2', 'CityID', 'CountryID',
+            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
+            'OperatingModeID', 'OperatingInstructions',
+            'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID', 'LiquidationAccountName',
+            'SalesOfficerID', 'SalesOfficerName', 'PassbookSerialID', 'PassbookSerialName',
+            'ClientName', 'ProductName'
+        ];
+
+        fieldsToClear.forEach(fieldId => {
+            const el = document.getElementById(fieldId);
+            if (el) {
+                if (el.tagName === 'SELECT') {
+                    el.selectedIndex = 0;
+                } else {
+                    el.value = '';
+                }
+            }
+        });
+
+        // Uncheck checkbox
+        const exemptPassbook = document.getElementById('ExemptPassBook');
+        if (exemptPassbook) {
+            exemptPassbook.checked = false;
+        }
+
+        // Clear snapshot values
+        document.querySelectorAll('.behind-scene-value, .audit-value').forEach(el => {
+            el.textContent = '-';
+        });
+
+        // Keep Branch (default from session) and focus on Client
+        showSystemToast('Ready to add new account. Enter Client and Product to begin.', {
+            variant: 'info',
+            useInlineAlert: true
+        });
+
+        // Focus on ClientID input
+        const clientInput = document.getElementById('ClientID');
+        if (clientInput) {
+            clientInput.focus();
+        }
+
+        // Update button states for ADD mode
+        updateButtonStates();
+    }
+
+    /**
+     * Get references to all action buttons
+     */
+    function getActionButtons() {
+        const actionPanel = document.querySelector('.action-panel');
+        if (!actionPanel) return {};
+        
+        return {
+            view: actionPanel.querySelector('[data-action="view"]'),
+            add: actionPanel.querySelector('[data-action="add"]'),
+            edit: actionPanel.querySelector('[data-action="edit"]'),
+            save: actionPanel.querySelector('[data-action="save"]'),
+            cancel: actionPanel.querySelector('[data-action="cancel"]')
+        };
+    }
+
+    /**
+     * Update button states based on current mode and account state
+     * Button behavior:
+     * - VIEW (no account loaded): View, Add enabled; Edit, Save, Cancel disabled
+     * - VIEW (account loaded): View, Add, Edit enabled; Save, Cancel disabled
+     * - ADD mode: Save, Cancel enabled; View, Add, Edit disabled
+     * - EDIT mode: Save, Cancel enabled; View, Add, Edit disabled
+     */
+    function updateButtonStates() {
+        const btns = getActionButtons();
+        if (!btns.view) {
+            console.warn('[AccountMaintenance] No action panel found for button states');
+            return;
+        }
+        
+        const isAccountLoaded = window.AccountMaintenanceState.isAccountLoaded;
+        const isAddMode = currentMode === 'ADD';
+        const isEditMode = currentMode === 'EDIT';
+        const isModifying = isAddMode || isEditMode;
+
+        console.log('[AccountMaintenance] updateButtonStates:', { currentMode, isAccountLoaded, isAddMode, isEditMode, isModifying });
+
+        // View button: enabled when not in modify mode
+        if (btns.view) btns.view.disabled = isModifying;
+        
+        // Add button: enabled when not in modify mode
+        if (btns.add) btns.add.disabled = isModifying;
+        
+        // Edit button: enabled only when account is loaded and not in modify mode
+        if (btns.edit) btns.edit.disabled = !isAccountLoaded || isModifying;
+        
+        // Save button: enabled only in ADD or EDIT mode
+        if (btns.save) {
+            btns.save.disabled = !isModifying;
+            console.log('[AccountMaintenance] Save button disabled:', btns.save.disabled);
+        }
+        
+        // Cancel button: enabled only in ADD or EDIT mode
+        if (btns.cancel) btns.cancel.disabled = !isModifying;
+
+        // Visual feedback - add/remove active class
+        Object.values(btns).forEach(btn => {
+            if (btn) btn.classList.remove('active');
+        });
+        
+        if (isAddMode && btns.add) {
+            btns.add.classList.add('active');
+        } else if (isEditMode && btns.edit) {
+            btns.edit.classList.add('active');
+        } else if (!isModifying && isAccountLoaded && btns.view) {
+            btns.view.classList.add('active');
+        }
+
+        console.log('[AccountMaintenance] Button states updated:', { mode: currentMode, isAccountLoaded });
+    }
+
+    function wireActionButtons() {
+        const btns = getActionButtons();
+        if (!btns.view) return;
+
+        // View button - loads account details
+        if (btns.view) {
+            btns.view.addEventListener('click', async function() {
+                if (this.disabled) return;
+                const accountId = document.getElementById('AccountID')?.value;
+                if (accountId) {
+                    currentMode = 'VIEW';
+                    await loadAccountDetails(accountId);
+                    updateButtonStates();
+                } else {
+                    showErrorMessage('Please enter an Account ID to view.', { useInlineAlert: true });
                 }
             });
         }
+
+        // Add button - clears form for new account
+        if (btns.add) {
+            btns.add.addEventListener('click', function() {
+                if (this.disabled) return;
+                clearFormForAdd();
+                updateButtonStates();
+            });
+        }
+
+        // Edit button - switches to edit mode
+        if (btns.edit) {
+            btns.edit.addEventListener('click', function() {
+                if (this.disabled) return;
+                if (window.AccountMaintenanceState.isAccountLoaded) {
+                    currentMode = 'EDIT';
+                    updateButtonStates();
+                    enableFormFieldsForEdit();
+                    showSystemToast('Edit mode enabled. Make changes and click Save.', {
+                        variant: 'info',
+                        useInlineAlert: true
+                    });
+                } else {
+                    showErrorMessage('Please load an account first before editing.', { useInlineAlert: true });
+                }
+            });
+        }
+
+        // Save button - creates or updates account
+        if (btns.save) {
+            btns.save.addEventListener('click', async function() {
+                if (this.disabled) return;
+                await saveAccount();
+                updateButtonStates();
+            });
+        }
+
+        // Cancel button - discards changes
+        if (btns.cancel) {
+            btns.cancel.addEventListener('click', async function() {
+                if (this.disabled) return;
+                if (confirm('Discard any unsaved changes?')) {
+                    if (window.AccountMaintenanceState.isAccountLoaded && window.AccountMaintenanceState.AccountID) {
+                        // Reload the current account to discard changes
+                        await loadAccountDetails(window.AccountMaintenanceState.AccountID);
+                    } else {
+                        // Reset form completely
+                        resetAccountMaintenanceState();
+                    }
+                    currentMode = 'VIEW';
+                    updateButtonStates();
+                }
+            });
+        }
+
+        // Set initial button states
+        updateButtonStates();
+    }
+
+    /**
+     * Enable form fields for editing
+     */
+    function enableFormFieldsForEdit() {
+        const editableFields = [
+            'AccountName', 'ShortName',
+            'Address1', 'Address2', 'CityID', 'CountryID',
+            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
+            'OperatingModeID', 'OperatingInstructions',
+            'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID',
+            'SalesOfficerID', 'PassbookSerialID', 'ExemptPassBook'
+        ];
+        
+        editableFields.forEach(fieldId => {
+            const el = document.getElementById(fieldId);
+            if (el) {
+                el.disabled = false;
+                el.readOnly = false;
+            }
+        });
     }
 
     init();

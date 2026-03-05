@@ -32,7 +32,7 @@
                   <div class="kairo-branch-control" data-kairo-branch-control>
                     <input type="text" id="branchId" name="branchId" class="kairo-branch-control__id" aria-label="Branch ID" />
                     <input type="text" id="branchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly />
-                    <button type="button" class="btn-lookup kairo-branch-control__lookup" aria-label="Search branch"><i class="bi bi-search"></i></button>
+                    <button type="button" class="btn-lookup kairo-branch-control__lookup" data-lookup="branchId" aria-label="Search branch"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
                 <div class="col">
@@ -40,7 +40,7 @@
                   <div class="kairo-account-control" data-kairo-account-control>
                     <input type="text" id="accountId" name="accountId" class="kairo-account-control__id" aria-label="Account ID" />
                     <input type="text" id="accountName" class="kairo-account-control__name" aria-label="Account Name" placeholder="Account Name" readonly />
-                    <button type="button" class="btn-lookup kairo-account-control__lookup" aria-label="Search account"><i class="bi bi-search"></i></button>
+                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="accountId" aria-label="Search account"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
               </div>
@@ -132,18 +132,7 @@
     <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
   </div>
 
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/utils/global-utils.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/shared/searchService.js"></script>
-  <script src="../../../assets/js/shared/search-modal.js"></script>
-  <script src="../../../assets/js/services/account/accountservice.js"></script>
-  <script src="../../../assets/js/services/account/accountActivateDormantService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-activate-dormant.js?v=20250128"></script>
+  <script src="~/js/modules/accountsmaintenance/account-dormant.js?v=20250527"></script>
   <script>
 function notifyParentFormOpened(){window.parent.postMessage({action:'submoduleOpened',source:'ActivateDormant'},'*');}
 function closeChildForm(){

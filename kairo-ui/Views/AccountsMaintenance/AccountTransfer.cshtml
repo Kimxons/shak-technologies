@@ -1,5 +1,8 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
     // Migrated from: account-transfer.html
+    var transferTypeOptions = ViewData["TransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var transferReasonOptions = ViewData["TransferReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountTransfer Submodule -->
@@ -57,6 +60,10 @@
                 <label class="label-blue am-label" for="reason">Reason</label>
                 <select id="reason" name="reason" class="bs-select form-control am-select">
                   <option value="">--Select--</option>
+                  @foreach (var option in transferTypeOptions)
+                  {
+                      <option value="@option.Value">@option.Text</option>
+                  }
                 </select>
               </div>
             </div>
@@ -145,13 +152,7 @@
   <script src="../../../assets/js/services/shared/coreApi.js"></script>
   <script src="../../../assets/js/services/shared/lookupService.js"></script>
   <script src="../../../assets/js/services/shared/searchService.js"></script>
-  <script src="../../../assets/js/services/search/branchSearchService.js"></script>
-  <script src="../../../assets/js/shared/search-modal.js"></script>
-  <script src="../../../assets/js/services/account/accountservice.js"></script>
-  <script src="../../../assets/js/services/account/accountTransferService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-transfer.js?v=20250209"></script>
+  <script src="~/js/modules/accountsmaintenance/account-transfer.js?v=20250527"></script>
 
   <!-- Window Controls & Blur Behavior -->
   <script>

@@ -3026,6 +3026,14 @@ body:not(.micro-interactions-enabled) * {
   box-shadow: 0 0 0 2px rgba(74, 124, 149, 0.18) !important;
 }
 
+/* Active state (current mode indicator) */
+.action-panel .btn-action.active {
+  background: var(--am-primary, #4a7c95) !important;
+  border-color: var(--am-primary, #4a7c95) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(74, 124, 149, 0.3) !important;
+}
+
 .action-panel .btn-action:active {
   background: rgba(74, 124, 149, 0.1) !important;
   transform: translateY(0) scale(0.98);
