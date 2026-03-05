@@ -589,6 +589,9 @@
                     if (submoduleName === 'AccountActivation' && window.AccountActivationModule && window.AccountActivationModule.init) {
                         window.AccountActivationModule.init();
                     }
+                    if (submoduleName === 'Signatories' && window.AccountSignatoriesModule && window.AccountSignatoriesModule.init) {
+                        window.AccountSignatoriesModule.init();
+                    }
                 });
             }
 
@@ -702,14 +705,29 @@
         }
 
         let newButtonsHtml = '';
-        // Define standard buttons for ALL submodules
-        newButtonsHtml = `
-            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
-            <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
-            <button class="btn-action" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
-            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
-            <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
-        `;
+        
+        // Special action panel for Signatories module
+        if (submoduleName === 'Signatories') {
+            newButtonsHtml = `
+                <button class="btn-action" type="button" id="submoduleBtnSignature"><i class="bi bi-vector-pen me-1"></i>Signature</button>
+                <button class="btn-action" type="button" id="submoduleBtnPhoto"><i class="bi bi-camera me-1"></i>Photo</button>
+                <button class="btn-action" type="button" id="submoduleBtnBoth"><i class="bi bi-files me-1"></i>Both</button>
+                <div class="spacer"></div>
+                <button class="btn-action" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            `;
+        } else {
+            // Define standard buttons for other submodules
+            newButtonsHtml = `
+                <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
 
         if (newButtonsHtml) {
             actionButtonsContainer.innerHTML = newButtonsHtml;
@@ -744,6 +762,15 @@
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
                 // Refresh logic if needed
+                return;
+            }
+
+            // Signatories module: AccountSignatoriesModule.init() binds directly
+            // to the parent action panel buttons by ID (uses cloneNode to replace
+            // any listeners). No proxy wiring needed here.
+            if (submoduleName === 'Signatories') {
+                // The module script has already executed and wired everything.
+                // Just re-trigger wireLookups so the lookup buttons get connected.
                 return;
             }
 
