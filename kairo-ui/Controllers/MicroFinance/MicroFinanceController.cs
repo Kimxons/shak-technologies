@@ -12,20 +12,50 @@ namespace kairo_ui.Controllers.MicroFinance
         private const string MicroFinanceApiName = "MicroFinanceApi";
 
         private readonly IAuthService _authService;
-        private readonly IApiService _apiService;
+        private readonly IOldApiService _oldApiService;
         private readonly IConfiguration _config;
         private readonly ILogger<MicroFinanceController> _logger;
 
         public MicroFinanceController(
             IAuthService authService,
-            IApiService apiService,
+            IOldApiService oldApiService,
             IConfiguration configuration,
             ILogger<MicroFinanceController> logger)
         {
             _authService = authService;
-            _apiService = apiService;
+            _oldApiService = oldApiService;
             _config = configuration;
             _logger = logger;
+        }
+
+        [HttpPost]
+        [Route("group-loan-schemes")]
+        public async Task<IActionResult> GetGroupLoanSchemes([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                {
+                    _logger.LogWarning("Unauthenticated Microfinance group loan schemes attempt");
+                    return Unauthorized(new
+                    {
+                        Success = false,
+                        ErrorMessage = "User is not authenticated"
+                    });
+                }
+                
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.GET_GROUP_LOAN_SCHEMES, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching Microfinance group loan schemes");
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    ErrorMessage = $"Error processing microfinance request: {ex.Message}"
+                });
+            }
         }
 
         [Route("Index")]
@@ -84,7 +114,7 @@ namespace kairo_ui.Controllers.MicroFinance
 
                 _logger.LogInformation("Microfinance OldAPI request for {FormId}: {Request}", request.FormId, JsonSerializer.Serialize(envelope));
 
-                var response = await _apiService.CreateAsync<JsonElement>(MicroFinanceApiName, "OldAPI", envelope);
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, "OldAPI", envelope);
                 return Ok(response);
             }
             catch (Exception ex)
