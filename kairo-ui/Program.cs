@@ -178,10 +178,10 @@ builder.Services.AddHttpClient("ClientManagementApi")
 builder.Services.AddHttpClient("AccountManagementApi")
     .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
- {
-     client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
-     client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
- });
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
+    });
 
 builder.Services.AddHttpClient("OldApi")
  .AddHttpMessageHandler<AuthenticationHandler>()
@@ -190,6 +190,15 @@ builder.Services.AddHttpClient("OldApi")
         client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
     });
+
+builder.Services.AddHttpClient("MicroFinanceApi")
+ .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
+    });
+
 
 
 // Add IConfiguration for injecting into services

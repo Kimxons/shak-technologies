@@ -121,8 +121,10 @@ namespace AccountManagement.Helpers
         public const string GET_ACCOUNT_TRANSFER_DETAILS = "p_GetAcTransferDetails_V0";
 
         // Account Signatory (OperatedBy) procedures
-        public const string GET_ACCOUNT_SIGNATORIES = "p_GetAccountOperatedBy";
-        public const string ADD_EDIT_ACCOUNT_SIGNATORIES = "p_AddEditAccountOperatedBy";
+        public const string GET_ACCOUNT_SIGNATORIES = "p_V8_GetAccountOperatedBy";
+        public const string ADD_ACCOUNT_SIGNATORIES = "p_V8_AddAccountOperatedBy";
+        public const string EDIT_ACCOUNT_SIGNATORIES = "p_V8_UpdateAccountOperatedBy";
+
 
         public const string GET_SYSTEMSEARCH = "p_GetSystemSearch_V0";
         public const string GET_SYSTEMSEARCH_RESULT = "p_GetSystemSearchResult_V0";

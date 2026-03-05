@@ -94,7 +94,9 @@ namespace kairo_ui.Services
 
         // Signatories
         public const string GET_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/GetAccountSignatories";
-        public const string ADD_EDIT_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/AddEditAccountSignatories";
+        public const string ADD_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/AddAccountSignatories";
+        public const string EDIT_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/EditAccountSignatories";
+
 
         // Account Freeze
         public const string ADD_ACCOUNT_FREEZE = BASEACCOUNTS + "/AddAccountFreeze";

@@ -709,14 +709,18 @@
         // Special action panel for Signatories module
         if (submoduleName === 'Signatories') {
             newButtonsHtml = `
-                <button class="btn-action" type="button" id="submoduleBtnSignature"><i class="bi bi-vector-pen me-1"></i>Signature</button>
-                <button class="btn-action" type="button" id="submoduleBtnPhoto"><i class="bi bi-camera me-1"></i>Photo</button>
-                <button class="btn-action" type="button" id="submoduleBtnBoth"><i class="bi bi-files me-1"></i>Both</button>
-                <div class="spacer"></div>
-                <button class="btn-action" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
-                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn-action" type="button" id="submoduleBtnSignature" data-action="signature"><i class="bi bi-pen me-1"></i>Signature</button>
+                    <button class="btn-action" type="button" id="submoduleBtnPhoto" data-action="photo"><i class="bi bi-camera me-1"></i>Photo</button>
+                    <button class="btn-action" type="button" id="submoduleBtnBoth" data-action="both"><i class="bi bi-collection me-1"></i>Both</button>
+                </div>
+                <div class="d-flex flex-column gap-2 mt-auto">
+                    <button class="btn-action" type="button" id="submoduleBtnAdd" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    <button class="btn-action" type="button" id="submoduleBtnEdit" data-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn-action btn-save" type="button" id="submoduleBtnSave" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
+                    <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                    <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close-submodule"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+                </div>
             `;
         } else {
             // Define standard buttons for other submodules

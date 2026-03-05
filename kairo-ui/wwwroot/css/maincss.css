@@ -2972,6 +2972,12 @@ body:not(.micro-interactions-enabled) * {
   margin-top: auto;
 }
 
+/* When action-buttons has nested groups (e.g., Signatories), stretch to fill space */
+.action-buttons:has(> .d-flex.mt-auto) {
+  flex: 1;
+  margin-top: 0;
+}
+
 /* Action buttons - Modern compact design */
 .action-panel .btn-action {
   padding: 8px 10px !important;

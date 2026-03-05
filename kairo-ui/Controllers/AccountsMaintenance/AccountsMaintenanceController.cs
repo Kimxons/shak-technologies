@@ -669,6 +669,12 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 {
                     request.OurBranchID = HttpContext.Session.GetString("branch_code");
                 }
+                if (string.IsNullOrEmpty(request.BankID))
+                {
+                    request.BankID = HttpContext.Session.GetString("bank_id")
+                        ?? HttpContext.Session.GetString("bank_code")
+                        ?? "00";
+                }
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
@@ -686,8 +692,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         }
 
         [HttpPost]
-        [Route("api/add-edit-account-signatories")]
-        public async Task<IActionResult> AddEditAccountSignatories([FromBody] AddEditAccountSignatoriesRequest request)
+        [Route("api/add-account-signatories")]
+        public async Task<IActionResult> AddAccountSignatories([FromBody] AddAccountSignatoriesRequest request)
         {
             try
             {
@@ -700,10 +706,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 {
                     request.OurBranchID = HttpContext.Session.GetString("branch_code");
                 }
+                if (string.IsNullOrEmpty(request.BankID))
+                {
+                    request.BankID = HttpContext.Session.GetString("bank_id")
+                        ?? HttpContext.Session.GetString("bank_code")
+                        ?? "00";
+                }
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.ADD_EDIT_ACCOUNT_SIGNATORIES,
+                    ApiEndpoints.ADD_ACCOUNT_SIGNATORIES,
                     request
                 );
 
@@ -711,7 +723,46 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding/editing account signatories");
+                _logger.LogError(ex, "Error adding account signatories");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+
+
+        [HttpPost]
+        [Route("api/edit-account-signatories")]
+        public async Task<IActionResult> EditAccountSignatories([FromBody] EditAccountSignatoriesRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                // Inject session data
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                {
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+                }
+                if (string.IsNullOrEmpty(request.BankID))
+                {
+                    request.BankID = HttpContext.Session.GetString("bank_id")
+                        ?? HttpContext.Session.GetString("bank_code")
+                        ?? "00";
+                }
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.EDIT_ACCOUNT_SIGNATORIES,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error editing account signatories");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -2722,21 +2773,39 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     // ============================================================================
     public class GetAccountSignatoriesRequest
     {
-        public string? AccountId { get; set; }
+        public string? AccountID { get; set; }
         public string? SearchKey { get; set; }
         public string? SearchID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? BankID { get; set; }
         public int? ModuleID { get; set; }
+        public int? Direction { get; set; }      // 0=First, 1=Next, -1=Previous
+        public string? SignatoryID { get; set; }  // Current signatory ID for navigation
     }
 
-    public class AddEditAccountSignatoriesRequest
+    public class AddAccountSignatoriesRequest
     {
-        public string? AccountId { get; set; }
+        public string? AccountID { get; set; }
         public string? SearchKey { get; set; }
         public string? SearchID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? BankID { get; set; }
+        public int? ModuleID { get; set; }
+        public string? OperatingModeID { get; set; }
+        public string? OperatingInstructionID { get; set; }
+        public string? SignatoriesXml { get; set; }  // XML format: <ListOfSignatory><Signatory>...</Signatory></ListOfSignatory>
+    }
+
+    public class EditAccountSignatoriesRequest
+    {
+        public string? AccountID { get; set; }
+        public string? SearchKey { get; set; }
+        public string? SearchID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? BankID { get; set; }
         public int? ModuleID { get; set; }
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructionID { get; set; }
