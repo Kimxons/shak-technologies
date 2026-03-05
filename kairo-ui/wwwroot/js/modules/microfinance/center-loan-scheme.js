@@ -1109,22 +1109,8 @@
         };
 
         try {
-            // Ensure GroupService is loaded (lazy-load via ServiceLoader if available)
-            if (!window.GroupService?.getGroupLoanSchemes && window.ServiceLoader?.loadGroupService) {
-                try {
-                    await window.ServiceLoader.loadGroupService();
-                } catch (loadErr) {
-                    console.error('[CenterLoanScheme] Failed to load GroupService:', loadErr);
-                }
-            }
-
-            if (!window.GroupService || typeof window.GroupService.getGroupLoanSchemes !== 'function') {
-                showError('GroupService not available. Please ensure services are loaded.');
-                console.error('GroupService not found');
-                return null;
-            }
-
-            const response = await window.GroupService.getGroupLoanSchemes(requestData);
+            // Call server controller (OldAPI) without exposing procedure names in JS
+            const response = await invokeCenterLoanController('group-loan-schemes', requestData);
 
             console.log('[CenterLoanScheme] loadSchemeData Response:', response);
 
@@ -1249,12 +1235,7 @@
         };
 
         try {
-            if (!window.GroupService || typeof window.GroupService.getGroupLoanSchemes !== 'function') {
-                console.warn('GroupService not available for fetching schemes list');
-                return;
-            }
-
-            const response = await window.GroupService.getGroupLoanSchemes(requestData);
+            const response = await invokeCenterLoanController('group-loan-schemes', requestData);
             
             console.log('[CenterLoanScheme] fetchAllSchemes Response:', response);
 
