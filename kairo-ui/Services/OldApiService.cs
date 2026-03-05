@@ -1,5 +1,6 @@
 ﻿using CBS.Entities.Common;
 using kairo_ui.Models;
+using kairo_ui.Models.Identities.Client360;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Text.Json;
 
@@ -264,6 +265,8 @@ namespace kairo_ui.Services
             try
             {
                 _httpClient = _httpClientFactory.CreateClient(apiName);
+
+                EnsureDefaults(data);
                 OldDataRequest<object> apiReq = new()
                 {
                     AppName = _httpContext.HttpContext!.Session.GetString("appname")!,
@@ -309,6 +312,7 @@ namespace kairo_ui.Services
             try
             {
                 _httpClient = _httpClientFactory.CreateClient(apiName);
+                EnsureDefaults(data);
                 OldDataRequest<object> apiReq = new()
                 {
                     AppName = _httpContext.HttpContext!.Session.GetString("appname")!,
@@ -372,6 +376,43 @@ namespace kairo_ui.Services
                 _logger.LogError(ex, $"Failed to delete {endpoint}/{id}");
                 throw new Exception($"Failed to delete {endpoint}/{id}: {ex.Message}", ex);
             }
+        }
+
+        private void EnsureDefaults<T>(T requestData) where T : class
+        {
+            var type = requestData.GetType();
+            var operatorIdProp = type.GetProperty("OperatorID");
+            var branchIdProp = type.GetProperty("OurBranchID");
+            var bankIdProp = type.GetProperty("BankID");
+
+            if (operatorIdProp != null && string.IsNullOrWhiteSpace(operatorIdProp.GetValue(requestData) as string))
+            {
+                operatorIdProp.SetValue(requestData, ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+            }
+
+            if (branchIdProp != null && string.IsNullOrWhiteSpace(branchIdProp.GetValue(requestData) as string))
+            {
+                branchIdProp.SetValue(requestData, ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
+            }
+
+            if (bankIdProp != null && string.IsNullOrWhiteSpace(bankIdProp.GetValue(requestData) as string))
+            {
+                bankIdProp.SetValue(requestData, ResolveSessionValue("bank_id", "bank_code") ?? "00");
+            }
+        }
+
+        private string? ResolveSessionValue(params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                var value = _httpContext.HttpContext!.Session.GetString(key);
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+            }
+
+            return null;
         }
     }
 

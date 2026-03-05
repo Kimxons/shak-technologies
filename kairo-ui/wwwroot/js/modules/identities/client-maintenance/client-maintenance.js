@@ -203,6 +203,41 @@ function setFieldValue(root, selector, value) {
     field.value = value ?? '';
 }
 
+function setSelectValueWithFallback(selectElement, value, fallbackText) {
+    if (!selectElement) return;
+
+    const normalized = value == null ? '' : String(value);
+    if (!normalized) {
+        selectElement.value = '';
+        return;
+    }
+
+    const hasOption = Array.from(selectElement.options || []).some((option) => String(option.value) === normalized);
+    if (!hasOption) {
+        const option = document.createElement('option');
+        option.value = normalized;
+        option.textContent = fallbackText || normalized;
+        selectElement.appendChild(option);
+    }
+
+    selectElement.value = normalized;
+}
+
+function applyBasicDetailsToMain(row) {
+    const shell = document.querySelector('[data-client-maintenance]');
+    if (!shell) return;
+
+    const clientType = row?.ClientTypeID || row?.ClientType || '';
+    const clientGroup = row?.ClientGroupID || row?.ClientGroup || '';
+    const clientGroupLabel = row?.ClientGroupName || row?.ClientGroupDescription || clientGroup;
+
+    const clientTypeSelect = shell.querySelector('#ddl_mainClientType');
+    const clientGroupSelect = shell.querySelector('#ddl_mainClientGroup');
+
+    setSelectValueWithFallback(clientTypeSelect, clientType, clientType);
+    setSelectValueWithFallback(clientGroupSelect, clientGroup, clientGroupLabel);
+}
+
 function applyBasicDetailsToPersonal(row) {
     const personalPane = document.getElementById('dv_tabClientPersonal');
     if (!personalPane) return;
@@ -263,6 +298,7 @@ async function loadClientBasicDetails(clientId) {
 
         const row = normalizeSingleRow(response);
         if (row) {
+            applyBasicDetailsToMain(row);
             applyBasicDetailsToPersonal(row);
         }
     } catch (error) {
@@ -277,6 +313,8 @@ function initMainClientSearch(shell) {
     const clientNameInput = shell.querySelector('#txt_mainClientName');
     const applicationIdInput = shell.querySelector('#txt_mainApplicationId');
     const applicationNameInput = shell.querySelector('#txt_mainApplicationName');
+    const clientTypeSelect = shell.querySelector('#ddl_mainClientType');
+    const clientGroupSelect = shell.querySelector('#ddl_mainClientGroup');
 
     if (!clientSearchBtn && !applicationSearchBtn) return;
 
@@ -299,8 +337,14 @@ function initMainClientSearch(shell) {
             onSelect: async (record) => {
                 const selectedClientId = record?.ClientID || '';
                 const selectedClientName = record?.Name || '';
+                const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
+                const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
+                const selectedClientGroupLabel = record?.ClientGroupName || record?.ClientGroupDescription || selectedClientGroup;
+
                 if (clientIdInput) clientIdInput.value = selectedClientId;
                 if (clientNameInput) clientNameInput.value = selectedClientName;
+                setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
+                setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
                 window.ClientMaintenanceCore.clientId = selectedClientId;
                 if (applicationIdInput) applicationIdInput.value = '';
                 if (applicationNameInput) applicationNameInput.value = '';
@@ -325,9 +369,15 @@ function initMainClientSearch(shell) {
             onSelect: (record) => {
                 const selectedRequestId = record?.ClientID || '';
                 const selectedName = record?.Name || '';
+                const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
+                const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
+                const selectedClientGroupLabel = record?.ClientGroupName || record?.ClientGroupDescription || selectedClientGroup;
+
                 if (applicationIdInput) applicationIdInput.value = selectedRequestId;
                 if (applicationNameInput) applicationNameInput.value = selectedName;
                 window.ClientMaintenanceCore.requestId = selectedRequestId;
+                setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
+                setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
 
                 const selectedClientId = record?.RealClientID || record?.ExistingClientID || '';
                 if (selectedClientId) {

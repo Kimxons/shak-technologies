@@ -8,23 +8,30 @@ using System.Net.Http.Headers;
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
     [Route("Identities/ClientMaintenance/PhotoSignature")]
-    public class ClientPhotoSignatureController : ClientMaintenanceControllerBase
+    public class ClientPhotoSignatureController : Controller
     {
+        private readonly IAuthService _authService;
+        private readonly IApiService _apiService;
+        private readonly ICommonUtilitiesService _commonUtilities;
         private readonly IApiCachedService _apiCachedService;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<ClientPhotoSignatureController> _logger;
 
-        public ClientPhotoSignatureController(IAuthService authService, IApiService apiService, IApiCachedService apiCachedService, IHttpClientFactory httpClientFactory, ILogger<ClientPhotoSignatureController> logger)
-            : base(authService, apiService, logger)
+        public ClientPhotoSignatureController(IAuthService authService, IApiService apiService, ICommonUtilitiesService commonUtilities, IApiCachedService apiCachedService, IHttpClientFactory httpClientFactory, ILogger<ClientPhotoSignatureController> logger)
         {
+            _authService = authService;
+            _apiService = apiService;
+            _commonUtilities = commonUtilities;
             _apiCachedService = apiCachedService;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         [HttpGet]
         [Route("Index")]
         public async Task<IActionResult> Index(string? moduleId = null, string? clientId = null, string? requestId = null)
         {
-            if (!AuthService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
 
             ViewData["ModuleId"] = moduleId ?? string.Empty;
             ViewData["ClientId"] = clientId ?? string.Empty;
@@ -44,32 +51,101 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error loading Photo & Signature dropdown options");
+                _logger.LogError(ex, "Error loading Photo & Signature dropdown options");
             }
 
             return PartialView("~/Views/Identities/ClientMaintenance/_ClientPhotoSignature.cshtml");
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.GET_CLIENT_PHOTO_SIGNATURE, requestData, "client-maintenance.photosignature.get", requestData?.ModuleID);
+        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.photosignature.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_PHOTO_SIGNATURE, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.photosignature.get");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("create")]
-        public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_PHOTO_SIGNATURE, requestData, "client-maintenance.photosignature.create", requestData?.ModuleID);
+        public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.photosignature.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_PHOTO_SIGNATURE, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.photosignature.create");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("update")]
-        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_PHOTO_SIGNATURE, requestData, "client-maintenance.photosignature.update", requestData?.ModuleID);
+        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.photosignature.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_PHOTO_SIGNATURE, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.photosignature.update");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("delete")]
-        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_PHOTO_SIGNATURE, requestData, "client-maintenance.photosignature.delete", requestData?.ModuleID);
+        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.photosignature.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_PHOTO_SIGNATURE, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.photosignature.delete");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("upload-temp-image")]
         public async Task<IActionResult> UploadTempImage()
         {
-            var unauthenticated = EnsureAuthenticated("client-maintenance.photosignature.upload-temp-image");
-            if (unauthenticated != null)
-            {
-                return unauthenticated;
-            }
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
 
             if (!Request.HasFormContentType)
             {
@@ -106,7 +182,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error uploading temporary image");
+                _logger.LogError(ex, "Error uploading temporary image");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -114,11 +190,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         [HttpGet, Route("get-temp-image/{tempImageId}")]
         public async Task<IActionResult> GetTempImage(string tempImageId)
         {
-            var unauthenticated = EnsureAuthenticated("client-maintenance.photosignature.get-temp-image");
-            if (unauthenticated != null)
-            {
-                return unauthenticated;
-            }
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
 
             try
             {
@@ -129,7 +202,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error getting temporary image {TempImageId}", tempImageId);
+                _logger.LogError(ex, "Error getting temporary image {TempImageId}", tempImageId);
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -137,11 +210,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         [HttpGet, Route("download-temp-image/{tempImageId}")]
         public async Task<IActionResult> DownloadTempImage(string tempImageId)
         {
-            var unauthenticated = EnsureAuthenticated("client-maintenance.photosignature.download-temp-image");
-            if (unauthenticated != null)
-            {
-                return unauthenticated;
-            }
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
 
             try
             {
@@ -164,7 +234,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error downloading temporary image {TempImageId}", tempImageId);
+                _logger.LogError(ex, "Error downloading temporary image {TempImageId}", tempImageId);
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -172,11 +242,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         [HttpDelete, Route("delete-temp-image/{tempImageId}")]
         public async Task<IActionResult> DeleteTempImage(string tempImageId)
         {
-            var unauthenticated = EnsureAuthenticated("client-maintenance.photosignature.delete-temp-image");
-            if (unauthenticated != null)
-            {
-                return unauthenticated;
-            }
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
 
             try
             {
@@ -187,7 +254,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error deleting temporary image {TempImageId}", tempImageId);
+                _logger.LogError(ex, "Error deleting temporary image {TempImageId}", tempImageId);
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -195,11 +262,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         [HttpGet, Route("get-temp-images-by-client/{clientId}")]
         public async Task<IActionResult> GetTempImagesByClient(string clientId)
         {
-            var unauthenticated = EnsureAuthenticated("client-maintenance.photosignature.get-temp-images-by-client");
-            if (unauthenticated != null)
-            {
-                return unauthenticated;
-            }
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
 
             try
             {
@@ -210,7 +274,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error getting temporary images by client {ClientId}", clientId);
+                _logger.LogError(ex, "Error getting temporary images by client {ClientId}", clientId);
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
