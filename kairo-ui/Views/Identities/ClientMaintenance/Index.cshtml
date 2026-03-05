@@ -1,7 +1,10 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Client Maintenance";
     Layout = "_ApplicationLayout";
     var moduleId = (ViewData["ModuleId"]?.ToString() ?? string.Empty);
+    var clientTypeOptions = ViewData["ClientTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var clientGroupOptions = ViewData["ClientGroupOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <div class="window" data-client-maintenance data-module-id="@moduleId">
@@ -16,6 +19,7 @@
             <div class="child-inline" data-child-inline hidden>
                 <iframe class="child-iframe-inline" data-child-iframe title="DataEntry Submodule"></iframe>
             </div>
+
             <div class="form-card" data-main-form>
                 <div class="section-header">
                     <span class="section-header__title"><i class="bi bi-person-vcard me-1"></i>Client Maintenance Workflow</span>
@@ -34,6 +38,15 @@
                             </div>
                         </div>
                         <div class="col">
+                            <label class="label-blue" for="ddl_mainClientType">Client Type</label>
+                            <select id="ddl_mainClientType" name="ClientTypeID" class="bs-select" asp-items="@(clientTypeOptions.Skip(1))">
+                                <option value="">Select type</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row two-col mb-3">
+                        <div class="col">
                             <label class="label-blue" for="txt_mainApplicationId">Application ID</label>
                             <div class="kairo-control" data-kairo-control>
                                 <input type="text" id="txt_mainApplicationId" placeholder="Workflow Request ID" />
@@ -42,6 +55,12 @@
                                     <i class="bi bi-search"></i>
                                 </button>
                             </div>
+                        </div>
+                        <div class="col">
+                            <label for="ddl_mainClientGroup">Client Group</label>
+                            <select id="ddl_mainClientGroup" name="ClientGroupID" class="bs-select" asp-items="@(clientGroupOptions.Skip(1))">
+                                <option value="">Select group</option>
+                            </select>
                         </div>
                     </div>
 
@@ -76,6 +95,58 @@
                     </div>
                 </div>
             </div>
+            <!-- BEHIND THE SCENE Section -->
+            <div class="form-section" data-section="behind-scene">
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene</span>
+                    <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene"
+                            aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+
+                <div class="section-content" data-section-content>
+                    <div class="audit-section--summary">
+                        <div class="audit-cell">
+                            <span class="audit-label">Status</span>
+                            <span class="audit-value" id="auditStatus" data-field="status"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Open Date</span>
+                            <span class="audit-value" id="auditOpenDate" data-field="openDate"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Closed Date</span>
+                            <span class="audit-value" id="auditClosedDate" data-field="closedDate"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Created By</span>
+                            <span class="audit-value" id="auditCreatedBy" data-field="createdBy"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Modified By</span>
+                            <span class="audit-value" id="auditModifiedBy" data-field="modifiedBy"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Supervised By</span>
+                            <span class="audit-value" id="auditSupervisedBy" data-field="supervisedBy"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Created On</span>
+                            <span class="audit-value" id="auditCreatedOn" data-field="createdOn"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Modified On</span>
+                            <span class="audit-value" id="auditModifiedOn" data-field="modifiedOn"></span>
+                        </div>
+                        <div class="audit-cell">
+                            <span class="audit-label">Supervised On</span>
+                            <span class="audit-value" id="auditSupervisedOn" data-field="supervisedOn"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Behind the Scene Section -->
         </div>
 
 
