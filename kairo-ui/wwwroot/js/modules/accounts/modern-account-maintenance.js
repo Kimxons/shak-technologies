@@ -726,14 +726,22 @@
 
         // Documents module — full original button set (NAVIGATION, SHOW IMAGE, VIEW, ADD, EDIT, DELETE, SAVE, CANCEL, CLEAR, CLOSE)
         if (submoduleName === 'Documents') {
-            // Show a NAVIGATION nav-group inside actionButtons (original layout)
-            newButtonsHtml = `
-                <div class="nav-group" style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+            // NAV group + SHOW IMAGE go BEFORE .action-buttons as siblings (matching original layout)
+            // Remove any previously injected siblings
+            parentActionPanel.querySelectorAll('.submodule-nav-group, .submodule-show-image').forEach(e => e.remove());
+
+            const navGroupHtml = `<div class="nav-group submodule-nav-group">
                     <button class="btn-nav green" type="button" id="submoduleBtnPrev" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
                     <span>NAVIGATION</span>
                     <button class="btn-nav green" type="button" id="submoduleBtnNext" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
-                </div>
-                <button class="btn-action" type="button" id="submoduleBtnShowImage"><i class="bi bi-image me-1"></i>SHOW IMAGE</button>
+                </div>`;
+            const showImageHtml = `<button class="btn-action submodule-show-image" type="button" id="submoduleBtnShowImage"><i class="bi bi-image me-1"></i>SHOW IMAGE</button>`;
+
+            // Insert before action-buttons container
+            actionButtonsContainer.insertAdjacentHTML('beforebegin', navGroupHtml + showImageHtml);
+
+            // Only action buttons inside .action-buttons
+            newButtonsHtml = `
                 <button class="btn-action" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>VIEW</button>
                 <button class="btn-action" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>ADD</button>
                 <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>EDIT</button>
@@ -931,6 +939,9 @@
         parentActionPanel.querySelectorAll('.nav-group').forEach(g => {
             g.style.display = 'flex';
         });
+
+        // Remove injected submodule siblings (Documents: nav-group + show-image)
+        parentActionPanel.querySelectorAll('.submodule-nav-group, .submodule-show-image').forEach(e => e.remove());
 
         const actionButtonsContainer = parentActionPanel.querySelector('.action-buttons');
         if (actionButtonsContainer && parentActionPanel.dataset.originalButtons) {
