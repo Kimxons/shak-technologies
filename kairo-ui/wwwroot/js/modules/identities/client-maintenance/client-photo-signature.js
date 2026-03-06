@@ -200,8 +200,8 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         });
     };
 
-    const refreshTable = async () => {
-        const clientId = window.ClientMaintenanceCore.clientId || '';
+    const refreshTable = async (requestData) => {
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
         if (!clientId) {
             renderTable([]);
             return;
@@ -209,7 +209,8 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         try {
             const response = await window.ClientMaintenancePhotoSignatureService.get({
                 ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId
+                ClientID: clientId,
+                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
             });
             const rows = response?.Details || response?.data?.Details || response?.data || response || [];
             state.items = Array.isArray(rows) ? rows : [];
@@ -422,5 +423,5 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         }
     });
 
-    refreshTable();
+    tabRoot._cmLoadData = (requestData) => refreshTable(requestData);
 }

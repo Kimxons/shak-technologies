@@ -7,69 +7,148 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
     [Route("Identities/ClientMaintenance/Employment")]
-    public class ClientEmploymentController : ClientMaintenanceControllerBase
+    public class ClientEmploymentController : Controller
     {
+        private readonly IAuthService _authService;
+        private readonly IApiService _apiService;
+        private readonly ICommonUtilitiesService _commonUtilities;
         private readonly IApiCachedService _apiCachedService;
+        private readonly ILogger<ClientEmploymentController> _logger;
 
-        public ClientEmploymentController(IAuthService authService, IApiService apiService, IApiCachedService apiCachedService, ILogger<ClientEmploymentController> logger)
-        : base(authService, apiService, logger)
+        public ClientEmploymentController(IAuthService authService, IApiService apiService, ICommonUtilitiesService commonUtilities, IApiCachedService apiCachedService, ILogger<ClientEmploymentController> logger)
         {
-      _apiCachedService = apiCachedService;
-   }
+            _authService = authService;
+            _apiService = apiService;
+            _commonUtilities = commonUtilities;
+            _apiCachedService = apiCachedService;
+            _logger = logger;
+        }
 
         [HttpGet]
         [Route("Index")]
-   public async Task<IActionResult> Index(string? moduleId = null, string? clientId = null, string? requestId = null)
+        public async Task<IActionResult> Index(string? moduleId = null, string? clientId = null, string? requestId = null)
         {
-        if (!AuthService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
 
-  ViewData["ModuleId"] = moduleId ?? string.Empty;
-     ViewData["ClientId"] = clientId ?? string.Empty;
-       ViewData["RequestId"] = requestId ?? string.Empty;
-  ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(clientId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
+            ViewData["ModuleId"] = moduleId ?? string.Empty;
+            ViewData["ClientId"] = clientId ?? string.Empty;
+            ViewData["RequestId"] = requestId ?? string.Empty;
+            ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(clientId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
 
-try
-   {
-    // Use GetMultipleDropdownCodeOptionsAsync - now returns SelectListItem format
- var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
-{
-         "OccupationID",
- "DesignationID",
-   "CompanyTypeID",
-    "BusinessOwnershipID",
-           "BusinessLineID"
-      });
+            try
+            {
+                // Use GetMultipleDropdownCodeOptionsAsync - now returns SelectListItem format
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "OccupationID",
+                    "DesignationID",
+                    "CompanyTypeID",
+                    "BusinessOwnershipID",
+                    "BusinessLineID"
+                });
 
-     dropdownOptions.TryGetValue("OccupationID", out var occupationOptions);
-   dropdownOptions.TryGetValue("DesignationID", out var designationOptions);
-    dropdownOptions.TryGetValue("CompanyTypeID", out var companyTypeOptions);
- dropdownOptions.TryGetValue("BusinessOwnershipID", out var businessOwnershipOptions);
-     dropdownOptions.TryGetValue("BusinessLineID", out var businessLineOptions);
+                dropdownOptions.TryGetValue("OccupationID", out var occupationOptions);
+                dropdownOptions.TryGetValue("DesignationID", out var designationOptions);
+                dropdownOptions.TryGetValue("CompanyTypeID", out var companyTypeOptions);
+                dropdownOptions.TryGetValue("BusinessOwnershipID", out var businessOwnershipOptions);
+                dropdownOptions.TryGetValue("BusinessLineID", out var businessLineOptions);
 
-        ViewData["EmploymentOccupationOptions"] = occupationOptions ?? Enumerable.Empty<SelectListItem>();
-       ViewData["EmploymentDesignationOptions"] = designationOptions ?? Enumerable.Empty<SelectListItem>();
-          ViewData["EmploymentCompanyTypeOptions"] = companyTypeOptions ?? Enumerable.Empty<SelectListItem>();
-      ViewData["EmploymentBusinessOwnershipOptions"] = businessOwnershipOptions ?? Enumerable.Empty<SelectListItem>();
-     ViewData["EmploymentBusinessLineOptions"] = businessLineOptions ?? Enumerable.Empty<SelectListItem>();
-        }
- catch (Exception ex)
-       {
-     Logger.LogError(ex, "Error loading Employment tab dropdown options");
+                ViewData["EmploymentOccupationOptions"] = occupationOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["EmploymentDesignationOptions"] = designationOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["EmploymentCompanyTypeOptions"] = companyTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["EmploymentBusinessOwnershipOptions"] = businessOwnershipOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["EmploymentBusinessLineOptions"] = businessLineOptions ?? Enumerable.Empty<SelectListItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Employment tab dropdown options");
             }
 
             return PartialView("~/Views/Identities/ClientMaintenance/_ClientEmployment.cshtml");
         }
 
-   [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.GET_CLIENT_EMPLOYMENT, requestData, "client-maintenance.employment.get", requestData?.ModuleID);
+        [HttpPost, Route("get")]
+        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.employment.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_EMPLOYMENT, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.employment.get");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("create")]
-   public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_EMPLOYMENT, requestData, "client-maintenance.employment.create", requestData?.ModuleID);
+        public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.employment.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_EMPLOYMENT, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.employment.create");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("update")]
-  public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_EMPLOYMENT, requestData, "client-maintenance.employment.update", requestData?.ModuleID);
+        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.employment.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_EMPLOYMENT, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.employment.update");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         [HttpPost, Route("delete")]
-     public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData) => await ProxyRequestAsync("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_EMPLOYMENT, requestData, "client-maintenance.employment.delete", requestData?.ModuleID);
+        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData)
+        {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            try
+            {
+                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _logger.LogInformation("client-maintenance.employment.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_EMPLOYMENT, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on operation: client-maintenance.employment.delete");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
     }
 }
