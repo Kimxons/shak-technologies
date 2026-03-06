@@ -96,8 +96,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         });
     };
 
-    const refreshDocumentsTable = async () => {
-        const clientId = window.ClientMaintenanceCore.clientId || '';
+    const refreshDocumentsTable = async (requestData) => {
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
         if (!clientId) {
             renderDocumentsTable([]);
             return;
@@ -105,7 +105,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         try {
             const response = await window.ClientMaintenanceDocumentsService.get({
                 ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId
+                ClientID: clientId,
+                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
             });
             const rows = normalizeDocumentRows(extractList(response));
             renderDocumentsTable(rows);
@@ -173,7 +174,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     };
 
     setFieldsEnabled(false);
-    refreshDocumentsTable();
+    tabRoot._cmLoadData = (requestData) => refreshDocumentsTable(requestData);
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');
@@ -262,11 +263,17 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
     
     const searchBtn = tabRoot.querySelector('[data-document-action="lookup-receiver"]');
     if (!searchBtn) return;
+
+    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    if (!appCore) {
+        console.warn('[Documents] AppCore not available for SearchModal');
+        return;
+    }
     
     // Get or create SearchModal instance
     let searchModal = window._documentsSearchModal;
     if (!searchModal && window.SearchModal) {
-        searchModal = new window.SearchModal();
+        searchModal = new window.SearchModal(appCore);
         window._documentsSearchModal = searchModal;
     }
     
@@ -280,25 +287,25 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
         const currentValue = tabRoot.querySelector('[data-document-field="ReceivedBy"]')?.value || '';
         
         searchModal.open({
-            title: 'Find Document Receiver',
-            tableID: 'ClientID',
+            title: 'Find User for Document Receiver',
+            tableID: 'OperatorID',
             moduleID: moduleId,
             searchFields: [
-                { name: 'ClientID', label: 'Client ID', column: 'ClientID', value: currentValue },
-                { name: 'Name', label: 'Client Name', column: 'Name' }
+                { name: 'OperatorID', label: 'Operator ID', column: 'OperatorID', value: currentValue },
+                { name: 'ClientName', label: 'User Name', column: 'ClientName' }
             ],
             autoSearch: false,
             onSelect: (record) => {
-                // Populate the received by field with the selected client ID
+                // Populate the received by field with the selected operator ID
                 const receivedByField = tabRoot.querySelector('[data-document-field="ReceivedBy"]');
                 if (receivedByField) {
-                    receivedByField.value = record.ClientID || '';
+                    receivedByField.value = record.OperatorID || record.LoginID || record.UserID || '';
                 }
                 
                 // Also update the display name if available
                 const receivedByNameField = tabRoot.querySelector('#txt_documentReceivedByName');
                 if (receivedByNameField) {
-                    receivedByNameField.value = record.Name || '';
+                    receivedByNameField.value = record.ClientName || record.Name || record.UserName || '';
                 }
             }
         });

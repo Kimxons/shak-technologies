@@ -1,5 +1,30 @@
 const CM_KYC_BASE = 'Identities/ClientMaintenance/Kyc';
 
+// Explicit field mapping for KYC tab: API response key => form field ID/name
+const KYC_FIELD_MAP = {
+    'PEP': 'rad_pep',
+    'PEPYes': 'rad_pepYes',
+    'PEPNo': 'rad_pepNo',
+    'PEPCategory': 'txt_kycPepCategory',
+    'PEPDetails': 'txt_kycPepDetails',
+    'USPerson': 'rad_usPerson',
+    'USPersonYes': 'rad_usPersonYes',
+    'USPersonNo': 'rad_usPersonNo',
+    'SSN': 'txt_ssn',
+    'SocialSecurityNumber': 'txt_ssn',
+    'USTIN': 'txt_ustin',
+    'USTaxIdentificationNumber': 'txt_ustin',
+    'TradeLicenseNo': 'txt_kycTradeLicenseNo',
+    'ClientAreaID': 'sel_kycClientArea',
+    'ClientArea': 'sel_kycClientArea',
+    'PersonalStatusID': 'sel_kycPersonalStatus',
+    'PersonalStatus': 'sel_kycPersonalStatus',
+    'CloseLawSuitID': 'sel_kycCloseLawSuit',
+    'CloseLawSuit': 'sel_kycCloseLawSuit',
+    'CNFSOID': 'sel_kycCnfso',
+    'CNFSO': 'sel_kycCnfso'
+};
+
 function invokeClientMaintenanceKyc(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_KYC_BASE, action, 'POST', requestData || {});
 }
