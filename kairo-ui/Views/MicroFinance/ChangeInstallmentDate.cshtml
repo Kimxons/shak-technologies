@@ -1,0 +1,196 @@
+@{
+    ViewData["Title"] = "Change Installment Date";
+    Layout = "_ApplicationLayout";
+}
+
+<!-- Toast Container -->
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+
+        <!-- Form Content -->
+        <div class="form-content form-content-without-leftbar">
+            <div class="form-card" data-main-form>
+                <!-- Identifiers Section -->
+                <div class="form-section" data-section="identifiers">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-info-square"></i>Identifiers</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Identifiers" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Branch ID</label>
+                                <div class="kairo-branch-control" data-kairo-control>
+                                    <input type="text" id="BranchId" class="kairo-branch-control__id" aria-label="Branch ID" value="0101">
+                                    <input type="text" id="BranchName" class="kairo-branch-control__name" aria-label="Branch Name" value="Head Office" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-cid-lookup="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Center ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="CenterId" class="kairo-control__id" aria-label="Center ID" placeholder="Center ID">
+                                    <input type="text" id="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-cid-lookup="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="label-blue">Scheme ID</label>
+                            <div class="kairo-control" data-kairo-control>
+                                <input type="text" id="SchemeId" class="kairo-control__id" aria-label="Scheme ID" placeholder="Scheme ID">
+                                <input type="text" id="SchemeName" class="kairo-control__name" aria-label="Scheme Name" placeholder="Scheme Name" readonly>
+                                <button type="button" class="btn-lookup kairo-control__lookup" data-cid-lookup="scheme" aria-label="Search Scheme"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Options Section -->
+                <div class="form-section" data-section="change-options">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-gear"></i>Change Options</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Change Options" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue d-flex align-items-center gap-2">
+                                    <input type="radio" name="ChangeMode" value="holiday" class="bs-radio" checked>
+                                    Marking Holiday
+                                </label>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Date</label>
+                                <input type="date" class="bs-input-date" id="InstallmentDate" placeholder="Select date">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue d-flex align-items-center gap-2">
+                                    <input type="radio" name="ChangeMode" value="meeting" class="bs-radio">
+                                    Changing Meeting Day
+                                </label>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Day Of Week</label>
+                                <select class="bs-select" id="DayOfWeek">
+                                    <option selected>--Select--</option>
+                                    <option>Monday</option>
+                                    <option>Tuesday</option>
+                                    <option>Wednesday</option>
+                                    <option>Thursday</option>
+                                    <option>Friday</option>
+                                    <option>Saturday</option>
+                                    <option>Sunday</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Description</label>
+                                <input type="text" class="bs-input-text" id="Description" placeholder="Enter description">
+                            </div>
+                            <div class="col d-flex align-items-end">
+                                <button type="button" class="btn-action" id="btnGenerate">
+                                    <i class="bi bi-play-circle me-1"></i>Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Installment List Section -->
+                <div class="form-section" data-section="installment-list">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-list-ol"></i>Installment List</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Installment List" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="installmentTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Actual Inst Date</th>
+                                        <th>New Inst Date</th>
+                                        <th>Expected Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="installmentTableBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No records to display.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="form-section behind-scene" data-section="behind-scene">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-eye-slash"></i>Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Product ID</label>
+                                <input type="text" class="bs-input-text" id="ProductId" placeholder="Product ID" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Currency</label>
+                                <input type="text" class="bs-input-text" id="Currency" placeholder="Currency" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Action Panel -->
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" aria-label="Previous Scheme" data-cid-action="previous"><i class="bi bi-chevron-left"></i></button>
+                <span>Scheme</span>
+                <button class="btn-nav green" aria-label="Next Scheme" data-cid-action="next"><i class="bi bi-chevron-right"></i></button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-action" type="button" data-cid-action="save" title="Save"><i class="bi bi-floppy me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" data-cid-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade cls-search-modal" id="searchModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 900px; width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalTitle">Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="searchModalFrame" title="Search" src="about:blank" style="width: 100%; height: 500px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/change-installment-date.js")" asp-append-version="true"></script>
+}
