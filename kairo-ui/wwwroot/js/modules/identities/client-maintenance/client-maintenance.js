@@ -112,6 +112,34 @@ window.ClientMaintenanceCore = {
     useRequestId: false,
     workflowId: null,
     workflowStageRequestId: 0,
+    // Registry to track loaded tabs and their load functions
+    _loadedTabsRegistry: new Map(),
+    
+    /**
+     * Register a tab's load function
+     * Called by tab initializers when they set up the _cmLoadData function
+     */
+    registerTabLoadFunction(tabKey, loadFunction) {
+        if (tabKey && typeof loadFunction === 'function') {
+            this._loadedTabsRegistry.set(tabKey, loadFunction);
+            console.log(`[ClientMaintenance] Registered load function for tab: ${tabKey}`);
+        }
+    },
+    
+    /**
+     * Get all registered tab load functions
+     */
+    getLoadedTabLoadFunctions() {
+        return Array.from(this._loadedTabsRegistry.values());
+    },
+    
+    /**
+     * Clear the registry (useful for reset)
+     */
+    clearTabRegistry() {
+        this._loadedTabsRegistry.clear();
+    },
+    
     getSelectedId() {
         if (this.useRequestId) {
             return this.requestId || '';
@@ -965,23 +993,27 @@ function applyBasicDetailsToPersonal(row) {
  */
 async function loadAllTabsData() {
     const requestData = buildTabRequest();
-    if (!requestData) return;
+    if (!requestData) {
+        console.log('[ClientMaintenance] loadAllTabsData: No request data available');
+        return;
+    }
 
-    // Get all tab panes that have been loaded
-    const loadedTabs = clientMaintenanceTabCatalog.filter((config) => {
-        const pane = document.getElementById(config.pane);
-        return pane && pane.dataset.loaded === 'true';
-    });
+    // Get all registered tab load functions
+    const loadFunctions = window.ClientMaintenanceCore.getLoadedTabLoadFunctions();
+    
+    if (loadFunctions.length === 0) {
+        console.log('[ClientMaintenance] loadAllTabsData: No tabs registered yet');
+        return;
+    }
 
-    // Load data for each loaded tab in parallel
-    const loadPromises = loadedTabs.map(async (config) => {
-        const pane = document.getElementById(config.pane);
-        if (!pane || typeof pane._cmLoadData !== 'function') return;
+    console.log(`[ClientMaintenance] loadAllTabsData: Loading data for ${loadFunctions.length} registered tabs`);
 
+    // Call all load functions in parallel with the request data
+    const loadPromises = loadFunctions.map(async (loadFunction) => {
         try {
-            await pane._cmLoadData(requestData);
+            await loadFunction(requestData);
         } catch (error) {
-            console.warn(`Failed to load data for ${config.key} tab:`, error);
+            console.warn('[ClientMaintenance] Failed to load tab data:', error);
         }
     });
 
