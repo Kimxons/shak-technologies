@@ -38,9 +38,19 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(["AddressTypeID"]);
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(["AddressTypeID", "CountryID", "CityID", "RegionID", "SubCityID", "LanguageID"]);
                 dropdownOptions.TryGetValue("AddressTypeID", out var addressTypeOptions);
+                dropdownOptions.TryGetValue("CountryID", out var countryOptions);
+                dropdownOptions.TryGetValue("CityID", out var cityOptions);
+                dropdownOptions.TryGetValue("RegionID", out var regionOptions);
+                dropdownOptions.TryGetValue("SubCityID", out var subCityOptions);
+                dropdownOptions.TryGetValue("LanguageID", out var languageOptions);
                 ViewData["AddressTypeOptions"] = addressTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["AddressCountryOptions"] = countryOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["AddressCityOptions"] = cityOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["AddressRegionOptions"] = regionOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["AddressSubCityOptions"] = subCityOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["AddressLanguageOptions"] = languageOptions ?? Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
             {

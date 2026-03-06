@@ -1,5 +1,36 @@
 const CM_PERSONAL_BASE = 'Identities/ClientMaintenance/Personal';
 
+// Explicit field mapping for Personal tab: API response key => form field ID/name
+const PERSONAL_FIELD_MAP = {
+    'FirstName': 'txt_personalFirstName',
+    'Firstname': 'txt_personalFirstName',
+    'MiddleName': 'txt_personalMiddleName',
+    'Middlename': 'txt_personalMiddleName',
+    'LastName': 'txt_personalLastName',
+    'Lastname': 'txt_personalLastName',
+    'MotherName': 'txt_personalMotherName',
+    'DateOfBirth': 'dt_personalDob',
+    'DOB': 'dt_personalDob',
+    'Age': 'txt_personalAge',
+    'AgeAsOn': 'txt_personalAgeAsOn',
+    'TitleID': 'sel_personalTitle',
+    'GenderID': 'sel_personalGender',
+    'NationalityID': 'sel_personalNationality',
+    'ResidentID': 'sel_personalResident',
+    'IdentificationTypeID': 'sel_personalIdType',
+    'IDNumber': 'txt_personalIdNumber',
+    'IssueDate': 'dt_personalIssueDate',
+    'ExpiryDate': 'dt_personalExpiryDate',
+    'LiteracyLevelID': 'sel_personalLiteracy',
+    'MaritalStatusID': 'sel_personalMaritalStatus',
+    'BloodGroupID': 'sel_personalBloodGroup',
+    'HouseHoldMembers': 'txt_personalHouseMembers',
+    'Children': 'txt_personalChildren',
+    'Dependents': 'txt_personalDependents',
+    'OpenedOn': 'dt_personalOpenedOn',
+    'RelationshipManagerID': 'sel_personalRelationshipManager'
+};
+
 function invokeClientMaintenancePersonal(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_PERSONAL_BASE, action, 'POST', requestData || {});
 }
@@ -84,7 +115,54 @@ window.initClientMaintenancePersonalTab = function (tabRoot, moduleId) {
     
     // Initialize validation
     initPersonalValidation();
+
+    // Initialize Opened By user lookup
+    initPersonalUserLookup(tabRoot, moduleId);
     
     // Note: Dropdown options are now server-side rendered in _ClientPersonal.cshtml
     // No client-side loading necessary
 };
+
+function initPersonalUserLookup(tabRoot, moduleId) {
+    if (!tabRoot) return;
+
+    const searchBtn = tabRoot.querySelector('[data-personal-action="lookup-opened-by"]');
+    if (!searchBtn) return;
+
+    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    if (!appCore || !window.SearchModal) {
+        console.warn('[Personal] SearchModal not available for user lookup');
+        return;
+    }
+
+    let searchModal = window._personalOpenedBySearchModal;
+    if (!searchModal) {
+        searchModal = new window.SearchModal(appCore);
+        window._personalOpenedBySearchModal = searchModal;
+    }
+
+    searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentValue = tabRoot.querySelector('#txt_personalOpenedBy')?.value || '';
+
+        searchModal.open({
+            title: 'Find User',
+            tableID: 'OperatorID',
+            moduleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
+            searchFields: [
+                { name: 'OperatorID', label: 'Operator ID', column: 'OperatorID', value: currentValue },
+                { name: 'ClientName', label: 'User Name', column: 'ClientName' }
+            ],
+            autoSearch: false,
+            onSelect: (record) => {
+                const userId = record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || '';
+                const userName = record?.ClientName || record?.Name || record?.UserName || record?.FullName || '';
+
+                const idField = tabRoot.querySelector('#txt_personalOpenedBy');
+                const nameField = tabRoot.querySelector('#txt_personalOpenedByName');
+                if (idField) idField.value = userId;
+                if (nameField) nameField.value = userName;
+            }
+        });
+    });
+}
