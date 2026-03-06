@@ -60,6 +60,53 @@ window.AccountDocumentsModule = (function () {
 
     function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
 
+    /* ── Custom 3D Confirmation Dialog (matches original) ───── */
+    function showConfirm(message, title, iconClass) {
+        title     = title     || 'Confirm Action';
+        iconClass = iconClass || 'bi-question-circle';
+        return new Promise(function(resolve) {
+            var overlay = document.querySelector('.acd-confirm-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'acd-confirm-overlay';
+                overlay.innerHTML =
+                    '<div class="acd-confirm-card">' +
+                    '  <div class="acd-confirm-icon"><i class="bi ' + iconClass + '"></i></div>' +
+                    '  <div class="acd-confirm-title">' + title + '</div>' +
+                    '  <div class="acd-confirm-msg">' + message + '</div>' +
+                    '  <div class="acd-confirm-actions">' +
+                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--cancel">Cancel</button>' +
+                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--confirm">Confirm</button>' +
+                    '  </div>' +
+                    '</div>';
+                document.body.appendChild(overlay);
+            } else {
+                overlay.querySelector('.acd-confirm-title').textContent = title;
+                overlay.querySelector('.acd-confirm-msg').textContent   = message;
+                overlay.querySelector('.acd-confirm-icon i').className  = 'bi ' + iconClass;
+            }
+
+            var confirmBtn = overlay.querySelector('.acd-confirm-btn--confirm');
+            var cancelBtn  = overlay.querySelector('.acd-confirm-btn--cancel');
+
+            var handleResponse = function(result) {
+                overlay.classList.remove('is-visible');
+                confirmBtn.onclick = null;
+                cancelBtn.onclick  = null;
+                setTimeout(function() { resolve(result); }, 300);
+            };
+
+            confirmBtn.onclick = function() { handleResponse(true);  };
+            cancelBtn.onclick  = function() { handleResponse(false); };
+            overlay.onclick    = function(e) { if (e.target === overlay) handleResponse(false); };
+
+            requestAnimationFrame(function() {
+                overlay.classList.add('is-visible');
+                setTimeout(function() { confirmBtn.focus(); }, 100);
+            });
+        });
+    }
+
     function fmtDate(ds) {
         if (!ds) return '';
         try {
@@ -360,14 +407,15 @@ window.AccountDocumentsModule = (function () {
         .then(function(r){ return r.json(); })
         .then(function(result) {
             showLoading(false);
-            if (isSuccess(result)) {
-                var d   = result.Details;
-                var doc = null;
 
-                // Details (Set 0) may contain document class list
-                if (d && d.Details && Array.isArray(d.Details)) {
-                    renderDocumentClasses(d.Details);
-                }
+            // Always try to extract document class list from any response
+            var d = result && result.Details ? result.Details : null;
+            if (d && d.Details && Array.isArray(d.Details)) {
+                renderDocumentClasses(d.Details);
+            }
+
+            if (isSuccess(result)) {
+                var doc = null;
 
                 // Details01 (Set 1) — primary document row
                 if (d && d.Details01 && Array.isArray(d.Details01) && d.Details01.length > 0) {
@@ -409,18 +457,20 @@ window.AccountDocumentsModule = (function () {
                     showMsg('Record loaded successfully.', 'success');
                 } else {
                     showMsg('No document found.', 'warning');
-                    if (direction === 0) {
+                    // Only clear form if in NONE mode (don't wipe during ADD/EDIT)
+                    if (direction === 0 && state.editMode === 'NONE') {
                         clearForm();
                         state.documentData = null;
-                        setMode('NONE');
                     }
                 }
             } else {
-                showMsg(result.ResponseMessage || 'No document found.', 'warning');
-                if (direction === 0) {
-                    clearForm();
-                    state.documentData = null;
-                    setMode('NONE');
+                // Not success — but don't clobber ADD/EDIT mode
+                if (state.editMode === 'NONE') {
+                    showMsg(result.ResponseMessage || 'No document found.', 'warning');
+                    if (direction === 0) {
+                        clearForm();
+                        state.documentData = null;
+                    }
                 }
             }
         })
@@ -438,86 +488,148 @@ window.AccountDocumentsModule = (function () {
         if (!docId)   { showMsg('Document ID is required.', 'warning'); el('documentId')?.focus(); return; }
         if (!docType) { showMsg('Document Type is required.', 'warning'); el('documentType')?.focus(); return; }
 
-        if (!confirm('Save this document record?')) return;
+        var actionLabel = state.editMode === 'ADD' ? 'create' : 'update';
+        showConfirm(
+            'Are you sure you want to ' + actionLabel + ' this document record?',
+            'Save Document',
+            'bi-save'
+        ).then(function(confirmed) {
+            if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
 
-        var ctx   = getContext();
-        var isAdd = state.editMode === 'ADD';
+            var ctx   = getContext();
+            var isAdd = state.editMode === 'ADD';
 
-        var payload = {
-            OurBranchID:   ctx.OurBranchID,
-            AccountID:     ctx.AccountID,
-            OperatorID:    ctx.OperatorID,
-            DocumentID:    docId,
-            DocumentTypeID: docType,
-            ReceivedBy:    val('receivedBy').trim(),
-            ReceivedDate:  el('receivedDate_picker')?.value || val('receivedDate').trim() || '',
-            ExpiryDate:    '',
-            ImageID:       String(state.imageID || 0),
-            LocationID:    val('location').trim(),
-            Remarks:       val('remarks').trim(),
-            DetailRecords: getDocumentClassesXml(),
-            NewRecord:     isAdd ? 1 : (state.updateCount || 0)
-        };
+            var payload = {
+                OurBranchID:   ctx.OurBranchID,
+                AccountID:     ctx.AccountID,
+                OperatorID:    ctx.OperatorID,
+                DocumentID:    docId,
+                DocumentTypeID: docType,
+                ReceivedBy:    val('receivedBy').trim(),
+                ReceivedDate:  el('receivedDate_picker')?.value || val('receivedDate').trim() || '',
+                ExpiryDate:    '',
+                ImageID:       String(state.imageID || 0),
+                LocationID:    val('location').trim(),
+                Remarks:       val('remarks').trim(),
+                DetailRecords: getDocumentClassesXml(),
+                NewRecord:     isAdd ? 1 : (state.updateCount || 0)
+            };
 
-        showLoading(true);
+            showLoading(true);
 
-        fetch(isAdd ? API.ADD : API.UPDATE, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(function(r){ return r.json(); })
-        .then(function(result) {
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || (isAdd ? 'Document added.' : 'Document updated.'), 'success');
-                setMode('NONE');
-                setTimeout(function(){ navigate(0); }, 100);
-            } else {
-                showMsg(result.ResponseMessage || 'Save failed.', 'error');
-            }
-        })
-        .catch(function(err) {
-            showLoading(false);
-            showMsg('Save error: ' + err.message, 'error');
+            fetch(isAdd ? API.ADD : API.UPDATE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(result) {
+                showLoading(false);
+                if (isSuccess(result)) {
+                    showMsg(result.ResponseMessage || (isAdd ? 'Document added.' : 'Document updated.'), 'success');
+                    setMode('NONE');
+                    setTimeout(function(){ navigate(0); }, 100);
+                } else {
+                    showMsg(result.ResponseMessage || 'Save failed.', 'error');
+                }
+            })
+            .catch(function(err) {
+                showLoading(false);
+                showMsg('Save error: ' + err.message, 'error');
+            });
         });
     }
 
     /* ── Delete ──────────────────────────────────────────────── */
     function deleteData() {
         if (!state.documentData) { showMsg('No document selected.', 'warning'); return; }
-        if (!confirm('Delete this document record?')) return;
 
-        var ctx = getContext();
-        showLoading(true);
+        showConfirm(
+            'Are you sure you want to delete this document? This action cannot be undone.',
+            'Delete Document',
+            'bi-trash'
+        ).then(function(confirmed) {
+            if (!confirmed) return;
 
-        var payload = {
-            AccountID:   ctx.AccountID,
-            DocumentID:  val('documentId').trim(),
-            OurBranchID: ctx.OurBranchID,
-            OperatorID:  ctx.OperatorID
-        };
+            snapshotValues();
+            setMode('DELETE');
 
-        fetch(API.DELETE, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(function(r){ return r.json(); })
-        .then(function(result) {
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Document deleted.', 'success');
-                state.documentData = null;
-                clearForm();
-                setMode('NONE');
-            } else {
-                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-            }
-        })
-        .catch(function(err) {
-            showLoading(false);
-            showMsg('Delete error: ' + err.message, 'error');
+            var ctx = getContext();
+            showLoading(true);
+
+            var payload = {
+                AccountID:   ctx.AccountID,
+                DocumentID:  val('documentId').trim(),
+                OurBranchID: ctx.OurBranchID,
+                OperatorID:  ctx.OperatorID
+            };
+
+            fetch(API.DELETE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(result) {
+                showLoading(false);
+                if (isSuccess(result)) {
+                    showMsg(result.ResponseMessage || 'Document deleted.', 'success');
+                    state.documentData = null;
+                    clearForm();
+                    setMode('NONE');
+                } else {
+                    showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+                }
+            })
+            .catch(function(err) {
+                showLoading(false);
+                showMsg('Delete error: ' + err.message, 'error');
+            });
+        });
+    }
+
+    /* ── Confirmed Action Wrappers (matching original behavior) ─ */
+    function confirmAdd() {
+        showConfirm(
+            'Clear form and prepare to add a new document for this account?',
+            'Add Document',
+            'bi-plus-circle'
+        ).then(function(confirmed) {
+            if (!confirmed) return;
+            var currentId   = val('documentId');
+            var currentDesc = val('documentDesc_lookup');
+            snapshotValues();
+            clearForm();
+            if (currentId)   setVal('documentId', currentId);
+            if (currentDesc) setVal('documentDesc_lookup', currentDesc);
+            setMode('ADD');
+            el('documentType')?.focus();
+        });
+    }
+
+    function confirmEdit() {
+        if (!state.documentData) { showMsg('Load a record before editing.', 'warning'); return; }
+        showConfirm(
+            'Enable editing for this document record? You will be able to modify document details.',
+            'Edit Document',
+            'bi-pencil-square'
+        ).then(function(confirmed) {
+            if (!confirmed) return;
+            snapshotValues();
+            setMode('EDIT');
+            el('documentType')?.focus();
+        });
+    }
+
+    function confirmCancel() {
+        showConfirm(
+            'Discard unsaved changes and return to view mode?',
+            'Discard Changes',
+            'bi-arrow-left-circle'
+        ).then(function(confirmed) {
+            if (!confirmed) return;
+            restoreValues();
+            setMode('NONE');
         });
     }
 
@@ -558,10 +670,10 @@ window.AccountDocumentsModule = (function () {
 
         setMode('NONE');
 
-        // Auto-load if account is available
+        // Auto-load first record + document class list
         var ctx = getContext();
         if (ctx.AccountID) {
-            setTimeout(function(){ navigate(0); }, 300);
+            setTimeout(function(){ navigate(1); }, 300);
         }
     }
 
@@ -572,6 +684,9 @@ window.AccountDocumentsModule = (function () {
         navigate:      navigate,
         saveData:      saveData,
         deleteData:    deleteData,
+        confirmAdd:    confirmAdd,
+        confirmEdit:   confirmEdit,
+        confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
         clearForm:     clearForm,
         showImage:     showImage,

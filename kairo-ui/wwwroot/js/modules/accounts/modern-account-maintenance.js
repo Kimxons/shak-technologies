@@ -830,11 +830,11 @@
                 if (nextBtn)     nextBtn.addEventListener('click', () => mod.navigate(1));
                 if (showImgBtn)  showImgBtn.addEventListener('click', () => mod.showImage());
                 if (viewBtn)     viewBtn.addEventListener('click', () => mod.navigate(0));
-                if (addBtn)      addBtn.addEventListener('click', () => mod.setMode('ADD'));
-                if (editBtn)     editBtn.addEventListener('click', () => mod.setMode('EDIT'));
+                if (addBtn)      addBtn.addEventListener('click', () => mod.confirmAdd());
+                if (editBtn)     editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (deleteBtn)   deleteBtn.addEventListener('click', () => mod.deleteData());
                 if (saveBtn)     saveBtn.addEventListener('click', () => mod.saveData());
-                if (cancelBtn)   cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                if (cancelBtn)   cancelBtn.addEventListener('click', () => mod.confirmCancel());
                 if (clearBtn)    clearBtn.addEventListener('click', () => mod.clearForm());
                 return;
             }
@@ -1185,7 +1185,8 @@
         'transactionId': { tableID: 'TransactionID', keyField: 'TransactionID', nameField: 'Description' },
         'accountTransferId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'txnAccountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
-        'payableAt': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' }
+        'payableAt': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
+        'documentId': { tableID: 'DocumentID', keyField: 'DocumentID', nameField: 'Description' }
     };
 
     function wireLookups() {
@@ -1265,7 +1266,8 @@
                         // Find the Name input - handle both branchId -> branchName and BranchID -> BranchName
                         const nameInputId = targetInputId.replace(/Id$/i, 'Name').replace(/ID$/, 'Name');
                         const nameInput = document.getElementById(nameInputId) ||
-                            (idInput && idInput.closest('[data-kairo-branch-control], [data-kairo-account-control], [data-kairo-client-control], [data-kairo-product-control], [data-kairo-user-control], [data-kairo-control]')?.querySelector('[class*="__name"]'));
+                            (idInput && idInput.closest('[data-kairo-branch-control], [data-kairo-account-control], [data-kairo-client-control], [data-kairo-product-control], [data-kairo-user-control], [data-kairo-control]')?.querySelector('[class*="__name"]')) ||
+                            (idInput && idInput.closest('.kairo-branch-control, .kairo-account-control, .kairo-client-control, .kairo-product-control, .kairo-user-control, .kairo-control')?.querySelector('[class*="__name"]'));
 
                         if (idInput) {
                             const val = getVal(selectedRow, config.keyField) || getVal(selectedRow, 'ID');
@@ -1328,6 +1330,9 @@
                                 nameInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
                         }
+
+                        // For Documents submodule: lookup just sets ID+description
+                        // User uses VIEW button or Enter to navigate after selection
                     }
                 });
             });
