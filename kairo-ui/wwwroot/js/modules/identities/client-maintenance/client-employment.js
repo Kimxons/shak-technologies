@@ -1,5 +1,28 @@
 const CM_EMPLOYMENT_BASE = 'Identities/ClientMaintenance/Employment';
 
+// Explicit field mapping for Employment tab: API response key => form field ID/name
+const EMPLOYMENT_FIELD_MAP = {
+    'OccupationID': 'sel_employmentOccupation',
+    'DesignationID': 'sel_employmentDesignation',
+    'CompanyTypeID': 'sel_employmentCompanyType',
+    'BusinessOwnershipID': 'sel_employmentOwnership',
+    'BusinessLineID': 'sel_employmentBusinessLine',
+    'WorkingSince': 'dt_employmentWorkingSince',
+    'MonthlyIncome': 'txt_employmentMonthlyIncome',
+    'AnnualIncome': 'txt_employmentAnnualIncome',
+    'OtherIncome': 'txt_employmentOtherIncome',
+    'TotalIncome': 'txt_employmentTotalIncome',
+    'RentExpenses': 'txt_employmentRentExpenses',
+    'OtherExpenses': 'txt_employmentOtherExpenses',
+    'TotalExpenses': 'txt_employmentTotalExpenses',
+    'NetSavings': 'txt_employmentNetSavings',
+    'IncomeType': 'rad_incomeType',
+    'IncomeTypeSalaried': 'rad_incomeSalaried',
+    'IncomeTypeSelfEmployed': 'rad_incomeSelf',
+    'BusinessStartedYear': 'txt_employmentBusinessStartedYear',
+    'NumberOfEmployees': 'txt_employmentNumberOfEmployees'
+};
+
 function invokeClientMaintenanceEmployment(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_EMPLOYMENT_BASE, action, 'POST', requestData || {});
 }

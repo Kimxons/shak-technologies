@@ -12,7 +12,7 @@
     var relationshipManagerOptions = ViewData["RelationshipManagerOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<div class="form-section" data-section="client-personal" data-cm-tab="personal">
+<div class="form-card" data-section="client-personal" data-cm-tab="personal">
     <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-person-vcard"></i>Personal</span>
         <button id="btn_toggleClientPersonal" type="button" class="section-toggle-btn" aria-label="Toggle Personal" aria-expanded="true">
@@ -47,11 +47,7 @@
                 <div class="col"><label class="label-blue" for="ddl_personalIdType" id="lbl_personalIdType">Identification Type</label><select id="ddl_personalIdType" name="IdentificationTypeID" class="bs-select" required asp-items="@(identificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col">
                     <label class="label-blue" for="txt_personalIdNumber" id="lbl_personalIdNumber">Identification No</label>
-                    <div class="kairo-control" data-kairo-control>
-                        <input id="txt_personalIdNumber" name="NationalId" class="bs-input-text" maxlength="50" required />
-                        <span class="bs-input-text d-none"></span>
-                        <button type="button" class="btn-lookup" aria-label="ID Lookup"><i class="bi bi-search"></i></button>
-                    </div>
+                    <input id="txt_personalIdNumber" name="NationalId" class="bs-input-text" maxlength="50" required />
                 </div>
             </div>
 
@@ -86,7 +82,7 @@
                     <div class="kairo-user-control" data-kairo-user-control>
                         <input id="txt_personalOpenedBy" name="CreatedBy" class="bs-input-text uppercase" readonly />
                         <input id="txt_personalOpenedByName" class="bs-input-text" placeholder="User Name" readonly />
-                        <button type="button" class="btn-lookup" aria-label="User Lookup"><i class="bi bi-search"></i></button>
+                        <button type="button" class="btn-lookup kairo-user-control__lookup" data-personal-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
             </div>
