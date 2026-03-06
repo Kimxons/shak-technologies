@@ -398,7 +398,7 @@ window.AccountDocumentsModule = (function () {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 AccountID:   ctx.AccountID,
-                DocumentId:  docId,
+                DocumentID:  docId,
                 Direction:   direction,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID:  ctx.OperatorID

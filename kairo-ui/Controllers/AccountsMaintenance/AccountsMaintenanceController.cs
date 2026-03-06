@@ -2768,7 +2768,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetAccountDocumentRequest
     {
         public string? AccountID { get; set; }
-        public string? DocumentId { get; set; }
+        public string? DocumentID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public int? Direction { get; set; }
@@ -2777,13 +2777,15 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class AddAccountDocumentRequest
     {
         public string? AccountID { get; set; }
-        public string? DocumentType { get; set; }
-        public string? DocumentClass { get; set; }
+        public string? DocumentID { get; set; }
+        public string? DocumentTypeID { get; set; }
+        public string? DetailRecords { get; set; }
         public string? ReceivedBy { get; set; }
         public string? ReceivedDate { get; set; }
-        public string? Location { get; set; }
-        public string? Remarks { get; set; }
+        public string? ExpiryDate { get; set; }
         public string? ImageID { get; set; }
+        public string? LocationID { get; set; }
+        public string? Remarks { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public int? NewRecord { get; set; }
@@ -2792,23 +2794,24 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class UpdateAccountDocumentRequest
     {
         public string? AccountID { get; set; }
-        public string? DocumentId { get; set; }
-        public string? DocumentType { get; set; }
-        public string? DocumentClass { get; set; }
+        public string? DocumentID { get; set; }
+        public string? DocumentTypeID { get; set; }
+        public string? DetailRecords { get; set; }
         public string? ReceivedBy { get; set; }
         public string? ReceivedDate { get; set; }
-        public string? Location { get; set; }
-        public string? Remarks { get; set; }
+        public string? ExpiryDate { get; set; }
         public string? ImageID { get; set; }
+        public string? LocationID { get; set; }
+        public string? Remarks { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
-        public int? UpdateCount { get; set; }
+        public int? NewRecord { get; set; }
     }
 
     public class DeleteAccountDocumentRequest
     {
         public string? AccountID { get; set; }
-        public string? DocumentId { get; set; }
+        public string? DocumentID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }
