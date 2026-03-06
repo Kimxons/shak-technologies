@@ -1,0 +1,94 @@
+@{
+    Layout = null;
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Defined Fields</title>
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+</head>
+<body>
+    <input type="hidden" id="moduleId_user_defined_fields" value="@moduleId" />
+
+    <div class="window">
+        <div class="am-header" role="banner" aria-label="Window title bar">
+            <div class="am-header__left">
+                <i class="bi bi-sliders am-header__icon" aria-hidden="true"></i>
+                <span class="am-header__title">User Defined Fields</span>
+            </div>
+            <div class="am-header__right" role="toolbar" aria-label="Window controls">
+                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <main class="main-container" aria-label="User Defined Fields form">
+            <div class="form-content" role="region" aria-label="User Defined Fields form">
+                <div class="form-card" data-main-form>
+                    <div class="form-section" data-section="user-defined-fields">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-sliders"></i>User Defined Fields</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle User Defined Fields" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div id="userDefinedFieldsContainer" class="text-center text-muted py-5">
+                                <i class="bi bi-hourglass-split" style="font-size: 32px; margin-bottom: 16px; display: block; opacity: 0.5;"></i>
+                                <p style="font-size: 14px; margin: 0;">Loading user-defined fields...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-panel" aria-label="Form actions">
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-action="view" title="View">
+                        <i class="bi bi-eye"></i>View
+                    </button>
+                    <button class="btn-action" type="button" data-action="edit" title="Edit" disabled>
+                        <i class="bi bi-pencil-square"></i>Edit
+                    </button>
+                    <button class="btn-action" type="button" data-action="save" title="Save" disabled>
+                        <i class="bi bi-check-lg"></i>Save
+                    </button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+                        <i class="bi bi-x-lg"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div class="am-message-panel" role="alert" aria-live="polite">
+            <i class="bi bi-info-circle"></i>
+            <span></span>
+        </div>
+
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+            <div class="loading-spinner">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
+    <script src="@Url.Content("~/js/environment.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
+    <script src="@Url.Content("~/js/services/microfinance/groupService.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/dataEntry/user-defined-fields.js")"></script>
+</body>
+</html>

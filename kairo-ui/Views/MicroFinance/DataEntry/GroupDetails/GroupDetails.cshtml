@@ -1,0 +1,255 @@
+@{
+    Layout = null;
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Group Details</title>
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+    <style>
+        .kairo-toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .kairo-toast {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background: #fff;
+            border: 1px solid var(--kairo-border-color, #dee2e6);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .kairo-toast.is-show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .kairo-toast__body {
+            font-size: 0.875rem;
+            color: var(--kairo-text-color, #333);
+        }
+        .kairo-toast--success { border-left: 4px solid #198754; }
+        .kairo-toast--success .kairo-toast__body { color: #198754; }
+        .kairo-toast--danger { border-left: 4px solid #dc3545; }
+        .kairo-toast--danger .kairo-toast__body { color: #dc3545; }
+        .kairo-toast--warning { border-left: 4px solid #ffc107; }
+        .kairo-toast--warning .kairo-toast__body { color: #856404; }
+        .kairo-toast--info { border-left: 4px solid #0dcaf0; }
+        .kairo-toast--info .kairo-toast__body { color: #055160; }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .loading-overlay[hidden] { display: none; }
+        .loading-spinner { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+        .loading-spinner i { font-size: 2rem; animation: spin 1s linear infinite; }
+        @@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .btn-action.active {
+            box-shadow: 0 0 0 2px var(--kairo-primary, #0d6efd);
+            background: rgba(13, 110, 253, 0.1);
+        }
+
+        input[readonly] {
+            background-color: var(--glass-bg, #f8f9fa);
+            cursor: default;
+        }
+
+        .gd-search-modal {
+            --modal-header-bg: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+            --modal-table-header-bg: linear-gradient(to bottom, #4a90e2, #357abd);
+            --zebra-color: #e8f4ff;
+            --zebra-hover: #d0e8ff;
+            --btn-color: #e0e0e0;
+        }
+
+        .gd-search-modal .modal-content {
+            border: none;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .gd-search-modal .modal-header {
+            background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+            color: white;
+            padding: 14px 20px;
+            border: none;
+        }
+
+        .gd-search-modal .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .gd-search-modal .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        .gd-search-modal .btn-close:hover {
+            opacity: 1;
+        }
+
+        .gd-search-modal .modal-body { padding: 0; }
+    </style>
+</head>
+<body>
+    <input type="hidden" id="moduleId_group_details" value="@moduleId" />
+
+    <div class="window">
+        <div class="am-header" role="banner" aria-label="Window title bar">
+            <div class="am-header__left">
+                <i class="bi bi-people-fill am-header__icon" aria-hidden="true"></i>
+                <span class="am-header__title">Group Details</span>
+            </div>
+            <div class="am-header__right" role="toolbar" aria-label="Window controls">
+                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <main class="main-container" aria-label="Group Details form">
+            <div class="form-content" role="region" aria-label="Group Details form">
+                <div class="form-card" data-main-form>
+                    <div class="form-section" data-section="group-information">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-people-fill"></i>Group Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Group Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <form autocomplete="off">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4">
+                                        <label class="label-blue" for="SubGroupId">Sub Group ID</label>
+                                        <div class="kairo-control" data-kairo-control>
+                                            <input id="SubGroupId" name="SubGroupId" type="text" class="kairo-control__id" autocomplete="off" />
+                                            <input id="GroupDescription" name="GroupDescription" type="text" class="kairo-control__name" placeholder="Description" />
+                                            <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="SubGroup" title="Lookup Sub Group ID" aria-label="Lookup Sub Group ID">
+                                                <i class="bi bi-search" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell">
+                                    <span class="audit-label">No. Of Members</span>
+                                    <span class="audit-value" id="NoOfMembers">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Loan Cycle Required</span>
+                                    <span class="audit-value" id="LoanCycleRequired">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Created By</span>
+                                    <span class="audit-value" id="CreatedBy">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Created On</span>
+                                    <span class="audit-value" id="CreatedOn">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Modified By</span>
+                                    <span class="audit-value" id="ModifiedBy">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Modified On</span>
+                                    <span class="audit-value" id="ModifiedOn">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Supervised By</span>
+                                    <span class="audit-value" id="SupervisedBy">-</span>
+                                </div>
+                                <div class="audit-cell">
+                                    <span class="audit-label">Supervised On</span>
+                                    <span class="audit-value" id="SupervisedOn">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-panel" aria-label="Form actions">
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-action="view" title="View">
+                        <i class="bi bi-eye"></i>View
+                    </button>
+                    <button class="btn-action" type="button" data-action="add" title="Add">
+                        <i class="bi bi-plus-circle"></i>Add
+                    </button>
+                    <button class="btn-action" type="button" data-action="edit" title="Edit" disabled>
+                        <i class="bi bi-pencil-square"></i>Edit
+                    </button>
+                    <button class="btn-action" type="button" data-action="delete" title="Delete" disabled>
+                        <i class="bi bi-trash3"></i>Delete
+                    </button>
+                    <button class="btn-action" type="button" data-action="save" title="Save" disabled>
+                        <i class="bi bi-check-lg"></i>Save
+                    </button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+                        <i class="bi bi-x-lg"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+            <div class="loading-spinner">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
+    <script src="@Url.Content("~/js/environment.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
+    <script src="@Url.Content("~/js/services/microfinance/groupService.js")"></script>
+    <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/dataEntry/group-details.js")"></script>
+</body>
+</html>

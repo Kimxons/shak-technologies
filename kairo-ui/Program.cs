@@ -135,6 +135,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthenticationHandler>();
 
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<IOldApiService, OldApiService>();
 // Register Authentication Service with configurable timeout
 builder.Services.AddHttpClient<IAuthService, AuthService>()
     .ConfigureHttpClient(client =>
@@ -191,6 +192,15 @@ builder.Services.AddHttpClient("OldApi")
     {
         client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
+    });
+
+builder.Services.AddHttpClient("MicroFinanceApi")
+ .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:MicroFinanceBaseUrl")
+            ?? builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
     });
 
 

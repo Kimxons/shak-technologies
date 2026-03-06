@@ -242,6 +242,7 @@
             } catch (error) {
                 console.error('[SearchModal] Open error:', error);
                 this.appCore.showToastMessage?.('Failed to open search modal', 'error');
+                throw error;
             }
         }
 
