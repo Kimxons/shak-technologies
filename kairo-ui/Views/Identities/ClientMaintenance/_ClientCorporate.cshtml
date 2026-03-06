@@ -8,7 +8,7 @@
     var relationshipManagerOptions = ViewData["CorporateRelationshipManagerOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<div class="form-section" data-section="client-corporate" data-cm-tab="corporate">
+<div class="form-card" data-section="client-corporate" data-cm-tab="corporate">
     <div class="section-header" data-section-toggle>
    <span class="section-header__title"><i class="bi bi-building"></i>Corporate</span>
         <button id="btn_toggleClientCorporate" type="button" class="section-toggle-btn" aria-label="Toggle Corporate" aria-expanded="true">
@@ -65,17 +65,24 @@
       <div class="col">
       <label class="label-blue" for="txt_corporateReportingGL" id="lbl_corporateReportingGL">Reporting GL Account</label>
          <div class="kairo-account-control" data-kairo-control>
-       <input id="txt_corporateReportingGL" name="ReportingGLID" class="bs-input-text" />
-   <input id="txt_corporateReportingGLName" placeholder="GL Account Name" class="bs-input-text" readonly />
-       <button type="button" class="btn-lookup" aria-label="GL Lookup"><i class="bi bi-search"></i></button>
-   </div>
+         <input id="txt_corporateReportingGL" name="ReportingGLID" class="bs-input-text" />
+       <input id="txt_corporateReportingGLName" placeholder="GL Account Name" class="bs-input-text" readonly />
+         <button type="button" class="btn-lookup kairo-control__lookup" data-corporate-action="lookup-gl" aria-label="GL Lookup"><i class="bi bi-search"></i></button>
+       </div>
        </div>
         <div class="col"></div>
  </div>
 
   <!-- ROW 7: Opened By, Relationship Manager, Opened On -->
       <div class="form-row four-col">
-<div class="col"><label class="label-blue" for="txt_corporateOpenedBy" id="lbl_corporateOpenedBy">Opened By</label><input id="txt_corporateOpenedBy" name="OpenedBy" class="bs-input-text uppercase" readonly /></div>
+<div class="col">
+  <label class="label-blue" for="txt_corporateOpenedBy" id="lbl_corporateOpenedBy">Opened By</label>
+  <div class="kairo-user-control" data-kairo-user-control>
+    <input id="txt_corporateOpenedBy" name="OpenedBy" class="bs-input-text uppercase" readonly />
+    <input id="txt_corporateOpenedByName" class="bs-input-text" placeholder="User Name" readonly />
+    <button type="button" class="btn-lookup kairo-user-control__lookup" data-corporate-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
+  </div>
+</div>
   <div class="col"><label class="label-blue" for="ddl_corporateRelationshipManager" id="lbl_corporateRelationshipManager">Relationship Manager</label><select id="ddl_corporateRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select...</option></select></div>
      <div class="col"><label for="dt_corporateOpenedOn" id="lbl_corporateOpenedOn">Opened On</label><input id="dt_corporateOpenedOn" name="OpenedOn" class="bs-input-text" type="date" readonly /></div>
     <div class="col"></div>

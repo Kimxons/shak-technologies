@@ -1,5 +1,24 @@
 const CM_CORPORATE_BASE = 'Identities/ClientMaintenance/Corporate';
 
+// Explicit field mapping for Corporate tab: API response key => form field ID/name
+const CORPORATE_FIELD_MAP = {
+    'CompanyName': 'txt_corporateCompanyName',
+    'RegistrationDate': 'dt_corporateRegDate',
+    'TIN': 'txt_corporateTin',
+    'YearStarted': 'txt_corporateYearStarted',
+    'NumberOfEmployees': 'txt_corporateEmployees',
+    'Website': 'txt_corporateWebsite',
+    'IssueDate': 'dt_corporateIssueDate',
+    'ExpiryDate': 'dt_corporateExpiryDate',
+    'VATRegistrationDate': 'dt_corporateVatRegDate',
+    'OpenedOn': 'dt_corporateOpenedOn',
+    'BusinessOwnershipID': 'sel_corporateOwnership',
+    'BusinessLineID': 'sel_corporateBusinessLine',
+    'IdentificationTypeID': 'sel_corporateIdType',
+    'CountryID': 'sel_corporateCountry',
+    'RelationshipManagerID': 'sel_corporateRelationshipManager'
+};
+
 function invokeClientMaintenanceCorporate(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_CORPORATE_BASE, action, 'POST', requestData || {});
 }
@@ -81,4 +100,94 @@ function initCorporateValidation() {
 window.initClientMaintenanceCorporateTab = function (tabRoot, moduleId) {
     bindClientMaintenanceCrud(tabRoot, moduleId, window.ClientMaintenanceCorporateService, 'corporate');
     initCorporateValidation();
+    initCorporateGlLookup(tabRoot, moduleId);
+    initCorporateUserLookup(tabRoot, moduleId);
 };
+
+function initCorporateGlLookup(tabRoot, moduleId) {
+    if (!tabRoot) return;
+
+    const searchBtn = tabRoot.querySelector('[data-corporate-action="lookup-gl"]');
+    if (!searchBtn) return;
+
+    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    if (!appCore || !window.SearchModal) {
+        console.warn('[Corporate] SearchModal not available for GL lookup');
+        return;
+    }
+
+    let searchModal = window._corporateGlSearchModal;
+    if (!searchModal) {
+        searchModal = new window.SearchModal(appCore);
+        window._corporateGlSearchModal = searchModal;
+    }
+
+    searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentValue = tabRoot.querySelector('#txt_corporateReportingGL')?.value || '';
+
+        searchModal.open({
+            title: 'Find GL Account',
+            tableID: 'GeneralLedgerID',
+            moduleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
+            searchFields: [
+                { name: 'AccountID', label: 'Account ID', column: 'AccountID', value: currentValue },
+                { name: 'Description', label: 'Description', column: 'Description' }
+            ],
+            autoSearch: false,
+            onSelect: (record) => {
+                const accountId = record?.AccountID || record?.GLAccountID || '';
+                const accountName = record?.Description || record?.AccountName || record?.ShortName || '';
+
+                const idField = tabRoot.querySelector('#txt_corporateReportingGL');
+                const nameField = tabRoot.querySelector('#txt_corporateReportingGLName');
+                if (idField) idField.value = accountId;
+                if (nameField) nameField.value = accountName;
+            }
+        });
+    });
+}
+
+function initCorporateUserLookup(tabRoot, moduleId) {
+    if (!tabRoot) return;
+
+    const searchBtn = tabRoot.querySelector('[data-corporate-action="lookup-opened-by"]');
+    if (!searchBtn) return;
+
+    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    if (!appCore || !window.SearchModal) {
+        console.warn('[Corporate] SearchModal not available for user lookup');
+        return;
+    }
+
+    let searchModal = window._corporateOpenedBySearchModal;
+    if (!searchModal) {
+        searchModal = new window.SearchModal(appCore);
+        window._corporateOpenedBySearchModal = searchModal;
+    }
+
+    searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentValue = tabRoot.querySelector('#txt_corporateOpenedBy')?.value || '';
+
+        searchModal.open({
+            title: 'Find User',
+            tableID: 'OperatorID',
+            moduleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
+            searchFields: [
+                { name: 'OperatorID', label: 'Operator ID', column: 'OperatorID', value: currentValue },
+                { name: 'ClientName', label: 'User Name', column: 'ClientName' }
+            ],
+            autoSearch: false,
+            onSelect: (record) => {
+                const userId = record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || '';
+                const userName = record?.ClientName || record?.Name || record?.UserName || record?.FullName || '';
+
+                const idField = tabRoot.querySelector('#txt_corporateOpenedBy');
+                const nameField = tabRoot.querySelector('#txt_corporateOpenedByName');
+                if (idField) idField.value = userId;
+                if (nameField) nameField.value = userName;
+            }
+        });
+    });
+}
