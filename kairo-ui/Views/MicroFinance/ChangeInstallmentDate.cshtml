@@ -190,6 +190,24 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        /* Prevent form-card and sections from stretching to fill viewport */
+        .form-card[data-main-form] {
+            flex: 0 0 auto !important;
+        }
+        .form-card[data-main-form] .form-section {
+            flex: 0 0 auto !important;
+        }
+        /* Ensure Change Options section content is fully visible */
+        [data-section="change-options"] .section-content {
+            min-height: 180px;
+            overflow: visible !important;
+            max-height: none !important;
+        }
+    </style>
+}
+
 @section Scripts {
     <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
     <script src="@Url.Content("~/js/modules/microfinance/change-installment-date.js")" asp-append-version="true"></script>

@@ -506,10 +506,14 @@
     try {
       var env = getEnv();
       if (currentFormState === 'add') {
-        var result = await callOldApi('dbo.p_ValidateClientWithoutGroup', {
-          ClientID: val,
+        var result = await callOldApi('dbo.p_GetIDDescription', {
           OurBranchID: env.ourBranchId,
-          BankID: env.bankId
+          ControlTypeID: 'ClientWithoutGroupID',
+          ID: val,
+          BankID: env.bankId,
+          TypeID: '',
+          AdvanceFilter: '',
+          LanguageID: 'en'
         });
         var details = result?.Details?.[0] || null;
         if (details) {
@@ -522,10 +526,14 @@
           if (clientNameInput) clientNameInput.value = '';
         }
       } else {
-        var result = await callOldApi('dbo.p_ValidateClientGroup', {
-          ClientID: val,
+        var result = await callOldApi('dbo.p_GetIDDescription', {
           OurBranchID: env.ourBranchId,
-          BankID: env.bankId
+          ControlTypeID: 'GroupClientID',
+          ID: val,
+          BankID: env.bankId,
+          TypeID: '',
+          AdvanceFilter: '',
+          LanguageID: 'en'
         });
         var details = result?.Details?.[0] || null;
         if (details) {
@@ -558,10 +566,14 @@
 
     try {
       var env = getEnv();
-      var result = await callOldApi('dbo.p_ValidateCenterID', {
-        CenterID: val,
+      var result = await callOldApi('dbo.p_GetIDDescription', {
         OurBranchID: env.ourBranchId,
-        BankID: env.bankId
+        ControlTypeID: 'GroupID',
+        ID: val,
+        BankID: env.bankId,
+        TypeID: '',
+        AdvanceFilter: "GroupID='" + val + "' AND OurBranchID='" + env.ourBranchId + "'",
+        LanguageID: 'en'
       });
       var details = result?.Details?.[0] || null;
       if (details) {
@@ -595,11 +607,14 @@
     try {
       var env = getEnv();
       var centerId = String(centerIdInput?.value || '').trim();
-      var result = await callOldApi('dbo.p_ValidateSubGroupID', {
-        SubGroupID: val,
-        CenterID: centerId,
+      var result = await callOldApi('dbo.p_GetIDDescription', {
         OurBranchID: env.ourBranchId,
-        BankID: env.bankId
+        ControlTypeID: 'SubGroupID',
+        ID: val,
+        BankID: env.bankId,
+        TypeID: '',
+        AdvanceFilter: "GroupID='" + centerId + "' AND OurBranchID='" + env.ourBranchId + "'",
+        LanguageID: 'en'
       });
       var details = result?.Details?.[0] || null;
       if (details) {
