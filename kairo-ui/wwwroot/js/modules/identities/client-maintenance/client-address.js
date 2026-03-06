@@ -267,6 +267,7 @@ function bindAddressCrud(tabRoot, moduleId) {
 
     setFieldsEnabled(false);
     tabRoot._cmLoadData = (requestData) => refreshAddressTable(requestData);
+    window.ClientMaintenanceCore.registerTabLoadFunction('Address', (requestData) => refreshAddressTable(requestData));
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');
