@@ -199,7 +199,22 @@ builder.Services.AddHttpClient("MicroFinanceApi")
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
     });
 
+builder.Services.AddHttpClient("ClientDocumentApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ClientDocumentBaseUrl");
+    });
 
+
+builder.Services.AddHttpClient("KairoAIApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:KairoAIBaseUrl");
+    });
 
 // Add IConfiguration for injecting into services
 builder.Services.AddSingleton(builder.Configuration);

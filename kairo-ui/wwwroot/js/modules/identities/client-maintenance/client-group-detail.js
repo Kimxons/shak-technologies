@@ -1,5 +1,17 @@
 const CM_GROUP_DETAIL_BASE = 'Identities/ClientMaintenance/GroupDetail';
 
+// Explicit field mapping for GroupDetail tab: API response key => form field ID/name
+const GROUPDETAIL_FIELD_MAP = {
+    'MaxGroupLoans': 'txt_groupMaxGroupLoans',
+    'MaxGroupLoanLimit': 'txt_groupMaxGroupLoanLimit',
+    'CurrentGroupLoans': 'txt_groupCurrentGroupLoans',
+    'CurrentGroupLoanAmount': 'txt_groupCurrentGroupLoanAmount',
+    'MaxOtherLoans': 'txt_groupMaxOtherLoans',
+    'MaxOtherLoanLimit': 'txt_groupMaxOtherLoanLimit',
+    'CurrentOtherLoans': 'txt_groupCurrentOtherLoans',
+    'CurrentOtherLoanAmount': 'txt_groupCurrentOtherLoanAmount'
+};
+
 function invokeClientMaintenanceGroupDetail(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_GROUP_DETAIL_BASE, action, 'POST', requestData || {});
 }

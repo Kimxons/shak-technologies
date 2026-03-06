@@ -193,19 +193,24 @@ function bindRelationsCrud(tabRoot, moduleId) {
         });
     };
 
-    const refreshRelationsTable = async () => {
-        const clientId = window.ClientMaintenanceCore.clientId || '';
-        if (!clientId) {
+    const refreshRelationsTable = async (requestData) => {
+  // Get client ID from parent context if not provided in requestData
+   const clientId = requestData?.ClientID || 
+  window.ClientMaintenanceCore?.getSelectedId?.() || 
+       window.ClientMaintenanceCore?.clientId || '';
+        
+ if (!clientId) {
             renderRelationsTable([]);
             return;
         }
         try {
-            const response = await window.ClientMaintenanceRelationsService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId
-            });
+   const response = await window.ClientMaintenanceRelationsService.get({
+     ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+    ClientID: clientId,
+   RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
+  });
             const rows = normalizeRelationRows(extractList(response));
-            renderRelationsTable(rows);
+   renderRelationsTable(rows);
         } catch (error) {
             window.ClientMaintenanceCore.showToast(`Relations load failed - ${error.message}`, 'error');
         }
@@ -239,7 +244,10 @@ function bindRelationsCrud(tabRoot, moduleId) {
 
         return {
             ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            ClientID: window.ClientMaintenanceCore.clientId || '',
+            // Always use parent client ID from ClientMaintenanceCore
+            ClientID: window.ClientMaintenanceCore?.getSelectedId?.() || 
+    window.ClientMaintenanceCore?.clientId || '',
+            RequestID: window.ClientMaintenanceCore?.requestId || '',
             Payload: payload
         };
     };
@@ -259,7 +267,7 @@ function bindRelationsCrud(tabRoot, moduleId) {
     };
 
     setFieldsEnabled(false);
-    refreshRelationsTable();
+    tabRoot._cmLoadData = (requestData) => refreshRelationsTable(requestData);
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');
@@ -348,11 +356,17 @@ function initRelationsSearchModal(tabRoot, moduleId) {
     
     const searchBtn = tabRoot.querySelector('[data-relation-action="lookup"]');
     if (!searchBtn) return;
+
+    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    if (!appCore) {
+        console.warn('[Relations] AppCore not available for SearchModal');
+        return;
+    }
     
     // Get or create SearchModal instance
     let searchModal = window._relationsSearchModal;
     if (!searchModal && window.SearchModal) {
-        searchModal = new window.SearchModal();
+        searchModal = new window.SearchModal(appCore);
         window._relationsSearchModal = searchModal;
     }
     
