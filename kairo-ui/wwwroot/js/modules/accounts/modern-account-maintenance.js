@@ -535,10 +535,11 @@
             sessionStorage.setItem('currentClientID', window.AccountMaintenanceState.ClientID || '');
         }
 
-        fetch(`/AccountsMaintenance/${submoduleName}`, {
+        fetch(`/AccountsMaintenance/${submoduleName}?_t=${Date.now()}`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'text/html'
+                'Content-Type': 'text/html',
+                'Cache-Control': 'no-cache'
             }
         })
         .then(response => {

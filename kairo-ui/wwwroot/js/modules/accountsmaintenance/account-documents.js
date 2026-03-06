@@ -131,7 +131,8 @@ window.AccountDocumentsModule = (function () {
             var e = el(id);
             if (e) e.disabled = !editable;
         });
-        var browse = el('browseBtn');   if (browse)  browse.disabled  = !editable;
+        // File input
+        var fileIn = el('documentImage_file'); if (fileIn) fileIn.disabled = !editable;
         var dateB  = el('receivedDate_btn'); if (dateB) dateB.disabled = !editable;
 
         // Multiselect component
@@ -247,19 +248,8 @@ window.AccountDocumentsModule = (function () {
             });
         }
 
-        // Browse / file input
-        var browseBtn = el('browseBtn');
-        var fileInput = el('documentImage_file');
-        if (browseBtn && fileInput && !browseBtn._wiredDoc) {
-            browseBtn._wiredDoc = true;
-            browseBtn.addEventListener('click', function() {
-                if (state.editMode === 'NONE') return;
-                fileInput.click();
-            });
-            fileInput.addEventListener('change', function() {
-                setVal('documentImage', fileInput.files && fileInput.files[0] ? fileInput.files[0].name : '');
-            });
-        }
+        // File input — standard visible input, browser handles everything natively.
+        // No JS wiring needed for file selection.
 
         // Document Class multiselect toggle
         var ms = el('documentClassMultiselect');
@@ -335,8 +325,9 @@ window.AccountDocumentsModule = (function () {
         setVal('receivedBy',          doc.ReceivedBy || '');
         setVal('receivedDate',        fmtDate(doc.ReceivedDate));
         setVal('location',            doc.LocationID || doc.Location || '');
-        setVal('documentImage',       doc.DocumentImage || doc.ImagePath || '');
         setVal('remarks',             doc.Remarks || '');
+        // File input cleared (file upload is separate from existing data)
+        var fileIn = el('documentImage_file'); if (fileIn) fileIn.value = '';
 
         // Multiselect: set checkboxes + display
         var classVal = doc.DocumentClassID || doc.DocumentClass || '';
@@ -417,8 +408,20 @@ window.AccountDocumentsModule = (function () {
             if (isSuccess(result)) {
                 var doc = null;
 
-                // Details01 (Set 1) — primary document row
-                if (d && d.Details01 && Array.isArray(d.Details01) && d.Details01.length > 0) {
+                // Format A: Details.Documents[] + Details.DocumentClasses[]
+                if (d && d.Documents && Array.isArray(d.Documents) && d.Documents.length > 0) {
+                    doc = d.Documents[0];
+                    // Attach selected document classes
+                    if (d.DocumentClasses && Array.isArray(d.DocumentClasses)) {
+                        var classIds = d.DocumentClasses
+                            .map(function(x){ return x.DocumentClassID; })
+                            .filter(Boolean);
+                        if (classIds.length > 0) doc.DocumentClassID = classIds.join(',');
+                    }
+                }
+
+                // Format B: Details01 (Set 1) — primary document row
+                if (!doc && d && d.Details01 && Array.isArray(d.Details01) && d.Details01.length > 0) {
                     var c = d.Details01[0];
                     if (c.DocumentID || c.DocumentId) doc = c;
                     else {
@@ -428,7 +431,7 @@ window.AccountDocumentsModule = (function () {
                     }
                 }
 
-                // Details02 (Set 2) — selection / metadata
+                // Format B: Details02 (Set 2) — selection / metadata
                 if (d && d.Details02 && Array.isArray(d.Details02) && d.Details02.length > 0) {
                     var c2 = d.Details02[0];
                     if (!doc && (c2.DocumentID || c2.DocumentId)) doc = c2;
@@ -500,19 +503,19 @@ window.AccountDocumentsModule = (function () {
             var isAdd = state.editMode === 'ADD';
 
             var payload = {
-                OurBranchID:   ctx.OurBranchID,
-                AccountID:     ctx.AccountID,
-                OperatorID:    ctx.OperatorID,
-                DocumentID:    docId,
-                DocumentTypeID: docType,
-                ReceivedBy:    val('receivedBy').trim(),
-                ReceivedDate:  el('receivedDate_picker')?.value || val('receivedDate').trim() || '',
-                ExpiryDate:    '',
-                ImageID:       String(state.imageID || 0),
-                LocationID:    val('location').trim(),
-                Remarks:       val('remarks').trim(),
-                DetailRecords: getDocumentClassesXml(),
-                NewRecord:     isAdd ? 1 : (state.updateCount || 0)
+                OurBranchID:    ctx.OurBranchID,
+                AccountID:      ctx.AccountID,
+                CreatedBy:      ctx.OperatorID,
+                DocumentID:     docId,
+                DocumentTypeID:  docType,
+                ReceivedBy:     val('receivedBy').trim(),
+                ReceivedDate:   el('receivedDate_picker')?.value || val('receivedDate').trim() || '',
+                ExpiryDate:     '',
+                ImageID:        String(state.imageID || 0),
+                LocationID:     val('location').trim(),
+                Remarks:        val('remarks').trim(),
+                DocumentClasses: getDocumentClassesXml(),
+                NewRecord:      isAdd ? 1 : (state.updateCount || 0)
             };
 
             showLoading(true);
@@ -642,8 +645,10 @@ window.AccountDocumentsModule = (function () {
     }
 
     function clearForm() {
-        EDITABLE.concat(['documentDesc_lookup','documentImage']).forEach(function(id) { setVal(id, ''); });
+        EDITABLE.concat(['documentDesc_lookup']).forEach(function(id) { setVal(id, ''); });
         AUDIT.forEach(function(id) { setVal(id, ''); });
+        // Clear file input
+        var fileIn = el('documentImage_file'); if (fileIn) fileIn.value = '';
         var display = el('documentClassDisplay');
         if (display) display.textContent = '--Select--';
         var ms = el('documentClassMultiselect');
@@ -667,6 +672,11 @@ window.AccountDocumentsModule = (function () {
         // Initialize multiselect as disabled
         var ms = el('documentClassMultiselect');
         if (ms) ms.classList.add('disabled');
+
+        // Load document class options from server-rendered data
+        if (window.__documentClassOptions && window.__documentClassOptions.length > 0) {
+            renderDocumentClasses(window.__documentClassOptions);
+        }
 
         setMode('NONE');
 

@@ -1,11 +1,12 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: public/modules/account-maintenance/DataEntry/account-documents.html
     // Rendered inside parent #submodule-container; parent provides window shell + action panel
+    var documentClassOptions = ViewData["DocumentClassOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Documents Submodule (form content only — parent provides .window, .am-header, .action-panel) -->
 <div class="form-card">
-  <form autocomplete="off" novalidate>
 
     <!-- Document Details Section -->
     <div class="form-section" data-section="document-details">
@@ -77,11 +78,8 @@
           </div>
           <div class="col">
             <label class="label-blue">Document Image</label>
-            <div class="de-date-wrapper">
-              <input type="text" id="documentImage" name="documentImage" class="bs-input-date form-control" readonly placeholder="No file selected">
-              <input type="file" id="documentImage_file" class="visually-hidden" accept="image/*">
-              <button type="button" id="browseBtn" class="de-date-btn" title="Browse"><i class="bi bi-folder2-open"></i></button>
-            </div>
+            <!-- File input temporarily disabled - will be re-enabled after debugging -->
+            <span class="text-muted">File upload disabled</span>
           </div>
         </div>
 
@@ -133,7 +131,6 @@
       </div>
     </div>
 
-  </form>
 </div>
 
 <!-- Loading Overlay -->
@@ -144,4 +141,9 @@
   </div>
 </div>
 
-<script src="~/js/modules/accountsmaintenance/account-documents.js"></script>
+<script>
+    window.__documentClassOptions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        documentClassOptions.Select(o => new { ID = o.Value, Description = o.Text })
+    ));
+</script>
+<script src="~/js/modules/accountsmaintenance/account-documents.js" asp-append-version="true"></script>

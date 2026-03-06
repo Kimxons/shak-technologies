@@ -102,10 +102,27 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         /// Load Documents submodule
         /// </summary>
         [Route("Documents")]
-        public IActionResult Documents()
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> Documents()
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized();
+
+            try
+            {
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "DocumentClassID"
+                });
+
+                dropdownOptions.TryGetValue("DocumentClassID", out var documentClassOptions);
+                ViewData["DocumentClassOptions"] = documentClassOptions ?? Enumerable.Empty<SelectListItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Documents dropdown options");
+                ViewData["DocumentClassOptions"] = Enumerable.Empty<SelectListItem>();
+            }
 
             return PartialView("Documents");
         }
@@ -2779,7 +2796,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? AccountID { get; set; }
         public string? DocumentID { get; set; }
         public string? DocumentTypeID { get; set; }
-        public string? DetailRecords { get; set; }
+        public string? DocumentClasses { get; set; }
         public string? ReceivedBy { get; set; }
         public string? ReceivedDate { get; set; }
         public string? ExpiryDate { get; set; }
@@ -2787,7 +2804,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? LocationID { get; set; }
         public string? Remarks { get; set; }
         public string? OurBranchID { get; set; }
-        public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
         public int? NewRecord { get; set; }
     }
 
@@ -2796,7 +2813,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? AccountID { get; set; }
         public string? DocumentID { get; set; }
         public string? DocumentTypeID { get; set; }
-        public string? DetailRecords { get; set; }
+        public string? DocumentClasses { get; set; }
         public string? ReceivedBy { get; set; }
         public string? ReceivedDate { get; set; }
         public string? ExpiryDate { get; set; }
@@ -2804,7 +2821,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? LocationID { get; set; }
         public string? Remarks { get; set; }
         public string? OurBranchID { get; set; }
-        public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
         public int? NewRecord { get; set; }
     }
 
