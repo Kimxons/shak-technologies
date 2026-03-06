@@ -105,33 +105,7 @@
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/utils/global-utils.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/shared/searchService.js"></script>
-  <script src="../../../assets/js/shared/search-modal.js"></script>
-  <script src="../../../assets/js/services/account/accountservice.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-activation.js?v=20250128"></script>
-  <script>
-function notifyParentFormOpened(){window.parent.postMessage({action:'submoduleOpened',source:'Activation'},'*');}
-function closeChildForm(){
-  console.log('[Window Control] Closing child form');
-  // Send message to parent to close this submodule
-  window.parent.postMessage({action:'submoduleClosed', source:'Activation'},'*');
-  // Also try to close the window directly
-  setTimeout(() => {
-    try {
-      window.close();
-    } catch(e) {
-      console.log('[Window Control] Could not close window:', e.message);
-    }
-  }, 100);
-}
-  </script>
+<script src="~/js/modules/accountsmaintenance/account-activation.js"></script>
 
 <script>
 document.addEventListener('submodule:loaded', function(e) {

@@ -592,6 +592,24 @@
                     if (submoduleName === 'Signatories' && window.AccountSignatoriesModule && window.AccountSignatoriesModule.init) {
                         window.AccountSignatoriesModule.init();
                     }
+                    if (submoduleName === 'Documents' && window.AccountDocumentsModule && window.AccountDocumentsModule.init) {
+                        window.AccountDocumentsModule.init();
+                    }
+                    if (submoduleName === 'Reminders' && window.AccountRemindersModule && window.AccountRemindersModule.init) {
+                        window.AccountRemindersModule.init();
+                    }
+                    if (submoduleName === 'CancelStopPayment' && window.AccountCancelStopPaymentModule && window.AccountCancelStopPaymentModule.init) {
+                        window.AccountCancelStopPaymentModule.init();
+                    }
+                    if (submoduleName === 'FreezeRelease' && window.AccountFreezeReleaseModule && window.AccountFreezeReleaseModule.init) {
+                        window.AccountFreezeReleaseModule.init();
+                    }
+                    if (submoduleName === 'ChequeBook' && window.AccountChequeBookModule && window.AccountChequeBookModule.init) {
+                        window.AccountChequeBookModule.init();
+                    }
+                    if (submoduleName === 'Closing' && window.AccountClosingModule && window.AccountClosingModule.init) {
+                        window.AccountClosingModule.init();
+                    }
                 });
             }
 
@@ -705,9 +723,30 @@
         }
 
         let newButtonsHtml = '';
-        
+
+        // Documents module — full original button set (NAVIGATION, SHOW IMAGE, VIEW, ADD, EDIT, DELETE, SAVE, CANCEL, CLEAR, CLOSE)
+        if (submoduleName === 'Documents') {
+            // Show a NAVIGATION nav-group inside actionButtons (original layout)
+            newButtonsHtml = `
+                <div class="nav-group" style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                    <button class="btn-nav green" type="button" id="submoduleBtnPrev" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
+                    <span>NAVIGATION</span>
+                    <button class="btn-nav green" type="button" id="submoduleBtnNext" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <button class="btn-action" type="button" id="submoduleBtnShowImage"><i class="bi bi-image me-1"></i>SHOW IMAGE</button>
+                <button class="btn-action" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>VIEW</button>
+                <button class="btn-action" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>ADD</button>
+                <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>EDIT</button>
+                <button class="btn-action" type="button" id="submoduleBtnDelete"><i class="bi bi-trash3 me-1"></i>DELETE</button>
+                <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>SAVE</button>
+                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>CANCEL</button>
+                <button class="btn-action" type="button" id="submoduleBtnClear" style="display:none;"><i class="bi bi-eraser me-1"></i>CLEAR</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>CLOSE</button>
+            `;
+        }
+
         // Special action panel for Signatories module
-        if (submoduleName === 'Signatories') {
+        else if (submoduleName === 'Signatories') {
             newButtonsHtml = `
                 <div class="d-flex flex-column gap-2">
                     <button class="btn-action" type="button" id="submoduleBtnSignature" data-action="signature"><i class="bi bi-pen me-1"></i>Signature</button>
@@ -766,6 +805,77 @@
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
                 // Refresh logic if needed
+                return;
+            }
+
+            // Documents module — full button wiring matching original
+            if (submoduleName === 'Documents' && window.AccountDocumentsModule) {
+                const mod = window.AccountDocumentsModule;
+                const prevBtn      = document.getElementById('submoduleBtnPrev');
+                const nextBtn      = document.getElementById('submoduleBtnNext');
+                const showImgBtn   = document.getElementById('submoduleBtnShowImage');
+                const addBtn       = document.getElementById('submoduleBtnAdd');
+                const deleteBtn    = document.getElementById('submoduleBtnDelete');
+                const clearBtn     = document.getElementById('submoduleBtnClear');
+
+                if (prevBtn)     prevBtn.addEventListener('click', () => mod.navigate(-1));
+                if (nextBtn)     nextBtn.addEventListener('click', () => mod.navigate(1));
+                if (showImgBtn)  showImgBtn.addEventListener('click', () => mod.showImage());
+                if (viewBtn)     viewBtn.addEventListener('click', () => mod.navigate(0));
+                if (addBtn)      addBtn.addEventListener('click', () => mod.setMode('ADD'));
+                if (editBtn)     editBtn.addEventListener('click', () => mod.setMode('EDIT'));
+                if (deleteBtn)   deleteBtn.addEventListener('click', () => mod.deleteData());
+                if (saveBtn)     saveBtn.addEventListener('click', () => mod.saveData());
+                if (cancelBtn)   cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                if (clearBtn)    clearBtn.addEventListener('click', () => mod.clearForm());
+                return;
+            }
+
+            // Reminders module
+            if (submoduleName === 'Reminders' && window.AccountRemindersModule) {
+                const mod = window.AccountRemindersModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
+                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                return;
+            }
+
+            // Cancel Stop Payment module
+            if (submoduleName === 'CancelStopPayment' && window.AccountCancelStopPaymentModule) {
+                const mod = window.AccountCancelStopPaymentModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
+                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                return;
+            }
+
+            // Freeze Release module
+            if (submoduleName === 'FreezeRelease' && window.AccountFreezeReleaseModule) {
+                const mod = window.AccountFreezeReleaseModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                return;
+            }
+
+            // Cheque Book module
+            if (submoduleName === 'ChequeBook' && window.AccountChequeBookModule) {
+                const mod = window.AccountChequeBookModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                return;
+            }
+
+            // Closing module
+            if (submoduleName === 'Closing' && window.AccountClosingModule) {
+                const mod = window.AccountClosingModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
+                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
                 return;
             }
 
@@ -1060,7 +1170,7 @@
         'chargeId': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
         'requestRef': { tableID: 'StopPaymentID', keyField: 'RequestRef', nameField: 'Description' },
         'referenceId': { tableID: 'FreezeID', keyField: 'ReferenceID', nameField: 'Description' },
-        'reminderId': { tableID: 'ReminderID', keyField: 'ReminderID', nameField: 'Description' },
+        'reminderId': { tableID: 'AccountReminderID', keyField: 'ReminderID', nameField: 'Description' },
         'transactionId': { tableID: 'TransactionID', keyField: 'TransactionID', nameField: 'Description' },
         'accountTransferId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'txnAccountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },

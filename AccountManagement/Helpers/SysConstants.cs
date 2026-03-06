@@ -99,8 +99,8 @@ namespace AccountManagement.Helpers
         public const string UPDATE_STOP_PAYMENT = "p_UpdateStopPayment_V0";
         public const string ADD_CANCEL_STOP_PAYMENT = "p_AddCancelStopPayment_V0";
         public const string UPDATE_CANCEL_STOP_PAYMENT = "p_UpdateCancelStopPayment_V0";
-        public const string GET_STOP_PAYMENTS = "p_GetStopPayments_V0";
-        public const string GET_CANCEL_STOP_PAYMENTS = "p_GetCancelStopPayments_V0";
+        public const string GET_STOP_PAYMENTS = "p_V8_GetStopPayments";
+        public const string GET_CANCEL_STOP_PAYMENTS = "p_V8_GetCancelStopPayments";
 
         // Account Dormant procedures
         public const string GET_ACCOUNT_DORMANT = "p_GetAccountDormant_V0";
