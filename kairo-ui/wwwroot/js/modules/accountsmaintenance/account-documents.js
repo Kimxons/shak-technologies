@@ -114,7 +114,6 @@ window.AccountDocumentsModule = (function () {
         });
         // File input
         var fileIn = el('documentImage_file'); if (fileIn) fileIn.disabled = !editable;
-        var browseB = el('btnSubmoduleBrowse'); if (browseB) browseB.disabled = !editable;
         var dateB = el('receivedDate_btn'); if (dateB) dateB.disabled = !editable;
 
         // Multiselect component
@@ -231,31 +230,17 @@ window.AccountDocumentsModule = (function () {
         }
 
         // File selection handling
-        var browseBtn = el('btnSubmoduleBrowse');
         var fileInput = el('documentImage_file');
-        var imageDisplay = el('documentImage');
 
-        if (browseBtn && fileInput && imageDisplay && !browseBtn._wiredDoc) {
-            browseBtn._wiredDoc = true;
-            browseBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                if (state.editMode === 'NONE') return;
-
-                try {
-                    fileInput.click();
-                } catch (err) {
-                    console.error('[AccountDocuments] Browser blocked file dialog:', err);
-                }
-            });
+        if (fileInput && !fileInput._wiredDoc) {
+            fileInput._wiredDoc = true;
 
             fileInput.addEventListener('change', function (e) {
                 var file = e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
                 if (file) {
-                    imageDisplay.value = file.name;
                     state.selectedFile = file;
-                    console.log('[AccountDocuments] File staged for record.');
+                    console.log('[AccountDocuments] File staged for record: ' + file.name);
                 } else {
-                    imageDisplay.value = '';
                     state.selectedFile = null;
                 }
             });
