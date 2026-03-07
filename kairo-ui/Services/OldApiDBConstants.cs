@@ -29,5 +29,11 @@
         public const string DELETE_STANDING_INSTRUCTION_TRANSFER = "p_DeleteStandingInstructionTransfer";
         public const string STOP_STANDING_INSTRUCTION_TRANSFER = "p_StopStandingInstructionTransfer";
 
+        // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT SIGNATORIES (Signature/Photo popup)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_SIGNATORIES = "p_GetAccountSignatories";
+        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+
     }
 }

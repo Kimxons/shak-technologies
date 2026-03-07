@@ -121,6 +121,8 @@
                                     <label class="label-blue" for="ddl_amountIn">Amount In</label>
                                     <select id="ddl_amountIn" name="AmountIn" class="bs-select">
                                         <option value="">--Select--</option>
+                                        <option value="transaction">Transaction CurrencyID</option>
+                                        <option value="transfer">Transfer CurrencyID</option>
                                     </select>
                                 </div>
                             </div>
@@ -336,6 +338,85 @@
                 <button class="btn-action" type="button" data-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
                 <button class="btn-action btn-save" type="button" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- SIGNATURE / PHOTO POPUP MODAL                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="signatoryModal" tabindex="-1" aria-labelledby="signatoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2" style="background: linear-gradient(135deg, #0078d4, #005a9e); color: #fff;">
+                <h6 class="modal-title mb-0" id="signatoryModalLabel">Signature / Photo</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <!-- Status message -->
+                <div id="signatoryStatus" class="alert alert-info py-1 px-2 mb-3 small" style="display:none;"></div>
+
+                <div class="row g-3">
+                    <!-- Signature Panel -->
+                    <div class="col-md-6">
+                        <div class="border rounded">
+                            <div class="px-3 py-2 fw-bold text-white" style="background:#0078d4;">Signature</div>
+                            <div id="signatureImageContainer" class="d-flex align-items-center justify-content-center" style="height:220px; background:#f8f9fa;">
+                                <span class="text-muted">No signature available</span>
+                            </div>
+                            <div class="px-3 py-2 small">
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned By</div>
+                                    <div class="col-8"><span id="sigScannedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned On</div>
+                                    <div class="col-8"><span id="sigScannedOn">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised By</div>
+                                    <div class="col-8"><span id="sigSupervisedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised On</div>
+                                    <div class="col-8"><span id="sigSupervisedOn">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Photo Panel -->
+                    <div class="col-md-6">
+                        <div class="border rounded">
+                            <div class="px-3 py-2 fw-bold text-white" style="background:#0078d4;">Photo</div>
+                            <div id="photoImageContainer" class="d-flex align-items-center justify-content-center" style="height:220px; background:#f8f9fa;">
+                                <span class="text-muted">No photo available</span>
+                            </div>
+                            <div class="px-3 py-2 small">
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned By</div>
+                                    <div class="col-8"><span id="photoScannedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned On</div>
+                                    <div class="col-8"><span id="photoScannedOn">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised By</div>
+                                    <div class="col-8"><span id="photoSupervisedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised On</div>
+                                    <div class="col-8"><span id="photoSupervisedOn">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSignatoryPrint"><i class="bi bi-printer me-1"></i>Print</button>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="bi bi-arrow-left me-1"></i>Back</button>
             </div>
         </div>
     </div>
