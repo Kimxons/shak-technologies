@@ -1,28 +1,28 @@
 /**
- * Account Special Conditions Module
- * Migrated from: public/modules/account-maintenance/DataEntry/account-special-conditions.js
+ * Account Notification Module
+ * Migrated from: public/modules/account-maintenance/DataEntry/account-notification.js
  *
  * Parent wires via updateActionPanelForSubmodule:
  *   ADD → setMode('ADD'), EDIT → setMode('EDIT'), VIEW → setMode('VIEW') (via loadData),
  *   DELETE → deleteData(), SAVE → saveData(), CANCEL → cancelChanges(), CLOSE → closeSubmodule()
  */
-window.AccountSpecialConditionsModule = (function () {
+window.AccountNotificationModule = (function () {
     'use strict';
 
     /* ── State ─────────────────────────────────────────────── */
     const state = {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
-        conditions: [],
-        originalConditions: [],
-        modifiedConditions: new Set(),
+        notifications: [],
+        selectedIndex: -1,
         operatorID: null
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-special-conditions',
-        UPDATE: '/AccountsMaintenance/api/update-account-special-condition',
-        // Note: typically special conditions are fetched altogether, and modified/applied from checkboxes.
+        GET: '/AccountsMaintenance/api/get-account-notification',
+        ADD: '/AccountsMaintenance/api/add-account-notification',
+        UPDATE: '/AccountsMaintenance/api/update-account-notification',
+        DELETE: '/AccountsMaintenance/api/delete-account-notification'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -58,7 +58,7 @@ window.AccountSpecialConditionsModule = (function () {
         if (typeof window.showSystemToast === 'function') {
             window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
         }
-        console.log('[SpecialConditions] ' + type + ': ' + msg);
+        console.log('[AccountNotification] ' + type + ': ' + msg);
     }
 
     function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
@@ -114,22 +114,37 @@ window.AccountSpecialConditionsModule = (function () {
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+    // Attempt to format a date to HTML5 native input Date format (YYYY-MM-DD)
+    function formatDateForInput(ds) {
+        if (!ds) return '';
+        try {
+            const d = new Date(ds);
+            if (isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    /* ── Editable fields ─────────────────────────────────────── */
+    const EDITABLE = ['frequency', 'dayOfMonth', 'executionDate'];
+    const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
+
+    function setFieldsEditable(editable) {
+        EDITABLE.forEach(function (id) {
+            var e = el(id);
+            if (e) e.disabled = !editable;
+        });
     }
 
     /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
         state.editMode = mode;
-        var isEditing = (mode === 'EDIT');
-
-        // Enable/disable grid editing
-        document.querySelectorAll('#conditionsGrid input[type="checkbox"], #conditionsGrid input[type="text"]').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
+        var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
+        setFieldsEditable(editing);
 
         // Parent-provided action panel buttons (by ID)
         var viewB = el('submoduleBtnView');
@@ -142,27 +157,30 @@ window.AccountSpecialConditionsModule = (function () {
         var prevB = el('submoduleBtnPrev');
         var nextB = el('submoduleBtnNext');
 
-        if (viewB) viewB.disabled = isEditing;
-        if (addB) addB.disabled = true; // We don't "ADD" new special conditions, we only edit pre-defined ones
-        if (editB) editB.disabled = isEditing || state.conditions.length === 0;
-        if (delB) delB.disabled = true; // We don't delete them physically, we uncheck 'Apply'
-        if (saveB) saveB.disabled = !isEditing;
-        if (cancelB) cancelB.disabled = !isEditing;
+        if (viewB) viewB.disabled = editing;
+        if (addB) addB.disabled = editing;
+        if (editB) editB.disabled = editing || state.notifications.length === 0 || state.selectedIndex === -1;
+        if (delB) delB.disabled = editing || state.notifications.length === 0 || state.selectedIndex === -1;
+        if (saveB) saveB.disabled = !editing;
+        if (cancelB) cancelB.disabled = !editing;
         if (prevB) prevB.style.display = 'none';
         if (nextB) nextB.style.display = 'none';
 
-        if (!isEditing && mode === 'NONE') {
-            state.modifiedConditions.clear();
+        if (mode === 'ADD') {
+            clearForm();
+            el('frequency')?.focus();
+        } else if (mode === 'NONE' && state.selectedIndex >= 0 && state.notifications[state.selectedIndex]) {
+            bindForm(state.notifications[state.selectedIndex]);
         }
 
-        console.log('[SpecialConditions] Mode →', mode);
+        console.log('[AccountNotification] Mode →', mode);
     }
 
     /* ── Collapsible Sections ────────────────────────────────── */
     function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
-            if (header._wiredSpCond) return;
-            header._wiredSpCond = true;
+            if (header._wiredActNotif) return;
+            header._wiredActNotif = true;
             header.addEventListener('click', function (e) {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
                 var section = header.closest('.form-section');
@@ -181,92 +199,12 @@ window.AccountSpecialConditionsModule = (function () {
         });
     }
 
-    /* ── Search Bar ──────────────────────────────────────────── */
-    function wireSearch() {
-        const searchInput = el('searchInput');
-        const clearBtn = el('clearSearch');
+    /* ── Bind form data ──────────────────────────────────────── */
+    function bindForm(doc) {
+        setVal('frequency', doc.NotificationFrequency || doc.Frequency || '');
+        setVal('dayOfMonth', doc.NoOfDays || doc.DayOfMonth || '');
+        setVal('executionDate', formatDateForInput(doc.ExecutionDate || ''));
 
-        if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                const term = searchInput.value.toLowerCase().trim();
-                filterGrid(term);
-                if (clearBtn) clearBtn.classList.toggle('d-none', !term);
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (searchInput) searchInput.value = '';
-                clearBtn.classList.add('d-none');
-                filterGrid('');
-            });
-        }
-    }
-
-    function filterGrid(term) {
-        const rows = document.querySelectorAll('#conditionsGrid tbody tr:not(.table__empty)');
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = !term || text.includes(term) ? '' : 'none';
-        });
-    }
-
-    /* ── Render Grid ─────────────────────────────────────────── */
-    function renderGrid() {
-        const tbody = document.querySelector('#conditionsGrid tbody');
-        const countSpan = el('recordCount');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-        if (countSpan) countSpan.textContent = state.conditions.length + ' records';
-
-        if (state.conditions.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="4">No special conditions found.</td></tr>';
-            return;
-        }
-
-        const isEditing = state.editMode === 'EDIT';
-
-        state.conditions.forEach((condition, index) => {
-            const row = document.createElement('tr');
-            row.dataset.index = index;
-            row.innerHTML = `
-                <td class="text-center">
-                    <input type="checkbox" class="form-check-input" data-field="Apply" 
-                           ${condition.Apply ? 'checked' : ''} ${!isEditing ? 'disabled' : ''}>
-                </td>
-                <td>${escapeHtml(condition.Description || condition.ConditionDescription || '')}</td>
-                <td class="text-center">
-                    <input type="checkbox" class="form-check-input" data-field="Set" 
-                           ${condition.Set || condition.IsSet ? 'checked' : ''} ${!isEditing ? 'disabled' : ''}>
-                </td>
-                <td>
-                    <input type="text" class="bs-input-text" data-field="Value" 
-                           value="${escapeHtml(condition.Value || condition.ConditionValue || '')}" 
-                           ${!isEditing ? 'disabled' : ''}>
-                </td>
-            `;
-
-            // Wire change handlers
-            row.querySelectorAll('input').forEach(input => {
-                input.addEventListener('change', () => {
-                    state.modifiedConditions.add(index);
-                    if (state.conditions[index]) {
-                        state.conditions[index][input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value;
-                    }
-                });
-            });
-
-            tbody.appendChild(row);
-        });
-
-        if (state.conditions.length > 0) {
-            bindAudit(state.conditions[0]); // Show audit of the first item (or could show generic)
-        }
-    }
-
-    /* ── Bind Audit Data ─────────────────────────────────────── */
-    function bindAudit(doc) {
         // Audit
         setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
         setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
@@ -277,6 +215,42 @@ window.AccountSpecialConditionsModule = (function () {
 
         // Metadata
         state.operatorID = doc.OperatorID || doc.OperatorId || '';
+    }
+
+    /* ── Render Grid ─────────────────────────────────────────── */
+    function renderGrid() {
+        const tbody = document.querySelector('#notificationsTable tbody');
+        const countSpan = el('recordCount');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (countSpan) countSpan.textContent = state.notifications.length + ' records';
+
+        if (state.notifications.length === 0) {
+            tbody.innerHTML = '<tr class="table__empty"><td colspan="3">No notifications found.</td></tr>';
+            return;
+        }
+
+        state.notifications.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            row.className = index === state.selectedIndex ? 'table-active' : '';
+
+            row.innerHTML = `
+                <td>${item.NotificationID || item.ID || '-'}</td>
+                <td>${item.NotificationType || item.Type || '-'}</td>
+                <td>${item.NotificationMessage || item.Message || '-'}</td>
+            `;
+
+            row.addEventListener('click', () => {
+                if (state.editMode !== 'NONE') return;
+                state.selectedIndex = index;
+                renderGrid();
+                bindForm(item);
+                setMode('NONE');
+            });
+            tbody.appendChild(row);
+        });
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
@@ -308,104 +282,157 @@ window.AccountSpecialConditionsModule = (function () {
                     else if (d && typeof d === 'object') data = [d];
                     else if (result.Data && typeof result.Data === 'object') data = [result.Data];
 
-                    state.conditions = data;
-                    state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
+                    state.notifications = data;
+
+                    if (state.notifications.length > 0) {
+                        state.selectedIndex = 0;
+                        bindForm(state.notifications[0]);
+                        showMsg(`Loaded ${state.notifications.length} notification(s).`, 'success');
+                    } else {
+                        state.selectedIndex = -1;
+                        clearForm();
+                        showMsg('No notifications found.', 'info');
+                    }
 
                     renderGrid();
                     setMode('NONE');
-                    showMsg(`Loaded ${state.conditions.length} condition(s).`, 'success');
                 } else {
-                    state.conditions = [];
-                    state.originalConditions = [];
+                    state.notifications = [];
+                    state.selectedIndex = -1;
                     renderGrid();
+                    clearForm();
                     setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No conditions found.', 'warning');
+                    showMsg(result.ResponseMessage || 'No notifications found.', 'warning');
                 }
             })
             .catch(function (err) {
                 showLoading(false);
-                showMsg('Error loading Account Special Conditions: ' + err.message, 'error');
+                showMsg('Error loading Account Notifications: ' + err.message, 'error');
             });
     }
 
     /* ── Save ────────────────────────────────────────────────── */
-    async function saveData() {
-        if (state.modifiedConditions.size === 0) {
-            showMsg('No changes to save.', 'warning');
-            return;
-        }
+    function saveData() {
+        var isAdd = state.editMode === 'ADD';
+        var actionLabel = isAdd ? 'create' : 'update';
 
-        const confirmed = await showConfirm(
-            'Are you sure you want to save changes to Special Conditions?',
-            'Save Special Conditions',
+        var frequency = val('frequency');
+        if (!frequency) { showMsg('Notification Frequency is required', 'warning'); return; }
+
+        showConfirm(
+            'Are you sure you want to ' + actionLabel + ' this notification?',
+            'Save Account Notification',
             'bi-save'
-        );
+        ).then(function (confirmed) {
+            if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
 
-        if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
+            var ctx = getContext();
+            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
 
-        var ctx = getContext();
-        var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+            // Build payload
+            var payload = {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                CreatedBy: ctx.OperatorID,
+                OperatorID: ctx.OperatorID,
+                SearchKey: searchKey,
+                NotificationFrequency: val('frequency').trim(),
+                NoOfDays: val('dayOfMonth').trim() || "0",
+                ExecutionDate: val('executionDate').trim() || null
+            };
 
-        showLoading(true);
+            if (!isAdd && state.selectedIndex >= 0) {
+                var item = state.notifications[state.selectedIndex];
+                payload.NotificationID = item.NotificationID || item.ID || '';
+            }
 
-        let successCount = 0;
-        let errorCount = 0;
+            showLoading(true);
 
-        try {
-            // Save modified items individually as per old logic
-            for (const index of state.modifiedConditions) {
-                const condition = state.conditions[index];
-                const payload = {
-                    ...condition,
-                    SearchKey: searchKey,
-                    AccountID: ctx.AccountID,
-                    OurBranchID: ctx.OurBranchID,
-                    OperatorID: ctx.OperatorID
-                };
-
-                const response = await fetch(API.UPDATE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+            fetch(isAdd ? API.ADD : API.UPDATE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (result) {
+                    showLoading(false);
+                    if (isSuccess(result)) {
+                        showMsg(result.ResponseMessage || (isAdd ? 'Notification added.' : 'Notification updated.'), 'success');
+                        setMode('NONE');
+                        navigate();
+                    } else {
+                        showMsg(result.ResponseMessage || 'Save failed.', 'error');
+                    }
+                })
+                .catch(function (err) {
+                    showLoading(false);
+                    showMsg('Save error: ' + err.message, 'error');
                 });
-
-                const result = await response.json();
-                if (isSuccess(result)) {
-                    successCount++;
-                } else {
-                    errorCount++;
-                }
-            }
-
-            if (errorCount === 0) {
-                showMsg(`${successCount} condition(s) saved successfully.`, 'success');
-                setMode('NONE');
-                navigate();
-            } else {
-                showMsg(`Saved ${successCount}, failed ${errorCount}.`, 'warning');
-            }
-        } catch (error) {
-            console.error('[SpecialConditions] Save error:', error);
-            showMsg('Failed to save conditions: ' + error.message, 'error');
-        } finally {
-            showLoading(false);
-        }
+        });
     }
 
+    /* ── Delete ──────────────────────────────────────────────── */
     function deleteData() {
-        // Not Supported via submodule button, as special conditions are unchecked to remove apply
-        showMsg('Delete is not supported for Special Conditions. Uncheck "Apply" to remove.', 'info');
+        if (state.selectedIndex === -1 || !state.notifications[state.selectedIndex]) {
+            showMsg('No data to delete.', 'warning'); return;
+        }
+
+        showConfirm(
+            'Are you sure you want to delete this notification?',
+            'Delete Notification',
+            'bi-trash'
+        ).then(function (confirmed) {
+            if (!confirmed) return;
+
+            setMode('DELETE');
+
+            var ctx = getContext();
+            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+            var item = state.notifications[state.selectedIndex];
+
+            showLoading(true);
+
+            var payload = {
+                AccountID: ctx.AccountID,
+                OurBranchID: ctx.OurBranchID,
+                OperatorID: ctx.OperatorID,
+                SearchKey: searchKey,
+                NotificationID: item.NotificationID || item.ID || ''
+            };
+
+            fetch(API.DELETE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (result) {
+                    showLoading(false);
+                    if (isSuccess(result)) {
+                        showMsg(result.ResponseMessage || 'Notification deleted.', 'success');
+                        state.selectedIndex = -1;
+                        clearForm();
+                        setMode('NONE');
+                        navigate();
+                    } else {
+                        showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+                    }
+                })
+                .catch(function (err) {
+                    showLoading(false);
+                    showMsg('Delete error: ' + err.message, 'error');
+                });
+        });
     }
 
     /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
     function confirmAdd() {
-        // We do not add brand new special conditions from this submodule, just apply existing defaults
-        showMsg('Direct addition not allowed. Please modify existing conditions.', 'warning');
+        setMode('ADD');
     }
 
     function confirmEdit() {
-        if (state.conditions.length === 0) {
-            showMsg('No conditions available to edit.', 'warning'); return;
+        if (state.notifications.length === 0 || state.selectedIndex === -1) {
+            showMsg('No record available to edit.', 'warning'); return;
         }
         setMode('EDIT');
     }
@@ -416,21 +443,23 @@ window.AccountSpecialConditionsModule = (function () {
 
     /* ── Cancel / Clear ──────────────────────────────────────── */
     function cancelChanges() {
-        state.conditions = JSON.parse(JSON.stringify(state.originalConditions));
-        state.modifiedConditions.clear();
-        renderGrid();
+        if (state.selectedIndex >= 0 && state.notifications[state.selectedIndex]) {
+            bindForm(state.notifications[state.selectedIndex]);
+        } else {
+            clearForm();
+        }
         setMode('NONE');
     }
 
     function clearForm() {
-        // Not applicable as it's a grid of pre-defined conditions
+        EDITABLE.forEach(function (id) { setVal(id, ''); });
+        AUDIT.forEach(function (id) { setVal(id, '-'); });
     }
 
     /* ── Init ────────────────────────────────────────────────── */
     function init() {
-        console.log('[SpecialConditions] Initializing');
+        console.log('[AccountNotification] Initializing');
         wireSectionToggles();
-        wireSearch();
         setMode('NONE');
 
         // Initial Load
@@ -458,4 +487,4 @@ window.AccountSpecialConditionsModule = (function () {
     };
 })();
 
-console.log('[SpecialConditions] Module registered');
+console.log('[AccountNotification] Module registered');

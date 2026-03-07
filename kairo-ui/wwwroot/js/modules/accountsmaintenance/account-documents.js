@@ -44,7 +44,21 @@ window.AccountDocumentsModule = (function () {
     /* ── UI Helpers ──────────────────────────────────────────── */
     function el(id)       { return document.getElementById(id); }
     function val(id)      { const e = el(id); return e ? e.value : ''; }
-    function setVal(id,v) { const e = el(id); if (!e) return; const s = (v == null) ? '' : v; if (e.tagName==='INPUT'||e.tagName==='TEXTAREA'||e.tagName==='SELECT') e.value = s; else e.textContent = s; }
+    function setVal(id,v) { 
+        const e = el(id); 
+        if (!e) return; 
+        const s = (v == null) ? '' : v; 
+        if (e.tagName==='INPUT'||e.tagName==='TEXTAREA'||e.tagName==='SELECT') {
+            // Browser security: Cannot programmatically set value of file input except to clear it
+            if (e.type === 'file') {
+                if (s === '') e.value = '';
+                return;
+            }
+            if (e.value !== s) e.value = s; 
+        } else {
+            if (e.textContent !== s) e.textContent = s; 
+        }
+    }
 
     function showLoading(show) {
         const o = el('loadingOverlay');
@@ -133,6 +147,7 @@ window.AccountDocumentsModule = (function () {
         });
         // File input
         var fileIn = el('documentImage_file'); if (fileIn) fileIn.disabled = !editable;
+        var browseB = el('browseBtn'); if (browseB) browseB.disabled = !editable;
         var dateB  = el('receivedDate_btn'); if (dateB) dateB.disabled = !editable;
 
         // Multiselect component
@@ -248,8 +263,41 @@ window.AccountDocumentsModule = (function () {
             });
         }
 
-        // File input — standard visible input, browser handles everything natively.
-        // No JS wiring needed for file selection.
+        // File selection handling
+        var browseBtn = el('btnSubmoduleBrowse');
+        var fileInput = el('documentImage_file');
+        var imageDisplay = el('documentImage');
+
+        if (browseBtn && fileInput && imageDisplay && !browseBtn._wiredDoc) {
+            browseBtn._wiredDoc = true;
+            browseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (state.editMode === 'NONE') return;
+
+                try {
+                    fileInput.click();
+                } catch (err) {
+                    console.error('[AccountDocuments] Browser blocked file dialog:', err);
+                }
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                e.stopImmediatePropagation();
+                var file = e.target.files[0];
+                if (file) {
+                    // Update display without triggering heavy events
+                    if (imageDisplay.value !== file.name) {
+                        imageDisplay.value = file.name;
+                    }
+                    state.selectedFile = file;
+                    console.log('[AccountDocuments] File staged: ' + file.name);
+                } else {
+                    imageDisplay.value = '';
+                    state.selectedFile = null;
+                }
+            });
+        }
 
         // Document Class multiselect toggle
         var ms = el('documentClassMultiselect');

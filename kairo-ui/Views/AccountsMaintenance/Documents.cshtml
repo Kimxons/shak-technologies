@@ -78,8 +78,13 @@
           </div>
           <div class="col">
             <label class="label-blue">Document Image</label>
-            <!-- File input temporarily disabled - will be re-enabled after debugging -->
-            <span class="text-muted">File upload disabled</span>
+            <div class="kairo-branch-control">
+              <input type="text" id="documentImage" name="documentImage" class="kairo-branch-control__name" placeholder="No file selected" readonly>
+              <input type="file" id="documentImage_file" name="documentImage_file" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;" tabindex="-1">
+              <button type="button" id="btnSubmoduleBrowse" class="kairo-branch-control__lookup green" title="Browse for document">
+                <i class="bi bi-folder2-open"></i>
+              </button>
+            </div>
           </div>
         </div>
 

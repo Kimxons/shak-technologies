@@ -239,123 +239,13 @@
     </div>
   </div>
 
-  <!-- Service Scripts -->
-  <script src="/js/services/shared/serviceLoader.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-charge-rates.js?v=20250209"></script>
-
-  <!-- Window Controls & Blur Behavior -->
-  <script>
-    (function() {
-      /**
-       * Send message to parent when form opens
-       */
-      function notifyParentFormOpened() {
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ 
-              action: 'submoduleOpened',
-              source: 'Account Charge Rates'
-            }, '*');
-          }
-        } catch (error) {
-          console.error('Error notifying parent of form open:', error);
-        }
-      }
-
-      /**
-       * Close the child form by notifying parent
-       */
-      function closeChildForm() {
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ 
-              action: 'submoduleClosed',
-              source: 'Account Charge Rates'
-            }, '*');
-          } else {
-            window.close();
-          }
-        } catch (error) {
-          console.error('Error closing form:', error);
-        }
-      }
-
-      /**
-       * Handle window control actions
-       */
-      function handleWindowAction(action, btn) {
-        const windowEl = document.querySelector('.window');
-        
-        switch (action) {
-          case 'refresh':
-            // Clear all validation errors before refresh
-            document.querySelectorAll('[class*="invalid"]').forEach(el => {
-              el.classList.remove(...Array.from(el.classList).filter(c => c.includes('invalid')));
-            });
-            window.location.reload();
-            break;
-
-          case 'maximize':
-            if (windowEl) {
-              const isMaximized = windowEl.classList.toggle('maximized');
-              const icon = btn.querySelector('i');
-              if (icon) {
-                icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
-              }
-              btn.title = isMaximized ? 'Restore' : 'Maximize';
-              btn.setAttribute('aria-label', isMaximized ? 'Restore window' : 'Maximize window');
-              
-              // Notify parent to collapse/expand sidebar
-              if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ 
-                  action: 'toggleSidebarForMaximize',
-                  maximize: isMaximized
-                }, '*');
-              }
-            }
-            break;
-
-          case 'close':
-            closeChildForm();
-            break;
-        }
-      }
-
-      /**
-       * Initialize window control buttons
-       */
-      function initWindowControls() {
-        document.querySelectorAll('.de-title-btn[data-action]').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const action = btn.getAttribute('data-action');
-            handleWindowAction(action, btn);
-          });
-        });
-      }
-
-      // Initialize on DOM ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          initWindowControls();
-          notifyParentFormOpened();
-        });
-      } else {
-        initWindowControls();
-        notifyParentFormOpened();
-      }
-    })();
-  </script>
-
+<script src="~/js/modules/accountsmaintenance/account-charge-rates.js"></script>
 <script>
-    // ChargeRates submodule initialization
-    document.addEventListener('submodule:loaded', function(e) {
-        if (e.detail.submoduleName === 'ChargeRates') {
-            console.log('[ChargeRates] Submodule initialized - Original HTML preserved');
-            // Original JS logic should be loaded here
-            // Include corresponding JS file or inline the business logic
-        }
-    });
+  // Auto-initialize on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.AccountChargeRatesModule?.init());
+  } else {
+    window.AccountChargeRatesModule?.init();
+  }
+  console.log('✅ Account Charge Rates view loaded');
 </script>

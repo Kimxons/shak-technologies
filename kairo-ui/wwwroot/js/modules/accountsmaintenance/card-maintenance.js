@@ -1,28 +1,24 @@
 /**
- * Account Classification Module
- * Migrated from: public/modules/account-maintenance/DataEntry/account-classification.js
- *
- * Parent wires via updateActionPanelForSubmodule:
- *   ADD → setMode('ADD'), EDIT → setMode('EDIT'), VIEW → setMode('VIEW') (via loadData),
- *   DELETE → deleteData(), SAVE → saveData(), CANCEL → cancelChanges(), CLOSE → closeSubmodule()
+ * Card Maintenance Module
+ * Rewritten to standard submodule API pattern for KAIRO MVC
  */
-window.AccountClassificationModule = (function () {
+window.CardMaintenanceModule = (function () {
     'use strict';
 
     /* ── State ─────────────────────────────────────────────── */
     const state = {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
-        classifications: [],
+        cards: [],
         selectedIndex: -1,
         operatorID: null
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-classification',
-        ADD: '/AccountsMaintenance/api/add-account-classification',
-        UPDATE: '/AccountsMaintenance/api/update-account-classification',
-        DELETE: '/AccountsMaintenance/api/delete-account-classification'
+        GET: '/AccountsMaintenance/api/get-account-card',
+        ADD: '/AccountsMaintenance/api/add-account-card',
+        UPDATE: '/AccountsMaintenance/api/update-account-card',
+        DELETE: '/AccountsMaintenance/api/delete-account-card'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -30,6 +26,7 @@ window.AccountClassificationModule = (function () {
         const ps = window.AccountMaintenanceState;
         return {
             AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            AccountName: ps?.AccountName || sessionStorage.getItem('currentAccountName') || '',
             OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
             OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
         };
@@ -43,11 +40,16 @@ window.AccountClassificationModule = (function () {
         if (!e) return;
         const s = (v == null) ? '' : v;
         if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
-            if (e.value !== s) e.value = s;
+            if (e.type === 'checkbox') {
+                e.checked = !!v;
+            } else if (e.value !== s) {
+                e.value = s;
+            }
         } else {
             if (e.textContent !== s) e.textContent = s;
         }
     }
+    function isChecked(id) { const e = el(id); return e ? e.checked : false; }
 
     function showLoading(show) {
         const o = el('loadingOverlay');
@@ -58,7 +60,7 @@ window.AccountClassificationModule = (function () {
         if (typeof window.showSystemToast === 'function') {
             window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
         }
-        console.log('[AccountClassification] ' + type + ': ' + msg);
+        console.log('[CardMaintenance] ' + type + ': ' + msg);
     }
 
     function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
@@ -114,8 +116,31 @@ window.AccountClassificationModule = (function () {
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
+    function formatDateForInput(ds) {
+        if (!ds) return '';
+        try {
+            const d = new Date(ds);
+            if (isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        } catch (e) {
+            return '';
+        }
+    }
+
     /* ── Editable fields ─────────────────────────────────────── */
-    const EDITABLE = ['classificationCode', 'classificationSubCode'];
+    const EDITABLE = [
+        'trackingId', 'cardProvider', 'cardType',
+        'cardRemarks', 'isApproved', 'approvedDate',
+        'isExported', 'exportedDate', 'isActive', 'activatedDate',
+        'startDate', 'expiryDate', 'collected', 'collectionDate',
+        'deactivationDate', 'reason', 'reactivationDate', 'reactivationRemarks',
+        'status', 'initialTransaction'
+    ];
+    // cardName and cardId are readonly manually managed.
+
     const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
 
     function setFieldsEditable(editable) {
@@ -125,7 +150,7 @@ window.AccountClassificationModule = (function () {
         });
     }
 
-    /* ── Mode Management (button states via parent IDs) ──────── */
+    /* ── Mode Management ─────────────────────────────────────── */
     function setMode(mode) {
         state.editMode = mode;
         var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
@@ -139,14 +164,13 @@ window.AccountClassificationModule = (function () {
         var saveB = el('submoduleBtnSave');
         var cancelB = el('submoduleBtnCancel');
 
-        // Hide prev/next which are unused here
         var prevB = el('submoduleBtnPrev');
         var nextB = el('submoduleBtnNext');
 
         if (viewB) viewB.disabled = editing;
         if (addB) addB.disabled = editing;
-        if (editB) editB.disabled = editing || state.classifications.length === 0 || state.selectedIndex === -1;
-        if (delB) delB.disabled = editing || state.classifications.length === 0 || state.selectedIndex === -1;
+        if (editB) editB.disabled = editing || state.cards.length === 0 || state.selectedIndex === -1;
+        if (delB) delB.disabled = editing || state.cards.length === 0 || state.selectedIndex === -1;
         if (saveB) saveB.disabled = !editing;
         if (cancelB) cancelB.disabled = !editing;
         if (prevB) prevB.style.display = 'none';
@@ -154,19 +178,21 @@ window.AccountClassificationModule = (function () {
 
         if (mode === 'ADD') {
             clearForm();
-            el('classificationCode')?.focus();
-        } else if (mode === 'NONE' && state.selectedIndex >= 0 && state.classifications[state.selectedIndex]) {
-            bindForm(state.classifications[state.selectedIndex]);
+            var ctx = getContext();
+            setVal('cardName', ctx.AccountName || ''); // Auto-populate cardName from context
+            el('trackingId')?.focus();
+        } else if (mode === 'NONE' && state.selectedIndex >= 0 && state.cards[state.selectedIndex]) {
+            bindForm(state.cards[state.selectedIndex]);
         }
 
-        console.log('[AccountClassification] Mode →', mode);
+        console.log('[CardMaintenance] Mode →', mode);
     }
 
     /* ── Collapsible Sections ────────────────────────────────── */
     function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
-            if (header._wiredActClass) return;
-            header._wiredActClass = true;
+            if (header._wiredCardMaint) return;
+            header._wiredCardMaint = true;
             header.addEventListener('click', function (e) {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
                 var section = header.closest('.form-section');
@@ -186,44 +212,71 @@ window.AccountClassificationModule = (function () {
     }
 
     /* ── Bind form data ──────────────────────────────────────── */
-    function bindForm(doc) {
-        setVal('classificationCode', doc.ClassificationCode || doc.ClassReq || doc.Code || '');
-        setVal('classificationSubCode', doc.ClassificationSubCode || doc.SubClassReq || doc.SubCode || '');
+    function bindForm(data) {
+        setVal('trackingId', data.TrackingID || data.TrackingId || '');
+        setVal('cardProvider', data.CardProvider || data.Provider || data.CardProviderID || '');
+        setVal('cardName', data.CardName || data.NameOnCard || '');
+        setVal('cardType', data.CardType || data.Type || data.CardTypeID || '');
+
+        setVal('cardId', data.CardID || data.ID || '');
+        setVal('cardRemarks', data.CardRemarks || data.Remarks || '');
+        setVal('isApproved', data.IsApproved || false);
+        setVal('approvedDate', formatDateForInput(data.ApprovedDate));
+
+        setVal('isExported', data.IsExported || false);
+        setVal('exportedDate', formatDateForInput(data.ExportedDate));
+        setVal('isActive', data.IsActive || false);
+        setVal('activatedDate', formatDateForInput(data.ActivatedDate));
+
+        setVal('startDate', formatDateForInput(data.StartDate));
+        setVal('expiryDate', formatDateForInput(data.ExpiryDate));
+        setVal('collected', data.Collected || data.IsCollected || false);
+        setVal('collectionDate', formatDateForInput(data.CollectionDate));
+
+        setVal('deactivationDate', formatDateForInput(data.DeactivationDate));
+        setVal('reason', data.DeactivationReason || data.Reason || data.CardDeactivationReasonID || '');
+        setVal('reactivationDate', formatDateForInput(data.ReactivationDate));
+        setVal('reactivationRemarks', data.ReactivationRemarks || '');
+
+        setVal('status', data.Status || data.CardStatus || data.CardStatusID || '');
+        setVal('initialTransaction', data.InitialTransaction || '');
 
         // Audit
-        setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
-        setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
-        setVal('ModifierID', doc.ModifiedBy || doc.ModifierId || doc.ModifierID || '');
-        setVal('ModifierDT', fmtDateTime(doc.ModifiedOn || doc.ModifierDt || doc.ModifierDT));
-        setVal('CheckerID', doc.CheckedBy || doc.CheckerId || doc.CheckerID || '');
-        setVal('CheckerDT', fmtDateTime(doc.CheckedOn || doc.CheckerDt || doc.CheckerDT));
+        setVal('MakerID', data.CreatedBy || data.MakerId || data.MakerID || '-');
+        setVal('MakerDT', fmtDateTime(data.CreatedOn || data.MakerDt || data.MakerDT));
+        setVal('ModifierID', data.ModifiedBy || data.ModifierId || data.ModifierID || '-');
+        setVal('ModifierDT', fmtDateTime(data.ModifiedOn || data.ModifierDt || data.ModifierDT));
+        setVal('CheckerID', data.CheckedBy || data.CheckerId || data.CheckerID || '-');
+        setVal('CheckerDT', fmtDateTime(data.CheckedOn || data.CheckerDt || data.CheckerDT));
 
-        // Metadata
-        state.operatorID = doc.OperatorID || doc.OperatorId || '';
+        state.operatorID = data.OperatorID || data.OperatorId || '';
     }
 
     /* ── Render Grid ─────────────────────────────────────────── */
     function renderGrid() {
-        const tbody = document.querySelector('#classificationGrid tbody');
+        const tbody = document.querySelector('#cardsListTable tbody');
         const countSpan = el('recordCount');
         if (!tbody) return;
 
         tbody.innerHTML = '';
-        if (countSpan) countSpan.textContent = state.classifications.length + ' records';
+        if (countSpan) countSpan.textContent = state.cards.length + ' records';
 
-        if (state.classifications.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="2">No classifications found.</td></tr>';
+        if (state.cards.length === 0) {
+            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No cards found.</td></tr>';
             return;
         }
 
-        state.classifications.forEach((item, index) => {
+        state.cards.forEach((item, index) => {
             const row = document.createElement('tr');
             row.style.cursor = 'pointer';
             row.className = index === state.selectedIndex ? 'table-active' : '';
 
             row.innerHTML = `
-                <td>${item.ClassificationCode || item.ClassReq || item.Code || '-'}</td>
-                <td>${item.ClassificationSubCode || item.SubClassReq || item.SubCode || '-'}</td>
+                <td>${item.TrackingID || item.TrackingId || '-'}</td>
+                <td>${item.CardID || item.ID || '-'}</td>
+                <td>${item.AccountID || item.AccountId || '-'}</td>
+                <td>${item.CardProvider || item.Provider || item.CardProviderID || '-'}</td>
+                <td>${item.CardRemarks || item.Remarks || '-'}</td>
             `;
 
             row.addEventListener('click', () => {
@@ -231,7 +284,7 @@ window.AccountClassificationModule = (function () {
                 state.selectedIndex = index;
                 renderGrid();
                 bindForm(item);
-                setMode('NONE');
+                setMode('NONE'); // Re-evaluate button states
             });
             tbody.appendChild(row);
         });
@@ -266,32 +319,32 @@ window.AccountClassificationModule = (function () {
                     else if (d && typeof d === 'object') data = [d];
                     else if (result.Data && typeof result.Data === 'object') data = [result.Data];
 
-                    state.classifications = data;
+                    state.cards = data;
 
-                    if (state.classifications.length > 0) {
+                    if (state.cards.length > 0) {
                         state.selectedIndex = 0;
-                        bindForm(state.classifications[0]);
-                        showMsg(`Loaded ${state.classifications.length} classification(s).`, 'success');
+                        bindForm(state.cards[0]);
+                        showMsg(`Loaded ${state.cards.length} card(s).`, 'success');
                     } else {
                         state.selectedIndex = -1;
                         clearForm();
-                        showMsg('No classifications found.', 'info');
+                        showMsg('No cards found.', 'info');
                     }
 
                     renderGrid();
                     setMode('NONE');
                 } else {
-                    state.classifications = [];
+                    state.cards = [];
                     state.selectedIndex = -1;
                     renderGrid();
                     clearForm();
                     setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No classifications found.', 'warning');
+                    showMsg(result.ResponseMessage || 'No cards found.', 'warning');
                 }
             })
             .catch(function (err) {
                 showLoading(false);
-                showMsg('Error loading Account Classification: ' + err.message, 'error');
+                showMsg('Error loading Account Cards: ' + err.message, 'error');
             });
     }
 
@@ -300,30 +353,58 @@ window.AccountClassificationModule = (function () {
         var isAdd = state.editMode === 'ADD';
         var actionLabel = isAdd ? 'create' : 'update';
 
-        var classCode = val('classificationCode');
-        if (!classCode) { showMsg('Classification code is required', 'warning'); return; }
+        var trackingId = val('trackingId');
+        if (!trackingId) { showMsg('TrackingID is required', 'warning'); return; }
 
         showConfirm(
-            'Are you sure you want to ' + actionLabel + ' this classification?',
-            'Save Account Classification',
+            'Are you sure you want to ' + actionLabel + ' this card?',
+            'Save Card',
             'bi-save'
         ).then(function (confirmed) {
             if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
 
             var ctx = getContext();
-
-            // Standard search key format
             var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
 
+            // Build payload
             var payload = {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 CreatedBy: ctx.OperatorID,
                 OperatorID: ctx.OperatorID,
                 SearchKey: searchKey,
-                ClassificationCode: val('classificationCode').trim(),
-                ClassificationSubCode: val('classificationSubCode').trim()
+
+                TrackingID: trackingId,
+                CardProvider: val('cardProvider'),
+                CardProviderID: val('cardProvider'),
+                CardName: val('cardName'),
+                CardType: val('cardType'),
+                CardTypeID: val('cardType'),
+                CardRemarks: val('cardRemarks'),
+                IsApproved: isChecked('isApproved'),
+                ApprovedDate: val('approvedDate') || null,
+                IsExported: isChecked('isExported'),
+                ExportedDate: val('exportedDate') || null,
+                IsActive: isChecked('isActive'),
+                ActivatedDate: val('activatedDate') || null,
+                StartDate: val('startDate') || null,
+                ExpiryDate: val('expiryDate') || null,
+                Collected: isChecked('collected'),
+                CollectionDate: val('collectionDate') || null,
+                DeactivationDate: val('deactivationDate') || null,
+                Reason: val('reason'),
+                CardDeactivationReasonID: val('reason'),
+                ReactivationDate: val('reactivationDate') || null,
+                ReactivationRemarks: val('reactivationRemarks'),
+                Status: val('status'),
+                CardStatusID: val('status'),
+                InitialTransaction: val('initialTransaction')
             };
+
+            if (!isAdd && state.selectedIndex >= 0) {
+                var item = state.cards[state.selectedIndex];
+                payload.CardID = item.CardID || item.ID || '';
+            }
 
             showLoading(true);
 
@@ -336,7 +417,7 @@ window.AccountClassificationModule = (function () {
                 .then(function (result) {
                     showLoading(false);
                     if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || (isAdd ? 'Classification added.' : 'Classification updated.'), 'success');
+                        showMsg(result.ResponseMessage || (isAdd ? 'Card added.' : 'Card updated.'), 'success');
                         setMode('NONE');
                         navigate();
                     } else {
@@ -352,13 +433,13 @@ window.AccountClassificationModule = (function () {
 
     /* ── Delete ──────────────────────────────────────────────── */
     function deleteData() {
-        if (state.selectedIndex === -1 || !state.classifications[state.selectedIndex]) {
+        if (state.selectedIndex === -1 || !state.cards[state.selectedIndex]) {
             showMsg('No data to delete.', 'warning'); return;
         }
 
         showConfirm(
-            'Are you sure you want to delete this classification?',
-            'Delete Classification',
+            'Are you sure you want to delete this card?',
+            'Delete Card',
             'bi-trash'
         ).then(function (confirmed) {
             if (!confirmed) return;
@@ -367,7 +448,7 @@ window.AccountClassificationModule = (function () {
 
             var ctx = getContext();
             var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-            var item = state.classifications[state.selectedIndex];
+            var item = state.cards[state.selectedIndex];
 
             showLoading(true);
 
@@ -376,7 +457,7 @@ window.AccountClassificationModule = (function () {
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID,
                 SearchKey: searchKey,
-                ClassificationCode: item.ClassificationCode || item.ClassReq || item.Code || ''
+                CardID: item.CardID || item.ID || ''
             };
 
             fetch(API.DELETE, {
@@ -388,7 +469,7 @@ window.AccountClassificationModule = (function () {
                 .then(function (result) {
                     showLoading(false);
                     if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || 'Classification deleted.', 'success');
+                        showMsg(result.ResponseMessage || 'Card deleted.', 'success');
                         state.selectedIndex = -1;
                         clearForm();
                         setMode('NONE');
@@ -410,7 +491,7 @@ window.AccountClassificationModule = (function () {
     }
 
     function confirmEdit() {
-        if (state.classifications.length === 0 || state.selectedIndex === -1) {
+        if (state.cards.length === 0 || state.selectedIndex === -1) {
             showMsg('No record available to edit.', 'warning'); return;
         }
         setMode('EDIT');
@@ -422,8 +503,8 @@ window.AccountClassificationModule = (function () {
 
     /* ── Cancel / Clear ──────────────────────────────────────── */
     function cancelChanges() {
-        if (state.selectedIndex >= 0 && state.classifications[state.selectedIndex]) {
-            bindForm(state.classifications[state.selectedIndex]);
+        if (state.selectedIndex >= 0 && state.cards[state.selectedIndex]) {
+            bindForm(state.cards[state.selectedIndex]);
         } else {
             clearForm();
         }
@@ -431,13 +512,18 @@ window.AccountClassificationModule = (function () {
     }
 
     function clearForm() {
+        var ctx = getContext();
         EDITABLE.forEach(function (id) { setVal(id, ''); });
+        // Set context-driven fields
+        setVal('cardName', ctx.AccountName || '');
+        setVal('cardId', '');
+
         AUDIT.forEach(function (id) { setVal(id, '-'); });
     }
 
     /* ── Init ────────────────────────────────────────────────── */
     function init() {
-        console.log('[AccountClassification] Initializing');
+        console.log('[CardMaintenance] Initializing');
         wireSectionToggles();
         setMode('NONE');
 
@@ -466,4 +552,4 @@ window.AccountClassificationModule = (function () {
     };
 })();
 
-console.log('[AccountClassification] Module registered');
+console.log('[CardMaintenance] Module registered');

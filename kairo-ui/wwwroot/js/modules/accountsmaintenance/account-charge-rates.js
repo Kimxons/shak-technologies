@@ -12,6 +12,7 @@ window.AccountChargeRatesModule = (function () {
         operatorId: null,
         currentMode: 'VIEW',
         chargeRates: [],
+        chargeSettings: [],  // Grid settings data
         selectedIndex: -1,
         originalData: null
     };
@@ -22,6 +23,10 @@ window.AccountChargeRatesModule = (function () {
         UPDATE: '/AccountsMaintenance/api/update-account-charge-rate',
         DELETE: '/AccountsMaintenance/api/delete-account-charge-rate'
     };
+
+    // Utility functions
+    function formatNumber(n) { return n === null || n === undefined ? '0.00' : parseFloat(n).toFixed(2); }
+    function escapeHtml(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
     /**
      * Initialize the module
@@ -84,6 +89,187 @@ window.AccountChargeRatesModule = (function () {
         Object.keys(actions).forEach(action => {
             document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
         });
+
+        // Wire grid action buttons (New, Alter, Remove, Update, Clear)
+        wireGridActionButtons();
+    }
+
+    /**
+     * Wire grid action buttons for charge settings table
+     */
+    function wireGridActionButtons() {
+        const gridActions = {
+            'new': gridNew,
+            'alter': gridAlter,
+            'remove': gridRemove,
+            'update': gridUpdate,
+            'clear': gridClear
+        };
+
+        Object.keys(gridActions).forEach(action => {
+            document.querySelector(`[data-grid-action="${action}"]`)?.addEventListener('click', gridActions[action]);
+        });
+    }
+
+    /**
+     * Grid New - Clear form for new entry
+     */
+    function gridNew() {
+        state.selectedIndex = -1;
+        clearSettingsForm();
+        enableSettingsForm(true);
+    }
+
+    /**
+     * Grid Alter - Load selected row for editing
+     */
+    function gridAlter() {
+        if (state.selectedIndex < 0 || !state.chargeSettings || state.chargeSettings.length === 0) {
+            showWarning('Please select a row to alter');
+            return;
+        }
+        populateSettingsForm(state.chargeSettings[state.selectedIndex]);
+        enableSettingsForm(true);
+    }
+
+    /**
+     * Grid Remove - Remove selected row
+     */
+    function gridRemove() {
+        if (state.selectedIndex < 0 || !state.chargeSettings || state.chargeSettings.length === 0) {
+            showWarning('Please select a row to remove');
+            return;
+        }
+        if (!confirm('Are you sure you want to remove this charge setting?')) return;
+        
+        state.chargeSettings.splice(state.selectedIndex, 1);
+        state.selectedIndex = -1;
+        renderSettingsGrid();
+        clearSettingsForm();
+        showSuccess('Charge setting removed');
+    }
+
+    /**
+     * Grid Update - Add/update row in grid
+     */
+    function gridUpdate() {
+        const setting = getSettingsFormData();
+        if (!setting.CeilingAmount && !setting.CeilingAmountType) {
+            showWarning('Please fill in the settings');
+            return;
+        }
+
+        if (!state.chargeSettings) state.chargeSettings = [];
+
+        if (state.selectedIndex >= 0) {
+            // Update existing row
+            state.chargeSettings[state.selectedIndex] = setting;
+        } else {
+            // Add new row
+            state.chargeSettings.push(setting);
+        }
+
+        state.selectedIndex = -1;
+        renderSettingsGrid();
+        clearSettingsForm();
+        showSuccess('Charge setting updated');
+    }
+
+    /**
+     * Grid Clear - Clear settings form
+     */
+    function gridClear() {
+        state.selectedIndex = -1;
+        clearSettingsForm();
+    }
+
+    /**
+     * Get settings form data
+     */
+    function getSettingsFormData() {
+        return {
+            CeilingAmountType: document.getElementById('ceilingAmountType')?.value || '',
+            CeilingAmount: parseFloat(document.getElementById('ceilingAmount')?.value) || 0,
+            CalculationMethod: document.getElementById('calculationMethod')?.value || '',
+            MinCharge: parseFloat(document.getElementById('minCharge')?.value) || 0,
+            MaximumCharge: parseFloat(document.getElementById('maximumCharge')?.value) || 0,
+            Value: parseFloat(document.getElementById('value')?.value) || 0,
+            FixedAmount: parseFloat(document.getElementById('fixedAmount')?.value) || 0
+        };
+    }
+
+    /**
+     * Populate settings form
+     */
+    function populateSettingsForm(data) {
+        if (!data) return;
+        document.getElementById('ceilingAmountType').value = data.CeilingAmountType || data.CeilingAmountTypeID || '';
+        document.getElementById('ceilingAmount').value = data.CeilingAmount || '';
+        document.getElementById('calculationMethod').value = data.CalculationMethod || data.CalculationMethodID || '';
+        document.getElementById('minCharge').value = data.MinCharge || data.MinimumCharge || '';
+        document.getElementById('maximumCharge').value = data.MaximumCharge || '';
+        document.getElementById('value').value = data.Value || '';
+        document.getElementById('fixedAmount').value = data.FixedAmount || '';
+    }
+
+    /**
+     * Clear settings form
+     */
+    function clearSettingsForm() {
+        ['ceilingAmountType', 'ceilingAmount', 'calculationMethod', 'minCharge', 'maximumCharge', 'value', 'fixedAmount'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    }
+
+    /**
+     * Enable/disable settings form
+     */
+    function enableSettingsForm(enable) {
+        ['ceilingAmountType', 'ceilingAmount', 'calculationMethod', 'minCharge', 'maximumCharge', 'value', 'fixedAmount'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = !enable;
+        });
+    }
+
+    /**
+     * Render settings grid
+     */
+    function renderSettingsGrid() {
+        const tbody = document.getElementById('chargeSettingsBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        if (!state.chargeSettings || state.chargeSettings.length === 0) {
+            tbody.innerHTML = '<tr class="no-records-row"><td colspan="6" class="text-center text-muted">No records to display.</td></tr>';
+            return;
+        }
+
+        state.chargeSettings.forEach((setting, index) => {
+            const row = document.createElement('tr');
+            row.dataset.index = index;
+            row.className = index === state.selectedIndex ? 'table-active' : '';
+            row.innerHTML = `
+                <td>${formatNumber(setting.CeilingAmount || 0)}</td>
+                <td>${formatNumber(setting.MinCharge || setting.MinimumCharge || 0)}</td>
+                <td>${formatNumber(setting.MaximumCharge || 0)}</td>
+                <td>${escapeHtml(setting.CalculationMethod || setting.CalculationMethodID || '-')}</td>
+                <td>${formatNumber(setting.Value || 0)}</td>
+                <td>${formatNumber(setting.FixedAmount || 0)}</td>
+            `;
+            row.addEventListener('click', () => selectSettingRow(index));
+            tbody.appendChild(row);
+        });
+    }
+
+    /**
+     * Select a setting row
+     */
+    function selectSettingRow(index) {
+        state.selectedIndex = index;
+        renderSettingsGrid();
+        populateSettingsForm(state.chargeSettings[index]);
     }
 
     /**

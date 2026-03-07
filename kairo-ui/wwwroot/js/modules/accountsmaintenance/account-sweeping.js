@@ -1,19 +1,24 @@
 /**
  * Account Sweeping Module - CRUD Operations
  * Manages account sweeping configurations with full CRUD functionality
+ * Uses MVC pattern with proper API service integration
  */
 
 window.AccountSweepingModule = (function () {
     'use strict';
 
+    // ═══════════════════════════════════════════════════════════════════
+    // STATE MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
     const state = {
         accountId: null,
         branchId: null,
         operatorId: null,
         currentMode: 'VIEW',
-        sweepingData: [],
-        selectedIndex: -1,
-        originalData: null
+        sweepingData: null,
+        originalData: null,
+        updateCount: 0,
+        searchModal: null
     };
 
     const API = {
@@ -23,139 +28,179 @@ window.AccountSweepingModule = (function () {
         DELETE: '/AccountsMaintenance/api/delete-account-sweeping'
     };
 
-    /**
-     * Initialize the module
-     */
+    const FORM_FIELDS = ['accountTransferId', 'accountTransferName', 'minThreshold', 'maxThreshold', 
+                          'sweepingDenomination', 'startDate', 'endDate', 'lastSweepingDate'];
+
+    // ═══════════════════════════════════════════════════════════════════
+    // INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════
     function init() {
         console.log('[AccountSweeping] Initializing module...');
         getAccountContext();
 
         if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
+            showMessage('No account selected. Please select an account first.', 'warning');
             return;
         }
 
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
+        wireEvents();
         setMode('VIEW');
         loadData();
     }
 
-    /**
-     * Get account context from parent page
-     */
     function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
+        // Try parent state first
+        if (window.AccountMaintenanceState) {
+            const ps = window.AccountMaintenanceState;
+            state.accountId = ps.AccountID;
+            state.branchId = ps.OurBranchID || ps.BranchID;
+            state.operatorId = ps.OperatorID;
+        } else if (window.parent?.AccountMaintenanceState) {
+            const ps = window.parent.AccountMaintenanceState;
+            state.accountId = ps.AccountID;
+            state.branchId = ps.OurBranchID || ps.BranchID;
+            state.operatorId = ps.OperatorID;
         } else {
+            // Fallback to session storage
             state.accountId = sessionStorage.getItem('currentAccountID');
             state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
+            state.operatorId = sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM';
+        }
+        console.log('[AccountSweeping] Context:', { accountId: state.accountId, branchId: state.branchId });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // EVENT WIRING
+    // ═══════════════════════════════════════════════════════════════════
+    function wireEvents() {
+        // Action buttons
+        document.querySelectorAll('[data-action]').forEach(btn => {
+            if (btn._swWired) return;
+            btn._swWired = true;
+            const action = btn.getAttribute('data-action');
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                handleAction(action);
+            });
+        });
+
+        // Section toggles
+        document.querySelectorAll('[data-section-toggle]').forEach(header => {
+            if (header._swWired) return;
+            header._swWired = true;
+            header.addEventListener('click', () => toggleSection(header));
+        });
+
+        // Lookup buttons
+        document.querySelectorAll('[data-lookup]').forEach(btn => {
+            if (btn._swWired) return;
+            btn._swWired = true;
+            btn.addEventListener('click', () => openLookup(btn.getAttribute('data-lookup')));
+        });
+
+        // Form change tracking
+        document.querySelectorAll('#frmSweeping input, #frmSweeping select').forEach(el => {
+            if (el._swWired) return;
+            el._swWired = true;
+            el.addEventListener('change', () => { if (state.currentMode !== 'VIEW') state.isDirty = true; });
+        });
+    }
+
+    function handleAction(action) {
+        switch (action) {
+            case 'view': setMode('VIEW'); break;
+            case 'add': setMode('ADD'); break;
+            case 'edit': setMode('EDIT'); break;
+            case 'save': saveData(); break;
+            case 'delete': deleteData(); break;
+            case 'cancel': cancelChanges(); break;
         }
     }
 
-    /**
-     * Wire header control buttons
-     */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', toggleMaximize);
+    function toggleSection(header) {
+        const section = header.closest('.form-section');
+        const content = section?.querySelector('[data-section-content]');
+        const btn = section?.querySelector('.section-toggle-btn');
+        const icon = btn?.querySelector('i');
+        const isExpanded = btn?.getAttribute('aria-expanded') === 'true';
+        
+        if (content) content.hidden = isExpanded;
+        btn?.setAttribute('aria-expanded', String(!isExpanded));
+        if (icon) {
+            icon.classList.toggle('bi-chevron-up');
+            icon.classList.toggle('bi-chevron-down');
+        }
     }
 
-    /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'view': () => setMode('VIEW'),
-            'add': () => setMode('ADD'),
-            'edit': () => setMode('EDIT'),
-            'save': saveData,
-            'delete': deleteData,
-            'cancel': cancelChanges,
-            'close': closeSubmodule
-        };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
-    }
-
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content, [data-section-content]');
-                const icon = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-            });
-        });
-    }
-
-    /**
-     * Set form mode
-     */
+    // ═══════════════════════════════════════════════════════════════════
+    // MODE MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
     function setMode(mode) {
         console.log('[AccountSweeping] Setting mode:', mode);
         state.currentMode = mode;
-
         const isEditing = mode === 'ADD' || mode === 'EDIT';
-        
+
         // Enable/disable form fields
-        document.querySelectorAll('#sweepType, #targetAccountNumber, #minimumBalance, #sweepFrequency, #sweepDay, #sweepAmount, #sweepPercentage, #maxSweepAmount, #effectiveDate, #expiryDate, #isActive').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
-
-        // Update button states
-        const buttons = {
-            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            'add': { active: mode === 'ADD', disabled: isEditing },
-            'edit': { active: mode === 'EDIT', disabled: isEditing || state.sweepingData.length === 0 },
-            'save': { active: false, disabled: !isEditing },
-            'delete': { active: false, disabled: isEditing || state.sweepingData.length === 0 },
-            'cancel': { active: false, disabled: !isEditing }
-        };
-
-        Object.keys(buttons).forEach(action => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (btn) {
-                btn.classList.toggle('active', buttons[action].active);
-                btn.disabled = buttons[action].disabled;
+        FORM_FIELDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // Keep lastSweepingDate always disabled
+                if (id === 'lastSweepingDate') {
+                    el.disabled = true;
+                } else if (id === 'accountTransferName') {
+                    el.disabled = true; // Always readonly
+                } else {
+                    el.disabled = !isEditing;
+                }
             }
         });
 
+        // Lookup buttons
+        document.querySelectorAll('[data-lookup]').forEach(btn => {
+            btn.disabled = !isEditing;
+        });
+
+        // Update action button states
+        updateActionButtons(mode, isEditing);
+
         if (mode === 'ADD') {
             clearForm();
+            state.sweepingData = null;
+            state.originalData = null;
         }
     }
 
-    /**
-     * Load sweeping data from API
-     */
+    function updateActionButtons(mode, isEditing) {
+        const hasData = state.sweepingData !== null;
+        
+        const buttons = {
+            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
+            'add': { active: mode === 'ADD', disabled: isEditing },
+            'edit': { active: mode === 'EDIT', disabled: isEditing || !hasData },
+            'save': { active: false, disabled: !isEditing },
+            'delete': { active: false, disabled: isEditing || !hasData },
+            'cancel': { active: false, disabled: !isEditing }
+        };
+
+        Object.entries(buttons).forEach(([action, config]) => {
+            const btn = document.querySelector(`[data-action="${action}"]`);
+            if (btn) {
+                btn.classList.toggle('active', config.active);
+                btn.disabled = config.disabled;
+                btn.style.opacity = config.disabled ? '0.5' : '1';
+            }
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DATA OPERATIONS
+    // ═══════════════════════════════════════════════════════════════════
     async function loadData() {
-        console.log('[AccountSweeping] Loading sweeping data...');
+        console.log('[AccountSweeping] Loading data...');
         showLoading(true);
 
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
             const payload = {
-                SearchKey: searchKey,
-                SearchID: searchKey,
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId
@@ -171,137 +216,50 @@ window.AccountSweepingModule = (function () {
             console.log('[AccountSweeping] Response:', result);
 
             if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data || [];
-                state.sweepingData = Array.isArray(data) ? data : (data ? [data] : []);
+                const data = result?.Details || result?.Data || result?.data;
+                state.sweepingData = Array.isArray(data) ? data[0] : data;
+                state.updateCount = state.sweepingData?.UpdateCount || 0;
                 
-                if (state.sweepingData.length > 0) {
-                    state.selectedIndex = 0;
-                    populateForm(state.sweepingData[0]);
-                    renderGrid();
+                if (state.sweepingData) {
+                    populateForm(state.sweepingData);
+                    state.originalData = { ...state.sweepingData };
                 } else {
                     clearForm();
                 }
-                showSuccess(`Loaded ${state.sweepingData.length} sweeping configuration(s)`);
+                showMessage('Sweeping configuration loaded', 'success');
             } else {
-                showError(result?.ResponseMessage || 'Failed to load sweeping data');
-            }
-        } catch (error) {
-            console.error('[AccountSweeping] Error:', error);
-            showError('Failed to load sweeping data: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Render sweeping configurations grid
-     */
-    function renderGrid() {
-        const tbody = document.querySelector('#sweepingGrid tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        if (state.sweepingData.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No sweeping configurations found.</td></tr>';
-            return;
-        }
-
-        state.sweepingData.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.dataset.index = index;
-            row.className = index === state.selectedIndex ? 'table-active' : '';
-            row.innerHTML = `
-                <td>${escapeHtml(item.SweepType || item.SweepTypeDescription) || '-'}</td>
-                <td>${escapeHtml(item.TargetAccountNumber || item.ToAccountNumber) || '-'}</td>
-                <td class="text-end">${formatNumber(item.MinimumBalance || 0)}</td>
-                <td>${escapeHtml(item.SweepFrequency || item.FrequencyDescription) || '-'}</td>
-                <td class="text-center">${item.IsActive ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>'}</td>
-            `;
-            row.addEventListener('click', () => selectItem(index));
-            tbody.appendChild(row);
-        });
-    }
-
-    /**
-     * Select a sweeping configuration
-     */
-    function selectItem(index) {
-        state.selectedIndex = index;
-        populateForm(state.sweepingData[index]);
-        renderGrid();
-    }
-
-    /**
-     * Populate form with data
-     */
-    function populateForm(data) {
-        if (!data) return;
-
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) {
-                if (el.type === 'checkbox') {
-                    el.checked = !!value;
+                // No data found is not an error - just empty
+                if (result?.ResponseCode === '01' || result?.ResponseMessage?.includes('not found')) {
+                    clearForm();
+                    showMessage('No sweeping configuration found', 'info');
                 } else {
-                    el.value = value || '';
+                    showMessage(result?.ResponseMessage || 'Failed to load data', 'error');
                 }
             }
-        };
-
-        setValue('sweepType', data.SweepType || data.SweepTypeID);
-        setValue('targetAccountNumber', data.TargetAccountNumber || data.ToAccountNumber);
-        setValue('minimumBalance', data.MinimumBalance || 0);
-        setValue('sweepFrequency', data.SweepFrequency || data.FrequencyID);
-        setValue('sweepDay', data.SweepDay || data.DayOfMonth);
-        setValue('sweepAmount', data.SweepAmount || data.FixedAmount || 0);
-        setValue('sweepPercentage', data.SweepPercentage || data.PercentageAmount || 0);
-        setValue('maxSweepAmount', data.MaxSweepAmount || data.MaximumAmount || 0);
-        setValue('effectiveDate', formatDisplayDate(data.EffectiveDate));
-        setValue('expiryDate', formatDisplayDate(data.ExpiryDate));
-        setValue('isActive', data.IsActive);
-
-        populateAuditFields(data);
-        state.originalData = { ...data };
+        } catch (error) {
+            console.error('[AccountSweeping] Load error:', error);
+            showMessage('Failed to load data: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+            updateActionButtons(state.currentMode, false);
+        }
     }
 
-    /**
-     * Get form data
-     */
-    function getFormData() {
-        return {
-            SweepType: document.getElementById('sweepType')?.value || '',
-            TargetAccountNumber: document.getElementById('targetAccountNumber')?.value || '',
-            MinimumBalance: parseFloat(document.getElementById('minimumBalance')?.value) || 0,
-            SweepFrequency: document.getElementById('sweepFrequency')?.value || '',
-            SweepDay: parseInt(document.getElementById('sweepDay')?.value) || 1,
-            SweepAmount: parseFloat(document.getElementById('sweepAmount')?.value) || 0,
-            SweepPercentage: parseFloat(document.getElementById('sweepPercentage')?.value) || 0,
-            MaxSweepAmount: parseFloat(document.getElementById('maxSweepAmount')?.value) || 0,
-            EffectiveDate: parseApiDate(document.getElementById('effectiveDate')?.value),
-            ExpiryDate: parseApiDate(document.getElementById('expiryDate')?.value),
-            IsActive: document.getElementById('isActive')?.checked || false
-        };
-    }
-
-    /**
-     * Save sweeping configuration
-     */
     async function saveData() {
-        console.log('[AccountSweeping] Saving sweeping configuration...');
+        console.log('[AccountSweeping] Saving data...');
+        
+        const formData = getFormData();
+        if (!validateForm(formData)) return;
+
         showLoading(true);
 
         try {
-            const formData = getFormData();
-            if (!validateForm(formData)) return;
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
             const payload = {
                 ...formData,
-                SearchKey: searchKey,
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
-                OperatorID: state.operatorId
+                OperatorID: state.operatorId,
+                UpdateCount: state.updateCount
             };
 
             const endpoint = state.currentMode === 'ADD' ? API.ADD : API.UPDATE;
@@ -314,44 +272,37 @@ window.AccountSweepingModule = (function () {
             const result = await response.json();
             
             if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Sweeping configuration saved successfully');
+                showMessage(result?.ResponseMessage || 'Saved successfully', 'success');
                 setMode('VIEW');
                 await loadData();
             } else {
-                showError(result?.ResponseMessage || 'Failed to save sweeping configuration');
+                showMessage(result?.ResponseMessage || 'Failed to save', 'error');
             }
         } catch (error) {
             console.error('[AccountSweeping] Save error:', error);
-            showError('Failed to save: ' + error.message);
+            showMessage('Failed to save: ' + error.message, 'error');
         } finally {
             showLoading(false);
         }
     }
 
-    /**
-     * Delete sweeping configuration
-     */
     async function deleteData() {
-        if (state.sweepingData.length === 0) {
-            showWarning('No sweeping configuration to delete');
+        if (!state.sweepingData) {
+            showMessage('No configuration to delete', 'warning');
             return;
         }
 
         if (!confirm('Are you sure you want to delete this sweeping configuration?')) return;
 
-        console.log('[AccountSweeping] Deleting sweeping configuration...');
+        console.log('[AccountSweeping] Deleting data...');
         showLoading(true);
 
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const currentItem = state.sweepingData[state.selectedIndex];
-            
             const payload = {
-                SearchKey: searchKey,
                 AccountID: state.accountId,
-                SweepID: currentItem?.SweepID || currentItem?.ID,
                 OurBranchID: state.branchId,
-                OperatorID: state.operatorId
+                OperatorID: state.operatorId,
+                SweepID: state.sweepingData?.SweepID || state.sweepingData?.ID
             };
 
             const response = await fetch(API.DELETE, {
@@ -363,93 +314,130 @@ window.AccountSweepingModule = (function () {
             const result = await response.json();
             
             if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Sweeping configuration deleted successfully');
-                await loadData();
+                showMessage(result?.ResponseMessage || 'Deleted successfully', 'success');
+                state.sweepingData = null;
+                clearForm();
+                updateActionButtons('VIEW', false);
             } else {
-                showError(result?.ResponseMessage || 'Failed to delete');
+                showMessage(result?.ResponseMessage || 'Failed to delete', 'error');
             }
         } catch (error) {
             console.error('[AccountSweeping] Delete error:', error);
-            showError('Failed to delete: ' + error.message);
+            showMessage('Failed to delete: ' + error.message, 'error');
         } finally {
             showLoading(false);
         }
     }
 
-    /**
-     * Validate form
-     */
-    function validateForm(data) {
-        if (!data.TargetAccountNumber) {
-            showWarning('Please enter a target account number');
-            return false;
-        }
-        if (!data.SweepType) {
-            showWarning('Please select a sweep type');
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Cancel changes
-     */
     function cancelChanges() {
-        if (state.sweepingData.length > 0 && state.selectedIndex >= 0) {
-            populateForm(state.sweepingData[state.selectedIndex]);
+        if (state.originalData) {
+            populateForm(state.originalData);
         } else {
             clearForm();
         }
         setMode('VIEW');
     }
 
-    /**
-     * Clear form
-     */
-    function clearForm() {
-        ['sweepType', 'targetAccountNumber', 'minimumBalance', 'sweepFrequency', 'sweepDay', 'sweepAmount', 'sweepPercentage', 'maxSweepAmount', 'effectiveDate', 'expiryDate'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        const isActiveEl = document.getElementById('isActive');
-        if (isActiveEl) isActiveEl.checked = true;
-        clearAuditFields();
-    }
-
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
+    // ═══════════════════════════════════════════════════════════════════
+    // FORM HELPERS
+    // ═══════════════════════════════════════════════════════════════════
+    function populateForm(data) {
         if (!data) return;
-        const fields = {
-            'MakerID': data.CreatedBy || '-',
-            'MakerDT': formatDate(data.CreatedOn) || '-',
-            'ModifierID': data.ModifiedBy || '-',
-            'ModifierDT': formatDate(data.ModifiedOn) || '-'
+
+        setValue('accountTransferId', data.AccountTransferID || data.ToAccountID || data.TransferAccountID);
+        setValue('accountTransferName', data.AccountTransferName || data.ToAccountName || data.TransferAccountName);
+        setValue('minThreshold', data.MinThreshold || data.MinimumThreshold || 0);
+        setValue('maxThreshold', data.MaxThreshold || data.MaximumThreshold || 0);
+        setValue('sweepingDenomination', data.SweepingDenomination || data.Denomination || 0);
+        setValue('startDate', formatDateForInput(data.StartDate || data.EffectiveDate));
+        setValue('endDate', formatDateForInput(data.EndDate || data.ExpiryDate));
+        setValue('lastSweepingDate', formatDisplayDate(data.LastSweepingDate || data.LastSweepDate));
+
+        // Audit fields
+        setText('MakerID', data.CreatedBy || data.MakerID || '-');
+        setText('MakerDT', formatDisplayDate(data.CreatedOn || data.MakerDT));
+        setText('CheckerID', data.SupervisedBy || data.CheckerID || '-');
+        setText('CheckerDT', formatDisplayDate(data.SupervisedOn || data.CheckerDT));
+        setText('ModifierID', data.ModifiedBy || data.ModifierID || '-');
+        setText('ModifierDT', formatDisplayDate(data.ModifiedOn || data.ModifierDT));
+    }
+
+    function getFormData() {
+        return {
+            AccountTransferID: getValue('accountTransferId'),
+            AccountTransferName: getValue('accountTransferName'),
+            MinThreshold: parseFloat(getValue('minThreshold')) || 0,
+            MaxThreshold: parseFloat(getValue('maxThreshold')) || 0,
+            SweepingDenomination: parseFloat(getValue('sweepingDenomination')) || 0,
+            StartDate: getValue('startDate'),
+            EndDate: getValue('endDate')
         };
-
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
-        });
     }
 
-    /**
-     * Clear audit fields
-     */
-    function clearAuditFields() {
-        ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '-';
-        });
+    function validateForm(data) {
+        if (!data.AccountTransferID) {
+            showMessage('Please select a transfer account', 'warning');
+            document.getElementById('accountTransferId')?.focus();
+            return false;
+        }
+        if (data.MinThreshold < 0 || data.MaxThreshold < 0) {
+            showMessage('Threshold values cannot be negative', 'warning');
+            return false;
+        }
+        if (data.MaxThreshold > 0 && data.MinThreshold > data.MaxThreshold) {
+            showMessage('Min threshold cannot be greater than max threshold', 'warning');
+            return false;
+        }
+        return true;
     }
 
-    // Utility functions
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+    function clearForm() {
+        FORM_FIELDS.forEach(id => setValue(id, ''));
+        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach(id => setText(id, '-'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LOOKUP
+    // ═══════════════════════════════════════════════════════════════════
+    function openLookup(lookupType) {
+        if (state.currentMode === 'VIEW') return;
+
+        // Use SearchModal if available
+        if (window.SearchModal) {
+            if (!state.searchModal) {
+                state.searchModal = new SearchModal(window.AppCore);
+            }
+            state.searchModal.open({
+                tableID: 'AccountID',
+                moduleID: 'AccountMaintenance',
+                ourbranchId: state.branchId,
+                onSelect: (row) => {
+                    setValue('accountTransferId', row.AccountID);
+                    setValue('accountTransferName', row.AccountName || row.AccountTitle);
+                }
+            });
+        } else {
+            // Fallback - manual entry allowed
+            console.log('[AccountSweeping] SearchModal not available, manual entry enabled');
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // UTILITY FUNCTIONS
+    // ═══════════════════════════════════════════════════════════════════
+    function getValue(id) {
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+    }
+
+    function setValue(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value ?? '';
+    }
+
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value ?? '-';
     }
 
     function isSuccess(result) {
@@ -457,83 +445,60 @@ window.AccountSweepingModule = (function () {
                result?.success === true || result?.Success === true;
     }
 
-    function formatNumber(num) {
-        return parseFloat(num || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
-        try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function formatDisplayDate(dateString) {
+    function formatDateForInput(dateString) {
         if (!dateString) return '';
         try {
             const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${date.getDate().toString().padStart(2, '0')}/${months[date.getMonth()]}/${date.getFullYear()}`;
-        } catch (e) {
-            return dateString;
-        }
+            if (isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
+        } catch { return ''; }
     }
 
-    function parseApiDate(displayDate) {
-        if (!displayDate) return null;
-        const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 
-                        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
-        const match = displayDate.match(/(\d{2})\/(\w{3})\/(\d{4})/);
-        if (match) {
-            const date = new Date(parseInt(match[3]), months[match[2]], parseInt(match[1]));
-            return date.toISOString();
-        }
-        return displayDate;
+    function formatDisplayDate(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        } catch { return dateString; }
     }
 
     function showLoading(show) {
-        const overlay = document.querySelector('.loading-overlay, .de-loading-overlay');
+        const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.hidden = !show;
     }
 
-    function toggleMaximize() {
-        const sidebar = document.getElementById('main-sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        }
-    }
-
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
-
-    function showMessage(message, type) {
-        const panel = document.querySelector('.am-message-panel, .de-message-bar');
+    function showMessage(message, type = 'info') {
+        const panel = document.querySelector('.am-message-panel');
         if (panel) {
-            panel.className = `am-message-panel am-message-panel--${type}`;
             panel.hidden = false;
+            panel.className = `am-message-panel am-message-panel--${type}`;
             const icon = panel.querySelector('i');
             const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
+            
+            if (icon) {
+                const iconClass = type === 'success' ? 'bi-check-circle' : 
+                                  type === 'warning' ? 'bi-exclamation-triangle' :
+                                  type === 'error' ? 'bi-exclamation-circle' : 'bi-info-circle';
+                icon.className = `bi ${iconClass}`;
+            }
             if (span) span.textContent = message;
+            
             setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
         }
 
-        if (type === 'error' && window.parent?.showSystemToast) {
-            window.parent.showSystemToast(message, { variant: type });
+        // Also try parent toast
+        const toast = window.showSystemToast || window.parent?.showSystemToast;
+        if (toast) {
+            toast(message, { variant: type === 'error' ? 'danger' : type });
         }
+        
+        console.log(`[AccountSweeping] ${type.toUpperCase()}: ${message}`);
     }
 
-    // Public API
+    // ═══════════════════════════════════════════════════════════════════
+    // PUBLIC API
+    // ═══════════════════════════════════════════════════════════════════
     return {
         init,
         loadData,
@@ -544,11 +509,15 @@ window.AccountSweepingModule = (function () {
     };
 })();
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountSweepingModule?.init());
-} else {
-    window.AccountSweepingModule?.init();
-}
+// Auto-initialize when DOM is ready
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => window.AccountSweepingModule?.init(), 100);
+        });
+    } else {
+        setTimeout(() => window.AccountSweepingModule?.init(), 100);
+    }
+})();
 
-console.log('✅ Account Sweeping module loaded');
+console.log('[AccountSweeping] Module loaded');

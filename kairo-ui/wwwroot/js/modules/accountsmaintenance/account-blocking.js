@@ -38,8 +38,56 @@ window.AccountBlockingModule = (function () {
         wireHeaderControls();
         wireActionButtons();
         wireSectionToggles();
+        wireHistoryButton();
         setMode('VIEW');
-        loadData();
+        
+        // Show confirmation popup on open
+        confirmAndLoad();
+    }
+
+    /**
+     * Confirmation dialog
+     */
+    async function showConfirmationDialog(title, message) {
+        if (window.showConfirmationDialog) {
+            return window.showConfirmationDialog(title, message, 'primary');
+        }
+        return window.confirm(message);
+    }
+
+    /**
+     * Confirm and load blocking data
+     */
+    async function confirmAndLoad() {
+        const ok = await showConfirmationDialog('Confirm', 'Do you want to view/edit account blocking details?');
+        if (!ok) {
+            showMessage('Account blocking cancelled.', 'info');
+            closeSubmodule();
+            return;
+        }
+        await loadData();
+    }
+
+    /**
+     * Wire history button
+     */
+    function wireHistoryButton() {
+        document.querySelector('[data-action="history"]')?.addEventListener('click', showHistory);
+    }
+
+    /**
+     * Show blocking history
+     */
+    function showHistory() {
+        const overlay = document.getElementById('historyOverlay');
+        const iframe = document.getElementById('historyIframe');
+        if (overlay && iframe) {
+            // Load history page if available
+            iframe.src = `/AccountsMaintenance/BlockingHistory?accountId=${encodeURIComponent(state.accountId)}&branchId=${encodeURIComponent(state.branchId)}`;
+            overlay.hidden = false;
+        } else {
+            showMessage('History feature loading...', 'info');
+        }
     }
 
     /**

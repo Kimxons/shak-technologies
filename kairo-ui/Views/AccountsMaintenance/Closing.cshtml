@@ -327,7 +327,7 @@
         </div>
       </div>
 
-      <!-- Action Panel -->
+      <!-- Action Panel (Closing: View, Add, Edit, Save, Cancel - NO Delete/Close) -->
       <aside class="action-panel" aria-label="Form actions">
         <div class="action-buttons">
           <button class="btn-action" type="button" data-action="view" title="View">
@@ -367,44 +367,12 @@
   </div>
 
   <script src="~/js/modules/accountsmaintenance/account-closing.js"></script>
-  <script>
-    function notifyParentFormOpened() {
-      window.parent.postMessage({ type: 'submoduleOpened', source: 'Account Closing' }, '*');
-    }
-    function closeChildForm() {
-      window.parent.postMessage({ type: 'submoduleClosed' }, '*');
-      window.close();
-    }
-    function handleWindowAction(action) {
-      if (action === 'refresh') {
-        location.reload();
-      } else if (action === 'maximize') {
-        window.parent.postMessage({ type: 'toggleSidebarForMaximize' }, '*');
-      } else if (action === 'close') {
-        closeChildForm();
-      }
-    }
-    function initWindowControls() {
-      document.querySelectorAll('[data-action]').forEach(btn => {
-        const action = btn.getAttribute('data-action');
-        if (['refresh', 'maximize', 'close'].includes(action)) {
-          btn.addEventListener('click', () => handleWindowAction(action));
-        }
-      });
-    }
-    window.addEventListener('DOMContentLoaded', () => {
-      initWindowControls();
-      notifyParentFormOpened();
-    });
-  </script>
-
 <script>
-    // Closing submodule initialization
-    document.addEventListener('submodule:loaded', function(e) {
-        if (e.detail.submoduleName === 'Closing') {
-            console.log('[Closing] Submodule initialized - Original HTML preserved');
-            // Original JS logic should be loaded here
-            // Include corresponding JS file or inline the business logic
-        }
-    });
+  // Auto-initialize on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.AccountClosingModule?.init());
+  } else {
+    window.AccountClosingModule?.init();
+  }
+  console.log('✅ Account Closing view loaded');
 </script>

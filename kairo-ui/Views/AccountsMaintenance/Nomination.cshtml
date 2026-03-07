@@ -160,4 +160,13 @@
   </div>
 
 <!-- Initialize Account Nomination Module -->
-<script src="/js/modules/accountsmaintenance/account-nomination.js"></script>
+<script src="~/js/modules/accountsmaintenance/account-nomination.js"></script>
+<script>
+  // Auto-initialize on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.AccountNominationModule?.init());
+  } else {
+    window.AccountNominationModule?.init();
+  }
+  console.log('✅ Account Nomination view loaded');
+</script>

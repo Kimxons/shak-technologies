@@ -467,6 +467,32 @@ window.AccountClosingModule = (function () {
         ['txnNew', 'txnAlter', 'txnRemove', 'txnUpdate', 'txnClear'].forEach(a => setActionBtn(a, false));
     }
 
+    // ── Confirmation Dialog ─────────────────────────────────────
+    async function showConfirmationDialog(title, message) {
+        if (window.showConfirmationDialog) {
+            return window.showConfirmationDialog(title, message, 'primary');
+        }
+        return window.confirm(message);
+    }
+
+    async function confirmAndLoad() {
+        const ok = await showConfirmationDialog('Confirm', 'Do you want to close this account?');
+        if (!ok) {
+            showMsg('Account closing cancelled.', 'info');
+            closeSubmodule();
+            return;
+        }
+        await loadData();
+    }
+
+    function closeSubmodule() {
+        if (window.parent && window.parent.AccountMaintenanceCore) {
+            window.parent.AccountMaintenanceCore.closeSubmodule();
+        } else {
+            window.parent?.postMessage({ type: 'accountMaintenanceChildClose' }, '*');
+        }
+    }
+
     // ── Init ───────────────────────────────────────────────────
     function init() {
         console.log('[Closing] Initializing');
@@ -479,7 +505,8 @@ window.AccountClosingModule = (function () {
 
         const ctx = getContext();
         if (ctx.AccountID) {
-            setTimeout(() => loadData(), 300);
+            // Show confirmation popup before loading
+            setTimeout(() => confirmAndLoad(), 300);
         }
     }
 
