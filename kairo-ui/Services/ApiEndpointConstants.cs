@@ -160,6 +160,19 @@ namespace kairo_ui.Services
         public const string ADD_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/AddAccountTransferDetails";
         public const string GET_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/GetAccountTransferDetails";
 
+        // Standing Instruction
+        private const string BASESI = "api/v1/AccountMaintenance";
+        public const string GET_SI_DEMAND_DRAFT = BASESI + "/GetSIDemandDraft";
+        public const string CREATE_SI_DEMAND_DRAFT = BASESI + "/CreateSIDemandDraft";
+        public const string UPDATE_SI_DEMAND_DRAFT = BASESI + "/UpdateSIDemandDraft";
+        public const string DELETE_SI_DEMAND_DRAFT = BASESI + "/DeleteSIDemandDraft";
+        public const string STOP_SI_DEMAND_DRAFT = BASESI + "/StopSIDemandDraft";
+        public const string GET_SI_EFT = BASESI + "/GetSIEFT";
+        public const string CREATE_SI_EFT = BASESI + "/CreateSIEFT";
+        public const string UPDATE_SI_EFT = BASESI + "/UpdateSIEFT";
+        public const string DELETE_SI_EFT = BASESI + "/DeleteSIEFT";
+        public const string STOP_SI_EFT = BASESI + "/StopSIEFT";
+
         // SHARED SEARCH MODAL ENDPOINTS:
         private const string BASESHARED = "api/v1/Shared";
 

@@ -5,341 +5,409 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Standing Instruction EFT</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="../../assets/css/styles.css" />
 </head>
 <body>
   <div class="window">
-    <div class="am-header" role="banner">
+    <!-- Header Bar -->
+    <div class="am-header" role="banner" aria-label="Window title bar">
       <div class="am-header__left">
-        <i class="bi bi-cash-coin"></i>
+        <i class="bi bi-arrow-left-right am-header__icon" aria-hidden="true"></i>
         <span class="am-header__title">Standing Instruction EFT</span>
       </div>
-      <div class="am-header__right" role="toolbar" aria-label="Header actions">
-        <button class="de-title-btn" type="button" data-action="refresh" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="de-title-btn" type="button" data-action="maximize" title="Maximize"><i class="bi bi-arrows-fullscreen"></i></button>
-        <button class="de-title-btn" type="button" data-action="close" title="Close"><i class="bi bi-x"></i></button>
+      <div class="am-header__right" role="toolbar" aria-label="Window controls">
+        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-arrows-fullscreen"></i></button>
+        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
       </div>
     </div>
 
-    <main class="main-container">
-      <div class="form-content">
-        <div class="form-card">
-          <!-- Account Details Section -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title">Account Details</span>
-            </div>
-            <div class="section-content">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Branch</label>
-                  <div class="kairo-input-group">
-                    <input id="branchId" name="branchId" type="text" class="form-control kairo-control-id" readonly />
-                    <input id="branchName" name="branchName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="branchId" title="Lookup"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Account ID <span class="badge bg-danger">*</span></label>
-                  <div class="kairo-input-group">
-                    <input id="accountId" name="accountId" type="text" class="form-control kairo-control-id" />
-                    <input id="accountName" name="accountName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="accountId" title="Lookup"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- Main Container -->
+    <main class="main-container main-container--with-panel" aria-label="Standing Instruction EFT form">
+      <div class="form-content" role="region" aria-label="Form fields">
+        <div class="form-card" data-main-form>
 
           <!-- Standing Instruction Details Section -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title">Standing Instruction Details</span>
+          <div class="form-section" data-section="si-details">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-file-earmark-text"></i> Standing Instruction Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Standing Instruction Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
             </div>
-            <div class="section-content">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Standing Instruction ID <span class="badge bg-danger">*</span></label>
-                  <div class="kairo-input-group">
-                    <input id="standingInstructionId" name="standingInstructionId" type="text" class="form-control kairo-control-id" />
-                    <input id="standingInstructionName" name="standingInstructionName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="standingInstructionId" title="Lookup"><i class="bi bi-search"></i></button>
+            <div class="section-content" data-section-content>
+              <!-- Row 1: Branch ID | Account ID -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Branch ID</label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="branchId" name="branchId" class="kairo-control__id" aria-label="Branch ID" readonly>
+                    <input type="text" id="branchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                    <button type="button" class="btn-lookup kairo-control__lookup" id="searchBranchBtn" data-open-search="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label">Reference No.</label>
-                  <input id="referenceNo" name="referenceNo" type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                  <label class="form-label label-blue">SI Type <span class="badge bg-danger">*</span></label>
-                  <select id="siType" name="siType" class="form-select">
-                    <option value="">--Select--</option>
-                    <option value="eft">EFT</option>
-                    <option value="transfer">Transfer</option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Effective Date <span class="badge bg-danger">*</span></label>
-                  <input id="effectiveDate" name="effectiveDate" type="date" class="form-control" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Transfer Details Section -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title">Transfer Details</span>
-            </div>
-            <div class="section-content">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Transfer Type <span class="badge bg-danger">*</span></label>
-                  <select id="transferType" name="transferType" class="form-select">
-                    <option value="">--Select--</option>
-                    <option value="domestic">Domestic</option>
-                    <option value="international">International</option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Currency</label>
-                  <div class="kairo-input-group">
-                    <input id="currencyId" name="currencyId" type="text" class="form-control kairo-control-id" />
-                    <input id="currencyName" name="currencyName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="currencyId" title="Lookup"><i class="bi bi-search"></i></button>
+                <div class="col">
+                  <label class="label-blue">Account ID <span class="text-danger">*</span></label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="accountId" name="accountId" class="kairo-control__id" aria-label="Account ID">
+                    <input type="text" id="accountName" class="kairo-control__name" aria-label="Account Name" placeholder="Account Name" readonly>
+                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="account" aria-label="Search Account"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
               </div>
-              <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Transfer Amount <span class="badge bg-danger">*</span></label>
-                  <input id="transferAmount" name="transferAmount" type="text" class="form-control" />
+              <!-- Row 2: Standing Instruction ID | Reference No -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Standing Instruction ID <span class="text-danger">*</span></label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="standingInstructionId" name="standingInstructionId" class="kairo-control__id" aria-label="Standing Instruction ID">
+                    <input type="text" id="standingInstructionName" class="kairo-control__name" aria-label="Standing Instruction Description" placeholder="Description" readonly>
+                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="standingInstruction" aria-label="Search Standing Instruction"><i class="bi bi-search"></i></button>
+                  </div>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label">Charge Recovery</label>
-                  <select id="chargeRecovery" name="chargeRecovery" class="form-select">
+                <div class="col">
+                  <label class="label-blue">Reference No.</label>
+                  <input type="text" id="referenceNo" name="referenceNo" class="bs-input-text" aria-label="Reference No">
+                </div>
+              </div>
+              <!-- Row 3: SI Type | Effective Date -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">SI Type <span class="text-danger">*</span></label>
+                  <select id="siType" name="siType" class="bs-select">
                     <option value="">--Select--</option>
-                    <option value="none">None</option>
-                    <option value="immediate">Immediate</option>
-                    <option value="deferred">Deferred</option>
+                  </select>
+                </div>
+                <div class="col">
+                  <label class="label-blue">Effective Date <span class="text-danger">*</span></label>
+                  <input type="date" id="effectiveDate" name="effectiveDate" class="bs-input-text" aria-label="Effective Date">
+                </div>
+              </div>
+              <!-- Row 4: Transaction Currency ID | Amount In -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Transaction Currency ID</label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="transactionCurrencyId" name="transactionCurrencyId" class="kairo-control__id" aria-label="Transaction Currency ID">
+                    <input type="text" id="transactionCurrencyName" class="kairo-control__name" aria-label="Currency Name" placeholder="Currency Name" readonly>
+                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="currency" aria-label="Search Currency"><i class="bi bi-search"></i></button>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="label-blue">Amount In</label>
+                  <select id="amountIn" name="amountIn" class="bs-select">
+                    <option value="TransactionCurrencyID">Transaction CurrencyID</option>
                   </select>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Beneficiary Details Section -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title">Beneficiary Details</span>
-            </div>
-            <div class="section-content">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label label-blue">Beneficiary Name <span class="badge bg-danger">*</span></label>
-                  <input id="beneficiaryName" name="beneficiaryName" type="text" class="form-control" />
+              <!-- Row 5: Fixed Amount | Transfer Frequency -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Fixed Amount</label>
+                  <input type="text" id="fixedAmount" name="fixedAmount" class="bs-input-text" aria-label="Fixed Amount">
                 </div>
-              </div>
-              <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Beneficiary Bank <span class="badge bg-danger">*</span></label>
-                  <div class="kairo-input-group">
-                    <input id="beneficiaryBankId" name="beneficiaryBankId" type="text" class="form-control kairo-control-id" />
-                    <input id="beneficiaryBankName" name="beneficiaryBankName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="beneficiaryBankId" title="Lookup"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label label-blue">Beneficiary Branch <span class="badge bg-danger">*</span></label>
-                  <div class="kairo-input-group">
-                    <input id="beneficiaryBranchId" name="beneficiaryBranchId" type="text" class="form-control kairo-control-id" />
-                    <input id="beneficiaryBranchName" name="beneficiaryBranchName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="beneficiaryBranchId" title="Lookup"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-              </div>
-              <div class="row g-3 mt-2">
-                <div class="col-12">
-                  <label class="form-label label-blue">Beneficiary Account <span class="badge bg-danger">*</span></label>
-                  <div class="kairo-input-group">
-                    <input id="beneficiaryAccountId" name="beneficiaryAccountId" type="text" class="form-control kairo-control-id" />
-                    <input id="beneficiaryAccountName" name="beneficiaryAccountName" type="text" class="form-control kairo-control-name" readonly />
-                    <button class="btn btn-outline-secondary" type="button" data-lookup="beneficiaryAccountId" title="Lookup"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Frequency & Execution Section -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title">Frequency & Execution</span>
-            </div>
-            <div class="section-content">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Transfer Frequency</label>
-                  <select id="transferFrequency" name="transferFrequency" class="form-select">
+                <div class="col">
+                  <label class="label-blue">Transfer Frequency</label>
+                  <select id="transferFrequency" name="transferFrequency" class="bs-select">
                     <option value="">--Select--</option>
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-Weekly</option>
                     <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="halfyearly">Half Yearly</option>
+                    <option value="yearly">Yearly</option>
                   </select>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label">No Of Executions</label>
-                  <input id="noOfExecution" name="noOfExecution" type="text" class="form-control" />
+              </div>
+              <!-- Row 6: No Of Execution | Regular Execution Day | Charge Recovery -->
+              <div class="form-row three-col">
+                <div class="col">
+                  <label class="label-blue">No Of Execution</label>
+                  <input type="text" id="noOfExecution" name="noOfExecution" class="bs-input-text" aria-label="No Of Execution">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Regular Execution Day</label>
+                  <input type="text" id="regularExecutionDay" name="regularExecutionDay" class="bs-input-text" aria-label="Regular Execution Day">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Charge Recovery</label>
+                  <select id="chargeRecovery" name="chargeRecovery" class="bs-select">
+                    <option value="">--Select--</option>
+                  </select>
                 </div>
               </div>
-              <div class="row g-3 mt-2">
-                <div class="col-md-6">
-                  <label class="form-label">First Execution Date</label>
-                  <input id="firstExecutionDate" name="firstExecutionDate" type="date" class="form-control" />
+              <!-- Row 7: First Execution Date | Last Execution Date -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">First Execution Date</label>
+                  <select id="firstExecutionDate" name="firstExecutionDate" class="bs-select">
+                    <option value="">--Select--</option>
+                  </select>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label">Last Execution Date</label>
-                  <input id="lastExecutionDate" name="lastExecutionDate" type="date" class="form-control" readonly />
+                <div class="col">
+                  <label class="label-blue">Last Execution Date</label>
+                  <input type="text" id="lastExecutionDate" name="lastExecutionDate" class="bs-input-text" aria-label="Last Execution Date" readonly>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Behind The Scene / Audit Trail Section -->
-          <div class="form-section" data-section="audit">
+          <!-- Beneficiary / EFT Details Section -->
+          <div class="form-section" data-section="beneficiary-details">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title">Behind The Scene</span>
-              <button class="section-toggle-btn" type="button"><i class="bi bi-chevron-down"></i></button>
+              <span class="section-header__title"><i class="bi bi-bank"></i> Beneficiary / EFT Details</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Beneficiary Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
             </div>
-            <div class="section-content">
-              <div class="audit-section">
-                <div class="row g-3">
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Next Execution Date</span>
-                      <span class="audit-value" id="nextExecutionDate">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Last Run Date</span>
-                      <span class="audit-value" id="lastRunDate">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Standing Instruction Status</span>
-                      <span class="audit-value" id="standingInstructionStatus">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Last Run Status</span>
-                      <span class="audit-value" id="lastRunStatus">-</span>
-                    </div>
+            <div class="section-content" data-section-content>
+              <!-- Row 1: Bank ID | Branch ID -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Bank ID <span class="text-danger">*</span></label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="bankId" name="bankId" class="kairo-control__id" aria-label="Bank ID">
+                    <input type="text" id="bankName" class="kairo-control__name" aria-label="Bank Name" placeholder="Bank Name" readonly>
+                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="bank" aria-label="Search Bank"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
-                <div class="row g-3 mt-2">
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">No Of Times Failed</span>
-                      <span class="audit-value" id="noOfTimesFailed">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Stopped Reason</span>
-                      <span class="audit-value" id="stoppedReason">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Created By</span>
-                      <span class="audit-value" id="auditCreatedBy">-</span>
-                    </div>
+                <div class="col">
+                  <label class="label-blue">Branch ID <span class="text-danger">*</span></label>
+                  <div class="kairo-control" data-kairo-control>
+                    <input type="text" id="beneficiaryBranchId" name="beneficiaryBranchId" class="kairo-control__id" aria-label="Branch ID">
+                    <input type="text" id="beneficiaryBranchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
-                <div class="row g-3 mt-2">
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Created On</span>
-                      <span class="audit-value" id="auditCreatedOn">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Stopped By</span>
-                      <span class="audit-value" id="auditStoppedBy">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Stopped On</span>
-                      <span class="audit-value" id="auditStoppedOn">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="audit-item">
-                      <span class="audit-label">Supervised By</span>
-                      <span class="audit-value" id="auditSupervisedBy">-</span>
-                    <div class="audit-item">
-                      <span class="audit-label">Stopped On</span>
-                      <span class="audit-value" id="auditStoppedOn">-</span>
-                    </div>
-                  </div>
+              </div>
+              <!-- Row 2: Account ID | Voucher Code | Return Code -->
+              <div class="form-row three-col">
+                <div class="col">
+                  <label class="label-blue">Account ID <span class="text-danger">*</span></label>
+                  <input type="text" id="beneficiaryAccountId" name="beneficiaryAccountId" class="bs-input-text" aria-label="Beneficiary Account ID">
                 </div>
-                <div class="row g-3 mt-2">
-                  <div class="col-md-6">
-                    <div class="audit-item">
-                      <span class="audit-label">Supervised By</span>
-                      <span class="audit-value" id="auditSupervisedBy">-</span>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="audit-item">
-                      <span class="audit-label">Supervised On</span>
-                      <span class="audit-value" id="auditSupervisedOn">-</span>
-                    </div>
-                  </div>
+                <div class="col">
+                  <label class="label-blue">Voucher Code</label>
+                  <input type="text" id="voucherCode" name="voucherCode" class="bs-input-text" aria-label="Voucher Code">
+                </div>
+                <div class="col">
+                  <label class="label-blue">Return Code</label>
+                  <input type="text" id="returnCode" name="returnCode" class="bs-input-text" aria-label="Return Code">
+                </div>
+              </div>
+              <!-- Row 3: Reference -->
+              <div class="form-row two-col">
+                <div class="col">
+                  <label class="label-blue">Reference</label>
+                  <input type="text" id="eftReference" name="eftReference" class="bs-input-text" aria-label="Reference">
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Behind The Scene Section -->
+          <div class="form-section" data-section="behind-the-scene">
+            <div class="section-header" data-section-toggle>
+              <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene</span>
+              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+              </button>
+            </div>
+            <div class="section-content" data-section-content>
+              <div class="audit-section" style="overflow-x:auto">
+                <table class="table table-sm table-bordered mb-0" style="min-width:700px">
+                  <thead>
+                    <tr>
+                      <th>Next Execution Date</th>
+                      <th>SI Status</th>
+                      <th>Last Run Date</th>
+                      <th>Last Run Status</th>
+                      <th>Times Failed</th>
+                      <th>Stopped Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td id="nextExecutionDate">-</td>
+                      <td id="standingInstructionStatus">-</td>
+                      <td id="lastRunDate">-</td>
+                      <td id="lastRunStatus">-</td>
+                      <td id="noOfTimesFailed">-</td>
+                      <td id="stoppedReason">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table class="table table-sm table-bordered mb-0 mt-2" style="min-width:700px">
+                  <thead>
+                    <tr>
+                      <th>Created By</th>
+                      <th>Created On</th>
+                      <th>Stopped By</th>
+                      <th>Stopped On</th>
+                      <th>Supervised By</th>
+                      <th>Supervised On</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td id="auditCreatedBy">-</td>
+                      <td id="auditCreatedOn">-</td>
+                      <td id="auditStoppedBy">-</td>
+                      <td id="auditStoppedOn">-</td>
+                      <td id="auditSupervisedBy">-</td>
+                      <td id="auditSupervisedOn">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
+
+      <!-- Action Panel (right rail) -->
+      <aside class="action-panel" aria-label="Form actions">
+        <div class="nav-group">
+          <button class="btn-nav" type="button" data-nav="prev" aria-label="Previous Record" title="Previous Record">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span>Record</span>
+          <button class="btn-nav" type="button" data-nav="next" aria-label="Next Record" title="Next Record">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-action="stop" title="Stop">
+            <i class="bi bi-stop-circle me-1"></i>Stop
+          </button>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-action" type="button" data-action="view" title="View">
+            <i class="bi bi-eye me-1"></i>View
+          </button>
+          <button class="btn-action" type="button" data-action="add" title="Add">
+            <i class="bi bi-plus-circle me-1"></i>Add
+          </button>
+          <button class="btn-action" type="button" data-action="edit" title="Edit">
+            <i class="bi bi-pencil-square me-1"></i>Edit
+          </button>
+          <button class="btn-action" type="button" data-action="delete" title="Delete">
+            <i class="bi bi-trash me-1"></i>Delete
+          </button>
+          <button class="btn-action" type="button" data-action="save" title="Save">
+            <i class="bi bi-check-lg me-1"></i>Save
+          </button>
+          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+        </div>
+      </aside>
     </main>
 
-    <!-- Footer -->
-    <footer class="de-status-bar" role="status">Ready</footer>
+    <!-- Message Panel -->
+    <div class="am-message-panel" role="alert" aria-live="polite">
+      <i class="bi bi-info-circle"></i>
+      <span class="message-text"></span>
+    </div>
 
     <!-- Loading Overlay -->
-    <div class="de-loading-overlay" hidden>
-      <div class="de-loading-spinner">
-        <i class="bi bi-arrow-repeat"></i>
-        <span>Loading...</span>
+    <div class="loading-overlay" id="loadingOverlay" hidden>
+      <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="loading-text">Loading...</div>
       </div>
     </div>
 
-    <!-- Message Bar -->
-    <div class="de-message-bar" hidden role="alert"></div>
+    <!-- Status Bar -->
+    <footer class="de-status-bar" role="status">Ready</footer>
   </div>
 
-  <!-- Action Buttons at Bottom -->
-  <div class="form-footer">
-    <button class="btn btn-primary" type="button" data-action="view"><i class="bi bi-eye"></i> View</button>
-    <button class="btn btn-secondary" type="button" data-action="add"><i class="bi bi-plus-circle"></i> Add</button>
-    <button class="btn btn-secondary" type="button" data-action="edit"><i class="bi bi-pencil"></i> Edit</button>
-    <button class="btn btn-secondary" type="button" data-action="delete"><i class="bi bi-trash"></i> Delete</button>
-    <button class="btn btn-success" type="button" data-action="save"><i class="bi bi-check-circle"></i> Save</button>
-    <button class="btn btn-info" type="button" data-action="stop"><i class="bi bi-stop-circle"></i> Stop</button>
-    <button class="btn btn-warning" type="button" data-action="print"><i class="bi bi-printer"></i> Print</button>
-    <button class="btn btn-danger" type="button" data-action="cancel"><i class="bi bi-x-circle"></i> Cancel</button>
+  <!-- Branch Search Modal -->
+  <div id="branchSearchModalContainer">
+    <div class="modal fade kairo-search-modal" id="branchSearchModal" tabindex="-1" aria-labelledby="branchSearchModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="branchSearchModalLabel">
+              <i class="bi bi-building"></i> Search Branch
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="search-section">
+              <div class="search-row">
+                <div class="search-field">
+                  <label class="search-label">Branch ID</label>
+                  <div class="search-input-group">
+                    <select id="searchBranchIdOperator" class="search-select">
+                      <option value="like" selected>Like</option>
+                      <option value="equals">Equals</option>
+                      <option value="startswith">Starts With</option>
+                    </select>
+                    <input type="text" id="searchBranchIdFilter" class="search-input" placeholder="Enter Branch ID">
+                  </div>
+                </div>
+                <div class="search-field">
+                  <label class="search-label">Branch Name</label>
+                  <div class="search-input-group">
+                    <select id="searchBranchNameOperator" class="search-select">
+                      <option value="like" selected>Like</option>
+                      <option value="equals">Equals</option>
+                      <option value="startswith">Starts With</option>
+                    </select>
+                    <input type="text" id="searchBranchNameFilter" class="search-input" placeholder="Enter Branch Name">
+                  </div>
+                </div>
+              </div>
+              <div class="search-actions">
+                <button type="button" class="search-btn search-btn-primary" id="btnSearchBranches">
+                  <i class="bi bi-search"></i> Search
+                </button>
+                <button type="button" class="search-btn search-btn-secondary" id="btnClearBranchSearch">
+                  <i class="bi bi-x-circle"></i> Clear
+                </button>
+              </div>
+            </div>
+            <div class="results-table-wrapper">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th style="width:50px">#</th>
+                    <th style="width:120px">Branch ID</th>
+                    <th>Branch Name</th>
+                  </tr>
+                </thead>
+                <tbody id="branchSearchResults">
+                  <tr><td colspan="3" class="no-results"><i class="bi bi-hourglass-split"></i> Loading branches...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination-bar">
+              <div class="pagination-buttons">
+                <button type="button" class="pagination-btn" id="btnPrevBranchPage" disabled><i class="bi bi-arrow-left"></i> Previous</button>
+                <button type="button" class="pagination-btn" id="btnNextBranchPage" disabled>Next <i class="bi bi-arrow-right"></i></button>
+              </div>
+              <div class="pagination-info"><span id="branchPageInfo">Page 1 of 1 (0 results)</span></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="modal-btn modal-btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancel</button>
+            <button type="button" class="modal-btn modal-btn-success" id="btnSelectBranch" disabled><i class="bi bi-check-circle"></i> OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/services/shared/coreApi.js"></script>
+  <script src="../../assets/js/services/shared/serviceLoader.js"></script>
+  <script src="../../assets/js/services/shared/lookupService.js"></script>
   <script src="standing-instruction-eft.js"></script>
-  <script src="../../scripts/dataentry-utils.js"></script>
 </body>
 </html>
