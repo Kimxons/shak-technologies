@@ -1,375 +1,450 @@
 /**
  * Account Cancel Stop Payment Module
- * Matches original: public/modules/account-maintenance/DataEntry/account-cancel-stop-payment.js
- *
- * Parent wires: View → setMode('VIEW'), Edit → setMode('EDIT'), Save → saveData(), Cancel → cancelChanges()
- * GET uses GenericAccountRequest (AccountID + AccountTypeID required)
- * ADD/UPDATE use JsonElement (JS must send all fields incl OurBranchID, OperatorID)
+ * Standardized for KAIRO MVC project.
+ * Uses AppCore.invokeControllerAsync for all API calls.
  */
-window.AccountCancelStopPaymentModule = (function () {
+window.CancelStopPaymentModule = (function () {
     'use strict';
 
+    // Module State
     const state = {
-        currentMode: 'NONE',    // NONE | ADD | EDIT | DELETE
+        accountId: '',
+        branchId: '',
+        operatorId: '',
+        currentMode: 'VIEW', // VIEW, ADD, EDIT
         records: [],
         selectedIndex: -1,
+        selectedRecord: null,
         currentUpdateCount: 0
     };
 
+    // API Paths (Relative to AccountsMaintenance controller)
     const API = {
-        GET:    '/AccountsMaintenance/api/get-cancel-stop-payments',
-        ADD:    '/AccountsMaintenance/api/add-cancel-stop-payment',
-        UPDATE: '/AccountsMaintenance/api/update-cancel-stop-payment'
+        GET: 'api/get-cancel-stop-payments',
+        ADD: 'api/add-cancel-stop-payment',
+        UPDATE: 'api/update-cancel-stop-payment'
     };
 
-    function getContext() {
-        const ps = window.AccountMaintenanceState;
-        return {
-            AccountID:   ps?.AccountID   || sessionStorage.getItem('currentAccountID')   || '',
-            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID')    || '',
-            OperatorID:  ps?.OperatorID  || sessionStorage.getItem('currentOperatorID')  || localStorage.getItem('OperatorID') || 'SYSTEM'
-        };
+    /**
+     * Initialize the module
+     */
+    function init() {
+        console.log('[CancelStopPayment] Initializing module...');
+        loadContext();
+
+        // Initial data load
+        if (state.accountId) {
+            loadData();
+        } else {
+            AppCore.showMsg('No account context found. Please select an account.', 'warning');
+            setMode('VIEW');
+        }
+
+        // Wire lookup buttons that are internal to this submodule
+        wireInternalLookups();
     }
 
-    // ── UI Helpers ─────────────────────────────────────────────
-    function el(id)       { return document.getElementById(id); }
-    function val(id)      { const e = el(id); return e ? e.value : ''; }
-    function setVal(id,v) { const e = el(id); if (e) e.value = (v == null) ? '' : v; }
-    function setText(id,v){ const e = el(id); if (!e) return; if (e.tagName==='INPUT'||e.tagName==='TEXTAREA'||e.tagName==='SELECT') e.value=(v==null)?'':v; else e.textContent=(v==null)?'-':v; }
+    /**
+     * Load account and branch context from global state or session
+     */
+    function loadContext() {
+        const globalState = window.AccountMaintenanceState || {};
+        state.accountId = globalState.AccountID || sessionStorage.getItem('currentAccountID') || '';
+        state.branchId = globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '';
+        state.operatorId = globalState.OperatorID || localStorage.getItem('OperatorID') || 'SYSTEM';
 
-    function showLoading(show) { const o = el('loadingOverlay') || document.querySelector('.de-loading-overlay'); if (o) o.hidden = !show; }
-    function showMsg(msg, type) { const t = window.showSystemToast || window.parent?.showSystemToast; if (t) t(msg, { variant: type==='error'?'danger':type }); console.log(`[CancelStopPayment] ${type}: ${msg}`); }
-    function isSuccess(r) { return r?.ResponseCode === '00' || r?.ResponseCode === 0; }
+        // Update UI with IDs
+        const branchInput = document.getElementById('branchId');
+        const accountInput = document.getElementById('accountId');
+        if (branchInput) branchInput.value = state.branchId;
+        if (accountInput) accountInput.value = state.accountId;
 
-    function fmtDate(ds) {
-        if (!ds) return '';
-        try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleDateString(); } catch { return ds; }
-    }
-    function fmtDateTime(ds) {
-        if (!ds) return '-';
-        try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch { return ds; }
-    }
-    function fmtMoney(n) {
-        const v = parseFloat(n || 0);
-        return isNaN(v) ? '0.00' : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function escHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-    const EDITABLE = ['chequeNoStart', 'chequeNoEnd', 'chequeDate', 'chequeAmount', 'reasonId', 'reasonText', 'cancellationDate', 'instructionGivenBy'];
-    const CLIENT   = ['clientId', 'clientName', 'productId', 'productName', 'address1', 'address2', 'city', 'country', 'phoneHome', 'phoneWork', 'faxNo', 'mobile'];
-
-    // ── Mode management ────────────────────────────────────────
-    function setActionBtn(action, enabled) {
-        const btn = document.querySelector(`[data-action="${action}"]`);
-        if (btn) { btn.disabled = !enabled; btn.style.opacity = enabled ? '1' : '0.5'; }
+        if (globalState.BranchName) {
+            const branchNameInput = document.getElementById('branchName');
+            if (branchNameInput) branchNameInput.value = globalState.BranchName;
+        }
+        if (globalState.AccountName) {
+            const accountNameInput = document.getElementById('accountName');
+            if (accountNameInput) accountNameInput.value = globalState.AccountName;
+        }
     }
 
-    function setMode(mode) {
-        state.currentMode = mode;
-        const editing = mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE';
+    /**
+     * Load data from the server
+     */
+    async function loadData() {
+        if (!state.accountId) return;
 
-        EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = !editing; });
-
-        setActionBtn('view',   !editing);
-        setActionBtn('add',    !editing);
-        setActionBtn('edit',   !editing && state.selectedIndex >= 0);
-        setActionBtn('save',   editing);
-        setActionBtn('delete', !editing && state.selectedIndex >= 0);
-        setActionBtn('cancel', editing);
-
-        if (mode === 'ADD') { clearForm(); state.selectedIndex = -1; }
-        console.log('[CancelStopPayment] Mode →', mode);
-    }
-
-    // ── Wire Events ────────────────────────────────────────────
-    function wireEvents() {
-        document.querySelectorAll('[data-action]').forEach(btn => {
-            if (btn._wired) return;
-            btn._wired = true;
-            const a = btn.getAttribute('data-action');
-            if (a === 'view')   btn.addEventListener('click', () => { state.currentMode = 'NONE'; loadData(); });
-            if (a === 'add')    btn.addEventListener('click', () => setMode('ADD'));
-            if (a === 'edit')   btn.addEventListener('click', () => setMode('EDIT'));
-            if (a === 'save')   btn.addEventListener('click', saveData);
-            if (a === 'delete') btn.addEventListener('click', deleteData);
-            if (a === 'cancel') btn.addEventListener('click', cancelChanges);
-        });
-
-        // Section toggles
-        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
-            if (hdr._wired) return;
-            hdr._wired = true;
-            hdr.addEventListener('click', function () {
-                const sec = this.closest('.form-section');
-                const c = sec?.querySelector('.section-content');
-                const btn = sec?.querySelector('.section-toggle-btn');
-                const icon = btn?.querySelector('i');
-                const exp = btn?.getAttribute('aria-expanded') === 'true';
-                if (c) c.hidden = exp;
-                btn?.setAttribute('aria-expanded', String(!exp));
-                icon?.classList.toggle('bi-chevron-up');
-                icon?.classList.toggle('bi-chevron-down');
+        AppCore.showLoading(true);
+        try {
+            const ctx = {
+                OurBranchID: state.branchId,
+                AccountID: state.accountId,
+                OperatorID: state.operatorId
+            };
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                OperatorID: ctx.OperatorID
             });
-        });
-    }
 
-    // ── Load Data ──────────────────────────────────────────────
-    function loadData() {
-        const ctx = getContext();
-        showLoading(true);
+            if (result && result.ResponseCode === '00') {
+                const details = result.Details || {};
 
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                AccountID:     ctx.AccountID,
-                AccountTypeID: 'C',
-                OurBranchID:   ctx.OurBranchID,
-                OperatorID:    ctx.OperatorID
-            })
-        })
-        .then(r => r.json())
-        .then(result => {
-            showLoading(false);
-            if (isSuccess(result)) {
-                const d = result.Details;
+                // Details01 usually contains client/account info
+                const clientInfo = (details.Details01 && details.Details01.length > 0) ? details.Details01[0] : {};
+                populateAccountDetails(clientInfo);
 
-                // Client info from Details01
-                const client = d?.Details01?.[0] || {};
-                populateClient(client);
-
-                // Stop payment records from Details02
-                state.records = d?.Details02 || (Array.isArray(d) ? d : []);
+                // Details02 usually contains the records
+                state.records = details.Details02 || (Array.isArray(details) ? details : []);
                 renderGrid();
 
-                const ctx2 = getContext();
-                setVal('branchId', ctx2.OurBranchID);
-                setVal('accountId', ctx2.AccountID);
-                setText('branchName', client.BranchName || window.AccountMaintenanceState?.BranchName || '');
-                setText('accountName', client.AccountName || window.AccountMaintenanceState?.AccountName || '');
-
-                // Audit
-                setText('CurrencyID',   client.CurrencyID || '-');
-                setText('MakerID',      client.CreatedBy || client.MakerID || '-');
-                setText('MakerDT',      fmtDateTime(client.CreatedOn || client.MakerDT));
-                setText('SupervisorID', client.SupervisedBy || '-');
-                setText('SupervisorDT', fmtDateTime(client.SupervisedOn));
-
                 if (state.records.length > 0) {
-                    selectItem(0);
+                    selectRecord(0);
                 } else {
                     clearForm();
+                    setMode('VIEW');
                 }
-
-                setActionBtn('edit', state.records.length > 0);
-                setActionBtn('delete', state.records.length > 0);
-                showMsg(result.ResponseMessage || 'Data loaded', 'success');
             } else {
                 state.records = [];
                 renderGrid();
                 clearForm();
-                showMsg(result?.ResponseMessage || 'No records found', 'warning');
+                setMode('VIEW');
+                AppCore.showMsg(result.ResponseMessage || 'No records found', 'info');
             }
-        })
-        .catch(err => {
-            showLoading(false);
-            showMsg('Error loading data: ' + err.message, 'error');
-        });
+        } catch (error) {
+            console.error('[CancelStopPayment] Error loading data:', error);
+            AppCore.showMsg('Failed to load cancel stop payment records', 'error');
+        } finally {
+            AppCore.showLoading(false);
+        }
     }
 
-    // ── Grid ───────────────────────────────────────────────────
+    /**
+     * Render the grid with records
+     */
     function renderGrid() {
-        const tbody = el('stopPaymentGrid')?.querySelector('tbody');
-        if (!tbody) return;
+        const gridBody = document.querySelector('#stopPaymentGrid tbody');
+        if (!gridBody) return;
 
         if (state.records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No records found</td></tr>';
+            gridBody.innerHTML = '<tr class="grid-empty-row"><td colspan="8" class="text-center">No records to display.</td></tr>';
+            document.getElementById('recordCount').textContent = '0 records';
             return;
         }
 
-        tbody.innerHTML = state.records.map((rec, idx) => `
-            <tr class="grid-row ${idx === state.selectedIndex ? 'selected' : ''}" data-index="${idx}" style="cursor:pointer;">
-                <td>${escHtml(rec.ChequePrefix || '')}</td>
-                <td>${escHtml(rec.StartChequeID || rec.ChequeNoStart || '')}</td>
-                <td>${escHtml(rec.EndChequeID || rec.ChequeNoEnd || '')}</td>
-                <td>${fmtDate(rec.ChequeDate)}</td>
-                <td>${escHtml(rec.CancelReason || rec.ReasonText || '')}</td>
-                <td>${fmtDate(rec.CancelledDate || rec.CancellationDate)}</td>
-                <td>${fmtMoney(rec.ChequeAmount)}</td>
-                <td>${escHtml(rec.CancelledBy || rec.InstructionGivenBy || '')}</td>
+        gridBody.innerHTML = state.records.map((rec, index) => `
+            <tr class="grid-row ${index === state.selectedIndex ? 'selected' : ''}" data-index="${index}">
+                <td>${rec.ChequePrefix || ''}</td>
+                <td>${rec.StartChequeID || rec.ChequeNoStart || ''}</td>
+                <td>${rec.EndChequeID || rec.ChequeNoEnd || ''}</td>
+                <td>${AppCore.formatDate(rec.ChequeDate)}</td>
+                <td>${rec.CancelReason || rec.ReasonText || ''}</td>
+                <td>${AppCore.formatDate(rec.CancelledDate || rec.CancellationDate)}</td>
+                <td class="text-end">${AppCore.formatCurrency(rec.ChequeAmount)}</td>
+                <td>${rec.CancelledBy || rec.InstructionGivenBy || ''}</td>
             </tr>
         `).join('');
 
-        tbody.querySelectorAll('.grid-row').forEach(row => {
-            row.addEventListener('click', () => selectItem(parseInt(row.dataset.index)));
+        document.getElementById('recordCount').textContent = `${state.records.length} record(s)`;
+
+        // Wire up row click events
+        gridBody.querySelectorAll('.grid-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const index = parseInt(row.getAttribute('data-index'));
+                selectRecord(index);
+            });
         });
     }
 
-    function selectItem(idx) {
-        state.selectedIndex = idx;
-        const rec = state.records[idx];
-        if (rec) {
-            populateForm(rec);
-            setActionBtn('edit', true);
-            setActionBtn('delete', true);
+    /**
+     * Select a record from the grid
+     */
+    function selectRecord(index) {
+        if (state.currentMode !== 'VIEW') return;
+
+        state.selectedIndex = index;
+        state.selectedRecord = state.records[index];
+
+        // Highlight selected row
+        const rows = document.querySelectorAll('#stopPaymentGrid tbody tr');
+        rows.forEach((row, i) => {
+            row.classList.toggle('selected', i === index);
+        });
+
+        if (state.selectedRecord) {
+            populateForm(state.selectedRecord);
         }
-        // Highlight
-        el('stopPaymentGrid')?.querySelectorAll('.grid-row').forEach((row, i) => {
-            row.classList.toggle('selected', i === idx);
-        });
     }
 
+    /**
+     * Populate the form fields with record data
+     */
     function populateForm(rec) {
-        setVal('requestRef',        rec.RequestReferenceNo || rec.RequestRef || '');
-        setVal('chequeNoStart',     rec.StartChequeID || rec.ChequeNoStart || '');
-        setVal('chequeNoEnd',       rec.EndChequeID || rec.ChequeNoEnd || '');
-        setVal('chequeDate',        rec.ChequeDate ? rec.ChequeDate.split('T')[0] : '');
-        setVal('chequeAmount',      rec.ChequeAmount || '');
-        setVal('reasonId',          rec.CancelReasonID || rec.ReasonId || '');
-        setVal('reasonText',        rec.CancelReason || rec.ReasonText || '');
-        setVal('cancellationDate',  rec.CancelledDate ? rec.CancelledDate.split('T')[0] : (rec.CancellationDate || ''));
-        setVal('instructionGivenBy', rec.CancelledBy || rec.InstructionGivenBy || '');
-        state.currentUpdateCount = parseInt(rec.UpdateCount || 0) || 0;
+        document.getElementById('requestRef').value = rec.RequestReferenceNo || rec.RequestRef || '';
+        document.getElementById('chequeNoStart').value = rec.StartChequeID || rec.ChequeNoStart || '';
+        document.getElementById('chequeNoEnd').value = rec.EndChequeID || rec.ChequeNoEnd || '';
+        document.getElementById('chequeDate').value = rec.ChequeDate ? rec.ChequeDate.split('T')[0] : '';
+        document.getElementById('chequeAmount').value = rec.ChequeAmount || '0.00';
+        document.getElementById('reasonId').value = rec.CancelReasonID || rec.ReasonId || '';
+        document.getElementById('reasonText').value = rec.CancelReason || rec.ReasonText || '';
+        document.getElementById('cancellationDate').value = (rec.CancelledDate || rec.CancellationDate) ? (rec.CancelledDate || rec.CancellationDate).split('T')[0] : '';
+        document.getElementById('instructionGivenBy').value = rec.CancelledBy || rec.InstructionGivenBy || '';
+
+        state.currentUpdateCount = parseInt(rec.UpdateCount || 0);
+
+        // Populate Audit info
+        document.getElementById('CurrencyID').textContent = rec.CurrencyID || '-';
+        document.getElementById('MakerID').textContent = rec.MakerID || rec.CreatedBy || '-';
+        document.getElementById('MakerDT').textContent = AppCore.formatDate(rec.MakerDT || rec.CreatedOn, true);
+        document.getElementById('SupervisorID').textContent = rec.SupervisorID || rec.SupervisedBy || '-';
+        document.getElementById('SupervisorDT').textContent = AppCore.formatDate(rec.SupervisorDT || rec.SupervisedOn, true);
     }
 
-    function populateClient(client) {
-        CLIENT.forEach(id => {
-            const key = id.charAt(0).toUpperCase() + id.slice(1);
-            setText(id, client[key] || client[id] || '');
+    /**
+     * Populate the account details section
+     */
+    function populateAccountDetails(client) {
+        if (!client) return;
+
+        document.getElementById('clientId').value = client.ClientID || '';
+        document.getElementById('clientName').value = client.ClientName || '';
+        document.getElementById('productId').value = client.ProductID || '';
+        document.getElementById('productName').value = client.ProductName || '';
+        document.getElementById('address1').value = client.Address1 || '';
+        document.getElementById('address2').value = client.Address2 || '';
+        document.getElementById('city').value = client.City || '';
+        document.getElementById('country').value = client.Country || '';
+        document.getElementById('phoneHome').value = client.PhoneHome || '';
+        document.getElementById('phoneWork').value = client.PhoneWork || '';
+        document.getElementById('faxNo').value = client.FaxNo || '';
+        document.getElementById('mobile').value = client.Mobile || '';
+
+        // If not already set, update branch and account names from client info
+        if (client.BranchName && !document.getElementById('branchName').value) {
+            document.getElementById('branchName').value = client.BranchName;
+        }
+        if (client.AccountName && !document.getElementById('accountName').value) {
+            document.getElementById('accountName').value = client.AccountName;
+        }
+    }
+
+    /**
+     * Clear the form fields
+     */
+    function clearForm() {
+        const fields = [
+            'requestRef', 'chequeNoStart', 'chequeNoEnd', 'chequeDate', 'chequeAmount',
+            'reasonId', 'reasonText', 'cancellationDate', 'instructionGivenBy'
+        ];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
         });
+
+        document.getElementById('CurrencyID').textContent = '-';
+        document.getElementById('MakerID').textContent = '-';
+        document.getElementById('MakerDT').textContent = '-';
+        document.getElementById('SupervisorID').textContent = '-';
+        document.getElementById('SupervisorDT').textContent = '-';
+
+        state.currentUpdateCount = 0;
     }
 
-    // ── Save ───────────────────────────────────────────────────
-    function saveData() {
-        const startCh = val('chequeNoStart').trim();
-        const endCh   = val('chequeNoEnd').trim();
-        if (!startCh) { showMsg('Cheque No Start is required', 'warning'); return; }
-        if (!endCh)   { showMsg('Cheque No End is required', 'warning'); return; }
+    /**
+     * Set the UI mode (VIEW, ADD, EDIT)
+     */
+    function setMode(mode) {
+        state.currentMode = mode;
+        const isEditing = mode === 'ADD' || mode === 'EDIT';
 
-        const ctx = getContext();
-        const isAdd = state.currentMode === 'ADD';
-        const payload = {
-            OurBranchID:        ctx.OurBranchID,
-            AccountTypeID:      'C',
-            AccountID:          ctx.AccountID,
-            OperatorID:         ctx.OperatorID,
-            RequestReferenceNo: val('requestRef').trim(),
-            StartChequeID:      startCh,
-            EndChequeID:        endCh,
-            ChequeDate:         val('chequeDate'),
-            ChequeAmount:       val('chequeAmount') || '0',
-            CancelReasonID:     val('reasonId'),
-            CancelReason:       val('reasonText').trim(),
-            CancelledBy:        val('instructionGivenBy').trim(),
-            CancelledDate:      val('cancellationDate'),
-            NewRecord:          isAdd ? 1 : 0,
-            UpdateCount:        state.currentUpdateCount
-        };
+        // Enable/disable fields based on mode
+        const editableFields = [
+            'requestRef', 'chequeNoStart', 'chequeNoEnd', 'chequeDate', 'chequeAmount',
+            'reasonId', 'reasonText', 'cancellationDate', 'instructionGivenBy'
+        ];
 
-        showLoading(true);
+        editableFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = !isEditing;
+        });
 
-        fetch(isAdd ? API.ADD : API.UPDATE, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(r => r.json())
-        .then(result => {
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Saved successfully', 'success');
-                state.currentMode = 'NONE';
+        console.log(`[CancelStopPayment] Mode changed to: ${mode}`);
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        if (btnView) btnView.disabled = isEditing;
+        if (btnAdd) btnAdd.disabled = isEditing;
+        if (btnEdit) btnEdit.disabled = isEditing;
+        if (btnSave) btnSave.disabled = !isEditing;
+        if (btnCancel) btnCancel.disabled = !isEditing;
+        if (btnDelete) btnDelete.disabled = isEditing;
+    }
+
+    /**
+     * UI Action: Navigate (Refresh data)
+     */
+    function navigate() {
+        setMode('VIEW');
+        loadData();
+    }
+
+    /**
+     * UI Action: Confirm Add
+     */
+    function confirmAdd() {
+        clearForm();
+        setMode('ADD');
+    }
+
+    /**
+     * UI Action: Confirm Edit
+     */
+    function confirmEdit() {
+        if (state.selectedIndex < 0) {
+            AppCore.showMsg('Please select a record to edit', 'warning');
+            return;
+        }
+        setMode('EDIT');
+    }
+
+    /**
+     * UI Action: Save Data
+     */
+    async function saveData() {
+        if (state.currentMode === 'VIEW') return;
+
+        // Validation
+        const startCh = document.getElementById('chequeNoStart').value.trim();
+        const endCh = document.getElementById('chequeNoEnd').value.trim();
+        const reasonId = document.getElementById('reasonId').value;
+
+        if (!startCh) { AppCore.showMsg('Cheque No Start is required', 'warning'); return; }
+        if (!endCh) { AppCore.showMsg('Cheque No End is required', 'warning'); return; }
+        if (!reasonId) { AppCore.showMsg('Cancel Reason is required', 'warning'); return; }
+
+        const confirmed = await AppCore.showConfirmation('Confirm Save', 'Are you sure you want to save this cancel stop payment?');
+        if (!confirmed) return;
+
+        AppCore.showLoading(true);
+        try {
+            const isAdd = state.currentMode === 'ADD';
+            const payload = {
+                OurBranchID: state.branchId,
+                AccountTypeID: 'C',
+                AccountID: state.accountId,
+                OperatorID: state.operatorId,
+                RequestReferenceNo: document.getElementById('requestRef').value.trim(),
+                StartChequeID: startCh,
+                EndChequeID: endCh,
+                ChequeDate: document.getElementById('chequeDate').value,
+                ChequeAmount: document.getElementById('chequeAmount').value || '0',
+                CancelReasonID: reasonId,
+                CancelReason: document.getElementById('reasonText').value.trim(),
+                CancelledBy: document.getElementById('instructionGivenBy').value.trim(),
+                CancelledDate: document.getElementById('cancellationDate').value,
+                NewRecord: isAdd ? 1 : 0,
+                UpdateCount: state.currentUpdateCount
+            };
+
+            const endpoint = 'AccountsMaintenance/' + (isAdd ? API.ADD : API.UPDATE);
+            const result = await AppCore.invokeControllerAsync(endpoint, payload);
+
+            if (result && result.ResponseCode === '00') {
+                AppCore.showMsg(result.ResponseMessage || 'Record saved successfully', 'success');
+                setMode('VIEW');
                 loadData();
             } else {
-                showMsg(result?.ResponseMessage || 'Save failed', 'error');
+                AppCore.showMsg(result.ResponseMessage || 'Failed to save record', 'error');
             }
-        })
-        .catch(err => {
-            showLoading(false);
-            showMsg('Save error: ' + err.message, 'error');
-        });
+        } catch (error) {
+            console.error('[CancelStopPayment] Error saving data:', error);
+            AppCore.showMsg('An error occurred while saving', 'error');
+        } finally {
+            AppCore.showLoading(false);
+        }
     }
 
-    // ── Delete ─────────────────────────────────────────────────
-    function deleteData() {
-        if (state.selectedIndex < 0) { showMsg('No record selected', 'warning'); return; }
-        if (!confirm('Delete this record?')) return;
+    /**
+     * UI Action: Delete Data
+     */
+    async function deleteData() {
+        if (state.selectedIndex < 0) {
+            AppCore.showMsg('Please select a record to delete', 'warning');
+            return;
+        }
 
-        const ctx = getContext();
-        const rec = state.records[state.selectedIndex];
-        showLoading(true);
+        const confirmed = await AppCore.showConfirmation('Confirm Delete', 'Are you sure you want to delete this cancel stop payment record?');
+        if (!confirmed) return;
 
-        fetch(API.UPDATE, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                OurBranchID:        ctx.OurBranchID,
-                AccountTypeID:      'C',
-                AccountID:          ctx.AccountID,
-                OperatorID:         ctx.OperatorID,
-                RequestReferenceNo: rec?.RequestReferenceNo || '',
-                NewRecord:          -1
-            })
-        })
-        .then(r => r.json())
-        .then(result => {
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Deleted', 'success');
+        AppCore.showLoading(true);
+        try {
+            const rec = state.records[state.selectedIndex];
+            const payload = {
+                OurBranchID: state.branchId,
+                AccountTypeID: 'C',
+                AccountID: state.accountId,
+                OperatorID: state.operatorId,
+                RequestReferenceNo: rec.RequestReferenceNo || rec.RequestRef || '',
+                NewRecord: -1 // Signal for delete
+            };
+
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.UPDATE, payload);
+
+            if (result && result.ResponseCode === '00') {
+                AppCore.showMsg(result.ResponseMessage || 'Record deleted successfully', 'success');
                 loadData();
             } else {
-                showMsg(result?.ResponseMessage || 'Delete failed', 'error');
+                AppCore.showMsg(result.ResponseMessage || 'Failed to delete record', 'error');
             }
-        })
-        .catch(err => {
-            showLoading(false);
-            showMsg('Delete error: ' + err.message, 'error');
-        });
+        } catch (error) {
+            console.error('[CancelStopPayment] Error deleting data:', error);
+            AppCore.showMsg('An error occurred while deleting', 'error');
+        } finally {
+            AppCore.showLoading(false);
+        }
     }
 
-    // ── Cancel / Clear ─────────────────────────────────────────
-    function cancelChanges() {
-        if (state.selectedIndex >= 0 && state.records[state.selectedIndex]) {
+    /**
+     * UI Action: Confirm Cancel (Discard changes)
+     */
+    function confirmCancel() {
+        if (state.currentMode === 'VIEW') return;
+
+        if (state.selectedIndex >= 0) {
             populateForm(state.records[state.selectedIndex]);
         } else {
             clearForm();
         }
-        state.currentMode = 'NONE';
-        EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = true; });
-        setActionBtn('view', true);
-        setActionBtn('add', true);
-        setActionBtn('edit', state.selectedIndex >= 0);
-        setActionBtn('save', false);
-        setActionBtn('delete', state.selectedIndex >= 0);
-        setActionBtn('cancel', false);
+        setMode('VIEW');
     }
 
-    function clearForm() {
-        [...EDITABLE, 'requestRef'].forEach(id => setVal(id, ''));
-        state.currentUpdateCount = 0;
+    /**
+     * Wire up internal lookup buttons
+     */
+    function wireInternalLookups() {
+        // Internal lookups can be handled here if needed
+        // The main lookups (Account, Branch) are usually handled by the orchestrator
     }
 
-    // ── Init ───────────────────────────────────────────────────
-    function init() {
-        console.log('[CancelStopPayment] Initializing');
-        wireEvents();
+    // Public API
+    return {
+        init,
+        navigate,
+        confirmAdd,
+        confirmEdit,
+        saveData,
+        deleteData,
+        confirmCancel,
+        setMode
+    };
 
-        EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = true; });
-        setActionBtn('save', false);
-        setActionBtn('cancel', false);
-        setActionBtn('edit', false);
-        setActionBtn('delete', false);
-
-        const ctx = getContext();
-        setVal('branchId', ctx.OurBranchID);
-        setVal('accountId', ctx.AccountID);
-
-        if (ctx.AccountID) {
-            setTimeout(() => loadData(), 300);
-        }
-    }
-
-    return { init, setMode, saveData, cancelChanges, loadData };
 })();
 
-console.log('[CancelStopPayment] Module registered');
+console.log('[CancelStopPayment] Module loaded');

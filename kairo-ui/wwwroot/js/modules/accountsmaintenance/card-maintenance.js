@@ -14,11 +14,12 @@ window.CardMaintenanceModule = (function () {
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
+    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-card',
-        ADD: '/AccountsMaintenance/api/add-account-card',
-        UPDATE: '/AccountsMaintenance/api/update-account-card',
-        DELETE: '/AccountsMaintenance/api/delete-account-card'
+        GET: 'AccountsMaintenance/api/get-account-card',
+        ADD: 'AccountsMaintenance/api/add-account-card',
+        UPDATE: 'AccountsMaintenance/api/update-account-card',
+        DELETE: 'AccountsMaintenance/api/delete-account-card'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -40,11 +41,8 @@ window.CardMaintenanceModule = (function () {
         if (!e) return;
         const s = (v == null) ? '' : v;
         if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
-            if (e.type === 'checkbox') {
-                e.checked = !!v;
-            } else if (e.value !== s) {
-                e.value = s;
-            }
+            if (e.type === 'checkbox') e.checked = !!v;
+            else if (e.value !== s) e.value = s;
         } else {
             if (e.textContent !== s) e.textContent = s;
         }
@@ -63,9 +61,15 @@ window.CardMaintenanceModule = (function () {
         console.log('[CardMaintenance] ' + type + ': ' + msg);
     }
 
-    function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
+    function isSuccess(r) {
+        if (!r) return false;
+        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
 
     function showConfirm(message, title, iconClass) {
+        if (window.AppCore && window.AppCore.showConfirmation) {
+            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
+        }
         title = title || 'Confirm Action';
         iconClass = iconClass || 'bi-question-circle';
         return new Promise(function (resolve) {
@@ -102,7 +106,6 @@ window.CardMaintenanceModule = (function () {
 
             confirmBtn.onclick = function () { handleResponse(true); };
             cancelBtn.onclick = function () { handleResponse(false); };
-            overlay.onclick = function (e) { if (e.target === overlay) handleResponse(false); };
 
             requestAnimationFrame(function () {
                 overlay.classList.add('is-visible');
@@ -125,12 +128,9 @@ window.CardMaintenanceModule = (function () {
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
-        } catch (e) {
-            return '';
-        }
+        } catch (e) { return ''; }
     }
 
-    /* ── Editable fields ─────────────────────────────────────── */
     const EDITABLE = [
         'trackingId', 'cardProvider', 'cardType',
         'cardRemarks', 'isApproved', 'approvedDate',
@@ -139,21 +139,16 @@ window.CardMaintenanceModule = (function () {
         'deactivationDate', 'reason', 'reactivationDate', 'reactivationRemarks',
         'status', 'initialTransaction'
     ];
-    // cardName and cardId are readonly manually managed.
-
     const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
 
     function setFieldsEditable(editable) {
-        EDITABLE.forEach(function (id) {
-            var e = el(id);
-            if (e) e.disabled = !editable;
-        });
+        EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = !editable; });
     }
 
-    /* ── Mode Management ─────────────────────────────────────── */
+    /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
         state.editMode = mode;
-        var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
+        const editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
         setFieldsEditable(editing);
 
         // Parent-provided action panel buttons (by ID)
@@ -164,24 +159,19 @@ window.CardMaintenanceModule = (function () {
         var saveB = el('submoduleBtnSave');
         var cancelB = el('submoduleBtnCancel');
 
-        var prevB = el('submoduleBtnPrev');
-        var nextB = el('submoduleBtnNext');
-
         if (viewB) viewB.disabled = editing;
         if (addB) addB.disabled = editing;
         if (editB) editB.disabled = editing || state.cards.length === 0 || state.selectedIndex === -1;
         if (delB) delB.disabled = editing || state.cards.length === 0 || state.selectedIndex === -1;
         if (saveB) saveB.disabled = !editing;
         if (cancelB) cancelB.disabled = !editing;
-        if (prevB) prevB.style.display = 'none';
-        if (nextB) nextB.style.display = 'none';
 
         if (mode === 'ADD') {
             clearForm();
-            var ctx = getContext();
-            setVal('cardName', ctx.AccountName || ''); // Auto-populate cardName from context
+            const ctx = getContext();
+            setVal('cardName', ctx.AccountName || '');
             el('trackingId')?.focus();
-        } else if (mode === 'NONE' && state.selectedIndex >= 0 && state.cards[state.selectedIndex]) {
+        } else if (mode === 'NONE' && state.selectedIndex >= 0) {
             bindForm(state.cards[state.selectedIndex]);
         }
 
@@ -190,10 +180,10 @@ window.CardMaintenanceModule = (function () {
 
     /* ── Collapsible Sections ────────────────────────────────── */
     function wireSectionToggles() {
-        document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
+        document.querySelectorAll('[data-section-toggle]').forEach(header => {
             if (header._wiredCardMaint) return;
             header._wiredCardMaint = true;
-            header.addEventListener('click', function (e) {
+            header.addEventListener('click', e => {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
                 var section = header.closest('.form-section');
                 var content = section ? section.querySelector('[data-section-content]') : null;
@@ -206,20 +196,20 @@ window.CardMaintenanceModule = (function () {
                     icon.classList.toggle('bi-chevron-up', !isOpen);
                     icon.classList.toggle('bi-chevron-down', isOpen);
                 }
-                if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(!isOpen));
             });
         });
     }
 
     /* ── Bind form data ──────────────────────────────────────── */
     function bindForm(data) {
-        setVal('trackingId', data.TrackingID || data.TrackingId || '');
+        if (!data) return;
+        setVal('trackingId', data.TrackingID || '');
         setVal('cardProvider', data.CardProvider || data.Provider || data.CardProviderID || '');
         setVal('cardName', data.CardName || data.NameOnCard || '');
         setVal('cardType', data.CardType || data.Type || data.CardTypeID || '');
 
         setVal('cardId', data.CardID || data.ID || '');
-        setVal('cardRemarks', data.CardRemarks || data.Remarks || '');
+        setVal('cardRemarks', data.CardRemarks || '');
         setVal('isApproved', data.IsApproved || false);
         setVal('approvedDate', formatDateForInput(data.ApprovedDate));
 
@@ -241,15 +231,12 @@ window.CardMaintenanceModule = (function () {
         setVal('status', data.Status || data.CardStatus || data.CardStatusID || '');
         setVal('initialTransaction', data.InitialTransaction || '');
 
-        // Audit
-        setVal('MakerID', data.CreatedBy || data.MakerId || data.MakerID || '-');
-        setVal('MakerDT', fmtDateTime(data.CreatedOn || data.MakerDt || data.MakerDT));
-        setVal('ModifierID', data.ModifiedBy || data.ModifierId || data.ModifierID || '-');
-        setVal('ModifierDT', fmtDateTime(data.ModifiedOn || data.ModifierDt || data.ModifierDT));
-        setVal('CheckerID', data.CheckedBy || data.CheckerId || data.CheckerID || '-');
-        setVal('CheckerDT', fmtDateTime(data.CheckedOn || data.CheckerDt || data.CheckerDT));
-
-        state.operatorID = data.OperatorID || data.OperatorId || '';
+        setVal('MakerID', data.CreatedBy || '-');
+        setVal('MakerDT', fmtDateTime(data.CreatedOn));
+        setVal('ModifierID', data.ModifiedBy || '-');
+        setVal('ModifierDT', fmtDateTime(data.ModifiedOn));
+        setVal('CheckerID', data.CheckedBy || '-');
+        setVal('CheckerDT', fmtDateTime(data.CheckedOn));
     }
 
     /* ── Render Grid ─────────────────────────────────────────── */
@@ -269,14 +256,14 @@ window.CardMaintenanceModule = (function () {
         state.cards.forEach((item, index) => {
             const row = document.createElement('tr');
             row.style.cursor = 'pointer';
-            row.className = index === state.selectedIndex ? 'table-active' : '';
+            if (index === state.selectedIndex) row.classList.add('table-active');
 
             row.innerHTML = `
-                <td>${item.TrackingID || item.TrackingId || '-'}</td>
+                <td>${item.TrackingID || '-'}</td>
                 <td>${item.CardID || item.ID || '-'}</td>
-                <td>${item.AccountID || item.AccountId || '-'}</td>
-                <td>${item.CardProvider || item.Provider || item.CardProviderID || '-'}</td>
-                <td>${item.CardRemarks || item.Remarks || '-'}</td>
+                <td>${item.AccountID || '-'}</td>
+                <td>${item.CardProvider || '-'}</td>
+                <td>${item.CardRemarks || '-'}</td>
             `;
 
             row.addEventListener('click', () => {
@@ -284,259 +271,177 @@ window.CardMaintenanceModule = (function () {
                 state.selectedIndex = index;
                 renderGrid();
                 bindForm(item);
-                setMode('NONE'); // Re-evaluate button states
+                setMode('NONE');
             });
             tbody.appendChild(row);
         });
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
-    function navigate() {
-        var ctx = getContext();
+    async function navigate() {
+        const ctx = getContext();
+        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
         showLoading(true);
-
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
-            })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (result) {
-                showLoading(false);
-
-                if (isSuccess(result)) {
-                    let data = [];
-                    var d = result && result.Details ? result.Details : null;
-
-                    if (Array.isArray(d)) data = d;
-                    else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                    else if (Array.isArray(result.Data)) data = result.Data;
-                    else if (d && typeof d === 'object') data = [d];
-                    else if (result.Data && typeof result.Data === 'object') data = [result.Data];
-
-                    state.cards = data;
-
-                    if (state.cards.length > 0) {
-                        state.selectedIndex = 0;
-                        bindForm(state.cards[0]);
-                        showMsg(`Loaded ${state.cards.length} card(s).`, 'success');
-                    } else {
-                        state.selectedIndex = -1;
-                        clearForm();
-                        showMsg('No cards found.', 'info');
-                    }
-
-                    renderGrid();
-                    setMode('NONE');
-                } else {
-                    state.cards = [];
-                    state.selectedIndex = -1;
-                    renderGrid();
-                    clearForm();
-                    setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No cards found.', 'warning');
-                }
-            })
-            .catch(function (err) {
-                showLoading(false);
-                showMsg('Error loading Account Cards: ' + err.message, 'error');
             });
+
+            showLoading(false);
+            if (isSuccess(result)) {
+                const d = result.Details || result.Data || result;
+                state.cards = Array.isArray(d) ? d : (d && d.Details01 ? d.Details01 : (typeof d === 'object' ? [d] : []));
+
+                if (state.cards.length > 0) {
+                    state.selectedIndex = 0;
+                    bindForm(state.cards[0]);
+                } else {
+                    state.selectedIndex = -1;
+                    clearForm();
+                }
+                renderGrid();
+                setMode('NONE');
+            } else {
+                state.cards = [];
+                state.selectedIndex = -1;
+                renderGrid();
+                setMode('NONE');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading Account Cards: ' + err.message, 'error');
+        }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
-    function saveData() {
-        var isAdd = state.editMode === 'ADD';
-        var actionLabel = isAdd ? 'create' : 'update';
-
-        var trackingId = val('trackingId');
+    async function saveData() {
+        const isAdd = state.editMode === 'ADD';
+        const trackingId = val('trackingId');
         if (!trackingId) { showMsg('TrackingID is required', 'warning'); return; }
 
-        showConfirm(
-            'Are you sure you want to ' + actionLabel + ' this card?',
-            'Save Card',
-            'bi-save'
-        ).then(function (confirmed) {
-            if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
+        const confirmed = await showConfirm(
+            `Are you sure you want to ${isAdd ? 'create' : 'update'} this card?`,
+            'Save Confirmation'
+        );
+        if (!confirmed) return;
 
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+        const ctx = getContext();
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            CreatedBy: ctx.OperatorID,
+            OperatorID: ctx.OperatorID,
+            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
 
-            // Build payload
-            var payload = {
-                OurBranchID: ctx.OurBranchID,
-                AccountID: ctx.AccountID,
-                CreatedBy: ctx.OperatorID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
+            TrackingID: trackingId,
+            CardProvider: val('cardProvider'),
+            CardProviderID: val('cardProvider'),
+            CardName: val('cardName'),
+            CardType: val('cardType'),
+            CardTypeID: val('cardType'),
+            CardRemarks: val('cardRemarks'),
+            IsApproved: isChecked('isApproved'),
+            ApprovedDate: val('approvedDate') || null,
+            IsExported: isChecked('isExported'),
+            ExportedDate: val('exportedDate') || null,
+            IsActive: isChecked('isActive'),
+            ActivatedDate: val('activatedDate') || null,
+            StartDate: val('startDate') || null,
+            ExpiryDate: val('expiryDate') || null,
+            Collected: isChecked('collected'),
+            CollectionDate: val('collectionDate') || null,
+            DeactivationDate: val('deactivationDate') || null,
+            Reason: val('reason'),
+            CardDeactivationReasonID: val('reason'),
+            ReactivationDate: val('reactivationDate') || null,
+            ReactivationRemarks: val('reactivationRemarks'),
+            Status: val('status'),
+            CardStatusID: val('status'),
+            InitialTransaction: val('initialTransaction')
+        };
 
-                TrackingID: trackingId,
-                CardProvider: val('cardProvider'),
-                CardProviderID: val('cardProvider'),
-                CardName: val('cardName'),
-                CardType: val('cardType'),
-                CardTypeID: val('cardType'),
-                CardRemarks: val('cardRemarks'),
-                IsApproved: isChecked('isApproved'),
-                ApprovedDate: val('approvedDate') || null,
-                IsExported: isChecked('isExported'),
-                ExportedDate: val('exportedDate') || null,
-                IsActive: isChecked('isActive'),
-                ActivatedDate: val('activatedDate') || null,
-                StartDate: val('startDate') || null,
-                ExpiryDate: val('expiryDate') || null,
-                Collected: isChecked('collected'),
-                CollectionDate: val('collectionDate') || null,
-                DeactivationDate: val('deactivationDate') || null,
-                Reason: val('reason'),
-                CardDeactivationReasonID: val('reason'),
-                ReactivationDate: val('reactivationDate') || null,
-                ReactivationRemarks: val('reactivationRemarks'),
-                Status: val('status'),
-                CardStatusID: val('status'),
-                InitialTransaction: val('initialTransaction')
-            };
+        if (!isAdd && state.selectedIndex >= 0) {
+            const item = state.cards[state.selectedIndex];
+            payload.CardID = item.CardID || item.ID || '';
+        }
 
-            if (!isAdd && state.selectedIndex >= 0) {
-                var item = state.cards[state.selectedIndex];
-                payload.CardID = item.CardID || item.ID || '';
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg('Card saved successfully.', 'success');
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Save failed.', 'error');
             }
-
-            showLoading(true);
-
-            fetch(isAdd ? API.ADD : API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || (isAdd ? 'Card added.' : 'Card updated.'), 'success');
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Save failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Save error: ' + err.message, 'error');
-                });
-        });
+        } catch (err) {
+            showLoading(false);
+            showMsg('Save error: ' + err.message, 'error');
+        }
     }
 
     /* ── Delete ──────────────────────────────────────────────── */
-    function deleteData() {
-        if (state.selectedIndex === -1 || !state.cards[state.selectedIndex]) {
-            showMsg('No data to delete.', 'warning'); return;
-        }
+    async function deleteData() {
+        if (state.selectedIndex === -1) { showMsg('No card selected.', 'warning'); return; }
 
-        showConfirm(
-            'Are you sure you want to delete this card?',
-            'Delete Card',
-            'bi-trash'
-        ).then(function (confirmed) {
-            if (!confirmed) return;
+        const confirmed = await showConfirm('Are you sure you want to delete this card?', 'Delete Confirmation');
+        if (!confirmed) return;
 
-            setMode('DELETE');
-
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-            var item = state.cards[state.selectedIndex];
-
-            showLoading(true);
-
-            var payload = {
-                AccountID: ctx.AccountID,
-                OurBranchID: ctx.OurBranchID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
+        const item = state.cards[state.selectedIndex];
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
+                AccountID: item.AccountID,
+                OurBranchID: item.OurBranchID,
+                OperatorID: getContext().OperatorID,
+                SearchKey: `[${item.OurBranchID}:${item.AccountID}]`,
                 CardID: item.CardID || item.ID || ''
-            };
+            });
 
-            fetch(API.DELETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || 'Card deleted.', 'success');
-                        state.selectedIndex = -1;
-                        clearForm();
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Delete error: ' + err.message, 'error');
-                });
-        });
-    }
-
-    /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
-    function confirmAdd() {
-        setMode('ADD');
-    }
-
-    function confirmEdit() {
-        if (state.cards.length === 0 || state.selectedIndex === -1) {
-            showMsg('No record available to edit.', 'warning'); return;
-        }
-        setMode('EDIT');
-    }
-
-    function confirmCancel() {
-        cancelChanges();
-    }
-
-    /* ── Cancel / Clear ──────────────────────────────────────── */
-    function cancelChanges() {
-        if (state.selectedIndex >= 0 && state.cards[state.selectedIndex]) {
-            bindForm(state.cards[state.selectedIndex]);
-        } else {
-            clearForm();
-        }
-        setMode('NONE');
-    }
-
-    function clearForm() {
-        var ctx = getContext();
-        EDITABLE.forEach(function (id) { setVal(id, ''); });
-        // Set context-driven fields
-        setVal('cardName', ctx.AccountName || '');
-        setVal('cardId', '');
-
-        AUDIT.forEach(function (id) { setVal(id, '-'); });
-    }
-
-    /* ── Init ────────────────────────────────────────────────── */
-    function init() {
-        console.log('[CardMaintenance] Initializing');
-        wireSectionToggles();
-        setMode('NONE');
-
-        // Initial Load
-        var ctx = getContext();
-        if (ctx.AccountID) {
-            setTimeout(function () { navigate(); }, 300);
-        } else {
-            showMsg('No Account selected in context.', 'warning');
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg('Card deleted successfully.', 'success');
+                state.selectedIndex = -1;
+                clearForm();
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Delete error: ' + err.message, 'error');
         }
     }
 
     /* ── Public API ──────────────────────────────────────────── */
+    function confirmAdd() { setMode('ADD'); }
+    function confirmEdit() { if (state.selectedIndex >= 0) setMode('EDIT'); else showMsg('Select a record.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
+    function cancelChanges() {
+        if (state.selectedIndex >= 0) bindForm(state.cards[state.selectedIndex]);
+        else clearForm();
+        setMode('NONE');
+    }
+
+    function clearForm() {
+        EDITABLE.forEach(id => setVal(id, ''));
+        setVal('cardName', getContext().AccountName || '');
+        setVal('cardId', '');
+        AUDIT.forEach(id => setVal(id, '-'));
+    }
+
+    function init() {
+        wireSectionToggles();
+        setMode('NONE');
+        const ctx = getContext();
+        if (ctx.AccountID) navigate();
+    }
+
     return {
         init: init,
         setMode: setMode,
@@ -547,9 +452,9 @@ window.CardMaintenanceModule = (function () {
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
-        clearForm: clearForm,
-        loadData: function () { navigate(); }
+        loadData: navigate
     };
 })();
+
 
 console.log('[CardMaintenance] Module registered');

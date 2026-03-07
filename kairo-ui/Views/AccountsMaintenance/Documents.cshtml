@@ -5,7 +5,7 @@
     var documentClassOptions = ViewData["DocumentClassOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<!-- Documents Submodule (form content only — parent provides .window, .am-header, .action-panel) -->
+<!-- Documents Submodule -->
 <div class="form-card">
 
     <!-- Document Details Section -->
@@ -18,21 +18,20 @@
       </div>
       <div class="section-content" data-section-content>
 
-        <!-- Row 1: Document ID, Document Type -->
-        <div class="form-row two-col">
-          <div class="col">
-            <label class="label-blue">Document ID</label>
-            <div class="kairo-branch-control">
-              <input type="text" id="documentId" name="documentId" class="kairo-branch-control__id" placeholder="ID">
-              <input type="text" id="documentDesc_lookup" name="documentDesc_lookup" class="kairo-branch-control__name" placeholder="Description" readonly>
-              <button type="button" class="btn-lookup kairo-branch-control__lookup" data-lookup-type="DocumentID" data-target-input="documentId" title="Search Documents">
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <label class="label-blue am-label">Document ID</label>
+            <div class="kairo-account-control" data-kairo-account-control>
+              <input type="text" id="documentId" name="documentId" class="kairo-account-control__id form-control am-input" placeholder="ID">
+              <input type="text" id="documentDesc_lookup" name="documentDesc_lookup" class="kairo-account-control__name form-control am-input" placeholder="Description" readonly>
+              <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="DocumentID" title="Search Documents">
                 <i class="bi bi-search"></i>
               </button>
             </div>
           </div>
-          <div class="col">
-            <label class="label-blue">Document Type</label>
-            <select id="documentType" name="documentType" class="bs-select">
+          <div class="col-md-6">
+            <label class="label-blue am-label">Document Type</label>
+            <select id="documentType" name="documentType" class="form-select am-input">
               <option value="">--Select--</option>
               <option value="O">Original</option>
               <option value="C">Copy</option>
@@ -40,66 +39,63 @@
           </div>
         </div>
 
-        <!-- Row 2: Document Class, Received By, Received Date -->
-        <div class="form-row three-col">
-          <div class="col">
-            <label class="label-blue">Document Class</label>
+        <div class="row g-2 mb-2">
+          <div class="col-md-4">
+            <label class="label-blue am-label">Document Class</label>
             <div class="kairo-multiselect" id="documentClassMultiselect">
-              <div class="kairo-multiselect__display" id="documentClassDisplay">--Select-- <i class="bi bi-chevron-down small"></i></div>
+              <div class="kairo-multiselect__display am-input" id="documentClassDisplay">--Select-- <i class="bi bi-chevron-down small"></i></div>
               <div class="kairo-multiselect__dropdown"></div>
               <input type="hidden" id="documentClass" name="documentClass">
             </div>
           </div>
-          <div class="col">
-            <label class="label-blue">Received By</label>
-            <input type="text" id="receivedBy" name="receivedBy" class="bs-input-text" placeholder="Received By">
+          <div class="col-md-4">
+            <label class="label-blue am-label">Received By</label>
+            <input type="text" id="receivedBy" name="receivedBy" class="form-control am-input" placeholder="Received By">
           </div>
-          <div class="col">
-            <label class="label-blue">Received Date</label>
-            <div class="de-date-wrapper">
-              <input type="text" id="receivedDate" name="receivedDate" class="bs-input-date form-control" placeholder="DD/MMM/YYYY" readonly>
+          <div class="col-md-4">
+            <label class="label-blue am-label">Received Date</label>
+            <div class="kairo-date-control">
+              <input type="text" id="receivedDate" name="receivedDate" class="form-control am-input" placeholder="DD/MMM/YYYY" readonly>
               <input type="date" id="receivedDate_picker" class="visually-hidden" aria-hidden="true">
-              <button type="button" id="receivedDate_btn" class="de-date-btn" data-date-toggle="receivedDate" title="Calendar">
+              <button type="button" id="receivedDate_btn" class="btn-lookup" title="Calendar">
                 <i class="bi bi-calendar-event"></i>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Row 3: Location, Document Image -->
-        <div class="form-row two-col">
-          <div class="col">
-            <label class="label-blue">Location</label>
-            <select id="location" name="location" class="bs-select">
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <label class="label-blue am-label">Location</label>
+            <select id="location" name="location" class="form-select am-input">
               <option value="">--Select--</option>
               <option value="B">Document Located in Bank</option>
               <option value="C">Documents with Customers</option>
             </select>
           </div>
-          <div class="col">
-            <label class="label-blue">Document Image</label>
-            <div class="kairo-branch-control">
-              <input type="text" id="documentImage" name="documentImage" class="kairo-branch-control__name" placeholder="No file selected" readonly>
-              <input type="file" id="documentImage_file" name="documentImage_file" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;" tabindex="-1">
-              <button type="button" id="btnSubmoduleBrowse" class="kairo-branch-control__lookup green" title="Browse for document">
+          <div class="col-md-6">
+            <label class="label-blue am-label">Document Image</label>
+            <div class="kairo-account-control">
+              <input type="text" id="documentImage" name="documentImage" class="kairo-account-control__name form-control am-input" placeholder="No file selected" readonly style="flex: 1;">
+              <input type="file" id="documentImage_file" name="documentImage_file" class="visually-hidden" tabindex="-1">
+              <button type="button" id="btnSubmoduleBrowse" class="btn-lookup" title="Browse for document">
                 <i class="bi bi-folder2-open"></i>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Row 4: Remarks -->
-        <div class="form-row one-col">
-          <div class="col">
-            <label class="label-blue">Remarks</label>
-            <textarea id="remarks" name="remarks" class="bs-textarea form-control" rows="1" placeholder="Enter remarks..."></textarea>
+        <div class="row g-2 mb-2">
+          <div class="col-md-12">
+            <label class="label-blue am-label">Remarks</label>
+            <textarea id="remarks" name="remarks" class="form-control am-input" rows="1" placeholder="Enter remarks..."></textarea>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Audit Trail Section -->
-    <div class="form-section" data-section="audit-trail">
+    <div class="form-section transition-all" data-section="audit-trail">
       <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-clock-history me-1"></i>Audit & Behind The Scene</span>
         <button type="button" class="section-toggle-btn" aria-label="Toggle Audit Section">
@@ -107,30 +103,30 @@
         </button>
       </div>
       <div class="section-content" data-section-content style="display:none;">
-        <div class="audit-section">
-          <div class="audit-item">
-            <label>Created By</label>
-            <span class="audit-value" id="createdBy">-</span>
+        <div class="row g-2 mb-2">
+          <div class="col-md-2">
+            <label class="am-label">Created By</label>
+            <input id="createdBy" class="form-control am-input" readonly />
           </div>
-          <div class="audit-item">
-            <label>Created On</label>
-            <span class="audit-value" id="createdOn">-</span>
+          <div class="col-md-2">
+            <label class="am-label">Created On</label>
+            <input id="createdOn" class="form-control am-input" readonly />
           </div>
-          <div class="audit-item">
-            <label>Modified By</label>
-            <span class="audit-value" id="modifiedBy">-</span>
+          <div class="col-md-2">
+            <label class="am-label">Modified By</label>
+            <input id="modifiedBy" class="form-control am-input" readonly />
           </div>
-          <div class="audit-item">
-            <label>Modified On</label>
-            <span class="audit-value" id="modifiedOn">-</span>
+          <div class="col-md-2">
+            <label class="am-label">Modified On</label>
+            <input id="modifiedOn" class="form-control am-input" readonly />
           </div>
-          <div class="audit-item">
-            <label>Supervised By</label>
-            <span class="audit-value" id="supervisedBy">-</span>
+          <div class="col-md-2">
+            <label class="am-label">Supervised By</label>
+            <input id="supervisedBy" class="form-control am-input" readonly />
           </div>
-          <div class="audit-item">
-            <label>Supervised On</label>
-            <span class="audit-value" id="supervisedOn">-</span>
+          <div class="col-md-2">
+            <label class="am-label">Supervised On</label>
+            <input id="supervisedOn" class="form-control am-input" readonly />
           </div>
         </div>
       </div>

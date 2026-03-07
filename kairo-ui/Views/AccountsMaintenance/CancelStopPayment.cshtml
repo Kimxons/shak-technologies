@@ -1,225 +1,234 @@
 ﻿@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-cancel-stop-payment.html
+    Layout = null;
     var cancelStopPaymentReasonOptions = ViewData["CancelStopPaymentReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<!-- CancelStopPayment Submodule -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-arrow-counterclockwise am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Cancel Stop Payment</span>
+<!-- CancelStopPayment Submodule Content -->
+<div class="form-content" role="region" aria-label="Cancel Stop Payment form">
+    <div class="form-card" data-main-form>
+        <!-- Account Identification Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-building me-1"></i>Account Identification</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="branchId">Branch</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input type="text" id="branchId" name="branchId" class="kairo-account-control__id form-control am-input" readonly />
+                            <input type="text" id="branchName" class="kairo-account-control__name form-control am-input" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="Branch"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="accountId">Account</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input type="text" id="accountId" name="accountId" class="kairo-account-control__id form-control am-input" readonly />
+                            <input type="text" id="accountName" class="kairo-account-control__name form-control am-input" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="Account"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="requestRef">Request Ref No</label>
+                        <div class="input-group">
+                            <input id="requestRef" name="requestRef" type="text" class="form-control am-input" />
+                            <button class="btn btn-secondary btn-lookup" type="button" data-lookup="RequestRef" style="border-radius: 0 4px 4px 0;"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
+
+        <!-- Cancel Stop Payment Details Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-x-circle me-1"></i>Cancel Stop Payment Details</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="chequeNoStart">Cheque No Start</label>
+                        <input id="chequeNoStart" name="chequeNoStart" type="text" class="form-control am-input" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="chequeNoEnd">Cheque No End</label>
+                        <input id="chequeNoEnd" name="chequeNoEnd" type="text" class="form-control am-input" />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="chequeDate">Cheque Date</label>
+                        <input id="chequeDate" name="chequeDate" type="date" class="form-control am-input" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="chequeAmount">Cheque Amount</label>
+                        <input id="chequeAmount" name="chequeAmount" type="text" class="form-control am-input text-end" data-type="amount" />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="reasonId">Reason ID</label>
+                        <select id="reasonId" name="reasonId" class="form-select am-input">
+                            <option value="">--Select--</option>
+                            @foreach (var option in cancelStopPaymentReasonOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="reasonText">Reason</label>
+                        <input id="reasonText" name="reasonText" type="text" class="form-control am-input" />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="cancellationDate">Cancellation Date</label>
+                        <input id="cancellationDate" name="cancellationDate" type="date" class="form-control am-input" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="instructionGivenBy">Instruction Given By</label>
+                        <input id="instructionGivenBy" name="instructionGivenBy" type="text" class="form-control am-input" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stop Payment Records Grid Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-list-ul me-1"></i>Stop Payment Records</span>
+                <span class="record-count badge bg-secondary ms-2" id="recordCount">0 records</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="kairo-simple-grid-container" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered table-hover am-grid" id="stopPaymentGrid">
+                        <thead class="sticky-top bg-light">
+                            <tr>
+                                <th>Prefix</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Cheque Date</th>
+                                <th>Reason</th>
+                                <th>Cancel Date</th>
+                                <th>Amount</th>
+                                <th>Instruction By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="grid-empty-row">
+                                <td colspan="8" class="text-center py-3 text-muted italic">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Details Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-info-circle me-1"></i>Account Details</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="false"><i class="bi bi-chevron-down"></i></button>
+            </div>
+            <div class="section-content" data-section-content style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="clientId">Client</label>
+                        <div class="kairo-account-control">
+                            <input id="clientId" type="text" class="form-control am-input" readonly style="width: 100px; flex: none;" />
+                            <input id="clientName" type="text" class="form-control am-input" readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="productId">Product</label>
+                        <div class="kairo-account-control">
+                            <input id="productId" type="text" class="form-control am-input" readonly style="width: 100px; flex: none;" />
+                            <input id="productName" type="text" class="form-control am-input" readonly />
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="address1">Address 1</label>
+                        <input id="address1" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="address2">Address 2</label>
+                        <input id="address2" type="text" class="form-control am-input" readonly />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                        <label class="label-blue am-label" for="city">City</label>
+                        <input id="city" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-blue am-label" for="country">Country</label>
+                        <input id="country" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-blue am-label" for="phoneHome">Phone (Home)</label>
+                        <input id="phoneHome" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-blue am-label" for="phoneWork">Phone (Work)</label>
+                        <input id="phoneWork" type="text" class="form-control am-input" readonly />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="faxNo">Fax No</label>
+                        <input id="faxNo" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="mobile">Mobile</label>
+                        <input id="mobile" type="text" class="form-control am-input" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Section (Behind the Scene) -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="false"><i class="bi bi-chevron-down"></i></button>
+            </div>
+            <div class="section-content" data-section-content style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-2">
+                        <label class="am-label">Currency</label>
+                        <input id="CurrencyID" class="form-control am-input text-center" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Created By</label>
+                        <input id="MakerID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Created On</label>
+                        <input id="MakerDT" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Supervised By</label>
+                        <input id="SupervisorID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Supervised On</label>
+                        <input id="SupervisorDT" class="form-control am-input" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <main class="main-container">
-      <div class="form-content" role="region">
-        <div class="form-card" data-main-form>
-          <div class="form-section" data-section="account-identification">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title">Account Identification</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Identification" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content" data-section-content>
-              <form autocomplete="off">
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="label-blue" for="branchId">Branch ID</label>
-                    <div class="d-flex gap-2">
-                      <input id="branchId" name="branchId" type="text" class="bs-input-text form-control" />
-                      <input id="branchName" type="text" class="bs-input-text form-control" readonly />
-                      <button class="btn-lookup" type="button" data-lookup="branchId" aria-label="Lookup Branch"><i class="bi bi-search"></i></button>
-                    </div>
-                  </div>
-                  <div class="col-6">
-                    <label class="label-blue" for="accountId">Account ID</label>
-                    <div class="d-flex gap-2">
-                      <input id="accountId" name="accountId" type="text" class="bs-input-text form-control" />
-                      <input id="accountName" type="text" class="bs-input-text form-control" readonly />
-                      <button class="btn-lookup" type="button" data-lookup="accountId" aria-label="Lookup Account"><i class="bi bi-search"></i></button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label for="requestRef">Request Ref No</label>
-                    <div class="d-flex gap-2">
-                      <input id="requestRef" name="requestRef" type="text" class="bs-input-text form-control" />
-                      <button class="btn-lookup" type="button" data-lookup="requestRef" aria-label="Lookup Request"><i class="bi bi-search"></i></button>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <div class="form-section" data-section="cancel-details">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title">Cancel Stop Payment Details</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Cancel Details" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content" data-section-content>
-              <div class="row g-2 mb-2">
-                <div class="col-6">
-                  <label class="label-blue" for="chequeNoStart">Cheque No Start</label>
-                  <input id="chequeNoStart" name="chequeNoStart" type="text" class="bs-input-text form-control" />
-                </div>
-                <div class="col-6">
-                  <label class="label-blue" for="chequeNoEnd">Cheque No End</label>
-                  <input id="chequeNoEnd" name="chequeNoEnd" type="text" class="bs-input-text form-control" />
-                </div>
-                <div class="col-6">
-                  <label for="chequeDate">Cheque Date</label>
-                  <input id="chequeDate" name="chequeDate" type="date" class="bs-input-text form-control" />
-                </div>
-                <div class="col-6">
-                  <label for="chequeAmount">Cheque Amount</label>
-                  <input id="chequeAmount" name="chequeAmount" type="text" class="bs-input-text form-control" />
-                </div>
-                <div class="col-6">
-                  <label class="label-blue" for="reasonId">Reason ID</label>
-                  <select id="reasonId" name="reasonId" class="bs-select form-control">
-                    <option value="">--Select--</option>
-                    @foreach (var option in cancelStopPaymentReasonOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
-                  </select>
-                </div>
-                <div class="col-6">
-                  <label for="reasonText">Reason</label>
-                  <input id="reasonText" name="reasonText" type="text" class="bs-input-text form-control" />
-                </div>
-                <div class="col-6">
-                  <label for="cancellationDate">Cancellation Date</label>
-                  <input id="cancellationDate" name="cancellationDate" type="date" class="bs-input-text form-control" />
-                </div>
-                <div class="col-6">
-                  <label for="instructionGivenBy">Instruction Given By</label>
-                  <input id="instructionGivenBy" name="instructionGivenBy" type="text" class="bs-input-text form-control" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section" data-section="stop-payment-records">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title">Stop Payment Records</span>
-              <span class="de-record-count" id="recordCount">0 records</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Stop Payment Records" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content table-responsive" data-section-content>
-              <table class="table table-sm table-hover" id="stopPaymentGrid">
-                <thead><tr><th>Prefix</th><th>Start</th><th>End</th><th>Cheque Date</th><th>Reason</th><th>Cancel Date</th><th>Amount</th><th>Instruction By</th></tr></thead>
-                <tbody><tr class="de-table__empty"><td colspan="8">No records to display.</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="form-section" data-section="account-details">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title">Account Details</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content" data-section-content>
-              <div class="row g-2 mb-2">
-                <div class="col-6">
-                  <label for="clientId">Client ID</label>
-                  <div class="d-flex gap-2">
-                    <input id="clientId" type="text" class="bs-input-text form-control" />
-                    <input id="clientName" type="text" class="bs-input-text form-control" readonly />
-                  </div>
-                </div>
-                <div class="col-6">
-                  <label for="productId">Product ID</label>
-                  <div class="d-flex gap-2">
-                    <input id="productId" type="text" class="bs-input-text form-control" />
-                    <input id="productName" type="text" class="bs-input-text form-control" readonly />
-                  </div>
-                </div>
-                <div class="col-6"><label for="address1">Address 1</label><input id="address1" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="address2">Address 2</label><input id="address2" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="city">City</label><input id="city" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="country">Country</label><input id="country" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="phoneHome">Phone(Home)</label><input id="phoneHome" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="phoneWork">Phone(Work)</label><input id="phoneWork" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="faxNo">Fax No</label><input id="faxNo" type="text" class="bs-input-text form-control" /></div>
-                <div class="col-6"><label for="mobile">Mobile</label><input id="mobile" type="text" class="bs-input-text form-control" /></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section" data-section="behind-scene">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content" data-section-content>
-              <div class="audit-section audit-section--summary">
-                <div class="audit-cell"><span class="audit-label">Currency ID</span><span class="audit-value" id="CurrencyID">-</span></div>
-                <div class="audit-cell"><span class="audit-label">Created By</span><span class="audit-value" id="MakerID">-</span></div>
-                <div class="audit-cell"><span class="audit-label">Created On</span><span class="audit-value" id="MakerDT">-</span></div>
-                <div class="audit-cell"><span class="audit-label">Supervised By</span><span class="audit-value" id="SupervisorID">-</span></div>
-                <div class="audit-cell"><span class="audit-label">Supervised On</span><span class="audit-value" id="SupervisorDT">-</span></div>
-                <!-- <div class="audit-cell"><span class="audit-label">Modified By</span><span class="audit-value" id="ModifierID">-</span></div>
-                <div class="audit-cell"><span class="audit-label">Modified On</span><span class="audit-value" id="ModifierDT">-</span></div> -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Panel -->
-      <div class="action-panel" aria-label="Form actions">
-        <div class="action-buttons">
-          <button class="btn-action btn-view" type="button" data-action="view" title="View">
-            <i class="bi bi-eye"></i>View
-          </button>
-          <button class="btn-action" type="button" data-action="add" title="Add New">
-            <i class="bi bi-plus-circle"></i>Add
-          </button>
-          <button class="btn-action" type="button" data-action="edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>Edit
-          </button>
-          <button class="btn-action" type="button" data-action="save" title="Save">
-            <i class="bi bi-check-lg"></i>Save
-          </button>
-          <button class="btn-action" type="button" data-action="delete" title="Delete">
-            <i class="bi bi-trash3"></i>Delete
-          </button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
-            <i class="bi bi-x-lg"></i>Cancel
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <div class="am-message-panel" role="alert"><i class="bi bi-info-circle"></i><span></span></div>
-    <div class="loading-overlay" id="loadingOverlay" hidden><div class="loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
-  <script src="~/js/modules/accountsmaintenance/account-cancel-stop-payment.js"></script>
-
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'CancelStopPayment') {
-        console.log('[CancelStopPayment] Submodule loaded');
-    }
-});
-</script>
+<script src="~/js/modules/accountsmaintenance/account-cancel-stop-payment.js?v=@DateTime.Now.Ticks"></script>

@@ -18,11 +18,12 @@ window.AccountClassificationModule = (function () {
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
+    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-classification',
-        ADD: '/AccountsMaintenance/api/add-account-classification',
-        UPDATE: '/AccountsMaintenance/api/update-account-classification',
-        DELETE: '/AccountsMaintenance/api/delete-account-classification'
+        GET: 'AccountsMaintenance/api/get-account-classification',
+        ADD: 'AccountsMaintenance/api/add-account-classification',
+        UPDATE: 'AccountsMaintenance/api/update-account-classification',
+        DELETE: 'AccountsMaintenance/api/delete-account-classification'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -61,9 +62,15 @@ window.AccountClassificationModule = (function () {
         console.log('[AccountClassification] ' + type + ': ' + msg);
     }
 
-    function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
+    function isSuccess(r) {
+        if (!r) return false;
+        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
 
     function showConfirm(message, title, iconClass) {
+        if (window.AppCore && window.AppCore.showConfirmation) {
+            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
+        }
         title = title || 'Confirm Action';
         iconClass = iconClass || 'bi-question-circle';
         return new Promise(function (resolve) {
@@ -100,7 +107,6 @@ window.AccountClassificationModule = (function () {
 
             confirmBtn.onclick = function () { handleResponse(true); };
             cancelBtn.onclick = function () { handleResponse(false); };
-            overlay.onclick = function (e) { if (e.target === overlay) handleResponse(false); };
 
             requestAnimationFrame(function () {
                 overlay.classList.add('is-visible');
@@ -139,18 +145,12 @@ window.AccountClassificationModule = (function () {
         var saveB = el('submoduleBtnSave');
         var cancelB = el('submoduleBtnCancel');
 
-        // Hide prev/next which are unused here
-        var prevB = el('submoduleBtnPrev');
-        var nextB = el('submoduleBtnNext');
-
         if (viewB) viewB.disabled = editing;
         if (addB) addB.disabled = editing;
         if (editB) editB.disabled = editing || state.classifications.length === 0 || state.selectedIndex === -1;
         if (delB) delB.disabled = editing || state.classifications.length === 0 || state.selectedIndex === -1;
         if (saveB) saveB.disabled = !editing;
         if (cancelB) cancelB.disabled = !editing;
-        if (prevB) prevB.style.display = 'none';
-        if (nextB) nextB.style.display = 'none';
 
         if (mode === 'ADD') {
             clearForm();
@@ -238,219 +238,147 @@ window.AccountClassificationModule = (function () {
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
-    function navigate() {
-        var ctx = getContext();
+    async function navigate() {
+        const ctx = getContext();
+        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
         showLoading(true);
-
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
-            })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (result) {
-                showLoading(false);
-
-                if (isSuccess(result)) {
-                    let data = [];
-                    var d = result && result.Details ? result.Details : null;
-
-                    if (Array.isArray(d)) data = d;
-                    else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                    else if (Array.isArray(result.Data)) data = result.Data;
-                    else if (d && typeof d === 'object') data = [d];
-                    else if (result.Data && typeof result.Data === 'object') data = [result.Data];
-
-                    state.classifications = data;
-
-                    if (state.classifications.length > 0) {
-                        state.selectedIndex = 0;
-                        bindForm(state.classifications[0]);
-                        showMsg(`Loaded ${state.classifications.length} classification(s).`, 'success');
-                    } else {
-                        state.selectedIndex = -1;
-                        clearForm();
-                        showMsg('No classifications found.', 'info');
-                    }
-
-                    renderGrid();
-                    setMode('NONE');
-                } else {
-                    state.classifications = [];
-                    state.selectedIndex = -1;
-                    renderGrid();
-                    clearForm();
-                    setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No classifications found.', 'warning');
-                }
-            })
-            .catch(function (err) {
-                showLoading(false);
-                showMsg('Error loading Account Classification: ' + err.message, 'error');
             });
+
+            showLoading(false);
+            if (isSuccess(result)) {
+                let data = [];
+                const d = result.Details || result.Data || result;
+                if (Array.isArray(d)) data = d;
+                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
+                else if (d && typeof d === 'object') data = [d];
+
+                state.classifications = data;
+                if (state.classifications.length > 0) {
+                    state.selectedIndex = 0;
+                    bindForm(state.classifications[0]);
+                } else {
+                    state.selectedIndex = -1;
+                    clearForm();
+                }
+                renderGrid();
+                setMode('NONE');
+            } else {
+                state.classifications = [];
+                state.selectedIndex = -1;
+                renderGrid();
+                clearForm();
+                setMode('NONE');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading Account Classification: ' + err.message, 'error');
+        }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
-    function saveData() {
-        var isAdd = state.editMode === 'ADD';
-        var actionLabel = isAdd ? 'create' : 'update';
-
-        var classCode = val('classificationCode');
+    async function saveData() {
+        const isAdd = state.editMode === 'ADD';
+        const classCode = val('classificationCode');
         if (!classCode) { showMsg('Classification code is required', 'warning'); return; }
 
-        showConfirm(
-            'Are you sure you want to ' + actionLabel + ' this classification?',
-            'Save Account Classification',
-            'bi-save'
-        ).then(function (confirmed) {
-            if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
+        const confirmed = await showConfirm(
+            `Are you sure you want to ${isAdd ? 'create' : 'update'} this classification?`,
+            'Save Confirmation'
+        );
+        if (!confirmed) return;
 
-            var ctx = getContext();
+        const ctx = getContext();
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            CreatedBy: ctx.OperatorID,
+            OperatorID: ctx.OperatorID,
+            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
+            ClassificationCode: val('classificationCode').trim(),
+            ClassificationSubCode: val('classificationSubCode').trim()
+        };
 
-            // Standard search key format
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-
-            var payload = {
-                OurBranchID: ctx.OurBranchID,
-                AccountID: ctx.AccountID,
-                CreatedBy: ctx.OperatorID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
-                ClassificationCode: val('classificationCode').trim(),
-                ClassificationSubCode: val('classificationSubCode').trim()
-            };
-
-            showLoading(true);
-
-            fetch(isAdd ? API.ADD : API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || (isAdd ? 'Classification added.' : 'Classification updated.'), 'success');
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Save failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Save error: ' + err.message, 'error');
-                });
-        });
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result.ResponseMessage || 'Changes saved successfully.', 'success');
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Save failed.', 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Save error: ' + err.message, 'error');
+        }
     }
 
     /* ── Delete ──────────────────────────────────────────────── */
-    function deleteData() {
-        if (state.selectedIndex === -1 || !state.classifications[state.selectedIndex]) {
-            showMsg('No data to delete.', 'warning'); return;
-        }
+    async function deleteData() {
+        if (state.selectedIndex === -1 || !state.classifications[state.selectedIndex]) return;
 
-        showConfirm(
+        const confirmed = await showConfirm(
             'Are you sure you want to delete this classification?',
-            'Delete Classification',
-            'bi-trash'
-        ).then(function (confirmed) {
-            if (!confirmed) return;
+            'Delete Confirmation'
+        );
+        if (!confirmed) return;
 
-            setMode('DELETE');
-
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-            var item = state.classifications[state.selectedIndex];
-
-            showLoading(true);
-
-            var payload = {
+        const ctx = getContext();
+        const item = state.classifications[state.selectedIndex];
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
+                SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
                 ClassificationCode: item.ClassificationCode || item.ClassReq || item.Code || ''
-            };
-
-            fetch(API.DELETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || 'Classification deleted.', 'success');
-                        state.selectedIndex = -1;
-                        clearForm();
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Delete error: ' + err.message, 'error');
-                });
-        });
-    }
-
-    /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
-    function confirmAdd() {
-        setMode('ADD');
-    }
-
-    function confirmEdit() {
-        if (state.classifications.length === 0 || state.selectedIndex === -1) {
-            showMsg('No record available to edit.', 'warning'); return;
-        }
-        setMode('EDIT');
-    }
-
-    function confirmCancel() {
-        cancelChanges();
-    }
-
-    /* ── Cancel / Clear ──────────────────────────────────────── */
-    function cancelChanges() {
-        if (state.selectedIndex >= 0 && state.classifications[state.selectedIndex]) {
-            bindForm(state.classifications[state.selectedIndex]);
-        } else {
-            clearForm();
-        }
-        setMode('NONE');
-    }
-
-    function clearForm() {
-        EDITABLE.forEach(function (id) { setVal(id, ''); });
-        AUDIT.forEach(function (id) { setVal(id, '-'); });
-    }
-
-    /* ── Init ────────────────────────────────────────────────── */
-    function init() {
-        console.log('[AccountClassification] Initializing');
-        wireSectionToggles();
-        setMode('NONE');
-
-        // Initial Load
-        var ctx = getContext();
-        if (ctx.AccountID) {
-            setTimeout(function () { navigate(); }, 300);
-        } else {
-            showMsg('No Account selected in context.', 'warning');
+            });
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result.ResponseMessage || 'Deleted successfully.', 'success');
+                state.selectedIndex = -1;
+                clearForm();
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Delete error: ' + err.message, 'error');
         }
     }
 
     /* ── Public API ──────────────────────────────────────────── */
+    function confirmAdd() { setMode('ADD'); }
+    function confirmEdit() { if (state.selectedIndex !== -1) setMode('EDIT'); else showMsg('No record selected.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
+    function cancelChanges() {
+        if (state.selectedIndex >= 0 && state.classifications[state.selectedIndex]) bindForm(state.classifications[state.selectedIndex]);
+        else clearForm();
+        setMode('NONE');
+    }
+    function clearForm() {
+        EDITABLE.forEach(id => setVal(id, ''));
+        AUDIT.forEach(id => setVal(id, '-'));
+    }
+
+    function init() {
+        wireSectionToggles();
+        setMode('NONE');
+        const ctx = getContext();
+        if (ctx.AccountID) navigate();
+    }
+
     return {
         init: init,
         setMode: setMode,
@@ -461,9 +389,9 @@ window.AccountClassificationModule = (function () {
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
-        clearForm: clearForm,
-        loadData: function () { navigate(); }
+        loadData: navigate
     };
 })();
+
 
 console.log('[AccountClassification] Module registered');

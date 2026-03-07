@@ -15,11 +15,12 @@ window.AccountInterestRatesModule = (function () {
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
+    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-interest-rate',
-        ADD: '/AccountsMaintenance/api/add-account-interest-rate',
-        UPDATE: '/AccountsMaintenance/api/update-account-interest-rate',
-        DELETE: '/AccountsMaintenance/api/delete-account-interest-rate'
+        GET: 'AccountsMaintenance/api/get-account-interest-rate',
+        ADD: 'AccountsMaintenance/api/add-account-interest-rate',
+        UPDATE: 'AccountsMaintenance/api/update-account-interest-rate',
+        DELETE: 'AccountsMaintenance/api/delete-account-interest-rate'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -58,9 +59,15 @@ window.AccountInterestRatesModule = (function () {
         console.log('[InterestRates] ' + type + ': ' + msg);
     }
 
-    function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
+    function isSuccess(r) {
+        if (!r) return false;
+        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
 
     function showConfirm(message, title, iconClass) {
+        if (window.AppCore && window.AppCore.showConfirmation) {
+            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
+        }
         title = title || 'Confirm Action';
         iconClass = iconClass || 'bi-question-circle';
         return new Promise(function (resolve) {
@@ -97,7 +104,6 @@ window.AccountInterestRatesModule = (function () {
 
             confirmBtn.onclick = function () { handleResponse(true); };
             cancelBtn.onclick = function () { handleResponse(false); };
-            overlay.onclick = function (e) { if (e.target === overlay) handleResponse(false); };
 
             requestAnimationFrame(function () {
                 overlay.classList.add('is-visible');
@@ -111,7 +117,6 @@ window.AccountInterestRatesModule = (function () {
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
-    // Attempt to format a date to HTML5 native input Date format (YYYY-MM-DD)
     function formatDateForInput(ds) {
         if (!ds) return '';
         try {
@@ -121,37 +126,26 @@ window.AccountInterestRatesModule = (function () {
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
-        } catch (e) {
-            return '';
-        }
+        } catch (e) { return ''; }
     }
 
-    function formatNumber(num) {
-        return parseFloat(num || 0).toFixed(4);
-    }
+    function formatNumber(num) { return parseFloat(num || 0).toFixed(4); }
 
-    /* ── Editable fields ─────────────────────────────────────── */
     const EDITABLE = ['rateType', 'effectiveDate', 'expiryDate', 'refId'];
-    // baseRate is loaded based on rateType if backend supports it, but readonly here mostly
     const AUDIT = ['CreatedBy', 'CreatedOn', 'ModifiedBy', 'ModifiedOn', 'SupervisedBy', 'SupervisedOn'];
 
     function setFieldsEditable(editable) {
-        EDITABLE.forEach(function (id) {
-            var e = el(id);
-            if (e) e.disabled = !editable;
-        });
-
-        // Add Slab button
-        var addSlabBtn = el('btnAddSlab');
+        EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = !editable; });
+        const addSlabBtn = el('btnAddSlab');
         if (addSlabBtn) addSlabBtn.style.display = editable ? 'inline-block' : 'none';
     }
 
     /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
         state.editMode = mode;
-        var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
+        const editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
         setFieldsEditable(editing);
-        renderSlabGrid(); // To re-render editability of grid rows
+        renderSlabGrid();
 
         // Parent-provided action panel buttons (by ID)
         var viewB = el('submoduleBtnView');
@@ -161,17 +155,12 @@ window.AccountInterestRatesModule = (function () {
         var saveB = el('submoduleBtnSave');
         var cancelB = el('submoduleBtnCancel');
 
-        var prevB = el('submoduleBtnPrev');
-        var nextB = el('submoduleBtnNext');
-
         if (viewB) viewB.disabled = editing;
         if (addB) addB.disabled = editing || state.rateData !== null;
         if (editB) editB.disabled = editing || state.rateData === null;
         if (delB) delB.disabled = editing || state.rateData === null;
         if (saveB) saveB.disabled = !editing;
         if (cancelB) cancelB.disabled = !editing;
-        if (prevB) prevB.style.display = 'none';
-        if (nextB) nextB.style.display = 'none';
 
         if (mode === 'ADD') {
             clearForm();
@@ -185,10 +174,10 @@ window.AccountInterestRatesModule = (function () {
 
     /* ── Collapsible Sections ────────────────────────────────── */
     function wireEvents() {
-        document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
+        document.querySelectorAll('[data-section-toggle]').forEach(header => {
             if (header._wiredIntRate) return;
             header._wiredIntRate = true;
-            header.addEventListener('click', function (e) {
+            header.addEventListener('click', e => {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
                 var section = header.closest('.form-section');
                 var content = section ? section.querySelector('[data-section-content]') : null;
@@ -201,7 +190,6 @@ window.AccountInterestRatesModule = (function () {
                     icon.classList.toggle('bi-chevron-up', !isOpen);
                     icon.classList.toggle('bi-chevron-down', isOpen);
                 }
-                if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(!isOpen));
             });
         });
 
@@ -220,13 +208,12 @@ window.AccountInterestRatesModule = (function () {
     /* ── Bind form data ──────────────────────────────────────── */
     function bindForm(data) {
         if (!data) return;
-        setVal('rateType', data.RateType || data.rateType || data.InterestRateTypeID || '');
-        setVal('baseRate', formatNumber(data.BaseRate || data.baseRate || 0));
-        setVal('effectiveDate', formatDateForInput(data.EffectiveDate || data.effectiveDate));
-        setVal('expiryDate', formatDateForInput(data.ExpiryDate || data.expiryDate));
-        setVal('refId', data.RefID || data.refId || data.ReferenceID || '');
+        setVal('rateType', data.RateType || data.InterestRateTypeID || '');
+        setVal('baseRate', formatNumber(data.BaseRate || 0));
+        setVal('effectiveDate', formatDateForInput(data.EffectiveDate));
+        setVal('expiryDate', formatDateForInput(data.ExpiryDate));
+        setVal('refId', data.RefID || data.ReferenceID || '');
 
-        // Audit
         setVal('CreatedBy', data.CreatedBy || '-');
         setVal('CreatedOn', fmtDateTime(data.CreatedOn));
         setVal('SupervisedBy', data.SupervisedBy || '-');
@@ -244,7 +231,6 @@ window.AccountInterestRatesModule = (function () {
         if (!tbody) return;
 
         tbody.innerHTML = '';
-
         if (state.slabs.length === 0) {
             tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No rate slabs defined.</td></tr>';
             return;
@@ -256,13 +242,13 @@ window.AccountInterestRatesModule = (function () {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="number" class="bs-input-text text-end" data-field="FromAmount" 
-                           value="${slab.FromAmount || slab.fromAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
+                           value="${slab.FromAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
                 <td><input type="number" class="bs-input-text text-end" data-field="ToAmount" 
-                           value="${slab.ToAmount || slab.toAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
+                           value="${slab.ToAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
                 <td><input type="number" class="bs-input-text text-end" data-field="Spread" 
-                           value="${slab.Spread || slab.SpreadMargin || slab.spread || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
+                           value="${slab.Spread || slab.SpreadMargin || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
                 <td><input type="number" class="bs-input-text text-end" data-field="InterestRate" 
-                           value="${slab.InterestRate || slab.Rate || slab.interestRate || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
+                           value="${slab.InterestRate || slab.Rate || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-danger" data-delete-slab="${index}" 
                             ${!isEditing ? 'disabled' : ''} title="Remove slab">
@@ -271,7 +257,6 @@ window.AccountInterestRatesModule = (function () {
                 </td>
             `;
 
-            // Wire change handlers for inputs
             row.querySelectorAll('input').forEach(input => {
                 input.addEventListener('change', () => {
                     const field = input.dataset.field;
@@ -279,7 +264,6 @@ window.AccountInterestRatesModule = (function () {
                 });
             });
 
-            // Wire delete button
             row.querySelector('[data-delete-slab]')?.addEventListener('click', () => {
                 if (isEditing) {
                     state.slabs.splice(index, 1);
@@ -292,223 +276,159 @@ window.AccountInterestRatesModule = (function () {
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
-    function navigate() {
-        var ctx = getContext();
+    async function navigate() {
+        const ctx = getContext();
+        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
         showLoading(true);
-
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
-            })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (result) {
-                showLoading(false);
+            });
 
-                if (isSuccess(result)) {
-                    const data = result?.Details || result?.Data || result?.data;
-                    if (Array.isArray(data) && data.length > 0) {
-                        state.rateData = data[0];
-                    } else if (data && !Array.isArray(data)) {
-                        state.rateData = data;
-                    } else {
-                        state.rateData = null;
-                    }
+            showLoading(false);
+            if (isSuccess(result)) {
+                const data = result.Details || result.Data || result;
+                if (Array.isArray(data) && data.length > 0) state.rateData = data[0];
+                else if (data && !Array.isArray(data)) state.rateData = data;
+                else state.rateData = null;
 
-                    if (state.rateData) {
-                        state.originalData = JSON.parse(JSON.stringify(state.rateData));
-                        bindForm(state.rateData);
-                        showMsg('Interest rate loaded.', 'success');
-                    } else {
-                        state.originalData = null;
-                        clearForm();
-                        showMsg('No interest rate found.', 'info');
-                    }
-                    setMode('NONE');
+                if (state.rateData) {
+                    state.originalData = JSON.parse(JSON.stringify(state.rateData));
+                    bindForm(state.rateData);
                 } else {
-                    state.rateData = null;
                     state.originalData = null;
                     clearForm();
-                    setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No interest rate found.', 'warning');
                 }
-            })
-            .catch(function (err) {
-                showLoading(false);
-                showMsg('Error loading Interest Rates: ' + err.message, 'error');
-            });
+                setMode('NONE');
+            } else {
+                state.rateData = null;
+                state.originalData = null;
+                clearForm();
+                setMode('NONE');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading Interest Rates: ' + err.message, 'error');
+        }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
-    function saveData() {
-        var isAdd = state.editMode === 'ADD';
-
-        var rateType = val('rateType');
+    async function saveData() {
+        const isAdd = state.editMode === 'ADD';
+        const rateType = val('rateType');
         if (!rateType) { showMsg('Rate Type is required', 'warning'); return; }
 
-        showConfirm(
-            'Are you sure you want to ' + (isAdd ? 'create' : 'update') + ' this interest rate?',
-            'Save Interest Rate',
-            'bi-save'
-        ).then(function (confirmed) {
-            if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
+        const confirmed = await showConfirm(
+            `Are you sure you want to ${isAdd ? 'create' : 'update'} this interest rate?`,
+            'Save Confirmation'
+        );
+        if (!confirmed) return;
 
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+        const ctx = getContext();
+        const searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
 
-            var payload = {
-                OurBranchID: ctx.OurBranchID,
-                AccountID: ctx.AccountID,
-                CreatedBy: ctx.OperatorID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
-                RateType: rateType,
-                InterestRateTypeID: rateType,
-                BaseRate: parseFloat(val('baseRate')) || 0,
-                EffectiveDate: val('effectiveDate') ? new Date(val('effectiveDate')).toISOString() : null,
-                ExpiryDate: val('expiryDate') ? new Date(val('expiryDate')).toISOString() : null,
-                RefID: val('refId'),
-                Slabs: state.slabs
-            };
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            CreatedBy: ctx.OperatorID,
+            OperatorID: ctx.OperatorID,
+            SearchKey: searchKey,
+            RateType: rateType,
+            InterestRateTypeID: rateType,
+            BaseRate: parseFloat(val('baseRate')) || 0,
+            EffectiveDate: val('effectiveDate') ? new Date(val('effectiveDate')).toISOString() : null,
+            ExpiryDate: val('expiryDate') ? new Date(val('expiryDate')).toISOString() : null,
+            RefID: val('refId'),
+            Slabs: state.slabs
+        };
 
-            if (!isAdd && state.rateData) {
-                payload.RateID = state.rateData.RateID || state.rateData.InterestRateID || '';
+        if (!isAdd && state.rateData) {
+            payload.RateID = state.rateData.RateID || state.rateData.InterestRateID || '';
+        }
+
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg('Interest Rate saved.', 'success');
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Save failed.', 'error');
             }
-
-            showLoading(true);
-
-            fetch(isAdd ? API.ADD : API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || 'Interest Rate saved.', 'success');
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Save failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Save error: ' + err.message, 'error');
-                });
-        });
+        } catch (err) {
+            showLoading(false);
+            showMsg('Save error: ' + err.message, 'error');
+        }
     }
 
     /* ── Delete ──────────────────────────────────────────────── */
-    function deleteData() {
-        if (!state.rateData) {
-            showMsg('No data to delete.', 'warning'); return;
-        }
+    async function deleteData() {
+        if (!state.rateData) { showMsg('No data to delete.', 'warning'); return; }
 
-        showConfirm(
-            'Are you sure you want to delete this Interest Rate?',
-            'Delete Interest Rate',
-            'bi-trash'
-        ).then(function (confirmed) {
-            if (!confirmed) return;
+        const confirmed = await showConfirm('Are you sure you want to delete this Interest Rate?', 'Delete Confirmation');
+        if (!confirmed) return;
 
-            setMode('DELETE');
+        const ctx = getContext();
+        const payload = {
+            AccountID: ctx.AccountID,
+            OurBranchID: ctx.OurBranchID,
+            OperatorID: ctx.OperatorID,
+            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
+            RateID: state.rateData.RateID || state.rateData.InterestRateID || ''
+        };
 
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-            var payload = {
-                AccountID: ctx.AccountID,
-                OurBranchID: ctx.OurBranchID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
-                RateID: state.rateData.RateID || state.rateData.InterestRateID || ''
-            };
-
-            showLoading(true);
-
-            fetch(API.DELETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || 'Interest Rate deleted.', 'success');
-                        state.rateData = null;
-                        state.originalData = null;
-                        clearForm();
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Delete error: ' + err.message, 'error');
-                });
-        });
-    }
-
-    /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
-    function confirmAdd() {
-        setMode('ADD');
-    }
-
-    function confirmEdit() {
-        if (!state.rateData) {
-            showMsg('No record available to edit.', 'warning'); return;
-        }
-        setMode('EDIT');
-    }
-
-    function confirmCancel() {
-        cancelChanges();
-    }
-
-    /* ── Cancel / Clear ──────────────────────────────────────── */
-    function cancelChanges() {
-        if (state.originalData) {
-            state.rateData = JSON.parse(JSON.stringify(state.originalData));
-            bindForm(state.rateData);
-        } else {
-            clearForm();
-        }
-        setMode('NONE');
-    }
-
-    function clearForm() {
-        EDITABLE.forEach(function (id) { setVal(id, ''); });
-        setVal('baseRate', '0.0000');
-        AUDIT.forEach(function (id) { setVal(id, '-'); });
-        state.slabs = [];
-        renderSlabGrid();
-    }
-
-    /* ── Init ────────────────────────────────────────────────── */
-    function init() {
-        console.log('[InterestRates] Initializing');
-        wireEvents();
-        setMode('NONE');
-
-        // Initial Load
-        var ctx = getContext();
-        if (ctx.AccountID) {
-            setTimeout(function () { navigate(); }, 300);
-        } else {
-            showMsg('No Account selected in context.', 'warning');
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.DELETE, payload);
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg('Interest Rate deleted.', 'success');
+                state.rateData = null;
+                state.originalData = null;
+                clearForm();
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Delete error: ' + err.message, 'error');
         }
     }
 
     /* ── Public API ──────────────────────────────────────────── */
+    function confirmAdd() { setMode('ADD'); }
+    function confirmEdit() { if (state.rateData) setMode('EDIT'); else showMsg('No internal record.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
+    function cancelChanges() {
+        if (state.originalData) {
+            state.rateData = JSON.parse(JSON.stringify(state.originalData));
+            bindForm(state.rateData);
+        } else clearForm();
+        setMode('NONE');
+    }
+
+    function clearForm() {
+        EDITABLE.forEach(id => setVal(id, ''));
+        setVal('baseRate', '0.0000');
+        AUDIT.forEach(id => setVal(id, '-'));
+        state.slabs = [];
+        renderSlabGrid();
+    }
+
+    function init() {
+        wireEvents();
+        setMode('NONE');
+        const ctx = getContext();
+        if (ctx.AccountID) navigate();
+    }
+
     return {
         init: init,
         setMode: setMode,
@@ -519,9 +439,9 @@ window.AccountInterestRatesModule = (function () {
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
-        clearForm: clearForm,
-        loadData: function () { navigate(); }
+        loadData: navigate
     };
 })();
+
 
 console.log('[InterestRates] Module registered');

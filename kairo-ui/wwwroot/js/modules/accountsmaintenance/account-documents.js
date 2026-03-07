@@ -25,38 +25,43 @@ window.AccountDocumentsModule = (function () {
 
     /* ── API Routes ─────────────────────────────────────────── */
     const API = {
-        GET:    '/AccountsMaintenance/api/get-account-document',
-        ADD:    '/AccountsMaintenance/api/add-account-document',
-        UPDATE: '/AccountsMaintenance/api/update-account-document',
-        DELETE: '/AccountsMaintenance/api/delete-account-document'
+        GET: 'api/get-account-document',
+        ADD: 'api/add-account-document',
+        UPDATE: 'api/update-account-document',
+        DELETE: 'api/delete-account-document'
     };
 
     /* ── Context ────────────────────────────────────────────── */
     function getContext() {
         const ps = window.AccountMaintenanceState;
+
+        // Secondary fallback: pull directly from parent form if global state is missing
+        const parentBranch = document.getElementById('BranchID')?.value || '';
+        const parentAcc = document.getElementById('AccountID')?.value || '';
+
         return {
-            AccountID:   ps?.AccountID   || sessionStorage.getItem('currentAccountID')   || '',
-            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID')    || '',
-            OperatorID:  ps?.OperatorID  || sessionStorage.getItem('currentOperatorID')  || localStorage.getItem('OperatorID') || 'SYSTEM'
+            AccountID: ps?.AccountID || parentAcc || sessionStorage.getItem('currentAccountID') || '',
+            OurBranchID: ps?.OurBranchID || parentBranch || sessionStorage.getItem('currentBranchID') || '',
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
         };
     }
 
     /* ── UI Helpers ──────────────────────────────────────────── */
-    function el(id)       { return document.getElementById(id); }
-    function val(id)      { const e = el(id); return e ? e.value : ''; }
-    function setVal(id,v) { 
-        const e = el(id); 
-        if (!e) return; 
-        const s = (v == null) ? '' : v; 
-        if (e.tagName==='INPUT'||e.tagName==='TEXTAREA'||e.tagName==='SELECT') {
+    function el(id) { return document.getElementById(id); }
+    function val(id) { const e = el(id); return e ? e.value : ''; }
+    function setVal(id, v) {
+        const e = el(id);
+        if (!e) return;
+        const s = (v == null) ? '' : v;
+        if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
             // Browser security: Cannot programmatically set value of file input except to clear it
             if (e.type === 'file') {
                 if (s === '') e.value = '';
                 return;
             }
-            if (e.value !== s) e.value = s; 
+            if (e.value !== s) e.value = s;
         } else {
-            if (e.textContent !== s) e.textContent = s; 
+            if (e.textContent !== s) e.textContent = s;
         }
     }
 
@@ -72,53 +77,15 @@ window.AccountDocumentsModule = (function () {
         console.log('[AccountDocuments] ' + type + ': ' + msg);
     }
 
-    function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
+    function isSuccess(r) {
+        if (!r) return false;
+        const code = (r.ResponseCode !== undefined) ? r.ResponseCode : (r.responseCode !== undefined ? r.responseCode : null);
+        return (code === '00' || code === 0);
+    }
 
     /* ── Custom 3D Confirmation Dialog (matches original) ───── */
-    function showConfirm(message, title, iconClass) {
-        title     = title     || 'Confirm Action';
-        iconClass = iconClass || 'bi-question-circle';
-        return new Promise(function(resolve) {
-            var overlay = document.querySelector('.acd-confirm-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.className = 'acd-confirm-overlay';
-                overlay.innerHTML =
-                    '<div class="acd-confirm-card">' +
-                    '  <div class="acd-confirm-icon"><i class="bi ' + iconClass + '"></i></div>' +
-                    '  <div class="acd-confirm-title">' + title + '</div>' +
-                    '  <div class="acd-confirm-msg">' + message + '</div>' +
-                    '  <div class="acd-confirm-actions">' +
-                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--cancel">Cancel</button>' +
-                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--confirm">Confirm</button>' +
-                    '  </div>' +
-                    '</div>';
-                document.body.appendChild(overlay);
-            } else {
-                overlay.querySelector('.acd-confirm-title').textContent = title;
-                overlay.querySelector('.acd-confirm-msg').textContent   = message;
-                overlay.querySelector('.acd-confirm-icon i').className  = 'bi ' + iconClass;
-            }
-
-            var confirmBtn = overlay.querySelector('.acd-confirm-btn--confirm');
-            var cancelBtn  = overlay.querySelector('.acd-confirm-btn--cancel');
-
-            var handleResponse = function(result) {
-                overlay.classList.remove('is-visible');
-                confirmBtn.onclick = null;
-                cancelBtn.onclick  = null;
-                setTimeout(function() { resolve(result); }, 300);
-            };
-
-            confirmBtn.onclick = function() { handleResponse(true);  };
-            cancelBtn.onclick  = function() { handleResponse(false); };
-            overlay.onclick    = function(e) { if (e.target === overlay) handleResponse(false); };
-
-            requestAnimationFrame(function() {
-                overlay.classList.add('is-visible');
-                setTimeout(function() { confirmBtn.focus(); }, 100);
-            });
-        });
+    function showConfirm(message, title) {
+        return AppCore.showConfirmation(title || 'Confirm Action', message);
     }
 
     function fmtDate(ds) {
@@ -126,35 +93,35 @@ window.AccountDocumentsModule = (function () {
         try {
             const d = new Date(ds);
             if (isNaN(d.getTime())) return ds;
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            return String(d.getDate()).padStart(2,'0') + '/' + months[d.getMonth()] + '/' + d.getFullYear();
-        } catch(e) { return ds; }
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return String(d.getDate()).padStart(2, '0') + '/' + months[d.getMonth()] + '/' + d.getFullYear();
+        } catch (e) { return ds; }
     }
 
     function fmtDateTime(ds) {
         if (!ds) return '-';
-        try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch(e) { return ds; }
+        try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
     /* ── Editable fields ─────────────────────────────────────── */
-    const EDITABLE = ['documentId','documentType','documentClass','receivedBy','receivedDate','location','remarks'];
-    const AUDIT    = ['createdBy','createdOn','modifiedBy','modifiedOn','supervisedBy','supervisedOn'];
+    const EDITABLE = ['documentId', 'documentType', 'documentClass', 'receivedBy', 'receivedDate', 'location', 'remarks'];
+    const AUDIT = ['createdBy', 'createdOn', 'modifiedBy', 'modifiedOn', 'supervisedBy', 'supervisedOn'];
 
     function setFieldsEditable(editable) {
-        EDITABLE.forEach(function(id) {
+        EDITABLE.forEach(function (id) {
             var e = el(id);
             if (e) e.disabled = !editable;
         });
         // File input
         var fileIn = el('documentImage_file'); if (fileIn) fileIn.disabled = !editable;
-        var browseB = el('browseBtn'); if (browseB) browseB.disabled = !editable;
-        var dateB  = el('receivedDate_btn'); if (dateB) dateB.disabled = !editable;
+        var browseB = el('btnSubmoduleBrowse'); if (browseB) browseB.disabled = !editable;
+        var dateB = el('receivedDate_btn'); if (dateB) dateB.disabled = !editable;
 
         // Multiselect component
         var ms = el('documentClassMultiselect');
         if (ms) {
             if (editable) ms.classList.remove('disabled'); else ms.classList.add('disabled');
-            ms.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.disabled = !editable; });
+            ms.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.disabled = !editable; });
         }
     }
 
@@ -162,11 +129,11 @@ window.AccountDocumentsModule = (function () {
     const snapshot = {};
 
     function snapshotValues() {
-        EDITABLE.forEach(function(id) { snapshot[id] = val(id); });
+        EDITABLE.forEach(function (id) { snapshot[id] = val(id); });
     }
 
     function restoreValues() {
-        EDITABLE.forEach(function(id) { if (snapshot[id] !== undefined) setVal(id, snapshot[id]); });
+        EDITABLE.forEach(function (id) { if (snapshot[id] !== undefined) setVal(id, snapshot[id]); });
     }
 
     /* ── Mode Management (button states via parent IDs) ──────── */
@@ -176,37 +143,37 @@ window.AccountDocumentsModule = (function () {
         setFieldsEditable(editing);
 
         // Parent-provided action panel buttons (by ID)
-        var viewB    = el('submoduleBtnView');
-        var addB     = el('submoduleBtnAdd');
-        var editB    = el('submoduleBtnEdit');
-        var delB     = el('submoduleBtnDelete');
-        var saveB    = el('submoduleBtnSave');
-        var cancelB  = el('submoduleBtnCancel');
-        var clearB   = el('submoduleBtnClear');
+        var viewB = el('submoduleBtnView');
+        var addB = el('submoduleBtnAdd');
+        var editB = el('submoduleBtnEdit');
+        var delB = el('submoduleBtnDelete');
+        var saveB = el('submoduleBtnSave');
+        var cancelB = el('submoduleBtnCancel');
+        var clearB = el('submoduleBtnClear');
         var showImgB = el('submoduleBtnShowImage');
-        var prevB    = el('submoduleBtnPrev');
-        var nextB    = el('submoduleBtnNext');
+        var prevB = el('submoduleBtnPrev');
+        var nextB = el('submoduleBtnNext');
 
-        if (viewB)    viewB.disabled    = editing;
-        if (addB)     addB.disabled     = editing;
-        if (editB)    editB.disabled    = editing || !state.documentData;
-        if (delB)     delB.disabled     = editing || !state.documentData;
-        if (saveB)    saveB.disabled    = !editing;
-        if (cancelB)  cancelB.disabled  = !editing;
-        if (clearB)   clearB.style.display = (mode === 'ADD') ? '' : 'none';
+        if (viewB) viewB.disabled = editing;
+        if (addB) addB.disabled = editing;
+        if (editB) editB.disabled = editing || !state.documentData;
+        if (delB) delB.disabled = editing || !state.documentData;
+        if (saveB) saveB.disabled = !editing;
+        if (cancelB) cancelB.disabled = !editing;
+        if (clearB) clearB.style.display = (mode === 'ADD') ? '' : 'none';
         if (showImgB) showImgB.disabled = editing || !state.imageID;
-        if (prevB)    prevB.disabled    = editing;
-        if (nextB)    nextB.disabled    = editing;
+        if (prevB) prevB.disabled = editing;
+        if (nextB) nextB.disabled = editing;
 
         // Keep documentId active for lookup/search
         var docIdEl = el('documentId');
         if (docIdEl) docIdEl.disabled = false;
 
         if (mode === 'ADD') {
-            var currentId   = val('documentId');
+            var currentId = val('documentId');
             var currentDesc = val('documentDesc_lookup');
             clearForm();
-            if (currentId)   setVal('documentId', currentId);
+            if (currentId) setVal('documentId', currentId);
             if (currentDesc) setVal('documentDesc_lookup', currentDesc);
             el('documentType')?.focus();
         }
@@ -216,21 +183,21 @@ window.AccountDocumentsModule = (function () {
 
     /* ── Collapsible Sections ────────────────────────────────── */
     function wireSectionToggles() {
-        document.querySelectorAll('[data-section-toggle]').forEach(function(header) {
+        document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
             if (header._wiredDoc) return;
             header._wiredDoc = true;
-            header.addEventListener('click', function(e) {
+            header.addEventListener('click', function (e) {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
-                var section   = header.closest('.form-section');
-                var content   = section ? section.querySelector('[data-section-content]') : null;
+                var section = header.closest('.form-section');
+                var content = section ? section.querySelector('[data-section-content]') : null;
                 var toggleBtn = section ? section.querySelector('.section-toggle-btn') : null;
-                var icon      = toggleBtn ? toggleBtn.querySelector('i') : null;
+                var icon = toggleBtn ? toggleBtn.querySelector('i') : null;
                 if (!content) return;
                 var isOpen = content.style.display !== 'none';
                 content.style.display = isOpen ? 'none' : '';
                 if (icon) {
-                    icon.classList.toggle('bi-chevron-up',   !isOpen);
-                    icon.classList.toggle('bi-chevron-down',  isOpen);
+                    icon.classList.toggle('bi-chevron-up', !isOpen);
+                    icon.classList.toggle('bi-chevron-down', isOpen);
                 }
                 if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(!isOpen));
             });
@@ -243,22 +210,22 @@ window.AccountDocumentsModule = (function () {
         var docIdEl = el('documentId');
         if (docIdEl && !docIdEl._wiredDoc) {
             docIdEl._wiredDoc = true;
-            docIdEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); navigate(0); } });
+            docIdEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); navigate(0); } });
         }
 
         // Date picker
         var dateBtn = el('receivedDate_btn');
-        var picker  = el('receivedDate_picker');
-        var dateIn  = el('receivedDate');
+        var picker = el('receivedDate_picker');
+        var dateIn = el('receivedDate');
         if (dateBtn && picker && dateIn && !dateBtn._wiredDoc) {
             dateBtn._wiredDoc = true;
-            var openPicker = function() {
+            var openPicker = function () {
                 if (dateIn.disabled) return;
-                try { picker.showPicker ? picker.showPicker() : picker.click(); } catch(e) { picker.focus(); }
+                try { picker.showPicker ? picker.showPicker() : picker.click(); } catch (e) { picker.focus(); }
             };
             dateBtn.addEventListener('click', openPicker);
             dateIn.addEventListener('click', openPicker);
-            picker.addEventListener('change', function() {
+            picker.addEventListener('change', function () {
                 if (picker.value) setVal('receivedDate', fmtDate(picker.value + 'T00:00:00'));
             });
         }
@@ -270,9 +237,8 @@ window.AccountDocumentsModule = (function () {
 
         if (browseBtn && fileInput && imageDisplay && !browseBtn._wiredDoc) {
             browseBtn._wiredDoc = true;
-            browseBtn.addEventListener('click', function(e) {
+            browseBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                e.stopImmediatePropagation();
                 if (state.editMode === 'NONE') return;
 
                 try {
@@ -282,16 +248,12 @@ window.AccountDocumentsModule = (function () {
                 }
             });
 
-            fileInput.addEventListener('change', function(e) {
-                e.stopImmediatePropagation();
-                var file = e.target.files[0];
+            fileInput.addEventListener('change', function (e) {
+                var file = e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
                 if (file) {
-                    // Update display without triggering heavy events
-                    if (imageDisplay.value !== file.name) {
-                        imageDisplay.value = file.name;
-                    }
+                    imageDisplay.value = file.name;
                     state.selectedFile = file;
-                    console.log('[AccountDocuments] File staged: ' + file.name);
+                    console.log('[AccountDocuments] File staged for record.');
                 } else {
                     imageDisplay.value = '';
                     state.selectedFile = null;
@@ -304,22 +266,22 @@ window.AccountDocumentsModule = (function () {
         var msDisplay = el('documentClassDisplay');
         if (ms && msDisplay && !msDisplay._wiredDoc) {
             msDisplay._wiredDoc = true;
-            msDisplay.addEventListener('click', function(e) {
+            msDisplay.addEventListener('click', function (e) {
                 if (state.editMode === 'NONE') return;
                 e.stopPropagation();
                 ms.classList.toggle('active');
             });
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 if (!ms.contains(e.target)) ms.classList.remove('active');
             });
         }
 
         // Real-time validation clearing
-        ['documentId','documentType'].forEach(function(id) {
+        ['documentId', 'documentType'].forEach(function (id) {
             var field = el(id);
             if (field && !field._wiredValidation) {
                 field._wiredValidation = true;
-                var handler = function() {
+                var handler = function () {
                     field.classList.remove('acd-field-invalid');
                     var err = field.parentElement ? field.parentElement.querySelector('.acd-field-error') : null;
                     if (err) err.remove();
@@ -338,8 +300,8 @@ window.AccountDocumentsModule = (function () {
             container.innerHTML = '<div class="p-2 text-muted small">No classes available</div>';
             return;
         }
-        container.innerHTML = classes.map(function(cls) {
-            var id   = cls.ID || cls.DocumentClassID || '';
+        container.innerHTML = classes.map(function (cls) {
+            var id = cls.ID || cls.DocumentClassID || '';
             var desc = cls.Description || cls.DocumentClassDesc || cls.Name || id || 'Unknown';
             var label = (desc && String(desc) !== 'undefined') ? desc : ('Class ' + id);
             return '<div class="kairo-multiselect__item">' +
@@ -348,32 +310,32 @@ window.AccountDocumentsModule = (function () {
         }).join('');
 
         // Wire checkbox change → update hidden field + display
-        container.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+        container.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
             cb.addEventListener('change', updateMultiselectDisplay);
         });
     }
 
     function updateMultiselectDisplay() {
-        var ms       = el('documentClassMultiselect');
-        var display  = el('documentClassDisplay');
-        var hidden   = el('documentClass');
+        var ms = el('documentClassMultiselect');
+        var display = el('documentClassDisplay');
+        var hidden = el('documentClass');
         if (!ms) return;
-        var checked  = Array.from(ms.querySelectorAll('input[type="checkbox"]:checked'));
-        var vals     = checked.map(function(c){ return c.value; });
-        var labels   = checked.map(function(c){ return c.dataset.label || c.value; });
+        var checked = Array.from(ms.querySelectorAll('input[type="checkbox"]:checked'));
+        var vals = checked.map(function (c) { return c.value; });
+        var labels = checked.map(function (c) { return c.dataset.label || c.value; });
         if (display) display.textContent = labels.length > 0 ? labels.join(', ') : '--Select--';
-        if (hidden)  hidden.value = vals.join(',');
+        if (hidden) hidden.value = vals.join(',');
     }
 
     /* ── Bind form data ──────────────────────────────────────── */
     function bindForm(doc) {
-        setVal('documentId',          doc.DocumentID || doc.DocumentId || '');
+        setVal('documentId', doc.DocumentID || doc.DocumentId || '');
         setVal('documentDesc_lookup', doc.DocumentDescription || doc.DocumentName || doc.DocumentDesc || '');
-        setVal('documentType',        doc.DocumentTypeID || doc.DocumentType || '');
-        setVal('receivedBy',          doc.ReceivedBy || '');
-        setVal('receivedDate',        fmtDate(doc.ReceivedDate));
-        setVal('location',            doc.LocationID || doc.Location || '');
-        setVal('remarks',             doc.Remarks || '');
+        setVal('documentType', doc.DocumentTypeID || doc.DocumentType || '');
+        setVal('receivedBy', doc.ReceivedBy || '');
+        setVal('receivedDate', fmtDate(doc.ReceivedDate));
+        setVal('location', doc.LocationID || doc.Location || '');
+        setVal('remarks', doc.Remarks || '');
         // File input cleared (file upload is separate from existing data)
         var fileIn = el('documentImage_file'); if (fileIn) fileIn.value = '';
 
@@ -384,9 +346,9 @@ window.AccountDocumentsModule = (function () {
         if (display) display.textContent = classVal || '--Select--';
         var ms = el('documentClassMultiselect');
         if (ms) {
-            var codes = classVal ? classVal.split(',').map(function(s){return s.trim();}) : [];
+            var codes = classVal ? classVal.split(',').map(function (s) { return s.trim(); }) : [];
             var labels = [];
-            ms.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+            ms.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
                 var match = codes.indexOf(cb.value) >= 0;
                 cb.checked = match;
                 if (match) labels.push(cb.dataset.label || cb.value);
@@ -395,18 +357,18 @@ window.AccountDocumentsModule = (function () {
         }
 
         // Audit
-        setVal('createdBy',    doc.CreatedBy || doc.MakerID || '');
-        setVal('createdOn',    fmtDateTime(doc.CreatedOn || doc.MakerDT));
-        setVal('modifiedBy',   doc.ModifiedBy || doc.ModifierID || '');
-        setVal('modifiedOn',   fmtDateTime(doc.ModifiedOn || doc.ModifierDT));
+        setVal('createdBy', doc.CreatedBy || doc.MakerID || '');
+        setVal('createdOn', fmtDateTime(doc.CreatedOn || doc.MakerDT));
+        setVal('modifiedBy', doc.ModifiedBy || doc.ModifierID || '');
+        setVal('modifiedOn', fmtDateTime(doc.ModifiedOn || doc.ModifierDT));
         setVal('supervisedBy', doc.SupervisedBy || '');
         setVal('supervisedOn', fmtDateTime(doc.SupervisedOn));
 
         // Metadata
-        state.imageID     = parseInt(doc.ImageID || doc.ImageId || 0) || 0;
+        state.imageID = parseInt(doc.ImageID || doc.ImageId || 0) || 0;
         state.updateCount = parseInt(doc.UpdateCount || 0) || 0;
-        state.eventID     = parseInt(doc.EventID || doc.EventId || 0) || 0;
-        state.operatorID  = doc.OperatorID || doc.OperatorId || '';
+        state.eventID = parseInt(doc.EventID || doc.EventId || 0) || 0;
+        state.operatorID = doc.OperatorID || doc.OperatorId || '';
     }
 
     /* ── Get Document Classes XML ────────────────────────────── */
@@ -414,129 +376,133 @@ window.AccountDocumentsModule = (function () {
         var ms = el('documentClassMultiselect');
         var selected = [];
         if (ms) {
-            ms.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb){ selected.push(cb.value); });
+            ms.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) { selected.push(cb.value); });
         }
         if (selected.length === 0) {
             var raw = val('documentClass').trim();
-            if (raw) raw.split(',').forEach(function(s){ if (s.trim()) selected.push(s.trim()); });
+            if (raw) raw.split(',').forEach(function (s) { if (s.trim()) selected.push(s.trim()); });
         }
         if (selected.length === 0) return '';
-        return '<dt_DocumentClasses>' + selected.map(function(c){ return '<DocumentClassID>' + c + '</DocumentClassID>'; }).join('') + '</dt_DocumentClasses>';
+        return '<dt_DocumentClasses>' + selected.map(function (c) { return '<DocumentClassID>' + c + '</DocumentClassID>'; }).join('') + '</dt_DocumentClasses>';
     }
 
     /* ── Navigate / View ─────────────────────────────────────── */
     function navigate(direction) {
         state.direction = direction;
-        var ctx   = getContext();
+        var ctx = getContext();
         var docId = val('documentId').trim();
+
+        if (direction === 0 && !docId) {
+            showMsg('Please enter a Document ID to view.', 'warning');
+            el('documentId')?.focus();
+            return;
+        }
 
         showLoading(true);
 
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                AccountID:   ctx.AccountID,
-                DocumentID:  docId,
-                Direction:   direction,
-                OurBranchID: ctx.OurBranchID,
-                OperatorID:  ctx.OperatorID
-            })
+        AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, {
+            AccountID: ctx.AccountID,
+            DocumentID: docId,
+            Direction: direction,
+            OurBranchID: ctx.OurBranchID,
+            OperatorID: ctx.OperatorID
         })
-        .then(function(r){ return r.json(); })
-        .then(function(result) {
-            showLoading(false);
+            .then(function (result) {
+                showLoading(false);
+                if (!result) return;
+                console.log('[AccountDocuments] Load response:', result);
 
-            // Always try to extract document class list from any response
-            var d = result && result.Details ? result.Details : null;
-            if (d && d.Details && Array.isArray(d.Details)) {
-                renderDocumentClasses(d.Details);
-            }
+                // Container for datasets (handles various API response wrappers)
+                var root = result;
+                var d = (result.Details || result.details || result);
 
-            if (isSuccess(result)) {
-                var doc = null;
+                // 1. Available Document Classes (Set 1: Details)
+                var classList = (root.Details && Array.isArray(root.Details)) ? root.Details :
+                    (d.Details && Array.isArray(d.Details) ? d.Details : null);
+                if (classList && Array.isArray(classList) && classList.length > 0 && (classList[0].DocumentClassID || classList[0].DocumentClassId || classList[0].ID)) {
+                    renderDocumentClasses(classList);
+                }
 
-                // Format A: Details.Documents[] + Details.DocumentClasses[]
-                if (d && d.Documents && Array.isArray(d.Documents) && d.Documents.length > 0) {
-                    doc = d.Documents[0];
-                    // Attach selected document classes
-                    if (d.DocumentClasses && Array.isArray(d.DocumentClasses)) {
-                        var classIds = d.DocumentClasses
-                            .map(function(x){ return x.DocumentClassID; })
+                if (isSuccess(result)) {
+                    var doc = null;
+
+                    // 2. Primary Record (Priority 1: Set 2 -> Details01)
+                    var set1 = root.Details01 || d.Details01;
+                    if (set1 && Array.isArray(set1) && set1.length > 0) {
+                        var c = set1[0];
+                        if (c.DocumentID || c.DocumentId) {
+                            doc = c;
+                        } else if (c.OperatorID !== undefined || (c.EventID !== undefined && c.EventID !== null)) {
+                            state.operatorID = c.OperatorID;
+                            state.eventID = c.EventID;
+                            state.updateCount = c.UpdateCount || 0;
+                        }
+                    }
+
+                    // 3. Selection Metadata (Priority 2: Set 3 -> Details02)
+                    var set2 = root.Details02 || d.Details02;
+                    if (set2 && Array.isArray(set2) && set2.length > 0) {
+                        var c2 = set2[0];
+                        if (!doc && (c2.DocumentID || c2.DocumentId)) doc = c2;
+                        if (c2.OperatorID !== undefined && (c2.EventID !== undefined && c2.EventID !== null)) {
+                            state.operatorID = c2.OperatorID;
+                            state.eventID = c2.EventID;
+                            state.updateCount = c2.UpdateCount || 0;
+                        }
+                        // Extract selected classes
+                        var selIds = set2
+                            .filter(function (x) { return x.IsSelected == 1 || x.IsSelected === '1'; })
+                            .map(function (x) { return x.DocumentClassID || x.DocumentClassId || x.ID; })
                             .filter(Boolean);
-                        if (classIds.length > 0) doc.DocumentClassID = classIds.join(',');
+                        if (selIds.length > 0 && doc) doc.DocumentClassID = selIds.join(',');
                     }
-                }
 
-                // Format B: Details01 (Set 1) — primary document row
-                if (!doc && d && d.Details01 && Array.isArray(d.Details01) && d.Details01.length > 0) {
-                    var c = d.Details01[0];
-                    if (c.DocumentID || c.DocumentId) doc = c;
-                    else {
-                        state.operatorID  = c.OperatorID;
-                        state.eventID     = c.EventID;
-                        state.updateCount = c.UpdateCount || 0;
+                    // 4. Fallbacks (Priority 3: Documents collection or raw result)
+                    if (!doc) {
+                        var docs = root.Documents || d.Documents;
+                        if (docs && Array.isArray(docs) && docs.length > 0) doc = docs[0];
                     }
-                }
+                    if (!doc && Array.isArray(d) && d.length > 0 && (d[0].DocumentID || d[0].DocumentId)) doc = d[0];
+                    if (!doc && typeof d === 'object' && !Array.isArray(d) && (d.DocumentID || d.DocumentId)) doc = d;
+                    if (!doc && (root.DocumentID || root.DocumentId)) doc = root;
 
-                // Format B: Details02 (Set 2) — selection / metadata
-                if (d && d.Details02 && Array.isArray(d.Details02) && d.Details02.length > 0) {
-                    var c2 = d.Details02[0];
-                    if (!doc && (c2.DocumentID || c2.DocumentId)) doc = c2;
-                    if (c2.OperatorID !== undefined && c2.EventID !== undefined) {
-                        state.operatorID  = c2.OperatorID;
-                        state.eventID     = c2.EventID;
-                        state.updateCount = c2.UpdateCount || 0;
+                    if (doc) {
+                        state.documentData = doc;
+                        bindForm(doc);
+                        snapshotValues();
+                        setMode('NONE');
+                        showMsg('Record loaded successfully.', 'success');
+                    } else {
+                        const msg = result.ResponseMessage || result.responseMessage || 'Document not found for this account.';
+                        showMsg(msg, 'warning');
+                        if (direction === 0 && state.editMode === 'NONE') {
+                            clearForm();
+                            state.documentData = null;
+                        }
                     }
-                    // Selected classes
-                    var selIds = d.Details02
-                        .filter(function(x){ return x.IsSelected === 1 || x.IsSelected === '1'; })
-                        .map(function(x){ return x.DocumentClassID; })
-                        .filter(Boolean);
-                    if (selIds.length > 0 && doc) doc.DocumentClassID = selIds.join(',');
-                }
-
-                // Fallback: top-level Details as array
-                if (!doc && Array.isArray(d) && d.length > 0) doc = d[0];
-                if (!doc && d && typeof d === 'object' && !Array.isArray(d) && (d.DocumentID || d.DocumentId)) doc = d;
-
-                if (doc) {
-                    state.documentData = doc;
-                    bindForm(doc);
-                    snapshotValues();
-                    setMode('NONE');
-                    showMsg('Record loaded successfully.', 'success');
                 } else {
-                    showMsg('No document found.', 'warning');
-                    // Only clear form if in NONE mode (don't wipe during ADD/EDIT)
-                    if (direction === 0 && state.editMode === 'NONE') {
-                        clearForm();
-                        state.documentData = null;
+                    if (state.editMode === 'NONE') {
+                        const msg = result.ResponseMessage || result.responseMessage || 'No document found.';
+                        showMsg(msg, 'warning');
+                        if (direction === 0) {
+                            clearForm();
+                            state.documentData = null;
+                        }
                     }
                 }
-            } else {
-                // Not success — but don't clobber ADD/EDIT mode
-                if (state.editMode === 'NONE') {
-                    showMsg(result.ResponseMessage || 'No document found.', 'warning');
-                    if (direction === 0) {
-                        clearForm();
-                        state.documentData = null;
-                    }
-                }
-            }
-        })
-        .catch(function(err) {
-            showLoading(false);
-            showMsg('Error loading document: ' + err.message, 'error');
-        });
+            })
+            .catch(function (err) {
+                showLoading(false);
+                showMsg('Error loading document: ' + err.message, 'error');
+            });
     }
 
     /* ── Save ────────────────────────────────────────────────── */
     function saveData() {
         // Validation
-        var docId   = val('documentId').trim();
+        var docId = val('documentId').trim();
         var docType = val('documentType').trim();
-        if (!docId)   { showMsg('Document ID is required.', 'warning'); el('documentId')?.focus(); return; }
+        if (!docId) { showMsg('Document ID is required.', 'warning'); el('documentId')?.focus(); return; }
         if (!docType) { showMsg('Document Type is required.', 'warning'); el('documentType')?.focus(); return; }
 
         var actionLabel = state.editMode === 'ADD' ? 'create' : 'update';
@@ -544,50 +510,47 @@ window.AccountDocumentsModule = (function () {
             'Are you sure you want to ' + actionLabel + ' this document record?',
             'Save Document',
             'bi-save'
-        ).then(function(confirmed) {
+        ).then(function (confirmed) {
             if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
 
-            var ctx   = getContext();
+            var ctx = getContext();
             var isAdd = state.editMode === 'ADD';
 
             var payload = {
-                OurBranchID:    ctx.OurBranchID,
-                AccountID:      ctx.AccountID,
-                CreatedBy:      ctx.OperatorID,
-                DocumentID:     docId,
-                DocumentTypeID:  docType,
-                ReceivedBy:     val('receivedBy').trim(),
-                ReceivedDate:   el('receivedDate_picker')?.value || val('receivedDate').trim() || '',
-                ExpiryDate:     '',
-                ImageID:        String(state.imageID || 0),
-                LocationID:     val('location').trim(),
-                Remarks:        val('remarks').trim(),
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                CreatedBy: ctx.OperatorID,
+                DocumentID: docId,
+                DocumentTypeID: docType,
+                ReceivedBy: val('receivedBy').trim(),
+                ReceivedDate: el('receivedDate_picker')?.value || val('receivedDate').trim() || '',
+                ExpiryDate: '',
+                ImageID: String(state.imageID || 0),
+                LocationID: val('location').trim(),
+                Remarks: val('remarks').trim(),
                 DocumentClasses: getDocumentClassesXml(),
-                NewRecord:      isAdd ? 1 : (state.updateCount || 0)
+                NewRecord: isAdd ? 1 : (state.updateCount || 0)
             };
 
             showLoading(true);
 
-            fetch(isAdd ? API.ADD : API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(function(r){ return r.json(); })
-            .then(function(result) {
-                showLoading(false);
-                if (isSuccess(result)) {
-                    showMsg(result.ResponseMessage || (isAdd ? 'Document added.' : 'Document updated.'), 'success');
-                    setMode('NONE');
-                    setTimeout(function(){ navigate(0); }, 100);
-                } else {
-                    showMsg(result.ResponseMessage || 'Save failed.', 'error');
-                }
-            })
-            .catch(function(err) {
-                showLoading(false);
-                showMsg('Save error: ' + err.message, 'error');
-            });
+            AppCore.invokeControllerAsync('AccountsMaintenance/' + (isAdd ? API.ADD : API.UPDATE), payload)
+                .then(function (result) {
+                    showLoading(false);
+                    if (isSuccess(result)) {
+                        const msg = result.ResponseMessage || result.responseMessage || (isAdd ? 'Document added.' : 'Document updated.');
+                        showMsg(msg, 'success');
+                        setMode('NONE');
+                        setTimeout(function () { navigate(0); }, 100);
+                    } else {
+                        const msg = result.ResponseMessage || result.responseMessage || 'Save failed.';
+                        showMsg(msg, 'error');
+                    }
+                })
+                .catch(function (err) {
+                    showLoading(false);
+                    showMsg('Save error: ' + err.message, 'error');
+                });
         });
     }
 
@@ -599,7 +562,7 @@ window.AccountDocumentsModule = (function () {
             'Are you sure you want to delete this document? This action cannot be undone.',
             'Delete Document',
             'bi-trash'
-        ).then(function(confirmed) {
+        ).then(function (confirmed) {
             if (!confirmed) return;
 
             snapshotValues();
@@ -609,33 +572,30 @@ window.AccountDocumentsModule = (function () {
             showLoading(true);
 
             var payload = {
-                AccountID:   ctx.AccountID,
-                DocumentID:  val('documentId').trim(),
+                AccountID: ctx.AccountID,
+                DocumentID: val('documentId').trim(),
                 OurBranchID: ctx.OurBranchID,
-                OperatorID:  ctx.OperatorID
+                OperatorID: ctx.OperatorID
             };
 
-            fetch(API.DELETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(function(r){ return r.json(); })
-            .then(function(result) {
-                showLoading(false);
-                if (isSuccess(result)) {
-                    showMsg(result.ResponseMessage || 'Document deleted.', 'success');
-                    state.documentData = null;
-                    clearForm();
-                    setMode('NONE');
-                } else {
-                    showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-                }
-            })
-            .catch(function(err) {
-                showLoading(false);
-                showMsg('Delete error: ' + err.message, 'error');
-            });
+            AppCore.invokeControllerAsync('AccountsMaintenance/' + API.DELETE, payload)
+                .then(function (result) {
+                    showLoading(false);
+                    if (isSuccess(result)) {
+                        const msg = result.ResponseMessage || result.responseMessage || 'Document deleted.';
+                        showMsg(msg, 'success');
+                        state.documentData = null;
+                        clearForm();
+                        setMode('NONE');
+                    } else {
+                        const msg = result.ResponseMessage || result.responseMessage || 'Delete failed.';
+                        showMsg(msg, 'error');
+                    }
+                })
+                .catch(function (err) {
+                    showLoading(false);
+                    showMsg('Delete error: ' + err.message, 'error');
+                });
         });
     }
 
@@ -645,13 +605,13 @@ window.AccountDocumentsModule = (function () {
             'Clear form and prepare to add a new document for this account?',
             'Add Document',
             'bi-plus-circle'
-        ).then(function(confirmed) {
+        ).then(function (confirmed) {
             if (!confirmed) return;
-            var currentId   = val('documentId');
+            var currentId = val('documentId');
             var currentDesc = val('documentDesc_lookup');
             snapshotValues();
             clearForm();
-            if (currentId)   setVal('documentId', currentId);
+            if (currentId) setVal('documentId', currentId);
             if (currentDesc) setVal('documentDesc_lookup', currentDesc);
             setMode('ADD');
             el('documentType')?.focus();
@@ -664,7 +624,7 @@ window.AccountDocumentsModule = (function () {
             'Enable editing for this document record? You will be able to modify document details.',
             'Edit Document',
             'bi-pencil-square'
-        ).then(function(confirmed) {
+        ).then(function (confirmed) {
             if (!confirmed) return;
             snapshotValues();
             setMode('EDIT');
@@ -677,7 +637,7 @@ window.AccountDocumentsModule = (function () {
             'Discard unsaved changes and return to view mode?',
             'Discard Changes',
             'bi-arrow-left-circle'
-        ).then(function(confirmed) {
+        ).then(function (confirmed) {
             if (!confirmed) return;
             restoreValues();
             setMode('NONE');
@@ -693,17 +653,17 @@ window.AccountDocumentsModule = (function () {
     }
 
     function clearForm() {
-        EDITABLE.concat(['documentDesc_lookup']).forEach(function(id) { setVal(id, ''); });
-        AUDIT.forEach(function(id) { setVal(id, ''); });
+        EDITABLE.concat(['documentDesc_lookup']).forEach(function (id) { setVal(id, ''); });
+        AUDIT.forEach(function (id) { setVal(id, ''); });
         // Clear file input
         var fileIn = el('documentImage_file'); if (fileIn) fileIn.value = '';
         var display = el('documentClassDisplay');
         if (display) display.textContent = '--Select--';
         var ms = el('documentClassMultiselect');
-        if (ms) ms.querySelectorAll('input[type="checkbox"]').forEach(function(cb){ cb.checked = false; });
-        state.imageID     = 0;
+        if (ms) ms.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.checked = false; });
+        state.imageID = 0;
         state.updateCount = 0;
-        state.eventID     = null;
+        state.eventID = null;
     }
 
     function showImage() {
@@ -731,24 +691,24 @@ window.AccountDocumentsModule = (function () {
         // Auto-load first record + document class list
         var ctx = getContext();
         if (ctx.AccountID) {
-            setTimeout(function(){ navigate(1); }, 300);
+            setTimeout(function () { navigate(1); }, 300);
         }
     }
 
     /* ── Public API ──────────────────────────────────────────── */
     return {
-        init:          init,
-        setMode:       setMode,
-        navigate:      navigate,
-        saveData:      saveData,
-        deleteData:    deleteData,
-        confirmAdd:    confirmAdd,
-        confirmEdit:   confirmEdit,
+        init: init,
+        setMode: setMode,
+        navigate: navigate,
+        saveData: saveData,
+        deleteData: deleteData,
+        confirmAdd: confirmAdd,
+        confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
-        clearForm:     clearForm,
-        showImage:     showImage,
-        loadData:      function() { navigate(0); }
+        clearForm: clearForm,
+        showImage: showImage,
+        loadData: function () { navigate(0); }
     };
 })();
 

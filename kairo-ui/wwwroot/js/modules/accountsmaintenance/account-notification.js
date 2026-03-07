@@ -17,12 +17,12 @@ window.AccountNotificationModule = (function () {
         operatorID: null
     };
 
-    /* ── API Routes ─────────────────────────────────────────── */
+    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-notification',
-        ADD: '/AccountsMaintenance/api/add-account-notification',
-        UPDATE: '/AccountsMaintenance/api/update-account-notification',
-        DELETE: '/AccountsMaintenance/api/delete-account-notification'
+        GET: 'AccountsMaintenance/api/get-account-notification',
+        ADD: 'AccountsMaintenance/api/add-account-notification',
+        UPDATE: 'AccountsMaintenance/api/update-account-notification',
+        DELETE: 'AccountsMaintenance/api/delete-account-notification'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -61,9 +61,15 @@ window.AccountNotificationModule = (function () {
         console.log('[AccountNotification] ' + type + ': ' + msg);
     }
 
-    function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
+    function isSuccess(r) {
+        if (!r) return false;
+        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
 
     function showConfirm(message, title, iconClass) {
+        if (window.AppCore && window.AppCore.showConfirmation) {
+            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
+        }
         title = title || 'Confirm Action';
         iconClass = iconClass || 'bi-question-circle';
         return new Promise(function (resolve) {
@@ -100,7 +106,6 @@ window.AccountNotificationModule = (function () {
 
             confirmBtn.onclick = function () { handleResponse(true); };
             cancelBtn.onclick = function () { handleResponse(false); };
-            overlay.onclick = function (e) { if (e.target === overlay) handleResponse(false); };
 
             requestAnimationFrame(function () {
                 overlay.classList.add('is-visible');
@@ -254,206 +259,146 @@ window.AccountNotificationModule = (function () {
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
-    function navigate() {
-        var ctx = getContext();
+    async function navigate() {
+        const ctx = getContext();
+        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
         showLoading(true);
-
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
-            })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (result) {
-                showLoading(false);
-
-                if (isSuccess(result)) {
-                    let data = [];
-                    var d = result && result.Details ? result.Details : null;
-
-                    if (Array.isArray(d)) data = d;
-                    else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                    else if (Array.isArray(result.Data)) data = result.Data;
-                    else if (d && typeof d === 'object') data = [d];
-                    else if (result.Data && typeof result.Data === 'object') data = [result.Data];
-
-                    state.notifications = data;
-
-                    if (state.notifications.length > 0) {
-                        state.selectedIndex = 0;
-                        bindForm(state.notifications[0]);
-                        showMsg(`Loaded ${state.notifications.length} notification(s).`, 'success');
-                    } else {
-                        state.selectedIndex = -1;
-                        clearForm();
-                        showMsg('No notifications found.', 'info');
-                    }
-
-                    renderGrid();
-                    setMode('NONE');
-                } else {
-                    state.notifications = [];
-                    state.selectedIndex = -1;
-                    renderGrid();
-                    clearForm();
-                    setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No notifications found.', 'warning');
-                }
-            })
-            .catch(function (err) {
-                showLoading(false);
-                showMsg('Error loading Account Notifications: ' + err.message, 'error');
             });
+
+            showLoading(false);
+            if (isSuccess(result)) {
+                let data = [];
+                const d = result.Details || result.Data || result;
+                if (Array.isArray(d)) data = d;
+                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
+                else if (d && typeof d === 'object') data = [d];
+
+                state.notifications = data;
+                if (state.notifications.length > 0) {
+                    state.selectedIndex = 0;
+                    bindForm(state.notifications[0]);
+                } else {
+                    state.selectedIndex = -1;
+                    clearForm();
+                }
+                renderGrid();
+                setMode('NONE');
+            } else {
+                state.notifications = [];
+                state.selectedIndex = -1;
+                renderGrid();
+                clearForm();
+                setMode('NONE');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading Account Notifications: ' + err.message, 'error');
+        }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
-    function saveData() {
-        var isAdd = state.editMode === 'ADD';
-        var actionLabel = isAdd ? 'create' : 'update';
-
-        var frequency = val('frequency');
+    async function saveData() {
+        const isAdd = state.editMode === 'ADD';
+        const frequency = val('frequency');
         if (!frequency) { showMsg('Notification Frequency is required', 'warning'); return; }
 
-        showConfirm(
-            'Are you sure you want to ' + actionLabel + ' this notification?',
-            'Save Account Notification',
-            'bi-save'
-        ).then(function (confirmed) {
-            if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
+        const confirmed = await showConfirm(
+            `Are you sure you want to ${isAdd ? 'create' : 'update'} this notification?`,
+            'Save Confirmation'
+        );
+        if (!confirmed) return;
 
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+        const ctx = getContext();
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            CreatedBy: ctx.OperatorID,
+            OperatorID: ctx.OperatorID,
+            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
+            NotificationFrequency: val('frequency').trim(),
+            NoOfDays: val('dayOfMonth').trim() || "0",
+            ExecutionDate: val('executionDate').trim() || null
+        };
 
-            // Build payload
-            var payload = {
-                OurBranchID: ctx.OurBranchID,
-                AccountID: ctx.AccountID,
-                CreatedBy: ctx.OperatorID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
-                NotificationFrequency: val('frequency').trim(),
-                NoOfDays: val('dayOfMonth').trim() || "0",
-                ExecutionDate: val('executionDate').trim() || null
-            };
+        if (!isAdd && state.selectedIndex >= 0) {
+            const item = state.notifications[state.selectedIndex];
+            payload.NotificationID = item.NotificationID || item.ID || '';
+        }
 
-            if (!isAdd && state.selectedIndex >= 0) {
-                var item = state.notifications[state.selectedIndex];
-                payload.NotificationID = item.NotificationID || item.ID || '';
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result.ResponseMessage || 'Changes saved successfully.', 'success');
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Save failed.', 'error');
             }
-
-            showLoading(true);
-
-            fetch(isAdd ? API.ADD : API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || (isAdd ? 'Notification added.' : 'Notification updated.'), 'success');
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Save failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Save error: ' + err.message, 'error');
-                });
-        });
+        } catch (err) {
+            showLoading(false);
+            showMsg('Save error: ' + err.message, 'error');
+        }
     }
 
     /* ── Delete ──────────────────────────────────────────────── */
-    function deleteData() {
+    async function deleteData() {
         if (state.selectedIndex === -1 || !state.notifications[state.selectedIndex]) {
             showMsg('No data to delete.', 'warning'); return;
         }
 
-        showConfirm(
+        const confirmed = await showConfirm(
             'Are you sure you want to delete this notification?',
-            'Delete Notification',
-            'bi-trash'
-        ).then(function (confirmed) {
-            if (!confirmed) return;
+            'Delete Confirmation'
+        );
+        if (!confirmed) return;
 
-            setMode('DELETE');
-
-            var ctx = getContext();
-            var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-            var item = state.notifications[state.selectedIndex];
-
-            showLoading(true);
-
-            var payload = {
+        const ctx = getContext();
+        const item = state.notifications[state.selectedIndex];
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID,
-                SearchKey: searchKey,
+                SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
                 NotificationID: item.NotificationID || item.ID || ''
-            };
-
-            fetch(API.DELETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    showLoading(false);
-                    if (isSuccess(result)) {
-                        showMsg(result.ResponseMessage || 'Notification deleted.', 'success');
-                        state.selectedIndex = -1;
-                        clearForm();
-                        setMode('NONE');
-                        navigate();
-                    } else {
-                        showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-                    }
-                })
-                .catch(function (err) {
-                    showLoading(false);
-                    showMsg('Delete error: ' + err.message, 'error');
-                });
-        });
+            });
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result.ResponseMessage || 'Deleted successfully.', 'success');
+                state.selectedIndex = -1;
+                clearForm();
+                setMode('NONE');
+                navigate();
+            } else {
+                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Delete error: ' + err.message, 'error');
+        }
     }
 
     /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
-    function confirmAdd() {
-        setMode('ADD');
-    }
-
-    function confirmEdit() {
-        if (state.notifications.length === 0 || state.selectedIndex === -1) {
-            showMsg('No record available to edit.', 'warning'); return;
-        }
-        setMode('EDIT');
-    }
-
-    function confirmCancel() {
-        cancelChanges();
-    }
-
-    /* ── Cancel / Clear ──────────────────────────────────────── */
+    function confirmAdd() { setMode('ADD'); }
+    function confirmEdit() { if (state.selectedIndex !== -1) setMode('EDIT'); else showMsg('No record selected.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
     function cancelChanges() {
-        if (state.selectedIndex >= 0 && state.notifications[state.selectedIndex]) {
-            bindForm(state.notifications[state.selectedIndex]);
-        } else {
-            clearForm();
-        }
+        if (state.selectedIndex >= 0 && state.notifications[state.selectedIndex]) bindForm(state.notifications[state.selectedIndex]);
+        else clearForm();
         setMode('NONE');
     }
-
     function clearForm() {
-        EDITABLE.forEach(function (id) { setVal(id, ''); });
-        AUDIT.forEach(function (id) { setVal(id, '-'); });
+        EDITABLE.forEach(id => setVal(id, ''));
+        AUDIT.forEach(id => setVal(id, '-'));
     }
 
     /* ── Init ────────────────────────────────────────────────── */
@@ -463,9 +408,9 @@ window.AccountNotificationModule = (function () {
         setMode('NONE');
 
         // Initial Load
-        var ctx = getContext();
+        const ctx = getContext();
         if (ctx.AccountID) {
-            setTimeout(function () { navigate(); }, 300);
+            navigate();
         } else {
             showMsg('No Account selected in context.', 'warning');
         }
@@ -482,8 +427,7 @@ window.AccountNotificationModule = (function () {
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
-        clearForm: clearForm,
-        loadData: function () { navigate(); }
+        loadData: navigate
     };
 })();
 

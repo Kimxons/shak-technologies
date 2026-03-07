@@ -1,492 +1,384 @@
 /**
- * Account Stop Payment Module - CRUD Operations
- * Manages stop payment instructions with full CRUD functionality
+ * Stop Payment Void Module
+ * Refactored to align with IApiService pattern and AppCore.invokeControllerAsync
  */
-
-window.AccountStopPaymentModule = (function () {
+window.StopPaymentVoidModule = (function () {
     'use strict';
 
+    // Module State
     const state = {
-        accountId: null,
-        branchId: null,
-        operatorId: null,
-        currentMode: 'VIEW',
-        stopPayments: [],
+        submoduleName: 'StopPaymentVoid',
+        currentMode: 'VIEW', // VIEW, ADD, EDIT
+        records: [],
         selectedIndex: -1,
-        originalData: null
+        selectedRecord: null,
+        context: {
+            accountId: '',
+            branchId: '',
+            operatorId: ''
+        }
     };
 
+    // API Endpoints (Simplified for AppCore.invokeControllerAsync)
     const API = {
-        GET: '/AccountsMaintenance/api/get-stop-payments',
-        ADD: '/AccountsMaintenance/api/add-stop-payment',
-        UPDATE: '/AccountsMaintenance/api/update-stop-payment'
+        GET: 'api/get-stop-payments',
+        ADD: 'api/add-stop-payment',
+        UPDATE: 'api/update-stop-payment'
     };
 
     /**
-     * Initialize the module
+     * Initialize Module
      */
     function init() {
-        console.log('[StopPayment] Initializing module...');
-        getAccountContext();
+        console.log(`[${state.submoduleName}] Initializing...`);
 
-        if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
+        // Load context from global state or session
+        loadContext();
+
+        if (!state.context.accountId) {
+            AppCore.showMsg('No account selected. Please load an account first.', 'warning');
             return;
         }
 
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
-        setMode('VIEW');
+        // Initial Data Load
         loadData();
+
+        // Initial UI State
+        setMode('VIEW');
+
+        console.log(`[${state.submoduleName}] Initialized successfully.`);
     }
 
     /**
-     * Get account context from parent page
+     * Load Account Context
      */
-    function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
-        } else {
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
-        }
+    function loadContext() {
+        const globalState = window.AccountMaintenanceState || {};
+        state.context.accountId = globalState.AccountID || sessionStorage.getItem('currentAccountID');
+        state.context.branchId = globalState.OurBranchID || sessionStorage.getItem('currentBranchID');
+        state.context.operatorId = globalState.OperatorID || localStorage.getItem('OperatorID') || 'SYSTEM';
+
+        // Auto-populate Account ID and Branch if available
+        const accountIdEl = document.getElementById('accountId');
+        const branchIdEl = document.getElementById('branchId');
+        const accountNameEl = document.getElementById('accountName');
+        const branchNameEl = document.getElementById('branchName');
+
+        if (accountIdEl) accountIdEl.value = state.context.accountId || '';
+        if (branchIdEl) branchIdEl.value = state.context.branchId || '';
+        if (accountNameEl) accountNameEl.value = globalState.AccountName || '';
+        if (branchNameEl) branchNameEl.value = globalState.BranchName || '';
     }
 
     /**
-     * Wire header control buttons
-     */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', toggleMaximize);
-    }
-
-    /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'view': () => setMode('VIEW'),
-            'add': () => setMode('ADD'),
-            'edit': () => setMode('EDIT'),
-            'save': saveData,
-            'cancel': cancelChanges,
-            'close': closeSubmodule
-        };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
-    }
-
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content, [data-section-content]');
-                const icon = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-            });
-        });
-    }
-
-    /**
-     * Set form mode
-     */
-    function setMode(mode) {
-        console.log('[StopPayment] Setting mode:', mode);
-        state.currentMode = mode;
-
-        const isEditing = mode === 'ADD' || mode === 'EDIT';
-        
-        // Enable/disable form fields
-        document.querySelectorAll('#chequeNumber, #chequeNumberFrom, #chequeNumberTo, #stopReason, #stopDate, #expiryDate, #remarks, #beneficiaryName, #amount').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
-
-        // Update button states
-        const buttons = {
-            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            'add': { active: mode === 'ADD', disabled: isEditing },
-            'edit': { active: mode === 'EDIT', disabled: isEditing || state.stopPayments.length === 0 },
-            'save': { active: false, disabled: !isEditing },
-            'cancel': { active: false, disabled: !isEditing }
-        };
-
-        Object.keys(buttons).forEach(action => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (btn) {
-                btn.classList.toggle('active', buttons[action].active);
-                btn.disabled = buttons[action].disabled;
-            }
-        });
-
-        if (mode === 'ADD') {
-            clearForm();
-        }
-    }
-
-    /**
-     * Load stop payments from API
+     * Load Stop Payment Records
      */
     async function loadData() {
-        console.log('[StopPayment] Loading stop payments...');
-        showLoading(true);
-
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
+            AppCore.showLoading(true, 'Loading stop payment records...');
+
+            const requestData = {
+                AccountID: state.context.accountId,
+                OurBranchID: state.context.branchId
             };
 
-            const response = await fetch(API.GET, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, requestData);
 
-            const result = await response.json();
-            console.log('[StopPayment] Response:', result);
-
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data || [];
-                state.stopPayments = Array.isArray(data) ? data : (data ? [data] : []);
-                
-                if (state.stopPayments.length > 0) {
-                    state.selectedIndex = 0;
-                    populateForm(state.stopPayments[0]);
-                }
+            if (result && result.Success) {
+                state.records = result.Data || [];
                 renderGrid();
-                showSuccess(`Loaded ${state.stopPayments.length} stop payment(s)`);
+
+                if (state.records.length > 0) {
+                    selectRecord(0);
+                } else {
+                    clearForm();
+                }
             } else {
-                showError(result?.ResponseMessage || 'Failed to load stop payments');
+                AppCore.showMsg(result?.ErrorMessage || 'Failed to load stop payment records.', 'error');
             }
         } catch (error) {
-            console.error('[StopPayment] Error:', error);
-            showError('Failed to load stop payments: ' + error.message);
+            console.error(`[${state.submoduleName}] Load Error:`, error);
+            AppCore.showMsg('Error loading records: ' + error.message, 'error');
         } finally {
-            showLoading(false);
+            AppCore.showLoading(false);
         }
     }
 
     /**
-     * Render stop payments grid
+     * Render Records Grid
      */
     function renderGrid() {
-        const tbody = document.querySelector('#stopPaymentsGrid tbody');
-        if (!tbody) return;
+        const gridBody = document.querySelector('#stopPaymentGrid tbody');
+        const recordCountEl = document.getElementById('recordCount');
 
-        tbody.innerHTML = '';
+        if (!gridBody) return;
 
-        if (state.stopPayments.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="6">No stop payments found.</td></tr>';
+        gridBody.innerHTML = '';
+        if (recordCountEl) recordCountEl.textContent = `${state.records.length} records`;
+
+        if (state.records.length === 0) {
+            gridBody.innerHTML = '<tr class="grid-empty-row"><td colspan="6" class="text-center">No records to display.</td></tr>';
             return;
         }
 
-        state.stopPayments.forEach((item, index) => {
+        state.records.forEach((rec, index) => {
             const row = document.createElement('tr');
-            row.dataset.index = index;
-            row.className = index === state.selectedIndex ? 'table-active' : '';
+            if (index === state.selectedIndex) row.classList.add('selected');
+
             row.innerHTML = `
-                <td>${escapeHtml(item.ChequeNumber || item.ChequeNo) || '-'}</td>
-                <td>${escapeHtml(item.BeneficiaryName || item.Beneficiary) || '-'}</td>
-                <td class="text-end">${formatNumber(item.Amount || 0)}</td>
-                <td>${formatDisplayDate(item.StopDate) || '-'}</td>
-                <td>${formatDisplayDate(item.ExpiryDate) || '-'}</td>
-                <td>${escapeHtml(item.StopReason || item.Reason) || '-'}</td>
+                <td>${rec.ChequeNoStart || '-'}</td>
+                <td>${rec.ChequeNoEnd || '-'}</td>
+                <td>${AppCore.formatDate(rec.ChequeDate)}</td>
+                <td class="text-end">${AppCore.formatCurrency(rec.ChequeAmount)}</td>
+                <td>${rec.ReasonDescription || '-'}</td>
+                <td>${AppCore.formatDate(rec.VoidDate)}</td>
             `;
-            row.addEventListener('click', () => selectItem(index));
-            tbody.appendChild(row);
+
+            row.addEventListener('click', () => selectRecord(index));
+            gridBody.appendChild(row);
         });
     }
 
     /**
-     * Select a stop payment
+     * Select Record from Grid
      */
-    function selectItem(index) {
+    function selectRecord(index) {
+        if (index < 0 || index >= state.records.length) return;
+
         state.selectedIndex = index;
-        populateForm(state.stopPayments[index]);
+        state.selectedRecord = state.records[index];
+
+        populateForm(state.selectedRecord);
         renderGrid();
     }
 
     /**
-     * Populate form with data
+     * Populate Form with Data
      */
     function populateForm(data) {
         if (!data) return;
 
-        const setValue = (id, value) => {
+        const setVal = (id, val) => {
             const el = document.getElementById(id);
-            if (el) el.value = value || '';
+            if (el) el.value = val !== null && val !== undefined ? val : '';
         };
 
-        setValue('chequeNumber', data.ChequeNumber || data.ChequeNo);
-        setValue('chequeNumberFrom', data.ChequeNumberFrom || data.FromChequeNo);
-        setValue('chequeNumberTo', data.ChequeNumberTo || data.ToChequeNo);
-        setValue('stopReason', data.StopReason || data.ReasonID);
-        setValue('stopDate', formatDisplayDate(data.StopDate));
-        setValue('expiryDate', formatDisplayDate(data.ExpiryDate));
-        setValue('remarks', data.Remarks || data.Notes);
-        setValue('beneficiaryName', data.BeneficiaryName || data.Beneficiary);
-        setValue('amount', data.Amount || 0);
+        setVal('chequeNoStart', data.ChequeNoStart);
+        setVal('chequeNoEnd', data.ChequeNoEnd);
+        setVal('chequeDate', AppCore.formatDate(data.ChequeDate, 'YYYY-MM-DD'));
+        setVal('chequeAmount', data.ChequeAmount);
+        setVal('reasonId', data.ReasonID);
+        setVal('voidDate', AppCore.formatDate(data.VoidDate, 'YYYY-MM-DD'));
+        setVal('requestRef', data.RequestRef);
 
-        // Display status
-        const statusEl = document.getElementById('stopStatus');
-        if (statusEl) {
-            statusEl.textContent = data.Status || data.StatusDescription || 'Active';
-            statusEl.className = `badge ${data.Status === 'Cancelled' ? 'bg-secondary' : 'bg-danger'}`;
-        }
-
-        populateAuditFields(data);
-        state.originalData = { ...data };
-    }
-
-    /**
-     * Get form data
-     */
-    function getFormData() {
-        return {
-            ChequeNumber: document.getElementById('chequeNumber')?.value || '',
-            ChequeNumberFrom: document.getElementById('chequeNumberFrom')?.value || '',
-            ChequeNumberTo: document.getElementById('chequeNumberTo')?.value || '',
-            StopReason: document.getElementById('stopReason')?.value || '',
-            StopDate: parseApiDate(document.getElementById('stopDate')?.value),
-            ExpiryDate: parseApiDate(document.getElementById('expiryDate')?.value),
-            Remarks: document.getElementById('remarks')?.value || '',
-            BeneficiaryName: document.getElementById('beneficiaryName')?.value || '',
-            Amount: parseFloat(document.getElementById('amount')?.value) || 0
+        // Audit Fields
+        const setAudit = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val || '-';
         };
+
+        setAudit('MakerID', data.MakerID);
+        setAudit('MakerDT', AppCore.formatDate(data.MakerDT, 'DD/MM/YYYY HH:mm'));
+        setAudit('ModifierID', data.ModifierID);
+        setAudit('ModifierDT', AppCore.formatDate(data.ModifierDT, 'DD/MM/YYYY HH:mm'));
+        setAudit('CheckerID', data.CheckerID);
+        setAudit('CheckerDT', AppCore.formatDate(data.CheckerDT, 'DD/MM/YYYY HH:mm'));
     }
 
     /**
-     * Save stop payment
-     */
-    async function saveData() {
-        console.log('[StopPayment] Saving stop payment...');
-        showLoading(true);
-
-        try {
-            const formData = getFormData();
-            if (!validateForm(formData)) return;
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                ...formData,
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const endpoint = state.currentMode === 'ADD' ? API.ADD : API.UPDATE;
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Stop payment saved successfully');
-                setMode('VIEW');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to save stop payment');
-            }
-        } catch (error) {
-            console.error('[StopPayment] Save error:', error);
-            showError('Failed to save: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Validate form
-     */
-    function validateForm(data) {
-        if (!data.ChequeNumber && !data.ChequeNumberFrom) {
-            showWarning('Please enter a cheque number or cheque number range');
-            return false;
-        }
-        if (!data.StopReason) {
-            showWarning('Please select a stop reason');
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Cancel changes
-     */
-    function cancelChanges() {
-        if (state.stopPayments.length > 0 && state.selectedIndex >= 0) {
-            populateForm(state.stopPayments[state.selectedIndex]);
-        } else {
-            clearForm();
-        }
-        setMode('VIEW');
-    }
-
-    /**
-     * Clear form
+     * Clear Form for New Record
      */
     function clearForm() {
-        ['chequeNumber', 'chequeNumberFrom', 'chequeNumberTo', 'stopReason', 'stopDate', 'expiryDate', 'remarks', 'beneficiaryName', 'amount'].forEach(id => {
-            const el = document.getElementById(id);
+        const fields = ['chequeNoStart', 'chequeNoEnd', 'chequeDate', 'chequeAmount', 'reasonId', 'voidDate', 'requestRef'];
+        fields.forEach(f => {
+            const el = document.getElementById(f);
             if (el) el.value = '';
         });
-        clearAuditFields();
-    }
 
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
-        if (!data) return;
-        const fields = {
-            'MakerID': data.CreatedBy || '-',
-            'MakerDT': formatDate(data.CreatedOn) || '-',
-            'ModifierID': data.ModifiedBy || '-',
-            'ModifierDT': formatDate(data.ModifiedOn) || '-'
-        };
-
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
-        });
-    }
-
-    /**
-     * Clear audit fields
-     */
-    function clearAuditFields() {
-        ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT'].forEach(id => {
+        // Reset Audit
+        ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.textContent = '-';
         });
     }
 
-    // Utility functions
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+    /**
+     * Set Module Mode
+     */
+    function setMode(mode) {
+        state.currentMode = mode;
+        const isReadOnly = mode === 'VIEW';
+
+        const fields = ['chequeNoStart', 'chequeNoEnd', 'chequeDate', 'chequeAmount', 'reasonId', 'requestRef'];
+        fields.forEach(f => {
+            const el = document.getElementById(f);
+            if (el) el.disabled = isReadOnly;
+        });
+
+        if (mode === 'ADD') {
+            clearForm();
+            state.selectedIndex = -1;
+            state.selectedRecord = null;
+            renderGrid();
+        }
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        const isEditing = mode !== 'VIEW';
+        if (btnView) btnView.disabled = isEditing;
+        if (btnAdd) btnAdd.disabled = isEditing;
+        if (btnEdit) btnEdit.disabled = isEditing;
+        if (btnSave) btnSave.disabled = !isEditing;
+        if (btnCancel) btnCancel.disabled = !isEditing;
+        if (btnDelete) btnDelete.disabled = isEditing;
     }
 
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 || 
-               result?.success === true || result?.Success === true;
+    /**
+     * Navigation Logic (Proxy for View Button)
+     */
+    function navigate() {
+        setMode('VIEW');
+        if (state.records.length > 0) {
+            selectRecord(0);
+        }
     }
 
-    function formatNumber(num) {
-        return parseFloat(num || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    /**
+     * Mode Confirmation - Add
+     */
+    function confirmAdd() {
+        setMode('ADD');
     }
 
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
+    /**
+     * Mode Confirmation - Edit
+     */
+    function confirmEdit() {
+        if (!state.selectedRecord) {
+            AppCore.showMsg('Please select a record to edit.', 'warning');
+            return;
+        }
+        setMode('EDIT');
+    }
+
+    /**
+     * Save Data
+     */
+    async function saveData() {
         try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
-        } catch (e) {
-            return dateString;
+            if (state.currentMode === 'VIEW') return;
+
+            const isAdd = state.currentMode === 'ADD';
+
+            const payload = {
+                AccountID: state.context.accountId,
+                OurBranchID: state.context.branchId,
+                OperatorID: state.context.operatorId,
+                ChequeNoStart: document.getElementById('chequeNoStart').value,
+                ChequeNoEnd: document.getElementById('chequeNoEnd').value,
+                ChequeDate: document.getElementById('chequeDate').value,
+                ChequeAmount: document.getElementById('chequeAmount').value,
+                ReasonID: document.getElementById('reasonId').value,
+                RequestRef: document.getElementById('requestRef').value,
+            };
+
+            if (!isAdd && state.selectedRecord) {
+                payload.RecordID = state.selectedRecord.RecordID; // Assuming RecordID is the identifier for updates
+            }
+
+            // Validation
+            if (!payload.ChequeNoStart || !payload.ChequeNoEnd || !payload.ReasonID) {
+                AppCore.showMsg('Please fill in all required fields.', 'warning');
+                return;
+            }
+
+            const confirmed = await AppCore.showConfirmation('Confirm Save', 'Are you sure you want to save this stop payment/void?');
+            if (!confirmed) return;
+
+            AppCore.showLoading(true, 'Saving stop payment record...');
+            const endpoint = 'AccountsMaintenance/' + (isAdd ? API.ADD : API.UPDATE);
+            const result = await AppCore.invokeControllerAsync(endpoint, payload);
+
+            if (result && result.Success) {
+                AppCore.showMsg('Stop payment record saved successfully.', 'success');
+                setMode('VIEW');
+                await loadData();
+            } else {
+                AppCore.showMsg(result?.ErrorMessage || 'Failed to save record.', 'error');
+            }
+        } catch (error) {
+            console.error(`[${state.submoduleName}] Save Error:`, error);
+            AppCore.showMsg('Error saving record: ' + error.message, 'error');
+        } finally {
+            AppCore.showLoading(false);
         }
     }
 
-    function formatDisplayDate(dateString) {
-        if (!dateString) return '';
+    /**
+     * Delete/Void Record
+     */
+    async function deleteData() {
+        if (!state.selectedRecord) {
+            AppCore.showMsg('Please select a record to void.', 'warning');
+            return;
+        }
+
+        const confirmed = await AppCore.showConfirmation('Confirm Void', 'Are you sure you want to void this stop payment record?');
+        if (!confirmed) return;
+
         try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${date.getDate().toString().padStart(2, '0')}/${months[date.getMonth()]}/${date.getFullYear()}`;
-        } catch (e) {
-            return dateString;
+            AppCore.showLoading(true, 'Voiding stop payment record...');
+
+            const requestData = {
+                AccountID: state.context.accountId,
+                OurBranchID: state.context.branchId,
+                RecordID: state.selectedRecord.RecordID, // Adjust field name if necessary
+                OperatorID: state.context.operatorId
+            };
+
+            const result = await AppCore.invokeControllerAsync(API.DELETE, requestData);
+
+            if (result && result.Success) {
+                AppCore.showMsg('Stop payment record voided successfully.', 'success');
+                await loadData();
+            } else {
+                AppCore.showMsg(result?.ErrorMessage || 'Failed to void record.', 'error');
+            }
+        } catch (error) {
+            console.error(`[${state.submoduleName}] Void Error:`, error);
+            AppCore.showMsg('Error voiding record: ' + error.message, 'error');
+        } finally {
+            AppCore.showLoading(false);
         }
     }
 
-    function parseApiDate(displayDate) {
-        if (!displayDate) return null;
-        const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 
-                        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
-        const match = displayDate.match(/(\d{2})\/(\w{3})\/(\d{4})/);
-        if (match) {
-            const date = new Date(parseInt(match[3]), months[match[2]], parseInt(match[1]));
-            return date.toISOString();
-        }
-        return displayDate;
-    }
-
-    function showLoading(show) {
-        const overlay = document.querySelector('.loading-overlay, .de-loading-overlay');
-        if (overlay) overlay.hidden = !show;
-    }
-
-    function toggleMaximize() {
-        const sidebar = document.getElementById('main-sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        }
-    }
-
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
-
-    function showMessage(message, type) {
-        const panel = document.querySelector('.am-message-panel, .de-message-bar');
-        if (panel) {
-            panel.className = `am-message-panel am-message-panel--${type}`;
-            panel.hidden = false;
-            const icon = panel.querySelector('i');
-            const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
-            if (span) span.textContent = message;
-            setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
+    /**
+     * Cancel Changes
+     */
+    function confirmCancel() {
+        setMode('VIEW');
+        if (state.selectedIndex >= 0) {
+            selectRecord(state.selectedIndex);
+        } else {
+            clearForm();
+            if (state.records.length > 0) selectRecord(0);
         }
     }
 
     // Public API
     return {
         init,
-        loadData,
+        navigate,
+        confirmAdd,
+        confirmEdit,
         saveData,
-        setMode,
-        cancelChanges
+        deleteData,
+        confirmCancel
     };
 })();
-
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountStopPaymentModule?.init());
-} else {
-    window.AccountStopPaymentModule?.init();
-}
-
-console.log('✅ Account Stop Payment module loaded');

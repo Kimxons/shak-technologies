@@ -1,10 +1,7 @@
 /**
  * Account Closing Module
- * Two-tab layout: Close Details (components grid + fields) + Transaction Details (txn grid + form)
- * Uses JsonElement endpoints — frontend sends OperatorID/OurBranchID
- * XML transaction building for CloseAccount payload
- *
- * Parent wires: View → setMode('VIEW'), Edit → setMode('EDIT'), Save → saveData(), Cancel → cancelChanges()
+ * Thoroughly refactored to match legacy behavior including transaction pairing,
+ * unposted balance tracking, and XML generation.
  */
 window.AccountClosingModule = (function () {
     'use strict';
@@ -13,504 +10,477 @@ window.AccountClosingModule = (function () {
         currentMode: 'VIEW',
         closingDetails: null,
         components: [],
-        transactions: [],
+        transactions: [], // Array of transaction objects
         selectedTxnIndex: -1,
-        updateCount: 0
+        updateCount: 0,
+        originalNetPayable: 0,
+        unpostedAmount: 0
     };
 
     const API = {
-        GET_CLOSING:  '/AccountsMaintenance/api/get-account-closing',
-        CLOSE:        '/AccountsMaintenance/api/close-account',
-        TRANSFER:     '/AccountsMaintenance/api/transfer-account'
+        GET_CLOSING: 'api/get-account-closing',
+        CLOSE: 'api/close-account'
     };
 
+    /**
+     * Get context from global state or storage
+     */
     function getContext() {
         const ps = window.AccountMaintenanceState;
         return {
-            AccountID:   ps?.AccountID   || sessionStorage.getItem('currentAccountID')   || '',
-            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID')    || '',
-            OperatorID:  ps?.OperatorID  || sessionStorage.getItem('currentOperatorID')  || localStorage.getItem('OperatorID') || 'SYSTEM'
+            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'web_portal',
+            ProductID: ps?.ProductID || sessionStorage.getItem('currentProductID') || '',
+            CurrencyID: ps?.CurrencyID || sessionStorage.getItem('currentCurrencyID') || ''
         };
     }
 
     // ── UI Helpers ─────────────────────────────────────────────
-    function el(id)       { return document.getElementById(id); }
-    function val(id)      { const e = el(id); return e ? e.value : ''; }
-    function setVal(id,v) { const e = el(id); if (e) e.value = (v == null) ? '' : v; }
-    function setText(id,v){ const e = el(id); if (!e) return; if (e.tagName==='INPUT'||e.tagName==='TEXTAREA'||e.tagName==='SELECT') e.value=(v==null)?'':v; else e.textContent=(v==null)?'-':v; }
+    const el = (id) => document.getElementById(id);
+    const val = (id) => el(id)?.value?.trim() || '';
+    const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
+    const setTxt = (id, v) => { const e = el(id); if (e) e.textContent = (v == null) ? '-' : v; };
 
-    function showLoading(show) { const o = el('loadingOverlay') || document.querySelector('.de-loading-overlay'); if (o) o.hidden = !show; }
-    function showMsg(msg, type) { const t = window.showSystemToast || window.parent?.showSystemToast; if (t) t(msg, { variant: type==='error'?'danger':type }); console.log(`[Closing] ${type}: ${msg}`); }
-    function isSuccess(r) { return r?.ResponseCode === '00' || r?.ResponseCode === 0; }
-
-    function fmtAmt(n) { if (n === null || n === undefined || n === '') return '0.00'; return parseFloat(n).toFixed(2); }
-    function fmtDateTime(ds) { if (!ds) return '-'; try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch { return ds; } }
-    function escHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-    function escXml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
-
-    const CLOSE_FIELDS = ['reason', 'remarks'];
-    const TXN_FIELDS   = ['transactionType', 'till', 'typeOfService', 'accountType', 'txnAccountId', 'chequeId', 'payableAt', 'beneficiaryName', 'referenceNo', 'transactionId', 'narration', 'transactionAmount'];
-
-    // ── Mode management ────────────────────────────────────────
-    function setActionBtn(action, enabled) {
-        const btn = document.querySelector(`[data-action="${action}"]`);
-        if (btn) { btn.disabled = !enabled; btn.style.opacity = enabled ? '1' : '0.5'; }
+    function showMsg(msg, type) {
+        const t = window.showSystemToast || window.parent?.showSystemToast;
+        if (t) t(msg, { variant: type === 'error' ? 'danger' : type });
+        console.log(`[AccountClosing] ${type}: ${msg}`);
     }
 
+    function fmtAmt(n) {
+        const num = parseFloat(String(n).replace(/,/g, '')) || 0;
+        return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function escXml(s) {
+        return !s ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+
+    // ── Mode Management ────────────────────────────────────────
     function setMode(mode) {
         state.currentMode = mode;
         const editing = mode === 'ADD' || mode === 'EDIT';
 
-        CLOSE_FIELDS.forEach(id => { const e = el(id); if (e) e.disabled = !editing; });
-        TXN_FIELDS.forEach(id => { const e = el(id); if (e) e.disabled = !editing; });
+        const closeFields = ['reason', 'remarks', 'penalInterestReceivable', 'creditInterestPayable', 'taxAmount', 'debitInterestReceivable', 'closingCharges'];
+        const txnFields = ['transactionType', 'till', 'typeOfService', 'accountType', 'txnAccountId', 'chequeId', 'payableAt', 'beneficiaryName', 'referenceNo', 'transactionId', 'narration', 'transactionAmount', 'exchangeRate'];
 
-        setActionBtn('view',   !editing);
-        setActionBtn('add',    !editing);
-        setActionBtn('edit',   !editing);
-        setActionBtn('save',   editing);
-        setActionBtn('cancel', editing);
-
-        ['txnNew', 'txnAlter', 'txnRemove', 'txnUpdate', 'txnClear'].forEach(a => setActionBtn(a, editing));
-
-        console.log('[Closing] Mode →', mode);
-    }
-
-    // ── Wire Events ────────────────────────────────────────────
-    function wireEvents() {
-        document.querySelectorAll('[data-action]').forEach(btn => {
-            if (btn._wired) return;
-            btn._wired = true;
-            const a = btn.getAttribute('data-action');
-            if (a === 'view')      btn.addEventListener('click', () => setMode('VIEW'));
-            if (a === 'add')       btn.addEventListener('click', () => setMode('ADD'));
-            if (a === 'edit')      btn.addEventListener('click', () => setMode('EDIT'));
-            if (a === 'save')      btn.addEventListener('click', saveData);
-            if (a === 'cancel')    btn.addEventListener('click', cancelChanges);
-            if (a === 'txnNew')    btn.addEventListener('click', txnNew);
-            if (a === 'txnAlter')  btn.addEventListener('click', txnAlter);
-            if (a === 'txnRemove') btn.addEventListener('click', txnRemove);
-            if (a === 'txnUpdate') btn.addEventListener('click', txnUpdate);
-            if (a === 'txnClear')  btn.addEventListener('click', txnClear);
-        });
-
-        // Tab wiring
-        document.querySelectorAll('[data-tab]').forEach(tab => {
-            if (tab._wired) return;
-            tab._wired = true;
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const name = tab.getAttribute('data-tab');
-                document.querySelectorAll('[data-panel]').forEach(p => {
-                    p.hidden = p.getAttribute('data-panel') !== name;
-                });
-            });
-        });
-
-        // Section toggles
-        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
-            if (hdr._wired) return;
-            hdr._wired = true;
-            hdr.addEventListener('click', function () {
-                const sec = this.closest('.form-section');
-                const c = sec?.querySelector('.section-content');
-                const btn = sec?.querySelector('.section-toggle-btn');
-                const icon = btn?.querySelector('i');
-                const exp = btn?.getAttribute('aria-expanded') === 'true';
-                if (c) c.hidden = exp;
-                btn?.setAttribute('aria-expanded', String(!exp));
-                icon?.classList.toggle('bi-chevron-up');
-                icon?.classList.toggle('bi-chevron-down');
-            });
-        });
-
-        // Amount compute watchers
-        ['balance', 'penalInterestReceivable', 'creditInterestPayable', 'taxAmount', 'debitInterestReceivable', 'closingCharges'].forEach(id => {
+        [...closeFields, ...txnFields].forEach(id => {
             const e = el(id);
-            if (e && !e._wired) { e._wired = true; e.addEventListener('input', computeNetPayable); }
+            if (e) e.disabled = !editing;
         });
-        const txnAmtEl = el('transactionAmount');
-        const rateEl   = el('exchangeRate');
-        if (txnAmtEl && !txnAmtEl._wired) { txnAmtEl._wired = true; txnAmtEl.addEventListener('input', computeLocalAmount); }
-        if (rateEl && !rateEl._wired)      { rateEl._wired = true;   rateEl.addEventListener('input', computeLocalAmount); }
+
+        // Loop lookups
+        document.querySelectorAll('.btn-lookup').forEach(btn => btn.disabled = !editing);
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        if (btnView) btnView.disabled = editing;
+        if (btnAdd) btnAdd.disabled = editing;
+        if (btnEdit) btnEdit.disabled = editing;
+        if (btnSave) btnSave.disabled = !editing;
+        if (btnCancel) btnCancel.disabled = !editing;
+        if (btnDelete) btnDelete.disabled = editing;
     }
 
-    // ── Load Data ──────────────────────────────────────────────
-    function loadData() {
-        const ctx = getContext();
-        showLoading(true);
-
-        fetch(API.GET_CLOSING, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                OurBranchID: ctx.OurBranchID,
-                AccountID:   ctx.AccountID,
-                OperatorID:  ctx.OperatorID,
-                InsertYN:    null
-            })
-        })
-        .then(r => r.json())
-        .then(result => {
-            showLoading(false);
-            if (isSuccess(result)) {
-                const d = result.Details;
-
-                // Closing details — try Details01[0] first, fall back to direct Details[0]
-                const details = d?.Details01?.[0] || (d && !d.Details01 ? (Array.isArray(d) ? d[0] : d) : {});
-                state.closingDetails = details;
-                state.updateCount = parseInt(details.UpdateCount || 0) || 0;
-                populateClosingFields(details);
-
-                // Components from Details02
-                state.components = d?.Details02 || [];
-                renderComponentsGrid();
-
-                // Audit
-                populateAuditFields(details);
-
-                showMsg(result.ResponseMessage || 'Closing details loaded', 'success');
-            } else {
-                showMsg(result?.ResponseMessage || 'Failed to load closing details', 'error');
-            }
-        })
-        .catch(err => {
-            showLoading(false);
-            showMsg('Load error: ' + err.message, 'error');
-        });
-    }
-
-    // ── Populate fields ────────────────────────────────────────
-    function populateClosingFields(d) {
-        setVal('reason',                    d.ReasonID || '');
-        setVal('remarks',                   d.Remarks || '');
-        setVal('balance',                   fmtAmt(d.Balance));
-        setVal('penalInterestReceivable',   fmtAmt(d.PenalInterestReceivable));
-        setVal('creditInterestPayable',     fmtAmt(d.CreditInterestPayable));
-        setVal('taxAmount',                 fmtAmt(d.TaxAmount));
-        setVal('debitInterestReceivable',   fmtAmt(d.DebitInterestReceivable));
-        setVal('closingCharges',            fmtAmt(d.ClosingCharges));
-        computeNetPayable();
-
-        setVal('productId',  d.ProductID || '');
-        setVal('currencyId', d.CurrencyID || '');
-    }
-
+    // ── Financial Logic ────────────────────────────────────────
     function computeNetPayable() {
-        const balance  = parseFloat(val('balance')) || 0;
-        const penal    = parseFloat(val('penalInterestReceivable')) || 0;
-        const credit   = parseFloat(val('creditInterestPayable')) || 0;
-        const tax      = parseFloat(val('taxAmount')) || 0;
-        const debit    = parseFloat(val('debitInterestReceivable')) || 0;
-        const charges  = parseFloat(val('closingCharges')) || 0;
-        setVal('netPayable', fmtAmt(balance + credit - penal - tax - debit - charges));
+        const balance = parseFloat(val('balance').replace(/,/g, '')) || 0;
+        const penal = parseFloat(val('penalInterestReceivable').replace(/,/g, '')) || 0;
+        const credit = parseFloat(val('creditInterestPayable').replace(/,/g, '')) || 0;
+        const tax = parseFloat(val('taxAmount').replace(/,/g, '')) || 0;
+        const debit = parseFloat(val('debitInterestReceivable').replace(/,/g, '')) || 0;
+        const charges = parseFloat(val('closingCharges').replace(/,/g, '')) || 0;
+
+        const net = balance + credit - penal - tax - debit - charges;
+        state.originalNetPayable = net;
+        setVal('netPayable', fmtAmt(net));
+        updateUnpostedBalance();
     }
 
     function computeLocalAmount() {
-        const txnAmt = parseFloat(val('transactionAmount')) || 0;
-        const rate   = parseFloat(val('exchangeRate')) || 1;
+        const txnAmt = parseFloat(val('transactionAmount').replace(/,/g, '')) || 0;
+        const rate = parseFloat(val('exchangeRate')) || 1;
         setVal('localAmount', fmtAmt(txnAmt * rate));
     }
 
-    function populateAuditFields(d) {
-        setText('MakerID',    d.MakerID || d.CreatedBy || '-');
-        setText('MakerDT',    fmtDateTime(d.MakerDT || d.CreatedOn));
-        setText('CheckerID',  d.CheckerID || d.SupervisedBy || '-');
-        setText('CheckerDT',  fmtDateTime(d.CheckerDT || d.SupervisedOn));
-        setText('ModifierID', d.ModifierID || d.ModifiedBy || '-');
-        setText('ModifierDT', fmtDateTime(d.ModifierDT || d.ModifiedOn));
+    function updateUnpostedBalance() {
+        // Unposted = NetPayable - Sum of TD transactions (or TC transactions since they are pairs)
+        // In legacy, each pair corresponds to a part of the net payable.
+        let totalPosted = 0;
+        state.transactions.forEach(t => {
+            if (t.TrxType === 'TD') { // Use the Debit part of the pair as the 'posted' amount
+                totalPosted += parseFloat(t.Amount) || 0;
+            }
+        });
+        state.unpostedAmount = state.originalNetPayable - totalPosted;
+        setVal('unpostedAmount', fmtAmt(state.unpostedAmount));
     }
 
-    // ── Components grid ────────────────────────────────────────
+    // ── Data Operations ────────────────────────────────────────
+    async function loadData() {
+        const ctx = getContext();
+        if (!ctx.AccountID) {
+            showMsg('Please select an account first', 'warning');
+            return;
+        }
+
+        const loader = el('loadingOverlay');
+        if (loader) loader.hidden = false;
+
+        try {
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET_CLOSING, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                OperatorID: ctx.OperatorID
+            });
+
+            if (result && result.success) {
+                const d = result.Details || result.data?.Details || result.data;
+                const details = d?.Details01?.[0] || (Array.isArray(d) ? d[0] : d);
+                state.closingDetails = details;
+                state.updateCount = details?.UpdateCount || 0;
+
+                populateForm(details);
+
+                state.components = d?.Details02 || [];
+                renderComponentsGrid();
+
+                showMsg('Closing details loaded', 'success');
+            } else {
+                showMsg(result?.message || 'Failed to load closing details', 'error');
+            }
+        } catch (err) {
+            showMsg('Error loading closing details: ' + err.message, 'error');
+        } finally {
+            if (loader) loader.hidden = true;
+        }
+    }
+
+    function populateForm(d) {
+        if (!d) return;
+        setVal('reason', d.ReasonID || d.ReasonCode || '');
+        setVal('remarks', d.Remarks || '');
+        setVal('balance', fmtAmt(d.Balance || 0));
+        setVal('penalInterestReceivable', d.PenalInterestReceivable || '0.00');
+        setVal('creditInterestPayable', d.CreditInterestPayable || '0.00');
+        setVal('taxAmount', d.TaxAmount || '0.00');
+        setVal('debitInterestReceivable', d.DebitInterestReceivable || '0.00');
+        setVal('closingCharges', d.ClosingCharges || '0.00');
+        computeNetPayable();
+
+        setVal('productId', d.ProductID || '');
+        setVal('currencyId', d.CurrencyID || '');
+
+        // Audit
+        setTxt('MakerID', d.MakerID || d.CreatedBy);
+        setTxt('MakerDT', d.MakerDT || d.CreatedOn);
+        setTxt('CheckerID', d.CheckerID || d.SupervisedBy);
+        setTxt('CheckerDT', d.CheckerDT || d.SupervisedOn);
+        setTxt('ModifierID', d.ModifierID || d.ModifiedBy);
+        setTxt('ModifierDT', d.ModifierDT || d.ModifiedOn);
+    }
+
     function renderComponentsGrid() {
-        const tbody = el('componentsGrid')?.querySelector('tbody') || el('componentsGridBody');
+        const tbody = el('componentsGridBody');
         if (!tbody) return;
 
-        if (state.components.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No components found</td></tr>';
+        if (!state.components || state.components.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No components found</td></tr>';
             return;
         }
 
         tbody.innerHTML = state.components.map(c => `
             <tr>
-                <td>${escHtml(c.ComponentID || '')}</td>
-                <td>${escHtml(c.TrxBranchID || c.BranchID || '')}</td>
-                <td>${escHtml(c.AccountTypeID || '')}</td>
-                <td>${escHtml(c.AccountID || '')}</td>
+                <td>${c.ComponentID || ''}</td>
+                <td>${c.TrxBranchID || c.OurBranchID || ''}</td>
+                <td>${c.AccountTypeID || ''}</td>
+                <td>${c.AccountID || ''}</td>
             </tr>
         `).join('');
     }
 
-    // ── Transaction grid ───────────────────────────────────────
+    // ── Transaction Management ─────────────────────────────────
     function renderTransactionsGrid() {
-        const tbody = el('transactionsGrid')?.querySelector('tbody') || el('transactionsGridBody');
+        const tbody = el('transactionGridBody');
         if (!tbody) return;
 
         if (state.transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No transactions added</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No transactions added</td></tr>';
+            updateUnpostedBalance();
             return;
         }
 
-        tbody.innerHTML = state.transactions.map((txn, idx) => `
-            <tr class="grid-row ${idx === state.selectedTxnIndex ? 'selected' : ''}" data-index="${idx}" style="cursor:pointer;">
-                <td>${escHtml(txn.AccountTypeID || '')}</td>
-                <td>${escHtml(txn.AccountID || '')}</td>
-                <td>${escHtml(txn.TrxType || txn.TransactionType || '')}</td>
-                <td>${escHtml(txn.CurrencyID || '')}</td>
-                <td class="text-end">${fmtAmt(txn.TransactionAmount)}</td>
-                <td>${escHtml(txn.Narration || '')}</td>
+        tbody.innerHTML = state.transactions.map((t, i) => `
+            <tr onclick="AccountClosingModule.selectTxn(${i})" class="${state.selectedTxnIndex === i ? 'table-primary' : ''}" style="cursor:pointer">
+                <td>${t.AccountTypeID || ''}</td>
+                <td>${t.AccountID || ''}</td>
+                <td>${t.TrxType}</td>
+                <td>${t.CurrencyID || ''}</td>
+                <td class="text-end">${fmtAmt(t.Amount)}</td>
+                <td>${t.Narration || ''}</td>
             </tr>
         `).join('');
 
-        tbody.querySelectorAll('.grid-row').forEach(row => {
-            row.addEventListener('click', () => {
-                state.selectedTxnIndex = parseInt(row.dataset.index);
-                renderTransactionsGrid();
-                populateTxnForm(state.transactions[state.selectedTxnIndex]);
-            });
-        });
-
-        const totalPosted = state.transactions.reduce((sum, t) => sum + (parseFloat(t.TransactionAmount) || 0), 0);
-        const netPayable  = parseFloat(val('netPayable')) || 0;
-        setVal('unpostedAmount', fmtAmt(netPayable - totalPosted));
-        setVal('balanceAmount',  fmtAmt(netPayable - totalPosted));
+        updateUnpostedBalance();
     }
 
-    function populateTxnForm(txn) {
-        if (!txn) return;
-        setVal('transactionType', txn.TrxType || txn.TransactionType || '');
-        setVal('till',            txn.TillID || '');
-        setVal('typeOfService',   txn.TypeOfServiceID || '');
-        setVal('accountType',     txn.AccountTypeID || '');
-        setVal('txnAccountId',    txn.AccountID || '');
-        setText('txnAccountName', txn.AccountName || '');
-        setVal('productId',       txn.ProductID || '');
-        setVal('currencyId',      txn.CurrencyID || '');
-        setVal('chequeId',        txn.ChequeID || '');
-        setVal('payableAt',       txn.PayableAtBranchID || '');
-        setText('payableAtName',  txn.PayableAtBranchName || '');
-        setVal('beneficiaryName', txn.BeneficiaryName || '');
-        setVal('referenceNo',     txn.ReferenceNo || '');
-        setVal('transactionId',   txn.TransactionID || '');
-        setText('transactionIdName', txn.TransactionName || '');
-        setVal('narration',       txn.Narration || '');
-        setVal('exchangeRate',    txn.ExchangeRate || '1');
-        setVal('transactionAmount', txn.TransactionAmount || '');
-        computeLocalAmount();
-    }
+    /**
+     * Legacy Logic: Account Closing Transactions are processed in pairs:
+     * 1. A Debit (TD) from the account being closed.
+     * 2. A Credit (TC) to the destination account.
+     */
+    function addTransactionPair() {
+        const txnAmt = parseFloat(val('transactionAmount').replace(/,/g, '')) || 0;
+        if (txnAmt <= 0) { showMsg('Transaction amount must be greater than zero', 'warning'); return; }
+        if (!val('txnAccountId')) { showMsg('Target Account is required', 'warning'); return; }
+        if (!val('transactionId')) { showMsg('Transaction Description is required', 'warning'); return; }
 
-    // ── Transaction sub-actions ────────────────────────────────
-    function txnNew() {
-        state.selectedTxnIndex = -1;
-        clearTxnForm();
-        if (state.closingDetails) {
-            setVal('productId',  state.closingDetails.ProductID || '');
-            setVal('currencyId', state.closingDetails.CurrencyID || '');
-        }
-        setVal('exchangeRate', '1');
-    }
-
-    function txnAlter() {
-        if (state.selectedTxnIndex < 0) { showMsg('Select a transaction to alter', 'warning'); return; }
-        populateTxnForm(state.transactions[state.selectedTxnIndex]);
-    }
-
-    function txnRemove() {
-        if (state.selectedTxnIndex < 0) { showMsg('Select a transaction to remove', 'warning'); return; }
-        if (!confirm('Remove this transaction?')) return;
-        state.transactions.splice(state.selectedTxnIndex, 1);
-        state.selectedTxnIndex = -1;
-        renderTransactionsGrid();
-        clearTxnForm();
-    }
-
-    function txnUpdate() {
-        const txn = collectTxnFields();
-        if (!txn.AccountTypeID) { showMsg('Account Type is required', 'warning'); return; }
-        if (!txn.AccountID)     { showMsg('Account is required', 'warning'); return; }
-        if (!txn.TransactionAmount || parseFloat(txn.TransactionAmount) === 0) { showMsg('Amount is required', 'warning'); return; }
-
-        if (state.selectedTxnIndex >= 0) {
-            state.transactions[state.selectedTxnIndex] = txn;
-        } else {
-            state.transactions.push(txn);
-        }
-        state.selectedTxnIndex = -1;
-        renderTransactionsGrid();
-        clearTxnForm();
-        showMsg('Transaction updated', 'success');
-    }
-
-    function txnClear() {
-        state.selectedTxnIndex = -1;
-        clearTxnForm();
-    }
-
-    function collectTxnFields() {
-        return {
-            TrxType:            val('transactionType'),
-            TillID:             val('till'),
-            TypeOfServiceID:    val('typeOfService'),
-            AccountTypeID:      val('accountType'),
-            AccountID:          val('txnAccountId'),
-            AccountName:        el('txnAccountName')?.textContent || '',
-            ProductID:          val('productId'),
-            CurrencyID:         val('currencyId'),
-            ChequeID:           val('chequeId'),
-            PayableAtBranchID:  val('payableAt'),
-            BeneficiaryName:    val('beneficiaryName'),
-            ReferenceNo:        val('referenceNo'),
-            TransactionID:      val('transactionId'),
-            Narration:          val('narration'),
-            ExchangeRate:       val('exchangeRate') || '1',
-            TransactionAmount:  val('transactionAmount') || '0',
-            LocalAmount:        val('localAmount') || '0'
+        const ctx = getContext();
+        const baseTxn = {
+            TillID: val('till'),
+            TypeOfServiceID: val('typeOfService'),
+            ChequeID: val('chequeId'),
+            PayableAtBranchID: val('payableAt'),
+            BeneficiaryName: val('beneficiaryName'),
+            ReferenceNo: val('referenceNo'),
+            TrxDescriptionID: val('transactionId'),
+            TrxDescription: val('transactionIdName'),
+            Narration: val('narration'),
+            ExchangeRate: val('exchangeRate') || '1',
+            Amount: txnAmt,
+            LocalAmount: (txnAmt * (parseFloat(val('exchangeRate')) || 1)).toFixed(2)
         };
+
+        // 1. Debit (TD) for Main Account
+        const tdPart = {
+            ...baseTxn,
+            AccountTypeID: 'C', // Main is always Customer
+            AccountID: ctx.AccountID,
+            TrxType: 'TD',
+            ProductID: ctx.ProductID,
+            CurrencyID: ctx.CurrencyID,
+            EntryType: 'S', // Source
+            DbtTrxAmt: txnAmt
+        };
+
+        // 2. Credit (TC) for Target Account
+        const tcPart = {
+            ...baseTxn,
+            AccountTypeID: val('accountType'),
+            AccountID: val('txnAccountId'),
+            TrxType: 'TC',
+            ProductID: val('productId'),
+            CurrencyID: val('currencyId'),
+            EntryType: 'U', // Update
+            DbtTrxAmt: 0
+        };
+
+        state.transactions.push(tdPart);
+        state.transactions.push(tcPart);
+
+        clearTxnForm();
+        renderTransactionsGrid();
+        showMsg('Transaction pair added (TD + TC)', 'success');
     }
 
     function clearTxnForm() {
-        TXN_FIELDS.forEach(id => setVal(id, ''));
-        setText('txnAccountName', '');
-        setText('payableAtName', '');
-        setText('transactionIdName', '');
+        ['transactionType', 'till', 'typeOfService', 'accountType', 'txnAccountId', 'txnAccountName', 'productId', 'currencyId', 'chequeId', 'payableAt', 'payableAtName', 'beneficiaryName', 'referenceNo', 'transactionId', 'transactionIdName', 'narration', 'transactionAmount'].forEach(id => setVal(id, ''));
         setVal('exchangeRate', '1');
-        setVal('forexGainLoss', '0.00');
         setVal('localAmount', '0.00');
     }
 
-    // ── Build XML ──────────────────────────────────────────────
-    function buildTransactionXml() {
+    function buildTxnXml() {
         if (state.transactions.length === 0) return '';
-        let xml = '<DocumentElement>';
-        state.transactions.forEach(txn => {
+        let xml = '';
+        state.transactions.forEach(t => {
             xml += '<dt_TransactionBackOffice>';
-            xml += `<AccountTypeID>${escXml(txn.AccountTypeID)}</AccountTypeID>`;
-            xml += `<AccountID>${escXml(txn.AccountID)}</AccountID>`;
-            xml += `<TillID>${escXml(txn.TillID)}</TillID>`;
-            xml += `<TrxType>${escXml(txn.TrxType)}</TrxType>`;
-            xml += `<ProductID>${escXml(txn.ProductID)}</ProductID>`;
-            xml += `<CurrencyID>${escXml(txn.CurrencyID)}</CurrencyID>`;
-            xml += `<CreditAmount>${txn.TrxType === 'C' ? txn.TransactionAmount : '0'}</CreditAmount>`;
-            xml += `<DebitAmount>${txn.TrxType === 'D' ? txn.TransactionAmount : '0'}</DebitAmount>`;
-            xml += `<Narration>${escXml(txn.Narration)}</Narration>`;
-            xml += `<ExchangeRate>${txn.ExchangeRate || '1'}</ExchangeRate>`;
-            xml += `<TypeOfServiceID>${escXml(txn.TypeOfServiceID)}</TypeOfServiceID>`;
-            xml += `<ChequeID>${escXml(txn.ChequeID)}</ChequeID>`;
-            xml += `<PayableAtBranchID>${escXml(txn.PayableAtBranchID)}</PayableAtBranchID>`;
-            xml += `<BeneficiaryName>${escXml(txn.BeneficiaryName)}</BeneficiaryName>`;
-            xml += `<ReferenceNo>${escXml(txn.ReferenceNo)}</ReferenceNo>`;
-            xml += `<TransactionID>${escXml(txn.TransactionID)}</TransactionID>`;
-            xml += `<LocalAmount>${txn.LocalAmount || '0'}</LocalAmount>`;
+            xml += `<AccountTypeID>${escXml(t.AccountTypeID)}</AccountTypeID>`;
+            xml += `<AccountID>${escXml(t.AccountID)}</AccountID>`;
+            xml += `<TrxTypeID>${escXml(t.TrxType)}</TrxTypeID>`;
+            xml += `<Amount>${t.Amount}</Amount>`;
+            xml += `<LocalAmount>${t.LocalAmount}</LocalAmount>`;
+            xml += `<ExchangeRate>${t.ExchangeRate}</ExchangeRate>`;
+            xml += `<TrxDescriptionID>${escXml(t.TrxDescriptionID)}</TrxDescriptionID>`;
+            xml += `<TrxDescription>${escXml(t.TrxDescription || t.Narration)}</TrxDescription>`;
+            xml += `<EntryType>${escXml(t.EntryType)}</EntryType>`;
+            xml += `<DbtTrxAmt>${t.DbtTrxAmt}</DbtTrxAmt>`;
             xml += '</dt_TransactionBackOffice>';
         });
-        xml += '</DocumentElement>';
         return xml;
     }
 
-    // ── Save (Close Account) ───────────────────────────────────
-    function saveData() {
-        const reason = val('reason');
-        if (!reason) { showMsg('Please select a close reason', 'warning'); return; }
-        if (state.transactions.length === 0) { showMsg('Please add at least one transaction', 'warning'); return; }
-        if (!confirm('Are you sure you want to close this account? This action cannot be undone.')) return;
+    // ── Save Operation ─────────────────────────────────────────
+    async function handleSave() {
+        if (!val('reason')) { showMsg('Close reason is required', 'warning'); return false; }
+
+        // Validation: Unposted amount must be zero (or very close to it)
+        if (Math.abs(state.unpostedAmount) > 0.01) {
+            showMsg(`Unposted amount must be zero. Current balance: ${fmtAmt(state.unpostedAmount)}`, 'warning');
+            return false;
+        }
+
+        const ok = await AppCore.showConfirmation('Close Account', 'Are you sure you want to close this account? This cannot be undone.');
+        if (!ok) return false;
 
         const ctx = getContext();
-        showLoading(true);
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            CloseReasonID: val('reason'),
+            CloseReason: el('reason')?.selectedOptions?.[0]?.text || '',
+            ClosedBy: ctx.OperatorID,
+            OperatorID: ctx.OperatorID,
+            UpdateCount: state.updateCount,
+            Remarks: val('remarks'),
+            SysTrx: '',
+            UserTrx: buildTxnXml()
+        };
 
-        fetch(API.CLOSE, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                OurBranchID:   ctx.OurBranchID,
-                AccountID:     ctx.AccountID,
-                CloseReasonID: reason,
-                CloseReason:   el('reason')?.selectedOptions?.[0]?.text || '',
-                ClosedBy:      ctx.OperatorID,
-                OperatorID:    ctx.OperatorID,
-                UpdateCount:   state.updateCount,
-                Remarks:       val('remarks'),
-                SysTrx:        '',
-                UserTrx:       buildTransactionXml()
-            })
-        })
-        .then(r => r.json())
-        .then(result => {
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Account closed', 'success');
-                state.currentMode = 'VIEW';
+        try {
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.CLOSE, payload);
+            if (result && result.success) {
+                showMsg(result.message || 'Account closed successfully', 'success');
                 loadData();
+                setMode('VIEW');
+                state.transactions = [];
+                renderTransactionsGrid();
+                return true;
             } else {
-                showMsg(result?.ResponseMessage || 'Failed to close account', 'error');
+                showMsg(result?.message || 'Failed to close account', 'error');
+                return false;
             }
-        })
-        .catch(err => {
-            showLoading(false);
-            showMsg('Close error: ' + err.message, 'error');
-        });
-    }
-
-    // ── Cancel ─────────────────────────────────────────────────
-    function cancelChanges() {
-        state.transactions = [];
-        state.selectedTxnIndex = -1;
-        renderTransactionsGrid();
-        clearTxnForm();
-        if (state.closingDetails) populateClosingFields(state.closingDetails);
-        state.currentMode = 'VIEW';
-        [...CLOSE_FIELDS, ...TXN_FIELDS].forEach(id => { const e = el(id); if (e) e.disabled = true; });
-        setActionBtn('view', true);
-        setActionBtn('add', true);
-        setActionBtn('edit', true);
-        setActionBtn('save', false);
-        setActionBtn('cancel', false);
-        ['txnNew', 'txnAlter', 'txnRemove', 'txnUpdate', 'txnClear'].forEach(a => setActionBtn(a, false));
-    }
-
-    // ── Confirmation Dialog ─────────────────────────────────────
-    async function showConfirmationDialog(title, message) {
-        if (window.showConfirmationDialog) {
-            return window.showConfirmationDialog(title, message, 'primary');
-        }
-        return window.confirm(message);
-    }
-
-    async function confirmAndLoad() {
-        const ok = await showConfirmationDialog('Confirm', 'Do you want to close this account?');
-        if (!ok) {
-            showMsg('Account closing cancelled.', 'info');
-            closeSubmodule();
-            return;
-        }
-        await loadData();
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        } else {
-            window.parent?.postMessage({ type: 'accountMaintenanceChildClose' }, '*');
+        } catch (err) {
+            showMsg('Save error: ' + err.message, 'error');
+            return false;
         }
     }
 
-    // ── Init ───────────────────────────────────────────────────
+    // ── Lookups & Type-and-Tab ────────────────────────────────
+    async function lookupAccount(accountId) {
+        if (!accountId) return;
+        try {
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', 'search-accounts', {
+                SearchTerm: accountId,
+                AccountTypeID: val('accountType') || 'C'
+            });
+            const r = result?.Details?.[0] || result.data?.[0];
+            if (r) {
+                setVal('txnAccountName', r.AccountName || r.Description);
+                setVal('productId', r.ProductID || '');
+                setVal('currencyId', r.CurrencyID || '');
+            } else {
+                showMsg('Account not found', 'warning');
+            }
+        } catch (e) { console.error('Lookup failed', e); }
+    }
+
+    // ── Init & Wire ───────────────────────────────────────────
     function init() {
-        console.log('[Closing] Initializing');
-        wireEvents();
+        console.log('[AccountClosing] Initializing (Thorough Migration)');
+        setMode('VIEW');
 
-        [...CLOSE_FIELDS, ...TXN_FIELDS].forEach(id => { const e = el(id); if (e) e.disabled = true; });
-        setActionBtn('save', false);
-        setActionBtn('cancel', false);
-        ['txnNew', 'txnAlter', 'txnRemove', 'txnUpdate', 'txnClear'].forEach(a => setActionBtn(a, false));
+        // Watchers
+        ['penalInterestReceivable', 'creditInterestPayable', 'taxAmount', 'debitInterestReceivable', 'closingCharges'].forEach(id => {
+            el(id)?.addEventListener('input', computeNetPayable);
+        });
+        ['transactionAmount', 'exchangeRate'].forEach(id => {
+            el(id)?.addEventListener('input', computeLocalAmount);
+        });
+
+        // Type-and-Tab Lookups
+        el('txnAccountId')?.addEventListener('blur', (e) => lookupAccount(e.target.value));
+
+        // Tab wiring
+        document.querySelectorAll('#closingTabs button').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const target = this.getAttribute('data-bs-target');
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
+                document.querySelector(target)?.classList.add('show', 'active');
+                document.querySelectorAll('#closingTabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Section toggles
+        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
+            hdr.addEventListener('click', function () {
+                const sec = this.closest('.form-section');
+                const content = sec?.querySelector('.section-content, [data-section-content]');
+                const icon = this.querySelector('.bi-chevron-up, .bi-chevron-down');
+                if (content) {
+                    content.hidden = !content.hidden;
+                    icon?.classList.toggle('bi-chevron-up');
+                    icon?.classList.toggle('bi-chevron-down');
+                }
+            });
+        });
+
+        // Search Lookups
+        document.querySelectorAll('.btn-lookup').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-lookup');
+                if (window.SearchModal) {
+                    const modal = new window.SearchModal(window.AppCore);
+                    modal.open({
+                        tableID: type === 'Account' ? (val('accountType') === 'G' ? 'GL' : 'Account') : (type === 'Branch' ? 'Branch' : 'Transaction'),
+                        onSelect: (r) => {
+                            if (type === 'Account') {
+                                setVal('txnAccountId', r.AccountID || r.ID);
+                                setVal('txnAccountName', r.AccountName || r.Description);
+                                setVal('productId', r.ProductID || '');
+                                setVal('currencyId', r.CurrencyID || '');
+                            }
+                            if (type === 'Branch') { setVal('payableAt', r.BranchID || r.ID); setVal('payableAtName', r.BranchName || r.Description); }
+                            if (type === 'Transaction') { setVal('transactionId', r.TransactionID || r.ID); setVal('transactionIdName', r.TransactionName || r.Description); }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Txn Buttons
+        document.querySelector('[data-action="txnNew"]')?.addEventListener('click', () => {
+            state.selectedTxnIndex = -1;
+            clearTxnForm();
+        });
+        document.querySelector('[data-action="txnUpdate"]')?.addEventListener('click', addTransactionPair);
+        document.querySelector('[data-action="txnRemove"]')?.addEventListener('click', async () => {
+            if (state.selectedTxnIndex < 0) { showMsg('Please select a transaction row', 'warning'); return; }
+            const ok = await AppCore.showConfirmation('Remove Transaction', 'Are you sure you want to remove this transaction pair?');
+            if (!ok) return;
+
+            const idx = state.selectedTxnIndex;
+            state.transactions.splice(idx, 1);
+            state.selectedTxnIndex = -1;
+            renderTransactionsGrid();
+        });
+        document.querySelector('[data-action="txnClear"]')?.addEventListener('click', clearTxnForm);
 
         const ctx = getContext();
-        if (ctx.AccountID) {
-            // Show confirmation popup before loading
-            setTimeout(() => confirmAndLoad(), 300);
-        }
+        if (ctx.AccountID) loadData();
     }
 
-    return { init, setMode, saveData, cancelChanges, loadData };
+    return {
+        init: init,
+        save: handleSave,
+        edit: () => setMode('EDIT'),
+        add: () => { setMode('ADD'); clearTxnForm(); state.transactions = []; renderTransactionsGrid(); },
+        cancel: async () => {
+            const ok = await AppCore.showConfirmation('Cancel', 'Are you sure you want to cancel your changes?');
+            if (ok) { loadData(); setMode('VIEW'); }
+        },
+        view: loadData,
+        selectTxn: (i) => { state.selectedTxnIndex = i; renderTransactionsGrid(); }
+    };
 })();
 
-console.log('[Closing] Module registered');
+console.log('[AccountClosing] Module loaded');
+
+console.log('[AccountClosing] Module loaded');

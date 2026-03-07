@@ -19,10 +19,10 @@ window.AccountSpecialConditionsModule = (function () {
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
+    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-special-conditions',
-        UPDATE: '/AccountsMaintenance/api/update-account-special-condition',
-        // Note: typically special conditions are fetched altogether, and modified/applied from checkboxes.
+        GET: 'AccountsMaintenance/api/get-account-special-conditions',
+        UPDATE: 'AccountsMaintenance/api/update-account-special-condition'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -61,9 +61,15 @@ window.AccountSpecialConditionsModule = (function () {
         console.log('[SpecialConditions] ' + type + ': ' + msg);
     }
 
-    function isSuccess(r) { return r && (r.ResponseCode === '00' || r.ResponseCode === 0); }
+    function isSuccess(r) {
+        if (!r) return false;
+        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
 
     function showConfirm(message, title, iconClass) {
+        if (window.AppCore && window.AppCore.showConfirmation) {
+            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
+        }
         title = title || 'Confirm Action';
         iconClass = iconClass || 'bi-question-circle';
         return new Promise(function (resolve) {
@@ -100,7 +106,6 @@ window.AccountSpecialConditionsModule = (function () {
 
             confirmBtn.onclick = function () { handleResponse(true); };
             cancelBtn.onclick = function () { handleResponse(false); };
-            overlay.onclick = function (e) { if (e.target === overlay) handleResponse(false); };
 
             requestAnimationFrame(function () {
                 overlay.classList.add('is-visible');
@@ -124,7 +129,7 @@ window.AccountSpecialConditionsModule = (function () {
     /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
         state.editMode = mode;
-        var isEditing = (mode === 'EDIT');
+        const isEditing = (mode === 'EDIT');
 
         // Enable/disable grid editing
         document.querySelectorAll('#conditionsGrid input[type="checkbox"], #conditionsGrid input[type="text"]').forEach(field => {
@@ -139,17 +144,12 @@ window.AccountSpecialConditionsModule = (function () {
         var saveB = el('submoduleBtnSave');
         var cancelB = el('submoduleBtnCancel');
 
-        var prevB = el('submoduleBtnPrev');
-        var nextB = el('submoduleBtnNext');
-
         if (viewB) viewB.disabled = isEditing;
-        if (addB) addB.disabled = true; // We don't "ADD" new special conditions, we only edit pre-defined ones
+        if (addB) addB.disabled = true;
         if (editB) editB.disabled = isEditing || state.conditions.length === 0;
-        if (delB) delB.disabled = true; // We don't delete them physically, we uncheck 'Apply'
+        if (delB) delB.disabled = true;
         if (saveB) saveB.disabled = !isEditing;
         if (cancelB) cancelB.disabled = !isEditing;
-        if (prevB) prevB.style.display = 'none';
-        if (nextB) nextB.style.display = 'none';
 
         if (!isEditing && mode === 'NONE') {
             state.modifiedConditions.clear();
@@ -247,85 +247,66 @@ window.AccountSpecialConditionsModule = (function () {
                 </td>
             `;
 
-            // Wire change handlers
             row.querySelectorAll('input').forEach(input => {
                 input.addEventListener('change', () => {
                     state.modifiedConditions.add(index);
-                    if (state.conditions[index]) {
-                        state.conditions[index][input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value;
-                    }
+                    const val = input.type === 'checkbox' ? input.checked : input.value;
+                    state.conditions[index][input.dataset.field] = val;
                 });
             });
 
             tbody.appendChild(row);
         });
 
-        if (state.conditions.length > 0) {
-            bindAudit(state.conditions[0]); // Show audit of the first item (or could show generic)
-        }
+        if (state.conditions.length > 0) bindAudit(state.conditions[0]);
     }
 
     /* ── Bind Audit Data ─────────────────────────────────────── */
     function bindAudit(doc) {
-        // Audit
         setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
         setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
         setVal('ModifierID', doc.ModifiedBy || doc.ModifierId || doc.ModifierID || '');
         setVal('ModifierDT', fmtDateTime(doc.ModifiedOn || doc.ModifierDt || doc.ModifierDT));
         setVal('CheckerID', doc.CheckedBy || doc.CheckerId || doc.CheckerID || '');
         setVal('CheckerDT', fmtDateTime(doc.CheckedOn || doc.CheckerDt || doc.CheckerDT));
-
-        // Metadata
         state.operatorID = doc.OperatorID || doc.OperatorId || '';
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
-    function navigate() {
-        var ctx = getContext();
+    async function navigate() {
+        const ctx = getContext();
+        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
         showLoading(true);
-
-        fetch(API.GET, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
-            })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (result) {
-                showLoading(false);
-
-                if (isSuccess(result)) {
-                    let data = [];
-                    var d = result && result.Details ? result.Details : null;
-
-                    if (Array.isArray(d)) data = d;
-                    else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                    else if (Array.isArray(result.Data)) data = result.Data;
-                    else if (d && typeof d === 'object') data = [d];
-                    else if (result.Data && typeof result.Data === 'object') data = [result.Data];
-
-                    state.conditions = data;
-                    state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
-
-                    renderGrid();
-                    setMode('NONE');
-                    showMsg(`Loaded ${state.conditions.length} condition(s).`, 'success');
-                } else {
-                    state.conditions = [];
-                    state.originalConditions = [];
-                    renderGrid();
-                    setMode('NONE');
-                    showMsg(result.ResponseMessage || 'No conditions found.', 'warning');
-                }
-            })
-            .catch(function (err) {
-                showLoading(false);
-                showMsg('Error loading Account Special Conditions: ' + err.message, 'error');
             });
+
+            showLoading(false);
+            if (isSuccess(result)) {
+                let data = [];
+                const d = result.Details || result.Data || result;
+                if (Array.isArray(d)) data = d;
+                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
+                else if (d && typeof d === 'object') data = [d];
+
+                state.conditions = data;
+                state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
+                renderGrid();
+                setMode('NONE');
+            } else {
+                state.conditions = [];
+                state.originalConditions = [];
+                renderGrid();
+                setMode('NONE');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading Account Special Conditions: ' + err.message, 'error');
+        }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
@@ -337,22 +318,18 @@ window.AccountSpecialConditionsModule = (function () {
 
         const confirmed = await showConfirm(
             'Are you sure you want to save changes to Special Conditions?',
-            'Save Special Conditions',
-            'bi-save'
+            'Save Confirmation'
         );
+        if (!confirmed) return;
 
-        if (!confirmed) { showMsg('Save cancelled.', 'info'); return; }
-
-        var ctx = getContext();
-        var searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+        const ctx = getContext();
+        const searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
 
         showLoading(true);
-
         let successCount = 0;
         let errorCount = 0;
 
         try {
-            // Save modified items individually as per old logic
             for (const index of state.modifiedConditions) {
                 const condition = state.conditions[index];
                 const payload = {
@@ -363,18 +340,9 @@ window.AccountSpecialConditionsModule = (function () {
                     OperatorID: ctx.OperatorID
                 };
 
-                const response = await fetch(API.UPDATE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                if (isSuccess(result)) {
-                    successCount++;
-                } else {
-                    errorCount++;
-                }
+                const result = await window.AppCore.invokeControllerAsync(API.UPDATE, payload);
+                if (isSuccess(result)) successCount++;
+                else errorCount++;
             }
 
             if (errorCount === 0) {
@@ -385,7 +353,6 @@ window.AccountSpecialConditionsModule = (function () {
                 showMsg(`Saved ${successCount}, failed ${errorCount}.`, 'warning');
             }
         } catch (error) {
-            console.error('[SpecialConditions] Save error:', error);
             showMsg('Failed to save conditions: ' + error.message, 'error');
         } finally {
             showLoading(false);
@@ -393,28 +360,13 @@ window.AccountSpecialConditionsModule = (function () {
     }
 
     function deleteData() {
-        // Not Supported via submodule button, as special conditions are unchecked to remove apply
-        showMsg('Delete is not supported for Special Conditions. Uncheck "Apply" to remove.', 'info');
+        showMsg('Delete not supported for Special Conditions. Uncheck "Apply" instead.', 'info');
     }
 
-    /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
-    function confirmAdd() {
-        // We do not add brand new special conditions from this submodule, just apply existing defaults
-        showMsg('Direct addition not allowed. Please modify existing conditions.', 'warning');
-    }
-
-    function confirmEdit() {
-        if (state.conditions.length === 0) {
-            showMsg('No conditions available to edit.', 'warning'); return;
-        }
-        setMode('EDIT');
-    }
-
-    function confirmCancel() {
-        cancelChanges();
-    }
-
-    /* ── Cancel / Clear ──────────────────────────────────────── */
+    /* ── Public API ──────────────────────────────────────────── */
+    function confirmAdd() { showMsg('Direct addition not allowed. Modify existing defaults.', 'warning'); }
+    function confirmEdit() { if (state.conditions.length > 0) setMode('EDIT'); else showMsg('No internal data.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
     function cancelChanges() {
         state.conditions = JSON.parse(JSON.stringify(state.originalConditions));
         state.modifiedConditions.clear();
@@ -422,27 +374,14 @@ window.AccountSpecialConditionsModule = (function () {
         setMode('NONE');
     }
 
-    function clearForm() {
-        // Not applicable as it's a grid of pre-defined conditions
-    }
-
-    /* ── Init ────────────────────────────────────────────────── */
     function init() {
-        console.log('[SpecialConditions] Initializing');
         wireSectionToggles();
         wireSearch();
         setMode('NONE');
-
-        // Initial Load
-        var ctx = getContext();
-        if (ctx.AccountID) {
-            setTimeout(function () { navigate(); }, 300);
-        } else {
-            showMsg('No Account selected in context.', 'warning');
-        }
+        const ctx = getContext();
+        if (ctx.AccountID) navigate();
     }
 
-    /* ── Public API ──────────────────────────────────────────── */
     return {
         init: init,
         setMode: setMode,
@@ -453,9 +392,9 @@ window.AccountSpecialConditionsModule = (function () {
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
-        clearForm: clearForm,
-        loadData: function () { navigate(); }
+        loadData: navigate
     };
 })();
+
 
 console.log('[SpecialConditions] Module registered');

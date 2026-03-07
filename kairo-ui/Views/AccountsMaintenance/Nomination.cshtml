@@ -4,147 +4,113 @@
 }
 
 <!-- Nomination Submodule - Original HTML Preserved -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar">
-      <div class="am-header__left">
-        <i class="bi bi-person-check am-header__icon" aria-hidden="true"></i>
-        <span class="am-header__title">Account Nomination</span>
-      </div>
-      <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
+<!-- Nomination Submodule -->
+<div class="form-content" role="region" aria-label="Account Nomination form">
+    <div class="form-card" data-main-form>
+        <!-- Nomination Details Section -->
+        <div class="form-section" data-section="nomination-details">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-person-check"></i> Nomination Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Nomination Details" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+            </div>
+            <div class="section-content" data-section-content>
+                <form id="frmNomination" autocomplete="off">
+                    <!-- Row 1: Nominee ID & Name with Search | Nomination Percentage -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="label-blue am-label">Nominee ID / Name</label>
+                            <div class="kairo-account-control" data-kairo-account-control>
+                                <input type="text" id="nomineeId" name="NomineeID" class="kairo-account-control__id form-control am-input" placeholder="Nominee ID" />
+                                <input type="text" id="nomineeName" name="NomineeName" class="kairo-account-control__name form-control am-input" placeholder="Nominee Name" readonly />
+                                <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Nominee" title="Lookup Nominee"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-blue am-label" for="nominationPercentage">Nomination Percentage</label>
+                            <div class="input-group">
+                                <input id="nominationPercentage" name="NominationPercentage" type="number" class="form-control am-input" min="0" max="100" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Checkboxes -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch am-switch">
+                                <input id="isDependent" name="IsDependent" type="checkbox" class="form-check-input" />
+                                <label class="form-check-label am-label" for="isDependent">Is Dependent</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch am-switch">
+                                <input id="isNominationRollover" name="IsNominationRollover" type="checkbox" class="form-check-input" />
+                                <label class="form-check-label am-label" for="isNominationRollover">Is Nomination Rollover</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Remarks -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-12">
+                            <label class="label-blue am-label" for="remarks">Remarks</label>
+                            <input id="remarks" name="Remarks" type="text" class="form-control am-input" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Behind the Scene Section -->
+        <div class="form-section mt-3" data-section="behind-scene">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="audit-section audit-section--summary">
+                    <div class="audit-cell">
+                        <span class="audit-label">Created By</span>
+                        <span class="audit-value" id="MakerID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Created On</span>
+                        <span class="audit-value" id="MakerDT">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Checked By</span>
+                        <span class="audit-value" id="CheckerID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Checked On</span>
+                        <span class="audit-value" id="CheckerDT">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Modified By</span>
+                        <span class="audit-value" id="ModifierID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Modified On</span>
+                        <span class="audit-value" id="ModifierDT">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <main class="main-container">
-      <div class="form-content" role="region" aria-label="Account Nomination form">
-        <div class="form-card" data-main-form>
-          <!-- Nomination Details Section -->
-          <div class="form-section" data-section="nomination-details">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-person-check"></i>Nomination Details</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Nomination Details" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content" data-section-content>
-              <form autocomplete="off">
-                <!-- Row 1: Nominee ID & Name with Search | Nomination Percentage -->
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <div class="d-flex flex-column gap-2">
-                      <label class="label-blue">Nominee ID / Name</label>
-                      <div class="d-flex gap-2">
-                        <input id="nomineeId" name="nomineeId" type="text" class="bs-input-text form-control" placeholder="Nominee ID" />
-                        <input id="nomineeName" name="nomineeName" type="text" class="bs-input-text form-control" placeholder="Nominee Name" readonly />
-                        <button class="btn-lookup" type="button" data-lookup="nomineeId" title="Lookup Nominee" aria-label="Lookup Nominee"><i class="bi bi-search"></i></button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-6">
-                    <label class="label-blue" for="nominationPercentage">Nomination Percentage</label>
-                    <div class="d-flex align-items-center gap-2">
-                      <input id="nominationPercentage" name="nominationPercentage" type="number" class="bs-input-text form-control" min="0" max="100" />
-                      <span class="text-muted">%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Row 2: Checkboxes -->
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <div class="form-check">
-                      <input id="isDependent" name="isDependent" type="checkbox" class="form-check-input" />
-                      <label class="form-check-label" for="isDependent">Is Dependent</label>
-                    </div>
-                  </div>
-                  <div class="col-6">
-                    <div class="form-check">
-                      <input id="isNominationRollover" name="isNominationRollover" type="checkbox" class="form-check-input" />
-                      <label class="form-check-label" for="isNominationRollover">Is Nomination Rollover</label>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Row 3: Remarks -->
-                <div class="row g-2 mb-2">
-                  <div class="col-12">
-                    <label class="label-blue" for="remarks">Remarks</label>
-                    <input id="remarks" name="remarks" type="text" class="bs-input-text form-control" />
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Behind the Scene Section -->
-          <div class="form-section" data-section="behind-scene">
-            <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
-            </div>
-            <div class="section-content" data-section-content>
-              <div class="audit-section audit-section--summary">
-                <div class="audit-cell">
-                  <span class="audit-label">Created By</span>
-                  <span class="audit-value" id="MakerID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Created On</span>
-                  <span class="audit-value" id="MakerDT">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Checked By</span>
-                  <span class="audit-value" id="CheckerID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Checked On</span>
-                  <span class="audit-value" id="CheckerDT">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Modified By</span>
-                  <span class="audit-value" id="ModifierID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Modified On</span>
-                  <span class="audit-value" id="ModifierDT">-</span>
-                </div>
-              </div>
-            </div>
-          </div>
+<div class="loading-overlay" id="loadingOverlay" hidden>
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-      </div>
-
-      <!-- Action Panel -->
-      <div class="action-panel" aria-label="Form actions">
-        <div class="action-buttons">
-          <button class="btn-action btn-view" type="button" data-action="view" title="View">
-            <i class="bi bi-eye"></i>View
-          </button>
-          <button class="btn-action" type="button" data-action="add" title="Add New">
-            <i class="bi bi-plus-circle"></i>Add
-          </button>
-          <button class="btn-action" type="button" data-action="edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>Edit
-          </button>
-          <button class="btn-action" type="button" data-action="save" title="Save">
-            <i class="bi bi-check-lg"></i>Save
-          </button>
-          <button class="btn-action" type="button" data-action="delete" title="Delete">
-            <i class="bi bi-trash3"></i>Delete
-          </button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
-            <i class="bi bi-x-lg"></i>Cancel
-          </button>
-          <button class="btn-action" type="button" data-action="close" title="Close">
-            <i class="bi bi-box-arrow-right"></i>Close
-          </button>
-        </div>
-      </div>
-    </main>
+        <div class="loading-text">Loading nomination details...</div>
+    </div>
+</div>
 
     <div class="am-message-panel" role="alert" aria-live="polite">
       <i class="bi bi-info-circle"></i>
