@@ -1,0 +1,241 @@
+@{
+    ViewData["Title"] = "Forfeit Recovery";
+    Layout = "_ApplicationLayout";
+}
+
+<!-- Toast Container -->
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+
+        <!-- Form Content -->
+        <div class="form-content form-content-without-leftbar">
+            <div class="form-card" data-main-form>
+                <div id="statusMsg" class="status-msg hidden" role="status" aria-live="polite">
+                    <span class="status-text"></span>
+                </div>
+
+                <!-- Client Details Section -->
+                <div class="form-section" data-section="client-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-person"></i>Client Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Client Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="CenterId">Center ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="CenterId" class="kairo-control__id" aria-label="Center ID" placeholder="Center ID">
+                                    <input type="text" id="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-fr-lookup="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="GroupId">Group ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="GroupId" class="kairo-control__id" aria-label="Group ID" placeholder="Group ID">
+                                    <input type="text" id="GroupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-fr-lookup="group" aria-label="Search Group"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="ClientId">Client ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="ClientId" class="kairo-control__id" aria-label="Client ID" placeholder="Client ID">
+                                    <input type="text" id="ClientName" class="kairo-control__name" aria-label="Client Name" placeholder="Client Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-fr-lookup="client" aria-label="Search Client"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forfeit Recovery Details Section -->
+                <div class="form-section" data-section="forfeit-recovery-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-cash-coin"></i>Forfeit Recovery Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Forfeit Recovery Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="AmountRecovered">Amount Recovered</label>
+                                <input type="number" id="AmountRecovered" class="form-control" placeholder="0.00" step="any" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="ExchangeRate">Exchange Rate</label>
+                                <input type="number" id="ExchangeRate" class="form-control" placeholder="1.00" step="any" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="CreditOfficer">Credit Officer</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="CreditOfficer" class="kairo-control__id" placeholder="Officer ID" readonly aria-label="Credit Officer ID">
+                                    <input type="text" id="OfficerName" class="kairo-control__name" placeholder="Officer Name" readonly aria-label="Officer Name">
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-fr-lookup="officer" aria-label="Search Officer"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="Remarks">Remarks</label>
+                                <input type="text" id="Remarks" class="form-control" placeholder="Enter remarks" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="form-check-input" type="checkbox" id="RecoveredChargeOff" disabled>
+                                    Recovered Against Charge Off
+                                </label>
+                            </div>
+                            <div class="col">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="form-check-input" type="checkbox" id="RecoveredForfeit" disabled>
+                                    Recovered Against Forfeit
+                                </label>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-2">
+                            <button type="button" class="btn btn-primary btn-sm" id="btnContinue">
+                                <i class="bi bi-arrow-right-circle me-1"></i>Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction & Recovery Details Section -->
+                <div class="form-section" data-section="transaction-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-list-columns-reverse"></i>Transaction & Recovery Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <!-- Tab Navigation -->
+                        <ul class="nav nav-tabs mb-3" id="detailsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="transactionTab" data-bs-toggle="tab" data-bs-target="#transactionPane" type="button" role="tab" aria-controls="transactionPane" aria-selected="true">
+                                    <i class="bi bi-receipt me-1"></i>Transaction Details
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="recoveryTab" data-bs-toggle="tab" data-bs-target="#recoveryPane" type="button" role="tab" aria-controls="recoveryPane" aria-selected="false">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Recovery Details
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="detailsTabContent">
+                            <!-- Transaction Details Tab -->
+                            <div class="tab-pane fade show active" id="transactionPane" role="tabpanel" aria-labelledby="transactionTab">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Account Type</th>
+                                                <th>Account ID</th>
+                                                <th>Description</th>
+                                                <th>Transaction Type</th>
+                                                <th class="text-end">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="transactionBody">
+                                            <tr><td colspan="5" class="text-center text-muted">No records to display.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Recovery Details Tab -->
+                            <div class="tab-pane fade" id="recoveryPane" role="tabpanel" aria-labelledby="recoveryTab">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Account ID</th>
+                                                <th class="text-end">Forfeited Amount</th>
+                                                <th class="text-end">OS Forfeit</th>
+                                                <th class="text-end">Recovered Amount</th>
+                                                <th>Recovery Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recoveryBody">
+                                            <tr><td colspan="6" class="text-center text-muted">No records to display.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Action Panel -->
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" id="btnPrevClient" aria-label="Previous Client"><i class="bi bi-chevron-left"></i></button>
+                <span>Client</span>
+                <button class="btn-nav green" id="btnNextClient" aria-label="Next Client"><i class="bi bi-chevron-right"></i></button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-action underline" id="btnView" type="button" data-fr-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btnAdd" type="button" data-fr-action="add" title="Add" disabled><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" id="btnSave" type="button" data-fr-action="save" title="Save" disabled><i class="bi bi-floppy me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btnCancel" type="button" data-fr-action="cancel" title="Cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade cls-search-modal" id="searchModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 900px; width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalTitle">Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="searchModalFrame" title="Search" src="about:blank" style="width: 100%; height: 500px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Prevent form-card and sections from stretching to fill viewport */
+        .form-card[data-main-form] {
+            flex: 0 0 auto !important;
+        }
+        .form-card[data-main-form] .form-section {
+            flex: 0 0 auto !important;
+        }
+        /* Ensure transaction-details section content is not clipped */
+        [data-section="transaction-details"] .section-content,
+        [data-section="transaction-details"] [data-section-content] {
+            overflow: visible !important;
+            max-height: none !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/forfeit-recovery.js")" asp-append-version="true"></script>
+}

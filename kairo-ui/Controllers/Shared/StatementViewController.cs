@@ -36,7 +36,7 @@ namespace kairo_ui.Controllers.Shared
                 }
 
                 _logger.LogInformation("Statement View loaded successfully with ModuleID: {ModuleID}, BranchID: {BranchID}, AccountID: {AccountID}", moduleId, branchId, accountId);
-                
+
                 // Store parameters in ViewBag to be used by JavaScript
                 ViewBag.ModuleID = moduleId;
                 ViewBag.BranchID = branchId;
@@ -146,7 +146,7 @@ namespace kairo_ui.Controllers.Shared
 
             if (string.IsNullOrWhiteSpace(requestData.OurBranchID))
             {
-                requestData.OurBranchID = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                requestData.OurBranchID = requestData.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
             }
         }
 

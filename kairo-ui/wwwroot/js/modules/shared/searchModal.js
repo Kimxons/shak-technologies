@@ -234,14 +234,15 @@
                 }
 
                 // Auto-search if searchKey OR whereStmt provided (ensures filtered lookups show results immediately)
-                if (config.searchKey || config.whereStmt) {
-                    console.log('[SearchModal] Auto-triggering search...');
+                //if (config.searchKey || config.whereStmt) {
+                    //console.log('[SearchModal] Auto-triggering search...');
                     setTimeout(() => this.executeSearch(), 300);
-                }
+                //}
 
             } catch (error) {
                 console.error('[SearchModal] Open error:', error);
                 this.appCore.showToastMessage?.('Failed to open search modal', 'error');
+                throw error;
             }
         }
 

@@ -54,6 +54,17 @@
         public const string GET_BATCH_TRX_LIST = "p_V8_GetBatchTrxList";
         public const string GET_MEMBER360 = "p_V8_GetMember360";
 
+        public const string GET_CLIENT_PRODUCT_AND_SERVICES = "p_V8_GetClientProductAndServices";
+        public const string CREATE_CLIENT_PRODUCT_AND_SERVICES = "p_V8_CreateClientProductAndServices";
+        public const string UPDATE_CLIENT_PRODUCT_AND_SERVICES = "p_V8_UpdateClientProductAndServices";
+
+        public const string GET_CLIENT_OTHER_DETAILS = "p_V8_GetClientOtherDetails";
+        public const string CREATE_CLIENT_OTHER_DETAILS = "p_V8_CreateClientOtherDetails";
+        public const string UPDATE_CLIENT_OTHER_DETAILS = "p_V8_UpdateClientOtherDetails";
+
+        public const string GET_CLIENT_SPECIAL_OFFERS = "p_V8_GetClientSpecialOffers";
+        public const string CREATE_CLIENT_SPECIAL_OFFERS = "p_V8_CreateClientSpecialOffers";
+        public const string UPDATE_CLIENT_SPECIAL_OFFERS = "p_V8_UpdateClientSpecialOffers";
 
     }
 }

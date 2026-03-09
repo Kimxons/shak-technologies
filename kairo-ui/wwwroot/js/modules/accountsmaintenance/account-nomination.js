@@ -1,473 +1,306 @@
 /**
- * Account Nomination Module - CRUD Operations
- * Manages account nominees with full CREATE, READ, UPDATE, DELETE functionality
+ * Account Nomination Module
+ * Thoroughly refactored to match legacy behavior including dual lookup logic
+ * (Client search vs Existing Nominee search) and strict percentage validation.
  */
-
 window.AccountNominationModule = (function () {
     'use strict';
 
     const state = {
-        accountId: null,
-        branchId: null,
-        operatorId: null,
         currentMode: 'VIEW',
         nominees: [],
         selectedIndex: -1,
-        originalData: null
+        updateCount: 0
     };
 
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-nominee',
-        ADD: '/AccountsMaintenance/api/add-account-nominee',
-        UPDATE: '/AccountsMaintenance/api/update-account-nominee',
-        DELETE: '/AccountsMaintenance/api/delete-account-nominee'
+        GET: 'get-account-nominee',
+        SAVE: 'add-edit-account-nominee',
+        DELETE: 'delete-account-nominee'
     };
 
     /**
-     * Initialize the module
+     * Get context from global state or storage
      */
-    function init() {
-        console.log('[AccountNomination] Initializing module...');
-        getAccountContext();
+    function getContext() {
+        const ps = window.AccountMaintenanceState;
+        return {
+            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'web_portal'
+        };
+    }
 
-        if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
+    // ── UI Helpers ─────────────────────────────────────────────
+    const el = (id) => document.getElementById(id);
+    const val = (id) => el(id)?.value?.trim() || '';
+    const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
+    const setTxt = (id, v) => { const e = el(id); if (e) e.textContent = (v == null) ? '-' : v; };
+    const isChecked = (id) => el(id)?.checked || false;
+    const setChecked = (id, v) => { const e = el(id); if (e) e.checked = !!v; };
+
+    function showMsg(msg, type) {
+        const t = window.showSystemToast || window.parent?.showSystemToast;
+        if (t) t(msg, { variant: type === 'error' ? 'danger' : type });
+        console.log(`[AccountNomination] ${type}: ${msg}`);
+    }
+
+    // ── Mode Management ────────────────────────────────────────
+    function setMode(mode) {
+        state.currentMode = mode;
+        const editing = mode === 'ADD' || mode === 'EDIT';
+
+        const fields = ['nominationPercentage', 'isDependent', 'isNominationRollover', 'remarks'];
+        fields.forEach(id => {
+            const e = el(id);
+            if (e) e.disabled = !editing;
+        });
+
+        // Nominee ID is only editable in ADD mode via lookup
+        const idField = el('nomineeId');
+        if (idField) idField.disabled = mode !== 'ADD';
+
+        const lookups = document.querySelectorAll('.btn-lookup');
+        lookups.forEach(btn => btn.disabled = !editing);
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        if (btnView) btnView.disabled = editing;
+        if (btnAdd) btnAdd.disabled = editing;
+        if (btnEdit) btnEdit.disabled = editing;
+        if (btnSave) btnSave.disabled = !editing;
+        if (btnCancel) btnCancel.disabled = !editing;
+        if (btnDelete) btnDelete.disabled = editing;
+    }
+
+    // ── Data Operations ────────────────────────────────────────
+    async function loadData() {
+        const ctx = getContext();
+        if (!ctx.AccountID) {
+            showMsg('Please select an account first', 'warning');
             return;
         }
 
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
-        setMode('VIEW');
-        loadData();
-    }
-
-    /**
-     * Get account context from parent page
-     */
-    function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
-        } else {
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
-        }
-    }
-
-    /**
-     * Wire header control buttons
-     */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', toggleMaximize);
-    }
-
-    /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'view': () => setMode('VIEW'),
-            'add': () => setMode('ADD'),
-            'edit': () => setMode('EDIT'),
-            'save': saveData,
-            'delete': deleteData,
-            'cancel': cancelChanges,
-            'close': closeSubmodule
-        };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
-    }
-
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content');
-                const icon = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-            });
-        });
-    }
-
-    /**
-     * Set form mode
-     */
-    function setMode(mode) {
-        console.log('[AccountNomination] Setting mode:', mode);
-        state.currentMode = mode;
-
-        const isEditing = mode === 'ADD' || mode === 'EDIT';
-        
-        // Enable/disable form fields
-        document.querySelectorAll('#nomineeId, #nominationPercentage, #isDependent, #isNominationRollover, #remarks').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
-
-        // Update button states
-        const buttons = {
-            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            'add': { active: mode === 'ADD', disabled: isEditing },
-            'edit': { active: mode === 'EDIT', disabled: isEditing || state.nominees.length === 0 },
-            'save': { active: false, disabled: !isEditing },
-            'delete': { active: false, disabled: isEditing || state.nominees.length === 0 },
-            'cancel': { active: false, disabled: !isEditing }
-        };
-
-        Object.keys(buttons).forEach(action => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (btn) {
-                btn.classList.toggle('active', buttons[action].active);
-                btn.disabled = buttons[action].disabled;
-            }
-        });
-
-        if (mode === 'ADD') {
-            clearForm();
-        }
-    }
-
-    /**
-     * Load nominees from API
-     */
-    async function loadData() {
-        console.log('[AccountNomination] Loading nominees...');
-        showLoading(true);
+        const loader = el('loadingOverlay');
+        if (loader) loader.hidden = false;
 
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.GET, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET}`, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                OperatorID: ctx.OperatorID
             });
 
-            const result = await response.json();
-            console.log('[AccountNomination] Response:', result);
+            if (result && result.success) {
+                const d = result.Details || result.data?.Details || result.data || [];
+                state.nominees = Array.isArray(d) ? d : [d];
 
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data || [];
-                state.nominees = Array.isArray(data) ? data : (data ? [data] : []);
-                
                 if (state.nominees.length > 0) {
                     state.selectedIndex = 0;
                     populateForm(state.nominees[0]);
+                    setMode('VIEW');
+                    renderNomineeSummary();
                 } else {
+                    showMsg('No current nomination details found', 'info');
                     clearForm();
+                    setMode('VIEW');
                 }
-                showSuccess(`Loaded ${state.nominees.length} nominee(s)`);
             } else {
-                showError(result?.ResponseMessage || 'Failed to load nominees');
+                showMsg(result?.message || 'Failed to load nomination details', 'error');
             }
-        } catch (error) {
-            console.error('[AccountNomination] Error:', error);
-            showError('Failed to load nominees: ' + error.message);
+        } catch (err) {
+            showMsg('Error loading nomination details: ' + err.message, 'error');
         } finally {
-            showLoading(false);
+            if (loader) loader.hidden = true;
         }
     }
 
-    /**
-     * Save nominee data
-     */
-    async function saveData() {
-        console.log('[AccountNomination] Saving nominee...');
-        showLoading(true);
-
-        try {
-            const formData = getFormData();
-            if (!validateForm(formData)) return;
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                ...formData,
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const endpoint = state.currentMode === 'ADD' ? API.ADD : API.UPDATE;
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Nominee saved successfully');
-                setMode('VIEW');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to save nominee');
-            }
-        } catch (error) {
-            console.error('[AccountNomination] Save error:', error);
-            showError('Failed to save nominee: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Delete nominee
-     */
-    async function deleteData() {
-        if (state.nominees.length === 0) {
-            showWarning('No nominee to delete');
-            return;
-        }
-
-        if (!confirm('Are you sure you want to delete this nominee?')) return;
-
-        console.log('[AccountNomination] Deleting nominee...');
-        showLoading(true);
-
-        try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const currentNominee = state.nominees[state.selectedIndex];
-            
-            const payload = {
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                NomineeID: currentNominee?.NomineeID || document.getElementById('nomineeId')?.value,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.DELETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Nominee deleted successfully');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to delete nominee');
-            }
-        } catch (error) {
-            console.error('[AccountNomination] Delete error:', error);
-            showError('Failed to delete nominee: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Cancel changes
-     */
-    function cancelChanges() {
-        if (state.nominees.length > 0 && state.selectedIndex >= 0) {
-            populateForm(state.nominees[state.selectedIndex]);
-        } else {
-            clearForm();
-        }
-        setMode('VIEW');
-    }
-
-    /**
-     * Populate form with data
-     */
     function populateForm(data) {
         if (!data) return;
+        state.updateCount = data.UpdateCount || 0;
+        setVal('nomineeId', data.NomineeID || '');
+        setVal('nomineeName', data.NomineeName || '');
+        setVal('nominationPercentage', data.NominationPercentage || '0');
+        setChecked('isDependent', data.IsDependent === 1 || data.IsDependent === true);
+        setChecked('isNominationRollover', data.IsNominationRollover === 1 || data.IsNominationRollover === true);
+        setVal('remarks', data.Remarks || '');
 
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) el.value = value || '';
-        };
-
-        const setChecked = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) el.checked = !!value;
-        };
-
-        setValue('nomineeId', data.NomineeID || data.nomineeId);
-        setValue('nomineeName', data.NomineeName || data.nomineeName);
-        setValue('nominationPercentage', data.NominationPercentage || data.nominationPercentage);
-        setValue('remarks', data.Remarks || data.remarks);
-        setChecked('isDependent', data.IsDependent || data.isDependent);
-        setChecked('isNominationRollover', data.IsNominationRollover || data.isNominationRollover);
-
-        // Audit fields
-        populateAuditFields(data);
-        
-        state.originalData = { ...data };
+        // Audit Fields (Behind the Scene)
+        setTxt('MakerID', data.CreatedBy || data.MakerID);
+        setTxt('MakerDT', data.CreatedOn || data.MakerDT);
+        setTxt('CheckerID', data.SupervisedBy || data.CheckerID);
+        setTxt('CheckerDT', data.SupervisedOn || data.CheckerDT);
+        setTxt('ModifierID', data.ModifiedBy || data.ModifierID);
+        setTxt('ModifierDT', data.ModifiedOn || data.ModifierDT);
     }
 
-    /**
-     * Get form data
-     */
-    function getFormData() {
-        return {
-            NomineeID: document.getElementById('nomineeId')?.value || '',
-            NomineeName: document.getElementById('nomineeName')?.value || '',
-            NominationPercentage: parseFloat(document.getElementById('nominationPercentage')?.value) || 0,
-            IsDependent: document.getElementById('isDependent')?.checked || false,
-            IsNominationRollover: document.getElementById('isNominationRollover')?.checked || false,
-            Remarks: document.getElementById('remarks')?.value || ''
-        };
-    }
-
-    /**
-     * Validate form
-     */
-    function validateForm(data) {
-        if (!data.NomineeID) {
-            showWarning('Please select a nominee');
-            return false;
-        }
-        if (data.NominationPercentage <= 0 || data.NominationPercentage > 100) {
-            showWarning('Nomination percentage must be between 1 and 100');
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Clear form
-     */
     function clearForm() {
-        ['nomineeId', 'nomineeName', 'nominationPercentage', 'remarks'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        ['isDependent', 'isNominationRollover'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.checked = false;
-        });
-        clearAuditFields();
+        ['nomineeId', 'nomineeName', 'nominationPercentage', 'remarks'].forEach(id => setVal(id, ''));
+        ['isDependent', 'isNominationRollover'].forEach(id => setChecked(id, false));
+        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach(id => setTxt(id, '-'));
+        state.selectedIndex = -1;
+        state.updateCount = 0;
     }
 
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
-        const fields = {
-            'MakerID': data.CreatedBy || data.MakerID || '-',
-            'MakerDT': formatDate(data.CreatedOn || data.MakerDT) || '-',
-            'CheckerID': data.SupervisedBy || data.CheckerID || '-',
-            'CheckerDT': formatDate(data.SupervisedOn || data.CheckerDT) || '-',
-            'ModifierID': data.ModifiedBy || data.ModifierID || '-',
-            'ModifierDT': formatDate(data.ModifiedOn || data.ModifierDT) || '-'
+    function renderNomineeSummary() {
+        // Optional: populate a list if multiple nominees exist (legacy usually only shows one in the form at a time)
+        console.log(`[AccountNomination] Current Nominees: ${state.nominees.length}`);
+    }
+
+    async function handleSave() {
+        if (!val('nomineeId')) { showMsg('Please select a Nominee', 'warning'); return false; }
+
+        const pct = parseFloat(val('nominationPercentage'));
+        if (isNaN(pct) || pct < 1 || pct > 100) {
+            showMsg('Nomination percentage must be between 1 and 100', 'warning');
+            return false;
+        }
+
+        const ok = await AppCore.showConfirmation('Save Nomination', 'Are you sure you want to save these nomination details?');
+        if (!ok) return false;
+
+        const ctx = getContext();
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            NomineeID: val('nomineeId'),
+            NomineeName: val('nomineeName'),
+            NominationPercentage: pct,
+            IsDependent: isChecked('isDependent') ? 1 : 0,
+            IsNominationRollover: isChecked('isNominationRollover') ? 1 : 0,
+            Remarks: val('remarks'),
+            OperatorID: ctx.OperatorID,
+            UpdateCount: state.updateCount,
+            NewRecord: state.currentMode === 'ADD' ? 1 : 0
         };
 
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
-        });
-    }
-
-    /**
-     * Clear audit fields
-     */
-    function clearAuditFields() {
-        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '-';
-        });
-    }
-
-    // Utility functions
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 || 
-               result?.success === true || result?.Success === true;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
         try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
-        } catch (e) {
-            return dateString;
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.SAVE}`, payload);
+            if (result && result.success) {
+                showMsg(result.message || 'Nomination details saved successfully', 'success');
+                loadData();
+                setMode('VIEW');
+                return true;
+            } else {
+                showMsg(result?.message || 'Failed to save nomination details', 'error');
+                return false;
+            }
+        } catch (err) {
+            showMsg('Save error: ' + err.message, 'error');
+            return false;
         }
     }
 
-    function showLoading(show) {
-        const overlay = document.querySelector('.loading-overlay, .de-loading-overlay');
-        if (overlay) overlay.hidden = !show;
-    }
+    async function handleDelete() {
+        if (!val('nomineeId')) { showMsg('No nominee selected for deletion', 'warning'); return; }
 
-    function toggleMaximize() {
-        const sidebar = document.getElementById('main-sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-    }
+        const ok = await AppCore.showConfirmation('Delete Nominee', 'Are you sure you want to remove this nominee from the account?');
+        if (!ok) return;
 
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
+        const ctx = getContext();
+        try {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.DELETE}`, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                NomineeID: val('nomineeId'),
+                OperatorID: ctx.OperatorID
+            });
+
+            if (result && result.success) {
+                showMsg(result.message || 'Nominee deleted successfully', 'success');
+                loadData();
+            } else {
+                showMsg(result?.message || 'Delete failed', 'error');
+            }
+        } catch (err) {
+            showMsg('Delete error: ' + err.message, 'error');
         }
     }
 
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
+    // ── Lookups ────────────────────────────────────────────────
+    function wireLookups() {
+        /**
+         * Search Clients: To pick a NEW nominee from the bank's clients.
+         */
+        document.querySelector('[data-lookup="Nominee"]')?.addEventListener('click', () => {
+            if (window.SearchModal) {
+                const modal = new window.SearchModal(window.AppCore);
+                modal.open({
+                    tableID: 'CustomerID', // Search global client database
+                    onSelect: (r) => {
+                        setVal('nomineeId', r.CustomerID || r.ID);
+                        setVal('nomineeName', r.CustomerName || r.Description || r.CustomerTitle);
+                        showMsg('Client selected as nominee candidate', 'info');
+                    }
+                });
+            }
+        });
 
-    function showMessage(message, type) {
-        const panel = document.querySelector('.am-message-panel, .de-message-bar');
-        if (panel) {
-            panel.className = `am-message-panel am-message-panel--${type}`;
-            panel.hidden = false;
-            const icon = panel.querySelector('i');
-            const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
-            if (span) span.textContent = message;
-            setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
-        }
-
-        if (type === 'error' && window.parent?.showSystemToast) {
-            window.parent.showSystemToast(message, { variant: type });
-        }
+        /**
+         * Search Existing: To pick from nominees ALREADY attached to this account.
+         */
+        document.querySelector('[data-lookup="ExistingNominee"]')?.addEventListener('click', () => {
+            const ctx = getContext();
+            if (window.SearchModal) {
+                const modal = new window.SearchModal(window.AppCore);
+                modal.open({
+                    tableID: 'AccountNominee', // Search specifically account nominees
+                    params: { AccountID: ctx.AccountID, OurBranchID: ctx.OurBranchID },
+                    onSelect: (r) => {
+                        populateForm(r);
+                        state.currentMode = 'VIEW';
+                        setMode('VIEW');
+                    }
+                });
+            }
+        });
     }
 
-    // Public API
+    // ── Init ───────────────────────────────────────────────────
+    function init() {
+        console.log('[AccountNomination] Initializing (Thorough Migration)');
+        setMode('VIEW');
+        wireLookups();
+
+        const ctx = getContext();
+        if (ctx.AccountID) {
+            loadData();
+        }
+
+        // Section Toggles
+        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
+            hdr.addEventListener('click', function () {
+                const sec = this.closest('.form-section');
+                const content = sec?.querySelector('.section-content, [data-section-content]');
+                const icon = this.querySelector('.bi-chevron-up, .bi-chevron-down');
+                if (content) {
+                    content.hidden = !content.hidden;
+                    icon?.classList.toggle('bi-chevron-up');
+                    icon?.classList.toggle('bi-chevron-down');
+                }
+            });
+        });
+    }
+
     return {
-        init,
-        loadData,
-        saveData,
-        deleteData,
-        setMode,
-        cancelChanges
+        init: init,
+        save: handleSave,
+        edit: () => setMode('EDIT'),
+        add: () => { clearForm(); state.currentMode = 'ADD'; setMode('ADD'); },
+        delete: handleDelete,
+        cancel: async () => {
+            const ok = await AppCore.showConfirmation('Cancel', 'Are you sure you want to cancel your changes?');
+            if (ok) { loadData(); setMode('VIEW'); }
+        },
+        view: loadData,
+        refresh: loadData
     };
 })();
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountNominationModule?.init());
-} else {
-    window.AccountNominationModule?.init();
-}
-
-console.log('✅ Account Nomination module loaded');
+console.log('[AccountNomination] Module loaded');
