@@ -88,6 +88,10 @@
       const envelope = CoreApi.makeRequestEnvelope("dbo.p_DeleteGroupBankAccounts", requestData);
       return CoreApi.post(`${BASE_URL}/api/OldAPI`, envelope);
     },
+    checkUserRights(requestData) {
+      const envelope = CoreApi.makeRequestEnvelope("p_UserRights", requestData);
+      return CoreApi.post(`${BASE_URL}/api/OldAPI`, envelope);
+    },
     getGroupMemberList(requestData) {
       const envelope = CoreApi.makeRequestEnvelope("dbo.p_GetGroupMemberList", requestData);
       return CoreApi.post(`${BASE_URL}/api/OldAPI`, envelope);

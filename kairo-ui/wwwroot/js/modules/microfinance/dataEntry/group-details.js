@@ -330,9 +330,43 @@
         updateButtonStates();
     }
 
+    function closeSubmodule() {
+        try {
+            const parent = window.parent;
+            
+            // Primary method: Parent has closeChildForm function (MVC standard)
+            if (typeof parent.closeChildForm === 'function') {
+                console.log('[GroupDetails] Calling parent.closeChildForm()');
+                parent.closeChildForm();
+                return;
+            }
+            
+            // Fallback 1: Parent has closeFrame function
+            if (typeof parent.closeFrame === 'function') {
+                console.log('[GroupDetails] Calling parent.closeFrame()');
+                parent.closeFrame();
+                return;
+            }
+            
+            // Fallback 2: Set iframe src to about:blank
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe], iframe[src*="GroupDetails"]');
+                if (iframe) {
+                    console.log('[GroupDetails] Setting iframe src to about:blank');
+                    iframe.src = 'about:blank';
+                    return;
+                }
+            }
+            
+            console.warn('[GroupDetails] No close method found in parent');
+        } catch (error) {
+            console.error('[GroupDetails] Error closing submodule:', error);
+        }
+    }
+
     function wireEvents() {
         document.getElementById('btnClose')?.addEventListener('click', () => {
-            window.parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
+            closeSubmodule();
         });
         document.getElementById('btnRefresh')?.addEventListener('click', () => window.location.reload());
 

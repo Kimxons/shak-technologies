@@ -4,189 +4,10 @@
     var sessionBranchId = Context.Session.GetString("OurBranchID") ?? Context.Session.GetString("branch_code") ?? string.Empty;
 }
 
-<style>
-    .cm-search-modal {
-        --modal-header-bg: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
-        --modal-table-header-bg: linear-gradient(to bottom, #4a90e2, #357abd);
-        --zebra-color: #e8f4ff;
-        --zebra-hover: #d0e8ff;
-        --btn-color: #e0e0e0;
-    }
-
-    .cm-search-modal .modal-content {
-        border: none;
-        border-radius: 6px;
-        overflow: hidden;
-    }
-
-    .cm-search-modal .modal-header {
-        background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
-        color: white;
-        padding: 14px 20px;
-        border: none;
-    }
-
-    .cm-search-modal .modal-title {
-        font-size: 16px;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-    }
-
-    .cm-search-modal .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.9;
-    }
-
-    .cm-search-modal .btn-close:hover {
-        opacity: 1;
-    }
-
-    .cm-search-modal .modal-body {
-        padding: 0;
-    }
-
-    .cm-search-modal .search-filters {
-        padding: 16px 20px;
-        background: #f5f5f5;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .cm-search-modal .search-filters .row {
-        gap: 12px;
-    }
-
-    .cm-search-modal .search-filters .col {
-        flex: 1;
-    }
-
-    .cm-search-modal .search-filters label {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 4px;
-        display: block;
-        font-weight: 500;
-    }
-
-    .cm-search-modal .search-filters input,
-    .cm-search-modal .search-filters select {
-        width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #d0d0d0;
-        border-radius: 3px;
-        font-size: 13px;
-        background: white;
-    }
-
-    .cm-search-modal .search-filters input:focus,
-    .cm-search-modal .search-filters select:focus {
-        outline: none;
-        border-color: #1e7cc4;
-        box-shadow: 0 0 0 3px rgba(30, 124, 196, 0.1);
-    }
-
-    .cm-search-modal .btn-search {
-        background: #0f6ba7;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 3px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .cm-search-modal .btn-search:hover {
-        background: #0a4d75;
-    }
-
-    .cm-search-modal .btn-cancel {
-        background: #f5f5f5;
-        color: #d32f2f;
-        border: 1px solid #d32f2f;
-        padding: 8px 20px;
-        border-radius: 3px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .cm-search-modal .btn-cancel:hover {
-        background: #ffebee;
-    }
-
-    .cm-search-modal .results-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-
-    .cm-search-modal .results-table thead {
-        background: linear-gradient(to bottom, #4a90e2, #357abd);
-        color: white;
-    }
-
-    .cm-search-modal .results-table thead th {
-        padding: 12px 16px;
-        text-align: left;
-        font-weight: 600;
-        border: none;
-    }
-
-    .cm-search-modal .results-table tbody tr {
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .cm-search-modal .results-table tbody tr:nth-child(even) {
-        background-color: #e8f4ff;
-    }
-
-    .cm-search-modal .results-table tbody tr:hover {
-        background-color: #d0e8ff !important;
-        cursor: pointer;
-    }
-
-    .cm-search-modal .results-table tbody tr.selected {
-        background-color: #bfe0ff !important;
-    }
-
-    .cm-search-modal .results-table tbody td {
-        padding: 10px 16px;
-        color: #333;
-    }
-
-    .cm-search-modal .modal-footer {
-        background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
-        padding: 12px 20px;
-        border: none;
-        text-align: center;
-    }
-
-    .cm-search-modal .btn-ok {
-        background: #e0e0e0;
-        color: #333;
-        border: 1px solid #999;
-        padding: 8px 24px;
-        border-radius: 3px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .cm-search-modal .btn-ok:hover {
-        background: #d5d5d5;
-    }
-
-    .cm-search-modal .btn-ok:active {
-        background: #c5c5c5;
-    }
-</style>
 
 <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-<div class="window">
+<div class="window" data-page="group-maintenance">
     <div class="main-container">
         <div class="sidebar" id="main-sidebar">
             <div class="sidebar-header">
@@ -199,6 +20,9 @@
             <div class="sidebar-search">
                 <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules">
                 <i class="bi bi-search sidebar-search__icon"></i>
+                <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+                    <i class="bi bi-x-circle"></i>
+                </button>
             </div>
 
             <div class="sidebar-content">
@@ -298,7 +122,7 @@
             </div>
 
             <div class="form-card" data-main-form>
-                <div class="form-section" data-section="center-details-main">
+                <div class="form-section form-section--bts" data-section="center-details-main">
                     <div class="section-header" data-section-toggle>
                         <span class="section-header__title"><i class="bi bi-building"></i>Center Details</span>
                         <button type="button" class="section-toggle-btn" aria-label="Toggle Center Search" aria-expanded="true">
@@ -322,15 +146,25 @@
                             <div class="col">
                                 <label class="label-blue">Center ID</label>
                                 <div class="kairo-control" data-kairo-control>
-                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID">
+                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID" readonly>
                                     <input type="text" id="centerName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Center" onclick="window.handleCenterSearch?.()" aria-label="Search Center"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-row two-col">
+                        <div class="form-row four-col">
                             <div class="col">
+                                <label class="label-blue">Group Class</label>
+                                <select id="groupClass" class="bs-select" aria-label="Group Class" required>
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Registration No.</label>
+                                <input type="text" id="registrationNo" class="bs-input-text" aria-label="Registration Number">
+                            </div>
+                            <div class="col span-2">
                                 <label class="label-blue">Center Product ID</label>
                                 <div class="kairo-product-control" data-kairo-product-control>
                                     <input type="text" id="centerProductId" class="kairo-product-control__id" aria-label="Center Product ID">
@@ -338,6 +172,9 @@
                                     <button type="button" class="btn-lookup kairo-product-control__lookup" data-lookup="CenterProduct" onclick="window.handleCenterProductSearch?.()" aria-label="Search Center Product"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="form-row two-col">
                             <div class="col">
                                 <label class="label-blue">Primary Scheme ID</label>
                                 <div class="kairo-control" data-kairo-control>
@@ -346,9 +183,6 @@
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="PrimaryScheme" onclick="window.handlePrimarySchemeSearch?.()" aria-label="Search Primary Scheme"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="form-row two-col">
                             <div class="col">
                                 <label class="label-blue">Credit Officer</label>
                                 <div class="kairo-user-control" data-kairo-user-control>
@@ -356,10 +190,6 @@
                                     <input type="text" id="creditOfficerName" class="kairo-user-control__name" aria-label="Credit Officer Name" placeholder="Officer Name" readonly>
                                     <button type="button" class="btn-lookup kairo-user-control__lookup" data-lookup="CreditOfficer" onclick="window.handleCreditOfficerSearch?.()" aria-label="Search Credit Officer"><i class="bi bi-search"></i></button>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <label>Registration No.</label>
-                                <input type="text" id="registrationNo" class="bs-input-text" aria-label="Registration Number">
                             </div>
                         </div>
 
@@ -381,20 +211,10 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="form-row two-col">
-                            <div class="col">
-                                <label class="label-blue">Group Class</label>
-                                <select id="groupClass" class="bs-select" aria-label="Group Class" required>
-                                    <option value="">--Select--</option>
-                                </select>
-                            </div>
-                            <div class="col"></div>
-                        </div>
                     </div>
                 </div>
 
-                <div class="form-section" data-section="meeting-details">
+                <div class="form-section form-section--bts" data-section="meeting-details">
                     <div class="section-header" data-section-toggle>
                         <span class="section-header__title"><i class="bi bi-calendar-event"></i>Meeting Details</span>
                         <button type="button" class="section-toggle-btn" aria-label="Toggle Meeting Details" aria-expanded="true">
@@ -402,37 +222,26 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="form-row two-col">
+                        <div class="form-row four-col">
                             <div class="col">
                                 <label class="label-blue">Formation Date</label>
                                 <input type="date" id="formationDate" class="bs-input-date" aria-label="Formation Date">
                             </div>
                             <div class="col">
-                                <label>Village</label>
-                                <input type="text" id="village" class="bs-input-text" aria-label="Village">
-                            </div>
-                        </div>
-
-                        <div class="form-row two-col">
-                            <div class="col">
-                                <label>Location</label>
-                                <select id="location" class="bs-select" aria-label="Location">
-                                    <option value="">--Select--</option>
-                                </select>
-                            </div>
-                            <div class="col">
-                                <label>Centre</label>
-                                <select id="centre" class="bs-select" aria-label="Centre">
-                                    <option value="">--Select--</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row two-col">
-                            <div class="col">
                                 <label class="label-blue">First Meeting Date</label>
                                 <input type="date" id="firstMeetingDate" class="bs-input-date" aria-label="First Meeting Date">
                             </div>
+                            <div class="col">
+                                <label class="label-blue">Next Meeting Date</label>
+                                <input type="date" id="nextMeetingDate" class="bs-input-date" aria-label="Next Meeting Date">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Meeting Time</label>
+                                <input type="text" id="meetingTime" class="bs-input-text" aria-label="Meeting Time" placeholder="HH:MM">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
                             <div class="col">
                                 <label class="label-blue">Meeting Day</label>
                                 <select id="meetingDay" class="bs-select" aria-label="Meeting Day">
@@ -446,9 +255,6 @@
                                     <option value="Sunday">Sunday</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="form-row two-col">
                             <div class="col">
                                 <label>First Day</label>
                                 <input type="text" id="firstDay" class="bs-input-text" aria-label="First Day">
@@ -457,23 +263,28 @@
                                 <label>Next Day</label>
                                 <input type="text" id="nextDay" class="bs-input-text" aria-label="Next Day">
                             </div>
-                        </div>
-
-                        <div class="form-row two-col">
-                            <div class="col">
-                                <label class="label-blue">Meeting Time</label>
-                                <input type="text" id="meetingTime" class="bs-input-text" aria-label="Meeting Time">
-                            </div>
-                            <div class="col">
-                                <label class="label-blue">Next Meeting Date</label>
-                                <input type="date" id="nextMeetingDate" class="bs-input-date" aria-label="Next Meeting Date">
-                            </div>
-                        </div>
-
-                        <div class="form-row two-col">
                             <div class="col">
                                 <label>Meeting Place</label>
                                 <input type="text" id="meetingPlace" class="bs-input-text" aria-label="Meeting Place">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label>Village</label>
+                                <input type="text" id="village" class="bs-input-text" aria-label="Village">
+                            </div>
+                            <div class="col">
+                                <label>Location</label>
+                                <select id="location" class="bs-select" aria-label="Location">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Centre</label>
+                                <select id="centre" class="bs-select" aria-label="Centre">
+                                    <option value="">--Select--</option>
+                                </select>
                             </div>
                             <div class="col">
                                 <label>Status</label>
@@ -484,12 +295,72 @@
                             </div>
                         </div>
 
-                        <div class="form-row two-col">
+                        <div class="form-row">
                             <div class="col">
                                 <label>Status Reason</label>
                                 <input type="text" id="statusReason" class="bs-input-text" aria-label="Status Reason">
                             </div>
-                            <div class="col"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section form-section--bts" data-section="group-snapshot">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-bar-chart-fill"></i>Group Snapshot</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Group Snapshot" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="behind-scene">
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Total Members</label>
+                                    <input type="text" id="totalMembers" class="bs-input-text" readonly aria-label="Total Members">
+                                </div>
+                                <div class="col">
+                                    <label>Zero Balance</label>
+                                    <input type="text" id="zeroBalance" class="bs-input-text" readonly aria-label="Zero Balance">
+                                </div>
+                                <div class="col">
+                                    <label>Meeting Frequency</label>
+                                    <input type="text" id="meetingFrequency" class="bs-input-text" readonly aria-label="Meeting Frequency">
+                                </div>
+                                <div class="col">
+                                    <label>Loan Cycle Type</label>
+                                    <input type="text" id="loanCycleType" class="bs-input-text" readonly aria-label="Loan Cycle Type">
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Total Savings A/Cs</label>
+                                    <input type="text" id="totalSavingsAcs" class="bs-input-text" readonly aria-label="Total Savings Accounts">
+                                </div>
+                                <div class="col">
+                                    <label>Total Savings Balance</label>
+                                    <input type="text" id="totalSavingsBalance" class="bs-input-text" readonly aria-label="Total Savings Balance">
+                                </div>
+                                <div class="col">
+                                    <label>Total Loan A/Cs</label>
+                                    <input type="text" id="totalLoanAcs" class="bs-input-text" readonly aria-label="Total Loan Accounts">
+                                </div>
+                                <div class="col">
+                                    <label>Total Loan Balance</label>
+                                    <input type="text" id="totalLoanBalance" class="bs-input-text" readonly aria-label="Total Loan Balance">
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Loan Cycle No.</label>
+                                    <input type="text" id="loanCycleNo" class="bs-input-text" readonly aria-label="Loan Cycle Number">
+                                </div>
+                                <div class="col">
+                                    <label>Saving / OS Loan</label>
+                                    <input type="text" id="savingOsLoan" class="bs-input-text" readonly aria-label="Saving OS Loan">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -502,91 +373,30 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="behind-scene">
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label>Total Members</label>
-                                    <input type="text" id="totalMembers" class="bs-input-text" readonly aria-label="Total Members">
-                                </div>
-                                <div class="col">
-                                    <label>Zero Balance</label>
-                                    <input type="text" id="zeroBalance" class="bs-input-text" readonly aria-label="Zero Balance">
-                                </div>
-                            </div>
-
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label>Meeting Frequency</label>
-                                    <input type="text" id="meetingFrequency" class="bs-input-text" readonly aria-label="Meeting Frequency">
-                                </div>
-                                <div class="col">
-                                    <label>Total Savings A/Cs</label>
-                                    <input type="text" id="totalSavingsAcs" class="bs-input-text" readonly aria-label="Total Savings Accounts">
-                                </div>
-                            </div>
-
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label>Total Savings Balance</label>
-                                    <input type="text" id="totalSavingsBalance" class="bs-input-text" readonly aria-label="Total Savings Balance">
-                                </div>
-                                <div class="col">
-                                    <label>Total Loan A/Cs</label>
-                                    <input type="text" id="totalLoanAcs" class="bs-input-text" readonly aria-label="Total Loan Accounts">
-                                </div>
-                            </div>
-
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label>Total Loan Balance</label>
-                                    <input type="text" id="totalLoanBalance" class="bs-input-text" readonly aria-label="Total Loan Balance">
-                                </div>
-                                <div class="col">
-                                    <label>Loan Cycle Type</label>
-                                    <input type="text" id="loanCycleType" class="bs-input-text" readonly aria-label="Loan Cycle Type">
-                                </div>
-                            </div>
-
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label>Loan Cycle No.</label>
-                                    <input type="text" id="loanCycleNo" class="bs-input-text" readonly aria-label="Loan Cycle Number">
-                                </div>
-                                <div class="col">
-                                    <label>Saving / OS Loan</label>
-                                    <input type="text" id="savingOsLoan" class="bs-input-text" readonly aria-label="Saving OS Loan">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row two-col">
-                            <div class="col">
+                        <div class="audit-section">
+                            <div class="audit-item">
                                 <label>Created By</label>
-                                <input type="text" id="createdBy" class="bs-input-text" readonly aria-label="Created By">
+                                <span class="audit-value" id="createdBy">-</span>
                             </div>
-                            <div class="col">
+                            <div class="audit-item">
                                 <label>Created On</label>
-                                <input type="text" id="createdOn" class="bs-input-text" readonly aria-label="Created On">
+                                <span class="audit-value" id="createdOn">-</span>
                             </div>
-                        </div>
-                        <div class="form-row two-col">
-                            <div class="col">
+                            <div class="audit-item">
                                 <label>Modified By</label>
-                                <input type="text" id="modifiedBy" class="bs-input-text" readonly aria-label="Modified By">
+                                <span class="audit-value" id="modifiedBy">-</span>
                             </div>
-                            <div class="col">
+                            <div class="audit-item">
                                 <label>Modified On</label>
-                                <input type="text" id="modifiedOn" class="bs-input-text" readonly aria-label="Modified On">
+                                <span class="audit-value" id="modifiedOn">-</span>
                             </div>
-                        </div>
-                        <div class="form-row two-col">
-                            <div class="col">
+                            <div class="audit-item">
                                 <label>Supervised By</label>
-                                <input type="text" id="supervisedBy" class="bs-input-text" readonly aria-label="Supervised By">
+                                <span class="audit-value" id="supervisedBy">-</span>
                             </div>
-                            <div class="col">
+                            <div class="audit-item">
                                 <label>Supervised On</label>
-                                <input type="text" id="supervisedOn" class="bs-input-text" readonly aria-label="Supervised On">
+                                <span class="audit-value" id="supervisedOn">-</span>
                             </div>
                         </div>
                     </div>
@@ -596,9 +406,9 @@
 
         <div class="action-panel">
             <div class="nav-group">
-                <button class="btn-nav green" aria-label="Previous Center"><i class="bi bi-chevron-left"></i></button>
+                <button class="btn-nav green" onclick="window.handleNavigatePrevious?.()" aria-label="Previous Center"><i class="bi bi-chevron-left"></i></button>
                 <span>Center</span>
-                <button class="btn-nav green" aria-label="Next Center"><i class="bi bi-chevron-right"></i></button>
+                <button class="btn-nav green" onclick="window.handleNavigateNext?.()" aria-label="Next Center"><i class="bi bi-chevron-right"></i></button>
             </div>
 
             <div class="action-buttons">

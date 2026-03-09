@@ -204,6 +204,34 @@
         fetchSubGroupDetails();
     };
 
+    const closeSubmodule = () => {
+        try {
+            const parent = window.parent;
+
+            if (typeof parent.closeChildForm === 'function') {
+                parent.closeChildForm();
+                return;
+            }
+
+            if (typeof parent.closeFrame === 'function') {
+                parent.closeFrame();
+                return;
+            }
+
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe], iframe[src*="Groups"]');
+                if (iframe) {
+                    iframe.src = 'about:blank';
+                    return;
+                }
+            }
+
+            parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
+        } catch (error) {
+            console.error('[Groups View] Error closing submodule:', error);
+        }
+    };
+
     const initializeGroupsView = () => {
         currentCenterData = getCenterData();
 
@@ -212,9 +240,7 @@
             viewBtn.addEventListener('click', handleView);
         }
 
-        document.getElementById('btnClose')?.addEventListener('click', () => {
-            window.parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
-        });
+        document.getElementById('btnClose')?.addEventListener('click', closeSubmodule);
         document.getElementById('btnRefresh')?.addEventListener('click', () => window.location.reload());
 
         document.querySelectorAll('[data-section-toggle]').forEach(header => {
