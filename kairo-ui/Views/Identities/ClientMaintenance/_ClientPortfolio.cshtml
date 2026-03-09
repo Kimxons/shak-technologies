@@ -1,0 +1,86 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var reportTypeOptions = ViewData["ReportTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var productTypeOptions = ViewData["ProductTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-card" data-section="client-portfolio" data-cm-module="portfolio">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-pie-chart"></i> Graphical Client Portfolio</span>
+        <button id="btn_toggleClientPortfolio" type="button" class="section-toggle-btn" aria-label="Toggle Portfolio" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <!-- Hidden fields for page context -->
+        <input type="hidden" id="moduleIdPortfolio" value="@ViewData["ModuleId"]" />
+
+        <h5 class="mb-4">Portfolio Filters</h5>
+
+        <form id="frm_clientPortfolio" data-portfolio-form autocomplete="off" novalidate>
+            <div class="form-row four-col">
+                <div class="col">
+                    <label class="label-blue" for="ddl_portfolioReportType" id="lbl_portfolioReportType">Report Type <span class="text-danger">*</span></label>
+                    <select id="ddl_portfolioReportType" name="portfolioReportType" data-portfolio-field="PortfolioReportTypeID" class="bs-select" asp-items="@reportTypeOptions" required>
+                        <option value="">Select...</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="ddl_productType" id="lbl_productType">Product Type</label>
+                    <select id="ddl_productType" name="productType" data-portfolio-field="ProductTypeID" class="bs-select" asp-items="@productTypeOptions">
+                        <option value="">Select...</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="txt_fromDate" id="lbl_fromDate">From Date</label>
+                    <input type="date" id="txt_fromDate" name="fromDate" data-portfolio-field="FromDate" class="bs-input-text" />
+                </div>
+                <div class="col">
+                    <label for="txt_toDate" id="lbl_toDate">To Date</label>
+                    <input type="date" id="txt_toDate" name="toDate" data-portfolio-field="ToDate" class="bs-input-text" />
+                </div>
+            </div>
+        </form>
+
+        <div class="d-flex justify-content-center gap-2 my-4">
+            <button id="btn_viewPortfolio" type="button" class="btn btn-sm btn-primary" data-portfolio-action="view"><i class="bi bi-eye me-1"></i>View</button>
+            <button id="btn_clearPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear</button>
+            <button id="btn_printPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+        </div>
+
+        <div class="section-header py-1 mb-2 bg-light border">
+            <span class="small fw-bold px-2">PORTFOLIO ANALYSIS</span>
+        </div>
+        <div class="border rounded bg-white mb-4 p-3" style="min-height: 400px;">
+            <div id="portfolioChartContainer" style="width: 100%; height: 400px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Highcharts for charting -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<script src="~/js/modules/identities/client-maintenance/client-portfolio.js" asp-append-version="true"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const moduleRoot = document.querySelector('[data-section="client-portfolio"]');
+        const moduleId = document.getElementById('moduleIdPortfolio')?.value;
+        const autoLoad = '@ViewData["AutoLoad"]' === 'true';
+        const clientId = '@ViewData["ClientId"]';
+
+        if (moduleRoot && typeof window.initClientMaintenancePortfolio === 'function') {
+            window.initClientMaintenancePortfolio(moduleRoot, moduleId);
+
+            if (autoLoad && clientId) {
+                setTimeout(() => {
+                    if (moduleRoot._cmLoadData) {
+                        moduleRoot._cmLoadData({ ClientID: clientId, ModuleID: moduleId });
+                    }
+                }, 100);
+            }
+        }
+    });
+</script>

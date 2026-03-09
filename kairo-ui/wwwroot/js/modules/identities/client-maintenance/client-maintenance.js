@@ -114,7 +114,7 @@ window.ClientMaintenanceCore = {
     workflowStageRequestId: 0,
     // Registry to track loaded tabs and their load functions
     _loadedTabsRegistry: new Map(),
-    
+
     /**
      * Register a tab's load function
      * Called by tab initializers when they set up the _cmLoadData function
@@ -125,21 +125,21 @@ window.ClientMaintenanceCore = {
             console.log(`[ClientMaintenance] Registered load function for tab: ${tabKey}`);
         }
     },
-    
+
     /**
      * Get all registered tab load functions
      */
     getLoadedTabLoadFunctions() {
         return Array.from(this._loadedTabsRegistry.values());
     },
-    
+
     /**
      * Clear the registry (useful for reset)
      */
     clearTabRegistry() {
         this._loadedTabsRegistry.clear();
     },
-    
+
     getSelectedId() {
         if (this.useRequestId) {
             return this.requestId || '';
@@ -257,6 +257,104 @@ const clientMaintenanceTabServiceMap = {
     Documents: 'ClientMaintenanceDocumentsService',
     Submit: 'ClientMaintenanceSubmitService'
 };
+
+const clientMaintenanceTabScriptMap = {
+    Personal: '/js/modules/identities/client-maintenance/client-personal.js',
+    Corporate: '/js/modules/identities/client-maintenance/client-corporate.js',
+    Address: '/js/modules/identities/client-maintenance/client-address.js',
+    Relations: '/js/modules/identities/client-maintenance/client-relations.js',
+    Employment: '/js/modules/identities/client-maintenance/client-employment.js',
+    Offers: '/js/modules/identities/client-maintenance/client-offers.js',
+    GroupDetail: '/js/modules/identities/client-maintenance/client-group-detail.js',
+    Kyc: '/js/modules/identities/client-maintenance/client-kyc.js',
+    Products: '/js/modules/identities/client-maintenance/client-products.js',
+    PhotoSignature: '/js/modules/identities/client-maintenance/client-photo-signature.js',
+    Documents: '/js/modules/identities/client-maintenance/client-documents.js',
+    Submit: '/js/modules/identities/client-maintenance/client-submit.js'
+};
+
+const loadedTabScriptSet = new Set();
+const tabScriptLoadPromiseMap = new Map();
+
+function resolveTabScriptUrl(scriptPath) {
+    const normalizedPath = scriptPath.startsWith('/') ? scriptPath : `/${scriptPath}`;
+    const marker = '/js/modules/identities/client-maintenance/client-maintenance.js';
+
+    const currentScript = Array.from(document.scripts || []).find((script) => {
+        const src = String(script?.src || '').toLowerCase();
+        return src.includes(marker);
+    });
+
+    if (!currentScript?.src) {
+        return normalizedPath;
+    }
+
+    const currentSrc = String(currentScript.src || '');
+    const markerIndex = currentSrc.toLowerCase().indexOf(marker);
+    if (markerIndex === -1) {
+        return normalizedPath;
+    }
+
+    return `${currentSrc.substring(0, markerIndex)}${normalizedPath}`;
+}
+
+async function ensureTabScriptLoaded(config) {
+    console.log(config);
+    const tabKey = config?.key || '';
+    const scriptPath = clientMaintenanceTabScriptMap[tabKey];
+    console.log(scriptPath);
+    if (!scriptPath) return;
+
+    const normalizedPath = scriptPath.toLowerCase();
+    const scriptUrl = resolveTabScriptUrl(scriptPath);
+
+    console.log(scriptUrl);
+    console.log(normalizedPath);
+    console.log(loadedTabScriptSet);
+    if (loadedTabScriptSet.has(normalizedPath)) {
+        let isExistingScript = Array.from(document.scripts || []).find((script) => {
+            const src = String(script?.src || '').toLowerCase();
+            return src.includes(normalizedPath);
+        });
+        console.log(isExistingScript);
+        if (isExistingScript)
+            return;
+    }
+
+    console.log(tabScriptLoadPromiseMap);
+    if (tabScriptLoadPromiseMap.has(normalizedPath)) {
+        await tabScriptLoadPromiseMap.get(normalizedPath);
+        return;
+    }
+
+    const existingScript = Array.from(document.head.querySelectorAll('script') || []).find((script) => {
+        //const existingScript = Array.from(document.scripts || []).find((script) => {
+        const src = String(script?.src || '').toLowerCase();
+        return src.includes(normalizedPath);
+    });
+    console.log(existingScript);
+    if (existingScript) {
+        loadedTabScriptSet.add(normalizedPath);
+        return;
+    }
+
+    const loadPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = scriptUrl;
+        script.type = "text/javascript";
+        script.async = false;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Failed to load script for ${tabKey}: ${scriptUrl}`));
+        document.head.appendChild(script);
+    }).finally(() => {
+        tabScriptLoadPromiseMap.delete(normalizedPath);
+    });
+    console.log("finished loading scripts")
+    tabScriptLoadPromiseMap.set(normalizedPath, loadPromise);
+    await loadPromise;
+
+    loadedTabScriptSet.add(normalizedPath);
+}
 
 let clientMaintenanceStageTabs = [];
 
@@ -854,7 +952,8 @@ async function loadWorkflowStagesForClientType(clientTypeId) {
         if (window.ClientMaintenanceCore.getSelectedId()) {
             await preloadWorkflowTabs(stageTabs);
         } else {
-            await loadTabPartial(stageTabs[0]);
+            /*await loadTabPartial(stageTabs[0]);*/
+            stageTabs.forEach((tab) => loadTabPartial(tab, true));
         }
     } catch (error) {
         if (requestId !== window.ClientMaintenanceCore.workflowStageRequestId) return;
@@ -998,9 +1097,13 @@ async function loadAllTabsData() {
         return;
     }
 
+    if (Array.isArray(clientMaintenanceStageTabs) && clientMaintenanceStageTabs.length > 0) {
+        await preloadWorkflowTabs(clientMaintenanceStageTabs);
+        return;
+    }
+
     // Get all registered tab load functions
     const loadFunctions = window.ClientMaintenanceCore.getLoadedTabLoadFunctions();
-    
     if (loadFunctions.length === 0) {
         console.log('[ClientMaintenance] loadAllTabsData: No tabs registered yet');
         return;
@@ -1182,6 +1285,13 @@ async function loadTabPartial(config, forceDataRefresh = false) {
 
     if (pane.dataset.loaded === 'true') {
         if (forceDataRefresh) {
+            await ensureTabScriptLoaded(config);
+
+            const initializer = window[config.initFn];
+            if (typeof pane._cmLoadData !== 'function' && typeof initializer === 'function') {
+                initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+            }
+
             await autoLoadTabData(config, pane);
         }
         return;
@@ -1200,9 +1310,13 @@ async function loadTabPartial(config, forceDataRefresh = false) {
     pane.innerHTML = await response.text();
     pane.dataset.loaded = 'true';
 
+    await ensureTabScriptLoaded(config);
+
     const initializer = window[config.initFn];
     if (typeof initializer === 'function') {
         initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+    } else {
+        console.warn(`[ClientMaintenance] Initializer not found for ${config.key}: ${config.initFn}`);
     }
 
     await autoLoadTabData(config, pane);
@@ -1598,6 +1712,7 @@ async function resetClientMaintenance() {
         }
 
         // Reset all tab tracking
+        window.ClientMaintenanceCore.clearTabRegistry();
         clientMaintenanceStageTabs = [];
         clearAllTabCompletions();
 

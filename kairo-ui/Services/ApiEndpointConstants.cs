@@ -23,6 +23,9 @@ namespace kairo_ui.Services
 
         public const string GET_DASHBOARDMETRICS = "api/v1/dashboard/metrics";
 
+        // IMAGE RECOGNITION ENDPOINTS:
+        public const string DETECT_PHOTO = "detect";
+        public const string DETECT_SIGNATURE = "detectsign";
 
         // ACCOUNTS ENDPOINTS:
 
@@ -269,16 +272,16 @@ namespace kairo_ui.Services
         public const string DELETE_CLIENT_GROUP_DETAIL = BASECLIENTS + "/DeleteClientGroupDetail";
 
         // Client KYC / Other Details
-        public const string GET_CLIENT_KYC = BASECLIENTS + "/GetClientKyc";
-        public const string CREATE_CLIENT_KYC = BASECLIENTS + "/CreateClientKyc";
-        public const string EDIT_CLIENT_KYC = BASECLIENTS + "/EditClientKyc";
-        public const string DELETE_CLIENT_KYC = BASECLIENTS + "/DeleteClientKyc";
+        public const string GET_CLIENT_KYC = BASECLIENTS + "/GetClientOtherDetails";
+        public const string CREATE_CLIENT_KYC = BASECLIENTS + "/CreateClientOtherDetails";
+        public const string EDIT_CLIENT_KYC = BASECLIENTS + "/EditClientOtherDetails";
+        public const string DELETE_CLIENT_KYC = BASECLIENTS + "/DeleteClientOtherDetails";
 
         // Client Products & Services
-        public const string GET_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/GetClientProductsServices";
-        public const string CREATE_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/CreateClientProductsServices";
-        public const string EDIT_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/EditClientProductsServices";
-        public const string DELETE_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/DeleteClientProductsServices";
+        public const string GET_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/GetClientProductAndServices";
+        public const string CREATE_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/CreateClientProductAndServices";
+        public const string EDIT_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/EditClientProductAndServices";
+        public const string DELETE_CLIENT_PRODUCTS_SERVICES = BASECLIENTS + "/DeleteClientProductAndServices";
 
         // Client Photo & Signature
         public const string GET_CLIENT_PHOTO_SIGNATURE = BASECLIENTS + "/GetClientPhotoSignature";
@@ -292,8 +295,30 @@ namespace kairo_ui.Services
         public const string EDIT_CLIENT_SUBMISSION = BASECLIENTS + "/EditClientSubmission";
         public const string DELETE_CLIENT_SUBMISSION = BASECLIENTS + "/DeleteClientSubmission";
 
+        // Client Bank Accounts
+        public const string GET_CLIENT_BANK_ACCOUNTS = BASECLIENTS + "/GetClientBankAccounts";
+        public const string CREATE_CLIENT_BANK_ACCOUNT = BASECLIENTS + "/CreateClientBankAccount";
+        public const string EDIT_CLIENT_BANK_ACCOUNT = BASECLIENTS + "/EditClientBankAccount";
+        public const string DELETE_CLIENT_BANK_ACCOUNT = BASECLIENTS + "/DeleteClientBankAccount";
+
+        // Client Introducer
+        public const string GET_CLIENT_INTRODUCER = BASECLIENTS + "/GetClientIntroducer";
+        public const string CREATE_CLIENT_INTRODUCER = BASECLIENTS + "/CreateClientIntroducer";
+        public const string EDIT_CLIENT_INTRODUCER = BASECLIENTS + "/EditClientIntroducer";
+        public const string DELETE_CLIENT_INTRODUCER = BASECLIENTS + "/DeleteClientIntroducer";
+
+        // Client Profile Change
+        public const string GET_CLIENT_PROFILE_CHANGES = BASECLIENTS + "/GetClientProfileChanges";
+        public const string CREATE_CLIENT_PROFILE_CHANGE = BASECLIENTS + "/CreateClientProfileChange";
+
+        // Client Demise Details
+        public const string GET_CLIENT_DEMISE_DETAILS = BASECLIENTS + "/GetClientDemiseDetails";
+        public const string CREATE_CLIENT_DEMISE_DETAILS = BASECLIENTS + "/CreateClientDemiseDetails";
+        public const string EDIT_CLIENT_DEMISE_DETAILS = BASECLIENTS + "/EditClientDemiseDetails";
+        public const string DELETE_CLIENT_DEMISE_DETAILS = BASECLIENTS + "/DeleteClientDemiseDetails";
+
         // CLIENT DOCUMENT API ENDPOINTS:
-        
+
         // Client Documents Controller
         private const string BASECLIENTDOCUMENTS = "api/ClientDocuments";
         public const string UPLOAD_CLIENT_DOCUMENT = BASECLIENTDOCUMENTS;
@@ -314,6 +339,7 @@ namespace kairo_ui.Services
         private const string BASEIMAGES = "api/Images";
         public const string UPLOAD_IMAGE = BASEIMAGES;
         public const string GET_IMAGE_BY_ID = BASEIMAGES + "/{0}"; // {imageId}
+        public const string GET_IMAGES_BY_CLIENT = BASEIMAGES + "/client/{0}"; // {clientId}
         public const string DOWNLOAD_IMAGE = BASEIMAGES + "/{0}/download"; // {imageId}
         public const string GET_IMAGE_THUMBNAIL = BASEIMAGES + "/{0}/thumbnail"; // {imageId}
         public const string UPDATE_IMAGE = BASEIMAGES + "/{0}"; // {imageId}

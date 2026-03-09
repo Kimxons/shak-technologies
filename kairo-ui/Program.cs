@@ -217,6 +217,16 @@ builder.Services.AddHttpClient("KairoAIApi")
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:KairoAIBaseUrl");
     });
 
+
+
+builder.Services.AddHttpClient("ImageRecognitionApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ImageRecognitionBaseUrl");
+    });
+
 // Add IConfiguration for injecting into services
 builder.Services.AddSingleton(builder.Configuration);
 
