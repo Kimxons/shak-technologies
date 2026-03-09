@@ -380,6 +380,17 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             return PartialView("CardMaintenance");
         }
 
+        [Route("EditCardStatus")]
+        [Route("EditCardStatus/Index")]
+        public IActionResult EditCardStatus()
+        {
+            if (!_authService.IsAuthenticated())
+                return RedirectToAction("Index", "Login");
+
+            var queryString = Request.QueryString.HasValue ? Request.QueryString.Value : string.Empty;
+            return Redirect($"{Url.Content("~/EditCardStatus/Index")}{queryString}");
+        }
+
         [Route("AccountNotes")]
         public IActionResult AccountNotes() => _authService.IsAuthenticated() ? PartialView("AccountNotes") : Unauthorized();
 
@@ -2552,6 +2563,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
+
     }
 
     // Request DTOs

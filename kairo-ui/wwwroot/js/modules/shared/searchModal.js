@@ -186,12 +186,12 @@
                 }
 
                 if (!this.appCore) {
-                     this.appCore = window.AppCore;
+                    this.appCore = window.AppCore;
                 }
 
                 // Check if reload is needed (different TableID or not initialized)
-                const shouldReload = !this.isInitialized || 
-                                   (this.currentConfig && this.currentConfig.tableID !== config.tableID);
+                const shouldReload = !this.isInitialized ||
+                    (this.currentConfig && this.currentConfig.tableID !== config.tableID);
 
                 this.currentConfig = config;
 
@@ -199,11 +199,11 @@
                 if (shouldReload) {
                     // Start fresh if reloading for a new table
                     if (this.isInitialized) {
-                         // Reset state but keep the instance structure
-                         this.currentResults = [];
-                         this.selectedRow = null; 
-                         this.currentPage = 0;
-                         // Note: loadModal will replace the DOM element
+                        // Reset state but keep the instance structure
+                        this.currentResults = [];
+                        this.selectedRow = null;
+                        this.currentPage = 0;
+                        // Note: loadModal will replace the DOM element
                     }
 
                     await this.loadModal(config.tableID, {
@@ -233,8 +233,9 @@
                     console.log('[SearchModal] Modal opened');
                 }
 
-                // Auto-search if searchKey OR whereStmt provided (ensures filtered lookups show results immediately)
-                if (config.searchKey || config.whereStmt) {
+                // Auto-search if explicitly enabled and searchKey/whereStmt provided.
+                const shouldAutoSearch = (config.autoSearch !== false) && (config.searchKey || config.whereStmt);
+                if (shouldAutoSearch) {
                     console.log('[SearchModal] Auto-triggering search...');
                     setTimeout(() => this.executeSearch(), 300);
                 }
@@ -307,7 +308,7 @@
                 if (results && results.length > 0) {
                     this.currentResults = results;
                     this.currentPage = 0;
-                    
+
                     // Extract the last value of KeyForNavigation from results for next pagination
                     const keyField = document.getElementById('search-key-for-nav')?.value;
                     if (keyField && results.length > 0) {
@@ -315,7 +316,7 @@
                         this.refID = lastRow[keyField] || '';
                         console.log('[SearchModal] Updated RefID:', this.refID);
                     }
-                    
+
                     this.renderResults(results);
                     this.showState('results');
                 } else {
