@@ -1,0 +1,132 @@
+@{
+    // Rendered inside parent #submodule-container; parent provides window shell + action panel
+}
+
+<!-- Center Member Scheme Submodule -->
+<div class="form-card">
+
+    <!-- Scheme Details Section -->
+    <div class="form-section" data-section="scheme-details">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-ui-checks-grid"></i>Center Member Scheme</span>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle Center Member Scheme" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content" data-section-content>
+            <div class="row g-1">
+                <div class="col-12">
+                    <label for="SchemeId" class="label-blue">Scheme ID <span class="text-danger">*</span></label>
+                    <div class="kairo-control" data-kairo-control>
+                        <input type="text" id="SchemeId" name="SchemeId" class="kairo-control__id" aria-label="Scheme ID" />
+                        <input type="text" id="SchemeName" name="SchemeName" class="kairo-control__name" aria-label="Scheme Name" placeholder="Scheme Name" readonly />
+                        <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Lookup scheme" data-cms-lookup="scheme" disabled>
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <label for="PrimaryCollateral">Primary Collateral</label>
+                    <input class="form-control" id="PrimaryCollateral" name="PrimaryCollateral" disabled />
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label for="CollateralRatio">Collateral Ratio</label>
+                    <input class="form-control" id="CollateralRatio" name="CollateralRatio" disabled />
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label for="SavingsAmount">Savings Amount</label>
+                    <input class="form-control" id="SavingsAmount" name="SavingsAmount" disabled />
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <label for="SecondaryCollateral">Secondary Collateral</label>
+                    <input class="form-control" id="SecondaryCollateral" name="SecondaryCollateral" disabled />
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label for="AdditionalCollateral">Additional Collateral</label>
+                    <input class="form-control" id="AdditionalCollateral" name="AdditionalCollateral" disabled />
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label for="JoinDate">Join Date</label>
+                    <input class="form-control" id="JoinDate" name="JoinDate" placeholder="dd-MMM-yyyy" disabled />
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <label for="LoanLevelNo" class="label-blue">Loan Level No <span class="text-danger">*</span></label>
+                    <input class="form-control" id="LoanLevelNo" name="LoanLevelNo" disabled />
+                </div>
+                <div class="col-12 col-lg-6">
+                    <label for="Status" class="label-blue">Status <span class="text-danger">*</span></label>
+                    <select class="form-select" id="Status" name="Status" disabled>
+<!-- Action Panel for Center Member Scheme -->
+
+                        <option value="A">Active</option>
+                        <option value="E">Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Behind The Scene Section -->
+    <div class="form-section" data-section="behind-the-scene">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content" data-section-content>
+            <div class="audit-section">
+                <div class="audit-item">
+                    <label>Loan Account ID</label>
+                    <span class="audit-value" id="LoanAccountId">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Loan Product ID</label>
+                    <span class="audit-value" id="LoanProductId">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Savings A/C ID</label>
+                    <span class="audit-value" id="SavingAccountId">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Savings Product ID</label>
+                    <span class="audit-value" id="SavingProductId">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Cycle No</label>
+                    <span class="audit-value" id="CycleNo">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Created By</label>
+                    <span class="audit-value" id="SchemeCreatedBy">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Created On</label>
+                    <span class="audit-value" id="SchemeCreatedOn">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Modified By</label>
+                    <span class="audit-value" id="SchemeModifiedBy">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Modified On</label>
+                    <span class="audit-value" id="SchemeModifiedOn">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Supervised By</label>
+                    <span class="audit-value" id="SchemeSupervisedBy">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Supervised On</label>
+                    <span class="audit-value" id="SchemeSupervisedOn">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="~/js/modules/microfinance/dataEntry/center-member-scheme.js" asp-append-version="true"></script>

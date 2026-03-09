@@ -195,17 +195,15 @@
 
                 this.currentConfig = config;
 
+                // Always reset pagination state so each open starts fresh
+                this.refID = '';
+                this.prevOrNext = 0;
+                this.currentResults = [];
+                this.selectedRow = null;
+                this.currentPage = 0;
+
                 // Load modal if needed
                 if (shouldReload) {
-                    // Start fresh if reloading for a new table
-                    if (this.isInitialized) {
-                         // Reset state but keep the instance structure
-                         this.currentResults = [];
-                         this.selectedRow = null; 
-                         this.currentPage = 0;
-                         // Note: loadModal will replace the DOM element
-                    }
-
                     await this.loadModal(config.tableID, {
                         whereStmt: config.whereStmt,
                         advFilterString: config.advFilterString,

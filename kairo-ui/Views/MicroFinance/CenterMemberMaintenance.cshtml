@@ -3,6 +3,32 @@
     Layout = "_ApplicationLayout";
 }
 
+@section Styles {
+    <style>
+        /* Hide legacy headers and action panels in loaded submodules to prevent duplication */
+        #submodule-container .am-header,
+        #submodule-container .submodule-header,
+        #submodule-container .action-panel,
+        #submodule-container aside.action-panel {
+            display: none !important;
+        }
+
+        /* Reset legacy container styles that might conflict */
+        #submodule-container .window {
+            height: auto !important;
+            width: 100% !important;
+            position: static !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #submodule-container .main-container {
+            height: auto !important;
+            padding: 0 !important;
+        }
+    </style>
+}
+
 <!-- Toast Container -->
 <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
@@ -40,7 +66,7 @@
                         </div>
                     </div>
                     <div class="nav-items nav-items--card menu-items" id="menu-dataentry">
-                        <div class="sidebar-item sidebar-item--enhanced menu-item" data-cmm-open="dataEntry/center-member-scheme.html" data-tooltip="Center Member Scheme">
+                        <div class="sidebar-item sidebar-item--enhanced menu-item" data-submodule="CenterMemberScheme" data-tooltip="Center Member Scheme">
                             <div class="sidebar-item__content">
                                 <i class="bi bi-people-fill sidebar-item__icon"></i>
                                 <div class="sidebar-item__text">
@@ -71,6 +97,7 @@
 
         <!-- Form Content -->
         <div class="form-content">
+            <div id="submodule-container" class="submodule-container">
             <div class="form-card" data-main-form>
                 <div id="formToast" class="alert d-none mt-3" role="alert"></div>
 
@@ -85,11 +112,11 @@
                     <div class="section-content" data-section-content>
                         <div class="row g-1">
                             <div class="col-12 col-lg-4">
-                                <label class="label-blue" for="ReferenceNo">Reference No.</label>
+                                <label for="ReferenceNo">Reference No.</label>
                                 <input type="text" class="form-control" id="ReferenceNo" name="ReferenceNo" />
                             </div>
                             <div class="col-12 col-lg-2">
-                                <label class="label-blue" for="Series">Series</label>
+                                <label  for="Series">Series</label>
                                 <input type="text" class="form-control" id="Series" name="Series" />
                             </div>
                             <div class="col-12 col-lg-6">
@@ -163,7 +190,7 @@
                                 <input type="number" class="form-control" id="MaxOtherLoanLimit" name="MaxOtherLoanLimit" min="0" step="0.01" />
                             </div>
                             <div class="col">
-                                <label class="label-blue" for="CenterLeader">Center Leader</label>
+                                <label for="CenterLeader">Center Leader</label>
                                 <select class="form-control" id="CenterLeader" name="CenterLeader">
                                     <option selected></option>
                                     <option>Yes</option>
@@ -177,85 +204,74 @@
                 <!-- Behind The Scene Section -->
                 <div class="form-section" data-section="behind-scene">
                     <div class="section-header" data-section-toggle>
-                        <span class="section-header__title"><i class="bi bi-info-circle"></i>Behind The Scene</span>
+                        <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
                         <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
                             <i class="bi bi-chevron-up"></i>
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="form-row four-col">
-                            <div class="col">
-                                <label for="ClientType">Client Type</label>
-                                <input class="form-control" id="ClientType" name="ClientType" disabled />
-                            </div>
-                            <div class="col">
-                                <label for="SavingsAccountId">Savings A/C ID</label>
-                                <input class="form-control" id="SavingsAccountId" name="SavingsAccountId" disabled />
-                            </div>
-                            <div class="col">
-                                <label for="ClientStatus">Client Status</label>
-                                <input class="form-control" id="ClientStatus" name="ClientStatus" disabled />
-                            </div>
-                            <div class="col">
-                                <label for="SavingsAmount">Savings Amount</label>
-                                <input class="form-control" id="SavingsAmount" name="SavingsAmount" disabled />
-                            </div>
-                        </div>
-
-                        <div class="form-row four-col">
-                            <div class="col">
-                                <label for="RegistrationDate">Registration Date</label>
-                                <input class="form-control" id="RegistrationDate" name="RegistrationDate" disabled />
-                            </div>
-                            <div class="col">
-                                <label for="ClosedDate">Closed Date</label>
-                                <input class="form-control" id="ClosedDate" name="ClosedDate" disabled />
-                            </div>
-                            <div class="col">
-                                <label for="ExitDate">Exit Date</label>
-                                <input class="form-control" id="ExitDate" name="ExitDate" disabled />
-                            </div>
-                            <div class="col">
-                                <label for="ExitReason">Exit Reason</label>
-                                <input class="form-control" id="ExitReason" name="ExitReason" disabled />
-                            </div>
-                        </div>
-
                         <div class="audit-section">
-                            <div class="audit-block">
-                                <div class="audit-item">
-                                    <label for="CreatedBy">Created By</label>
-                                    <input class="form-control" id="CreatedBy" name="CreatedBy" disabled />
-                                </div>
-                                <div class="audit-item">
-                                    <label for="CreatedOn">Created On</label>
-                                    <input class="form-control" id="CreatedOn" name="CreatedOn" disabled />
-                                </div>
+                            <div class="audit-item">
+                                <label>Client Type</label>
+                                <span class="audit-value" id="ClientType">-</span>
                             </div>
-                            <div class="audit-block">
-                                <div class="audit-item">
-                                    <label for="ModifiedBy">Modified By</label>
-                                    <input class="form-control" id="ModifiedBy" name="ModifiedBy" disabled />
-                                </div>
-                                <div class="audit-item">
-                                    <label for="ModifiedOn">Modified On</label>
-                                    <input class="form-control" id="ModifiedOn" name="ModifiedOn" disabled />
-                                </div>
+                            <div class="audit-item">
+                                <label>Savings A/C ID</label>
+                                <span class="audit-value" id="SavingsAccountId">-</span>
                             </div>
-                            <div class="audit-block">
-                                <div class="audit-item">
-                                    <label for="SupervisedBy">Supervised By</label>
-                                    <input class="form-control" id="SupervisedBy" name="SupervisedBy" disabled />
-                                </div>
-                                <div class="audit-item">
-                                    <label for="SupervisedOn">Supervised On</label>
-                                    <input class="form-control" id="SupervisedOn" name="SupervisedOn" disabled />
-                                </div>
+                            <div class="audit-item">
+                                <label>Client Status</label>
+                                <span class="audit-value" id="ClientStatus">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Savings Amount</label>
+                                <span class="audit-value" id="SavingsAmount">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Registration Date</label>
+                                <span class="audit-value" id="RegistrationDate">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Closed Date</label>
+                                <span class="audit-value" id="ClosedDate">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Exit Date</label>
+                                <span class="audit-value" id="ExitDate">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Exit Reason</label>
+                                <span class="audit-value" id="ExitReason">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Created By</label>
+                                <span class="audit-value" id="CreatedBy">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Created On</label>
+                                <span class="audit-value" id="CreatedOn">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Modified By</label>
+                                <span class="audit-value" id="ModifiedBy">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Modified On</label>
+                                <span class="audit-value" id="ModifiedOn">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Supervised By</label>
+                                <span class="audit-value" id="SupervisedBy">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Supervised On</label>
+                                <span class="audit-value" id="SupervisedOn">-</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            </div><!-- End submodule-container -->
         </div>
 
         <!-- Action Panel -->
@@ -266,34 +282,19 @@
                 <button class="btn-nav green" type="button" aria-label="Next Record" data-cmm-nav="next" disabled><i class="bi bi-chevron-right"></i></button>
             </div>
 
-            <button class="btn-action underline" type="button" data-cmm-action="reinstate" aria-label="Reinstate" disabled><i class="bi bi-arrow-counterclockwise me-1"></i>Reinstate</button>
+            <!-- Reinstate button removed for data entry submodules -->
 
             <div class="action-buttons">
                 <button class="btn-action btn-view" type="button" data-cmm-action="view"><i class="bi bi-eye me-1"></i>View</button>
-                <button class="btn-action" type="button" data-cmm-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                <button class="btn-action" type="button" data-cmm-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                <button class="btn-action" type="button" data-cmm-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
-                <button class="btn-action" type="button" data-cmm-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
-                <button class="btn-action btn-cancel" type="button" data-cmm-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <button class="btn-action btn-add" type="button" data-cmm-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action btn-edit" type="button" data-cmm-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-delete" type="button" data-cmm-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action btn-save" type="button" data-cmm-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" data-cmm-action="cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Docked inline popup (DataEntry) -->
-    <div class="cmm-dataentry-inline" id="centerMemberMaintenanceDataEntryModal" hidden>
-        <div class="cmm-de-titlebar" aria-label="Submodule title bar">
-            <div class="cmm-de-titlebar-left">
-                <i class="bi bi-window-stack cmm-de-titlebar-icon" aria-hidden="true"></i>
-                <span class="cmm-de-titlebar-text" data-cmm-de-title>Submodule</span>
-            </div>
-            <div class="cmm-de-titlebar-right" aria-label="Submodule actions">
-                <button type="button" class="cmm-de-btn cmm-de-btn--close" data-cmm-de-close aria-label="Close" title="Close">
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                </button>
-            </div>
-        </div>
-        <iframe id="centerMemberMaintenanceDataEntryFrame" title="Center Member Maintenance Submodule" src="about:blank"></iframe>
-    </div>
 </div>
 
 <!-- SearchModal container -->
