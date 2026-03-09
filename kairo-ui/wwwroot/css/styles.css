@@ -958,14 +958,14 @@ transition: all 0.2s ease;
 }
 
 .form-card {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
 .form-section {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;

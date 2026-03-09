@@ -9,11 +9,13 @@ namespace ClientDocumentApi.Services
     public class ImageRepository : IImageRepository
     {
         private readonly ImageDbContext _context;
+        private readonly DocumentDbContext _documentContext;
         private readonly IFileStorageService _fileStorage;
 
-        public ImageRepository(ImageDbContext context, IFileStorageService fileStorage)
+        public ImageRepository(ImageDbContext context, DocumentDbContext documentContext, IFileStorageService fileStorage)
         {
             _context = context;
+            _documentContext = documentContext;
             _fileStorage = fileStorage;
         }
 
@@ -114,6 +116,30 @@ namespace ClientDocumentApi.Services
         public async Task<ImageModel?> GetByIdAsync(long imageID, CancellationToken cancellationToken = default)
         {
             return await _context.Images.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
+        }
+
+        public async Task<IEnumerable<ImageModel>> GetByClientIdAsync(string clientID, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(clientID))
+                throw new ArgumentException("ClientID cannot be null or empty.", nameof(clientID));
+
+            var imageIds = await _documentContext.ClientDocuments
+                .Where(d => d.ClientID == clientID && d.ImageID.HasValue)
+                .Select(d => d.ImageID!.Value)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            if (!imageIds.Any())
+            {
+                return [];
+            }
+
+            var images = await _context.Images
+                .Where(i => imageIds.Contains(i.ImageID))
+                .OrderByDescending(i => i.CreatedOn)
+                .ToListAsync(cancellationToken);
+
+            return images;
         }
 
         public async Task<(byte[]? Data, string? MimeType, string? FileName)?> GetImageDataAsync(long imageID, CancellationToken cancellationToken = default)

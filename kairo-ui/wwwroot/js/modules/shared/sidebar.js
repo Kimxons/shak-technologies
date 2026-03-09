@@ -49,6 +49,7 @@
         primaryRecordId: null,
         moduleName: null
     };
+    let globalHandlersBound = false;
 
     /**
      * Get parent module context from various possible sources
@@ -636,6 +637,9 @@ return {
     // ============================================================================
 
     function wireMessageHandlers() {
+        if (globalHandlersBound) return;
+        globalHandlersBound = true;
+
         const { overlay } = getOverlayElements();
 
         if (overlay) {
@@ -669,6 +673,14 @@ return {
     // ============================================================================
 
     function initSidebar(options = {}) {
+        const sidebar = document.getElementById('main-sidebar');
+        if (!sidebar) return;
+
+        if (sidebar.dataset.sidebarInitialized === 'true' && !options.force) {
+            return;
+        }
+
+        sidebar.dataset.sidebarInitialized = 'true';
         console.log('[Sidebar] Initializing...');
 
         // Update main module state if provided
@@ -727,15 +739,37 @@ return {
     // Expose to global scope
     global.SidebarManager = SidebarManager;
 
+    function observeSidebarInsertion() {
+        if (document.getElementById('main-sidebar')) return;
+        if (typeof MutationObserver === 'undefined') return;
+
+        const observer = new MutationObserver(() => {
+            if (document.getElementById('main-sidebar')) {
+                initSidebar();
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
     // Auto-initialize on DOMContentLoaded if sidebar exists
+    // Skip auto-init if sidebar has data-no-auto-init attribute (pages with their own sidebar management)
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('main-sidebar')) {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar && !sidebar.hasAttribute('data-no-auto-init')) {
                 initSidebar();
             }
         });
-    } else if (document.getElementById('main-sidebar')) {
-        initSidebar();
+    } else {
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar && !sidebar.hasAttribute('data-no-auto-init')) {
+            initSidebar();
+        }
     }
+
+    // Observe sidebar insertion for dynamic pages
+    observeSidebarInsertion();
 
 })(window);

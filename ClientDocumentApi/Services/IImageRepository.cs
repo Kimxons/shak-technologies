@@ -17,6 +17,11 @@ namespace ClientDocumentApi.Services
         Task<Image?> GetByIdAsync(long imageID, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Retrieve images by client ID via client-document mappings.
+        /// </summary>
+        Task<IEnumerable<Image>> GetByClientIdAsync(string clientID, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Get image with only binary data (for download/download endpoint optimization)
         /// </summary>
         Task<(byte[]? Data, string? MimeType, string? FileName)?> GetImageDataAsync(long imageID, CancellationToken cancellationToken = default);
