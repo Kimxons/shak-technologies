@@ -66,7 +66,7 @@ window.AccountChequeBookModule = (function () {
         if (!ctx.AccountID) return;
         try {
             AppCore.toggleLoading(true);
-            const booksRes = await AppCore.invokeControllerAsync('AccountsMaintenance', API.GET_BOOKS, {
+            const booksRes = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET_BOOKS}`, {
                 OurBranchID: ctx.OurBranchID, AccountID: ctx.AccountID, AccountTypeID: 'C', RequestReferenceNo: '0', OperatorID: ctx.OperatorID, Direction: 0
             });
             if (booksRes && booksRes.success) {
@@ -75,7 +75,7 @@ window.AccountChequeBookModule = (function () {
                 renderBooks(state.chequeBooks);
                 if (data.details01 && data.details01.length > 0) populateAccountDetails(data.details01[0]);
             }
-            const reqsRes = await AppCore.invokeControllerAsync('AccountsMaintenance', API.GET_REQUESTS, {
+            const reqsRes = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET_REQUESTS}`, {
                 OurBranchID: ctx.OurBranchID, AccountID: ctx.AccountID, AccountTypeID: 'C', ChequeRequestsID: '', OperatorID: ctx.OperatorID, Direction: 0
             });
             if (reqsRes && reqsRes.success) {
@@ -159,7 +159,7 @@ window.AccountChequeBookModule = (function () {
         if (!val('bookType') || !val('chequeStart')) { showMsg('Missing required fields', 'warning'); return false; }
         const ctx = getContext();
         try {
-            const res = await AppCore.invokeControllerAsync('AccountsMaintenance', API.ADD, {
+            const res = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.ADD}`, {
                 OurBranchID: ctx.OurBranchID, AccountID: ctx.AccountID, AccountTypeID: 'C', BookType: val('bookType'), NoOfLeaves: parseInt(val('noOfLeaves')), ChequeStart: parseInt(val('chequeStart')), IssueDate: ctx.WorkingDate, OperatorID: ctx.OperatorID
             });
             if (res && res.success) { showMsg('Request saved', 'success'); loadData(); return true; }
@@ -195,8 +195,30 @@ window.AccountChequeBookModule = (function () {
         init, navigate: loadData, save: handleSave, edit: () => setMode('EDIT'), cancel: () => { loadData(); setMode('VIEW'); }, add: () => setMode('ADD'),
         view: loadData,
         refresh: loadData,
-        approve: () => { showMsg('Approved', 'success'); loadData(); },
-        dispatch: () => { showMsg('Dispatched', 'success'); loadData(); },
+        approve: async () => {
+            const ok = await AppCore.showConfirmation('Approve Cheque Request', 'Are you sure you want to approve this cheque book request?');
+            if (!ok) return;
+            const ctx = getContext();
+            try {
+                const res = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.APPROVE}`, {
+                    OurBranchID: ctx.OurBranchID, AccountID: ctx.AccountID, ChequeRequestsID: state.selectedRequest.ChequeRequestsID || state.selectedRequest.ID, OperatorID: ctx.OperatorID
+                });
+                if (res && res.success) { showMsg('Approved successfully', 'success'); loadData(); }
+                else showMsg(res.message || 'Approval failed', 'error');
+            } catch (err) { showMsg('Error during approval', 'error'); }
+        },
+        dispatch: async () => {
+            const ok = await AppCore.showConfirmation('Dispatch Cheque Book', 'Are you sure you want to dispatch this cheque book?');
+            if (!ok) return;
+            const ctx = getContext();
+            try {
+                const res = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.DISPATCH}`, {
+                    OurBranchID: ctx.OurBranchID, AccountID: ctx.AccountID, ChequeRequestsID: state.selectedRequest.ChequeRequestsID || state.selectedRequest.ID, OperatorID: ctx.OperatorID
+                });
+                if (res && res.success) { showMsg('Dispatched successfully', 'success'); loadData(); }
+                else showMsg(res.message || 'Dispatch failed', 'error');
+            } catch (err) { showMsg('Error during dispatch', 'error'); }
+        },
         selectBook: (idx, row) => {
             state.selectedBook = state.chequeBooks[idx]; state.selectedRequest = null;
             document.querySelectorAll('#chequeBookGrid tr').forEach(r => r.classList.remove('table-primary')); row.classList.add('table-primary');

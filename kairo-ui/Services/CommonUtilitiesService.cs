@@ -37,42 +37,93 @@ namespace kairo_ui.Services
                 var type = requestData.GetType();
                 var operatorIdProp = type.GetProperty("OperatorID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var createdByProp = type.GetProperty("CreatedBy", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var modifiedByProp = type.GetProperty("ModifiedBy", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var branchIdProp = type.GetProperty("OurBranchID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var bankIdProp = type.GetProperty("BankID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var moduleIdProp = type.GetProperty("ModuleID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var moduleTypeIdProp = type.GetProperty("ModuleTypeID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var relevantIdProp = type.GetProperty("RelevantID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var accountIdProp = type.GetProperty("AccountID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
                 var userValue = ResolveSessionValue("user_name", "user_id") ?? "web_portal";
+                var branchValue = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                var bankValue = ResolveSessionValue("bank_id", "bank_code") ?? "00";
 
                 if (operatorIdProp != null && string.IsNullOrWhiteSpace(operatorIdProp.GetValue(requestData) as string))
-                {
                     operatorIdProp.SetValue(requestData, userValue);
-                }
 
                 if (createdByProp != null && string.IsNullOrWhiteSpace(createdByProp.GetValue(requestData) as string))
-                {
                     createdByProp.SetValue(requestData, userValue);
-                }
+
+                if (modifiedByProp != null && string.IsNullOrWhiteSpace(modifiedByProp.GetValue(requestData) as string))
+                    modifiedByProp.SetValue(requestData, userValue);
 
                 if (branchIdProp != null && string.IsNullOrWhiteSpace(branchIdProp.GetValue(requestData) as string))
-                {
-                    branchIdProp.SetValue(requestData, ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
-                }
+                    branchIdProp.SetValue(requestData, branchValue);
 
                 if (bankIdProp != null && string.IsNullOrWhiteSpace(bankIdProp.GetValue(requestData) as string))
+                    bankIdProp.SetValue(requestData, bankValue);
+
+                if (relevantIdProp != null && string.IsNullOrWhiteSpace(relevantIdProp.GetValue(requestData) as string))
                 {
-                    bankIdProp.SetValue(requestData, ResolveSessionValue("bank_id", "bank_code") ?? "00");
+                    var accId = accountIdProp?.GetValue(requestData) as string;
+                    if (!string.IsNullOrWhiteSpace(accId))
+                        relevantIdProp.SetValue(requestData, accId);
                 }
 
-                if (!string.IsNullOrWhiteSpace(moduleId)
-                    && moduleIdProp != null
-                    && string.IsNullOrWhiteSpace(moduleIdProp.GetValue(requestData) as string))
+                if (moduleTypeIdProp != null && string.IsNullOrWhiteSpace(moduleTypeIdProp.GetValue(requestData) as string))
+                    moduleTypeIdProp.SetValue(requestData, "A"); // Default to 'A' for Accounts maintenance
+
+                if (!string.IsNullOrWhiteSpace(moduleId) && moduleIdProp != null)
                 {
-                    moduleIdProp.SetValue(requestData, moduleId);
+                    var currentModuleId = moduleIdProp.GetValue(requestData);
+                    if (currentModuleId == null || (currentModuleId is string s && string.IsNullOrWhiteSpace(s)) || (currentModuleId is int i && i == 0))
+                    {
+                        if (moduleIdProp.PropertyType == typeof(int) || moduleIdProp.PropertyType == typeof(int?))
+                            moduleIdProp.SetValue(requestData, int.Parse(moduleId));
+                        else
+                            moduleIdProp.SetValue(requestData, moduleId);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error ensuring defaults for type {TypeName}", typeof(T).Name);
+            }
+        }
+
+        public void EnsureDefaults(System.Collections.Generic.Dictionary<string, object> requestData, string? moduleId = null)
+        {
+            if (requestData == null) return;
+
+            try
+            {
+                var userValue = ResolveSessionValue("user_name", "user_id") ?? "web_portal";
+                var branchValue = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                var bankValue = ResolveSessionValue("bank_id", "bank_code") ?? "00";
+
+                void SetIfEmpty(string key, object value)
+                {
+                    if (!requestData.ContainsKey(key) || requestData[key] == null || (requestData[key] is string s && string.IsNullOrWhiteSpace(s)))
+                        requestData[key] = value;
+                }
+
+                SetIfEmpty("OperatorID", userValue);
+                SetIfEmpty("CreatedBy", userValue);
+                SetIfEmpty("ModifiedBy", userValue);
+                SetIfEmpty("OurBranchID", branchValue);
+                SetIfEmpty("BankID", bankValue);
+                SetIfEmpty("ModuleTypeID", "A");
+
+                if (requestData.ContainsKey("AccountID") && !requestData.ContainsKey("RelevantID"))
+                    requestData["RelevantID"] = requestData["AccountID"];
+
+                if (!string.IsNullOrWhiteSpace(moduleId))
+                    SetIfEmpty("ModuleID", moduleId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error ensuring defaults for Dictionary");
             }
         }
 

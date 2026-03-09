@@ -18,8 +18,8 @@ window.AccountClosingModule = (function () {
     };
 
     const API = {
-        GET_CLOSING: 'api/get-account-closing',
-        CLOSE: 'api/close-account'
+        GET_CLOSING: 'AccountsMaintenance/api/get-account-closing',
+        CLOSE: 'AccountsMaintenance/api/close-account'
     };
 
     /**
@@ -135,7 +135,7 @@ window.AccountClosingModule = (function () {
         if (loader) loader.hidden = false;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET_CLOSING, {
+            const result = await AppCore.invokeControllerAsync(API.GET_CLOSING, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -344,7 +344,7 @@ window.AccountClosingModule = (function () {
         };
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.CLOSE, payload);
+            const result = await AppCore.invokeControllerAsync(API.CLOSE, payload);
             if (result && result.success) {
                 showMsg(result.message || 'Account closed successfully', 'success');
                 loadData();
@@ -366,7 +366,7 @@ window.AccountClosingModule = (function () {
     async function lookupAccount(accountId) {
         if (!accountId) return;
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', 'search-accounts', {
+            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/api/search-accounts', {
                 SearchTerm: accountId,
                 AccountTypeID: val('accountType') || 'C'
             });

@@ -16,10 +16,10 @@ window.ActivateDormantModule = (function () {
         currentUpdateCount: 0
     };
 
-    // API Paths (Relative to AccountsMaintenance controller)
+    // API Paths
     const API = {
-        GET_DATA: 'get-account-dormant',
-        UPDATE_DATA: 'edit-account-dormant'
+        GET_DATA: 'AccountsMaintenance/api/get-account-dormant',
+        UPDATE_DATA: 'AccountsMaintenance/api/edit-account-dormant'
     };
 
     /**
@@ -267,12 +267,13 @@ window.ActivateDormantModule = (function () {
 
             const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
-            if (response && response.ResponseCode === '00') {
-                AppCore.showMsg(response.ResponseMessage || 'Saved successfully', 'success');
+            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
+            if (isOk) {
+                AppCore.showMsg(response.ResponseMessage || response.message || 'Saved successfully', 'success');
                 setMode('VIEW');
                 loadData();
             } else {
-                AppCore.showMsg(response.ResponseMessage || 'Failed to save', 'error');
+                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to save', 'error');
             }
         } catch (error) {
             console.error('[ActivateDormant] Error saving data:', error);
@@ -286,7 +287,7 @@ window.ActivateDormantModule = (function () {
      * UI Action: Activate Account
      */
     async function activateAccount() {
-        const confirmed = await AppCore.showConfirm('Are you sure you want to reactivate this dormant account?');
+        const confirmed = await AppCore.showConfirmation('Reactivate Account', 'Are you sure you want to reactivate this dormant account?');
         if (!confirmed) return;
 
         AppCore.showLoading(true);
@@ -303,11 +304,12 @@ window.ActivateDormantModule = (function () {
 
             const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
-            if (response && response.ResponseCode === '00') {
-                AppCore.showMsg(response.ResponseMessage || 'Account activated successfully', 'success');
+            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
+            if (isOk) {
+                AppCore.showMsg(response.ResponseMessage || response.message || 'Account activated successfully', 'success');
                 loadData();
             } else {
-                AppCore.showMsg(response.ResponseMessage || 'Failed to activate account', 'error');
+                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to activate account', 'error');
             }
         } catch (error) {
             console.error('[ActivateDormant] Error activating account:', error);
@@ -327,7 +329,7 @@ window.ActivateDormantModule = (function () {
             return;
         }
 
-        const confirmed = await AppCore.showConfirm('Are you sure you want to mark this account as dormant?');
+        const confirmed = await AppCore.showConfirmation('Mark Dormant', 'Are you sure you want to mark this account as dormant?');
         if (!confirmed) return;
 
         AppCore.showLoading(true);
@@ -347,11 +349,12 @@ window.ActivateDormantModule = (function () {
 
             const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
-            if (response && response.ResponseCode === '00') {
-                AppCore.showMsg(response.ResponseMessage || 'Account marked as dormant', 'success');
+            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
+            if (isOk) {
+                AppCore.showMsg(response.ResponseMessage || response.message || 'Account marked as dormant', 'success');
                 loadData();
             } else {
-                AppCore.showMsg(response.ResponseMessage || 'Failed to mark as dormant', 'error');
+                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to mark as dormant', 'error');
             }
         } catch (error) {
             console.error('[ActivateDormant] Error marking as dormant:', error);
