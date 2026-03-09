@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Models;
 using ClientDocumentApi.Services;
@@ -81,19 +82,19 @@ namespace ClientDocumentApi.Controllers
             });
         }
 
-        [HttpGet("client/{clientId}")]
-        public async Task<IActionResult> GetByClientId(string clientId, CancellationToken cancellationToken)
+        [HttpGet("client")]
+        public async Task<IActionResult> GetByClientId([FromQuery]string clientId, CancellationToken cancellationToken)
         {
             try
             {
                 var entities = await _imageRepository.GetByClientIdAsync(clientId, cancellationToken);
                 if (!entities.Any())
                 {
-                    return NotFound(new
+                    return Ok(new ResponseDetail<object>
                     {
-                        responseCode = "96",
-                        responseMessage = "Images not found",
-                        details = new { clientId }
+                        ResponseCode = "96",
+                        ResponseMessage = "Images not found",
+                        Details = new { clientId }
                     });
                 }
 
@@ -288,7 +289,7 @@ namespace ClientDocumentApi.Controllers
 
                 // Get temp images for this client
                 var tempImages = await _tempImageRepository.GetByClientIdAsync(clientId, cancellationToken);
-                
+
                 // Get pre-approval images for this client
                 var preApprovalImages = (await _imageAccountPreApprovalRepository.GetByClientIdAsync(clientId, cancellationToken)).ToList();
 

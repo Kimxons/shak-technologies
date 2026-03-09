@@ -15,7 +15,8 @@
         branchId: '',
         branchName: '',
         centerId: '',
-        centerName: ''
+        centerName: '',
+        operatorId: ''
     };
 
     let searchModal = null;
@@ -76,6 +77,16 @@
         parentContext.branchName = parentDoc?.getElementById('branchName')?.value?.trim() || '';
         parentContext.centerId = parentDoc?.getElementById('centerId')?.value?.trim() || '';
         parentContext.centerName = parentDoc?.getElementById('centerName')?.value?.trim() || '';
+        const appCore = window.parent?.AppCore || window.AppCore;
+        const parentSession = window.parent?.sessionStorage;
+        parentContext.operatorId = appCore?.getCurrentUserId?.()
+            || parentSession?.getItem('UserId')
+            || parentSession?.getItem('UserID')
+            || parentSession?.getItem('OperatorID')
+            || sessionStorage.getItem('UserId')
+            || sessionStorage.getItem('UserID')
+            || sessionStorage.getItem('OperatorID')
+            || '';
     }
 
     function validateParentContext() {
@@ -88,6 +99,21 @@
             return false;
         }
         return true;
+    }
+
+    function extractBackendErrorMessage(response) {
+        if (!response) return 'An unexpected error occurred.';
+        if (typeof response === 'string') return response;
+        if (response.message) return response.message;
+        if (response.Message) return response.Message;
+        if (response.error?.message) return response.error.message;
+        if (Array.isArray(response.Details) && response.Details.length > 0) {
+            return response.Details[0].Message || response.Details[0];
+        }
+        if (Array.isArray(response.Details01) && response.Details01.length > 0) {
+            return response.Details01[0].Message || response.Details01[0];
+        }
+        return 'An unexpected error occurred. Please try again.';
     }
 
     const buttonStates = {
@@ -148,6 +174,10 @@
 
     function formatDateForInput(isoDate) {
         if (!isoDate) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(isoDate);
+            if (parsed) return parsed;
+        }
         try {
             if (isoDate.includes('T')) {
                 const datePart = isoDate.split('T')[0];
@@ -178,30 +208,39 @@
         const details02 = responseData?.Details02?.[0] || {};
         const details01 = responseData?.Details01?.[0] || {};
 
-        document.getElementById('SchemeId').value = getFieldValue(details02, 'LoanSchemeID', 'SchemeID');
-        document.getElementById('SchemeName').value = getFieldValue(details02, 'LoanSchemeName', 'SchemeName', 'Description');
-        document.getElementById('LoanCycleNo').value = getFieldValue(details02, 'LoanCycleNo');
-        document.getElementById('ReferenceNo').value = getFieldValue(details02, 'RefNo', 'ReferenceNo');
-        document.getElementById('GroupDisbursementDate').value = formatDateForInput(getFieldValue(details02, 'GroupDisbursementDate'));
-        document.getElementById('ValueDate').value = formatDateForInput(getFieldValue(details02, 'ValueDate'));
-        document.getElementById('InstallmentStartDate').value = formatDateForInput(getFieldValue(details02, 'InstallmentStartDate'));
-        document.getElementById('GroupDisbursementTime').value = getFieldValue(details02, 'GroupDisbursementTime');
-        document.getElementById('GrtExpiryDate').value = formatDateForInput(getFieldValue(details02, 'GrtExpiryDate'));
-        document.getElementById('GrtDate').value = formatDateForInput(getFieldValue(details02, 'GrtDate'));
-        document.getElementById('MinLoanAmount').value = getFieldValue(details02, 'MinLoanAmount');
-        document.getElementById('MaxLoanAmount').value = getFieldValue(details02, 'MaxLoanAmount');
-        document.getElementById('LoanAmount').value = getFieldValue(details02, 'LoanAmount');
-        document.getElementById('LoanTerm').value = getFieldValue(details02, 'LoanTerm');
-        document.getElementById('InstallmentGracePeriod').value = getFieldValue(details02, 'InstallmentGracePeriod');
-        document.getElementById('Remarks').value = getFieldValue(details02, 'Remarks');
-        document.getElementById('GrtStatus').value = getFieldValue(details01, 'GrtStatus', 'Status');
+        const setInputValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value || '';
+        };
 
-        document.getElementById('CreatedBy').textContent = getFieldValue(details02, 'CreatedBy') || '-';
-        document.getElementById('CreatedOn').textContent = getFieldValue(details02, 'CreatedOn') || '-';
-        document.getElementById('ModifiedBy').textContent = getFieldValue(details02, 'ModifiedBy') || '-';
-        document.getElementById('ModifiedOn').textContent = getFieldValue(details02, 'ModifiedOn') || '-';
-        document.getElementById('SupervisedBy').textContent = getFieldValue(details02, 'SupervisedBy') || '-';
-        document.getElementById('SupervisedOn').textContent = getFieldValue(details02, 'SupervisedOn') || '-';
+        const setTextContent = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || '-';
+        };
+
+        setInputValue('SchemeId', getFieldValue(details02, 'LoanSchemeID', 'SchemeID'));
+        setInputValue('SchemeName', getFieldValue(details02, 'LoanSchemeName', 'SchemeName', 'Description'));
+        setInputValue('LoanCycleNo', getFieldValue(details02, 'LoanCycleNo'));
+        setInputValue('ReferenceNo', getFieldValue(details02, 'RefNo', 'ReferenceNo'));
+        setInputValue('GroupDisbursementDate', formatDateForInput(getFieldValue(details02, 'GroupDisbursementDate')));
+        setInputValue('ValueDate', formatDateForInput(getFieldValue(details02, 'ValueDate')));
+        setInputValue('InstallmentStartDate', formatDateForInput(getFieldValue(details02, 'InstallmentStartDate')));
+        setInputValue('GroupDisbursementTime', getFieldValue(details02, 'GroupDisbursementTime'));
+        setInputValue('GrtExpiryDate', formatDateForInput(getFieldValue(details02, 'GrtExpiryDate')));
+        setInputValue('GrtDate', formatDateForInput(getFieldValue(details02, 'GrtDate')));
+        setInputValue('MinLoanAmount', getFieldValue(details02, 'MinLoanAmount'));
+        setInputValue('MaxLoanAmount', getFieldValue(details02, 'MaxLoanAmount'));
+        setInputValue('LoanAmount', getFieldValue(details02, 'LoanAmount'));
+        setInputValue('LoanTerm', getFieldValue(details02, 'LoanTerm'));
+        setInputValue('InstallmentGracePeriod', getFieldValue(details02, 'InstallmentGracePeriod'));
+        setInputValue('Remarks', getFieldValue(details02, 'Remarks'));
+
+        setTextContent('CreatedBy', getFieldValue(details02, 'CreatedBy'));
+        setTextContent('CreatedOn', getFieldValue(details02, 'CreatedOn'));
+        setTextContent('ModifiedBy', getFieldValue(details02, 'ModifiedBy'));
+        setTextContent('ModifiedOn', getFieldValue(details02, 'ModifiedOn'));
+        setTextContent('SupervisedBy', getFieldValue(details02, 'SupervisedBy'));
+        setTextContent('SupervisedOn', getFieldValue(details02, 'SupervisedOn'));
 
         fetchedUpdateCount = getFieldValue(details02, 'UpdateCount') || 0;
     }
@@ -211,13 +250,18 @@
             if (input.type === 'date') input.value = '';
             else input.value = '';
         });
-        document.getElementById('GrtStatus').value = '';
-        document.getElementById('CreatedBy').textContent = '-';
-        document.getElementById('CreatedOn').textContent = '-';
-        document.getElementById('ModifiedBy').textContent = '-';
-        document.getElementById('ModifiedOn').textContent = '-';
-        document.getElementById('SupervisedBy').textContent = '-';
-        document.getElementById('SupervisedOn').textContent = '-';
+        
+        const setTextContent = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        setTextContent('CreatedBy', '-');
+        setTextContent('CreatedOn', '-');
+        setTextContent('ModifiedBy', '-');
+        setTextContent('ModifiedOn', '-');
+        setTextContent('SupervisedBy', '-');
+        setTextContent('SupervisedOn', '-');
         fetchedUpdateCount = 0;
     }
 
@@ -227,7 +271,7 @@
 
         const schemeId = document.getElementById('SchemeId').value.trim();
         const loanCycleNo = document.getElementById('LoanCycleNo').value.trim();
-        const refNo = document.getElementById('ReferenceNo')?.value?.trim() || '';
+        const refNo = document.getElementById('ReferenceNo')?.value?.trim() || null;
 
         if (!schemeId) {
             showSnackbar('Scheme ID is required.', 'warning');
@@ -242,7 +286,7 @@
                 LoanSchemeID: schemeId,
                 LoanCycleNo: parseInt(loanCycleNo) || 0,
                 RefNo: refNo,
-                OperatorID: window.parent?.Environment?.OperatorID || 'CSADM',
+                OperatorID: parentContext.operatorId,
                 Direction: 0,
                 DirectionType: ''
             };
@@ -266,11 +310,13 @@
                     showSnackbar('GRT details loaded successfully', 'success');
                 }
             } else {
-                showSnackbar(result?.message || 'No GRT details found', 'warning');
+                const errorMsg = extractBackendErrorMessage(result);
+                showSnackbar(errorMsg, 'warning');
             }
         } catch (error) {
             console.error('[GRT Details] Error fetching GRT details:', error);
-            showSnackbar('Failed to fetch GRT details', 'error');
+            const errorMsg = extractBackendErrorMessage(error);
+            showSnackbar(errorMsg, 'error');
         } finally {
             showLoading(false);
         }
@@ -306,6 +352,46 @@
             showSnackbar('Loan Cycle No. is required', 'warning');
             return false;
         }
+        
+        // Remarks length validation (max 255 characters)
+        if (formData.remarks && formData.remarks.length > 255) {
+            showSnackbar('Remarks cannot exceed 255 characters. Current length: ' + formData.remarks.length, 'warning');
+            return false;
+        }
+        
+        // Date validations
+        if (formData.groupDisbursementDate && !formData.valueDate) {
+            showSnackbar('Value Date is required when Disbursement Date is set', 'warning');
+            return false;
+        }
+        
+        if (formData.groupDisbursementDate && formData.grtExpiryDate) {
+            const disbDate = new Date(formData.groupDisbursementDate);
+            const expiryDate = new Date(formData.grtExpiryDate);
+            if (disbDate >= expiryDate) {
+                showSnackbar('GRT Expiry Date must be after Disbursement Date', 'warning');
+                return false;
+            }
+        }
+        
+        if (formData.groupDisbursementDate && formData.installmentStartDate) {
+            const disbDate = new Date(formData.groupDisbursementDate);
+            const startDate = new Date(formData.installmentStartDate);
+            if (disbDate >= startDate) {
+                showSnackbar('Installment Start Date must be after Disbursement Date', 'warning');
+                return false;
+            }
+        }
+        
+        if (formData.valueDate && formData.installmentStartDate) {
+            const valueDate = new Date(formData.valueDate);
+            const startDate = new Date(formData.installmentStartDate);
+            if (valueDate >= startDate) {
+                showSnackbar('Value Date must be before Installment Start Date', 'warning');
+                return false;
+            }
+        }
+        
         return true;
     }
 
@@ -382,7 +468,7 @@
                 GroupID: parentContext.centerId,
                 LoanSchemeID: formData.schemeId,
                 LoanCycleNo: parseInt(formData.loanCycleNo) || 0,
-                RefNo: formData.referenceNo || '',
+                RefNo: formData.referenceNo || null,
                 UpdateCount: fetchedUpdateCount || 1
             };
 
@@ -394,11 +480,13 @@
                 updateButtonStates();
                 setFieldsReadonly(true, true, false);
             } else {
-                showSnackbar('Failed to delete GRT details', 'error');
+                const errorMsg = extractBackendErrorMessage(response?.data || response);
+                showSnackbar(errorMsg, 'error');
             }
         } catch (error) {
             console.error('[GRT Details] Error deleting GRT details:', error);
-            showSnackbar('Failed to delete GRT details', 'error');
+            const errorMsg = extractBackendErrorMessage(error);
+            showSnackbar(errorMsg, 'error');
         } finally {
             showLoading(false);
         }
@@ -418,43 +506,72 @@
 
         try {
             showLoading(true);
+            const operatorId = parentContext.operatorId || 'CSADM';
+            const isAddMode = currentState === ActionState.ADD;
+            const toNumberOrDefault = (value, defaultValue = 0) => {
+                if (value === undefined || value === null || value === '') return defaultValue;
+                const num = parseFloat(value);
+                return Number.isFinite(num) ? num : defaultValue;
+            };
+            const toIntOrDefault = (value, defaultValue = 0) => {
+                if (value === undefined || value === null || value === '') return defaultValue;
+                const num = parseInt(value, 10);
+                return Number.isFinite(num) ? num : defaultValue;
+            };
+            const normalizeDisbursementTime = (value) => {
+                if (!value) return 0;
+                const trimmed = String(value).trim();
+                if (!trimmed) return 0;
+                if (trimmed.includes(':')) {
+                    const parts = trimmed.split(':');
+                    const hours = parseInt(parts[0], 10);
+                    const minutes = parseInt(parts[1] || '0', 10);
+                    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 0;
+                    const decimal = hours + (minutes / 60);
+                    return Number.isFinite(decimal) ? parseFloat(decimal.toFixed(2)) : 0;
+                }
+                const num = parseFloat(trimmed);
+                return Number.isFinite(num) ? num : 0;
+            };
             const requestData = {
                 OurBranchID: parentContext.branchId,
                 GroupID: parentContext.centerId,
                 LoanSchemeID: formData.schemeId,
                 LoanCycleNo: parseInt(formData.loanCycleNo) || 0,
-                RefNo: formData.referenceNo || '',
-                GroupDisbursementDate: formData.groupDisbursementDate,
-                ValueDate: formData.valueDate,
-                InstallmentStartDate: formData.installmentStartDate,
-                GroupDisbursementTime: formData.groupDisbursementTime,
-                GrtExpiryDate: formData.grtExpiryDate,
-                GrtDate: formData.grtDate,
-                MinLoanAmount: formData.minLoanAmount,
-                MaxLoanAmount: formData.maxLoanAmount,
-                LoanAmount: formData.loanAmount,
-                LoanTerm: formData.loanTerm,
-                InstallmentGracePeriod: formData.installmentGracePeriod,
-                Remarks: formData.remarks,
-                CreatedBy: window.parent?.Environment?.OperatorID || 'CSADM',
-                CreatedOn: new Date().toISOString(),
-                ModifiedBy: currentState === ActionState.EDIT ? (window.parent?.Environment?.OperatorID || 'CSADM') : '',
-                ModifiedOn: currentState === ActionState.EDIT ? new Date().toISOString() : '',
-                UpdateCount: currentState === ActionState.ADD ? 1 : (fetchedUpdateCount || 1)
+                RefNo: formData.referenceNo || null,
+                DisbursementDate: formData.groupDisbursementDate || '',
+                DisbursementTime: normalizeDisbursementTime(formData.groupDisbursementTime),
+                ValueDate: formData.valueDate || '',
+                InstallmentStartDate: formData.installmentStartDate || '',
+                GRTExpiryDate: formData.grtExpiryDate || '',
+                MinLoanAmount: toNumberOrDefault(formData.minLoanAmount, 0),
+                MaxLoanAmount: toNumberOrDefault(formData.maxLoanAmount, 0),
+                DefaultLoanAmount: toNumberOrDefault(formData.loanAmount, 0),
+                DefaultTerm: toIntOrDefault(formData.loanTerm, 0),
+                InstallmentGracePeriod: toIntOrDefault(formData.installmentGracePeriod, 0),
+                Remarks: formData.remarks || '',
+                CreatedOn: isAddMode ? new Date().toISOString() : '',
+                CreatedBy: isAddMode ? operatorId : '',
+                ModifiedOn: !isAddMode ? new Date().toISOString() : '',
+                ModifiedBy: !isAddMode ? operatorId : '',
+                SupervisedBy: '',
+                UpdateCount: isAddMode ? 0 : Math.max(0, Math.min(255, parseInt(fetchedUpdateCount) || 0))
             };
 
             const response = await window.GroupService.addEditGRTDetails(requestData);
-            if (response?.success) {
+            if (response?.success || response?.data?.success) {
                 showSnackbar('GRT details saved successfully', 'success');
                 currentState = ActionState.VIEW;
                 updateButtonStates();
                 setFieldsReadonly(true, false, false);
             } else {
-                showSnackbar('Failed to save GRT details', 'error');
+                const errorMsg = extractBackendErrorMessage(response?.data || response);
+                showSnackbar(errorMsg, 'error');
             }
         } catch (error) {
             console.error('[GRT Details] Error saving GRT details:', error);
-            showSnackbar('Failed to save GRT details', 'error');
+            const errorMsg = extractBackendErrorMessage(error);
+            showSnackbar(errorMsg, 'error');
         } finally {
             showLoading(false);
         }
@@ -486,11 +603,186 @@
         }
     }
 
+    function closeSubmodule() {
+        try {
+            const parent = window.parent;
+            
+            // Primary method: Parent has closeChildForm function (MVC standard)
+            if (typeof parent.closeChildForm === 'function') {
+                console.log('[GRTDetails] Calling parent.closeChildForm()');
+                parent.closeChildForm();
+                return;
+            }
+            
+            // Fallback 1: Parent has closeFrame function
+            if (typeof parent.closeFrame === 'function') {
+                console.log('[GRTDetails] Calling parent.closeFrame()');
+                parent.closeFrame();
+                return;
+            }
+            
+            // Fallback 2: Set iframe src to about:blank
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe], iframe[src*="GRTDetails"]');
+                if (iframe) {
+                    console.log('[GRTDetails] Setting iframe src to about:blank');
+                    iframe.src = 'about:blank';
+                    return;
+                }
+            }
+            
+            console.warn('[GRTDetails] No close method found in parent');
+        } catch (error) {
+            console.error('[GRTDetails] Error closing submodule:', error);
+        }
+    }
+
+    function handleCycleNavigation(direction) {
+        resolveParentContext();
+        if (!validateParentContext()) return;
+
+        const schemeId = document.getElementById('SchemeId').value.trim();
+        const loanCycleNo = document.getElementById('LoanCycleNo').value.trim();
+        const refNo = document.getElementById('ReferenceNo')?.value?.trim() || null;
+
+        if (!schemeId || !loanCycleNo) {
+            showSnackbar('Scheme ID and Loan Cycle No. are required to navigate', 'warning');
+            return;
+        }
+
+        try {
+            showLoading(true);
+            const requestData = {
+                OurBranchID: parentContext.branchId,
+                GroupID: parentContext.centerId,
+                LoanSchemeID: schemeId,
+                LoanCycleNo: parseInt(loanCycleNo) || 0,
+                RefNo: refNo,
+                OperatorID: parentContext.operatorId,
+                Direction: direction,
+                DirectionType: 'C' // Cycle
+            };
+
+            window.GroupService.getGRTDetails(requestData).then(result => {
+                if (result?.success && result?.data?.Details02?.[0]) {
+                    populateForm(result.data);
+                    showSnackbar('Navigated to cycle ' + result.data.Details02[0].LoanCycleNo, 'success');
+                    currentState = ActionState.VIEW;
+                    updateButtonStates();
+                    setFieldsReadonly(true);
+                } else {
+                    showSnackbar('Unable to navigate to next cycle', 'warning');
+                }
+            }).catch(error => {
+                console.error('[GRT Details] Cycle navigation error:', error);
+                showSnackbar(extractBackendErrorMessage(error), 'error');
+            }).finally(() => showLoading(false));
+        } catch (error) {
+            console.error('[GRT Details] Cycle navigation error:', error);
+            showLoading(false);
+        }
+    }
+
+    function handleReferenceNavigation(direction) {
+        resolveParentContext();
+        if (!validateParentContext()) return;
+
+        const schemeId = document.getElementById('SchemeId').value.trim();
+        const loanCycleNo = document.getElementById('LoanCycleNo').value.trim();
+        const refNo = document.getElementById('ReferenceNo')?.value?.trim() || null;
+
+        if (!schemeId || !loanCycleNo) {
+            showSnackbar('Scheme ID and Loan Cycle No. are required to navigate', 'warning');
+            return;
+        }
+
+        try {
+            showLoading(true);
+            const requestData = {
+                OurBranchID: parentContext.branchId,
+                GroupID: parentContext.centerId,
+                LoanSchemeID: schemeId,
+                LoanCycleNo: parseInt(loanCycleNo) || 0,
+                RefNo: refNo,
+                OperatorID: parentContext.operatorId,
+                Direction: direction,
+                DirectionType: 'R' // Reference
+            };
+
+            window.GroupService.getGRTDetails(requestData).then(result => {
+                if (result?.success && result?.data?.Details02?.[0]) {
+                    populateForm(result.data);
+                    showSnackbar('Navigated to reference ' + result.data.Details02[0].RefNo, 'success');
+                    currentState = ActionState.VIEW;
+                    updateButtonStates();
+                    setFieldsReadonly(true);
+                } else {
+                    showSnackbar('Unable to navigate to next reference', 'warning');
+                }
+            }).catch(error => {
+                console.error('[GRT Details] Reference navigation error:', error);
+                showSnackbar(extractBackendErrorMessage(error), 'error');
+            }).finally(() => showLoading(false));
+        } catch (error) {
+            console.error('[GRT Details] Reference navigation error:', error);
+            showLoading(false);
+        }
+    }
+
+    function validateTimeZone(timeStr) {
+        if (!timeStr) return true;
+        // Format: HH:MM or HH:MM:SS
+        const timeRegex = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+        return timeRegex.test(timeStr.trim());
+    }
+
     function wireEvents() {
         document.getElementById('btnClose')?.addEventListener('click', () => {
-            window.parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
+            closeSubmodule();
         });
         document.getElementById('btnRefresh')?.addEventListener('click', () => window.location.reload());
+
+        // Auto-populate Value Date when Group Disbursement Date changes (from legacy system)
+        const disbursementDateField = document.getElementById('GroupDisbursementDate');
+        if (disbursementDateField) {
+            disbursementDateField.addEventListener('change', (e) => {
+                const valueDateField = document.getElementById('ValueDate');
+                if (e.target.value && valueDateField && !valueDateField.value) {
+                    valueDateField.value = e.target.value;
+                    showSnackbar('Value Date auto-populated from Disbursement Date', 'info');
+                }
+            });
+        }
+
+        // Timezone validation for disbursement time
+        const timeField = document.getElementById('GroupDisbursementTime');
+        if (timeField) {
+            timeField.addEventListener('blur', (e) => {
+                if (e.target.value && !validateTimeZone(e.target.value)) {
+                    showSnackbar('Invalid time format. Please use HH:MM or HH:MM:SS (example: 14:30 or 14:30:45)', 'warning');
+                    e.target.focus();
+                }
+            });
+        }
+
+        // Prevent negative numbers and decimal points in numeric fields
+        const numericFields = [
+            'LoanCycleNo', 'ReferenceNo', 'MinLoanAmount', 'MaxLoanAmount',
+            'LoanAmount', 'LoanTerm', 'InstallmentGracePeriod'
+        ];
+        
+        numericFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('keypress', (e) => {
+                    const char = String.fromCharCode(e.which);
+                    // Prevent negative sign and minus operator
+                    if (char === '-' || char === '+') {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
 
         document.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', () => handleAction(btn.dataset.action));
@@ -499,6 +791,25 @@
         document.querySelectorAll('[data-lookup="Scheme"]').forEach(btn => {
             btn.addEventListener('click', openSchemeSearch);
         });
+
+        // Cycle navigation buttons
+        document.querySelector('[data-nav="cycle-prev"]')?.addEventListener('click', () => handleCycleNavigation(-1));
+        document.querySelector('[data-nav="cycle-next"]')?.addEventListener('click', () => handleCycleNavigation(1));
+
+        // Reference navigation buttons
+        document.querySelector('[data-nav="ref-prev"]')?.addEventListener('click', () => handleReferenceNavigation(-1));
+        document.querySelector('[data-nav="ref-next"]')?.addEventListener('click', () => handleReferenceNavigation(1));
+
+        // Remarks field max length validation on input
+        const remarksField = document.getElementById('Remarks');
+        if (remarksField) {
+            remarksField.addEventListener('input', (e) => {
+                if (e.target.value.length > 255) {
+                    e.target.value = e.target.value.substring(0, 255);
+                    showSnackbar('Remarks cannot exceed 255 characters', 'warning');
+                }
+            });
+        }
 
         document.querySelectorAll('[data-section-toggle]').forEach(header => {
             header.addEventListener('click', () => {

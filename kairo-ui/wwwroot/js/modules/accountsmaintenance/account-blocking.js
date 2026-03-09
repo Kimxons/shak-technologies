@@ -185,6 +185,9 @@ window.AccountBlockingModule = (function () {
 
     function formatDate(dateStr) {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(dateStr);
+        }
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return dateStr;
         return d.toLocaleString();

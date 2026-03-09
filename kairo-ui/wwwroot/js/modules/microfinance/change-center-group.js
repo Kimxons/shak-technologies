@@ -476,6 +476,9 @@
     // =========================================================================
     function formatDate(dateStr) {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(dateStr);
+        }
         try {
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return dateStr;

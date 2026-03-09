@@ -1,8 +1,12 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    ViewData["Title"] = "Client Portfolio";
+    Layout = "_ApplicationLayout";
     var reportTypeOptions = ViewData["ReportTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var productTypeOptions = ViewData["ProductTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var showActionPanel = moduleId != "1000";
 }
 
 <div class="form-card" data-section="client-portfolio" data-cm-module="portfolio">
@@ -14,7 +18,7 @@
     </div>
     <div class="section-content" data-section-content>
         <!-- Hidden fields for page context -->
-        <input type="hidden" id="moduleIdPortfolio" value="@ViewData["ModuleId"]" />
+        <input type="hidden" id="moduleIdPortfolio" value="@moduleId" />
 
         <h5 class="mb-4">Portfolio Filters</h5>
 
@@ -43,12 +47,15 @@
             </div>
         </form>
 
-        <div class="d-flex justify-content-center gap-2 my-4">
-            <button id="btn_viewPortfolio" type="button" class="btn btn-sm btn-primary" data-portfolio-action="view"><i class="bi bi-eye me-1"></i>View</button>
-            <button id="btn_clearPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear</button>
-            <button id="btn_printPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="print"><i class="bi bi-printer me-1"></i>Print</button>
-        </div>
-
+        <!-- @if (!showActionPanel)
+         {
+                 <div class="d-flex justify-content-center gap-2 my-4">
+                     <button id="btn_viewPortfolio" type="button" class="btn btn-sm btn-primary" data-portfolio-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                     <button id="btn_clearPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear</button>
+                     <button id="btn_printPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                 </div>
+         }
+         -->
         <div class="section-header py-1 mb-2 bg-light border">
             <span class="small fw-bold px-2">PORTFOLIO ANALYSIS</span>
         </div>
@@ -58,12 +65,23 @@
     </div>
 </div>
 
-<!-- Include Highcharts for charting -->
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/modules/export-data.js"></script>
+@if (showActionPanel)
+{
+    <aside class="action-panel" aria-label="Client portfolio actions">
+        <div class="d-flex flex-column gap-2 mt-auto">
+            <button id="btn_viewPortfolio" type="button" class="btn-action btn-view" data-portfolio-action="view"><i class="bi bi-eye"></i><span>View</span></button>
+            <button id="btn_clearPortfolio" type="button" class="btn-action btn-cancel" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise"></i><span>Clear</span></button>
+            <button id="btn_printPortfolio" type="button" class="btn-action" data-portfolio-action="print"><i class="bi bi-printer"></i><span>Print</span></button>
+        </div>
+    </aside>
+}
 
-<script src="~/js/modules/identities/client-maintenance/client-portfolio.js" asp-append-version="true"></script>
+<!-- Include Highcharts for charting -->
+<script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-portfolio.js" asp-append-version="true"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const moduleRoot = document.querySelector('[data-section="client-portfolio"]');

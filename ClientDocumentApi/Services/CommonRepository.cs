@@ -42,7 +42,7 @@ namespace ClientDocumentApi.Services
                 return await strategy.ExecuteAsync(async () =>
                 {
                     var results = await _context.Database.SqlQueryRaw<ProcedureResponse>(
-                        "EXEC p_V1_GetSystemCodesList @CodeIDs = @CodeIDs",
+                        "EXEC p_V8_GetSystemCodesList @CodeIDs = @CodeIDs",
                         new SqlParameter("@CodeIDs", SqlDbType.VarChar) { Size = 1000, Value = jsonCodeIds }
                     ).ToListAsync(cancellationToken);
 
