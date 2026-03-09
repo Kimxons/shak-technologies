@@ -9,11 +9,13 @@ namespace kairo_ui.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly IWebHostEnvironment _environment;
+        private readonly IConfiguration _configuration;
 
-        public SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment)
+        public SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment, IConfiguration configuration)
         {
             _next = next;
             _environment = environment;
+            _configuration = configuration;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -34,10 +36,40 @@ namespace kairo_ui.Middleware
             // Content Security Policy - adjust based on environment
             var connectSrc = "'self'";
 
-            // In development, allow localhost connections for Browser Link and WebSockets
+            // In development, allow localhost + configured API hosts
             if (_environment.IsDevelopment())
             {
-                connectSrc = "'self' ws://localhost:* wss://localhost:* http://localhost:* https://localhost:* ";
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "'self'",
+                    "ws://localhost:*",
+                    "wss://localhost:*",
+                    "http://localhost:*",
+                    "https://localhost:*",
+                    "http://172.16.2.31:3308"
+                };
+
+                var apiSettings = _configuration.GetSection("ApiSettings");
+                foreach (var child in apiSettings.GetChildren())
+                {
+                    if (!child.Key.EndsWith("BaseUrl", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (Uri.TryCreate(child.Value, UriKind.Absolute, out var uri))
+                    {
+                        allowed.Add(uri.GetLeftPart(UriPartial.Authority));
+                    }
+                }
+
+                var oauthUrl = _configuration["OAuth:TokenEndpoint"];
+                if (Uri.TryCreate(oauthUrl, UriKind.Absolute, out var oauthUri))
+                {
+                    allowed.Add(oauthUri.GetLeftPart(UriPartial.Authority));
+                }
+
+                connectSrc = string.Join(' ', allowed);
             }
 
             context.Response.Headers.Append("Content-Security-Policy",

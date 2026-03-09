@@ -108,7 +108,7 @@
     },
 
     /**
-     * Stepper GET: Products & Services (OldAPI)
+     * Stepper GET: Products & Services
      * @param {object} requestData - { ClientID, RequestID }
      * NOTE: For onboarding steppers, pass a stable linking RequestID via requestData.RequestID.
      */

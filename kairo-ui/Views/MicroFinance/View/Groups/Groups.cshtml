@@ -1,0 +1,172 @@
+@{
+    Layout = null;
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Groups</title>
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+    <style>
+        .kairo-toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .kairo-toast {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--kairo-card-bg, #fff);
+            border: 1px solid var(--kairo-border-color, #dee2e6);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .kairo-toast.is-show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .kairo-toast__body {
+            font-size: 0.875rem;
+            color: var(--kairo-text-color, #333);
+        }
+        .kairo-toast--success { border-left: 4px solid #198754; background: #fff; }
+        .kairo-toast--success .kairo-toast__body { color: #198754; }
+        .kairo-toast--danger { border-left: 4px solid #dc3545; background: #fff; }
+        .kairo-toast--danger .kairo-toast__body { color: #dc3545; }
+        .kairo-toast--warning { border-left: 4px solid #ffc107; background: #fff; }
+        .kairo-toast--warning .kairo-toast__body { color: #856404; }
+        .kairo-toast--info { border-left: 4px solid #0dcaf0; background: #fff; }
+        .kairo-toast--info .kairo-toast__body { color: #055160; }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .loading-overlay[hidden] { display: none; }
+        .loading-spinner { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+        .loading-spinner i { font-size: 2rem; animation: spin 1s linear infinite; }
+        @@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <input type="hidden" id="moduleId_groups" value="@moduleId" />
+
+    <div class="window">
+        <div class="am-header" role="banner" aria-label="Window title bar">
+            <div class="am-header__left">
+                <i class="bi bi-collection am-header__icon" aria-hidden="true"></i>
+                <span class="am-header__title">Groups</span>
+            </div>
+            <div class="am-header__right" role="toolbar" aria-label="Window controls">
+                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <main class="main-container" aria-label="Groups view">
+            <div class="form-content" role="region" aria-label="Groups view">
+                <div class="form-card" data-main-form>
+                    <div class="form-section" data-section="groups-list">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-collection"></i>Groups</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Groups" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="table-responsive" style="max-height: 250px; overflow: auto;">
+                                <table class="table table-sm table-hover table-striped table-bordered align-middle mb-0">
+                                    <thead style="position: sticky; top: 0; z-index: 1; background: #f8f9fa;">
+                                        <tr>
+                                            <th>Group ID</th>
+                                            <th>Group Name</th>
+                                            <th>Total Members In SubGroup</th>
+                                            <th>Is Staggered</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="groupsTableBody">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No records to display.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="summary-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-info-circle"></i>Summary Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Summary Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <form autocomplete="off">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        <label class="label-blue" for="TotalMembers">Total Members</label>
+                                        <input id="TotalMembers" name="TotalMembers" type="text" class="bs-input-text" readonly />
+                                    </div>
+                                    <div class="col-6"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-panel" aria-label="Form actions">
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-action="view" title="View">
+                        <i class="bi bi-eye"></i>View
+                    </button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
+                        <i class="bi bi-x-lg"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+            <div class="loading-spinner">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Loading groups...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
+    <script src="@Url.Content("~/js/environment.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
+    <script src="@Url.Content("~/js/services/microfinance/groupService.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/view/groups.js")"></script>
+</body>
+</html>

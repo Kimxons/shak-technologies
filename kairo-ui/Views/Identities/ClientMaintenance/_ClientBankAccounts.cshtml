@@ -1,0 +1,109 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var accountTypeOptions = ViewData["AccountTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var institutionTypeOptions = ViewData["InstitutionTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="form-card" data-section="client-bank-accounts" data-cm-tab="bank-accounts">
+    <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-bank"></i>Bank Accounts</span>
+        <button id="btn_toggleClientBankAccounts" type="button" class="section-toggle-btn" aria-label="Toggle Bank Accounts" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
+    </div>
+    <div class="section-content" data-section-content>
+        <form id="frm_clientBankAccounts" data-bankaccounts-form autocomplete="off" novalidate>
+            <!-- Hidden fields for page context -->
+            <input type="hidden" id="moduleIdBankAccounts" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="hdn_bankAccountId" name="bankAccountId" />
+
+            <h5 class="mb-4">Bank Account Details</h5>
+
+            <div class="form-row four-col">
+                <div class="col">
+                    <label class="label-blue" for="ddl_accountType" id="lbl_accountType">Account Type</label>
+                    <select id="ddl_accountType" name="accountType" data-bankaccount-field="ProductTypeID" class="bs-select" asp-items="@accountTypeOptions">
+                        <option value="">Select...</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="ddl_institutionType" id="lbl_institutionType">Institution Type</label>
+                    <select id="ddl_institutionType" name="institutionType" data-bankaccount-field="InstitutionTypeID" class="bs-select" asp-items="@institutionTypeOptions">
+                        <option value="">Select...</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="txt_bankCode" id="lbl_bankCode">Bank</label>
+                    <div class="kairo-control" data-kairo-control>
+                        <input id="txt_bankCode" name="bankCode" data-bankaccount-field="BankID" class="bs-input-text" readonly />
+                        <input id="txt_bankName" name="bankName" class="bs-input-text" placeholder="Search Bank..." readonly />
+                        <button type="button" class="btn-lookup" data-bankaccount-action="lookup-bank" aria-label="Find bank"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="txt_branchCode" id="lbl_branchCode">Branch</label>
+                    <div class="kairo-control" data-kairo-control>
+                        <input id="txt_branchCode" name="branchCode" data-bankaccount-field="BranchID" class="bs-input-text" readonly />
+                        <input id="txt_branchName" name="branchName" class="bs-input-text" placeholder="Search Branch..." readonly />
+                        <button type="button" class="btn-lookup" data-bankaccount-action="lookup-branch" aria-label="Find branch"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row four-col">
+                <div class="col">
+                    <label class="label-blue" for="txt_accountNumber" id="lbl_accountNumber">Account Number</label>
+                    <input id="txt_accountNumber" name="accountNumber" data-bankaccount-field="AccountNo" class="bs-input-text" maxlength="20" />
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="txt_accountIBAN" id="lbl_accountIBAN">IBAN</label>
+                    <input id="txt_accountIBAN" name="accountIBAN" data-bankaccount-field="IBAN" class="bs-input-text" maxlength="34" />
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="ddl_accountStatus" id="lbl_accountStatus">Status</label>
+                    <select id="ddl_accountStatus" name="accountStatus" data-bankaccount-field="StatusID" class="bs-select">
+                        <option value="">Select...</option>
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="txt_accountRemarks" id="lbl_accountRemarks">Remarks</label>
+                    <input id="txt_accountRemarks" name="accountRemarks" data-bankaccount-field="Remarks" class="bs-input-text" />
+                </div>
+            </div>
+        </form>
+
+        <div class="d-flex justify-content-center gap-2 my-4">
+            <button id="btn_newBankAccount" type="button" class="btn btn-sm btn-outline-primary" data-bankaccount-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+            <button id="btn_alterBankAccount" type="button" class="btn btn-sm btn-outline-primary" data-bankaccount-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
+            <button id="btn_deleteBankAccount" type="button" class="btn btn-sm btn-outline-danger" data-bankaccount-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
+            <button id="btn_updateBankAccount" type="button" class="btn btn-sm btn-primary" data-bankaccount-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
+            <button id="btn_clearBankAccount" type="button" class="btn btn-sm btn-outline-secondary" data-bankaccount-action="clear">Clear</button>
+        </div>
+
+        <div class="section-header py-1 mb-2 bg-light border">
+            <span class="small fw-bold px-2">REGISTERED BANK ACCOUNTS</span>
+        </div>
+        <div class="table-responsive border rounded bg-white mb-4">
+            <table class="table table-sm table-hover mb-0" data-table="bank-accounts">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-2">Account Type</th>
+                        <th>Institution Type</th>
+                        <th>Bank</th>
+                        <th>Branch</th>
+                        <th>Account Number</th>
+                        <th>IBAN</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_clientBankAccountsBody" data-bankaccounts-body></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/modules/identities/client-maintenance/client-bank-accounts.js"></script>

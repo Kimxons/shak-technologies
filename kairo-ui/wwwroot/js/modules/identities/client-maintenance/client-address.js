@@ -192,22 +192,27 @@ function bindAddressCrud(tabRoot, moduleId) {
         });
     };
 
-    const refreshAddressTable = async () => {
-        const clientId = window.ClientMaintenanceCore.clientId || '';
-        if (!clientId) {
-            renderAddressTable([]);
-            return;
-        }
+    const refreshAddressTable = async (requestData) => {
+      // Get client ID from parent context if not provided in requestData
+   const clientId = requestData?.ClientID || 
+       window.ClientMaintenanceCore?.getSelectedId?.() || 
+          window.ClientMaintenanceCore?.clientId || '';
+        
+      if (!clientId) {
+     renderAddressTable([]);
+      return;
+    }
         try {
-            const response = await window.ClientMaintenanceAddressService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId
-            });
-            const rows = normalizeAddressRows(extractList(response));
+ const response = await window.ClientMaintenanceAddressService.get({
+    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+     ClientID: clientId,
+      RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
+          });
+   const rows = normalizeAddressRows(extractList(response));
             renderAddressTable(rows);
         } catch (error) {
-            window.ClientMaintenanceCore.showToast(`Address load failed - ${error.message}`, 'error');
-        }
+    window.ClientMaintenanceCore.showToast(`Address load failed - ${error.message}`, 'error');
+  }
     };
 
     const resetForm = () => {
@@ -229,18 +234,21 @@ function bindAddressCrud(tabRoot, moduleId) {
     };
 
     const buildPayload = () => {
-        const payload = {};
+  const payload = {};
         form.querySelectorAll('[data-address-field]').forEach((field) => {
-            const key = field.dataset.addressField;
-            if (!key) return;
-            payload[key] = readFieldValue(field);
+       const key = field.dataset.addressField;
+       if (!key) return;
+     payload[key] = readFieldValue(field);
         });
 
-        return {
-            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            ClientID: window.ClientMaintenanceCore.clientId || '',
-            Payload: payload
-        };
+   return {
+    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+     // Always use parent client ID from ClientMaintenanceCore
+     ClientID: window.ClientMaintenanceCore?.getSelectedId?.() || 
+    window.ClientMaintenanceCore?.clientId || '',
+      RequestID: window.ClientMaintenanceCore?.requestId || '',
+      Payload: payload
+  };
     };
 
     const applyRowPayload = (payload) => {
@@ -258,7 +266,8 @@ function bindAddressCrud(tabRoot, moduleId) {
     };
 
     setFieldsEnabled(false);
-    refreshAddressTable();
+    tabRoot._cmLoadData = (requestData) => refreshAddressTable(requestData);
+    window.ClientMaintenanceCore.registerTabLoadFunction('Address', (requestData) => refreshAddressTable(requestData));
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');

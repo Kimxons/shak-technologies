@@ -1,0 +1,308 @@
+@{
+    ViewData["Title"] = "Exit Process";
+    Layout = "_ApplicationLayout";
+}
+
+<!-- Toast Container -->
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+
+        <!-- Form Content -->
+        <div class="form-content form-content-without-leftbar">
+            <div class="form-card" data-main-form>
+                <div id="statusMsg" class="status-msg hidden" role="status" aria-live="polite">
+                    <span class="status-text"></span>
+                </div>
+
+                <!-- Client Details Section -->
+                <div class="form-section" data-section="client-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-person"></i>Client Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Client Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <!-- Row 1: Branch / Center / Group -->
+                        <div class="row g-2 mb-2">
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="BranchId">Branch ID</label>
+                                <div class="kairo-branch-control" data-kairo-control>
+                                    <input type="text" id="BranchId" class="kairo-branch-control__id" aria-label="Branch ID" placeholder="Branch ID">
+                                    <input type="text" id="BranchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="CenterId">Center ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="CenterId" class="kairo-control__id" aria-label="Center ID" placeholder="Center ID">
+                                    <input type="text" id="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="GroupId">Group ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="GroupId" class="kairo-control__id" aria-label="Group ID" placeholder="Group ID">
+                                    <input type="text" id="GroupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="group" aria-label="Search Group"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Client / Exit Reason / Exit Date -->
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="ClientId">Client ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="ClientId" class="kairo-control__id" aria-label="Client ID" placeholder="Client ID">
+                                    <input type="text" id="ClientName" class="kairo-control__name" aria-label="Client Name" placeholder="Client Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="client" aria-label="Search Client"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="ExitReason">Exit Reason</label>
+                                <select id="ExitReason" class="form-select">
+                                    <option value="">Select Exit Type ID</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="ExitDate">Exit Date</label>
+                                <input type="date" id="ExitDate" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exit Details Section -->
+                <div class="form-section" data-section="exit-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-cash-stack"></i>Exit Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Exit Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <!-- Tab Navigation -->
+                        <ul class="nav nav-tabs mb-3" id="exitDetailsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="exitDetailsTab" data-bs-toggle="tab" data-bs-target="#exitDetailsPane" type="button" role="tab" aria-controls="exitDetailsPane" aria-selected="true">
+                                    <i class="bi bi-file-text me-1"></i>Exit Details
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="forfeitDetailsTab" data-bs-toggle="tab" data-bs-target="#forfeitDetailsPane" type="button" role="tab" aria-controls="forfeitDetailsPane" aria-selected="false">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Forfeit Details
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="exitDetailsTabContent">
+                            <!-- Exit Details Tab -->
+                            <div class="tab-pane fade show active" id="exitDetailsPane" role="tabpanel" aria-labelledby="exitDetailsTab">
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue" for="TotalRecoverable">Total Recoverable</label>
+                                        <input type="number" id="TotalRecoverable" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="TotalPayable">Total Payable</label>
+                                        <input type="number" id="TotalPayable" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="ForfeitSavings">Forfeit Savings</label>
+                                        <input type="number" id="ForfeitSavings" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="ForfeitCollateral">Forfeit Collateral</label>
+                                        <input type="number" id="ForfeitCollateral" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                </div>
+
+                                <div class="form-row four-col">
+                                    <div class="col">
+                                        <label class="label-blue" for="ChargeOffLoss">Charge-Off Loss</label>
+                                        <input type="number" id="ChargeOffLoss" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="ChargeOffInsurance">Charge-Off Insurance</label>
+                                        <input type="number" id="ChargeOffInsurance" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="NetPayable">Net Payable</label>
+                                        <input type="number" id="NetPayable" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="NetReceivable">Net Receivable</label>
+                                        <input type="number" id="NetReceivable" class="form-control" placeholder="0.00" step="any">
+                                    </div>
+                                </div>
+
+                                <!-- Transactions Table -->
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm table-striped table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Account ID</th>
+                                                <th>Account Name</th>
+                                                <th class="text-end">Amount</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="accountsBody">
+                                            <tr><td colspan="4" class="text-center text-muted">No records to display.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Forfeit Details Tab -->
+                            <div class="tab-pane fade" id="forfeitDetailsPane" role="tabpanel" aria-labelledby="forfeitDetailsTab">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Account Type</th>
+                                                <th>Account ID</th>
+                                                <th>Description</th>
+                                                <th>Transaction Type</th>
+                                                <th class="text-end">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="forfeitBody">
+                                            <tr><td colspan="5" class="text-center text-muted">No records to display.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="row g-2 justify-content-end mt-1">
+                                    <div class="col-auto">
+                                        <label class="label-blue fw-bold" for="TotalForfeitAmount">Total Forfeit Amount</label>
+                                    </div>
+                                    <div class="col-12 col-lg-3">
+                                        <input type="number" id="TotalForfeitAmount" class="form-control" placeholder="0.00" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Portfolio Section -->
+                <div class="form-section" data-section="client-portfolio">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-briefcase"></i>Client Portfolio</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Client Portfolio" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="PrimaryCollateral">Primary Collateral</label>
+                                <input type="number" id="PrimaryCollateral" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="LoanBalance">Loan Balance</label>
+                                <input type="number" id="LoanBalance" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="CreditInterest">Credit Interest</label>
+                                <input type="number" id="CreditInterest" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="DebitInterest">Debit Interest</label>
+                                <input type="number" id="DebitInterest" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="Tax">Tax</label>
+                                <input type="number" id="Tax" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="Others">Others</label>
+                                <input type="number" id="Others" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="SecondaryCollateral">Secondary Collateral</label>
+                                <input type="number" id="SecondaryCollateral" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="NetBalance">Net Balance</label>
+                                <input type="number" id="NetBalance" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="AdditionalCollateral">Additional Collateral</label>
+                                <input type="number" id="AdditionalCollateral" class="form-control" placeholder="0.00" step="any">
+                            </div>
+                            <div class="col"></div>
+                            <div class="col"></div>
+                            <div class="col"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Action Panel -->
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-action" id="btnPrint" title="Print" data-ep-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-action underline" id="btnView" type="button" data-ep-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btnAdd" type="button" data-ep-action="add" title="Add" hidden><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" id="btnSave" type="button" data-ep-action="save" title="Save"><i class="bi bi-floppy me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btnCancel" type="button" data-ep-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Modal -->
+<div class="modal fade cls-search-modal" id="searchModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 900px; width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchModalTitle">Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="searchModalFrame" title="Search" src="about:blank" style="width: 100%; height: 500px; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Prevent form-card and sections from stretching to fill viewport */
+        .form-card[data-main-form] {
+            flex: 0 0 auto !important;
+        }
+        .form-card[data-main-form] .form-section {
+            flex: 0 0 auto !important;
+        }
+        /* Ensure exit-details section content is not clipped */
+        [data-section="exit-details"] .section-content,
+        [data-section="exit-details"] [data-section-content] {
+            overflow: visible !important;
+            max-height: none !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/exit-process.js")" asp-append-version="true"></script>
+}

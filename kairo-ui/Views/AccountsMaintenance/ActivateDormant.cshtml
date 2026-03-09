@@ -1,159 +1,174 @@
 ﻿@{
     // Migrated from: account-activate-dormant.html
+    Layout = null;
 }
 
-<!-- ActivateDormant Submodule -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-lightning-charge am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Activate Dormant</span>
+<!-- ActivateDormant Submodule Content -->
+<div class="form-content" role="region" aria-label="Activate Dormant form">
+    <div class="form-card" data-main-form>
+        <!-- Account Identification Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-building me-1"></i>Account Identification</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="branchId">Branch</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input type="text" id="branchId" name="branchId" class="kairo-account-control__id form-control am-input" readonly />
+                            <input type="text" id="branchName" class="kairo-account-control__name form-control am-input" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="branchId"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="accountId">Account</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input type="text" id="accountId" name="accountId" class="kairo-account-control__id form-control am-input" readonly />
+                            <input type="text" id="accountName" class="kairo-account-control__name form-control am-input" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="accountId"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label">Account Status</label>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span id="dormantStatus" class="badge bg-secondary" style="font-size:14px; padding:0.4rem 0.6rem;">UNKNOWN</span>
+                            <div class="dormant-indicator"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
+
+        <!-- Activation Details Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-lightning-charge me-1"></i>Activation Details</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="dormantReason">Dormancy Reason</label>
+                        <select id="dormantReason" name="dormantReason" class="form-select am-input">
+                            <option value="">--Select--</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="dormantDate">Dormancy Date</label>
+                        <input id="dormantDate" name="dormantDate" type="text" class="form-control am-input" readonly />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="reactivationDate">Reactivation Date</label>
+                        <input id="reactivationDate" name="reactivationDate" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="instructedBy">Instructed By</label>
+                        <input id="instructedBy" name="instructedBy" type="text" class="form-control am-input" />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-12">
+                        <label class="label-blue am-label" for="remarks">Remarks</label>
+                        <textarea id="remarks" name="remarks" class="form-control am-input" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Information -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-info-circle me-1"></i>Status Information</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                        <label class="label-blue am-label">Last Activity Date</label>
+                        <input id="lastActivityDate" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="label-blue am-label">Dormant Days</label>
+                        <input id="dormantDays" type="text" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="label-blue am-label">Dormancy Threshold</label>
+                        <input id="dormancyThreshold" type="text" class="form-control am-input" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Behind the Scene Section (Audit info) -->
+        <div class="form-section form-section--bts">
+            <div class="section-header section-header--bts" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear me-2"></i>BEHIND THE SCENE</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="false"><i class="bi bi-chevron-down"></i></button>
+            </div>
+            <div class="section-content" data-section-content style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                        <label class="am-label">Original Product</label>
+                        <input id="originalProduct" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Dormant Product</label>
+                        <input id="dormantProduct" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Balance</label>
+                        <input id="balance" class="form-control am-input text-end" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Fixed Amount</label>
+                        <input id="fixedAmount" class="form-control am-input text-end" readonly />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                        <label class="am-label">Last Credit Date</label>
+                        <input id="lastCreditDate" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Credit Amount</label>
+                        <input id="creditAmount" class="form-control am-input text-end" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Last Debit Date</label>
+                        <input id="lastDebitDate" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Debit Amount</label>
+                        <input id="debitAmount" class="form-control am-input text-end" readonly />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                        <label class="am-label">Maker ID</label>
+                        <input id="MakerID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Maker Date</label>
+                        <input id="MakerDT" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Modifier ID</label>
+                        <input id="ModifierID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="am-label">Modifier Date</label>
+                        <input id="ModifierDT" class="form-control am-input" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <main class="main-container">
-      <div class="form-content" role="region" aria-label="Activate Dormant Account form">
-        <div class="form-card" data-main-form>
-
-          <!-- ACCOUNT IDENTIFICATION SECTION -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title"><i class="bi bi-building"></i>Account Identification</span>
-            </div>
-            <div class="section-content">
-              <div class="form-row">
-                <div class="col">
-                  <label class="label-blue">Branch ID</label>
-                  <div class="kairo-branch-control" data-kairo-branch-control>
-                    <input type="text" id="branchId" name="branchId" class="kairo-branch-control__id" aria-label="Branch ID" />
-                    <input type="text" id="branchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly />
-                    <button type="button" class="btn-lookup kairo-branch-control__lookup" data-lookup="branchId" aria-label="Search branch"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-                <div class="col">
-                  <label class="label-blue">Account ID</label>
-                  <div class="kairo-account-control" data-kairo-account-control>
-                    <input type="text" id="accountId" name="accountId" class="kairo-account-control__id" aria-label="Account ID" />
-                    <input type="text" id="accountName" class="kairo-account-control__name" aria-label="Account Name" placeholder="Account Name" readonly />
-                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="accountId" aria-label="Search account"><i class="bi bi-search"></i></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ACTIVATION DETAILS SECTION -->
-          <div class="form-section">
-            <div class="section-header">
-              <span class="section-header__title"><i class="bi bi-power"></i>Activation Details</span>
-            </div>
-            <div class="section-content">
-              <div class="form-row">
-                <div class="col">
-                  <label for="instructedBy">Instructed By</label>
-                  <input id="instructedBy" name="instructedBy" type="text" class="bs-input-text form-control" />
-                </div>
-                <div class="col">
-                  <label for="comments">Comments</label>
-                  <textarea id="comments" name="comments" class="bs-textarea form-control" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- BEHIND THE SCENE SECTION (COLLAPSIBLE) -->
-          <div class="form-section form-section--bts">
-            <div class="section-header" role="button" data-section-toggle aria-expanded="true">
-              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
-              <button class="section-toggle-btn" type="button" aria-label="Toggle audit information"><i class="bi bi-chevron-up"></i></button>
-            </div>
-            <div class="section-content">
-              <div class="audit-section audit-section--summary">
-              <div class="audit-cell">
-                <span class="audit-label">Dormant Date</span>
-                <span class="audit-value" id="dormantDate">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Original Product</span>
-                <span class="audit-value" id="originalProduct">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Dormant Product</span>
-                <span class="audit-value" id="dormantProduct">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Balance</span>
-                <span class="audit-value" id="balance">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Last Credit Date</span>
-                <span class="audit-value" id="lastCreditDate">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Credit Amount</span>
-                <span class="audit-value" id="creditAmount">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Last Debit Date</span>
-                <span class="audit-value" id="lastDebitDate">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Debit Amount</span>
-                <span class="audit-value" id="debitAmount">-</span>
-              </div>
-              <div class="audit-cell">
-                <span class="audit-label">Fixed Amount</span>
-                <span class="audit-value" id="fixedAmount">-</span>
-              </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACTION PANEL -->
-      <div class="action-panel" aria-label="Form actions">
-        <div class="action-buttons">
-          <button class="btn-action" type="button" data-action="view" title="View"><i class="bi bi-eye"></i>View</button>
-          <button class="btn-action" type="button" data-action="edit" title="Edit"><i class="bi bi-pencil-square"></i>Edit</button>
-          <button class="btn-action" type="button" data-action="save" title="Save"><i class="bi bi-check-lg"></i>Save</button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel"><i class="bi bi-x-circle"></i>Cancel</button>
-        </div>
-      </div>
-    </main>
-
-    <div class="de-message-bar" role="alert" aria-live="polite"><i class="bi bi-info-circle"></i><span></span></div>
-    <footer class="de-status-bar" role="status">Ready</footer>
-    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
-
-  <script src="~/js/modules/accountsmaintenance/account-dormant.js?v=20250527"></script>
-  <script>
-function notifyParentFormOpened(){window.parent.postMessage({action:'submoduleOpened',source:'ActivateDormant'},'*');}
-function closeChildForm(){
-  console.log('[Window Control] Closing child form');
-  // Send message to parent to close this submodule
-  window.parent.postMessage({action:'submoduleClosed', source:'ActivateDormant'},'*');
-  // Also try to close the window directly
-  setTimeout(() => {
-    try {
-      window.close();
-    } catch(e) {
-      console.log('[Window Control] Could not close window:', e.message);
-    }
-  }, 100);
-}
-  </script>
-
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'ActivateDormant') {
-        console.log('[ActivateDormant] Submodule loaded');
-    }
-});
-</script>
+<script src="~/js/modules/accountsmaintenance/account-dormant.js?v=@DateTime.Now.Ticks"></script>

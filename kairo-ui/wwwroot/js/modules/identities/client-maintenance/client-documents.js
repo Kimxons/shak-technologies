@@ -59,6 +59,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 
     const normalizeDocumentRows = (rows) => (rows || []).map((row) => ({
         ID: row.ID ?? row.DocumentID ?? null,
+        ImageID: row.ImageID ?? row.ID ?? null,
+        TempImageID: row.TempImageID ?? null,
         DocumentID: row.DocumentID ?? '',
         DocumentTypeID: row.DocumentTypeID ?? '',
         LocationID: row.LocationID ?? '',
@@ -96,8 +98,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         });
     };
 
-    const refreshDocumentsTable = async () => {
-        const clientId = window.ClientMaintenanceCore.clientId || '';
+    const refreshDocumentsTable = async (requestData) => {
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
         if (!clientId) {
             renderDocumentsTable([]);
             return;
@@ -105,7 +107,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         try {
             const response = await window.ClientMaintenanceDocumentsService.get({
                 ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId
+                ClientID: clientId,
+                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
             });
             const rows = normalizeDocumentRows(extractList(response));
             renderDocumentsTable(rows);
@@ -147,10 +150,62 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             payload[key] = readFieldValue(field);
         });
 
+        const selectedImageId = state.editing?.ImageID ?? state.editing?.ID ?? null;
+        const selectedTempImageId = state.editing?.TempImageID ?? null;
+
+        if (selectedImageId !== null && selectedImageId !== undefined && selectedImageId !== '') {
+            payload.ImageID = selectedImageId;
+        }
+
+        if (selectedTempImageId !== null && selectedTempImageId !== undefined && selectedTempImageId !== '') {
+            payload.TempImageID = selectedTempImageId;
+        }
+
+        const requestId = window.ClientMaintenanceCore.requestId || '';
+
         return {
             ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
             ClientID: window.ClientMaintenanceCore.clientId || '',
+            RequestID: requestId,
+            ApplicationID: requestId,
             Payload: payload
+        };
+    };
+
+    const fetchSingleDocumentDetails = async (rowPayload) => {
+        if (!rowPayload) return rowPayload;
+
+        const imageId = rowPayload.ImageID ?? rowPayload.ID ?? null;
+        const tempImageId = rowPayload.TempImageID ?? null;
+        const requestedId = imageId ?? tempImageId;
+
+        if (requestedId === null || requestedId === undefined || requestedId === '') {
+            return rowPayload;
+        }
+
+        const requestId = window.ClientMaintenanceCore.requestId || '';
+        const response = await window.ClientMaintenanceDocumentsService.get({
+            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+            ClientID: window.ClientMaintenanceCore.clientId || '',
+            RequestID: requestId,
+            ApplicationID: requestId,
+            Payload: {
+                ImageID: requestedId,
+                TempImageID: tempImageId
+            }
+        });
+
+        const details = response?.Details ?? response?.data?.Details ?? response?.data ?? null;
+        const single = Array.isArray(details) ? details[0] : details;
+        if (!single || typeof single !== 'object') {
+            return rowPayload;
+        }
+
+        return {
+            ...rowPayload,
+            ...single,
+            ImageID: single.ImageID ?? rowPayload.ImageID ?? rowPayload.ID ?? null,
+            TempImageID: single.TempImageID ?? rowPayload.TempImageID ?? null
         };
     };
 
@@ -173,30 +228,43 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     };
 
     setFieldsEnabled(false);
-    refreshDocumentsTable();
+    tabRoot._cmLoadData = (requestData) => refreshDocumentsTable(requestData);
+    window.ClientMaintenanceCore.registerTabLoadFunction('Documents', (requestData) => refreshDocumentsTable(requestData));
 
-    table?.addEventListener('click', (event) => {
+    table?.addEventListener('click', async (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
         table.querySelectorAll('tr[data-index]').forEach((tr) => {
             tr.classList.toggle('is-selected', tr === row);
         });
-        const payload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
-        if (payload) {
+        const basePayload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
+        let payload = basePayload;
+        if (basePayload) {
+            try {
+                payload = await fetchSingleDocumentDetails(basePayload);
+            } catch {
+                payload = basePayload;
+            }
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
         setFieldsEnabled(false);
     });
 
-    table?.addEventListener('dblclick', (event) => {
+    table?.addEventListener('dblclick', async (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
         table.querySelectorAll('tr[data-index]').forEach((tr) => {
             tr.classList.toggle('is-selected', tr === row);
         });
-        const payload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
-        if (payload) {
+        const basePayload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
+        let payload = basePayload;
+        if (basePayload) {
+            try {
+                payload = await fetchSingleDocumentDetails(basePayload);
+            } catch {
+                payload = basePayload;
+            }
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
@@ -262,11 +330,17 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
     
     const searchBtn = tabRoot.querySelector('[data-document-action="lookup-receiver"]');
     if (!searchBtn) return;
+
+    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    if (!appCore) {
+        console.warn('[Documents] AppCore not available for SearchModal');
+        return;
+    }
     
     // Get or create SearchModal instance
     let searchModal = window._documentsSearchModal;
     if (!searchModal && window.SearchModal) {
-        searchModal = new window.SearchModal();
+        searchModal = new window.SearchModal(appCore);
         window._documentsSearchModal = searchModal;
     }
     
@@ -280,25 +354,25 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
         const currentValue = tabRoot.querySelector('[data-document-field="ReceivedBy"]')?.value || '';
         
         searchModal.open({
-            title: 'Find Document Receiver',
-            tableID: 'ClientID',
+            title: 'Find User for Document Receiver',
+            tableID: 'OperatorID',
             moduleID: moduleId,
             searchFields: [
-                { name: 'ClientID', label: 'Client ID', column: 'ClientID', value: currentValue },
-                { name: 'Name', label: 'Client Name', column: 'Name' }
+                { name: 'OperatorID', label: 'Operator ID', column: 'OperatorID', value: currentValue },
+                { name: 'ClientName', label: 'User Name', column: 'ClientName' }
             ],
             autoSearch: false,
             onSelect: (record) => {
-                // Populate the received by field with the selected client ID
+                // Populate the received by field with the selected operator ID
                 const receivedByField = tabRoot.querySelector('[data-document-field="ReceivedBy"]');
                 if (receivedByField) {
-                    receivedByField.value = record.ClientID || '';
+                    receivedByField.value = record.OperatorID || record.LoginID || record.UserID || '';
                 }
                 
                 // Also update the display name if available
                 const receivedByNameField = tabRoot.querySelector('#txt_documentReceivedByName');
                 if (receivedByNameField) {
-                    receivedByNameField.value = record.Name || '';
+                    receivedByNameField.value = record.ClientName || record.Name || record.UserName || '';
                 }
             }
         });
