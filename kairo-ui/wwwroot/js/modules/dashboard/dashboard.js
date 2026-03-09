@@ -90,6 +90,28 @@ let modalIndex = 1050;
 //Global openKairoWindow function to open menu windows
 function openKairoWindow(module) {
 
+    // Check if a static modal already exists in the DOM (e.g. MVC-migrated modules)
+    var existingEl = document.getElementById('modal_' + module.modalId);
+    if (existingEl) {
+        var $existing = $(existingEl);
+        modalIndex += 10;
+        $existing.css('z-index', modalIndex);
+
+        $existing.off('shown.bs.modal.kairoStatic').on('shown.bs.modal.kairoStatic', function () {
+            $('.modal-backdrop').not('.stacked').last()
+                .css('z-index', modalIndex - 1)
+                .addClass('stacked');
+            attachWindowControls(existingEl);
+        });
+
+        var staticModal = new bootstrap.Modal(existingEl);
+        staticModal.show();
+
+        if (startMenu) startMenu.style.display = 'none';
+        resetStartMenuViews();
+        return;
+    }
+
     let moduleUrl = new URL(module.route, window.location.origin);
     moduleUrl.searchParams.set("ModuleID", module.moduleId);
     moduleUrl.searchParams.set("__r", Date.now().toString());

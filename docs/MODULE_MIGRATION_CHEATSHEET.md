@@ -286,7 +286,7 @@ namespace kairo_ui.Controllers.{ModuleName}
                     return Unauthorized(new { success = false, message = "Not authenticated" });
 
                 var result = await _oldApiService.CreateAsync<ResponseDetail<EntityResponse>>(
-                    "OldApiName",
+                    "OldApi",
                     OldApiDBConstants.UPDATE{ENTITY},
                     requestData
                 );

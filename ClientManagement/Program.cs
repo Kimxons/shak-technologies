@@ -86,6 +86,9 @@ try
     builder.Services.AddScoped<IClientEmploymentRepo, ClientEmploymentRepo>();
     builder.Services.AddScoped<IClientIndividualRepo, ClientIndividualRepo>();
     builder.Services.AddScoped<IClientCorporateRepo, ClientCorporateRepo>();
+    builder.Services.AddScoped<IClientProductAndServicesRepo, ClientProductAndServicesRepo>();
+    builder.Services.AddScoped<IClientOtherDetailsRepo, ClientOtherDetailsRepo>();
+    builder.Services.AddScoped<IClientSpecialOffersRepo, ClientSpecialOffersRepo>();
 
     builder.Services.AddAuthentication("oauth2")
                .AddJwtBearer(options =>

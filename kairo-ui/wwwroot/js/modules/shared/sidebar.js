@@ -49,6 +49,28 @@
         primaryRecordId: null,
         moduleName: null
     };
+    let globalHandlersBound = false;
+
+    /**
+     * Get parent module context from various possible sources
+  * This allows submodules to access parent record data
+     */
+    function getParentModuleContext() {
+        // Try to get context from ClientMaintenanceCore if it exists
+ if (window.ClientMaintenanceCore && typeof window.ClientMaintenanceCore.getParentContext === 'function') {
+            return window.ClientMaintenanceCore.getParentContext();
+        }
+        
+  // Fallback to mainModuleState
+return {
+       moduleName: mainModuleState.moduleName,
+       primaryRecordId: mainModuleState.primaryRecordId,
+      isMainRecordLoaded: mainModuleState.isMainRecordLoaded,
+            // Add commonly used aliases
+            clientId: mainModuleState.primaryRecordId,
+       selectedId: mainModuleState.primaryRecordId
+ };
+    }
 
     // ============================================================================
     // DOM HELPERS
@@ -233,6 +255,21 @@
         iframe.onload = function () {
             applyThemeVarsToChildIframe();
             showPageLoader(false);
+            
+            // Send parent context to the child iframe after it loads
+            try {
+                const parentContext = getParentModuleContext();
+                if (parentContext && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        type: 'parentContext',
+                        action: 'parentContextLoaded',
+                        data: parentContext
+                    }, '*');
+                    console.log('[Sidebar] Sent parent context to child iframe:', parentContext);
+                }
+            } catch (error) {
+                console.warn('[Sidebar] Could not send parent context to iframe:', error);
+            }
         };
 
         if (cacheBust) {
@@ -600,6 +637,9 @@
     // ============================================================================
 
     function wireMessageHandlers() {
+        if (globalHandlersBound) return;
+        globalHandlersBound = true;
+
         const { overlay } = getOverlayElements();
 
         if (overlay) {
@@ -633,6 +673,14 @@
     // ============================================================================
 
     function initSidebar(options = {}) {
+        const sidebar = document.getElementById('main-sidebar');
+        if (!sidebar) return;
+
+        if (sidebar.dataset.sidebarInitialized === 'true' && !options.force) {
+            return;
+        }
+
+        sidebar.dataset.sidebarInitialized = 'true';
         console.log('[Sidebar] Initializing...');
 
         // Update main module state if provided
@@ -669,29 +717,59 @@
         setMainRecordLoaded: (isLoaded, primaryRecordId = null) => {
             mainModuleState.isMainRecordLoaded = isLoaded;
             mainModuleState.primaryRecordId = primaryRecordId;
-        },
+
+     // Log state change for debugging
+      console.log('[Sidebar] Main record state updated:', { isLoaded, primaryRecordId });
+     },
 
         getState: () => ({ ...mainModuleState, activeSubmodule }),
+        
+        /**
+         * Get parent module context for use by submodules
+       */
+ getParentContext: getParentModuleContext,
 
         // Section management
         setSectionOpen,
 
-        // Theme management
+      // Theme management
         applyThemeVarsToChildIframe
-    };
+  };
 
     // Expose to global scope
     global.SidebarManager = SidebarManager;
 
+    function observeSidebarInsertion() {
+        if (document.getElementById('main-sidebar')) return;
+        if (typeof MutationObserver === 'undefined') return;
+
+        const observer = new MutationObserver(() => {
+            if (document.getElementById('main-sidebar')) {
+                initSidebar();
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
     // Auto-initialize on DOMContentLoaded if sidebar exists
+    // Skip auto-init if sidebar has data-no-auto-init attribute (pages with their own sidebar management)
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('main-sidebar')) {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar && !sidebar.hasAttribute('data-no-auto-init')) {
                 initSidebar();
             }
         });
-    } else if (document.getElementById('main-sidebar')) {
-        initSidebar();
+    } else {
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar && !sidebar.hasAttribute('data-no-auto-init')) {
+            initSidebar();
+        }
     }
+
+    // Observe sidebar insertion for dynamic pages
+    observeSidebarInsertion();
 
 })(window);

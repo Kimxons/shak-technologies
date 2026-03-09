@@ -1,0 +1,304 @@
+@{
+    ViewData["Title"] = "Center Member Maintenance";
+    Layout = "_ApplicationLayout";
+}
+
+<!-- Toast Container -->
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="main-sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+                <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules" aria-describedby="submoduleSearchClear">
+                <i class="bi bi-search sidebar-search__icon"></i>
+                <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
+                    <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+                        <div class="nav-header__content">
+                            <i class="bi bi-folder-fill nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">Data Entry</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <span class="nav-badge">1</span>
+                            <button type="button" class="nav-arrow nav-arrow--card menu-arrow" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="menu-dataentry">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card menu-items" id="menu-dataentry">
+                        <div class="sidebar-item sidebar-item--enhanced menu-item" data-cmm-open="dataEntry/center-member-scheme.html" data-tooltip="Center Member Scheme">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-people-fill sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Center Member Scheme</div>
+                                    <div class="sidebar-item__description">Manage member schemes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-section nav-section--card" data-nav-section data-section-name="Recent Activities">
+                    <div class="nav-header nav-header--card" data-tooltip="Recent Activities">
+                        <div class="nav-header__content">
+                            <i class="bi bi-clock-history nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">Recent Activities</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <button type="button" class="nav-arrow nav-arrow--card menu-arrow" aria-label="Toggle Recent Activities" aria-expanded="false" aria-controls="menu-recent">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card menu-items" id="menu-recent" hidden></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Content -->
+        <div class="form-content">
+            <div class="form-card" data-main-form>
+                <div id="formToast" class="alert d-none mt-3" role="alert"></div>
+
+                <!-- Center Member Search Section -->
+                <div class="form-section" data-section="member-search">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-search"></i>Center Member Search</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Center Member Search" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-1">
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="ReferenceNo">Reference No.</label>
+                                <input type="text" class="form-control" id="ReferenceNo" name="ReferenceNo" />
+                            </div>
+                            <div class="col-12 col-lg-2">
+                                <label class="label-blue" for="Series">Series</label>
+                                <input type="text" class="form-control" id="Series" name="Series" />
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <label class="label-blue" for="ClientId">Client ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="ClientId" name="ClientId" class="kairo-control__id" aria-label="Client ID" />
+                                    <input type="text" id="ClientName" name="ClientName" class="kairo-control__name" aria-label="Client Name" placeholder="Client Name" readonly />
+                                    <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Lookup Client" data-cmm-lookup="client">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col split-50-50">
+                            <div class="col">
+                                <label class="label-blue" for="CenterId">Center ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="CenterId" name="CenterId" class="kairo-control__id" aria-label="Center ID" />
+                                    <input type="text" id="CenterName" name="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly />
+                                    <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Lookup Center" data-cmm-lookup="center">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="GroupId">Group ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="GroupId" name="GroupId" class="kairo-control__id" aria-label="Group ID" />
+                                    <input type="text" id="GroupName" name="GroupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly />
+                                    <button type="button" class="btn-lookup kairo-control__lookup" aria-label="Lookup Group" data-cmm-lookup="group">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Member Details Section -->
+                <div class="form-section" data-section="member-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-person-vcard"></i>Center Member Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Center Member Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="JoinOn">Join On</label>
+                                <input type="date" class="form-control" id="JoinOn" name="JoinOn" />
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="MaxGroupLoans">Maximum Group Loans</label>
+                                <input type="number" class="form-control" id="MaxGroupLoans" name="MaxGroupLoans" min="0" step="1" />
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="MaxGroupLoanLimit">Maximum Group Loan Limit</label>
+                                <input type="number" class="form-control" id="MaxGroupLoanLimit" name="MaxGroupLoanLimit" min="0" step="0.01" />
+                            </div>
+                            <div class="col">
+                                <label for="MaxOtherLoans">Maximum Other Loans</label>
+                                <input type="number" class="form-control" id="MaxOtherLoans" name="MaxOtherLoans" min="0" step="1" />
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label for="MaxOtherLoanLimit">Maximum Other Loan Limit</label>
+                                <input type="number" class="form-control" id="MaxOtherLoanLimit" name="MaxOtherLoanLimit" min="0" step="0.01" />
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="CenterLeader">Center Leader</label>
+                                <select class="form-control" id="CenterLeader" name="CenterLeader">
+                                    <option selected></option>
+                                    <option>Yes</option>
+                                    <option>No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="form-section" data-section="behind-scene">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-info-circle"></i>Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label for="ClientType">Client Type</label>
+                                <input class="form-control" id="ClientType" name="ClientType" disabled />
+                            </div>
+                            <div class="col">
+                                <label for="SavingsAccountId">Savings A/C ID</label>
+                                <input class="form-control" id="SavingsAccountId" name="SavingsAccountId" disabled />
+                            </div>
+                            <div class="col">
+                                <label for="ClientStatus">Client Status</label>
+                                <input class="form-control" id="ClientStatus" name="ClientStatus" disabled />
+                            </div>
+                            <div class="col">
+                                <label for="SavingsAmount">Savings Amount</label>
+                                <input class="form-control" id="SavingsAmount" name="SavingsAmount" disabled />
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label for="RegistrationDate">Registration Date</label>
+                                <input class="form-control" id="RegistrationDate" name="RegistrationDate" disabled />
+                            </div>
+                            <div class="col">
+                                <label for="ClosedDate">Closed Date</label>
+                                <input class="form-control" id="ClosedDate" name="ClosedDate" disabled />
+                            </div>
+                            <div class="col">
+                                <label for="ExitDate">Exit Date</label>
+                                <input class="form-control" id="ExitDate" name="ExitDate" disabled />
+                            </div>
+                            <div class="col">
+                                <label for="ExitReason">Exit Reason</label>
+                                <input class="form-control" id="ExitReason" name="ExitReason" disabled />
+                            </div>
+                        </div>
+
+                        <div class="audit-section">
+                            <div class="audit-block">
+                                <div class="audit-item">
+                                    <label for="CreatedBy">Created By</label>
+                                    <input class="form-control" id="CreatedBy" name="CreatedBy" disabled />
+                                </div>
+                                <div class="audit-item">
+                                    <label for="CreatedOn">Created On</label>
+                                    <input class="form-control" id="CreatedOn" name="CreatedOn" disabled />
+                                </div>
+                            </div>
+                            <div class="audit-block">
+                                <div class="audit-item">
+                                    <label for="ModifiedBy">Modified By</label>
+                                    <input class="form-control" id="ModifiedBy" name="ModifiedBy" disabled />
+                                </div>
+                                <div class="audit-item">
+                                    <label for="ModifiedOn">Modified On</label>
+                                    <input class="form-control" id="ModifiedOn" name="ModifiedOn" disabled />
+                                </div>
+                            </div>
+                            <div class="audit-block">
+                                <div class="audit-item">
+                                    <label for="SupervisedBy">Supervised By</label>
+                                    <input class="form-control" id="SupervisedBy" name="SupervisedBy" disabled />
+                                </div>
+                                <div class="audit-item">
+                                    <label for="SupervisedOn">Supervised On</label>
+                                    <input class="form-control" id="SupervisedOn" name="SupervisedOn" disabled />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" type="button" aria-label="Previous Record" data-cmm-nav="previous" disabled><i class="bi bi-chevron-left"></i></button>
+                <span>Record</span>
+                <button class="btn-nav green" type="button" aria-label="Next Record" data-cmm-nav="next" disabled><i class="bi bi-chevron-right"></i></button>
+            </div>
+
+            <button class="btn-action underline" type="button" data-cmm-action="reinstate" aria-label="Reinstate" disabled><i class="bi bi-arrow-counterclockwise me-1"></i>Reinstate</button>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-view" type="button" data-cmm-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" type="button" data-cmm-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" type="button" data-cmm-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" type="button" data-cmm-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action" type="button" data-cmm-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" data-cmm-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docked inline popup (DataEntry) -->
+    <div class="cmm-dataentry-inline" id="centerMemberMaintenanceDataEntryModal" hidden>
+        <div class="cmm-de-titlebar" aria-label="Submodule title bar">
+            <div class="cmm-de-titlebar-left">
+                <i class="bi bi-window-stack cmm-de-titlebar-icon" aria-hidden="true"></i>
+                <span class="cmm-de-titlebar-text" data-cmm-de-title>Submodule</span>
+            </div>
+            <div class="cmm-de-titlebar-right" aria-label="Submodule actions">
+                <button type="button" class="cmm-de-btn cmm-de-btn--close" data-cmm-de-close aria-label="Close" title="Close">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+        <iframe id="centerMemberMaintenanceDataEntryFrame" title="Center Member Maintenance Submodule" src="about:blank"></iframe>
+    </div>
+</div>
+
+<!-- SearchModal container -->
+<div id="searchModalContainer"></div>
+
+@section Scripts {
+    <script src="~/js/modules/microfinance/center-member-maintenance.js"></script>
+}

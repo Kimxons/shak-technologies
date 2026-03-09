@@ -50,26 +50,22 @@ window.AccountNotesModule = (function () {
      * Get account context from parent page
      */
     function getAccountContext() {
-        // Try to get from parent page's AccountMaintenanceState
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
+        // Module is injected into the same page DOM (not an iframe),
+        // so read directly from window.AccountMaintenanceState
+        const ps = window.AccountMaintenanceState;
+        if (ps && (ps.AccountID || ps.accountId)) {
+            state.accountId = ps.AccountID || ps.accountId;
+            state.branchId  = ps.OurBranchID || ps.BranchID || ps.branchId;
+            state.operatorId = ps.OperatorID || ps.operatorId;
         } else {
             // Fallback to sessionStorage
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
+            state.accountId  = sessionStorage.getItem('currentAccountID');
+            state.branchId   = sessionStorage.getItem('currentBranchID');
+            state.operatorId = sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM';
         }
 
-        // Validate context
-        if (!state.branchId) {
-            console.warn('[AccountNotes] BranchID is missing from context');
-        }
-        if (!state.accountId) {
-             console.warn('[AccountNotes] AccountID is missing from context');
-        }
+        if (!state.branchId)  console.warn('[AccountNotes] BranchID is missing from context');
+        if (!state.accountId) console.warn('[AccountNotes] AccountID is missing from context');
     }
 
     /**
