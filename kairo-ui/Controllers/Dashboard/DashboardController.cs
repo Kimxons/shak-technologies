@@ -317,7 +317,7 @@ namespace kairo_ui.Controllers.Dashboard
                 // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
                 // Main modules are automatically cached and shared across requests
                 var mainModules = await _apiCachedService.GetMainModulesAsync(lsmodules, userName);
-     
+
                 _logger.LogInformation("Fetched {Count} main modules", mainModules.Count);
                 return mainModules;
             }
@@ -335,24 +335,24 @@ namespace kairo_ui.Controllers.Dashboard
         private async Task<List<CBS.Entities.SystemCore.Module>> FetchModules()
         {
             try
-         {
-       _logger.LogInformation("Fetching modules");
-              string auth_userJson = HttpContext.Session.GetString("auth_user")!;
-      JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
-      var userName = jsonAuthUser.RootElement.GetProperty("username").GetString()!;
-
-    // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
-   // Modules are automatically cached and shared across requests
-          var modules = await _apiCachedService.GetModulesAsync(userName);
-        
- _logger.LogInformation("Fetched {Count} modules", modules.Count);
-  return modules;
-    }
-        catch (Exception ex)
             {
-       _logger.LogError(ex, "Error fetching modules");
-        return [];
-         }
+                _logger.LogInformation("Fetching modules");
+                string auth_userJson = HttpContext.Session.GetString("auth_user")!;
+                JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
+                var userName = jsonAuthUser.RootElement.GetProperty("username").GetString()!;
+
+                // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
+                // Modules are automatically cached and shared across requests
+                var modules = await _apiCachedService.GetModulesAsync(userName);
+
+                _logger.LogInformation("Fetched {Count} modules", modules.Count);
+                return modules;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching modules");
+                return [];
+            }
         }
 
         /// <summary>
@@ -389,7 +389,8 @@ namespace kairo_ui.Controllers.Dashboard
                 _logger.LogInformation("Fetching branches for user {UserId}", userId);
                 //var endpoint = $"BranchSetting?userId={userId}";
                 var response = await _apiService.GetAsync<BranchSetting>("IdentityAccessManagentApi", "BranchSetting", new KeyValuePair<string, object>("userId", userId));
-                return response?.ToList() ?? [];
+                //return response?.ToList() ?? [];
+                return [response];
             }
             catch (Exception ex)
             {

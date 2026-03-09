@@ -119,6 +119,32 @@ window.initClientMaintenancePersonalTab = function (tabRoot, moduleId) {
     // Initialize Opened By user lookup
     initPersonalUserLookup(tabRoot, moduleId);
     
+    // Initialize all form fields as readonly until edit mode
+    tabRoot.querySelectorAll('input, select, textarea').forEach((field) => {
+        if (field.type !== 'button' && field.type !== 'submit') {
+            field.readOnly = true;
+            if (field.tagName === 'SELECT') {
+                field.disabled = true;
+            }
+        }
+    });
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        tabRoot.querySelectorAll('input, select, textarea, button[data-personal-action]').forEach((field) => {
+            if (field.type === 'button' || field.type === 'submit') {
+                // Enable/disable action buttons
+                if (field.dataset.personalAction === 'lookup-opened-by') {
+                    field.disabled = !isEditMode;
+                }
+            } else if (field.tagName === 'SELECT') {
+                field.disabled = !isEditMode;
+            } else if (field.type !== 'hidden') {
+                field.readOnly = !isEditMode;
+            }
+        });
+    };
+    
     // Note: Dropdown options are now server-side rendered in _ClientPersonal.cshtml
     // No client-side loading necessary
 };

@@ -27,6 +27,13 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     const form = tabRoot.querySelector('[data-documents-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="documents"]');
 
+    const setEntryActionButtons = (enabled) => {
+        const updateBtn = tabRoot.querySelector('[data-document-action="update"]');
+        const clearBtn = tabRoot.querySelector('[data-document-action="clear"]');
+        if (updateBtn) updateBtn.disabled = !enabled;
+        if (clearBtn) clearBtn.disabled = !enabled;
+    };
+
     const setFieldsEnabled = (enabled) => {
         state.enabled = enabled;
         form.querySelectorAll('[data-document-field]').forEach((field) => {
@@ -34,6 +41,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         });
         const lookupBtn = form.querySelector('[data-document-action="lookup-receiver"]');
         if (lookupBtn) lookupBtn.disabled = !enabled;
+        setEntryActionButtons(enabled);
     };
 
     const extractList = (response) => {
@@ -99,8 +107,12 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     };
 
     const refreshDocumentsTable = async (requestData) => {
-        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
-        if (!clientId) {
+        // Get client ID and request ID from parent context
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
+        const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
+        
+        // Need at least one identifier (ClientID or RequestID) to fetch documents
+        if (!clientId && !requestId) {
             renderDocumentsTable([]);
             return;
         }
@@ -108,9 +120,11 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             const response = await window.ClientMaintenanceDocumentsService.get({
                 ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
                 ClientID: clientId,
-                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
+                RequestID: requestId
             });
+            console.log(response);
             const rows = normalizeDocumentRows(extractList(response));
+            console.log(rows);
             renderDocumentsTable(rows);
         } catch (error) {
             window.ClientMaintenanceCore.showToast(`Documents load failed - ${error.message}`, 'error');
@@ -231,6 +245,26 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     tabRoot._cmLoadData = (requestData) => refreshDocumentsTable(requestData);
     window.ClientMaintenanceCore.registerTabLoadFunction('Documents', (requestData) => refreshDocumentsTable(requestData));
 
+    // Initialize all action buttons as disabled until edit mode
+    const newBtn = tabRoot.querySelector('[data-document-action="new"]');
+    if (newBtn) newBtn.disabled = true;
+    enableGridRowActions(tabRoot, false);
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        if (isEditMode) {
+            // Enable New button to add documents in edit mode
+            const newBtn = tabRoot.querySelector('[data-document-action="new"]');
+            if (newBtn) newBtn.disabled = false;
+        } else {
+            // Disable action buttons when exiting edit mode
+            setFieldsEnabled(false);
+            const newBtn = tabRoot.querySelector('[data-document-action="new"]');
+            if (newBtn) newBtn.disabled = true;
+            enableGridRowActions(tabRoot, false);
+        }
+    };
+
     table?.addEventListener('click', async (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
@@ -249,6 +283,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         }
         state.editing = payload || { index: row.dataset.index };
         setFieldsEnabled(false);
+        // Enable action buttons (update, remove, clear) when row is selected
+        enableGridRowActions(tabRoot, true);
     });
 
     table?.addEventListener('dblclick', async (event) => {
@@ -271,14 +307,19 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         setFieldsEnabled(true);
     });
 
-    form.querySelectorAll('[data-document-action]').forEach((button) => {
+    tabRoot.querySelectorAll('[data-document-action]').forEach((button) => {
         button.addEventListener('click', async () => {
             const action = button.dataset.documentAction;
             if (!action) return;
+            if (!['new', 'alter', 'clear', 'remove', 'update'].includes(action)) {
+                return;
+            }
 
             if (action === 'new') {
                 resetForm();
                 setFieldsEnabled(true);
+                // Disable New button after clicking
+                button.disabled = true;
                 return;
             }
 
@@ -294,7 +335,31 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             if (action === 'clear') {
                 resetForm();
                 setFieldsEnabled(false);
+                enableGridRowActions(tabRoot, false);
+                // Re-enable New button
+                const newBtn = tabRoot.querySelector('[data-document-action="new"]');
+                if (newBtn) newBtn.disabled = false;
                 return;
+            }
+
+            // Confirm before removing
+            if (action === 'remove') {
+                if (!state.editing) {
+                    window.ClientMaintenanceCore.showToast('Select a document to remove.', 'warning');
+                    return;
+                }
+                
+                const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+                let confirmed = false;
+                if (!appCore || !appCore.showConfirmation) {
+                    confirmed = window.confirm('Are you sure you want to remove this document?');
+                } else {
+                    confirmed = await appCore.showConfirmation(
+                        'Confirm Remove',
+                        'Are you sure you want to remove this document?'
+                    );
+                }
+                if (!confirmed) return;
             }
 
             const request = buildPayload();
@@ -314,6 +379,10 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 window.ClientMaintenanceCore.showToast(`Documents ${action} completed`, 'success');
                 resetForm();
                 setFieldsEnabled(false);
+                enableGridRowActions(tabRoot, false);
+                // Re-enable New button after successful save
+                const newBtn = tabRoot.querySelector('[data-document-action="new"]');
+                if (newBtn) newBtn.disabled = false;
                 await refreshDocumentsTable();
             } catch (error) {
                 window.ClientMaintenanceCore.showToast(`Documents ${action} failed - ${error.message}`, 'error');
