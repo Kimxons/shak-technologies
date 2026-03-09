@@ -339,7 +339,7 @@ namespace kairo_ui.Services
         private const string BASEIMAGES = "api/Images";
         public const string UPLOAD_IMAGE = BASEIMAGES;
         public const string GET_IMAGE_BY_ID = BASEIMAGES + "/{0}"; // {imageId}
-        public const string GET_IMAGES_BY_CLIENT = BASEIMAGES + "/client/{0}"; // {clientId}
+        public const string GET_IMAGES_BY_CLIENT = BASEIMAGES + "/client?clientId={0}"; // {clientId}
         public const string DOWNLOAD_IMAGE = BASEIMAGES + "/{0}/download"; // {imageId}
         public const string GET_IMAGE_THUMBNAIL = BASEIMAGES + "/{0}/thumbnail"; // {imageId}
         public const string UPDATE_IMAGE = BASEIMAGES + "/{0}"; // {imageId}
@@ -373,8 +373,8 @@ namespace kairo_ui.Services
         public const string DELETE_TEMP_IMAGE = BASETEMPIMAGES + "/{0}"; // {tempImageId}
         public const string GET_TEMP_IMAGES_BY_TEMP_CLIENT = BASETEMPIMAGES + "/{0}"; // {tempClientId}
         public const string DELETE_TEMP_IMAGES_BY_TEMP_CLIENT = BASETEMPIMAGES + "/{0}"; // {tempClientId}
-        public const string GET_TEMP_IMAGES_BY_CLIENT = BASETEMPIMAGES + "/client/{0}"; // {clientId}
-        public const string DELETE_TEMP_IMAGES_BY_CLIENT = BASETEMPIMAGES + "/client/{0}"; // {clientId}
+        public const string GET_TEMP_IMAGES_BY_CLIENT = BASETEMPIMAGES + "/client?clientId={0}&requestId={1}"; // {clientId}
+        public const string DELETE_TEMP_IMAGES_BY_CLIENT = BASETEMPIMAGES + "/client?clientId={0}&requestId={1}"; // {clientId}
         public const string GET_TEMP_IMAGES_BY_ACCOUNT = BASETEMPIMAGES + "/account/{0}"; // {accountId}
         public const string DELETE_TEMP_IMAGES_BY_ACCOUNT = BASETEMPIMAGES + "/account/{0}"; // {accountId}
 
@@ -382,7 +382,7 @@ namespace kairo_ui.Services
         private const string BASEIMAGEACCOUNTPREAPPROVALS = "api/ImageAccountPreApprovals";
         public const string UPLOAD_IMAGE_ACCOUNT_PREAPPROVAL = BASEIMAGEACCOUNTPREAPPROVALS;
         public const string GET_IMAGE_ACCOUNT_PREAPPROVAL_BY_ID = BASEIMAGEACCOUNTPREAPPROVALS + "/{0}"; // {imageId}
-        public const string GET_IMAGE_ACCOUNT_PREAPPROVALS_BY_CLIENT = BASEIMAGEACCOUNTPREAPPROVALS + "/client/{0}"; // {clientId}
+        public const string GET_IMAGE_ACCOUNT_PREAPPROVALS_BY_CLIENT = BASEIMAGEACCOUNTPREAPPROVALS + "/client?clientId={0}&requestId={1}"; // {clientId}
         public const string DOWNLOAD_IMAGE_ACCOUNT_PREAPPROVAL = BASEIMAGEACCOUNTPREAPPROVALS + "/{0}/download"; // {imageId}
         public const string GET_IMAGE_ACCOUNT_PREAPPROVAL_THUMBNAIL = BASEIMAGEACCOUNTPREAPPROVALS + "/{0}/thumbnail"; // {imageId}
         public const string UPDATE_IMAGE_ACCOUNT_PREAPPROVAL = BASEIMAGEACCOUNTPREAPPROVALS + "/{0}"; // {imageId}

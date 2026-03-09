@@ -372,6 +372,23 @@ window.initClientMaintenanceDemiseDetails = function (moduleRoot, moduleId) {
     // Register load function for external calls
     moduleRoot._cmLoadData = (requestData) => refreshTable(requestData);
 
+    // Edit mode handler - called from main client maintenance view
+    moduleRoot._cmSetEditMode = (isEditMode) => {
+        if (isEditMode) {
+            // Enable Add button to add demise details in edit mode
+            const addBtn = moduleRoot.querySelector('#btn_addDemiseDetail');
+            if (addBtn) addBtn.disabled = false;
+        } else {
+            // Disable action buttons when exiting edit mode
+            const addBtn = moduleRoot.querySelector('#btn_addDemiseDetail');
+            if (addBtn) addBtn.disabled = true;
+            const editBtn = moduleRoot.querySelector('#btn_editDemiseDetail');
+            const deleteBtn = moduleRoot.querySelector('#btn_deleteDemiseDetail');
+            if (editBtn) editBtn.disabled = true;
+            if (deleteBtn) deleteBtn.disabled = true;
+        }
+    };
+
     // Initial state
     setFormState('view');
     refreshTable({});
