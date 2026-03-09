@@ -19,11 +19,12 @@ window.StopPaymentVoidModule = (function () {
         }
     };
 
-    // API Endpoints (Simplified for AppCore.invokeControllerAsync)
+    // API Endpoints
     const API = {
-        GET: 'api/get-stop-payments',
-        ADD: 'api/add-stop-payment',
-        UPDATE: 'api/update-stop-payment'
+        GET: 'AccountsMaintenance/api/get-stop-payments',
+        ADD: 'AccountsMaintenance/api/add-stop-payment',
+        UPDATE: 'AccountsMaintenance/api/update-stop-payment',
+        DELETE: 'AccountsMaintenance/api/delete-stop-payment'
     };
 
     /**
@@ -82,10 +83,11 @@ window.StopPaymentVoidModule = (function () {
                 OurBranchID: state.context.branchId
             };
 
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, requestData);
+            const result = await AppCore.invokeControllerAsync(API.GET, requestData);
 
-            if (result && result.Success) {
-                state.records = result.Data || [];
+            const isOk = result && (result.Success || result.success || result.ResponseCode === '00');
+            if (isOk) {
+                state.records = result.Data || result.data || result.Details || [];
                 renderGrid();
 
                 if (state.records.length > 0) {
@@ -94,7 +96,7 @@ window.StopPaymentVoidModule = (function () {
                     clearForm();
                 }
             } else {
-                AppCore.showMsg(result?.ErrorMessage || 'Failed to load stop payment records.', 'error');
+                AppCore.showMsg(result?.ErrorMessage || result?.message || result?.ResponseMessage || 'Failed to load stop payment records.', 'error');
             }
         } catch (error) {
             console.error(`[${state.submoduleName}] Load Error:`, error);
@@ -302,15 +304,16 @@ window.StopPaymentVoidModule = (function () {
             if (!confirmed) return;
 
             AppCore.showLoading(true, 'Saving stop payment record...');
-            const endpoint = 'AccountsMaintenance/' + (isAdd ? API.ADD : API.UPDATE);
+            const endpoint = isAdd ? API.ADD : API.UPDATE;
             const result = await AppCore.invokeControllerAsync(endpoint, payload);
 
-            if (result && result.Success) {
+            const isOk = result && (result.Success || result.success || result.ResponseCode === '00');
+            if (isOk) {
                 AppCore.showMsg('Stop payment record saved successfully.', 'success');
                 setMode('VIEW');
                 await loadData();
             } else {
-                AppCore.showMsg(result?.ErrorMessage || 'Failed to save record.', 'error');
+                AppCore.showMsg(result?.ErrorMessage || result?.message || result?.ResponseMessage || 'Failed to save record.', 'error');
             }
         } catch (error) {
             console.error(`[${state.submoduleName}] Save Error:`, error);
@@ -344,11 +347,12 @@ window.StopPaymentVoidModule = (function () {
 
             const result = await AppCore.invokeControllerAsync(API.DELETE, requestData);
 
-            if (result && result.Success) {
+            const isOk = result && (result.Success || result.success || result.ResponseCode === '00');
+            if (isOk) {
                 AppCore.showMsg('Stop payment record voided successfully.', 'success');
                 await loadData();
             } else {
-                AppCore.showMsg(result?.ErrorMessage || 'Failed to void record.', 'error');
+                AppCore.showMsg(result?.ErrorMessage || result?.message || result?.ResponseMessage || 'Failed to void record.', 'error');
             }
         } catch (error) {
             console.error(`[${state.submoduleName}] Void Error:`, error);

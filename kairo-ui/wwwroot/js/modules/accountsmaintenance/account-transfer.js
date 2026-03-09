@@ -10,8 +10,8 @@ window.AccountTransferModule = (function () {
     };
 
     const API = {
-        GET: 'api/get-account-transfer-details',
-        UPDATE: 'api/add-account-transfer-details'
+        GET: 'AccountsMaintenance/api/get-account-transfer-details',
+        UPDATE: 'AccountsMaintenance/api/add-account-transfer-details'
     };
 
     /**
@@ -94,7 +94,7 @@ window.AccountTransferModule = (function () {
         }
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, {
+            const result = await AppCore.invokeControllerAsync(API.GET, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -175,7 +175,7 @@ window.AccountTransferModule = (function () {
         };
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.UPDATE, payload);
+            const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
             if (result && result.success) {
                 showMsg(result.message || 'Account transfer saved successfully', 'success');
                 loadData();

@@ -12,11 +12,10 @@ window.AccountRemindersModule = (function () {
     };
 
     const API = {
-        GET: 'get-account-reminders',
-        SAVE: 'save-account-reminder', // Handles both add and update in backend usually, or mapped in orchestrator
-        ADD: 'add-account-reminder',
-        UPDATE: 'update-account-reminder',
-        DELETE: 'delete-account-reminder'
+        GET: 'AccountsMaintenance/api/get-account-reminders',
+        ADD: 'AccountsMaintenance/api/add-account-reminder',
+        UPDATE: 'AccountsMaintenance/api/update-account-reminder',
+        DELETE: 'AccountsMaintenance/api/delete-account-reminder'
     };
 
     /**
@@ -102,7 +101,7 @@ window.AccountRemindersModule = (function () {
         }
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.GET, {
+            const result = await AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
                 ReminderID: remId || 0,
                 OurBranchID: ctx.OurBranchID,
@@ -110,7 +109,8 @@ window.AccountRemindersModule = (function () {
                 Direction: 0
             });
 
-            if (result && result.success) {
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
                 const d = result.data || result.Details;
 
                 // Details often contains Details01 (Client) and Details02 (Reminders)
@@ -199,15 +199,16 @@ window.AccountRemindersModule = (function () {
 
         try {
             const endpoint = isAdd ? API.ADD : API.UPDATE;
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', endpoint, payload);
+            const result = await AppCore.invokeControllerAsync(endpoint, payload);
 
-            if (result && result.success) {
-                showMsg(result.message || 'Reminder saved successfully', 'success');
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Reminder saved successfully', 'success');
                 setMode('NONE');
                 loadData();
                 return true;
             } else {
-                showMsg(result?.message || 'Save failed', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Save failed', 'error');
                 return false;
             }
         } catch (err) {
@@ -221,11 +222,12 @@ window.AccountRemindersModule = (function () {
         const reminderId = val('reminderId');
         if (!reminderId) { showMsg('Please select a reminder to delete', 'warning'); return; }
 
-        if (!confirm('Are you sure you want to delete this reminder?')) return;
+        const confirmed = await AppCore.showConfirmation('Delete Reminder', 'Are you sure you want to delete this reminder?');
+        if (!confirmed) return;
 
         const ctx = getContext();
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.DELETE, {
+            const result = await AppCore.invokeControllerAsync(API.DELETE, {
                 AccountID: ctx.AccountID,
                 ReminderID: parseInt(reminderId),
                 OurBranchID: ctx.OurBranchID,
@@ -233,13 +235,14 @@ window.AccountRemindersModule = (function () {
                 NewRecord: 0
             });
 
-            if (result && result.success) {
-                showMsg(result.message || 'Reminder deleted', 'success');
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Reminder deleted', 'success');
                 state.reminderData = null;
                 clearForm();
                 loadData();
             } else {
-                showMsg(result?.message || 'Delete failed', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Delete failed', 'error');
             }
         } catch (err) {
             showMsg('Delete error: ' + err.message, 'error');

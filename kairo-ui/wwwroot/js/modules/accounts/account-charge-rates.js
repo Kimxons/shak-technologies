@@ -21,12 +21,35 @@
   // ============================================
   // UTILITIES
   // ============================================
+  
+  /**
+   * Get the current account context from parent AccountMaintenanceState
+   * Follows the same pattern as other submodules (account-documents.js, etc.)
+   */
+  function getContext() {
+    const ps = window.AccountMaintenanceState;
+    
+    // Secondary fallback: pull directly from parent form if global state is missing
+    const parentBranch = document.getElementById('BranchID')?.value || '';
+    const parentAcc = document.getElementById('AccountID')?.value || '';
+    
+    return {
+      AccountID: ps?.AccountID || parentAcc || sessionStorage.getItem('currentAccountID') || '',
+      OurBranchID: ps?.OurBranchID || parentBranch || sessionStorage.getItem('currentBranchID') || '',
+      OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
+    };
+  }
+
   function getOperatorId() {
-    return localStorage.getItem('OperatorID') || 'SYSTEM';
+    return getContext().OperatorID;
   }
 
   function getBranchId() {
-    return localStorage.getItem('OurBranchID') || localStorage.getItem('BranchID') || '';
+    return getContext().OurBranchID;
+  }
+  
+  function getAccountId() {
+    return getContext().AccountID;
   }
 
   function showMessage(message, type = 'info') {
@@ -189,15 +212,30 @@
 
     showLoading(true);
 
+    // Get account context from parent state
+    const ctx = getContext();
+    
+    // Validate account context
+    if (!ctx.AccountID) {
+      showMessage('No account selected. Please select an account first.', 'error');
+      showLoading(false);
+      return;
+    }
+    
+    if (!ctx.OurBranchID) {
+      showMessage('Branch ID not available. Please ensure an account is loaded.', 'error');
+      showLoading(false);
+      return;
+    }
+
     const requestData = {
-      // OurBranchID: getBranchId(),
-      OurBranchID: '1201',
-      AccountID: '0120135500001',
+      OurBranchID: ctx.OurBranchID,
+      AccountID: ctx.AccountID,
       ApplicationID: '',
       ChargeID: chargeId,
       EffectiveDate: effectiveDate || '',
       EffectiveDateID: 0,
-      OperatorID: getOperatorId()
+      OperatorID: ctx.OperatorID
     };
 
     console.log('[Account Charge Rates] Loading charge rate data with:', requestData);
