@@ -1,4 +1,4 @@
-﻿namespace kairo_ui.Services
+namespace kairo_ui.Services
 {
     public static class OldApiDBConstants
     {
@@ -12,6 +12,40 @@
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
+
+        // Client Maintenance Module Constants
+        public const string GET_CLIENT_BANK_ACCOUNTS = "p_GetClientBankAccounts";
+        public const string ADD_EDIT_CLIENT_BANK_ACCOUNT = "p_AddEditClientBankAccount";
+        public const string DELETE_CLIENT_BANK_ACCOUNT = "p_DeleteClientBankAccount";
+
+        public const string GET_CLIENT_INTRODUCER = "p_GetClientIntroducer";
+        public const string ADD_EDIT_CLIENT_INTRODUCER = "p_AddEditClientIntroducer";
+        public const string DELETE_CLIENT_INTRODUCER = "p_DeleteClientIntroducer";
+
+        public const string GET_CLIENT_DEMISE_DETAILS = "p_GetClientDemiseDetails";
+        public const string ADD_EDIT_CLIENT_DEMISE_DETAILS = "p_AddEditClientDemiseDetails";
+        public const string DELETE_CLIENT_DEMISE_DETAILS = "p_DeleteClientDemiseDetails";
+
+        public const string GET_CLIENT_PROFILE_CHANGES = "p_GetClientProfileChanges";
+        public const string ADD_EDIT_CLIENT_PROFILE_CHANGE = "p_AddEditClientProfileChange";
+
+        public const string GET_CLIENT_PORTFOLIO = "p_GetClientPortfolio";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // STANDING INSTRUCTION LOAN REPAYMENT
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_STANDING_INSTRUCTION_LOAN_REPAYMENT = "p_GetStandingInstructionLoanRepayment";
+        public const string ADD_EDIT_STANDING_INSTRUCTION_LOAN_REPAYMENT = "p_AddEditStandingInstructionLoanRepayment";
+        public const string DELETE_STANDING_INSTRUCTION_LOAN_REPAYMENT = "p_DeleteStandingInstructionLoanRepayment";
+        public const string STOP_STANDING_INSTRUCTION_LOAN_REPAYMENT = "p_StopStandingInstructionLoanRepayment";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // STANDING INSTRUCTION TRANSFER
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_STANDING_INSTRUCTION_TRANSFER = "p_GetStandingInstructionTransfer";
+        public const string ADD_EDIT_STANDING_INSTRUCTION_TRANSFER = "p_AddEditStandingInstructionTransfer";
+        public const string DELETE_STANDING_INSTRUCTION_TRANSFER = "p_DeleteStandingInstructionTransfer";
+        public const string STOP_STANDING_INSTRUCTION_TRANSFER = "p_StopStandingInstructionTransfer";
 
         // ═══════════════════════════════════════════════════════════════════
         // CHANGE INSTALLMENT DATE (Module 5095)

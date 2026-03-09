@@ -43,8 +43,7 @@ const START_MENU_REGISTRY = {
       { label: "Direct Debit Maintenance", icon: "fas fa-money-check-dollar", modalId: "directDebitMaintenanceModal" },
       { type: "divider" },
       { label: "Standing Instruction Type", icon: "fas fa-list", modalId: "standingInstructionTypeModal" },
-      { label: "Standing Instruction Transfer", icon: "fas fa-right-left", modalId: "standingInstructionTransferModal" },
-      { label: "Standing Instruction Loan Repayment", icon: "fas fa-building-columns", modalId: "standingInstructionLoanRepaymentModal" },
+      // Standing Instruction Transfer — now DB-driven (ModuleID 1905)
       { label: "Standing Instruction Demand Draft", icon: "fas fa-file-invoice", modalId: "standingInstructionDemandDraftModal" },
       { label: "Standing Instruction EFT", icon: "fas fa-arrow-right-arrow-left", modalId: "standingInstructionEftModal" }
     ]
@@ -1146,7 +1145,11 @@ function initLegacyModuleDashboard() {
       button.innerHTML = `<i class="${item.icon}"></i><span>${item.label}</span>`;
       button.addEventListener("click", (event) => {
         event.preventDefault();
-        if (item.modalId) {
+        if (item.route && typeof window.openKairoWindow === "function") {
+          // MVC-migrated module: open in iframe modal (like dashboard.js)
+          window.openKairoWindow({ label: item.label, icon: item.icon, route: item.route, modalId: item.modalId || item.label.replace(/\s+/g, ''), moduleId: item.moduleId || item.modalId || '' });
+          closeLaunchPanels();
+        } else if (item.modalId) {
           openModal(item.modalId);
           closeLaunchPanels();
         } else if (item.route) {
@@ -1282,7 +1285,11 @@ function initLegacyModuleDashboard() {
       button.innerHTML = `<i class="${item.icon}"></i><span>${item.label}</span>`;
       button.addEventListener("click", (event) => {
         event.preventDefault();
-        if (item.modalId) {
+        if (item.route && typeof window.openKairoWindow === "function") {
+          // MVC-migrated module: open in iframe modal (like dashboard.js)
+          window.openKairoWindow({ label: item.label, icon: item.icon, route: item.route, modalId: item.modalId || item.label.replace(/\s+/g, ''), moduleId: item.moduleId || item.modalId || '' });
+          closeLaunchPanels();
+        } else if (item.modalId) {
           openModal(item.modalId);
           closeLaunchPanels();
         } else if (item.route) {

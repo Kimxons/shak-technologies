@@ -24,7 +24,12 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithProperty("COMPUTERNAME", Environment.MachineName)
     .Enrich.WithProperty("MachineName", Environment.MachineName)
     .Enrich.WithProperty("UserName", Environment.UserName)
-    .Destructure.ByTransforming<JsonElement>(jdoc => Regex.Unescape(JsonSerializer.Serialize(jdoc)))
+    .Destructure.ByTransforming<JsonElement>(jdoc => {
+        try {
+            var s = JsonSerializer.Serialize(jdoc, new JsonSerializerOptions { WriteIndented = false });
+            return (s?.Length > 1000) ? s.Substring(0, 1000) + "..." : s;
+        } catch { return "[Serialization Error]"; }
+    })
     .CreateLogger();
 try
 {
@@ -56,7 +61,7 @@ try
              sqlOptions.EnableRetryOnFailure(2);
              sqlOptions.CommandTimeout(380);
          })
-        .LogTo(Log.Logger.Error, LogLevel.Error);
+        .LogTo(m => Log.Error(m), LogLevel.Error);
     }, ServiceLifetime.Transient);
 
     builder.Services.AddDbContext<SharedDAL>(options =>
@@ -72,7 +77,7 @@ try
              sqlOptions.EnableRetryOnFailure(2);
              sqlOptions.CommandTimeout(380);
          })
-        .LogTo(Log.Logger.Error, LogLevel.Error);
+        .LogTo(m => Log.Error(m), LogLevel.Error);
     }, ServiceLifetime.Transient);
 
     builder.Services.AddScoped<IAccountRepo, AccountRepo>();
@@ -180,4 +185,7 @@ catch (Exception ex)
 {
     Log.Error(ex, "Main()");
 }
-Log.CloseAndFlush();Log.CloseAndFlush();
+finally
+{
+    Log.CloseAndFlush();
+}

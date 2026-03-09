@@ -81,6 +81,44 @@ namespace ClientDocumentApi.Controllers
             });
         }
 
+        [HttpGet("client/{clientId}")]
+        public async Task<IActionResult> GetByClientId(string clientId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var entities = await _imageRepository.GetByClientIdAsync(clientId, cancellationToken);
+                if (!entities.Any())
+                {
+                    return NotFound(new
+                    {
+                        responseCode = "96",
+                        responseMessage = "Images not found",
+                        details = new { clientId }
+                    });
+                }
+
+                return Ok(new
+                {
+                    responseCode = "00",
+                    responseMessage = "Success",
+                    details = entities
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    responseCode = "96",
+                    responseMessage = "Invalid clientId",
+                    details = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve images", details = ex.Message });
+            }
+        }
+
         [HttpGet("{imageId:long}/download")]
         public async Task<IActionResult> Download(long imageId, CancellationToken cancellationToken)
         {

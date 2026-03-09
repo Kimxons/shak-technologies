@@ -1,170 +1,89 @@
 /**
- * Account Dormant Module - CRUD Operations
- * Manages account dormancy status with full CRUD functionality
+ * Account Activate Dormant Module
+ * Standardized for KAIRO MVC project.
+ * Uses AppCore.invokeControllerAsync for all API calls.
  */
-
-window.AccountDormantModule = (function () {
+window.ActivateDormantModule = (function () {
     'use strict';
 
+    // Module State
     const state = {
-        accountId: null,
-        branchId: null,
-        operatorId: null,
-        currentMode: 'VIEW',
+        accountId: '',
+        branchId: '',
+        operatorId: '',
+        currentMode: 'VIEW', // VIEW, ADD, EDIT
         dormantData: null,
-        originalData: null
+        currentUpdateCount: 0
     };
 
+    // API Paths
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-dormant',
-        UPDATE: '/AccountsMaintenance/api/edit-account-dormant'
+        GET_DATA: 'AccountsMaintenance/api/get-account-dormant',
+        UPDATE_DATA: 'AccountsMaintenance/api/edit-account-dormant'
     };
 
     /**
      * Initialize the module
      */
     function init() {
-        console.log('[Dormant] Initializing module...');
-        getAccountContext();
+        console.log('[ActivateDormant] Initializing module...');
+        loadContext();
 
-        if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
-            return;
-        }
-
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
-        setMode('VIEW');
-        loadData();
-    }
-
-    /**
-     * Get account context from parent page
-     */
-    function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
+        // Initial data load
+        if (state.accountId) {
+            loadData();
         } else {
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
+            AppCore.showMsg('No account context found. Please select an account.', 'warning');
+            setMode('VIEW');
         }
     }
 
     /**
-     * Wire header control buttons
+     * Load account and branch context
      */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', toggleMaximize);
+    function loadContext() {
+        const globalState = window.AccountMaintenanceState || {};
+        state.accountId = globalState.AccountID || sessionStorage.getItem('currentAccountID') || '';
+        state.branchId = globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '';
+        state.operatorId = globalState.OperatorID || localStorage.getItem('OperatorID') || 'SYSTEM';
+
+        // Update UI with IDs
+        const branchInput = document.getElementById('branchId');
+        const accountInput = document.getElementById('accountId');
+        if (branchInput) branchInput.value = state.branchId;
+        if (accountInput) accountInput.value = state.accountId;
+
+        if (globalState.BranchName) {
+            const branchNameInput = document.getElementById('branchName');
+            if (branchNameInput) branchNameInput.value = globalState.BranchName;
+        }
+        if (globalState.AccountName) {
+            const accountNameInput = document.getElementById('accountName');
+            if (accountNameInput) accountNameInput.value = globalState.AccountName;
+        }
     }
 
     /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'view': () => setMode('VIEW'),
-            'edit': () => setMode('EDIT'),
-            'save': saveData,
-            'cancel': cancelChanges,
-            'close': closeSubmodule,
-            'activate': activateAccount,
-            'mark-dormant': markDormant
-        };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
-    }
-
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content, [data-section-content]');
-                const icon = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-            });
-        });
-    }
-
-    /**
-     * Set form mode
-     */
-    function setMode(mode) {
-        console.log('[Dormant] Setting mode:', mode);
-        state.currentMode = mode;
-
-        const isEditing = mode === 'EDIT';
-        
-        // Enable/disable form fields
-        document.querySelectorAll('#dormantReason, #dormantDate, #reactivationDate, #remarks').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
-
-        // Update button states
-        const buttons = {
-            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            'edit': { active: mode === 'EDIT', disabled: isEditing },
-            'save': { active: false, disabled: !isEditing },
-            'cancel': { active: false, disabled: !isEditing }
-        };
-
-        Object.keys(buttons).forEach(action => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (btn) {
-                btn.classList.toggle('active', buttons[action].active);
-                btn.disabled = buttons[action].disabled;
-            }
-        });
-    }
-
-    /**
-     * Load dormant data from API
+     * Load dormant data from the server
      */
     async function loadData() {
-        console.log('[Dormant] Loading dormant data...');
-        showLoading(true);
+        if (!state.accountId) return;
 
+        AppCore.showLoading(true);
         try {
             const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
+            const response = await AppCore.invokeControllerAsync(API.GET_DATA, {
                 SearchKey: searchKey,
                 SearchID: searchKey,
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.GET, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
             });
 
-            const result = await response.json();
-            console.log('[Dormant] Response:', result);
-
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data;
+            if (response && response.ResponseCode === '00') {
+                const data = response.Details || response.Data || response.data;
                 state.dormantData = Array.isArray(data) ? data[0] : data;
-                
+
                 if (state.dormantData) {
                     populateForm(state.dormantData);
                     updateStatusDisplay(state.dormantData);
@@ -172,221 +91,284 @@ window.AccountDormantModule = (function () {
                     clearForm();
                     updateStatusDisplay(null);
                 }
-                showSuccess('Dormant status loaded');
+                setMode('VIEW');
             } else {
+                state.dormantData = null;
                 clearForm();
                 updateStatusDisplay(null);
+                setMode('VIEW');
+                AppCore.showMsg(response.ResponseMessage || 'Details not found', 'info');
             }
         } catch (error) {
-            console.error('[Dormant] Error:', error);
-            showError('Failed to load dormant data: ' + error.message);
+            console.error('[ActivateDormant] Error loading data:', error);
+            AppCore.showMsg('Failed to load dormant details', 'error');
         } finally {
-            showLoading(false);
+            AppCore.showLoading(false);
         }
     }
 
     /**
-     * Update status display
-     */
-    function updateStatusDisplay(data) {
-        const statusEl = document.getElementById('dormantStatus');
-        const indicatorEl = document.querySelector('.dormant-indicator');
-        
-        const isDormant = data?.IsDormant || data?.DormantStatus === 'Y';
-        
-        if (statusEl) {
-            statusEl.textContent = isDormant ? 'DORMANT' : 'ACTIVE';
-            statusEl.className = `badge ${isDormant ? 'bg-warning text-dark' : 'bg-success'}`;
-        }
-        
-        if (indicatorEl) {
-            indicatorEl.classList.toggle('dormant', isDormant);
-            indicatorEl.classList.toggle('active', !isDormant);
-        }
-
-        // Update action buttons based on status
-        const activateBtn = document.querySelector('[data-action="activate"]');
-        const markDormantBtn = document.querySelector('[data-action="mark-dormant"]');
-        
-        if (activateBtn) activateBtn.disabled = !isDormant;
-        if (markDormantBtn) markDormantBtn.disabled = isDormant;
-    }
-
-    /**
-     * Populate form with data
+     * Populate form fields with data
      */
     function populateForm(data) {
-        if (!data) return;
+        document.getElementById('dormantReason').value = data.DormantReason || data.ReasonID || '';
+        document.getElementById('dormantDate').value = AppCore.formatDate(data.DormantDate || data.DormancyDate);
+        document.getElementById('reactivationDate').value = AppCore.formatDate(data.ReactivationDate || data.LastActiveDate);
+        document.getElementById('instructedBy').value = data.InstructedBy || '';
+        document.getElementById('remarks').value = data.Remarks || data.Notes || '';
 
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) el.value = value || '';
-        };
+        // Status Info
+        document.getElementById('lastActivityDate').value = AppCore.formatDate(data.LastActivityDate);
+        document.getElementById('dormantDays').value = data.DormantDays || data.DaysSinceLastActivity || '0';
+        document.getElementById('dormancyThreshold').value = data.DormancyThreshold || data.InactiveDaysThreshold || '';
 
-        setValue('dormantReason', data.DormantReason || data.ReasonID);
-        setValue('dormantDate', formatDisplayDate(data.DormantDate || data.DormancyDate));
-        setValue('reactivationDate', formatDisplayDate(data.ReactivationDate || data.LastActiveDate));
-        setValue('remarks', data.Remarks || data.Notes);
-        
-        // Display account status info
-        setValue('lastActivityDate', formatDisplayDate(data.LastActivityDate));
-        setValue('dormantDays', data.DormantDays || data.DaysSinceLastActivity || '0');
-        setValue('dormancyThreshold', data.DormancyThreshold || data.InactiveDaysThreshold || '365');
+        const btsFieldsAndValues = [
+            { id: 'dormantDateVal', value: AppCore.formatDate(data.DormantDate || data.DormancyDate) },
+            { id: 'originalProduct', value: data.OriginalProduct || '-' },
+            { id: 'dormantProduct', value: data.DormantProduct || '-' },
+            { id: 'balance', value: AppCore.formatCurrency(data.Balance || 0) },
+            { id: 'lastCreditDate', value: AppCore.formatDate(data.LastCreditDate) },
+            { id: 'creditAmount', value: AppCore.formatCurrency(data.CreditAmount || 0) },
+            { id: 'lastDebitDate', value: AppCore.formatDate(data.LastDebitDate) },
+            { id: 'debitAmount', value: AppCore.formatCurrency(data.DebitAmount || 0) },
+            { id: 'fixedAmount', value: AppCore.formatCurrency(data.FixedAmount || 0) },
+            { id: 'MakerID', value: data.MakerID || data.CreatedBy || '-' },
+            { id: 'MakerDT', value: AppCore.formatDate(data.MakerDT || data.CreatedOn, true) },
+            { id: 'ModifierID', value: data.ModifierID || data.ModifiedBy || '-' },
+            { id: 'ModifierDT', value: AppCore.formatDate(data.ModifierDT || data.ModifiedOn, true) }
+        ];
 
-        populateAuditFields(data);
-        state.originalData = { ...data };
-    }
-
-    /**
-     * Get form data
-     */
-    function getFormData() {
-        return {
-            DormantReason: document.getElementById('dormantReason')?.value || '',
-            DormantDate: parseApiDate(document.getElementById('dormantDate')?.value),
-            ReactivationDate: parseApiDate(document.getElementById('reactivationDate')?.value),
-            Remarks: document.getElementById('remarks')?.value || ''
-        };
-    }
-
-    /**
-     * Save dormant data
-     */
-    async function saveData() {
-        console.log('[Dormant] Saving dormant data...');
-        showLoading(true);
-
-        try {
-            const formData = getFormData();
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                ...formData,
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Dormant data saved successfully');
-                setMode('VIEW');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to save dormant data');
+        btsFieldsAndValues.forEach(f => {
+            const el = document.getElementById(f.id);
+            if (el) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.value = f.value;
+                } else {
+                    el.textContent = f.value;
+                }
             }
-        } catch (error) {
-            console.error('[Dormant] Save error:', error);
-            showError('Failed to save: ' + error.message);
-        } finally {
-            showLoading(false);
+        });
+
+        state.currentUpdateCount = parseInt(data.UpdateCount || 0);
+    }
+
+    /**
+     * Update status display items
+     */
+    function updateStatusDisplay(data) {
+        const isDormant = data?.IsDormant || data?.DormantStatus === 'Y';
+        const statusBadge = document.getElementById('dormantStatus');
+        const indicator = document.querySelector('.dormant-indicator');
+
+        if (statusBadge) {
+            statusBadge.textContent = isDormant ? 'DORMANT' : 'ACTIVE';
+            statusBadge.className = `badge ${isDormant ? 'bg-warning text-dark' : 'bg-success'}`;
+        }
+
+        if (indicator) {
+            indicator.className = `dormant-indicator ${isDormant ? 'dormant' : 'active'}`;
         }
     }
 
     /**
-     * Activate dormant account
+     * Set the UI mode
      */
-    async function activateAccount() {
-        if (!confirm('Are you sure you want to reactivate this dormant account?')) return;
+    function setMode(mode) {
+        state.currentMode = mode;
+        const isEditing = mode === 'EDIT';
 
-        console.log('[Dormant] Activating account...');
-        showLoading(true);
+        const fields = ['dormantReason', 'instructedBy', 'remarks'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = !isEditing;
+        });
 
+        console.log(`[ActivateDormant] Mode set to: ${mode}`);
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        if (btnView) btnView.disabled = isEditing;
+        if (btnAdd) btnAdd.disabled = isEditing;
+        if (btnEdit) btnEdit.disabled = isEditing;
+        if (btnSave) btnSave.disabled = !isEditing;
+        if (btnCancel) btnCancel.disabled = !isEditing;
+        if (btnDelete) btnDelete.disabled = isEditing;
+    }
+
+    /**
+     * Clear the form
+     */
+    function clearForm() {
+        const fields = ['dormantReason', 'dormantDate', 'reactivationDate', 'instructedBy', 'remarks', 'lastActivityDate', 'dormantDays', 'dormancyThreshold'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+
+        const auditLabels = ['dormantDateVal', 'originalProduct', 'dormantProduct', 'balance', 'lastCreditDate', 'creditAmount', 'lastDebitDate', 'debitAmount', 'fixedAmount', 'MakerID', 'MakerDT', 'ModifierID', 'ModifierDT'];
+        auditLabels.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.value = '';
+                } else {
+                    el.textContent = '-';
+                }
+            }
+        });
+
+        state.currentUpdateCount = 0;
+    }
+
+    /**
+     * UI Action: Navigate (Refresh data)
+     */
+    function navigate() {
+        setMode('VIEW');
+        loadData();
+    }
+
+    /**
+     * UI Action: Confirm Edit
+     */
+    function confirmEdit() {
+        if (!state.dormantData) {
+            AppCore.showMsg('No data loaded to edit', 'warning');
+            return;
+        }
+        setMode('EDIT');
+    }
+
+    /**
+     * UI Action: Save Data
+     */
+    async function saveData() {
+        if (state.currentMode !== 'EDIT') return;
+
+        AppCore.showLoading(true);
         try {
             const searchKey = `[${state.branchId}:${state.accountId}]`;
             const payload = {
-                SearchKey: searchKey,
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
+                SearchKey: searchKey,
+                DormantReason: document.getElementById('dormantReason').value,
+                InstructedBy: document.getElementById('instructedBy').value,
+                Remarks: document.getElementById('remarks').value,
+                UpdateCount: state.currentUpdateCount
+            };
+
+            const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
+
+            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
+            if (isOk) {
+                AppCore.showMsg(response.ResponseMessage || response.message || 'Saved successfully', 'success');
+                setMode('VIEW');
+                loadData();
+            } else {
+                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to save', 'error');
+            }
+        } catch (error) {
+            console.error('[ActivateDormant] Error saving data:', error);
+            AppCore.showMsg('An error occurred while saving', 'error');
+        } finally {
+            AppCore.showLoading(false);
+        }
+    }
+
+    /**
+     * UI Action: Activate Account
+     */
+    async function activateAccount() {
+        const confirmed = await AppCore.showConfirmation('Reactivate Account', 'Are you sure you want to reactivate this dormant account?');
+        if (!confirmed) return;
+
+        AppCore.showLoading(true);
+        try {
+            const searchKey = `[${state.branchId}:${state.accountId}]`;
+            const payload = {
+                AccountID: state.accountId,
+                OurBranchID: state.branchId,
+                OperatorID: state.operatorId,
+                SearchKey: searchKey,
                 Action: 'ACTIVATE',
                 IsDormant: false
             };
 
-            const response = await fetch(API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Account activated successfully');
-                await loadData();
+            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
+            if (isOk) {
+                AppCore.showMsg(response.ResponseMessage || response.message || 'Account activated successfully', 'success');
+                loadData();
             } else {
-                showError(result?.ResponseMessage || 'Failed to activate account');
+                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to activate account', 'error');
             }
         } catch (error) {
-            console.error('[Dormant] Activate error:', error);
-            showError('Failed to activate: ' + error.message);
+            console.error('[ActivateDormant] Error activating account:', error);
+            AppCore.showMsg('An error occurred during activation', 'error');
         } finally {
-            showLoading(false);
+            AppCore.showLoading(false);
         }
     }
 
     /**
-     * Mark account as dormant
+     * UI Action: Mark Dormant
      */
     async function markDormant() {
-        const reason = document.getElementById('dormantReason')?.value;
+        const reason = document.getElementById('dormantReason').value;
         if (!reason) {
-            showWarning('Please select a dormancy reason first');
+            AppCore.showMsg('Please select a dormancy reason first', 'warning');
             return;
         }
 
-        if (!confirm('Are you sure you want to mark this account as dormant?')) return;
+        const confirmed = await AppCore.showConfirmation('Mark Dormant', 'Are you sure you want to mark this account as dormant?');
+        if (!confirmed) return;
 
-        console.log('[Dormant] Marking account as dormant...');
-        showLoading(true);
-
+        AppCore.showLoading(true);
         try {
-            const formData = getFormData();
             const searchKey = `[${state.branchId}:${state.accountId}]`;
             const payload = {
-                ...formData,
-                SearchKey: searchKey,
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
+                SearchKey: searchKey,
+                DormantReason: reason,
+                InstructedBy: document.getElementById('instructedBy').value,
+                Remarks: document.getElementById('remarks').value,
                 Action: 'MARK_DORMANT',
                 IsDormant: true
             };
 
-            const response = await fetch(API.UPDATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Account marked as dormant');
-                await loadData();
+            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
+            if (isOk) {
+                AppCore.showMsg(response.ResponseMessage || response.message || 'Account marked as dormant', 'success');
+                loadData();
             } else {
-                showError(result?.ResponseMessage || 'Failed to mark account as dormant');
+                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to mark as dormant', 'error');
             }
         } catch (error) {
-            console.error('[Dormant] Mark dormant error:', error);
-            showError('Failed to mark as dormant: ' + error.message);
+            console.error('[ActivateDormant] Error marking as dormant:', error);
+            AppCore.showMsg('An error occurred while marking as dormant', 'error');
         } finally {
-            showLoading(false);
+            AppCore.showLoading(false);
         }
     }
 
     /**
-     * Cancel changes
+     * UI Action: Confirm Cancel
      */
-    function cancelChanges() {
+    function confirmCancel() {
+        if (state.currentMode === 'VIEW') return;
         if (state.dormantData) {
             populateForm(state.dormantData);
         } else {
@@ -395,136 +377,18 @@ window.AccountDormantModule = (function () {
         setMode('VIEW');
     }
 
-    /**
-     * Clear form
-     */
-    function clearForm() {
-        ['dormantReason', 'dormantDate', 'reactivationDate', 'remarks', 'lastActivityDate', 'dormantDays', 'dormancyThreshold'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        clearAuditFields();
-    }
-
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
-        if (!data) return;
-        const fields = {
-            'MakerID': data.CreatedBy || '-',
-            'MakerDT': formatDate(data.CreatedOn) || '-',
-            'ModifierID': data.ModifiedBy || '-',
-            'ModifierDT': formatDate(data.ModifiedOn) || '-'
-        };
-
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
-        });
-    }
-
-    /**
-     * Clear audit fields
-     */
-    function clearAuditFields() {
-        ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '-';
-        });
-    }
-
-    // Utility functions
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 || 
-               result?.success === true || result?.Success === true;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
-        try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function formatDisplayDate(dateString) {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${date.getDate().toString().padStart(2, '0')}/${months[date.getMonth()]}/${date.getFullYear()}`;
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function parseApiDate(displayDate) {
-        if (!displayDate) return null;
-        const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 
-                        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
-        const match = displayDate.match(/(\d{2})\/(\w{3})\/(\d{4})/);
-        if (match) {
-            const date = new Date(parseInt(match[3]), months[match[2]], parseInt(match[1]));
-            return date.toISOString();
-        }
-        return displayDate;
-    }
-
-    function showLoading(show) {
-        const overlay = document.querySelector('.loading-overlay, .de-loading-overlay');
-        if (overlay) overlay.hidden = !show;
-    }
-
-    function toggleMaximize() {
-        const sidebar = document.getElementById('main-sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        }
-    }
-
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
-
-    function showMessage(message, type) {
-        const panel = document.querySelector('.am-message-panel, .de-message-bar');
-        if (panel) {
-            panel.className = `am-message-panel am-message-panel--${type}`;
-            panel.hidden = false;
-            const icon = panel.querySelector('i');
-            const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
-            if (span) span.textContent = message;
-            setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
-        }
-    }
-
     // Public API
     return {
         init,
-        loadData,
+        navigate,
+        confirmEdit,
         saveData,
         activateAccount,
         markDormant,
-        setMode,
-        cancelChanges
+        confirmCancel,
+        setMode
     };
+
 })();
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountDormantModule?.init());
-} else {
-    window.AccountDormantModule?.init();
-}
-
-console.log('✅ Account Dormant module loaded');
+console.log('[ActivateDormant] Module loaded');
