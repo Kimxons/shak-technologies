@@ -25,6 +25,15 @@
                 <input type="hidden" id="hdn_updateCount" name="UpdateCount" value="0" />
 
             <div class="form-card" data-main-form>
+                <!-- On-top Feedback (Account Maintenance style) -->
+                <div id="exitTypesValidationSummary" class="validation-summary" role="alert" aria-live="polite" aria-atomic="true">
+                    <i id="exitTypesValidationIcon" class="bi bi-exclamation-circle validation-summary__icon" aria-hidden="true"></i>
+                    <span id="exitTypesValidationText" class="validation-summary__text" style="white-space: pre-line;"></span>
+                    <button id="exitTypesValidationClose" class="validation-summary__close" type="button" aria-label="Close notification">
+                        <i class="bi bi-x" aria-hidden="true"></i>
+                    </button>
+                </div>
+
                 <!-- Exit Type Identifiers Section -->
                 <div class="form-section" data-section="exit-type-identifiers">
                     <div class="section-header" data-section-toggle>
@@ -253,68 +262,63 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <!-- Year Statistics -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header py-2"><strong>Current Year</strong></div>
-                                    <div class="card-body py-2">
-                                        <div class="form-row two-col">
-                                            <div class="form-group">
-                                                <label class="label-blue">Exit For This Type</label>
-                                                <input type="text" class="bs-input-text" id="txt_currentYearExitForType" readonly data-always-readonly />
+                        <div class="behind-scene">
+                            <!-- Year Statistics -->
+                            <div class="bts-group mini-collapsible-card">
+                                <div class="mini-card-header" data-toggle-mini-card tabindex="0">
+                                    <span class="mini-card-title"><i class="bi bi-bar-chart-line"></i> Year Statistics</span>
+                                </div>
+                                <div class="mini-card-content" data-mini-content>
+                                    <div class="bts-group-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="behind-scene-item">
+                                                <label>Current Year &mdash; Exit for this Type</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_currentYearExitForType">-</span></div>
                                             </div>
-                                            <div class="form-group">
-                                                <label class="label-blue">Total Exits</label>
-                                                <input type="text" class="bs-input-text" id="txt_currentYearTotalExits" readonly data-always-readonly />
+                                            <div class="behind-scene-item">
+                                                <label>Current Year &mdash; Total Exits</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_currentYearTotalExits">-</span></div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="behind-scene-item">
+                                                <label>Previous Year &mdash; Exit for this Type</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_previousYearExitForType">-</span></div>
+                                            </div>
+                                            <div class="behind-scene-item">
+                                                <label>Previous Year &mdash; Total Exits</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_previousYearTotalExits">-</span></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header py-2"><strong>Previous Year</strong></div>
-                                    <div class="card-body py-2">
-                                        <div class="form-row two-col">
-                                            <div class="form-group">
-                                                <label class="label-blue">Exit For This Type</label>
-                                                <input type="text" class="bs-input-text" id="txt_previousYearExitForType" readonly data-always-readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="label-blue">Total Exits</label>
-                                                <input type="text" class="bs-input-text" id="txt_previousYearTotalExits" readonly data-always-readonly />
-                                            </div>
-                                        </div>
-                                    </div>
+                            <!-- Audit Trail -->
+                            <div class="audit-section">
+                                <div class="audit-item">
+                                    <label>Created By</label>
+                                    <span class="audit-value" id="txt_createdBy">-</span>
                                 </div>
-                            </div>
-                        </div>
-                        <!-- Audit Info -->
-                        <div class="audit-section audit-section--summary">
-                            <div class="audit-cell">
-                                <span class="audit-label">Created By</span>
-                                <span class="audit-value"><input type="text" id="txt_createdBy" readonly data-always-readonly /></span>
-                            </div>
-                            <div class="audit-cell">
-                                <span class="audit-label">Created On</span>
-                                <span class="audit-value"><input type="text" id="txt_createdOn" readonly data-always-readonly /></span>
-                            </div>
-                            <div class="audit-cell">
-                                <span class="audit-label">Modified By</span>
-                                <span class="audit-value"><input type="text" id="txt_modifiedBy" readonly data-always-readonly /></span>
-                            </div>
-                            <div class="audit-cell">
-                                <span class="audit-label">Modified On</span>
-                                <span class="audit-value"><input type="text" id="txt_modifiedOn" readonly data-always-readonly /></span>
-                            </div>
-                            <div class="audit-cell">
-                                <span class="audit-label">Supervised By</span>
-                                <span class="audit-value"><input type="text" id="txt_supervisedBy" readonly data-always-readonly /></span>
-                            </div>
-                            <div class="audit-cell">
-                                <span class="audit-label">Supervised On</span>
-                                <span class="audit-value"><input type="text" id="txt_supervisedOn" readonly data-always-readonly /></span>
+                                <div class="audit-item">
+                                    <label>Created On</label>
+                                    <span class="audit-value" id="txt_createdOn">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Modified By</label>
+                                    <span class="audit-value" id="txt_modifiedBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Modified On</label>
+                                    <span class="audit-value" id="txt_modifiedOn">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Supervised By</label>
+                                    <span class="audit-value" id="txt_supervisedBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Supervised On</label>
+                                    <span class="audit-value" id="txt_supervisedOn">-</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -343,11 +347,47 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal (Account Maintenance style) -->
+<div class="confirm-modal" id="exitTypesDeleteConfirmModal" hidden>
+    <div class="confirm-modal__backdrop" data-confirm-backdrop></div>
+    <div class="confirm-modal__content" role="dialog" aria-modal="true" aria-labelledby="exitTypesDeleteConfirmTitle" aria-describedby="exitTypesDeleteConfirmMessage">
+        <div class="confirm-modal__header">
+            <div class="confirm-modal__header-left">
+                <div class="confirm-modal__icon-circle">
+                    <i class="bi bi-exclamation-triangle confirm-modal__icon" aria-hidden="true"></i>
+                </div>
+                <h3 class="confirm-modal__title" id="exitTypesDeleteConfirmTitle">Confirm Delete</h3>
+            </div>
+            <button type="button" class="confirm-modal__close" id="exitTypesDeleteConfirmClose" aria-label="Close">
+                <i class="bi bi-x" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="confirm-modal__body">
+            <p class="confirm-modal__message" id="exitTypesDeleteConfirmMessage">Do you want to Delete Exit Type <span id="exitTypesDeleteConfirmId">''</span>? This cannot be undone.</p>
+        </div>
+        <div class="confirm-modal__footer">
+            <button type="button" class="confirm-modal__btn confirm-modal__btn--yes" id="exitTypesDeleteConfirmYes">Yes</button>
+            <button type="button" class="confirm-modal__btn confirm-modal__btn--no" id="exitTypesDeleteConfirmNo">No</button>
+        </div>
+    </div>
+</div>
+
 <!-- Load Exit Types JavaScript Module -->
 <script src="~/js/modules/microfinance/exit-types.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Mini-card collapsible toggles (behind-the-scene pattern)
+        document.querySelectorAll('[data-toggle-mini-card]').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                if (content) content.hidden = !content.hidden;
+            });
+            header.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+            });
+        });
+
         // Sidebar toggle
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('main-sidebar');

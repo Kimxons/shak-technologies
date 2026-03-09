@@ -71,6 +71,7 @@
         wireReinstateCheckbox();
         wireChargeOffCheckbox();
         wireWithinDaysSync();
+        wireOnTopFeedback();
 
         // Default mode
         setMode('VIEW');
@@ -85,6 +86,11 @@
         }
 
         console.log('✅ Exit Types module initialized', state);
+    }
+
+    function wireOnTopFeedback() {
+        const closeBtn = document.getElementById('exitTypesValidationClose');
+        closeBtn?.addEventListener('click', () => hideOnTopMessage());
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -263,20 +269,30 @@
 
             console.log('[View] Response:', response);
 
-            // Extract data: Details02 is the main record, Details01 has statistics
-            const data = response?.Details02?.[0] || response?.Details?.[0];
-            const isSuccess = (response?.ResponseCode === '00') || !!data;
+            // IMPORTANT: OldAPI returns metadata rows under Details even when record is not found.
+            // The actual exit type record (when found) is in Details02.
+            const record = Array.isArray(response?.Details02) && response.Details02.length > 0
+                ? response.Details02[0]
+                : null;
 
-            if (isSuccess && data) {
-                populateForm(data, response);
+            if (record) {
+                populateForm(record, response);
                 state.currentExitTypeId = exitTypeId;
-                state.currentData = data;
+                state.currentData = record;
                 setMode('VIEW');
                 setActionButtonsState({ canView: false, canAdd: false, canEdit: true, canDelete: true, canSave: false, canCancel: true });
                 showSuccess(`Exit Type '${exitTypeId}' loaded`);
             } else {
-                showError('Exit Type not found');
-                setActionButtonsState({ canView: true, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                // Not found: clear everything but keep the typed Exit Type ID
+                clearForm({ preserveExitTypeId: true });
+                state.currentExitTypeId = null;
+                state.currentData = null;
+                state.isDirty = false;
+                setMode('VIEW');
+
+                // Enable Add + Cancel (and allow View retry)
+                setActionButtonsState({ canView: false, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: true });
+                showError('Exit Type Details not Found');
             }
         } catch (error) {
             console.error('[View] Error:', error);
@@ -292,9 +308,20 @@
             return;
         }
 
-        clearForm();
-        document.getElementById('txt_exitTypeId').disabled = false;
-        document.getElementById('txt_exitTypeId').focus();
+        // Requirement: when clicking Add, do not clear the typed Exit Type ID (e.g. after a Not Found View)
+        clearForm({ preserveExitTypeId: true });
+
+        const exitTypeIdEl = document.getElementById('txt_exitTypeId');
+        if (exitTypeIdEl) {
+            exitTypeIdEl.disabled = false;
+            exitTypeIdEl.readOnly = false;
+        }
+
+        // Focus Description first (identifiers/description section)
+        const descriptionEl = document.getElementById('txt_description');
+        const identifiersSection = descriptionEl?.closest('.form-section');
+        identifiersSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => descriptionEl?.focus(), 0);
         state.currentExitTypeId = null;
         state.currentData = null;
         setMode('NEW');
@@ -312,6 +339,13 @@
         // Keep Exit Type ID disabled during edit (primary key)
         document.getElementById('txt_exitTypeId').disabled = true;
         setActionButtonsState({ canView: false, canAdd: false, canEdit: false, canDelete: false, canSave: true, canCancel: true });
+
+        // Send user to the identifiers section to start editing immediately
+        const descriptionEl = document.getElementById('txt_description');
+        const identifiersSection = descriptionEl?.closest('.form-section');
+        identifiersSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => descriptionEl?.focus(), 0);
+
         showInfo('Edit mode enabled');
     }
 
@@ -322,7 +356,11 @@
             return;
         }
 
-        if (!confirm(`Delete Exit Type '${state.currentExitTypeId}'? This cannot be undone.`)) {
+        const confirmed = await confirmDeleteExitType(state.currentExitTypeId);
+        if (!confirmed) {
+            // Requirement: No / Close (X) should leave only Edit + Cancel enabled
+            setMode('VIEW');
+            setActionButtonsState({ canView: false, canAdd: false, canEdit: true, canDelete: false, canSave: false, canCancel: true });
             return;
         }
 
@@ -330,25 +368,30 @@
 
         try {
             const response = await appCore.invokeControllerAsync('MicroFinance/ExitTypes/delete', {
+                // IMPORTANT: p_DeleteExitTypes signature is strict; do not send extra fields.
+                // Align with legacy implementation: BankID + ExitTypeID + NewRecord (optimistic lock token).
                 BankID: '00',
                 ExitTypeID: state.currentExitTypeId,
-                NewRecord: state.currentData?.UpdateCount || 0,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
+                NewRecord: state.currentData?.UpdateCount ?? 0
             });
 
             console.log('[Delete] Response:', response);
 
-            const deleteOk = (response?.ResponseCode === '00') || response?.Details?.[0] || response?.Details02?.[0];
+            const deleteOk = isApiSuccessResponse(response);
             if (deleteOk) {
-                showSuccess(`Exit Type '${state.currentExitTypeId}' deleted successfully`);
+                const deletedId = state.currentExitTypeId;
+                // After delete: clear everything back to initial form load
                 clearForm();
                 state.currentExitTypeId = null;
                 state.currentData = null;
+                state.isDirty = false;
+
                 setMode('VIEW');
-                setActionButtonsState({ canView: true, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                document.getElementById('txt_exitTypeId')?.focus();
+                showSuccess(`Exit Type '${deletedId}' deleted successfully`);
             } else {
-                showError(response?.ResponseMessage || 'Delete failed');
+                showError(getApiErrorMessage(response, 'Delete failed'));
             }
         } catch (error) {
             console.error('[Delete] Error:', error);
@@ -383,14 +426,16 @@
                 (response && !response.ErrorMessage)
             );
             if (saveOk) {
-                const action = state.currentMode === 'NEW' ? 'created' : 'updated';
-                showSuccess(`Exit Type ${action} successfully`);
+                // Per workflow requirement: after Save, reset back to initial form load state
+                clearForm();
+                state.currentExitTypeId = null;
+                state.currentData = null;
                 state.isDirty = false;
-                setMode('VIEW');
-                setActionButtonsState({ canView: true, canAdd: true, canEdit: true, canDelete: true, canSave: false, canCancel: false });
 
-                // Reload to get updated data
-                await handleView();
+                setMode('VIEW');
+                setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                document.getElementById('txt_exitTypeId')?.focus();
+                showSuccess('Data saved successfully');
             } else {
                 showError(response?.ResponseMessage || 'Save failed');
             }
@@ -407,18 +452,17 @@
             return;
         }
 
-        if (state.currentData) {
-            // Reload current data
-            populateForm(state.currentData);
-            setMode('VIEW');
-            setActionButtonsState({ canView: true, canAdd: true, canEdit: true, canDelete: true, canSave: false, canCancel: false });
-        } else {
-            clearForm();
-            setMode('VIEW');
-            setActionButtonsState({ canView: true, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: false });
-        }
-
+        // Reset to initial form load state
+        clearForm();
+        state.currentExitTypeId = null;
+        state.currentData = null;
         state.isDirty = false;
+
+        setMode('VIEW');
+        setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+
+        // Set focus for quick next action
+        document.getElementById('txt_exitTypeId')?.focus();
         showInfo('Cancelled');
     }
 
@@ -488,16 +532,23 @@
         document.getElementById('ddl_exitChargeOffType').value = data.ExitChargeoffTypeID || '';
 
         // Behind The Scene
-        document.getElementById('txt_currentYearExitForType').value = findFromResponse(['TotalExitCurrDeath', 'CurrentYearExitForType'], '');
-        document.getElementById('txt_currentYearTotalExits').value = findFromResponse(['TotalExitCurr', 'CurrentYearTotalExits'], '');
-        document.getElementById('txt_previousYearExitForType').value = findFromResponse(['TotalExitPrevDeath', 'PreviousYearExitForType'], '');
-        document.getElementById('txt_previousYearTotalExits').value = findFromResponse(['TotalExitPrev', 'PreviousYearTotalExits'], '');
-        document.getElementById('txt_createdBy').value = findFromResponse(['CreatedBy', 'Maker'], '');
-        document.getElementById('txt_createdOn').value = formatDateForDisplay(findFromResponse(['CreatedOn', 'CreatedDate'], ''));
-        document.getElementById('txt_modifiedBy').value = findFromResponse(['ModifiedBy', 'LastModifiedBy'], '');
-        document.getElementById('txt_modifiedOn').value = formatDateForDisplay(findFromResponse(['ModifiedOn', 'LastModifiedOn'], ''));
-        document.getElementById('txt_supervisedBy').value = findFromResponse(['SupervisedBy', 'AuthorizedBy'], '');
-        document.getElementById('txt_supervisedOn').value = formatDateForDisplay(findFromResponse(['SupervisedOn', 'AuthorizedOn'], ''));
+        const setBts = (id, val) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            const isEmpty = val === undefined || val === null || val === '';
+            el.textContent = isEmpty ? '-' : String(val);
+        };
+        setBts('txt_currentYearExitForType', findFromResponse(['TotalExitCurrDeath', 'CurrentYearExitForType'], ''));
+        setBts('txt_currentYearTotalExits', findFromResponse(['TotalExitCurr', 'CurrentYearTotalExits'], ''));
+        setBts('txt_previousYearExitForType', findFromResponse(['TotalExitPrevDeath', 'PreviousYearExitForType'], ''));
+        setBts('txt_previousYearTotalExits', findFromResponse(['TotalExitPrev', 'PreviousYearTotalExits'], ''));
+        setBts('txt_createdBy', findFromResponse(['CreatedBy', 'Maker'], ''));
+        setBts('txt_createdOn', formatDateForDisplay(findFromResponse(['CreatedOn', 'CreatedDate'], '')));
+        setBts('txt_modifiedBy', findFromResponse(['ModifiedBy', 'LastModifiedBy'], ''));
+        setBts('txt_modifiedOn', formatDateForDisplay(findFromResponse(['ModifiedOn', 'LastModifiedOn'], '')));
+        setBts('txt_supervisedBy', findFromResponse(['SupervisedBy', 'AuthorizedBy'], ''));
+        setBts('txt_supervisedOn', formatDateForDisplay(findFromResponse(['SupervisedOn', 'AuthorizedOn'], '')));
 
         // Update count
         document.getElementById('hdn_updateCount').value = data.UpdateCount || '0';
@@ -542,21 +593,28 @@
         return data;
     }
 
-    function clearForm() {
+    function clearForm({ preserveExitTypeId = false } = {}) {
         const form = document.getElementById('frm_exitTypes');
+        const existingExitTypeId = preserveExitTypeId ? (document.getElementById('txt_exitTypeId')?.value || '') : '';
         form?.reset();
 
-        // Clear readonly fields
-        document.getElementById('txt_currentYearExitForType').value = '';
-        document.getElementById('txt_currentYearTotalExits').value = '';
-        document.getElementById('txt_previousYearExitForType').value = '';
-        document.getElementById('txt_previousYearTotalExits').value = '';
-        document.getElementById('txt_createdBy').value = '';
-        document.getElementById('txt_createdOn').value = '';
-        document.getElementById('txt_modifiedBy').value = '';
-        document.getElementById('txt_modifiedOn').value = '';
-        document.getElementById('txt_supervisedBy').value = '';
-        document.getElementById('txt_supervisedOn').value = '';
+        hideOnTopMessage();
+
+        if (preserveExitTypeId) {
+            const idEl = document.getElementById('txt_exitTypeId');
+            if (idEl) idEl.value = existingExitTypeId;
+        }
+
+        // Clear any validation state
+        document.querySelectorAll('#frm_exitTypes .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+        // Clear behind-the-scene span fields
+        ['txt_currentYearExitForType', 'txt_currentYearTotalExits', 'txt_previousYearExitForType',
+         'txt_previousYearTotalExits', 'txt_createdBy', 'txt_createdOn', 'txt_modifiedBy',
+         'txt_modifiedOn', 'txt_supervisedBy', 'txt_supervisedOn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '-';
+        });
         document.getElementById('hdn_updateCount').value = '0';
 
         // Hide nested reinstate section
@@ -677,28 +735,157 @@
     // UI HELPERS
     // ═══════════════════════════════════════════════════════════════════
 
+    function isApiSuccessResponse(response) {
+        if (!response || typeof response !== 'object') return false;
+
+        if (response.success === true || response.Success === true) return true;
+
+        const responseCode = response.ResponseCode;
+        if (responseCode === '00' || responseCode === '000' || responseCode === 0) return true;
+
+        const status = response.Status;
+        if (status === '00' || status === '000' || status === 0) return true;
+
+        // Some OldAPI procedures return only { Details: [] } on success.
+        // Treat that as success unless an explicit error is present.
+        const hasExplicitError = !!(response.ErrorMessage || response.error || response.errors);
+        const hasFailureStatus = status !== undefined && status !== null && String(status) !== '' && String(status) !== '00' && String(status) !== '000' && String(status) !== '0';
+        if (hasExplicitError || hasFailureStatus) return false;
+
+        if (Object.prototype.hasOwnProperty.call(response, 'Details') && Array.isArray(response.Details)) return true;
+        if (Object.prototype.hasOwnProperty.call(response, 'Details01') && Array.isArray(response.Details01)) return true;
+        if (Object.prototype.hasOwnProperty.call(response, 'Details02') && Array.isArray(response.Details02)) return true;
+
+        return false;
+    }
+
+    function getApiErrorMessage(response, fallback) {
+        if (!response || typeof response !== 'object') return fallback;
+        return response.ResponseMessage || response.Message || response.message || response.ErrorMessage || fallback;
+    }
+
+    function confirmDeleteExitType(exitTypeId) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('exitTypesDeleteConfirmModal');
+            const idEl = document.getElementById('exitTypesDeleteConfirmId');
+            const btnYes = document.getElementById('exitTypesDeleteConfirmYes');
+            const btnNo = document.getElementById('exitTypesDeleteConfirmNo');
+            const btnClose = document.getElementById('exitTypesDeleteConfirmClose');
+            const backdrop = modal?.querySelector('[data-confirm-backdrop]');
+
+            if (!modal || !idEl || !btnYes || !btnNo || !btnClose) {
+                // Fallback to native confirm if modal markup is missing
+                resolve(confirm(`Delete Exit Type '${exitTypeId}'? This cannot be undone.`));
+                return;
+            }
+
+            idEl.textContent = `'${exitTypeId}'`;
+            modal.hidden = false;
+
+            const cleanup = () => {
+                modal.hidden = true;
+                btnYes.removeEventListener('click', onYes);
+                btnNo.removeEventListener('click', onNo);
+                btnClose.removeEventListener('click', onNo);
+                backdrop?.removeEventListener('click', onNo);
+                document.removeEventListener('keydown', onKeyDown, true);
+            };
+
+            const onYes = () => {
+                cleanup();
+                resolve(true);
+            };
+
+            const onNo = () => {
+                cleanup();
+                resolve(false);
+            };
+
+            const onKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    onNo();
+                }
+            };
+
+            btnYes.addEventListener('click', onYes);
+            btnNo.addEventListener('click', onNo);
+            btnClose.addEventListener('click', onNo);
+            backdrop?.addEventListener('click', onNo);
+            document.addEventListener('keydown', onKeyDown, true);
+
+            // Focus Yes button by default
+            setTimeout(() => btnYes.focus(), 0);
+        });
+    }
+
     function showLoading(show) {
         const overlay = document.getElementById('pageLoadingOverlay');
         if (overlay) overlay.style.display = show ? 'flex' : 'none';
     }
 
+    function showOnTopMessage(type, message) {
+        const summary = document.getElementById('exitTypesValidationSummary');
+        const iconEl = document.getElementById('exitTypesValidationIcon');
+        const textEl = document.getElementById('exitTypesValidationText');
+        if (!summary || !iconEl || !textEl) return;
+
+        const normalizedType = String(type || 'info').toLowerCase();
+        const isSuccess = normalizedType === 'success';
+
+        summary.classList.toggle('validation-summary--success', isSuccess);
+        summary.classList.add('is-visible');
+        summary.style.display = '';
+        textEl.textContent = message || '';
+
+        const iconClassByType = {
+            success: 'bi bi-check-circle validation-summary__icon',
+            error: 'bi bi-exclamation-circle validation-summary__icon',
+            warning: 'bi bi-exclamation-triangle validation-summary__icon',
+            info: 'bi bi-info-circle validation-summary__icon'
+        };
+        iconEl.className = iconClassByType[normalizedType] || iconClassByType.error;
+
+        summary.setAttribute('role', isSuccess ? 'status' : 'alert');
+
+        // Keep the message visible on top even when scrolled
+        summary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideOnTopMessage() {
+        const summary = document.getElementById('exitTypesValidationSummary');
+        const iconEl = document.getElementById('exitTypesValidationIcon');
+        const textEl = document.getElementById('exitTypesValidationText');
+        if (!summary || !iconEl || !textEl) return;
+
+        textEl.textContent = '';
+        summary.classList.remove('is-visible');
+        summary.classList.remove('validation-summary--success');
+        summary.style.display = 'none';
+        iconEl.className = 'bi bi-exclamation-circle validation-summary__icon';
+    }
+
     function showSuccess(message) {
         const appCore = getAppCore();
+        showOnTopMessage('success', message);
         appCore?.showToastMessage?.(message, 'success') || console.log('✅', message);
     }
 
     function showError(message) {
         const appCore = getAppCore();
+        showOnTopMessage('error', message);
         appCore?.showToastMessage?.(message, 'error') || console.error('❌', message);
     }
 
     function showWarning(message) {
         const appCore = getAppCore();
+        showOnTopMessage('warning', message);
         appCore?.showToastMessage?.(message, 'warning') || console.warn('⚠️', message);
     }
 
     function showInfo(message) {
         const appCore = getAppCore();
+        showOnTopMessage('info', message);
         appCore?.showToastMessage?.(message, 'info') || console.log('ℹ️', message);
     }
 
