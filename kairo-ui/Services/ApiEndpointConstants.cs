@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace kairo_ui.Services
 {
@@ -137,6 +137,7 @@ namespace kairo_ui.Services
         // Stop Payment
         public const string ADD_STOP_PAYMENT = BASEACCOUNTS + "/AddStopPayment";
         public const string UPDATE_STOP_PAYMENT = BASEACCOUNTS + "/UpdateStopPayment";
+        public const string DELETE_STOP_PAYMENT = BASEACCOUNTS + "/DeleteStopPayment";
         public const string ADD_CANCEL_STOP_PAYMENT = BASEACCOUNTS + "/AddCancelStopPayment";
         public const string UPDATE_CANCEL_STOP_PAYMENT = BASEACCOUNTS + "/UpdateCancelStopPayment";
         public const string GET_STOP_PAYMENTS = BASEACCOUNTS + "/GetStopPayments";

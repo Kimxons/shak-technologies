@@ -72,6 +72,7 @@
     // Global state to track loaded account - exposed to child forms
     window.AccountMaintenanceState = {
         isAccountLoaded: false,
+        isAccountJustCreated: false,
         AccountID: '',
         AccountName: '',
         AccountTypeID: '',
@@ -88,6 +89,7 @@
     function resetAccountMaintenanceState() {
         window.AccountMaintenanceState = {
             isAccountLoaded: false,
+            isAccountJustCreated: false,
             AccountID: '',
             AccountName: '',
             AccountTypeID: '',
@@ -619,8 +621,8 @@
                         if (submoduleName === 'FreezeRelease' && window.AccountFreezeReleaseModule && window.AccountFreezeReleaseModule.init) {
                             window.AccountFreezeReleaseModule.init();
                         }
-                        if (submoduleName === 'ChequeBook' && window.ChequeBookModule && window.ChequeBookModule.init) {
-                            window.ChequeBookModule.init();
+                        if (submoduleName === 'ChequeBook' && window.AccountChequeBookModule && window.AccountChequeBookModule.init) {
+                            window.AccountChequeBookModule.init();
                         }
                         if (submoduleName === 'Closing' && window.AccountClosingModule && window.AccountClosingModule.init) {
                             window.AccountClosingModule.init();
@@ -639,6 +641,27 @@
                         }
                         if (submoduleName === 'ActivateDormant' && window.ActivateDormantModule && window.ActivateDormantModule.init) {
                             window.ActivateDormantModule.init();
+                        }
+                        if (submoduleName === 'UserDefinedFields' && window.UserDefinedFieldsModule && window.UserDefinedFieldsModule.init) {
+                            window.UserDefinedFieldsModule.init();
+                        }
+                        if (submoduleName === 'AccountClassification' && window.AccountClassificationModule && window.AccountClassificationModule.init) {
+                            window.AccountClassificationModule.init();
+                        }
+                        if (submoduleName === 'AccountNotification' && window.AccountNotificationModule && window.AccountNotificationModule.init) {
+                            window.AccountNotificationModule.init();
+                        }
+                        if (submoduleName === 'SpecialConditions' && window.AccountSpecialConditionsModule && window.AccountSpecialConditionsModule.init) {
+                            window.AccountSpecialConditionsModule.init();
+                        }
+                        if (submoduleName === 'InterestRates' && window.AccountInterestRatesModule && window.AccountInterestRatesModule.init) {
+                            window.AccountInterestRatesModule.init();
+                        }
+                        if (submoduleName === 'CardMaintenance' && window.CardMaintenanceModule && window.CardMaintenanceModule.init) {
+                            window.CardMaintenanceModule.init();
+                        }
+                        if (submoduleName === 'Notes' && window.AccountNotesModule && window.AccountNotesModule.init) {
+                            window.AccountNotesModule.init();
                         }
                     });
                 }
@@ -892,6 +915,7 @@
                 <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
                 <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <button class="btn-action btn-history" type="button" id="submoduleBtnHistory"><i class="bi bi-clock-history me-1"></i>History</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
         } else {
@@ -939,6 +963,7 @@
             // AccountClassification Wiring
             if (submoduleName === 'AccountClassification' && window.AccountClassificationModule) {
                 const mod = window.AccountClassificationModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
                 if (addBtn) addBtn.addEventListener('click', () => mod.confirmAdd());
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (deleteBtn) deleteBtn.addEventListener('click', () => mod.deleteData());
@@ -950,6 +975,7 @@
             // AccountNotification Wiring
             if (submoduleName === 'AccountNotification' && window.AccountNotificationModule) {
                 const mod = window.AccountNotificationModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
@@ -957,8 +983,9 @@
             }
 
             // SpecialConditions Wiring
-            if (submoduleName === 'SpecialConditions' && window.SpecialConditionsModule) {
-                const mod = window.SpecialConditionsModule;
+            if (submoduleName === 'SpecialConditions' && window.AccountSpecialConditionsModule) {
+                const mod = window.AccountSpecialConditionsModule;
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.navigateData());
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
@@ -966,8 +993,8 @@
             }
 
             // InterestRates Wiring
-            if (submoduleName === 'InterestRates' && window.InterestRatesModule) {
-                const mod = window.InterestRatesModule;
+            if (submoduleName === 'InterestRates' && window.AccountInterestRatesModule) {
+                const mod = window.AccountInterestRatesModule;
                 if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
                 if (addBtn) addBtn.addEventListener('click', () => mod.confirmAdd());
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
@@ -993,22 +1020,21 @@
             if (submoduleName === 'FreezeRelease' && window.AccountFreezeReleaseModule) {
                 const mod = window.AccountFreezeReleaseModule;
                 if (historyBtn) historyBtn.addEventListener('click', () => mod.showHistory());
-                if (releaseBtn) releaseBtn.addEventListener('click', () => mod.confirmRelease());
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
-                if (addBtn) addBtn.addEventListener('click', () => mod.setMode('ADD'));
+                if (releaseBtn) releaseBtn.addEventListener('click', () => mod.showReleaseModal());
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
+                if (addBtn) addBtn.addEventListener('click', () => mod.confirmAdd());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
-                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
                 return;
             }
 
             // Handle explicitly handled modules (Modernized)
             if (submoduleName === 'AccountNotes' && window.AccountNotesModule) {
                 const mod = window.AccountNotesModule;
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.loadNotes());
                 if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveNotes());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
-                if (typeof mod.setMode === 'function') mod.setMode('VIEW');
                 return;
             }
 
@@ -1069,28 +1095,22 @@
                 return;
             }
 
-            // Freeze Release module
-            if (submoduleName === 'FreezeRelease' && window.AccountFreezeReleaseModule) {
-                const mod = window.AccountFreezeReleaseModule;
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
-                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
-                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancelChanges());
-                return;
-            }
+            // Freeze Release module (Legacy name check - removing duplicate)
+            // Handled already above
+
 
             // Cheque Book module
-            if (submoduleName === 'ChequeBook' && window.ChequeBookModule) {
-                const mod = window.ChequeBookModule;
+            if (submoduleName === 'ChequeBook' && window.AccountChequeBookModule) {
+                const mod = window.AccountChequeBookModule;
                 const approveBtn = document.getElementById('submoduleBtnApprove');
                 const dispatchBtn = document.getElementById('submoduleBtnDispatch');
 
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
-                if (addBtn) addBtn.addEventListener('click', () => mod.confirmAdd());
-                if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
-                if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
-                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
-                if (approveBtn) approveBtn.addEventListener('click', () => mod.approveData());
-                if (dispatchBtn) dispatchBtn.addEventListener('click', () => mod.dispatchData());
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
+                if (addBtn) addBtn.addEventListener('click', () => mod.add());
+                if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
+                if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
+                if (approveBtn) approveBtn.addEventListener('click', () => mod.approve());
+                if (dispatchBtn) dispatchBtn.addEventListener('click', () => mod.dispatch());
                 return;
             }
 
@@ -1187,6 +1207,7 @@
                 if (editBtn) editBtn.addEventListener('click', () => mod.edit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
+                if (historyBtn) historyBtn.addEventListener('click', () => mod.showHistory());
                 return;
             }
 
@@ -1256,6 +1277,90 @@
         // Assuming global delegation or inline handlers for now.
     }
 
+    /**
+     * Wire blur event listeners for ClientID and ProductID inputs
+     * When user manually types an ID and tabs out, fetch the details
+     */
+    function wireManualInputListeners() {
+        const clientIdInput = document.getElementById('ClientID');
+        const productIdInput = document.getElementById('ProductID');
+
+        // ClientID blur handler - fetch client details when user tabs out
+        if (clientIdInput) {
+            clientIdInput.addEventListener('blur', async function() {
+                const clientId = this.value.trim();
+                if (!clientId) return;
+
+                // Only in ADD mode or if client details not already loaded
+                if (currentMode !== 'ADD') return;
+
+                // Update state and trigger auto-populate
+                window.AccountMaintenanceState.ClientID = clientId;
+                console.log('[AccountMaintenance] ClientID entered manually:', clientId);
+                checkAndAutoPopulateClientDetails();
+            });
+        }
+
+        // ProductID blur handler - fetch product details when user tabs out
+        if (productIdInput) {
+            productIdInput.addEventListener('blur', async function() {
+                const productId = this.value.trim();
+                if (!productId) return;
+
+                // Only in ADD mode
+                if (currentMode !== 'ADD') return;
+
+                // Update state and trigger auto-populate
+                window.AccountMaintenanceState.ProductID = productId;
+                console.log('[AccountMaintenance] ProductID entered manually:', productId);
+                
+                // Fetch product details to get CurrencyID and MinimumBalance
+                try {
+                    const response = await fetch(`/AccountsMaintenance/get-product-details?productId=${encodeURIComponent(productId)}`, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const product = result.data || result;
+                        
+                        if (product) {
+                            // Update Product Name if available
+                            const productNameInput = document.getElementById('ProductName');
+                            if (productNameInput && product.ProductName) {
+                                productNameInput.value = product.ProductName;
+                            }
+
+                            // Update Account Snapshot fields
+                            const currencySpan = document.getElementById('CurrencyID') ||
+                                document.querySelector('.behind-scene-value[data-field="currencyId"]');
+                            const minBalanceSpan = document.getElementById('MinimumBalance') ||
+                                document.querySelector('.behind-scene-value[data-field="minimumBalance"]');
+
+                            if (currencySpan && product.CurrencyID) {
+                                currencySpan.textContent = product.CurrencyID;
+                            }
+                            if (minBalanceSpan && product.MinimumBalance !== undefined) {
+                                const num = parseFloat(product.MinimumBalance);
+                                minBalanceSpan.textContent = !isNaN(num) 
+                                    ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                    : product.MinimumBalance;
+                            }
+                            
+                            console.log('[AccountMaintenance] Product details loaded:', product);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('[AccountMaintenance] Failed to fetch product details:', error);
+                }
+
+                // Also trigger client auto-populate if client is already selected
+                checkAndAutoPopulateClientDetails();
+            });
+        }
+    }
+
     function init() {
         wireNavSections();
         wireSidebarToggle();
@@ -1263,6 +1368,7 @@
         wireBlockingConfirmation();
         wireLookups();
         wireActionButtons();
+        wireManualInputListeners();
 
         // Hide initial loader
         showPageLoader(false);
@@ -1540,6 +1646,14 @@
                         config.whereStmt = whereParts.join(' AND ');
                         console.log(`[AccountMaintenance] Applying filter to Account Lookup: ${config.whereStmt}`);
                     }
+                }
+
+                // Filter Product lookup to show only deposit products (exclude loan products)
+                // Loan products typically have ProductTypeID starting with 'LN' or similar
+                if (config.tableID === 'ProductID') {
+                    // Filter out loan products - show only deposit/savings products
+                    config.whereStmt = "ProductTypeID NOT LIKE 'LN%'";
+                    console.log(`[AccountMaintenance] Applying filter to Product Lookup (deposits only): ${config.whereStmt}`);
                 }
 
                 console.log(`[AccountMaintenance] Opening lookup for ${targetInputId}`, config);
@@ -1894,24 +2008,37 @@
                         'AccountTypeName': 'AccountClassName',
                         'PhoneHome': 'Phone1',
                         'PhoneWork': 'Phone2',
-                        'Fax': 'FaxNo' // If needed
+                        'Fax': 'FaxNo', // If needed
+                        // Audit Trail field mappings (UI ID -> API field name)
+                        'CreatedBy': 'MakerID',
+                        'CreatedOn': 'MakerDT',
+                        'ModifiedBy': 'CheckerID',
+                        'ModifiedOn': 'CheckerDT',
+                        'SupervisedBy': 'SupervisorID',
+                        'SupervisedOn': 'SupervisorDT'
                     };
 
                     // Populate Form Fields (Inputs, Selects, and Display Spans)
                     const elements = document.querySelectorAll('input:not([type="hidden"]), select, textarea, .behind-scene-value, .audit-value');
 
                     elements.forEach(el => {
-                        const fieldName = el.id;
-                        // Skip if no ID or is the search trigger
+                        // Use element ID first, then fallback to data-field attribute
+                        const fieldName = el.id || el.dataset.field;
+                        // Skip if no field identifier or is the search trigger
                         if (!fieldName || fieldName === 'AccountID') return;
 
                         // 1. Direct case-insensitive match
                         let key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
 
-                        // 2. Mapped match
+                        // 2. Mapped match (UI field name -> API field name)
                         if (!key && fieldMap[fieldName]) {
                             // Find the actual key in data using the mapped name
                             key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
+                        }
+
+                        // 2b. Also check data-field attribute for mapping  
+                        if (!key && el.dataset.field && fieldMap[el.id]) {
+                            key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[el.id].toLowerCase());
                         }
 
                         // 3. Fallback for specific variations if needed
@@ -1950,7 +2077,17 @@
                                 el.dispatchEvent(new Event('change', { bubbles: true }));
                             } else {
                                 // Handle display spans (Account Snapshot, Audit Trail)
-                                el.textContent = account[key];
+                                // Format numeric balance fields with proper number formatting
+                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance', 
+                                                       'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
+                                const fieldId = el.id || '';
+                                if (numericFields.includes(fieldId) && !isNaN(parseFloat(account[key]))) {
+                                    // Format as number with 2 decimal places and comma separators
+                                    const num = parseFloat(account[key]);
+                                    el.textContent = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                } else {
+                                    el.textContent = account[key];
+                                }
                             }
                         }
                     });
@@ -2071,10 +2208,11 @@
         const errors = [];
 
         if (isCreate) {
-            // For create: require ClientID, ProductID, and AccountName
+            // For create: require ClientID, ProductID, AccountName, and OperatingModeID
             if (!formData.ClientID) errors.push('Client ID is required');
             if (!formData.ProductID) errors.push('Product ID is required');
             if (!formData.AccountName && !formData.Name) errors.push('Account Name is required');
+            if (!formData.OperatingModeID) errors.push('Operating Mode is required');
         } else {
             // For update: require AccountID and AccountName
             if (!formData.AccountID) errors.push('Account ID is required');
@@ -2128,24 +2266,25 @@
             if (isSuccess) {
                 const newAccountId = data.AccountID || data.Details?.AccountID || '';
 
+                // Show success notification in the inline alert area
                 showSystemToast(`Account created successfully. Account ID: ${newAccountId}`, {
                     variant: 'success',
                     useInlineAlert: true
                 });
 
-                // If we got a new AccountID, load it
+                // Set AccountID in the input field for reference
                 if (newAccountId) {
                     const accountIdInput = document.getElementById('AccountID');
                     if (accountIdInput) {
                         accountIdInput.value = newAccountId;
-                        accountIdInput.dispatchEvent(new Event('change', { bubbles: true }));
                     }
-                    // Load the newly created account
-                    await loadAccountDetails(newAccountId);
                 }
 
-                // Switch back to VIEW mode
+                // Switch back to VIEW mode (user can search for the account if they want to edit it)
                 currentMode = 'VIEW';
+                // Mark that an account was just created - disables Add until form is cleared
+                window.AccountMaintenanceState.isAccountJustCreated = true;
+                updateButtonStates();
             } else {
                 const msg = result.message || data?.ResponseMessage || 'Failed to create account';
                 showErrorMessage(msg, { useInlineAlert: true });
@@ -2243,7 +2382,7 @@
 
         // Clear all form fields
         const fieldsToClear = [
-            'AccountID', 'AccountName', 'ShortName',
+            'AccountID', 'ClientID', 'ProductID', 'AccountName', 'ShortName',
             'Address1', 'Address2', 'CityID', 'CountryID',
             'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
             'OperatingModeID', 'OperatingInstructions',
@@ -2322,17 +2461,18 @@
         }
 
         const isAccountLoaded = window.AccountMaintenanceState.isAccountLoaded;
+        const isAccountJustCreated = window.AccountMaintenanceState.isAccountJustCreated || false;
         const isAddMode = currentMode === 'ADD';
         const isEditMode = currentMode === 'EDIT';
         const isModifying = isAddMode || isEditMode;
 
-        console.log('[AccountMaintenance] updateButtonStates:', { currentMode, isAccountLoaded, isAddMode, isEditMode, isModifying });
+        console.log('[AccountMaintenance] updateButtonStates:', { currentMode, isAccountLoaded, isAccountJustCreated, isAddMode, isEditMode, isModifying });
 
         // View button: enabled when not in modify mode
         if (btns.view) btns.view.disabled = isModifying;
 
-        // Add button: enabled when not in modify mode
-        if (btns.add) btns.add.disabled = isModifying;
+        // Add button: disabled when modifying OR account is loaded/just created (must clear first)
+        if (btns.add) btns.add.disabled = isModifying || isAccountJustCreated || isAccountLoaded;
 
         // Edit button: enabled only when account is loaded and not in modify mode
         if (btns.edit) btns.edit.disabled = !isAccountLoaded || isModifying;
@@ -2343,8 +2483,8 @@
             console.log('[AccountMaintenance] Save button disabled:', btns.save.disabled);
         }
 
-        // Cancel button: enabled only in ADD or EDIT mode
-        if (btns.cancel) btns.cancel.disabled = !isModifying;
+        // Cancel button: enabled in ADD/EDIT mode OR when account is loaded/just created (to allow clearing)
+        if (btns.cancel) btns.cancel.disabled = !isModifying && !isAccountJustCreated && !isAccountLoaded;
 
         // Visual feedback - add/remove active class
         Object.values(btns).forEach(btn => {
@@ -2417,20 +2557,53 @@
             });
         }
 
-        // Cancel button - discards changes
+        // Cancel button - discards changes or clears form
         if (btns.cancel) {
             btns.cancel.addEventListener('click', async function () {
                 if (this.disabled) return;
-                if (confirm('Discard any unsaved changes?')) {
-                    if (window.AccountMaintenanceState.isAccountLoaded && window.AccountMaintenanceState.AccountID) {
-                        // Reload the current account to discard changes
+                
+                // Determine the context for the dialog
+                const isAfterCreate = window.AccountMaintenanceState.isAccountJustCreated || false;
+                const isViewingRecord = window.AccountMaintenanceState.isAccountLoaded && !isAfterCreate && currentMode === 'VIEW';
+                const isEditingRecord = currentMode === 'EDIT';
+                
+                let dialogTitle, dialogMessage;
+                
+                if (isAfterCreate) {
+                    dialogTitle = 'Clear Form';
+                    dialogMessage = 'Clear the form to add a new account?';
+                } else if (isViewingRecord) {
+                    dialogTitle = 'Clear Form';
+                    dialogMessage = 'Clear the current account to start fresh?';
+                } else if (isEditingRecord) {
+                    dialogTitle = 'Discard Changes';
+                    dialogMessage = 'Discard any unsaved changes?';
+                } else {
+                    dialogTitle = 'Clear Form';
+                    dialogMessage = 'Clear the form?';
+                }
+                
+                // Use showDialog for confirmation
+                const confirmed = await AppCore.showDialog({
+                    type: 'confirmation',
+                    title: dialogTitle,
+                    message: dialogMessage
+                });
+
+                if (confirmed) {
+                    if (isEditingRecord) {
+                        // In EDIT mode - reload the current account to discard changes
                         await loadAccountDetails(window.AccountMaintenanceState.AccountID);
+                        currentMode = 'VIEW';
+                        updateButtonStates();
                     } else {
-                        // Reset form completely
+                        // VIEW mode with record, ADD mode, or after create - clear form completely
                         resetAccountMaintenanceState();
+                        clearFormForAdd();
+                        currentMode = 'VIEW';
+                        updateButtonStates();
+                        showSystemToast('Form cleared.', { variant: 'info', useInlineAlert: true });
                     }
-                    currentMode = 'VIEW';
-                    updateButtonStates();
                 }
             });
         }

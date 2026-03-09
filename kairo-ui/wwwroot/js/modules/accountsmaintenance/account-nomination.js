@@ -91,7 +91,7 @@ window.AccountNominationModule = (function () {
         if (loader) loader.hidden = false;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.GET, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -181,7 +181,7 @@ window.AccountNominationModule = (function () {
         };
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.SAVE, payload);
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.SAVE}`, payload);
             if (result && result.success) {
                 showMsg(result.message || 'Nomination details saved successfully', 'success');
                 loadData();
@@ -205,7 +205,7 @@ window.AccountNominationModule = (function () {
 
         const ctx = getContext();
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.DELETE, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.DELETE}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 NomineeID: val('nomineeId'),

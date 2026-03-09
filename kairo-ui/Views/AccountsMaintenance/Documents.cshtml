@@ -3,6 +3,8 @@
     // Migrated from: public/modules/account-maintenance/DataEntry/account-documents.html
     // Rendered inside parent #submodule-container; parent provides window shell + action panel
     var documentClassOptions = ViewData["DocumentClassOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var documentTypeOptions = ViewData["DocumentTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var documentLocationOptions = ViewData["DocumentLocationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Documents Submodule -->
@@ -24,17 +26,15 @@
             <div class="kairo-account-control" data-kairo-account-control>
               <input type="text" id="documentId" name="documentId" class="kairo-account-control__id form-control am-input" placeholder="ID">
               <input type="text" id="documentDesc_lookup" name="documentDesc_lookup" class="kairo-account-control__name form-control am-input" placeholder="Description" readonly>
-              <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="DocumentID" title="Search Documents">
+              <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="documentId" title="Search Documents">
                 <i class="bi bi-search"></i>
               </button>
             </div>
           </div>
           <div class="col-md-6">
             <label class="label-blue am-label">Document Type</label>
-            <select id="documentType" name="documentType" class="form-select am-input">
+            <select id="documentType" name="documentType" class="form-select am-input" asp-items="@(new SelectList(documentTypeOptions, "Value", "Text"))">
               <option value="">--Select--</option>
-              <option value="O">Original</option>
-              <option value="C">Copy</option>
             </select>
           </div>
         </div>
@@ -67,15 +67,13 @@
         <div class="row g-2 mb-2">
           <div class="col-md-6">
             <label class="label-blue am-label">Location</label>
-            <select id="location" name="location" class="form-select am-input">
+            <select id="location" name="location" class="form-select am-input" asp-items="@(new SelectList(documentLocationOptions, "Value", "Text"))">
               <option value="">--Select--</option>
-              <option value="B">Document Located in Bank</option>
-              <option value="C">Documents with Customers</option>
             </select>
           </div>
           <div class="col-md-6">
             <label class="label-blue am-label" for="documentImage_file">Document Image</label>
-            <input class="form-control am-input" type="file" id="documentImage_file" name="documentImage_file">
+            <input id="documentImage_file" name="documentImage_file" data-document-field="Image" class="bs-input-text" type="file" accept="image/*,.pdf,.doc,.docx" />
           </div>
         </div>
 
