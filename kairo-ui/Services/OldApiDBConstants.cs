@@ -13,5 +13,16 @@
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
 
+        // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT UTILITIES - STANDING INSTRUCTION TYPE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_SI_TYPES = "dbo.p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "dbo.p_AddEditSITypes";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT UTILITIES - DIRECT DEBIT MAINTENANCE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string ADD_EDIT_DIRECT_DEBIT_TRANSFER = "dbo.p_AddEditDirectDebitTransfer";
+
     }
 }

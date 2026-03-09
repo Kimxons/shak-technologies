@@ -1,0 +1,392 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Account Utilities";
+    Layout = "_ApplicationLayout";
+}
+
+@section Styles {
+    <style>
+        /* Suppress duplicate headers, action panels and overlays injected by submodule partials */
+        #submodule-container .am-header,
+        #submodule-container .am-message-panel,
+        #submodule-container .loading-overlay,
+        #submodule-container .action-panel,
+        #submodule-container aside.action-panel {
+            display: none !important;
+        }
+
+        /* Reset legacy container sizing that may conflict with the parent layout */
+        #submodule-container .window {
+            height: auto !important;
+            width: 100% !important;
+            position: static !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #submodule-container .main-container {
+            height: auto !important;
+            padding: 0 !important;
+        }
+
+        /* Keep the alert container pinned at top of form-content */
+        #accountUtilitiesAlertContainer {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: inherit;
+            width: 100%;
+        }
+    </style>
+}
+
+<form id="accountUtilitiesForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Subtle Message Panel -->
+<div class="am-message-panel" id="amMessagePanel">
+    <i class="bi bi-info-circle"></i>
+    <span id="messagePanelText"></span>
+    <button type="button" class="am-message-panel__close"
+            onclick="this.parentElement.classList.remove('show')" aria-label="Close">
+        <i class="bi bi-x"></i>
+    </button>
+</div>
+
+<!-- Page Loading Overlay -->
+<div id="pageLoadingOverlay" class="page-loading-overlay">
+    <div class="page-loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+</div>
+
+<div class="window">
+    <div class="main-container">
+
+        <!-- ── LEFT SIDEBAR ──────────────────────────────────────────────── -->
+        <div class="sidebar" id="main-sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-header__title">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES
+                </span>
+                <button type="button" class="sidebar-toggle" id="sidebarToggle"
+                        aria-label="Toggle sidebar" aria-expanded="true">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text" class="sidebar-search__input" id="submoduleSearch"
+                       placeholder="Search submodules..." aria-label="Search submodules">
+                <i class="bi bi-search sidebar-search__icon"></i>
+                <button type="button" class="sidebar-search__clear" id="submoduleSearchClear"
+                        aria-label="Clear search" style="display:none;">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+
+                <!-- Standing Instructions Section -->
+                <div class="nav-section nav-section--card" data-nav-section
+                     data-section-name="Standing Instructions">
+                    <div class="nav-header nav-header--card">
+                        <div class="nav-header__content">
+                            <i class="bi bi-folder-fill nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">Standing Instructions</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <span class="nav-badge">6</span>
+                            <button type="button" class="nav-arrow nav-arrow--card"
+                                    aria-label="Toggle Standing Instructions">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card" id="nav-standing-instructions">
+
+                        <div class="sidebar-item sidebar-item--enhanced active"
+                             data-submodule="StandingInstructionType">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-card-list sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <span class="sidebar-item__name">Standing Instruction Type</span>
+                                    <span class="sidebar-item__desc">Manage SI Types</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-item sidebar-item--enhanced"
+                             data-submodule="StandingInstructionTransfer">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-arrow-left-right sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <span class="sidebar-item__name">SI Transfer</span>
+                                    <span class="sidebar-item__desc">Transfer instructions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-item sidebar-item--enhanced"
+                             data-submodule="StandingInstructionEFT">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-bank sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <span class="sidebar-item__name">SI EFT</span>
+                                    <span class="sidebar-item__desc">EFT instructions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-item sidebar-item--enhanced"
+                             data-submodule="StandingInstructionDemandDraft">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-receipt sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <span class="sidebar-item__name">SI Demand Draft</span>
+                                    <span class="sidebar-item__desc">Demand draft instructions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-item sidebar-item--enhanced"
+                             data-submodule="StandingInstructionLoanRepayment">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-currency-exchange sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <span class="sidebar-item__name">SI Loan Repayment</span>
+                                    <span class="sidebar-item__desc">Loan repayment instructions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-item sidebar-item--enhanced"
+                             data-submodule="DirectDebitMaintenance">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-credit-card-2-back sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <span class="sidebar-item__name">Direct Debit</span>
+                                    <span class="sidebar-item__desc">Direct debit maintenance</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div><!-- end sidebar-content -->
+        </div><!-- end sidebar -->
+
+        <!-- ── FORM CONTENT ──────────────────────────────────────────────── -->
+        <div class="form-content">
+            <div id="accountUtilitiesAlertContainer" class="px-2"></div>
+            <!-- Submodule partial views are injected here via AJAX -->
+            <div id="submodule-container" class="submodule-container"></div>
+        </div>
+
+        <!-- ── RIGHT ACTION PANEL ────────────────────────────────────────── -->
+        <div class="action-panel">
+            <div class="action-buttons">
+                <button class="btn-action btn-view" type="button" data-action="view" title="View">
+                    <i class="bi bi-eye me-1"></i>View
+                </button>
+                <button class="btn-action btn-add" type="button" data-action="add" title="Add">
+                    <i class="bi bi-plus-circle me-1"></i>Add
+                </button>
+                <button class="btn-action" type="button" data-action="edit" title="Edit">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </button>
+                <button class="btn-action" type="button" data-action="delete" title="Delete">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                <button class="btn-action btn-save" type="button" data-action="save" title="Save" disabled>
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+                <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel" disabled>
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+            </div>
+        </div>
+
+    </div><!-- end main-container -->
+</div><!-- end window -->
+
+@section Scripts {
+    <script src="~/js/app/app-core.js"></script>
+    <script src="~/js/modules/shared/searchModal.js"></script>
+    <script src="~/js/modules/accountutilities/standing-instruction-type.js"></script>
+    <script src="~/js/modules/accountutilities/direct-debit-maintenance.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        // ── Submodule registry ────────────────────────────────────────────────
+        // Add entries here as each submodule is migrated to MVC.
+        const SUBMODULES = {
+            StandingInstructionType: {
+                url: '/AccountUtilities/StandingInstructionType',
+                getModule: () => window.StandingInstructionTypeModule
+            },
+            DirectDebitMaintenance: {
+                url: '/AccountUtilities/DirectDebitMaintenance',
+                getModule: () => window.DirectDebitMaintenanceModule
+            }
+        };
+
+        let activeSubmoduleName = null;
+
+        // ── Load submodule partial via AJAX ───────────────────────────────────
+        async function loadSubmodule(name) {
+            const container = document.getElementById('submodule-container');
+            const overlay   = document.getElementById('pageLoadingOverlay');
+            const loadText  = document.getElementById('pageLoadingText');
+
+            if (overlay)   overlay.style.display = 'flex';
+            if (loadText)  loadText.textContent   = 'Loading ' + name + '...';
+
+            const cfg = SUBMODULES[name];
+
+            try {
+                if (!cfg) {
+                    // Submodule not yet migrated — show placeholder
+                    container.innerHTML =
+                        '<div class="form-card"><div class="form-section">' +
+                        '<div class="section-header"><span class="section-header__title">' +
+                        '<i class="bi bi-tools"></i> ' + name + '</span></div>' +
+                        '<div class="section-content"><div class="alert alert-info m-3">' +
+                        '<i class="bi bi-info-circle me-2"></i>' +
+                        '<strong>' + name + '</strong> is under development.</div></div></div></div>';
+                    activeSubmoduleName = null;
+                    syncActionPanel();
+                    return;
+                }
+
+                const res  = await fetch(cfg.url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                container.innerHTML   = await res.text();
+                activeSubmoduleName   = name;
+
+                const mod = cfg.getModule();
+                if (mod && typeof mod.init === 'function') mod.init();
+
+                syncActionPanel();
+
+            } catch (err) {
+                console.error('[AccountUtilities] Failed to load submodule:', name, err);
+                container.innerHTML =
+                    '<div class="alert alert-danger m-3">' +
+                    'Failed to load <strong>' + name + '</strong>. Please refresh and try again.</div>';
+                activeSubmoduleName = null;
+            } finally {
+                if (overlay) overlay.style.display = 'none';
+            }
+        }
+
+        // ── Mirror active submodule button states onto the parent action panel ─
+        function syncActionPanel() {
+            const container = document.getElementById('submodule-container');
+            ['view', 'add', 'edit', 'delete', 'save', 'cancel'].forEach(function (action) {
+                const parentBtn  = document.querySelector(
+                    '.action-panel > .action-buttons [data-action="' + action + '"]');
+                const subBtn     = container
+                    ? container.querySelector('[data-action="' + action + '"]')
+                    : null;
+                if (!parentBtn) return;
+                if (subBtn) {
+                    parentBtn.disabled = subBtn.disabled;
+                    parentBtn.classList.toggle('active', subBtn.classList.contains('active'));
+                } else {
+                    parentBtn.disabled = (action === 'save' || action === 'cancel');
+                    parentBtn.classList.remove('active');
+                }
+            });
+        }
+
+        // ── Parent action buttons delegate to the submodule's hidden buttons ──
+        // The submodule's .action-panel is hidden by CSS; programmatic .click()
+        // still fires the attached event listener, preserving all logic.
+        document.querySelectorAll('.action-panel > .action-buttons [data-action]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var action    = this.dataset.action;
+                var container = document.getElementById('submodule-container');
+                var subBtn    = container
+                    ? container.querySelector('[data-action="' + action + '"]')
+                    : null;
+                if (subBtn) {
+                    subBtn.click();
+                    setTimeout(syncActionPanel, 150);
+                }
+            });
+        });
+
+        // ── Sidebar item click ────────────────────────────────────────────────
+        document.querySelectorAll('.sidebar-item[data-submodule]').forEach(function (item) {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.sidebar-item').forEach(function (i) {
+                    i.classList.remove('active');
+                });
+                this.classList.add('active');
+                loadSubmodule(this.dataset.submodule);
+            });
+        });
+
+        // ── Sidebar section nav-arrow toggle ─────────────────────────────────
+        document.querySelectorAll('.nav-arrow').forEach(function (arrow) {
+            arrow.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var section = this.closest('.nav-section');
+                var items   = section ? section.querySelector('.nav-items') : null;
+                var icon    = this.querySelector('i');
+                if (!items) return;
+                if (items.hasAttribute('hidden')) {
+                    items.removeAttribute('hidden');
+                    if (icon) { icon.classList.remove('bi-chevron-down'); icon.classList.add('bi-chevron-up'); }
+                } else {
+                    items.setAttribute('hidden', '');
+                    if (icon) { icon.classList.remove('bi-chevron-up'); icon.classList.add('bi-chevron-down'); }
+                }
+            });
+        });
+
+        // ── Sidebar collapse / expand ─────────────────────────────────────────
+        document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+            document.getElementById('main-sidebar')?.classList.toggle('collapsed');
+        });
+
+        // ── Submodule search filter ───────────────────────────────────────────
+        var searchInput = document.getElementById('submoduleSearch');
+        var clearBtn    = document.getElementById('submoduleSearchClear');
+
+        searchInput?.addEventListener('input', function () {
+            var term = this.value.toLowerCase();
+            document.querySelectorAll('.sidebar-item[data-submodule]').forEach(function (item) {
+                var label = (item.querySelector('.sidebar-item__name') || {}).textContent || '';
+                item.style.display = label.toLowerCase().includes(term) ? '' : 'none';
+            });
+            if (clearBtn) clearBtn.style.display = this.value ? '' : 'none';
+        });
+
+        clearBtn?.addEventListener('click', function () {
+            searchInput.value = '';
+            document.querySelectorAll('.sidebar-item[data-submodule]').forEach(function (i) {
+                i.style.display = '';
+            });
+            this.style.display = 'none';
+        });
+
+        // ── Default: auto-load Standing Instruction Type on page ready ────────
+        loadSubmodule('StandingInstructionType');
+
+    })();
+    </script>
+}
