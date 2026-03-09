@@ -36,13 +36,21 @@ namespace kairo_ui.Services
             {
                 var type = requestData.GetType();
                 var operatorIdProp = type.GetProperty("OperatorID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                var createdByProp = type.GetProperty("CreatedBy", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var branchIdProp = type.GetProperty("OurBranchID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var bankIdProp = type.GetProperty("BankID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 var moduleIdProp = type.GetProperty("ModuleID", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
+                var userValue = ResolveSessionValue("user_name", "user_id") ?? "web_portal";
+
                 if (operatorIdProp != null && string.IsNullOrWhiteSpace(operatorIdProp.GetValue(requestData) as string))
                 {
-                    operatorIdProp.SetValue(requestData, ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+                    operatorIdProp.SetValue(requestData, userValue);
+                }
+
+                if (createdByProp != null && string.IsNullOrWhiteSpace(createdByProp.GetValue(requestData) as string))
+                {
+                    createdByProp.SetValue(requestData, userValue);
                 }
 
                 if (branchIdProp != null && string.IsNullOrWhiteSpace(branchIdProp.GetValue(requestData) as string))

@@ -1,223 +1,231 @@
 /**
- * Account Special Conditions Module - CRUD Operations
- * Manages account special conditions with grid-based editing
+ * Account Special Conditions Module
+ * Migrated from: public/modules/account-maintenance/DataEntry/account-special-conditions.js
+ *
+ * Parent wires via updateActionPanelForSubmodule:
+ *   ADD → setMode('ADD'), EDIT → setMode('EDIT'), VIEW → setMode('VIEW') (via loadData),
+ *   DELETE → deleteData(), SAVE → saveData(), CANCEL → cancelChanges(), CLOSE → closeSubmodule()
  */
-
 window.AccountSpecialConditionsModule = (function () {
     'use strict';
 
+    /* ── State ─────────────────────────────────────────────── */
     const state = {
-        accountId: null,
-        branchId: null,
-        operatorId: null,
-        currentMode: 'VIEW',
+        editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
         conditions: [],
         originalConditions: [],
         modifiedConditions: new Set(),
-        currentPage: 1,
-        pageSize: 10
+        operatorID: null
     };
 
+    /* ── API Routes ─────────────────────────────────────────── */
+    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-special-conditions',
-        ADD: '/AccountsMaintenance/api/add-account-special-condition',
-        UPDATE: '/AccountsMaintenance/api/update-account-special-condition',
-        DELETE: '/AccountsMaintenance/api/delete-account-special-condition'
+        GET: 'AccountsMaintenance/api/get-account-special-conditions',
+        UPDATE: 'AccountsMaintenance/api/update-account-special-condition'
     };
 
-    /**
-     * Initialize the module
-     */
-    function init() {
-        console.log('[SpecialConditions] Initializing module...');
-        getAccountContext();
-
-        if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
-            return;
-        }
-
-        wireHeaderControls();
-        wireActionButtons();
-        wireSearchFilter();
-        wireSectionToggles();
-        setMode('VIEW');
-        loadData();
-    }
-
-    /**
-     * Get account context from parent page
-     */
-    function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
-        } else {
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
-        }
-    }
-
-    /**
-     * Wire header control buttons
-     */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-    }
-
-    /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'edit': () => setMode('EDIT'),
-            'save': saveData,
-            'cancel': cancelChanges
+    /* ── Context ────────────────────────────────────────────── */
+    function getContext() {
+        const ps = window.AccountMaintenanceState;
+        return {
+            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
         };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
     }
 
-    /**
-     * Wire search filter
-     */
-    function wireSearchFilter() {
-        const searchInput = document.getElementById('searchInput');
-        const clearBtn = document.getElementById('clearSearch');
-
-        if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                filterConditions(searchTerm);
-                if (clearBtn) clearBtn.classList.toggle('d-none', !searchTerm);
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                clearBtn.classList.add('d-none');
-                filterConditions('');
-            });
+    /* ── UI Helpers ──────────────────────────────────────────── */
+    function el(id) { return document.getElementById(id); }
+    function val(id) { const e = el(id); return e ? e.value : ''; }
+    function setVal(id, v) {
+        const e = el(id);
+        if (!e) return;
+        const s = (v == null) ? '' : v;
+        if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
+            if (e.value !== s) e.value = s;
+        } else {
+            if (e.textContent !== s) e.textContent = s;
         }
     }
 
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn, [data-section-toggle]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content, #btsBody');
-                const icon = this.querySelector('i') || section.querySelector('.section-toggle-btn i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+    function showLoading(show) {
+        const o = el('loadingOverlay');
+        if (o) o.hidden = !show;
+    }
 
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
+    function showMsg(msg, type) {
+        if (typeof window.showSystemToast === 'function') {
+            window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
+        }
+        console.log('[SpecialConditions] ' + type + ': ' + msg);
+    }
+
+    function isSuccess(r) {
+        if (!r) return false;
+        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
+
+    function showConfirm(message, title, iconClass) {
+        if (window.AppCore && window.AppCore.showConfirmation) {
+            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
+        }
+        title = title || 'Confirm Action';
+        iconClass = iconClass || 'bi-question-circle';
+        return new Promise(function (resolve) {
+            var overlay = document.querySelector('.acd-confirm-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'acd-confirm-overlay';
+                overlay.innerHTML =
+                    '<div class="acd-confirm-card">' +
+                    '  <div class="acd-confirm-icon"><i class="bi ' + iconClass + '"></i></div>' +
+                    '  <div class="acd-confirm-title">' + title + '</div>' +
+                    '  <div class="acd-confirm-msg">' + message + '</div>' +
+                    '  <div class="acd-confirm-actions">' +
+                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--cancel">Cancel</button>' +
+                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--confirm">Confirm</button>' +
+                    '  </div>' +
+                    '</div>';
+                document.body.appendChild(overlay);
+            } else {
+                overlay.querySelector('.acd-confirm-title').textContent = title;
+                overlay.querySelector('.acd-confirm-msg').textContent = message;
+                overlay.querySelector('.acd-confirm-icon i').className = 'bi ' + iconClass;
+            }
+
+            var confirmBtn = overlay.querySelector('.acd-confirm-btn--confirm');
+            var cancelBtn = overlay.querySelector('.acd-confirm-btn--cancel');
+
+            var handleResponse = function (result) {
+                overlay.classList.remove('is-visible');
+                confirmBtn.onclick = null;
+                cancelBtn.onclick = null;
+                setTimeout(function () { resolve(result); }, 300);
+            };
+
+            confirmBtn.onclick = function () { handleResponse(true); };
+            cancelBtn.onclick = function () { handleResponse(false); };
+
+            requestAnimationFrame(function () {
+                overlay.classList.add('is-visible');
+                setTimeout(function () { confirmBtn.focus(); }, 100);
             });
         });
     }
 
-    /**
-     * Set form mode
-     */
+    function fmtDateTime(ds) {
+        if (!ds) return '-';
+        try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
-        console.log('[SpecialConditions] Setting mode:', mode);
-        state.currentMode = mode;
-        state.modifiedConditions.clear();
-
-        const isEditing = mode === 'EDIT';
+        state.editMode = mode;
+        const isEditing = (mode === 'EDIT');
 
         // Enable/disable grid editing
         document.querySelectorAll('#conditionsGrid input[type="checkbox"], #conditionsGrid input[type="text"]').forEach(field => {
             if (field) field.disabled = !isEditing;
         });
 
-        // Update button states
-        const editBtn = document.querySelector('[data-action="edit"]');
-        const saveBtn = document.querySelector('[data-action="save"]');
-        const cancelBtn = document.querySelector('[data-action="cancel"]');
+        // Parent-provided action panel buttons (by ID)
+        var viewB = el('submoduleBtnView');
+        var addB = el('submoduleBtnAdd');
+        var editB = el('submoduleBtnEdit');
+        var delB = el('submoduleBtnDelete');
+        var saveB = el('submoduleBtnSave');
+        var cancelB = el('submoduleBtnCancel');
 
-        if (editBtn) editBtn.disabled = isEditing;
-        if (saveBtn) saveBtn.disabled = !isEditing;
-        if (cancelBtn) cancelBtn.disabled = !isEditing;
+        if (viewB) viewB.disabled = isEditing;
+        if (addB) addB.disabled = true;
+        if (editB) editB.disabled = isEditing || state.conditions.length === 0;
+        if (delB) delB.disabled = true;
+        if (saveB) saveB.disabled = !isEditing;
+        if (cancelB) cancelB.disabled = !isEditing;
 
-        if (!isEditing) {
-            state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
+        if (!isEditing && mode === 'NONE') {
+            state.modifiedConditions.clear();
         }
+
+        console.log('[SpecialConditions] Mode →', mode);
     }
 
-    /**
-     * Load conditions from API
-     */
-    async function loadData() {
-        console.log('[SpecialConditions] Loading conditions...');
-        showLoading(true);
-
-        try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.GET, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+    /* ── Collapsible Sections ────────────────────────────────── */
+    function wireSectionToggles() {
+        document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
+            if (header._wiredSpCond) return;
+            header._wiredSpCond = true;
+            header.addEventListener('click', function (e) {
+                if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
+                var section = header.closest('.form-section');
+                var content = section ? section.querySelector('[data-section-content]') : null;
+                var toggleBtn = section ? section.querySelector('.section-toggle-btn') : null;
+                var icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+                if (!content) return;
+                var isOpen = content.style.display !== 'none';
+                content.style.display = isOpen ? 'none' : '';
+                if (icon) {
+                    icon.classList.toggle('bi-chevron-up', !isOpen);
+                    icon.classList.toggle('bi-chevron-down', isOpen);
+                }
+                if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(!isOpen));
             });
+        });
+    }
 
-            const result = await response.json();
-            console.log('[SpecialConditions] Response:', result);
+    /* ── Search Bar ──────────────────────────────────────────── */
+    function wireSearch() {
+        const searchInput = el('searchInput');
+        const clearBtn = el('clearSearch');
 
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data || [];
-                state.conditions = Array.isArray(data) ? data : (data ? [data] : []);
-                state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
-                
-                renderGrid();
-                updateRecordCount();
-                showSuccess(`Loaded ${state.conditions.length} condition(s)`);
-            } else {
-                showError(result?.ResponseMessage || 'Failed to load conditions');
-            }
-        } catch (error) {
-            console.error('[SpecialConditions] Error:', error);
-            showError('Failed to load conditions: ' + error.message);
-        } finally {
-            showLoading(false);
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const term = searchInput.value.toLowerCase().trim();
+                filterGrid(term);
+                if (clearBtn) clearBtn.classList.toggle('d-none', !term);
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                clearBtn.classList.add('d-none');
+                filterGrid('');
+            });
         }
     }
 
-    /**
-     * Render the conditions grid
-     */
+    function filterGrid(term) {
+        const rows = document.querySelectorAll('#conditionsGrid tbody tr:not(.table__empty)');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = !term || text.includes(term) ? '' : 'none';
+        });
+    }
+
+    /* ── Render Grid ─────────────────────────────────────────── */
     function renderGrid() {
         const tbody = document.querySelector('#conditionsGrid tbody');
+        const countSpan = el('recordCount');
         if (!tbody) return;
 
         tbody.innerHTML = '';
+        if (countSpan) countSpan.textContent = state.conditions.length + ' records';
 
         if (state.conditions.length === 0) {
             tbody.innerHTML = '<tr class="table__empty"><td colspan="4">No special conditions found.</td></tr>';
             return;
         }
 
-        const isEditing = state.currentMode === 'EDIT';
+        const isEditing = state.editMode === 'EDIT';
 
         state.conditions.forEach((condition, index) => {
             const row = document.createElement('tr');
@@ -233,209 +241,160 @@ window.AccountSpecialConditionsModule = (function () {
                            ${condition.Set || condition.IsSet ? 'checked' : ''} ${!isEditing ? 'disabled' : ''}>
                 </td>
                 <td>
-                    <input type="text" class="form-control form-control-sm" data-field="Value" 
+                    <input type="text" class="bs-input-text" data-field="Value" 
                            value="${escapeHtml(condition.Value || condition.ConditionValue || '')}" 
                            ${!isEditing ? 'disabled' : ''}>
                 </td>
             `;
 
-            // Wire change handlers
             row.querySelectorAll('input').forEach(input => {
                 input.addEventListener('change', () => {
                     state.modifiedConditions.add(index);
-                    updateCondition(index, input.dataset.field, 
-                        input.type === 'checkbox' ? input.checked : input.value);
+                    const val = input.type === 'checkbox' ? input.checked : input.value;
+                    state.conditions[index][input.dataset.field] = val;
                 });
             });
 
             tbody.appendChild(row);
         });
+
+        if (state.conditions.length > 0) bindAudit(state.conditions[0]);
     }
 
-    /**
-     * Update a condition in state
-     */
-    function updateCondition(index, field, value) {
-        if (state.conditions[index]) {
-            state.conditions[index][field] = value;
+    /* ── Bind Audit Data ─────────────────────────────────────── */
+    function bindAudit(doc) {
+        setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
+        setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
+        setVal('ModifierID', doc.ModifiedBy || doc.ModifierId || doc.ModifierID || '');
+        setVal('ModifierDT', fmtDateTime(doc.ModifiedOn || doc.ModifierDt || doc.ModifierDT));
+        setVal('CheckerID', doc.CheckedBy || doc.CheckerId || doc.CheckerID || '');
+        setVal('CheckerDT', fmtDateTime(doc.CheckedOn || doc.CheckerDt || doc.CheckerDT));
+        state.operatorID = doc.OperatorID || doc.OperatorId || '';
+    }
+
+    /* ── Load / Navigate ─────────────────────────────────────── */
+    async function navigate() {
+        const ctx = getContext();
+        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
+
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
+                AccountID: ctx.AccountID,
+                OurBranchID: ctx.OurBranchID,
+                OperatorID: ctx.OperatorID
+            });
+
+            showLoading(false);
+            if (isSuccess(result)) {
+                let data = [];
+                const d = result.Details || result.Data || result;
+                if (Array.isArray(d)) data = d;
+                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
+                else if (d && typeof d === 'object') data = [d];
+
+                state.conditions = data;
+                state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
+                renderGrid();
+                setMode('NONE');
+            } else {
+                state.conditions = [];
+                state.originalConditions = [];
+                renderGrid();
+                setMode('NONE');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading Account Special Conditions: ' + err.message, 'error');
         }
     }
 
-    /**
-     * Filter conditions by search term
-     */
-    function filterConditions(searchTerm) {
-        const rows = document.querySelectorAll('#conditionsGrid tbody tr:not(.table__empty)');
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = !searchTerm || text.includes(searchTerm) ? '' : 'none';
-        });
-    }
-
-    /**
-     * Update record count display
-     */
-    function updateRecordCount() {
-        const countEl = document.getElementById('recordCount');
-        if (countEl) {
-            countEl.textContent = `${state.conditions.length} record${state.conditions.length !== 1 ? 's' : ''}`;
-        }
-    }
-
-    /**
-     * Save modified conditions
-     */
+    /* ── Save ────────────────────────────────────────────────── */
     async function saveData() {
         if (state.modifiedConditions.size === 0) {
-            showWarning('No changes to save');
+            showMsg('No changes to save.', 'warning');
             return;
         }
 
-        console.log('[SpecialConditions] Saving conditions...');
+        const confirmed = await showConfirm(
+            'Are you sure you want to save changes to Special Conditions?',
+            'Save Confirmation'
+        );
+        if (!confirmed) return;
+
+        const ctx = getContext();
+        const searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+
         showLoading(true);
+        let successCount = 0;
+        let errorCount = 0;
 
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            let successCount = 0;
-            let errorCount = 0;
-
             for (const index of state.modifiedConditions) {
                 const condition = state.conditions[index];
                 const payload = {
                     ...condition,
                     SearchKey: searchKey,
-                    AccountID: state.accountId,
-                    OurBranchID: state.branchId,
-                    OperatorID: state.operatorId
+                    AccountID: ctx.AccountID,
+                    OurBranchID: ctx.OurBranchID,
+                    OperatorID: ctx.OperatorID
                 };
 
-                const response = await fetch(API.UPDATE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                if (isSuccess(result)) {
-                    successCount++;
-                } else {
-                    errorCount++;
-                }
+                const result = await window.AppCore.invokeControllerAsync(API.UPDATE, payload);
+                if (isSuccess(result)) successCount++;
+                else errorCount++;
             }
 
             if (errorCount === 0) {
-                showSuccess(`${successCount} condition(s) saved successfully`);
-                setMode('VIEW');
-                await loadData();
+                showMsg(`${successCount} condition(s) saved successfully.`, 'success');
+                setMode('NONE');
+                navigate();
             } else {
-                showWarning(`Saved ${successCount}, failed ${errorCount}`);
+                showMsg(`Saved ${successCount}, failed ${errorCount}.`, 'warning');
             }
         } catch (error) {
-            console.error('[SpecialConditions] Save error:', error);
-            showError('Failed to save conditions: ' + error.message);
+            showMsg('Failed to save conditions: ' + error.message, 'error');
         } finally {
             showLoading(false);
         }
     }
 
-    /**
-     * Cancel changes
-     */
+    function deleteData() {
+        showMsg('Delete not supported for Special Conditions. Uncheck "Apply" instead.', 'info');
+    }
+
+    /* ── Public API ──────────────────────────────────────────── */
+    function confirmAdd() { showMsg('Direct addition not allowed. Modify existing defaults.', 'warning'); }
+    function confirmEdit() { if (state.conditions.length > 0) setMode('EDIT'); else showMsg('No internal data.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
     function cancelChanges() {
         state.conditions = JSON.parse(JSON.stringify(state.originalConditions));
         state.modifiedConditions.clear();
         renderGrid();
-        setMode('VIEW');
+        setMode('NONE');
     }
 
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
-        const fields = {
-            'MakerID': data.CreatedBy || '-',
-            'MakerDT': formatDate(data.CreatedOn) || '-',
-            'ModifierID': data.ModifiedBy || '-',
-            'ModifierDT': formatDate(data.ModifiedOn) || '-'
-        };
-
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
-        });
+    function init() {
+        wireSectionToggles();
+        wireSearch();
+        setMode('NONE');
+        const ctx = getContext();
+        if (ctx.AccountID) navigate();
     }
 
-    // Utility functions
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 || 
-               result?.success === true || result?.Success === true;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
-        try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function showLoading(show) {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.hidden = !show;
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        }
-    }
-
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
-
-    function showMessage(message, type) {
-        const panel = document.querySelector('.de-message-bar');
-        if (panel) {
-            panel.className = `de-message-bar de-message-bar--${type}`;
-            panel.hidden = false;
-            const icon = panel.querySelector('i');
-            const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
-            if (span) span.textContent = message;
-            setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
-        }
-
-        if (type === 'error' && window.parent?.showSystemToast) {
-            window.parent.showSystemToast(message, { variant: type });
-        }
-    }
-
-    // Public API
     return {
-        init,
-        loadData,
-        saveData,
-        setMode,
-        cancelChanges
+        init: init,
+        setMode: setMode,
+        navigate: navigate,
+        saveData: saveData,
+        deleteData: deleteData,
+        confirmAdd: confirmAdd,
+        confirmEdit: confirmEdit,
+        confirmCancel: confirmCancel,
+        cancelChanges: cancelChanges,
+        loadData: navigate
     };
 })();
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountSpecialConditionsModule?.init());
-} else {
-    window.AccountSpecialConditionsModule?.init();
-}
 
-console.log('✅ Account Special Conditions module loaded');
+console.log('[SpecialConditions] Module registered');

@@ -584,9 +584,13 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> GetAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetAccountSignatories, "GetAccountSignatories", cancellationToken);
 
-        [HttpPost("AddEditAccountSignatories")]
-        public async Task<IActionResult> AddEditAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
-            => await HandleRequest(reqDat, _repo.AddEditAccountSignatories, "AddEditAccountSignatories", cancellationToken);
+        [HttpPost("AddAccountSignatories")]
+        public async Task<IActionResult> AddAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.AddAccountSignatories, "AddAccountSignatories", cancellationToken);
+
+        [HttpPost("EditAccountSignatories")]
+        public async Task<IActionResult> EditAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+    => await HandleRequest(reqDat, _repo.EditAccountSignatories, "EditAccountSignatories", cancellationToken);
 
         private async Task<IActionResult> HandleRequest(InData reqDat, Func<string, CancellationToken, Task<ResponseDetail<object>>> operation, string methodName, CancellationToken cancellationToken)
         {

@@ -78,6 +78,18 @@ namespace kairo_ui.Services
         public const string GET_ACCOUNT_CLASSIFICATION = BASEACCOUNTS + "/GetAccountClassification";
         public const string DELETE_ACCOUNT_CLASSIFICATION = BASEACCOUNTS + "/DeleteAccountClassification";
 
+        // Account Notification
+        public const string GET_ACCOUNT_NOTIFICATION = BASEACCOUNTS + "/GetAccountNotification";
+        public const string ADD_ACCOUNT_NOTIFICATION = BASEACCOUNTS + "/AddAccountNotification";
+        public const string UPDATE_ACCOUNT_NOTIFICATION = BASEACCOUNTS + "/UpdateAccountNotification";
+        public const string DELETE_ACCOUNT_NOTIFICATION = BASEACCOUNTS + "/DeleteAccountNotification";
+
+        // User Defined Fields
+        public const string GET_USER_DEFINED_FIELDS = BASEACCOUNTS + "/GetUserDefinedFields";
+        public const string ADD_USER_DEFINED_FIELDS = BASEACCOUNTS + "/AddUserDefinedFields";
+        public const string UPDATE_USER_DEFINED_FIELDS = BASEACCOUNTS + "/UpdateUserDefinedFields";
+        public const string DELETE_USER_DEFINED_FIELDS = BASEACCOUNTS + "/DeleteUserDefinedFields";
+
         // Special Conditions
         public const string ADD_ACCOUNT_SPECIAL_CONDITION = BASEACCOUNTS + "/AddAccountSpecialCondition";
         public const string UPDATE_ACCOUNT_SPECIAL_CONDITION = BASEACCOUNTS + "/UpdateAccountSpecialCondition";
@@ -91,13 +103,21 @@ namespace kairo_ui.Services
         public const string GET_ACCOUNT_INTEREST_RATE = BASEACCOUNTS + "/GetAccountInterestRate";
         public const string DELETE_ACCOUNT_INTEREST_RATE = BASEACCOUNTS + "/DeleteAccountInterestRate";
 
+        // Card Maintenance
+        public const string GET_ACCOUNT_CARD = BASEACCOUNTS + "/GetAccountCard";
+        public const string ADD_ACCOUNT_CARD = BASEACCOUNTS + "/AddAccountCard";
+        public const string UPDATE_ACCOUNT_CARD = BASEACCOUNTS + "/UpdateAccountCard";
+        public const string DELETE_ACCOUNT_CARD = BASEACCOUNTS + "/DeleteAccountCard";
+
         // Notes
         public const string UPDATE_NOTES = BASEACCOUNTS + "/UpdateNotes";
         public const string GET_NOTES = BASEACCOUNTS + "/GetNotes";
 
         // Signatories
         public const string GET_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/GetAccountSignatories";
-        public const string ADD_EDIT_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/AddEditAccountSignatories";
+        public const string ADD_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/AddAccountSignatories";
+        public const string EDIT_ACCOUNT_SIGNATORIES = BASEACCOUNTS + "/EditAccountSignatories";
+
 
         // Account Freeze
         public const string ADD_ACCOUNT_FREEZE = BASEACCOUNTS + "/AddAccountFreeze";
@@ -142,6 +162,19 @@ namespace kairo_ui.Services
         // Account Transfer Details
         public const string ADD_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/AddAccountTransferDetails";
         public const string GET_ACCOUNT_TRANSFER_DETAILS = BASEACCOUNTS + "/GetAccountTransferDetails";
+
+        // Standing Instruction
+        private const string BASESI = "api/v1/AccountMaintenance";
+        public const string GET_SI_DEMAND_DRAFT = BASESI + "/GetSIDemandDraft";
+        public const string CREATE_SI_DEMAND_DRAFT = BASESI + "/CreateSIDemandDraft";
+        public const string UPDATE_SI_DEMAND_DRAFT = BASESI + "/UpdateSIDemandDraft";
+        public const string DELETE_SI_DEMAND_DRAFT = BASESI + "/DeleteSIDemandDraft";
+        public const string STOP_SI_DEMAND_DRAFT = BASESI + "/StopSIDemandDraft";
+        public const string GET_SI_EFT = BASESI + "/GetSIEFT";
+        public const string CREATE_SI_EFT = BASESI + "/CreateSIEFT";
+        public const string UPDATE_SI_EFT = BASESI + "/UpdateSIEFT";
+        public const string DELETE_SI_EFT = BASESI + "/DeleteSIEFT";
+        public const string STOP_SI_EFT = BASESI + "/StopSIEFT";
 
         // SHARED SEARCH MODAL ENDPOINTS:
         private const string BASESHARED = "api/v1/Shared";
