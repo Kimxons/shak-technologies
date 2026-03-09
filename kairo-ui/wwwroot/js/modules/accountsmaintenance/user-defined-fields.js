@@ -1,28 +1,27 @@
 /**
- * Account Special Conditions Module
- * Migrated from: public/modules/account-maintenance/DataEntry/account-special-conditions.js
+ * User Defined Fields Module
+ * Migrated from: public/modules/account-maintenance/DataEntry/user-defined-fields.js
  *
  * Parent wires via updateActionPanelForSubmodule:
  *   ADD → setMode('ADD'), EDIT → setMode('EDIT'), VIEW → setMode('VIEW') (via loadData),
  *   DELETE → deleteData(), SAVE → saveData(), CANCEL → cancelChanges(), CLOSE → closeSubmodule()
  */
-window.AccountSpecialConditionsModule = (function () {
+window.UserDefinedFieldsModule = (function () {
     'use strict';
 
     /* ── State ─────────────────────────────────────────────── */
     const state = {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
-        conditions: [],
-        originalConditions: [],
-        modifiedConditions: new Set(),
+        originalData: null,
         operatorID: null
     };
 
-    /* ── API Routes ─────────────────────────────────────────── */
     /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: 'AccountsMaintenance/api/get-account-special-conditions',
-        UPDATE: 'AccountsMaintenance/api/update-account-special-condition'
+        GET: 'AccountsMaintenance/api/get-user-defined-fields',
+        ADD: 'AccountsMaintenance/api/add-user-defined-fields',
+        UPDATE: 'AccountsMaintenance/api/update-user-defined-fields',
+        DELETE: 'AccountsMaintenance/api/delete-user-defined-fields'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -58,11 +57,12 @@ window.AccountSpecialConditionsModule = (function () {
         if (typeof window.showSystemToast === 'function') {
             window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
         }
-        console.log('[SpecialConditions] ' + type + ': ' + msg);
+        console.log('[UserDefinedFields] ' + type + ': ' + msg);
     }
 
     function isSuccess(r) {
         if (!r) return false;
+        // Standardize Success check for both JSON and ResponseCode
         return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
     }
 
@@ -70,6 +70,7 @@ window.AccountSpecialConditionsModule = (function () {
         if (window.AppCore && window.AppCore.showConfirmation) {
             return window.AppCore.showConfirmation(title || 'Confirm Action', message);
         }
+        // Fallback to existing logic if AppCore.showConfirmation is not available
         title = title || 'Confirm Action';
         iconClass = iconClass || 'bi-question-circle';
         return new Promise(function (resolve) {
@@ -106,6 +107,7 @@ window.AccountSpecialConditionsModule = (function () {
 
             confirmBtn.onclick = function () { handleResponse(true); };
             cancelBtn.onclick = function () { handleResponse(false); };
+            overlay.onclick = function (e) { if (e.target === overlay) handleResponse(false); };
 
             requestAnimationFrame(function () {
                 overlay.classList.add('is-visible');
@@ -119,22 +121,22 @@ window.AccountSpecialConditionsModule = (function () {
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+    /* ── Editable fields ─────────────────────────────────────── */
+    const EDITABLE = ['udf1', 'udf2', 'udf3', 'udf4', 'udf5', 'udf6', 'udf7', 'udf8', 'udf9', 'udf10'];
+    const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
+
+    function setFieldsEditable(editable) {
+        EDITABLE.forEach(function (id) {
+            var e = el(id);
+            if (e) e.disabled = !editable;
+        });
     }
 
     /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
         state.editMode = mode;
-        const isEditing = (mode === 'EDIT');
-
-        // Enable/disable grid editing
-        document.querySelectorAll('#conditionsGrid input[type="checkbox"], #conditionsGrid input[type="text"]').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
+        var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
+        setFieldsEditable(editing);
 
         // Parent-provided action panel buttons (by ID)
         var viewB = el('submoduleBtnView');
@@ -144,25 +146,32 @@ window.AccountSpecialConditionsModule = (function () {
         var saveB = el('submoduleBtnSave');
         var cancelB = el('submoduleBtnCancel');
 
-        if (viewB) viewB.disabled = isEditing;
-        if (addB) addB.disabled = true;
-        if (editB) editB.disabled = isEditing || state.conditions.length === 0;
-        if (delB) delB.disabled = true;
-        if (saveB) saveB.disabled = !isEditing;
-        if (cancelB) cancelB.disabled = !isEditing;
+        // Hide prev/next which are unused here
+        var prevB = el('submoduleBtnPrev');
+        var nextB = el('submoduleBtnNext');
 
-        if (!isEditing && mode === 'NONE') {
-            state.modifiedConditions.clear();
+        if (viewB) viewB.disabled = editing;
+        if (addB) addB.disabled = editing || state.originalData;
+        if (editB) editB.disabled = editing || !state.originalData;
+        if (delB) delB.disabled = editing || !state.originalData;
+        if (saveB) saveB.disabled = !editing;
+        if (cancelB) cancelB.disabled = !editing;
+        if (prevB) prevB.style.display = 'none';
+        if (nextB) nextB.style.display = 'none';
+
+        if (mode === 'ADD') {
+            clearForm();
+            el('udf1')?.focus();
         }
 
-        console.log('[SpecialConditions] Mode →', mode);
+        console.log('[UserDefinedFields] Mode →', mode);
     }
 
     /* ── Collapsible Sections ────────────────────────────────── */
     function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
-            if (header._wiredSpCond) return;
-            header._wiredSpCond = true;
+            if (header._wiredUdf) return;
+            header._wiredUdf = true;
             header.addEventListener('click', function (e) {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
                 var section = header.closest('.form-section');
@@ -181,94 +190,28 @@ window.AccountSpecialConditionsModule = (function () {
         });
     }
 
-    /* ── Search Bar ──────────────────────────────────────────── */
-    function wireSearch() {
-        const searchInput = el('searchInput');
-        const clearBtn = el('clearSearch');
+    /* ── Bind form data ──────────────────────────────────────── */
+    function bindForm(doc) {
+        setVal('udf1', doc.UDF1 || '');
+        setVal('udf2', doc.UDF2 || '');
+        setVal('udf3', doc.UDF3 || '');
+        setVal('udf4', doc.UDF4 || '');
+        setVal('udf5', doc.UDF5 || '');
+        setVal('udf6', doc.UDF6 || '');
+        setVal('udf7', doc.UDF7 || '');
+        setVal('udf8', doc.UDF8 || '');
+        setVal('udf9', doc.UDF9 || '');
+        setVal('udf10', doc.UDF10 || '');
 
-        if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                const term = searchInput.value.toLowerCase().trim();
-                filterGrid(term);
-                if (clearBtn) clearBtn.classList.toggle('d-none', !term);
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (searchInput) searchInput.value = '';
-                clearBtn.classList.add('d-none');
-                filterGrid('');
-            });
-        }
-    }
-
-    function filterGrid(term) {
-        const rows = document.querySelectorAll('#conditionsGrid tbody tr:not(.table__empty)');
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = !term || text.includes(term) ? '' : 'none';
-        });
-    }
-
-    /* ── Render Grid ─────────────────────────────────────────── */
-    function renderGrid() {
-        const tbody = document.querySelector('#conditionsGrid tbody');
-        const countSpan = el('recordCount');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-        if (countSpan) countSpan.textContent = state.conditions.length + ' records';
-
-        if (state.conditions.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="4">No special conditions found.</td></tr>';
-            return;
-        }
-
-        const isEditing = state.editMode === 'EDIT';
-
-        state.conditions.forEach((condition, index) => {
-            const row = document.createElement('tr');
-            row.dataset.index = index;
-            row.innerHTML = `
-                <td class="text-center">
-                    <input type="checkbox" class="form-check-input" data-field="Apply" 
-                           ${condition.Apply ? 'checked' : ''} ${!isEditing ? 'disabled' : ''}>
-                </td>
-                <td>${escapeHtml(condition.Description || condition.ConditionDescription || '')}</td>
-                <td class="text-center">
-                    <input type="checkbox" class="form-check-input" data-field="Set" 
-                           ${condition.Set || condition.IsSet ? 'checked' : ''} ${!isEditing ? 'disabled' : ''}>
-                </td>
-                <td>
-                    <input type="text" class="bs-input-text" data-field="Value" 
-                           value="${escapeHtml(condition.Value || condition.ConditionValue || '')}" 
-                           ${!isEditing ? 'disabled' : ''}>
-                </td>
-            `;
-
-            row.querySelectorAll('input').forEach(input => {
-                input.addEventListener('change', () => {
-                    state.modifiedConditions.add(index);
-                    const val = input.type === 'checkbox' ? input.checked : input.value;
-                    state.conditions[index][input.dataset.field] = val;
-                });
-            });
-
-            tbody.appendChild(row);
-        });
-
-        if (state.conditions.length > 0) bindAudit(state.conditions[0]);
-    }
-
-    /* ── Bind Audit Data ─────────────────────────────────────── */
-    function bindAudit(doc) {
+        // Audit
         setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
         setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
         setVal('ModifierID', doc.ModifiedBy || doc.ModifierId || doc.ModifierID || '');
         setVal('ModifierDT', fmtDateTime(doc.ModifiedOn || doc.ModifierDt || doc.ModifierDT));
         setVal('CheckerID', doc.CheckedBy || doc.CheckerId || doc.CheckerID || '');
         setVal('CheckerDT', fmtDateTime(doc.CheckedOn || doc.CheckerDt || doc.CheckerDT));
+
+        // Metadata
         state.operatorID = doc.OperatorID || doc.OperatorId || '';
     }
 
@@ -280,6 +223,7 @@ window.AccountSpecialConditionsModule = (function () {
         showLoading(true);
         try {
             const result = await window.AppCore.invokeControllerAsync(API.GET, {
+                AccountNumber: ctx.AccountID, // Controller might expect AccountNumber or AccountID
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
@@ -287,101 +231,140 @@ window.AccountSpecialConditionsModule = (function () {
 
             showLoading(false);
             if (isSuccess(result)) {
-                let data = [];
+                let doc = null;
+                // Complex result unwrapping per legacy pattern
                 const d = result.Details || result.Data || result;
-                if (Array.isArray(d)) data = d;
-                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                else if (d && typeof d === 'object') data = [d];
+                if (Array.isArray(d)) {
+                    if (d.length > 0) doc = d[0];
+                } else if (d && typeof d === 'object') {
+                    doc = d;
+                }
 
-                state.conditions = data;
-                state.originalConditions = JSON.parse(JSON.stringify(state.conditions));
-                renderGrid();
-                setMode('NONE');
+                if (doc && (doc.UDF1 !== undefined || doc.AccountID)) {
+                    state.originalData = doc;
+                    bindForm(doc);
+                    setMode('NONE');
+                } else {
+                    state.originalData = null;
+                    clearForm();
+                    setMode('NONE');
+                }
             } else {
-                state.conditions = [];
-                state.originalConditions = [];
-                renderGrid();
+                state.originalData = null;
+                clearForm();
                 setMode('NONE');
             }
         } catch (err) {
             showLoading(false);
-            showMsg('Error loading Account Special Conditions: ' + err.message, 'error');
+            showMsg('Error loading User Defined Fields: ' + err.message, 'error');
         }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
     async function saveData() {
-        if (state.modifiedConditions.size === 0) {
-            showMsg('No changes to save.', 'warning');
-            return;
-        }
-
+        const isAdd = state.editMode === 'ADD';
         const confirmed = await showConfirm(
-            'Are you sure you want to save changes to Special Conditions?',
+            `Are you sure you want to ${isAdd ? 'create' : 'update'} User Defined Fields?`,
             'Save Confirmation'
         );
         if (!confirmed) return;
 
         const ctx = getContext();
-        const searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            CreatedBy: ctx.OperatorID,
+            UDF1: val('udf1').trim(),
+            UDF2: val('udf2').trim(),
+            UDF3: val('udf3').trim(),
+            UDF4: val('udf4').trim(),
+            UDF5: val('udf5').trim(),
+            UDF6: val('udf6').trim(),
+            UDF7: val('udf7').trim(),
+            UDF8: val('udf8').trim(),
+            UDF9: val('udf9').trim(),
+            UDF10: val('udf10').trim()
+        };
 
         showLoading(true);
-        let successCount = 0;
-        let errorCount = 0;
-
         try {
-            for (const index of state.modifiedConditions) {
-                const condition = state.conditions[index];
-                const payload = {
-                    ...condition,
-                    SearchKey: searchKey,
-                    AccountID: ctx.AccountID,
-                    OurBranchID: ctx.OurBranchID,
-                    OperatorID: ctx.OperatorID
-                };
-
-                const result = await window.AppCore.invokeControllerAsync(API.UPDATE, payload);
-                if (isSuccess(result)) successCount++;
-                else errorCount++;
-            }
-
-            if (errorCount === 0) {
-                showMsg(`${successCount} condition(s) saved successfully.`, 'success');
+            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result.ResponseMessage || 'Changes saved successfully.', 'success');
                 setMode('NONE');
                 navigate();
             } else {
-                showMsg(`Saved ${successCount}, failed ${errorCount}.`, 'warning');
+                showMsg(result.ResponseMessage || 'Failed to save changes.', 'error');
             }
-        } catch (error) {
-            showMsg('Failed to save conditions: ' + error.message, 'error');
-        } finally {
+        } catch (err) {
             showLoading(false);
+            showMsg('Save error: ' + err.message, 'error');
         }
     }
 
-    function deleteData() {
-        showMsg('Delete not supported for Special Conditions. Uncheck "Apply" instead.', 'info');
+    /* ── Delete ──────────────────────────────────────────────── */
+    async function deleteData() {
+        if (!state.originalData) return;
+        const confirmed = await showConfirm(
+            'Are you sure you want to delete these User Defined Fields?',
+            'Delete Confirmation'
+        );
+        if (!confirmed) return;
+
+        const ctx = getContext();
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
+                AccountID: ctx.AccountID,
+                OurBranchID: ctx.OurBranchID,
+                OperatorID: ctx.OperatorID
+            });
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result.ResponseMessage || 'Deleted successfully.', 'success');
+                state.originalData = null;
+                clearForm();
+                setMode('NONE');
+            } else {
+                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Delete error: ' + err.message, 'error');
+        }
+    }
+
+    /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
+    function confirmAdd() { setMode('ADD'); }
+    function confirmEdit() { if (state.originalData) setMode('EDIT'); else showMsg('No data to edit.', 'warning'); }
+    function confirmCancel() { cancelChanges(); }
+    function cancelChanges() {
+        if (state.originalData) bindForm(state.originalData);
+        else clearForm();
+        setMode('NONE');
+    }
+    function clearForm() {
+        EDITABLE.forEach(id => setVal(id, ''));
+        AUDIT.forEach(id => setVal(id, '-'));
+    }
+
+    /* ── Init ────────────────────────────────────────────────── */
+    function init() {
+        console.log('[UserDefinedFields] Initializing');
+        wireSectionToggles();
+        setMode('NONE');
+
+        // Initial Load
+        const ctx = getContext();
+        if (ctx.AccountID) {
+            navigate();
+        } else {
+            showMsg('No Account selected in context.', 'warning');
+        }
     }
 
     /* ── Public API ──────────────────────────────────────────── */
-    function confirmAdd() { showMsg('Direct addition not allowed. Modify existing defaults.', 'warning'); }
-    function confirmEdit() { if (state.conditions.length > 0) setMode('EDIT'); else showMsg('No internal data.', 'warning'); }
-    function confirmCancel() { cancelChanges(); }
-    function cancelChanges() {
-        state.conditions = JSON.parse(JSON.stringify(state.originalConditions));
-        state.modifiedConditions.clear();
-        renderGrid();
-        setMode('NONE');
-    }
-
-    function init() {
-        wireSectionToggles();
-        wireSearch();
-        setMode('NONE');
-        const ctx = getContext();
-        if (ctx.AccountID) navigate();
-    }
-
     return {
         init: init,
         setMode: setMode,
@@ -392,9 +375,9 @@ window.AccountSpecialConditionsModule = (function () {
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,
         cancelChanges: cancelChanges,
+        clearForm: clearForm,
         loadData: navigate
     };
 })();
 
-
-console.log('[SpecialConditions] Module registered');
+console.log('[UserDefinedFields] Module registered');

@@ -1,26 +1,25 @@
 /**
- * Account Interest Rates Module
- * Migrated from: public/modules/account-maintenance/DataEntry/account-interest-rates.js
+ * Card Maintenance Module
+ * Rewritten to standard submodule API pattern for KAIRO MVC
  */
-window.AccountInterestRatesModule = (function () {
+window.CardMaintenanceModule = (function () {
     'use strict';
 
     /* ── State ─────────────────────────────────────────────── */
     const state = {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
-        rateData: null,
-        slabs: [],
-        originalData: null,
+        cards: [],
+        selectedIndex: -1,
         operatorID: null
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
     /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: 'AccountsMaintenance/api/get-account-interest-rate',
-        ADD: 'AccountsMaintenance/api/add-account-interest-rate',
-        UPDATE: 'AccountsMaintenance/api/update-account-interest-rate',
-        DELETE: 'AccountsMaintenance/api/delete-account-interest-rate'
+        GET: 'AccountsMaintenance/api/get-account-card',
+        ADD: 'AccountsMaintenance/api/add-account-card',
+        UPDATE: 'AccountsMaintenance/api/update-account-card',
+        DELETE: 'AccountsMaintenance/api/delete-account-card'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -28,6 +27,7 @@ window.AccountInterestRatesModule = (function () {
         const ps = window.AccountMaintenanceState;
         return {
             AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            AccountName: ps?.AccountName || sessionStorage.getItem('currentAccountName') || '',
             OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
             OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
         };
@@ -41,11 +41,13 @@ window.AccountInterestRatesModule = (function () {
         if (!e) return;
         const s = (v == null) ? '' : v;
         if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
-            if (e.value !== s) e.value = s;
+            if (e.type === 'checkbox') e.checked = !!v;
+            else if (e.value !== s) e.value = s;
         } else {
             if (e.textContent !== s) e.textContent = s;
         }
     }
+    function isChecked(id) { const e = el(id); return e ? e.checked : false; }
 
     function showLoading(show) {
         const o = el('loadingOverlay');
@@ -56,7 +58,7 @@ window.AccountInterestRatesModule = (function () {
         if (typeof window.showSystemToast === 'function') {
             window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
         }
-        console.log('[InterestRates] ' + type + ': ' + msg);
+        console.log('[CardMaintenance] ' + type + ': ' + msg);
     }
 
     function isSuccess(r) {
@@ -129,15 +131,18 @@ window.AccountInterestRatesModule = (function () {
         } catch (e) { return ''; }
     }
 
-    function formatNumber(num) { return parseFloat(num || 0).toFixed(4); }
-
-    const EDITABLE = ['rateType', 'effectiveDate', 'expiryDate', 'refId'];
-    const AUDIT = ['CreatedBy', 'CreatedOn', 'ModifiedBy', 'ModifiedOn', 'SupervisedBy', 'SupervisedOn'];
+    const EDITABLE = [
+        'trackingId', 'cardProvider', 'cardType',
+        'cardRemarks', 'isApproved', 'approvedDate',
+        'isExported', 'exportedDate', 'isActive', 'activatedDate',
+        'startDate', 'expiryDate', 'collected', 'collectionDate',
+        'deactivationDate', 'reason', 'reactivationDate', 'reactivationRemarks',
+        'status', 'initialTransaction'
+    ];
+    const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
 
     function setFieldsEditable(editable) {
         EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = !editable; });
-        const addSlabBtn = el('btnAddSlab');
-        if (addSlabBtn) addSlabBtn.style.display = editable ? 'inline-block' : 'none';
     }
 
     /* ── Mode Management (button states via parent IDs) ──────── */
@@ -145,7 +150,6 @@ window.AccountInterestRatesModule = (function () {
         state.editMode = mode;
         const editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
         setFieldsEditable(editing);
-        renderSlabGrid();
 
         // Parent-provided action panel buttons (by ID)
         var viewB = el('submoduleBtnView');
@@ -156,27 +160,29 @@ window.AccountInterestRatesModule = (function () {
         var cancelB = el('submoduleBtnCancel');
 
         if (viewB) viewB.disabled = editing;
-        if (addB) addB.disabled = editing || state.rateData !== null;
-        if (editB) editB.disabled = editing || state.rateData === null;
-        if (delB) delB.disabled = editing || state.rateData === null;
+        if (addB) addB.disabled = editing;
+        if (editB) editB.disabled = editing || state.cards.length === 0 || state.selectedIndex === -1;
+        if (delB) delB.disabled = editing || state.cards.length === 0 || state.selectedIndex === -1;
         if (saveB) saveB.disabled = !editing;
         if (cancelB) cancelB.disabled = !editing;
 
         if (mode === 'ADD') {
             clearForm();
-            el('rateType')?.focus();
-        } else if (mode === 'NONE' && state.rateData) {
-            bindForm(state.rateData);
+            const ctx = getContext();
+            setVal('cardName', ctx.AccountName || '');
+            el('trackingId')?.focus();
+        } else if (mode === 'NONE' && state.selectedIndex >= 0) {
+            bindForm(state.cards[state.selectedIndex]);
         }
 
-        console.log('[InterestRates] Mode →', mode);
+        console.log('[CardMaintenance] Mode →', mode);
     }
 
     /* ── Collapsible Sections ────────────────────────────────── */
-    function wireEvents() {
+    function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(header => {
-            if (header._wiredIntRate) return;
-            header._wiredIntRate = true;
+            if (header._wiredCardMaint) return;
+            header._wiredCardMaint = true;
             header.addEventListener('click', e => {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
                 var section = header.closest('.form-section');
@@ -192,85 +198,81 @@ window.AccountInterestRatesModule = (function () {
                 }
             });
         });
-
-        const addSlabBtn = el('btnAddSlab');
-        if (addSlabBtn && !addSlabBtn._wiredIntRate) {
-            addSlabBtn._wiredIntRate = true;
-            addSlabBtn.addEventListener('click', () => {
-                if (state.editMode === 'ADD' || state.editMode === 'EDIT') {
-                    state.slabs.push({ FromAmount: 0, ToAmount: 0, Spread: 0, InterestRate: 0 });
-                    renderSlabGrid();
-                }
-            });
-        }
     }
 
     /* ── Bind form data ──────────────────────────────────────── */
     function bindForm(data) {
         if (!data) return;
-        setVal('rateType', data.RateType || data.InterestRateTypeID || '');
-        setVal('baseRate', formatNumber(data.BaseRate || 0));
-        setVal('effectiveDate', formatDateForInput(data.EffectiveDate));
+        setVal('trackingId', data.TrackingID || '');
+        setVal('cardProvider', data.CardProvider || data.Provider || data.CardProviderID || '');
+        setVal('cardName', data.CardName || data.NameOnCard || '');
+        setVal('cardType', data.CardType || data.Type || data.CardTypeID || '');
+
+        setVal('cardId', data.CardID || data.ID || '');
+        setVal('cardRemarks', data.CardRemarks || '');
+        setVal('isApproved', data.IsApproved || false);
+        setVal('approvedDate', formatDateForInput(data.ApprovedDate));
+
+        setVal('isExported', data.IsExported || false);
+        setVal('exportedDate', formatDateForInput(data.ExportedDate));
+        setVal('isActive', data.IsActive || false);
+        setVal('activatedDate', formatDateForInput(data.ActivatedDate));
+
+        setVal('startDate', formatDateForInput(data.StartDate));
         setVal('expiryDate', formatDateForInput(data.ExpiryDate));
-        setVal('refId', data.RefID || data.ReferenceID || '');
+        setVal('collected', data.Collected || data.IsCollected || false);
+        setVal('collectionDate', formatDateForInput(data.CollectionDate));
 
-        setVal('CreatedBy', data.CreatedBy || '-');
-        setVal('CreatedOn', fmtDateTime(data.CreatedOn));
-        setVal('SupervisedBy', data.SupervisedBy || '-');
-        setVal('SupervisedOn', fmtDateTime(data.SupervisedOn));
-        setVal('ModifiedBy', data.ModifiedBy || '-');
-        setVal('ModifiedOn', fmtDateTime(data.ModifiedOn));
+        setVal('deactivationDate', formatDateForInput(data.DeactivationDate));
+        setVal('reason', data.DeactivationReason || data.Reason || data.CardDeactivationReasonID || '');
+        setVal('reactivationDate', formatDateForInput(data.ReactivationDate));
+        setVal('reactivationRemarks', data.ReactivationRemarks || '');
 
-        state.slabs = data.Slabs || data.RateSlabs || [];
-        renderSlabGrid();
+        setVal('status', data.Status || data.CardStatus || data.CardStatusID || '');
+        setVal('initialTransaction', data.InitialTransaction || '');
+
+        setVal('MakerID', data.CreatedBy || '-');
+        setVal('MakerDT', fmtDateTime(data.CreatedOn));
+        setVal('ModifierID', data.ModifiedBy || '-');
+        setVal('ModifierDT', fmtDateTime(data.ModifiedOn));
+        setVal('CheckerID', data.CheckedBy || '-');
+        setVal('CheckerDT', fmtDateTime(data.CheckedOn));
     }
 
-    /* ── Render Slab Grid ────────────────────────────────────── */
-    function renderSlabGrid() {
-        const tbody = document.querySelector('#rateSlabGrid tbody');
+    /* ── Render Grid ─────────────────────────────────────────── */
+    function renderGrid() {
+        const tbody = document.querySelector('#cardsListTable tbody');
+        const countSpan = el('recordCount');
         if (!tbody) return;
 
         tbody.innerHTML = '';
-        if (state.slabs.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No rate slabs defined.</td></tr>';
+        if (countSpan) countSpan.textContent = state.cards.length + ' records';
+
+        if (state.cards.length === 0) {
+            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No cards found.</td></tr>';
             return;
         }
 
-        const isEditing = state.editMode === 'ADD' || state.editMode === 'EDIT';
-
-        state.slabs.forEach((slab, index) => {
+        state.cards.forEach((item, index) => {
             const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+            if (index === state.selectedIndex) row.classList.add('table-active');
+
             row.innerHTML = `
-                <td><input type="number" class="bs-input-text text-end" data-field="FromAmount" 
-                           value="${slab.FromAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
-                <td><input type="number" class="bs-input-text text-end" data-field="ToAmount" 
-                           value="${slab.ToAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
-                <td><input type="number" class="bs-input-text text-end" data-field="Spread" 
-                           value="${slab.Spread || slab.SpreadMargin || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
-                <td><input type="number" class="bs-input-text text-end" data-field="InterestRate" 
-                           value="${slab.InterestRate || slab.Rate || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-delete-slab="${index}" 
-                            ${!isEditing ? 'disabled' : ''} title="Remove slab">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
+                <td>${item.TrackingID || '-'}</td>
+                <td>${item.CardID || item.ID || '-'}</td>
+                <td>${item.AccountID || '-'}</td>
+                <td>${item.CardProvider || '-'}</td>
+                <td>${item.CardRemarks || '-'}</td>
             `;
 
-            row.querySelectorAll('input').forEach(input => {
-                input.addEventListener('change', () => {
-                    const field = input.dataset.field;
-                    state.slabs[index][field] = parseFloat(input.value) || 0;
-                });
+            row.addEventListener('click', () => {
+                if (state.editMode !== 'NONE') return;
+                state.selectedIndex = index;
+                renderGrid();
+                bindForm(item);
+                setMode('NONE');
             });
-
-            row.querySelector('[data-delete-slab]')?.addEventListener('click', () => {
-                if (isEditing) {
-                    state.slabs.splice(index, 1);
-                    renderSlabGrid();
-                }
-            });
-
             tbody.appendChild(row);
         });
     }
@@ -290,63 +292,80 @@ window.AccountInterestRatesModule = (function () {
 
             showLoading(false);
             if (isSuccess(result)) {
-                const data = result.Details || result.Data || result;
-                if (Array.isArray(data) && data.length > 0) state.rateData = data[0];
-                else if (data && !Array.isArray(data)) state.rateData = data;
-                else state.rateData = null;
+                const d = result.Details || result.Data || result;
+                state.cards = Array.isArray(d) ? d : (d && d.Details01 ? d.Details01 : (typeof d === 'object' ? [d] : []));
 
-                if (state.rateData) {
-                    state.originalData = JSON.parse(JSON.stringify(state.rateData));
-                    bindForm(state.rateData);
+                if (state.cards.length > 0) {
+                    state.selectedIndex = 0;
+                    bindForm(state.cards[0]);
                 } else {
-                    state.originalData = null;
+                    state.selectedIndex = -1;
                     clearForm();
                 }
+                renderGrid();
                 setMode('NONE');
             } else {
-                state.rateData = null;
-                state.originalData = null;
-                clearForm();
+                state.cards = [];
+                state.selectedIndex = -1;
+                renderGrid();
                 setMode('NONE');
             }
         } catch (err) {
             showLoading(false);
-            showMsg('Error loading Interest Rates: ' + err.message, 'error');
+            showMsg('Error loading Account Cards: ' + err.message, 'error');
         }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
     async function saveData() {
         const isAdd = state.editMode === 'ADD';
-        const rateType = val('rateType');
-        if (!rateType) { showMsg('Rate Type is required', 'warning'); return; }
+        const trackingId = val('trackingId');
+        if (!trackingId) { showMsg('TrackingID is required', 'warning'); return; }
 
         const confirmed = await showConfirm(
-            `Are you sure you want to ${isAdd ? 'create' : 'update'} this interest rate?`,
+            `Are you sure you want to ${isAdd ? 'create' : 'update'} this card?`,
             'Save Confirmation'
         );
         if (!confirmed) return;
 
         const ctx = getContext();
-        const searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-
         const payload = {
             OurBranchID: ctx.OurBranchID,
             AccountID: ctx.AccountID,
             CreatedBy: ctx.OperatorID,
             OperatorID: ctx.OperatorID,
-            SearchKey: searchKey,
-            RateType: rateType,
-            InterestRateTypeID: rateType,
-            BaseRate: parseFloat(val('baseRate')) || 0,
-            EffectiveDate: val('effectiveDate') ? new Date(val('effectiveDate')).toISOString() : null,
-            ExpiryDate: val('expiryDate') ? new Date(val('expiryDate')).toISOString() : null,
-            RefID: val('refId'),
-            Slabs: state.slabs
+            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
+
+            TrackingID: trackingId,
+            CardProvider: val('cardProvider'),
+            CardProviderID: val('cardProvider'),
+            CardName: val('cardName'),
+            CardType: val('cardType'),
+            CardTypeID: val('cardType'),
+            CardRemarks: val('cardRemarks'),
+            IsApproved: isChecked('isApproved'),
+            ApprovedDate: val('approvedDate') || null,
+            IsExported: isChecked('isExported'),
+            ExportedDate: val('exportedDate') || null,
+            IsActive: isChecked('isActive'),
+            ActivatedDate: val('activatedDate') || null,
+            StartDate: val('startDate') || null,
+            ExpiryDate: val('expiryDate') || null,
+            Collected: isChecked('collected'),
+            CollectionDate: val('collectionDate') || null,
+            DeactivationDate: val('deactivationDate') || null,
+            Reason: val('reason'),
+            CardDeactivationReasonID: val('reason'),
+            ReactivationDate: val('reactivationDate') || null,
+            ReactivationRemarks: val('reactivationRemarks'),
+            Status: val('status'),
+            CardStatusID: val('status'),
+            InitialTransaction: val('initialTransaction')
         };
 
-        if (!isAdd && state.rateData) {
-            payload.RateID = state.rateData.RateID || state.rateData.InterestRateID || '';
+        if (!isAdd && state.selectedIndex >= 0) {
+            const item = state.cards[state.selectedIndex];
+            payload.CardID = item.CardID || item.ID || '';
         }
 
         showLoading(true);
@@ -354,7 +373,7 @@ window.AccountInterestRatesModule = (function () {
             const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
             showLoading(false);
             if (isSuccess(result)) {
-                showMsg('Interest Rate saved.', 'success');
+                showMsg('Card saved successfully.', 'success');
                 setMode('NONE');
                 navigate();
             } else {
@@ -368,30 +387,27 @@ window.AccountInterestRatesModule = (function () {
 
     /* ── Delete ──────────────────────────────────────────────── */
     async function deleteData() {
-        if (!state.rateData) { showMsg('No data to delete.', 'warning'); return; }
+        if (state.selectedIndex === -1) { showMsg('No card selected.', 'warning'); return; }
 
-        const confirmed = await showConfirm('Are you sure you want to delete this Interest Rate?', 'Delete Confirmation');
+        const confirmed = await showConfirm('Are you sure you want to delete this card?', 'Delete Confirmation');
         if (!confirmed) return;
 
-        const ctx = getContext();
-        const payload = {
-            AccountID: ctx.AccountID,
-            OurBranchID: ctx.OurBranchID,
-            OperatorID: ctx.OperatorID,
-            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
-            RateID: state.rateData.RateID || state.rateData.InterestRateID || ''
-        };
-
+        const item = state.cards[state.selectedIndex];
         showLoading(true);
         try {
-            const result = await window.AppCore.invokeControllerAsync(API.DELETE, payload);
+            const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
+                AccountID: item.AccountID,
+                OurBranchID: item.OurBranchID,
+                OperatorID: getContext().OperatorID,
+                SearchKey: `[${item.OurBranchID}:${item.AccountID}]`,
+                CardID: item.CardID || item.ID || ''
+            });
+
             showLoading(false);
             if (isSuccess(result)) {
-                showMsg('Interest Rate deleted.', 'success');
-                state.rateData = null;
-                state.originalData = null;
+                showMsg('Card deleted successfully.', 'success');
+                state.selectedIndex = -1;
                 clearForm();
-                setMode('NONE');
                 navigate();
             } else {
                 showMsg(result.ResponseMessage || 'Delete failed.', 'error');
@@ -404,26 +420,23 @@ window.AccountInterestRatesModule = (function () {
 
     /* ── Public API ──────────────────────────────────────────── */
     function confirmAdd() { setMode('ADD'); }
-    function confirmEdit() { if (state.rateData) setMode('EDIT'); else showMsg('No internal record.', 'warning'); }
+    function confirmEdit() { if (state.selectedIndex >= 0) setMode('EDIT'); else showMsg('Select a record.', 'warning'); }
     function confirmCancel() { cancelChanges(); }
     function cancelChanges() {
-        if (state.originalData) {
-            state.rateData = JSON.parse(JSON.stringify(state.originalData));
-            bindForm(state.rateData);
-        } else clearForm();
+        if (state.selectedIndex >= 0) bindForm(state.cards[state.selectedIndex]);
+        else clearForm();
         setMode('NONE');
     }
 
     function clearForm() {
         EDITABLE.forEach(id => setVal(id, ''));
-        setVal('baseRate', '0.0000');
+        setVal('cardName', getContext().AccountName || '');
+        setVal('cardId', '');
         AUDIT.forEach(id => setVal(id, '-'));
-        state.slabs = [];
-        renderSlabGrid();
     }
 
     function init() {
-        wireEvents();
+        wireSectionToggles();
         setMode('NONE');
         const ctx = getContext();
         if (ctx.AccountID) navigate();
@@ -444,4 +457,4 @@ window.AccountInterestRatesModule = (function () {
 })();
 
 
-console.log('[InterestRates] Module registered');
+console.log('[CardMaintenance] Module registered');

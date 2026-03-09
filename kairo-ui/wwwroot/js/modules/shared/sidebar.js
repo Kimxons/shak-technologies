@@ -728,14 +728,19 @@ return {
     global.SidebarManager = SidebarManager;
 
     // Auto-initialize on DOMContentLoaded if sidebar exists
+    // Skip auto-init if sidebar has data-no-auto-init attribute (pages with their own sidebar management)
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('main-sidebar')) {
+            const sidebar = document.getElementById('main-sidebar');
+            if (sidebar && !sidebar.hasAttribute('data-no-auto-init')) {
                 initSidebar();
             }
         });
-    } else if (document.getElementById('main-sidebar')) {
-        initSidebar();
+    } else {
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar && !sidebar.hasAttribute('data-no-auto-init')) {
+            initSidebar();
+        }
     }
 
 })(window);

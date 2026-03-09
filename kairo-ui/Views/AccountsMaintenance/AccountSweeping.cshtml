@@ -3,276 +3,148 @@
     // Migrated from: public/modules/account-maintenance/DataEntry/account-sweeping.html
 }
 
-<!-- AccountSweeping Submodule - Original HTML Preserved -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar" style="display:none !important">
-      <div class="am-header__left">
-        <i class="bi bi-arrow-left-right am-header__icon" aria-hidden="true"></i>
-        <span class="am-header__title">Account Sweeping</span>
-      </div>
-      <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
-    </div>
-
-    <main class="main-container">
-      <div class="form-content" role="region" aria-label="Account Sweeping form">
-        <div class="form-card" data-main-form>
-          <div class="form-section" data-section="sweeping-config">
+<!-- AccountSweeping Submodule -->
+<!-- AccountSweeping Submodule -->
+<div class="form-content" role="region" aria-label="Account Sweeping form">
+    <div class="form-card" data-main-form>
+        <div class="form-section" data-section="sweeping-config">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-arrow-left-right"></i>Sweeping Configuration</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Sweeping Configuration" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-arrow-left-right"></i> Sweeping Configuration</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Sweeping Configuration" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <form autocomplete="off">
-                <!-- Row 1: Account Transfer -->
-                <div class="row g-2 mb-2">
-                  <div class="col-md-6">
-                    <label class="label-blue">Account Transfer</label>
-                    <div class="kairo-account-control" data-kairo-account-control>
-                      <input type="text" id="accountTransferId" name="accountTransferId" class="kairo-account-control__id" placeholder="Account ID" aria-label="Account ID" />
-                      <input type="text" id="accountTransferName" name="accountTransferName" class="kairo-account-control__name" placeholder="Account Name" aria-label="Account Name" readonly />
-                      <button type="button" class="btn-lookup kairo-account-control__lookup" data-target-input="accountTransferId" title="Lookup Account" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                <form id="frmSweeping" autocomplete="off">
+                    <!-- Row 1: Account Transfer -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="label-blue am-label">Account Transfer</label>
+                            <div class="kairo-account-control" data-kairo-account-control>
+                                <input type="text" id="accountTransferId" name="AccountTransferID" class="kairo-account-control__id form-control am-input" placeholder="Account ID" />
+                                <input type="text" id="accountTransferName" name="AccountTransferName" class="kairo-account-control__name form-control am-input" placeholder="Account Name" readonly />
+                                <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="AccountTransfer" title="Lookup Account"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                </div>
 
-                <!-- Row 2: Min Threshold & Max Threshold -->
-                <div class="row g-2 mb-2">
-                  <div class="col-md-6">
-                    <label class="label-blue" for="minThreshold">Min. Threshold</label>
-                    <input type="text" id="minThreshold" name="minThreshold" class="form-control" />
-                  </div>
-                  <div class="col-md-6">
-                    <label class="label-blue" for="maxThreshold">Max. Threshold</label>
-                    <input type="text" id="maxThreshold" name="maxThreshold" class="form-control" />
-                  </div>
-                </div>
+                    <!-- Row 2: Min Threshold & Max Threshold -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="label-blue am-label" for="minThreshold">Min. Threshold</label>
+                            <input type="number" id="minThreshold" name="MinThreshold" class="form-control am-input" step="0.01" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-blue am-label" for="maxThreshold">Max. Threshold</label>
+                            <input type="number" id="maxThreshold" name="MaxThreshold" class="form-control am-input" step="0.01" />
+                        </div>
+                    </div>
 
-                <!-- Row 3: Sweeping Denomination -->
-                <div class="row g-2 mb-2">
-                  <div class="col-md-6">
-                    <label class="label-blue" for="sweepingDenomination">Sweeping Denomination</label>
-                    <input type="text" id="sweepingDenomination" name="sweepingDenomination" class="form-control" />
-                  </div>
-                </div>
+                    <!-- Row 3: Sweeping Denomination -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="label-blue am-label" for="sweepingDenomination">Sweeping Denomination</label>
+                            <input type="number" id="sweepingDenomination" name="SweepingDenomination" class="form-control am-input" step="0.01" />
+                        </div>
+                    </div>
 
-                <!-- Row 4: Start Date & End Date -->
-                <div class="row g-2 mb-2">
-                  <div class="col-md-6">
-                    <label class="label-blue" for="startDate">Start Date</label>
-                    <input type="date" id="startDate" name="startDate" class="form-control" />
-                  </div>
-                  <div class="col-md-6">
-                    <label class="label-blue" for="endDate">End Date</label>
-                    <input type="date" id="endDate" name="endDate" class="form-control" />
-                  </div>
-                </div>
+                    <!-- Row 4: Start Date & End Date -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="label-blue am-label" for="startDate">Start Date</label>
+                            <input type="date" id="startDate" name="StartDate" class="form-control am-input" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-blue am-label" for="endDate">End Date</label>
+                            <input type="date" id="endDate" name="EndDate" class="form-control am-input" />
+                        </div>
+                    </div>
 
-                <!-- Row 5: Last Sweeping Date -->
-                <div class="row g-2 mb-2">
-                  <div class="col-md-6">
-                    <label for="lastSweepingDate">Last Sweeping Date</label>
-                    <input type="text" id="lastSweepingDate" name="lastSweepingDate" class="form-control" readonly />
-                  </div>
-                </div>
-              </form>
+                    <!-- Row 5: Last Sweeping Date -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="am-label" for="lastSweepingDate">Last Sweeping Date</label>
+                            <input type="text" id="lastSweepingDate" name="LastSweepingDate" class="form-control am-input" readonly disabled />
+                        </div>
+                    </div>
+                </form>
             </div>
-          </div>
+        </div>
 
-          <!-- Behind the Scene Section -->
-          <div class="form-section" data-section="behind-scene">
+        <!-- Behind the Scene Section -->
+        <div class="form-section mt-3" data-section="behind-scene">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <div class="audit-section audit-section--summary">
-                <div class="audit-cell">
-                  <span class="audit-label">Created By</span>
-                  <span class="audit-value" id="MakerID">-</span>
+                <div class="audit-section audit-section--summary">
+                    <div class="audit-cell">
+                        <span class="audit-label">Created By</span>
+                        <span class="audit-value" id="MakerID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Created On</span>
+                        <span class="audit-value" id="MakerDT">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Checked By</span>
+                        <span class="audit-value" id="CheckerID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Checked On</span>
+                        <span class="audit-value" id="CheckerDT">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Modified By</span>
+                        <span class="audit-value" id="ModifierID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Modified On</span>
+                        <span class="audit-value" id="ModifierDT">-</span>
+                    </div>
                 </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Created On</span>
-                  <span class="audit-value" id="MakerDT">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Checked By</span>
-                  <span class="audit-value" id="CheckerID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Checked On</span>
-                  <span class="audit-value" id="CheckerDT">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Modified By</span>
-                  <span class="audit-value" id="ModifierID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Modified On</span>
-                  <span class="audit-value" id="ModifierDT">-</span>
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
 
-      <!-- Action Panel -->
-      <div class="action-panel" aria-label="Form actions" style="display:none !important">
-        <div class="action-buttons">
-          <button class="btn-action btn-view" type="button" data-action="view" title="View">
-            <i class="bi bi-eye"></i>View
-          </button>
-          <button class="btn-action" type="button" data-action="add" title="Add New">
-            <i class="bi bi-plus-circle"></i>Add
-          </button>
-          <button class="btn-action" type="button" data-action="edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>Edit
-          </button>
-          <button class="btn-action" type="button" data-action="save" title="Save">
-            <i class="bi bi-check-lg"></i>Save
-          </button>
-          <button class="btn-action" type="button" data-action="delete" title="Delete">
-            <i class="bi bi-trash3"></i>Delete
-          </button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
-            <i class="bi bi-x-lg"></i>Cancel
-          </button>
-          <button class="btn-action" type="button" data-action="close" title="Close">
-            <i class="bi bi-box-arrow-right"></i>Close
-          </button>
+<div class="loading-overlay" id="loadingOverlay" hidden>
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-      </div>
-    </main>
+        <div class="loading-text">Loading sweeping configuration...</div>
+    </div>
+</div>
 
-    <div class="am-message-panel" role="alert" aria-live="polite">
+    <div class="am-message-panel" role="alert" aria-live="polite" hidden>
       <i class="bi bi-info-circle"></i>
       <span></span>
     </div>
 
     <div class="loading-overlay" id="loadingOverlay" hidden>
       <div class="loading-spinner">
-        <i class="bi bi-arrow-repeat"></i>
-        <span>Loading sweeping rules...</span>
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="loading-text">Loading sweeping configuration...</div>
       </div>
     </div>
   </div>
 
-  <!-- Service Scripts -->
-  <script src="/js/config.js"></script>
-  <script src="/js/environment.js"></script>
-  <script src="/js/services/shared/coreApi.js"></script>
-  <script src="/js/services/shared/lookupService.js"></script>
-  <script src="/js/services/shared/searchService.js"></script>
-  <script src="/js/shared/search-modal.js"></script>
-  <script src="/js/services/Account/AccountService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-sweeping.js?v=20250128"></script>
-
-  <!-- Window Controls & Blur Behavior -->
-  <script>
-    (function() {
-      function notifyParentFormOpened() {
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ 
-              action: 'submoduleOpened',
-              source: 'Account Sweeping'
-            }, '*');
-          }
-        } catch (error) {
-          console.error('Error notifying parent of form open:', error);
-        }
-      }
-
-      function closeChildForm() {
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ 
-              action: 'submoduleClosed',
-              source: 'Account Sweeping'
-            }, '*');
-          } else {
-            window.close();
-          }
-        } catch (error) {
-          console.error('Error closing form:', error);
-        }
-      }
-
-      function handleWindowAction(action, btn) {
-        const windowEl = document.querySelector('.window');
-        
-        switch (action) {
-          case 'refresh':
-            document.querySelectorAll('[class*="invalid"]').forEach(el => {
-              el.classList.remove(...Array.from(el.classList).filter(c => c.includes('invalid')));
-            });
-            window.location.reload();
-            break;
-
-          case 'maximize':
-            if (windowEl) {
-              const isMaximized = windowEl.classList.toggle('maximized');
-              const icon = btn.querySelector('i');
-              if (icon) {
-                icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
-              }
-              btn.title = isMaximized ? 'Restore' : 'Maximize';
-              btn.setAttribute('aria-label', isMaximized ? 'Restore window' : 'Maximize window');
-              
-              if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ 
-                  action: 'toggleSidebarForMaximize',
-                  maximize: isMaximized
-                }, '*');
-              }
-            }
-            break;
-
-          case 'close':
-            closeChildForm();
-            break;
-        }
-      }
-
-      function initWindowControls() {
-        document.querySelectorAll('.de-title-btn[data-action]').forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const action = btn.getAttribute('data-action');
-            handleWindowAction(action, btn);
-          });
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          initWindowControls();
-          notifyParentFormOpened();
-        });
-      } else {
-        initWindowControls();
-        notifyParentFormOpened();
-      }
-    })();
-  </script>
-
+<script src="~/js/modules/accountsmaintenance/account-sweeping.js"></script>
 <script>
-    // AccountSweeping submodule initialization
-    document.addEventListener('submodule:loaded', function(e) {
-        if (e.detail.submoduleName === 'AccountSweeping') {
-            console.log('[AccountSweeping] Submodule initialized - Original HTML preserved');
-            // Original JS logic should be loaded here
-            // Include corresponding JS file or inline the business logic
+    // Auto-initialize module when loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.AccountSweepingModule) {
+            window.AccountSweepingModule.init();
         }
     });
+    // Also initialize if DOM is already ready
+    if (document.readyState !== 'loading' && window.AccountSweepingModule) {
+        window.AccountSweepingModule.init();
+    }
 </script>
