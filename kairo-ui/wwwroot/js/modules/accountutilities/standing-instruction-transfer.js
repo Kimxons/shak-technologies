@@ -52,12 +52,12 @@
             whereStmt: ''
         },
         'StandingInstructionID': {
-            tableID: 'AccountID',
+            tableID: 'InstructionID',
             displayField: 'txt_standingInstructionName',
             valueField: 'txt_standingInstructionId',
             displayColumn: 'AccountName',
-            valueColumn: 'AccountID',
-            whereStmt: ''
+            valueColumn: 'SIID',
+            advFilter: true
         },
         'TransferCurrencyID': {
             tableID: 'CurrencyID',
@@ -261,10 +261,14 @@
         // Create fresh instance per lookup to avoid stale state
         const modal = new SearchModal(window.AppCore);
 
+        // Build AdvFilterString for branch-scoped searches (e.g. InstructionID)
+        const advFilter = config.advFilter ? `OurBranchID = '${state.branchId}'` : '';
+
         modal.open({
             tableID: config.tableID,
             moduleID: state.moduleId,
             whereStmt: config.whereStmt || '',
+            advFilterString: advFilter,
             ourbranchId: state.branchId,
             onSelect: (row) => {
                 console.log('[Lookup] Selected:', lookupKey, row);
@@ -742,6 +746,19 @@
         // Lookup buttons: ALL search icons only active in EDIT/NEW mode
         form?.querySelectorAll('.btn-lookup').forEach(btn => {
             btn.disabled = !isEditing;
+        });
+
+        // SID fields: disabled in NEW mode (can't add an existing SID),
+        // but enabled in VIEW mode so user can search/load a record
+        form?.querySelectorAll('[data-si-field]').forEach(el => {
+            if (mode === 'NEW') {
+                el.disabled = true;
+                el.readOnly = true;
+            } else {
+                // VIEW & EDIT — SID lookup is accessible to load/navigate records
+                el.disabled = false;
+                el.readOnly = el.tagName !== 'BUTTON';
+            }
         });
 
         // Toggle action button states
