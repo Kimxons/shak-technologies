@@ -246,7 +246,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpGet("{tempClientId}")]
-        public async Task<IActionResult> GetByTempClientId(string tempClientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByTempClientId(string? tempClientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
         {
             try
             {
@@ -324,7 +324,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpGet("client/{clientId}")]
-        public async Task<IActionResult> GetByClientId(string clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByClientId(string? clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
         {
             try
             {
@@ -409,7 +409,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpGet("account/{accountId}")]
-        public async Task<IActionResult> GetByAccountId(string accountId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByAccountId(string? accountId, [FromQuery] string? requestId, CancellationToken cancellationToken)
         {
             try
             {
