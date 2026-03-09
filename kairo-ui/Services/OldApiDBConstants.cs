@@ -13,5 +13,12 @@
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
 
+        // ═══════════════════════════════════════════════════════════════════
+        // EXIT TYPES MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_EXIT_TYPES = "p_GetExitTypes";
+        public const string ADD_EDIT_EXIT_TYPES = "p_AddEditExitTypes";
+        public const string DELETE_EXIT_TYPES = "p_DeleteExitTypes";
+
     }
 }
