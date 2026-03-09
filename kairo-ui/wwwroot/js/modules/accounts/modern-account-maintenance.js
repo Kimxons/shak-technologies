@@ -1074,7 +1074,7 @@
             // Reminders module
             if (submoduleName === 'Reminders' && window.AccountRemindersModule) {
                 const mod = window.AccountRemindersModule;
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.setMode('VIEW'));
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.loadData());
                 if (addBtn) addBtn.addEventListener('click', () => mod.setMode('ADD'));
                 if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
                 if (deleteBtn) deleteBtn.addEventListener('click', () => mod.deleteData());
