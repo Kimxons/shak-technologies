@@ -1,147 +1,164 @@
 ﻿@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-stop-payment-void.html
+    Layout = null;
     var stopPaymentReasonOptions = ViewData["StopPaymentReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<!-- StopPaymentVoid Submodule -->
-<div class="window am-form">
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-slash-circle am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Stop Payment/Void</span>
+<!-- StopPaymentVoid Submodule Content -->
+<div class="form-content" role="region" aria-label="Stop Payment / Void form">
+    <div class="form-card" data-main-form>
+        <!-- Account Identification Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-building me-1"></i>Account Identification</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="branchId">Branch</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input type="text" id="branchId" name="branchId" class="kairo-account-control__id form-control am-input" readonly />
+                            <input type="text" id="branchName" class="kairo-account-control__name form-control am-input" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="Branch"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="accountId">Account</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input type="text" id="accountId" name="accountId" class="kairo-account-control__id form-control am-input" readonly />
+                            <input type="text" id="accountName" class="kairo-account-control__name form-control am-input" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="Account"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="requestRef">Request Ref No</label>
+                        <div class="input-group">
+                            <input id="requestRef" name="requestRef" type="text" class="form-control am-input" />
+                            <button class="btn btn-secondary btn-lookup" type="button" data-lookup="RequestRef" style="border-radius: 0 4px 4px 0;"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+
+        <!-- Stop Payment Details Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-slash-circle me-1"></i>Stop Payment Details</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="chequeNoStart">Cheque No Start</label>
+                        <input id="chequeNoStart" name="chequeNoStart" type="text" class="form-control am-input" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="chequeNoEnd">Cheque No End</label>
+                        <input id="chequeNoEnd" name="chequeNoEnd" type="text" class="form-control am-input" />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="chequeDate">Cheque Date</label>
+                        <select id="chequeDate" name="chequeDate" class="form-select am-input">
+                            <option value="">--Select--</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="chequeAmount">Cheque Amount</label>
+                        <input id="chequeAmount" name="chequeAmount" type="text" class="form-control am-input text-end" data-type="amount" />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label required" for="reasonId">Reason</label>
+                        <select id="reasonId" name="reasonId" class="form-select am-input">
+                            <option value="">--Select--</option>
+                            @foreach (var option in stopPaymentReasonOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="voidDate">Void Date</label>
+                        <input id="voidDate" name="voidDate" type="text" class="form-control am-input" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stop Payment Records Grid Section -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-list-ul me-1"></i>Stop Payment Records</span>
+                <span class="record-count badge bg-secondary ms-2" id="recordCount">0 records</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="kairo-simple-grid-container" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered table-hover am-grid" id="stopPaymentGrid">
+                        <thead class="sticky-top bg-light">
+                            <tr>
+                                <th>Cheque Start</th>
+                                <th>Cheque End</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Reason</th>
+                                <th>Void Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="grid-empty-row">
+                                <td colspan="6" class="text-center py-3 text-muted italic">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Section (Behind the Scene) -->
+        <div class="form-section">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-expanded="false"><i class="bi bi-chevron-down"></i></button>
+            </div>
+            <div class="section-content" data-section-content style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-2">
+                        <label class="am-label">Created By</label>
+                        <input id="MakerID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Created On</label>
+                        <input id="MakerDT" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Checked By</label>
+                        <input id="CheckerID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Checked On</label>
+                        <input id="CheckerDT" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Modified By</label>
+                        <input id="ModifierID" class="form-control am-input" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="am-label">Modified On</label>
+                        <input id="ModifierDT" class="form-control am-input" readonly />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <main class="main-container main-container--with-panel">
-      <div class="form-content" role="region">
-        <div class="form-section am-section">
-          <div class="section-header"><span class="section-header__title">Account Identification</span></div>
-          <form class="de-card__body" autocomplete="off">
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="label-blue am-label" for="branchId">Branch ID</label>
-                <div class="d-flex gap-1">
-                  <input id="branchId" name="branchId" type="text" class="bs-input-text form-control am-input" />
-                  <input id="branchName" type="text" class="bs-input-text form-control am-input" readonly />
-                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="branchId"><i class="bi bi-search"></i></button>
-                </div>
-              </div>
-              <div class="col-6">
-                <label class="label-blue am-label" for="accountId">Account ID</label>
-                <div class="d-flex gap-1">
-                  <input id="accountId" name="accountId" type="text" class="bs-input-text form-control am-input" />
-                  <input id="accountName" type="text" class="bs-input-text form-control am-input" readonly />
-                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="accountId"><i class="bi bi-search"></i></button>
-                </div>
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="requestRef">Request Ref No</label>
-                <div class="d-flex gap-1">
-                  <input id="requestRef" name="requestRef" type="text" class="bs-input-text form-control am-input" />
-                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="requestRef"><i class="bi bi-search"></i></button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="form-section am-section">
-          <div class="section-header"><span class="section-header__title">Stop Payment Details</span></div>
-          <div class="section-content">
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="label-blue am-label" for="chequeNoStart">Cheque No Start</label>
-                <input id="chequeNoStart" type="text" class="bs-input-text form-control am-input" />
-              </div>
-              <div class="col-6">
-                <label class="label-blue am-label" for="chequeNoEnd">Cheque No End</label>
-                <input id="chequeNoEnd" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="de-label am-label" for="chequeDate">Cheque Date</label>
-                <select id="chequeDate" class="bs-select form-control am-select"><option>--Select--</option></select>
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="chequeAmount">Cheque Amount</label>
-                <input id="chequeAmount" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="label-blue am-label" for="reasonId">Reason</label>
-                <select id="reasonId" class="bs-select form-control am-select">
-                  <option value="">--Select--</option>
-                  @foreach (var option in stopPaymentReasonOptions)
-                  {
-                      <option value="@option.Value">@option.Text</option>
-                  }
-                </select>
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="voidDate">Void Date</label>
-                <input id="voidDate" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="form-section form-section form-section--grid am-section">
-          <div class="section-header"><span class="section-header__title">Stop Payment Records</span><span class="de-record-count" id="recordCount">0 records</span></div>
-          <div class="section-content section-content section-content--grid">
-            <div class="table table-sm table-hover-wrap">
-              <table class="table table-sm table-hover" id="stopPaymentGrid">
-                <thead><tr><th>Cheque Start</th><th>Cheque End</th><th>Date</th><th>Amount</th><th>Reason</th><th>Void Date</th></tr></thead>
-                <tbody><tr class="table table-sm table-hover__empty"><td colspan="6">No records to display.</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="form-section form-section form-section--bts am-section" id="btsSection">
-          <div class="section-header section-header section-header--bts" id="btsHeader" role="button">
-            <span class="section-header__title"><i class="bi bi-gear"></i> BEHIND THE SCENE</span>
-            <button type="button" class="de-bts-toggle am-btn am-btn-secondary"><i class="bi bi-chevron-up"></i></button>
-          </div>
-          <div class="section-content section-content section-content--bts" id="btsBody">
-            <div class="de-audit-grid">
-              <div class="de-audit-cell"><span class="de-audit-label">Created By</span><span class="de-audit-value" id="MakerID">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Created On</span><span class="de-audit-value" id="MakerDT">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Checked By</span><span class="de-audit-value" id="CheckerID">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Checked On</span><span class="de-audit-value" id="CheckerDT">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Modified By</span><span class="de-audit-value" id="ModifierID">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Modified On</span><span class="de-audit-value" id="ModifierDT">-</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <aside class="action-panel">
-        <div class="d-flex flex-column gap-2 mt-auto">
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="view"><i class="bi bi-eye"></i><span>View</span></button>
-          <button class="btn-action am-btn am-btn-primary" type="button" data-action="add"><i class="bi bi-plus-circle"></i><span>Add</span></button>
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="edit"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
-          <button class="btn-action am-btn am-btn-primary" type="button" data-action="save"><i class="bi bi-check-lg"></i><span>Save</span></button>
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="delete"><i class="bi bi-trash3"></i><span>Delete</span></button>
-          <button class="btn-action btn-cancel am-btn am-btn-secondary" type="button" data-action="cancel"><i class="bi bi-x-lg"></i><span>Cancel</span></button>
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="close" title="Close">
-            <i class="bi bi-box-arrow-right"></i><span>Close</span>
-          </button>
-        </div>
-      </aside>
-    </main>
-    <div class="de-message-bar am-message-panel" role="alert"><i class="bi bi-info-circle"></i><span></span></div>
-    <footer class="de-status-bar" role="status">Ready</footer>
-    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
-  <script src="~/js/modules/accountsmaintenance/account-stop-payment.js?v=20250527"></script>
+</div>
 
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'StopPaymentVoid') {
-        console.log('[StopPaymentVoid] Submodule loaded');
-    }
-});
-</script>
+<script src="~/js/modules/accountsmaintenance/account-stop-payment.js?v=@DateTime.Now.Ticks"></script>

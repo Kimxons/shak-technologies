@@ -7,6 +7,8 @@ namespace kairo_ui.Models.Identities.ClientMaintenance
         public string? BankID { get; set; }
         public string? ModuleID { get; set; }
         public string? ClientID { get; set; }
+        public string? RequestID { get; set; }
+        public string? ApplicationID { get; set; }
     }
 
     public class ClientMaintenanceValidateRequest : ClientMaintenanceBaseRequest

@@ -698,7 +698,7 @@
 
             // Handle response based on status
             if (response.ok) {
-                console.log('✅ [CONTROLLER] Request successful:', responseData);
+                console.log('✅ [CONTROLLER] Request successful:', fullUrl);
                 if (callback) callback(null, responseData, response.status);
             } else {
                 // Server returned an error status
@@ -843,6 +843,376 @@
     }
 
     /**
+     * Generic Dialog System
+     * Supports multiple dialog types with customizable handlers and content
+     */
+
+    // Track active dialogs to prevent duplicates
+    let activeDialogs = new Map();
+
+    /**
+     * Show a generic dialog with customizable type, content, and handlers
+     * 
+     * @param {Object} options - Dialog configuration
+     * @param {string} options.type - Dialog type: 'confirmation', 'alert', 'prompt', 'remarks', 'custom'
+     * @param {string} options.title - Dialog title
+     * @param {string} options.message - Dialog message/content
+     * @param {string} [options.dialogId] - Unique dialog ID (auto-generated if not provided)
+     * @param {Object} [options.buttons] - Custom button configuration
+     * @param {Array<Object>} [options.buttons.list] - Array of button configs {label, variant, handler}
+     * @param {Object} [options.input] - Input field configuration for prompt/remarks type
+     * @param {string} [options.input.placeholder] - Input placeholder
+     * @param {string} [options.input.value] - Initial input value
+     * @param {boolean} [options.input.required] - Whether input is required
+     * @param {number} [options.input.maxLength] - Maximum input length
+     * @param {Object} [options.config] - Additional configuration
+     * @param {boolean} [options.config.backdrop] - Show backdrop (default: true)
+     * @param {boolean} [options.config.keyboard] - Allow keyboard dismiss (default: false)
+     * @param {boolean} [options.config.focus] - Auto-focus input (default: true)
+     * @param {string} [options.config.size] - Modal size: 'sm', 'md', 'lg', 'xl' (default: 'md')
+     * 
+     * @returns {Promise} Promise that resolves with user action/input
+     * 
+     * @example
+     * // Confirmation dialog
+     * const confirmed = await AppCore.showDialog({
+     *   type: 'confirmation',
+     *   title: 'Delete Item',
+     *   message: 'Are you sure you want to delete this item?'
+     * });
+     * 
+     * @example
+     * // Remarks dialog
+     * const remarks = await AppCore.showDialog({
+     *   type: 'remarks',
+     *   title: 'Enter Remarks',
+     *   message: 'Please provide your remarks:',
+     *   input: { placeholder: 'Type your remarks here...', required: true }
+     * });
+     * 
+     * @example
+     * // Custom dialog
+     * const result = await AppCore.showDialog({
+     *   type: 'custom',
+     *   title: 'Custom Action',
+     *   message: 'Choose an option:',
+     *   buttons: {
+     *     list: [
+     *       { label: 'Option 1', variant: 'primary', value: 'opt1' },
+     *       { label: 'Option 2', variant: 'secondary', value: 'opt2' },
+     *       { label: 'Cancel', variant: 'outline-secondary', value: null }
+     *     ]
+     *   }
+     * });
+     */
+    function showDialog(options) {
+        return new Promise((resolve) => {
+            const {
+                type = 'confirmation',
+                title = 'Confirmation',
+                message = '',
+                dialogId = `appcore-dialog-${Date.now()}`,
+                buttons = null,
+                input = null,
+                config = {}
+            } = options;
+
+            // Check if dialog with same ID is already open
+            if (activeDialogs.has(dialogId)) {
+                console.warn(`Dialog ${dialogId} is already open`);
+                return resolve(null);
+            }
+
+            // Build dialog HTML based on type
+            const modalSize = config.size || 'md';
+            const modalSizeClass = modalSize !== 'md' ? `modal-${modalSize}` : '';
+            
+            let dialogContent = buildDialogContent(type, message, input);
+            let dialogButtons = buildDialogButtons(type, buttons);
+
+            // Create modal HTML
+            const modalHTML = `
+                <div class="modal fade" id="${dialogId}" tabindex="-1" data-bs-backdrop="${config.backdrop !== false ? 'static' : 'false'}" data-bs-keyboard="${config.keyboard === true}">
+                    <div class="modal-dialog modal-dialog-centered ${modalSizeClass}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${escapeHtml(title)}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${dialogContent}
+                            </div>
+                            <div class="modal-footer">
+                                ${dialogButtons}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Append to body
+            const modalElement = document.createElement('div');
+            modalElement.innerHTML = modalHTML;
+            document.body.appendChild(modalElement.firstElementChild);
+
+            const modalEl = document.getElementById(dialogId);
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            // Track active dialog
+            activeDialogs.set(dialogId, { modal: bsModal, element: modalEl });
+
+            // Auto-focus input if applicable
+            modalEl.addEventListener('shown.bs.modal', () => {
+                if (config.focus !== false) {
+                    const inputField = modalEl.querySelector('input, textarea');
+                    if (inputField) {
+                        inputField.focus();
+                    }
+                }
+            });
+
+            // Cleanup on hide
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                activeDialogs.delete(dialogId);
+                modalEl.remove();
+            });
+
+            // Wire up button handlers
+            wireDialogButtons(modalEl, type, buttons, bsModal, resolve);
+
+            // Show modal
+            bsModal.show();
+        });
+    }
+
+    /**
+     * Build dialog content based on type
+     */
+    function buildDialogContent(type, message, input) {
+        let content = `<p>${escapeHtml(message)}</p>`;
+
+        if (type === 'prompt' && input) {
+            const placeholder = input.placeholder || '';
+            const value = input.value || '';
+            const maxLength = input.maxLength ? `maxlength="${input.maxLength}"` : '';
+            const required = input.required ? 'required' : '';
+            
+            content += `
+                <div class="mt-3">
+                    <input type="text" class="form-control" id="dialog-input" 
+                           placeholder="${escapeHtml(placeholder)}" 
+                           value="${escapeHtml(value)}" 
+                           ${maxLength} ${required} />
+                </div>
+            `;
+        } else if (type === 'remarks' && input) {
+            const placeholder = input.placeholder || '';
+            const value = input.value || '';
+            const maxLength = input.maxLength ? `maxlength="${input.maxLength}"` : '';
+            const required = input.required ? 'required' : '';
+            
+            content += `
+                <div class="mt-3">
+                    <textarea class="form-control" id="dialog-input" rows="4" 
+                              placeholder="${escapeHtml(placeholder)}" 
+                              ${maxLength} ${required}>${escapeHtml(value)}</textarea>
+                    ${input.maxLength ? `<div class="form-text text-end"><span id="char-count">0</span>/${input.maxLength}</div>` : ''}
+                </div>
+            `;
+        }
+
+        return content;
+    }
+
+    /**
+     * Build dialog buttons based on type
+     */
+    function buildDialogButtons(type, customButtons) {
+        if (customButtons && customButtons.list) {
+            // Custom buttons
+            return customButtons.list.map((btn, idx) => {
+                const variant = btn.variant || 'primary';
+                const label = btn.label || 'Button';
+                return `<button type="button" class="btn btn-${variant}" data-dialog-action="${idx}">${escapeHtml(label)}</button>`;
+            }).join('');
+        }
+
+        // Default buttons based on type
+        switch (type) {
+            case 'alert':
+                return '<button type="button" class="btn btn-primary" data-dialog-action="ok">OK</button>';
+            
+            case 'confirmation':
+                return `
+                    <button type="button" class="btn btn-outline-secondary" data-dialog-action="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-dialog-action="confirm">Confirm</button>
+                `;
+            
+            case 'prompt':
+            case 'remarks':
+                return `
+                    <button type="button" class="btn btn-outline-secondary" data-dialog-action="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-dialog-action="submit">Submit</button>
+                `;
+            
+            default:
+                return '<button type="button" class="btn btn-primary" data-dialog-action="ok">OK</button>';
+        }
+    }
+
+    /**
+     * Wire up button event handlers
+     */
+    function wireDialogButtons(modalEl, type, customButtons, bsModal, resolve) {
+        const buttons = modalEl.querySelectorAll('[data-dialog-action]');
+        const inputField = modalEl.querySelector('#dialog-input');
+
+        // Character counter for remarks
+        if (type === 'remarks' && inputField) {
+            const charCount = modalEl.querySelector('#char-count');
+            if (charCount) {
+                inputField.addEventListener('input', () => {
+                    charCount.textContent = inputField.value.length;
+                });
+                charCount.textContent = inputField.value.length;
+            }
+        }
+
+        buttons.forEach((button) => {
+            button.addEventListener('click', async () => {
+                const action = button.getAttribute('data-dialog-action');
+
+                if (customButtons && customButtons.list) {
+                    // Custom button handler
+                    const btnIndex = parseInt(action);
+                    const btnConfig = customButtons.list[btnIndex];
+                    
+                    let result = btnConfig.value !== undefined ? btnConfig.value : null;
+                    
+                    // If button has a custom handler, call it
+                    if (typeof btnConfig.handler === 'function') {
+                        const handlerResult = await btnConfig.handler(inputField?.value);
+                        if (handlerResult === false) return; // Don't close if handler returns false
+                        result = handlerResult !== undefined ? handlerResult : result;
+                    }
+                    
+                    bsModal.hide();
+                    resolve(result);
+                } else {
+                    // Standard action handlers
+                    switch (action) {
+                        case 'ok':
+                        case 'confirm':
+                            bsModal.hide();
+                            resolve(true);
+                            break;
+                        
+                        case 'submit':
+                            if (inputField) {
+                                if (inputField.hasAttribute('required') && !inputField.value.trim()) {
+                                    inputField.classList.add('is-invalid');
+                                    return;
+                                }
+                                bsModal.hide();
+                                resolve(inputField.value);
+                            } else {
+                                bsModal.hide();
+                                resolve(true);
+                            }
+                            break;
+                        
+                        case 'cancel':
+                        default:
+                            bsModal.hide();
+                            resolve(null);
+                            break;
+                    }
+                }
+            });
+        });
+
+        // Handle close button
+        const closeBtn = modalEl.querySelector('.btn-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                bsModal.hide();
+                resolve(null);
+            });
+        }
+
+        // Enter key handler for input fields
+        if (inputField) {
+            inputField.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && type !== 'remarks') {
+                    e.preventDefault();
+                    const submitBtn = modalEl.querySelector('[data-dialog-action="submit"]');
+                    if (submitBtn) submitBtn.click();
+                }
+            });
+        }
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * Show confirmation dialog (convenience method)
+     */
+    function showConfirmation(title, message) {
+        return showDialog({
+            type: 'confirmation',
+            title: title,
+            message: message
+        });
+    }
+
+    /**
+     * Show alert dialog (convenience method)
+     */
+    function showAlert(title, message) {
+        return showDialog({
+            type: 'alert',
+            title: title,
+            message: message
+        });
+    }
+
+    /**
+     * Show prompt dialog (convenience method)
+     */
+    function showPrompt(title, message, placeholder = '') {
+        return showDialog({
+            type: 'prompt',
+            title: title,
+            message: message,
+            input: { placeholder: placeholder, required: true }
+        });
+    }
+
+    /**
+     * Show remarks dialog (convenience method)
+     */
+    function showRemarks(title, message, options = {}) {
+        return showDialog({
+            type: 'remarks',
+            title: title,
+            message: message,
+            input: {
+                placeholder: options.placeholder || 'Enter your remarks here...',
+                maxLength: options.maxLength || 500,
+                required: options.required !== false
+            }
+        });
+    }
+
+    /**
      * AppCore public API
      */
     const AppCore = {
@@ -868,7 +1238,13 @@
         getConfig,
         showNotification,
         isAuthenticated,
-        getCurrentUserId
+        getCurrentUserId,
+        // Dialog methods
+        showDialog,
+        showConfirmation,
+        showAlert,
+        showPrompt,
+        showRemarks
     };
 
     // Export to global scope

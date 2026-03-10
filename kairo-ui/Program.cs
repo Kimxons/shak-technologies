@@ -136,7 +136,6 @@ builder.Services.AddTransient<AuthenticationHandler>();
 
 builder.Services.AddScoped<IApiService, ApiService>();
 
-
 builder.Services.AddScoped<IOldApiService, OldApiService>();
 
 // Register Common Utilities Service for shared utility methods
@@ -178,10 +177,10 @@ builder.Services.AddHttpClient("ClientManagementApi")
 builder.Services.AddHttpClient("AccountManagementApi")
     .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
- {
-     client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
-     client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
- });
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:AccountManagementBaseUrl");
+    });
 
 builder.Services.AddHttpClient("OldApi")
  .AddHttpMessageHandler<AuthenticationHandler>()
@@ -191,15 +190,38 @@ builder.Services.AddHttpClient("OldApi")
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
     });
 
-    builder.Services.AddHttpClient("MicroFinanceApi")
-     .AddHttpMessageHandler<AuthenticationHandler>()
-        .ConfigureHttpClient(client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
-            client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
-        });
+builder.Services.AddHttpClient("MicroFinanceApi")
+ .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:MicroFinanceBaseUrl")
+            ?? builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
+    });
 
+builder.Services.AddHttpClient("ClientDocumentApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ClientDocumentBaseUrl");
+    });
 
+builder.Services.AddHttpClient("KairoAIApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:KairoAIBaseUrl");
+    });
+
+builder.Services.AddHttpClient("ImageRecognitionApi")
+    .AddHttpMessageHandler<AuthenticationHandler>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
+        client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ImageRecognitionBaseUrl");
+    });
 
 // Add IConfiguration for injecting into services
 builder.Services.AddSingleton(builder.Configuration);

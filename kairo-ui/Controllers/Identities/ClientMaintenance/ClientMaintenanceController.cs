@@ -14,7 +14,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         private readonly ICommonUtilitiesService _commonUtilities;
         private readonly IApiCachedService _apiCachedService;
         private readonly ILogger<ClientMaintenanceController> _logger;
-
+        private readonly string moduleid = "1000";
         public ClientMaintenanceController(
             IAuthService authService,
             IApiService apiService,
@@ -215,7 +215,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("get-workflow-stage")]
-        public async Task<IActionResult> GetWorkflowStage([FromBody] ClientMaintenanceBaseRequest requestData)
+        public async Task<IActionResult> GetWorkflowStage([FromBody] JsonDocument requestData)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -229,7 +229,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, moduleid);
                 _logger.LogInformation("client-maintenance.get-workflow-stage request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("SystemCoreApi", ApiEndpoints.GET_WORKFLOW_STAGE, requestData);
