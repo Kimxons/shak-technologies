@@ -195,6 +195,13 @@
 
                 this.currentConfig = config;
 
+                // Always reset pagination state so each open starts fresh
+                this.refID = '';
+                this.prevOrNext = 0;
+                this.currentResults = [];
+                this.selectedRow = null;
+                this.currentPage = 0;
+
                 // Load modal if needed
                 if (shouldReload) {
                     // Start fresh if reloading for a new table

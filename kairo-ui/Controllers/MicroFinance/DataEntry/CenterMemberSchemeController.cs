@@ -2,32 +2,29 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
-namespace kairo_ui.Controllers.MicroFinance
+namespace kairo_ui.Controllers.MicroFinance.DataEntry
 {
-    [Route("MicroFinance/CenterMemberMaintenance")]
-    public class CenterMemberMaintenanceController : Controller
+    [Route("MicroFinance/DataEntry/CenterMemberScheme")]
+    public class CenterMemberSchemeController : Controller
     {
         private const string MicroFinanceApiName = "MicroFinanceApi";
 
         private readonly IAuthService _authService;
         private readonly IOldApiService _oldApiService;
-        private readonly IConfiguration _config;
-        private readonly ILogger<CenterMemberMaintenanceController> _logger;
+        private readonly ILogger<CenterMemberSchemeController> _logger;
 
-        public CenterMemberMaintenanceController(
+        public CenterMemberSchemeController(
             IAuthService authService,
             IOldApiService oldApiService,
-            IConfiguration configuration,
-            ILogger<CenterMemberMaintenanceController> logger)
+            ILogger<CenterMemberSchemeController> logger)
         {
             _authService = authService;
             _oldApiService = oldApiService;
-            _config = configuration;
             _logger = logger;
         }
 
         // ═════════════════════════════════════════════════════════════════
-        // INDEX - Entry point from dashboard
+        // INDEX - Renders the DataEntry view inside iframe
         // ═════════════════════════════════════════════════════════════════
 
         [HttpGet]
@@ -37,23 +34,10 @@ namespace kairo_ui.Controllers.MicroFinance
         {
             if (!_authService.IsAuthenticated())
             {
-                _logger.LogWarning("Unauthenticated access attempt to Center Member Maintenance");
+                _logger.LogWarning("Unauthenticated access attempt to Center Member Scheme");
                 return RedirectToAction("Index", "Login");
             }
 
-            _logger.LogInformation("Center Member Maintenance loaded successfully");
-            return PartialView("~/Views/MicroFinance/CenterMemberMaintenance.cshtml");
-        }
-
-        // ═════════════════════════════════════════════════════════════════
-        // SUBMODULE PARTIAL VIEWS (loaded inline via fetch)
-        // ═════════════════════════════════════════════════════════════════
-
-        [HttpGet]
-        [Route("CenterMemberScheme")]
-        public IActionResult CenterMemberScheme()
-        {
-            if (!_authService.IsAuthenticated()) return Unauthorized();
             return PartialView("~/Views/MicroFinance/DataEntry/CenterMemberScheme/CenterMemberScheme.cshtml");
         }
 
@@ -62,8 +46,8 @@ namespace kairo_ui.Controllers.MicroFinance
         // ═════════════════════════════════════════════════════════════════
 
         [HttpPost]
-        [Route("get-group-members")]
-        public async Task<IActionResult> GetGroupMembers([FromBody] JsonElement requestData)
+        [Route("get-group-member-scheme")]
+        public async Task<IActionResult> GetGroupMemberScheme([FromBody] JsonElement requestData)
         {
             try
             {
@@ -71,19 +55,19 @@ namespace kairo_ui.Controllers.MicroFinance
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
                 var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, OldApiDBConstants.GET_GROUP_MEMBERS, requestData);
+                    MicroFinanceApiName, OldApiDBConstants.GET_GROUP_MEMBER_SCHEME, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching group members");
+                _logger.LogError(ex, "Error fetching group member scheme");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
         [HttpPost]
-        [Route("save-group-member")]
-        public async Task<IActionResult> SaveGroupMember([FromBody] JsonElement requestData)
+        [Route("save-group-member-scheme")]
+        public async Task<IActionResult> SaveGroupMemberScheme([FromBody] JsonElement requestData)
         {
             try
             {
@@ -91,19 +75,19 @@ namespace kairo_ui.Controllers.MicroFinance
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
                 var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, OldApiDBConstants.ADD_EDIT_GROUP_MEMBERS, requestData);
+                    MicroFinanceApiName, OldApiDBConstants.ADD_EDIT_GROUP_MEMBER_SCHEME, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving group member");
+                _logger.LogError(ex, "Error saving group member scheme");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
         [HttpPost]
-        [Route("delete-group-member")]
-        public async Task<IActionResult> DeleteGroupMember([FromBody] JsonElement requestData)
+        [Route("delete-group-member-scheme")]
+        public async Task<IActionResult> DeleteGroupMemberScheme([FromBody] JsonElement requestData)
         {
             try
             {
@@ -111,35 +95,14 @@ namespace kairo_ui.Controllers.MicroFinance
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
                 var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, OldApiDBConstants.DELETE_GROUP_MEMBERS, requestData);
+                    MicroFinanceApiName, OldApiDBConstants.DELETE_GROUP_MEMBER_SCHEME, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting group member");
+                _logger.LogError(ex, "Error deleting group member scheme");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
-
-        [HttpPost]
-        [Route("get-group-product-details")]
-        public async Task<IActionResult> GetGroupProductDetails([FromBody] JsonElement requestData)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, OldApiDBConstants.GET_GROUP_PRODUCT_DETAILS, requestData);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching group product details");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
     }
 }

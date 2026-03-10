@@ -77,6 +77,13 @@ namespace kairo_ui.Services
         //   GroupID, SubGroupID, ClientWithoutGroupID, GroupClientID
 
         // ═══════════════════════════════════════════════════════════════════
+        // CENTER MEMBER SCHEME (DataEntry submodule of Center Member Maintenance)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_MEMBER_SCHEME = "p_GetGroupMemberScheme";
+        public const string ADD_EDIT_GROUP_MEMBER_SCHEME = "p_AddEditGroupMemberScheme";
+        public const string DELETE_GROUP_MEMBER_SCHEME = "p_DeleteGroupMemberScheme";
+
+        // ═══════════════════════════════════════════════════════════════════
         // EXIT PROCESS
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_EXIT_TRX = "p_GetExitTrx";
