@@ -4,7 +4,7 @@
     var imageTypeOptions = ViewData["ImageTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<div class="form-section" data-section="client-photo-signature" data-cm-tab="photo-signature">
+<div class="form-card" data-section="client-photo-signature" data-cm-tab="photo-signature">
     <div class="section-header" data-section-toggle>
   <span class="section-header__title"><i class="bi bi-image"></i>Photo &amp; Signature</span>
   <button id="btn_toggleClientPhotoSignature" type="button" class="section-toggle-btn" aria-label="Toggle Photo and Signature" aria-expanded="true">
@@ -41,6 +41,21 @@
                         <i class="bi bi-image text-muted fs-1"></i>
                         <p class="text-muted small mt-2">No image selected or captured.</p>
                     </div>
+
+                    <div id="validationOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="display:none; background: rgba(0, 0, 0, 0.7); z-index: 10; border-radius: 0.375rem;">
+                        <div id="validationSpinner" class="text-center" style="display:none;">
+                            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <p class="text-white mt-3 fw-semibold">Processing...</p>
+                        </div>
+                        <div id="validationSuccess" class="text-center" style="display:none;">
+                            <div class="validation-tick-circle">
+                                <i class="bi bi-check-lg text-white" style="font-size: 3rem;"></i>
+                            </div>
+                            <p class="text-white mt-3 fw-semibold" id="validationSuccessMessage">Validated!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -70,5 +85,20 @@
         </div>
     </div>
 </div>
+
+<style>
+    .validation-tick-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #28a745;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: cmValidationScaleIn 0.5s ease-out;
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+    }
+
+</style>
 
 <script src="~/js/modules/identities/client-maintenance/client-photo-signature.js"></script>

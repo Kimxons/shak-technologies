@@ -113,7 +113,9 @@ namespace AccountManagement.Modules.AccountMaintenance
 
         // Account signatory (OperatedBy) operations
         public Task<ResponseDetail<object>> GetAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
-        public Task<ResponseDetail<object>> AddEditAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
+        public Task<ResponseDetail<object>> AddAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
+        public Task<ResponseDetail<object>> EditAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
+
 
         // Generic routed execution (whitelisted procedures only)
         public Task<ResponseDetail<object>> ExecuteProcedure(string procedureName, string requestJson, CancellationToken cancellationToken = default);

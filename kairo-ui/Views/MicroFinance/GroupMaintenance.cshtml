@@ -1,0 +1,500 @@
+@{
+    ViewData["Title"] = "Group Maintenance";
+    Layout = "_ApplicationLayout";
+    var sessionBranchId = Context.Session.GetString("OurBranchID") ?? Context.Session.GetString("branch_code") ?? string.Empty;
+}
+
+
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window" data-page="group-maintenance">
+    <div class="main-container">
+        <div class="sidebar" id="main-sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+                <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules">
+                <i class="bi bi-search sidebar-search__icon"></i>
+                <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
+                    <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+                        <div class="nav-header__content">
+                            <i class="bi bi-pencil-square nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">Data Entry</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <span class="nav-badge">4</span>
+                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="false" aria-controls="nav-dataentry">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card" id="nav-dataentry" hidden>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="center-bank-details" data-tooltip="Center Bank Details">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-bank sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Center Bank Details</div>
+                                    <div class="sidebar-item__description">Manage center banking information</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="user-defined-fields" data-tooltip="User Defined Fields">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-input-cursor-text sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">User Defined Fields</div>
+                                    <div class="sidebar-item__description">Customize center fields</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="group-details" data-tooltip="Group Details">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-people sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Group Details</div>
+                                    <div class="sidebar-item__description">View and manage groups</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="grt-details" data-tooltip="GRT Details">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-file-text sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">GRT Details</div>
+                                    <div class="sidebar-item__description">Group recognition test details</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-section nav-section--card" data-nav-section data-section-name="View">
+                    <div class="nav-header nav-header--card" data-tooltip="View">
+                        <div class="nav-header__content">
+                            <i class="bi bi-eye-fill nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">View</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <span class="nav-badge">2</span>
+                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle View" aria-expanded="false" aria-controls="nav-view">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card" id="nav-view" hidden>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="center-members" data-tooltip="Group Members">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-person-lines-fill sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Group Members</div>
+                                    <div class="sidebar-item__description">View all group members</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="groups" data-tooltip="Groups">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-diagram-3 sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Groups</div>
+                                    <div class="sidebar-item__description">View center groups</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-content">
+            <div class="child-inline" data-child-inline hidden>
+                <iframe class="child-iframe-inline" data-child-iframe title="DataEntry Submodule"></iframe>
+            </div>
+
+            <div class="form-card" data-main-form>
+                <div class="form-section form-section--bts" data-section="center-details-main">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-building"></i>Center Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Center Search" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div id="centerCreatedMessage" class="center-created-message" hidden>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span id="centerCreatedText"></span>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Branch ID</label>
+                                <div class="kairo-branch-control" data-kairo-branch-control>
+                                    <input type="text" id="branchId" value="@sessionBranchId" class="kairo-branch-control__id" aria-label="Branch ID">
+                                    <input type="text" id="branchName" value="" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-branch-control__lookup" data-lookup="Branch" onclick="window.handleBranchSearch?.()" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Center ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID" readonly>
+                                    <input type="text" id="centerName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Center" onclick="window.handleCenterSearch?.()" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue">Group Class</label>
+                                <select id="groupClass" class="bs-select" aria-label="Group Class" required>
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Registration No.</label>
+                                <input type="text" id="registrationNo" class="bs-input-text" aria-label="Registration Number">
+                            </div>
+                            <div class="col span-2">
+                                <label class="label-blue">Center Product ID</label>
+                                <div class="kairo-product-control" data-kairo-product-control>
+                                    <input type="text" id="centerProductId" class="kairo-product-control__id" aria-label="Center Product ID">
+                                    <input type="text" id="centerProductName" class="kairo-product-control__name" aria-label="Center Product Name" placeholder="Product Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-product-control__lookup" data-lookup="CenterProduct" onclick="window.handleCenterProductSearch?.()" aria-label="Search Center Product"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Primary Scheme ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="primarySchemeId" class="kairo-control__id" aria-label="Primary Scheme ID">
+                                    <input type="text" id="primarySchemeName" class="kairo-control__name" aria-label="Primary Scheme Name" placeholder="Scheme Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="PrimaryScheme" onclick="window.handlePrimarySchemeSearch?.()" aria-label="Search Primary Scheme"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Credit Officer</label>
+                                <div class="kairo-user-control" data-kairo-user-control>
+                                    <input type="text" id="creditOfficer" class="kairo-user-control__id" aria-label="Credit Officer ID">
+                                    <input type="text" id="creditOfficerName" class="kairo-user-control__name" aria-label="Credit Officer Name" placeholder="Officer Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-user-control__lookup" data-lookup="CreditOfficer" onclick="window.handleCreditOfficerSearch?.()" aria-label="Search Credit Officer"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Group Formed By</label>
+                                <div class="kairo-user-control" data-kairo-user-control>
+                                    <input type="text" id="groupFormedBy" class="kairo-user-control__id" aria-label="Group Formed By ID">
+                                    <input type="text" id="groupFormedByName" class="kairo-user-control__name" aria-label="Group Formed By Name" placeholder="User Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-user-control__lookup" data-lookup="GroupFormedBy" onclick="window.handleGroupFormedBySearch?.()" aria-label="Search Group Formed By"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label>NGO ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="ngoId" class="kairo-control__id" aria-label="NGO ID">
+                                    <input type="text" id="ngoName" class="kairo-control__name" aria-label="NGO Name" placeholder="NGO Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Ngo" onclick="window.handleNgoSearch?.()" aria-label="Search NGO"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section form-section--bts" data-section="meeting-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-calendar-event"></i>Meeting Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Meeting Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue">Formation Date</label>
+                                <input type="date" id="formationDate" class="bs-input-date" aria-label="Formation Date">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">First Meeting Date</label>
+                                <input type="date" id="firstMeetingDate" class="bs-input-date" aria-label="First Meeting Date">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Next Meeting Date</label>
+                                <input type="date" id="nextMeetingDate" class="bs-input-date" aria-label="Next Meeting Date">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Meeting Time</label>
+                                <input type="text" id="meetingTime" class="bs-input-text" aria-label="Meeting Time" placeholder="HH:MM">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue">Meeting Day</label>
+                                <select id="meetingDay" class="bs-select" aria-label="Meeting Day">
+                                    <option value="">--Select--</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>First Day</label>
+                                <input type="text" id="firstDay" class="bs-input-text" aria-label="First Day">
+                            </div>
+                            <div class="col">
+                                <label>Next Day</label>
+                                <input type="text" id="nextDay" class="bs-input-text" aria-label="Next Day">
+                            </div>
+                            <div class="col">
+                                <label>Meeting Place</label>
+                                <input type="text" id="meetingPlace" class="bs-input-text" aria-label="Meeting Place">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label>Village</label>
+                                <input type="text" id="village" class="bs-input-text" aria-label="Village">
+                            </div>
+                            <div class="col">
+                                <label>Location</label>
+                                <select id="location" class="bs-select" aria-label="Location">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Centre</label>
+                                <select id="centre" class="bs-select" aria-label="Centre">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Status</label>
+                                <select id="status" class="bs-select" aria-label="Status">
+                                    <option value="A" selected>Active</option>
+                                    <option value="I">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col">
+                                <label>Status Reason</label>
+                                <input type="text" id="statusReason" class="bs-input-text" aria-label="Status Reason">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section form-section--bts" data-section="group-snapshot">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-bar-chart-fill"></i>Group Snapshot</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Group Snapshot" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="behind-scene">
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Total Members</label>
+                                    <input type="text" id="totalMembers" class="bs-input-text" readonly aria-label="Total Members">
+                                </div>
+                                <div class="col">
+                                    <label>Zero Balance</label>
+                                    <input type="text" id="zeroBalance" class="bs-input-text" readonly aria-label="Zero Balance">
+                                </div>
+                                <div class="col">
+                                    <label>Meeting Frequency</label>
+                                    <input type="text" id="meetingFrequency" class="bs-input-text" readonly aria-label="Meeting Frequency">
+                                </div>
+                                <div class="col">
+                                    <label>Loan Cycle Type</label>
+                                    <input type="text" id="loanCycleType" class="bs-input-text" readonly aria-label="Loan Cycle Type">
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Total Savings A/Cs</label>
+                                    <input type="text" id="totalSavingsAcs" class="bs-input-text" readonly aria-label="Total Savings Accounts">
+                                </div>
+                                <div class="col">
+                                    <label>Total Savings Balance</label>
+                                    <input type="text" id="totalSavingsBalance" class="bs-input-text" readonly aria-label="Total Savings Balance">
+                                </div>
+                                <div class="col">
+                                    <label>Total Loan A/Cs</label>
+                                    <input type="text" id="totalLoanAcs" class="bs-input-text" readonly aria-label="Total Loan Accounts">
+                                </div>
+                                <div class="col">
+                                    <label>Total Loan Balance</label>
+                                    <input type="text" id="totalLoanBalance" class="bs-input-text" readonly aria-label="Total Loan Balance">
+                                </div>
+                            </div>
+
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label>Loan Cycle No.</label>
+                                    <input type="text" id="loanCycleNo" class="bs-input-text" readonly aria-label="Loan Cycle Number">
+                                </div>
+                                <div class="col">
+                                    <label>Saving / OS Loan</label>
+                                    <input type="text" id="savingOsLoan" class="bs-input-text" readonly aria-label="Saving OS Loan">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" data-section="behind-scene">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="audit-section">
+                            <div class="audit-item">
+                                <label>Created By</label>
+                                <span class="audit-value" id="createdBy">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Created On</label>
+                                <span class="audit-value" id="createdOn">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Modified By</label>
+                                <span class="audit-value" id="modifiedBy">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Modified On</label>
+                                <span class="audit-value" id="modifiedOn">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Supervised By</label>
+                                <span class="audit-value" id="supervisedBy">-</span>
+                            </div>
+                            <div class="audit-item">
+                                <label>Supervised On</label>
+                                <span class="audit-value" id="supervisedOn">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" onclick="window.handleNavigatePrevious?.()" aria-label="Previous Center"><i class="bi bi-chevron-left"></i></button>
+                <span>Center</span>
+                <button class="btn-nav green" onclick="window.handleNavigateNext?.()" aria-label="Next Center"><i class="bi bi-chevron-right"></i></button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-action btn-view" type="button" onclick="window.handleView?.()" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" type="button" onclick="window.handleAdd?.()" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" type="button" onclick="window.handleEdit?.()" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" type="button" onclick="window.handleDelete?.()" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action" type="button" onclick="window.handleSave?.()" title="Save" disabled data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" onclick="window.handleCancel?.()" title="Cancel" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="@Url.Content("~/js/utils/global-utils.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
+
+    <script src="@Url.Content("~/js/environment.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/lookupService.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/searchService.js")"></script>
+    <script src="@Url.Content("~/js/services/search/branchSearchService.js")"></script>
+    <script src="@Url.Content("~/js/services/microfinance/groupService.js")"></script>
+
+    <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/group-maintenance.js")"></script>
+
+    <script>
+        function openChildForm(formName) {
+            const childInline = document.querySelector('[data-child-inline]');
+            const childIframe = document.querySelector('[data-child-iframe]');
+            const mainForm = document.querySelector('[data-main-form]');
+            const mainContainer = document.querySelector('.main-container');
+
+            if (!childInline || !childIframe || !mainForm || !mainContainer) return;
+
+            const formConfig = {
+                'center-bank-details': { url: '/MicroFinance/DataEntry/GroupBankDetails' },
+                'user-defined-fields': { url: '/MicroFinance/DataEntry/UserDefinedFields' },
+                'group-details': { url: '/MicroFinance/DataEntry/GroupDetails' },
+                'grt-details': { url: '/MicroFinance/DataEntry/GRTDetails' },
+                'center-members': { url: '/MicroFinance/View/GroupMembers' },
+                'groups': { url: '/MicroFinance/View/Groups' }
+            };
+
+            const config = formConfig[formName];
+            if (!config) return;
+
+            mainContainer.classList.add('child-opening');
+            childInline.hidden = false;
+            childIframe.src = config.url;
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    mainContainer.classList.add('child-open');
+                    childInline.classList.add('is-visible');
+                    childInline.classList.remove('is-closing');
+
+                    setTimeout(() => {
+                        mainContainer.classList.remove('child-opening');
+                        mainForm.hidden = true;
+                    }, 350);
+                });
+            });
+        }
+
+        function closeChildForm() {
+            const childInline = document.querySelector('[data-child-inline]');
+            const childIframe = document.querySelector('[data-child-iframe]');
+            const mainForm = document.querySelector('[data-main-form]');
+            const mainContainer = document.querySelector('.main-container');
+
+            if (!childInline || !mainContainer) return;
+
+            mainContainer.classList.add('child-closing');
+            childInline.classList.add('is-closing');
+            childInline.classList.remove('is-visible');
+
+            if (mainForm) mainForm.hidden = false;
+
+            setTimeout(() => {
+                childInline.hidden = true;
+                mainContainer.classList.remove('child-open', 'child-closing');
+                if (childIframe) childIframe.src = 'about:blank';
+            }, 350);
+        }
+    </script>
+}

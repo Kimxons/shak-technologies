@@ -1,0 +1,124 @@
+@{
+    Layout = null;
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Center Members</title>
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+</head>
+<body data-page="group-members">
+    <input type="hidden" id="moduleId_group_members" value="@moduleId" />
+
+    <div class="window">
+        <div class="am-header" role="banner" aria-label="Window title bar">
+            <div class="am-header__left">
+                <i class="bi bi-people-fill am-header__icon" aria-hidden="true"></i>
+                <span class="am-header__title">Center Members</span>
+            </div>
+            <div class="am-header__right" role="toolbar" aria-label="Window controls">
+                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <main class="main-container" aria-label="Center Members view">
+            <div class="form-content" role="region" aria-label="Center Members view">
+                <div class="form-card" data-main-form>
+                    <div class="form-section" data-section="scheme-selection">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-funnel"></i>Filter Options</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Filter Options" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <form autocomplete="off">
+                                <div class="row g-2 scheme-row">
+                                    <div class="col-6">
+                                        <label class="label-blue" for="schemeSelect">Scheme</label>
+                                        <select id="schemeSelect" class="bs-select segment-id">
+                                            <option value="">Select a scheme...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="members-list">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-people"></i>Members List</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Members List" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="table-responsive" style="max-height: 400px; overflow: auto;">
+                                <table class="table table-sm table-hover table-striped table-bordered align-middle mb-0">
+                                    <thead style="position: sticky; top: 0; z-index: 1; background: #f8f9fa;">
+                                        <tr>
+                                            <th>Client ID</th>
+                                            <th>Client Name</th>
+                                            <th>Group ID</th>
+                                            <th>Group Name</th>
+                                            <th>Join Date</th>
+                                            <th>Loan Account ID</th>
+                                            <th>Loan Balance</th>
+                                            <th>Savings Account ID</th>
+                                            <th>Total Savings Balance</th>
+                                            <th>Center Leader</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="membersTableBody">
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted">No records to display.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-panel" aria-label="Form actions">
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-action="view" data-cu-view title="View">
+                        <i class="bi bi-eye"></i>View
+                    </button>
+                    <button class="btn-action btn-cancel" type="button" data-action="cancel" data-cu-cancel title="Cancel">
+                        <i class="bi bi-x-lg"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div class="loading-overlay" id="loadingOverlay" hidden>
+            <div class="loading-spinner">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Loading members...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
+    <script src="@Url.Content("~/js/environment.js")"></script>
+    <script src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
+    <script src="@Url.Content("~/js/services/microfinance/groupService.js")"></script>
+    <script src="@Url.Content("~/js/modules/microfinance/view/group-members.js")"></script>
+</body>
+</html>

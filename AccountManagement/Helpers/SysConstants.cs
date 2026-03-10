@@ -99,8 +99,8 @@ namespace AccountManagement.Helpers
         public const string UPDATE_STOP_PAYMENT = "p_UpdateStopPayment_V0";
         public const string ADD_CANCEL_STOP_PAYMENT = "p_AddCancelStopPayment_V0";
         public const string UPDATE_CANCEL_STOP_PAYMENT = "p_UpdateCancelStopPayment_V0";
-        public const string GET_STOP_PAYMENTS = "p_GetStopPayments_V0";
-        public const string GET_CANCEL_STOP_PAYMENTS = "p_GetCancelStopPayments_V0";
+        public const string GET_STOP_PAYMENTS = "p_V8_GetStopPayments";
+        public const string GET_CANCEL_STOP_PAYMENTS = "p_V8_GetCancelStopPayments";
 
         // Account Dormant procedures
         public const string GET_ACCOUNT_DORMANT = "p_GetAccountDormant_V0";
@@ -121,8 +121,10 @@ namespace AccountManagement.Helpers
         public const string GET_ACCOUNT_TRANSFER_DETAILS = "p_GetAcTransferDetails_V0";
 
         // Account Signatory (OperatedBy) procedures
-        public const string GET_ACCOUNT_SIGNATORIES = "p_GetAccountOperatedBy";
-        public const string ADD_EDIT_ACCOUNT_SIGNATORIES = "p_AddEditAccountOperatedBy";
+        public const string GET_ACCOUNT_SIGNATORIES = "p_V8_GetAccountOperatedBy";
+        public const string ADD_ACCOUNT_SIGNATORIES = "p_V8_AddAccountOperatedBy";
+        public const string EDIT_ACCOUNT_SIGNATORIES = "p_V8_UpdateAccountOperatedBy";
+
 
         public const string GET_SYSTEMSEARCH = "p_GetSystemSearch_V0";
         public const string GET_SYSTEMSEARCH_RESULT = "p_GetSystemSearchResult_V0";

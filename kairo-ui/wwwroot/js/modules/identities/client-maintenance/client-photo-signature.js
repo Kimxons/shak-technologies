@@ -1,4 +1,35 @@
 const CM_PHOTO_SIGNATURE_BASE = 'Identities/ClientMaintenance/PhotoSignature';
+const CLIENT_PHOTO_SIGNATURE_SCRIPT_CACHE = new Map();
+
+function loadScriptOnce(src) {
+    if (!src) return Promise.resolve();
+
+    const existingPromise = CLIENT_PHOTO_SIGNATURE_SCRIPT_CACHE.get(src);
+    if (existingPromise) return existingPromise;
+
+    const alreadyLoaded = Array.from(document.scripts || []).some((script) => {
+        const scriptSrc = script.getAttribute('src') || '';
+        return scriptSrc.includes(src);
+    });
+
+    if (alreadyLoaded) {
+        const resolved = Promise.resolve();
+        CLIENT_PHOTO_SIGNATURE_SCRIPT_CACHE.set(src, resolved);
+        return resolved;
+    }
+
+    const promise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        document.head.appendChild(script);
+    });
+
+    CLIENT_PHOTO_SIGNATURE_SCRIPT_CACHE.set(src, promise);
+    return promise;
+}
 
 function invokeClientMaintenancePhotoSignature(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_PHOTO_SIGNATURE_BASE, action, 'POST', requestData || {});
@@ -119,20 +150,98 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         selectedFile: null,
         cameraStream: null,
         isCapturing: false,
+        isValidated: false,
         items: []
     };
 
     const form = tabRoot.querySelector('[data-photo-signature-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="photo-signature"]');
+    const uploadBtn = form.querySelector('[data-photo-action="upload"]');
+
+    const showToast = (message, level = 'info') => {
+        window.ClientMaintenanceCore.showToast(message, level);
+    };
+
+    const setUploadEnabled = (enabled) => {
+        if (uploadBtn) {
+            uploadBtn.disabled = !enabled;
+        }
+    };
+
+    const getValidationNodes = () => ({
+        overlay: form.querySelector('#validationOverlay'),
+        spinner: form.querySelector('#validationSpinner'),
+        success: form.querySelector('#validationSuccess'),
+        successMessage: form.querySelector('#validationSuccessMessage')
+    });
+
+    const showValidationSpinner = () => {
+        const { overlay, spinner, success } = getValidationNodes();
+        if (!overlay || !spinner) return;
+        if (success) success.style.display = 'none';
+        spinner.style.display = 'block';
+        overlay.style.display = 'flex';
+        overlay.style.animation = 'cmValidationFadeIn 0.3s ease-in';
+    };
+
+    const showValidationSuccess = (message) => {
+        const { spinner, success, successMessage } = getValidationNodes();
+        if (spinner) spinner.style.display = 'none';
+        if (successMessage) successMessage.textContent = message;
+        if (success) success.style.display = 'block';
+    };
+
+    const hideValidationOverlay = () => {
+        const { overlay } = getValidationNodes();
+        if (overlay) overlay.style.display = 'none';
+    };
+
+    const ensureFileService = async () => {
+        if (window.FileService) return window.FileService;
+        try {
+            await loadScriptOnce('/js/services/shared/fileService.js');
+        } catch (error) {
+            console.warn('[ClientPhotoSignature] FileService could not be loaded:', error);
+        }
+        return window.FileService || null;
+    };
+
+    const normalizeValidationResponse = (raw) => {
+        const success = raw?.success ?? raw?.Success ?? false;
+        const code = raw?.code || raw?.Code || '';
+        const message = raw?.message || raw?.Message || raw?.errorMessage || raw?.ErrorMessage || '';
+        const data = raw?.data || raw?.Data || {};
+        return { success, code, message, data };
+    };
+
+    const validateImageViaController = async (file, imageTypeId) => {
+        const formData = new FormData();
+        const fileName = file?.name || `image_${Date.now()}.png`;
+        formData.append('file', file, fileName);
+        formData.append('imageTypeId', imageTypeId || '');
+
+        const response = await window.ClientMaintenanceCore.invokeControllerMultipart(
+            CM_PHOTO_SIGNATURE_BASE,
+            'validate-image',
+            formData,
+            'POST'
+        );
+
+        return normalizeValidationResponse(response);
+    };
 
     const getImageTypeId = () => form.querySelector('#imageType')?.value || '';
 
     const setPreview = (dataUrl) => {
         const previewImg = form.querySelector('#photoPreview');
         const placeholder = form.querySelector('[data-photo-placeholder]');
+        const video = form.querySelector('#photoCameraVideo');
         if (previewImg) {
             previewImg.src = dataUrl || '';
             previewImg.style.display = dataUrl ? 'block' : 'none';
+        }
+        if (video && dataUrl) {
+            video.style.display = 'none';
         }
         if (placeholder) {
             placeholder.style.display = dataUrl ? 'none' : 'block';
@@ -145,9 +254,14 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             state.cameraStream = null;
         }
         const video = form.querySelector('#photoCameraVideo');
+        const previewImg = form.querySelector('#photoPreview');
+        const placeholder = form.querySelector('[data-photo-placeholder]');
         if (video) {
             video.srcObject = null;
             video.style.display = 'none';
+        }
+        if (placeholder && previewImg?.style.display !== 'block') {
+            placeholder.style.display = 'block';
         }
         const snapshotBtn = form.querySelector('[data-photo-action="snapshot"]');
         const cancelBtn = form.querySelector('[data-photo-action="cancel-snapshot"]');
@@ -157,11 +271,90 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
 
     const clearForm = () => {
         state.selectedFile = null;
+        state.isValidated = false;
         stopCamera();
         const fileInput = form.querySelector('#photoFileInput');
         if (fileInput) fileInput.value = '';
+        hideValidationOverlay();
+        setUploadEnabled(false);
         setPreview('');
     };
+
+    const validateSelectedImage = async () => {
+        const imageTypeId = (getImageTypeId() || '').toUpperCase();
+
+        if (!imageTypeId || !state.selectedFile) {
+            state.isValidated = false;
+            setUploadEnabled(false);
+            return false;
+        }
+
+        showValidationSpinner();
+
+        try {
+            const validationResult = await validateImageViaController(state.selectedFile, imageTypeId);
+
+            if (!validationResult?.success) {
+                hideValidationOverlay();
+                showToast(validationResult?.message || 'Validation failed. Upload disabled.', 'warning');
+                state.isValidated = false;
+                setUploadEnabled(false);
+                return false;
+            }
+
+            let isValid = false;
+            let successMessage = 'Image validated';
+
+            if (imageTypeId === 'P') {
+                if (!validationResult.data?.has_face) {
+                    hideValidationOverlay();
+                    showToast('No face detected. Please capture a clear photo showing a face.', 'error');
+                    state.isValidated = false;
+                    setUploadEnabled(false);
+                    return false;
+                }
+                const count = validationResult.data?.count || 1;
+                successMessage = `Face detected (${count} face${count > 1 ? 's' : ''})`;
+                isValid = true;
+            } else if (imageTypeId === 'S') {
+                if (!validationResult.data?.has_signature) {
+                    hideValidationOverlay();
+                    showToast('No signature detected. Please capture a clear signature.', 'error');
+                    state.isValidated = false;
+                    setUploadEnabled(false);
+                    return false;
+                }
+                successMessage = 'Signature detected';
+                isValid = true;
+            } else {
+                isValid = true;
+            }
+
+            if (isValid) {
+                state.isValidated = true;
+                setUploadEnabled(true);
+                showValidationSuccess(successMessage);
+                setTimeout(() => {
+                    hideValidationOverlay();
+                }, 1800);
+                return true;
+            }
+
+            state.isValidated = false;
+            setUploadEnabled(false);
+            return false;
+        } catch (error) {
+            console.error('[ClientPhotoSignature] Validation error:', error);
+            hideValidationOverlay();
+            showToast('Validation service unavailable. Upload disabled.', 'warning');
+            state.isValidated = false;
+            setUploadEnabled(false);
+            return false;
+        }
+    };
+
+    setUploadEnabled(false);
+    void ensureFileService();
 
     const renderTable = (items) => {
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientPhotoSignatureBody');
@@ -200,8 +393,8 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         });
     };
 
-    const refreshTable = async () => {
-        const clientId = window.ClientMaintenanceCore.clientId || '';
+    const refreshTable = async (requestData) => {
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
         if (!clientId) {
             renderTable([]);
             return;
@@ -209,7 +402,8 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         try {
             const response = await window.ClientMaintenancePhotoSignatureService.get({
                 ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId
+                ClientID: clientId,
+                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
             });
             const rows = response?.Details || response?.data?.Details || response?.data || response || [];
             state.items = Array.isArray(rows) ? rows : [];
@@ -222,11 +416,15 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
     const uploadImage = async () => {
         const imageTypeId = getImageTypeId();
         if (!imageTypeId) {
-            window.ClientMaintenanceCore.showToast('Select an image type first.', 'warning');
+            showToast('Select an image type first.', 'warning');
             return;
         }
         if (!state.selectedFile) {
-            window.ClientMaintenanceCore.showToast('Select an image first.', 'warning');
+            showToast('Select an image first.', 'warning');
+            return;
+        }
+        if (!state.isValidated) {
+            showToast('Image has not been validated. Please select or capture a valid image.', 'error');
             return;
         }
 
@@ -248,14 +446,14 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
                     CreatedBy: window.Environment?.UserID || window.Environment?.UserId || ''
                 });
                 if (result?.success) {
-                    window.ClientMaintenanceCore.showToast('Image uploaded successfully.', 'success');
+                    showToast('Image uploaded successfully.', 'success');
                     clearForm();
                     await refreshTable();
                     return;
                 }
-                window.ClientMaintenanceCore.showToast(result?.message || 'Upload failed.', 'error');
+                showToast(result?.message || 'Upload failed.', 'error');
             } catch (error) {
-                window.ClientMaintenanceCore.showToast(`Upload failed - ${error.message}`, 'error');
+                showToast(`Upload failed - ${error.message}`, 'error');
             }
             return;
         }
@@ -275,20 +473,20 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             const success = response?.Success ?? response?.success ?? true;
             if (!success) {
                 const error = response?.ErrorMessage || response?.errorMessage || 'Upload failed';
-                window.ClientMaintenanceCore.showToast(error, 'error');
+                showToast(error, 'error');
                 return;
             }
-            window.ClientMaintenanceCore.showToast('Image uploaded successfully.', 'success');
+            showToast('Image uploaded successfully.', 'success');
             clearForm();
             await refreshTable();
         } catch (error) {
-            window.ClientMaintenanceCore.showToast(`Upload failed - ${error.message}`, 'error');
+            showToast(`Upload failed - ${error.message}`, 'error');
         }
     };
 
     form.querySelector('[data-photo-action="file"]')?.addEventListener('click', () => {
         if (!getImageTypeId()) {
-            window.ClientMaintenanceCore.showToast('Select an image type first.', 'warning');
+            showToast('Select an image type first.', 'warning');
             return;
         }
         form.querySelector('#photoFileInput')?.click();
@@ -297,37 +495,75 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
     form.querySelector('#photoFileInput')?.addEventListener('change', async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+
+        const fileService = await ensureFileService();
+        if (fileService?.validateFileType) {
+            const validation = fileService.validateFileType(file, ['image/*']);
+            if (!validation.valid) {
+                showToast(validation.message, 'warning');
+                return;
+            }
+        } else if (!file.type.startsWith('image/')) {
+            showToast('Please select an image file.', 'warning');
+            return;
+        }
+
         state.selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = () => {
-            setPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
+        state.isValidated = false;
+        setUploadEnabled(false);
+
+        try {
+            const dataUrl = fileService?.fileToDataUrl
+                ? await fileService.fileToDataUrl(file)
+                : await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(new Error('Failed to read selected image.'));
+                    reader.readAsDataURL(file);
+                });
+
+            setPreview(dataUrl);
+            await validateSelectedImage();
+        } catch (error) {
+            showToast(error.message || 'Unable to preview selected file.', 'error');
+        }
+    });
+
+    form.querySelector('#imageType')?.addEventListener('change', async () => {
+        state.isValidated = false;
+        setUploadEnabled(false);
+        if (state.selectedFile) {
+            await validateSelectedImage();
+        }
     });
 
     form.querySelector('[data-photo-action="capture"]')?.addEventListener('click', async () => {
         if (!getImageTypeId()) {
-            window.ClientMaintenanceCore.showToast('Select an image type first.', 'warning');
+            showToast('Select an image type first.', 'warning');
             return;
         }
         if (!navigator.mediaDevices?.getUserMedia) {
-            window.ClientMaintenanceCore.showToast('Camera not available in this browser.', 'warning');
+            showToast('Camera not available in this browser.', 'warning');
             return;
         }
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             state.cameraStream = stream;
             const video = form.querySelector('#photoCameraVideo');
+            const previewImg = form.querySelector('#photoPreview');
+            const placeholder = form.querySelector('[data-photo-placeholder]');
             if (video) {
                 video.srcObject = stream;
                 video.style.display = 'block';
             }
+            if (previewImg) previewImg.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'none';
             const snapshotBtn = form.querySelector('[data-photo-action="snapshot"]');
             const cancelBtn = form.querySelector('[data-photo-action="cancel-snapshot"]');
             if (snapshotBtn) snapshotBtn.disabled = false;
             if (cancelBtn) cancelBtn.disabled = false;
         } catch (error) {
-            window.ClientMaintenanceCore.showToast('Unable to access camera.', 'error');
+            showToast('Unable to access camera.', 'error');
         }
     });
 
@@ -343,7 +579,10 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             if (!blob) return;
             const file = new File([blob], `snapshot_${Date.now()}.png`, { type: 'image/png' });
             state.selectedFile = file;
+            state.isValidated = false;
+            setUploadEnabled(false);
             setPreview(canvas.toDataURL('image/png'));
+            void validateSelectedImage();
         });
         stopCamera();
     });
@@ -422,5 +661,6 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         }
     });
 
-    refreshTable();
+    tabRoot._cmLoadData = (requestData) => refreshTable(requestData);
+    window.ClientMaintenanceCore.registerTabLoadFunction('PhotoSignature', (requestData) => refreshTable(requestData));
 }

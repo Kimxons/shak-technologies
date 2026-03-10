@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>kairo_ui</RootNamespace>
+    <!-- Disable Hot Reload to prevent crash when opening file dialogs -->
+    <StartupHotReload>false</StartupHotReload>
   </PropertyGroup>
 
   <ItemGroup>

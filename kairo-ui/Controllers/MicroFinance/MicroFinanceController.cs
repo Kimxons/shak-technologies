@@ -85,6 +85,28 @@ namespace kairo_ui.Controllers.MicroFinance
             }
         }
 
+        [Route("GroupMaintenance")]
+        [Route("Groups")]
+        public IActionResult GroupMaintenance()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                {
+                    _logger.LogWarning("Unauthenticated access attempt to Microfinance Group Maintenance");
+                    return RedirectToAction("Index", "Login");
+                }
+
+                _logger.LogInformation("Microfinance Group Maintenance loaded successfully");
+                return PartialView("~/Views/MicroFinance/GroupMaintenance.cshtml");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Microfinance Group Maintenance");
+                return RedirectToAction("Index", "Dashboard");
+            }
+        }
+
         [HttpPost]
         [Route("old-api")]
         public async Task<IActionResult> PostOldApi([FromBody] MicroFinanceOldApiRequest request)

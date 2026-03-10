@@ -8,7 +8,7 @@ var businessOwnershipOptions = ViewData["EmploymentBusinessOwnershipOptions"] as
     var businessLineOptions = ViewData["EmploymentBusinessLineOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<div class="form-section" data-section="client-employment" data-cm-tab="employment">
+<div class="form-card" data-section="client-employment" data-cm-tab="employment">
     <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-briefcase"></i>Employment</span>
         <button id="btn_toggleClientEmployment" type="button" class="section-toggle-btn" aria-label="Toggle Employment" aria-expanded="true">
@@ -47,7 +47,7 @@ var businessOwnershipOptions = ViewData["EmploymentBusinessOwnershipOptions"] as
 
   <div class="form-row four-col">
     <div class="col"><label for="txt_employmentCompanyName" id="lbl_employmentCompanyName">Company Name</label><input id="txt_employmentCompanyName" name="EmploymentCompanyName" class="bs-input-text" /></div>
-    <div class="col"><label for="txt_employmentCompanyCode" id="lbl_employmentCompanyCode">Company Code</label><input id="txt_employmentCompanyCode" name="EmploymentCompanyCode" class="bs-input-text" /></div>
+    <div class="col"><label for="ddl_employmentCompanyCode" id="lbl_employmentCompanyCode">Company Code</label><select id="ddl_employmentCompanyCode" name="EmploymentCompanyCode" class="bs-select"><option value="">Select...</option></select></div>
       <div class="col"><label for="txt_employmentWorkPermit" id="lbl_employmentWorkPermit">Work Permit No</label><input id="txt_employmentWorkPermit" name="WorkPermitNo" class="bs-input-text" /></div>
    <div class="col"><label class="label-blue" for="txt_employmentMonthlyIncome" id="lbl_employmentMonthlyIncome">Avg Monthly Income</label><input id="txt_employmentMonthlyIncome" name="MonthlyIncome" class="bs-input-text text-end" required /></div>
   </div>

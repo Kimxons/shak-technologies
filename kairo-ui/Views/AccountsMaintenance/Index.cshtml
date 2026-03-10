@@ -138,7 +138,7 @@
         <!-- Main Container -->
         <div class="main-container">
             <!-- Left Sidebar -->
-            <div class="sidebar" id="main-sidebar">
+            <div class="sidebar" id="main-sidebar" data-no-auto-init>
                 <div class="sidebar-header">
                     <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
                     <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
@@ -872,11 +872,12 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
-                    <button class="btn-action btn-add" type="button" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                    <button class="btn-action btn-edit" type="button" data-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                    <button class="btn-action btn-save" type="button" data-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
-                    <button class="btn-action btn-cancel" type="button" data-action="cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                    <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                    <button class="btn-action btn-add" type="button" id="submoduleBtnAdd" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit" data-action="edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn-action btn-delete" type="button" id="submoduleBtnDelete" data-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button class="btn-action btn-save" type="button" id="submoduleBtnSave" data-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                    <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel" data-action="cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 </div>
             </div>
         </div>
@@ -884,13 +885,13 @@
 
 @section Scripts {
     <!-- Core dependencies -->
-    <script src="~/js/app/app-core.js"></script>
-    <script src="~/js/modules/shared/searchModal.js"></script>
+    <script src="~/js/app/app-core.js" asp-append-version="true"></script>
+    <script src="~/js/modules/shared/searchModal.js" asp-append-version="true"></script>
 
     <!-- Service dependencies -->
-    <script src="~/js/services/shared/serviceLoader.js"></script>
+    <script src="~/js/services/shared/serviceLoader.js" asp-append-version="true"></script>
 
     <!-- Account Maintenance Core -->
-    <script src="~/js/modules/accounts/modern-account-maintenance.js"></script>
+    <script src="~/js/modules/accounts/modern-account-maintenance.js" asp-append-version="true"></script>
 }
 

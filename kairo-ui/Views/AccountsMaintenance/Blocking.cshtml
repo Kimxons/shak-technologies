@@ -7,186 +7,117 @@
 }
 
 <!-- Blocking Submodule - Original HTML Preserved -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar" style="display:none !important">
-      <div class="am-header__left">
-        <i class="bi bi-ban am-header__icon" aria-hidden="true"></i>
-        <span class="am-header__title">Account Blocking / Unblocking</span>
-      </div>
-      <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
-    </div>
-
-    <main class="main-container">
-      <div class="form-content" role="region" aria-label="Account Blocking / Unblocking form">
-        <div class="form-card" data-main-form>
-          <div class="form-section" data-section="blocking-details">
+<!-- Blocking Submodule -->
+<div class="form-content" role="region" aria-label="Account Blocking / Unblocking form">
+    <div class="form-card" data-main-form>
+        <div class="form-section" data-section="blocking-details">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-ban"></i>Blocking / Unblocking Details</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Blocking / Unblocking Details" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-ban"></i> Blocking / Unblocking Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Blocking / Unblocking Details" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <form autocomplete="off">
                 <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="label-blue" for="reason">Reason</label>
-                    <select id="reason" name="reason" class="bs-select form-control">
-                      <option value="">Select...</option>
-                      @foreach (var option in blockedReasonOptions)
-                      {
-                          <option value="@option.Value">@option.Text</option>
-                      }
-                    </select>
-                  </div>
-                  <div class="col-6">
-                    <label class="label-blue" for="description">Description</label>
-                    <input id="description" name="description" type="text" class="bs-input-text form-control" />
-                  </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="reason">Reason</label>
+                        <select id="reason" name="ReasonID" class="form-select am-input">
+                            <option value="">Select...</option>
+                            @foreach (var option in blockedReasonOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="description">Description (Narration)</label>
+                        <input id="description" name="Narration" type="text" class="form-control am-input" />
+                    </div>
                 </div>
 
                 <div class="row g-2 mb-2">
-                  <div class="col-12">
-                    <label class="label-blue" for="instructionGivenBy">Instruction Given By</label>
-                    <input id="instructionGivenBy" name="instructionGivenBy" type="text" class="bs-input-text form-control" />
-                  </div>
+                    <div class="col-md-12">
+                        <label class="label-blue am-label" for="instructionGivenBy">Instruction Given By</label>
+                        <input id="instructionGivenBy" name="InstructionGivenBy" type="text" class="form-control am-input" />
+                    </div>
                 </div>
-              </form>
             </div>
-          </div>
+        </div>
 
-          <!-- Behind the Scene Section -->
-          <div class="form-section" data-section="behind-scene">
+        <!-- Behind the Scene Section -->
+        <div class="form-section mt-3" data-section="behind-scene">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene (Current Status)</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <div class="row g-2 mb-2">
-                <div class="col-6">
-                  <label class="label-blue" for="previousStatus">Previous Status</label>
-                  <input id="previousStatus" type="text" class="bs-input-text form-control" disabled />
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="previousStatus">Current Status</label>
+                        <input id="previousStatus" type="text" class="form-control am-input" disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="btsDate">Date Blocked</label>
+                        <input id="btsDate" type="text" class="form-control am-input" disabled />
+                    </div>
                 </div>
-                <div class="col-6">
-                  <label class="label-blue" for="btsDate">Date</label>
-                  <input id="btsDate" type="text" class="bs-input-text form-control" disabled />
+                <div class="row g-2 mb-2">
+                    <div class="col-md-12">
+                        <label class="label-blue am-label" for="btsDescription">Prior Reason/Instruction</label>
+                        <input id="btsDescription" type="text" class="form-control am-input" disabled />
+                    </div>
                 </div>
-              </div>
-              <div class="row g-2 mb-2">
-                <div class="col-12">
-                  <label class="label-blue" for="reasonId">Reason ID</label>
-                  <input id="reasonId" type="text" class="bs-input-text form-control" disabled />
+                <!-- Audit Trail -->
+                <div class="audit-section audit-section--summary mt-3">
+                    <div class="audit-cell">
+                        <span class="audit-label">Created By</span>
+                        <span class="audit-value" id="MakerID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Created On</span>
+                        <span class="audit-value" id="MakerDT">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Checked By</span>
+                        <span class="audit-value" id="CheckerID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Checked On</span>
+                        <span class="audit-value" id="CheckerDT">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Modified By</span>
+                        <span class="audit-value" id="ModifierID">-</span>
+                    </div>
+                    <div class="audit-cell">
+                        <span class="audit-label">Modified On</span>
+                        <span class="audit-value" id="ModifierDT">-</span>
+                    </div>
                 </div>
-              </div>
-              <div class="row g-2 mb-2">
-                <div class="col-12">
-                  <label class="label-blue" for="btsDescription">Description</label>
-                  <input id="btsDescription" type="text" class="bs-input-text form-control" disabled />
-                </div>
-              </div>
-              <div class="row g-2 mb-2">
-                <div class="col-12">
-                  <label class="label-blue" for="btsInstructionGivenBy">Instruction Given By</label>
-                  <input id="btsInstructionGivenBy" type="text" class="bs-input-text form-control" disabled />
-                </div>
-              </div>
-              <!-- Audit Trail -->
-              <div class="audit-section audit-section--summary">
-                <div class="audit-cell">
-                  <span class="audit-label">Created By</span>
-                  <span class="audit-value" id="MakerID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Supervised By</span>
-                  <span class="audit-value" id="CheckerID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Modified By</span>
-                  <span class="audit-value" id="ModifierID">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Created On</span>
-                  <span class="audit-value" id="MakerDT">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Supervised On</span>
-                  <span class="audit-value" id="CheckerDT">-</span>
-                </div>
-                <div class="audit-cell">
-                  <span class="audit-label">Modified On</span>
-                  <span class="audit-value" id="ModifierDT">-</span>
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+</div>
 
-      <!-- Action Panel -->
-      <div class="action-panel" aria-label="Form actions" style="display:none !important">
-        <div class="action-buttons">
-          <button class="btn-action" type="button" data-action="history" title="History" id="btnHistory">
-            <i class="bi bi-clock-history"></i>History
-          </button>
-          <button class="btn-action" type="button" data-action="edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>Edit
-          </button>
-          <button class="btn-action" type="button" data-action="save" title="Save">
-            <i class="bi bi-check-lg"></i>Save
-          </button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
-            <i class="bi bi-x-lg"></i>Cancel
-          </button>
-          <button class="btn-action" type="button" data-action="close" title="Close">
-            <i class="bi bi-box-arrow-right"></i>Close
-          </button>
+<div class="loading-overlay" id="loadingOverlay" hidden>
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
-      </div>
-    </main>
-
-    <!-- Toast Container for notifications -->
-    <div id="toastContainer" class="blocking-toast-container"></div>
-
-    <!-- History Form Overlay (must be inside .window) -->
-    <div id="historyOverlay" class="child-overlay" data-history-overlay hidden>
-      <iframe id="historyIframe" data-history-iframe class="child-iframe" src="about:blank" title="Blocking History"></iframe>
+        <div class="loading-text">Processing...</div>
     </div>
-
-    <div class="am-message-panel" role="alert" aria-live="polite">
-      <i class="bi bi-info-circle"></i>
-      <span></span>
-    </div>
-
-    <div class="loading-overlay" id="loadingOverlay" hidden>
-      <div class="loading-spinner">
-        <i class="bi bi-arrow-repeat"></i>
-        <span>Loading...</span>
-      </div>
-    </div>
+</div>
   </div>
 
-  <!-- Service Scripts -->
-  <script src="/js/config.js"></script>
-  <script src="/js/environment.js"></script>
-  <script src="/js/utils/global-utils.js"></script>
-  <script src="/js/services/shared/coreApi.js"></script>
-  <script src="/js/services/shared/lookupService.js"></script>
-  <script src="/js/services/Account/AccountService.js"></script>
-  <script src="/js/services/account/blockingUnblockingService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-blocking-unblocking.js?v=20260209"></script>
-
+  <script src="~/js/modules/accountsmaintenance/account-blocking.js"></script>
 <script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'Blocking') {
-        console.log('[Blocking] Submodule loaded');
-    }
-    });
+  // Auto-initialize on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.AccountBlockingModule?.init());
+  } else {
+    window.AccountBlockingModule?.init();
+  }
+  console.log('✅ Account Blocking view loaded');
 </script>

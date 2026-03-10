@@ -7,26 +7,29 @@
   <div class="form-card" data-main-form>
 
     <!-- ACCOUNT IDENTIFICATION SECTION -->
-    <div class="form-section">
-      <div class="section-header">
-        <span class="section-header__title"><i class="bi bi-building"></i>Account Identification</span>
+    <div class="form-section" data-section="account-identification">
+      <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-building me-1"></i>Account Identification</span>
+        <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+          <i class="bi bi-chevron-up"></i>
+        </button>
       </div>
-      <div class="section-content">
-        <div class="form-row">
-          <div class="col">
-            <label class="label-blue">Branch ID</label>
-            <div class="kairo-branch-control" data-kairo-branch-control>
-              <input type="text" id="branchId" name="branchId" class="kairo-branch-control__id" aria-label="Branch ID" />
-              <input type="text" id="branchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly />
-              <button type="button" class="btn-lookup kairo-branch-control__lookup" data-lookup="branchId" aria-label="Search branch"><i class="bi bi-search"></i></button>
+      <div class="section-content" data-section-content>
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <label class="label-blue am-label required" for="branchId">Branch</label>
+            <div class="kairo-account-control" data-kairo-account-control>
+              <input type="text" id="branchId" name="branchId" class="kairo-account-control__id form-control am-input" placeholder="ID" readonly />
+              <input type="text" id="branchName" class="kairo-account-control__name form-control am-input" placeholder="Branch Name" readonly />
+              <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Branch" title="Lookup Branch"><i class="bi bi-search"></i></button>
             </div>
           </div>
-          <div class="col">
-            <label class="label-blue">Account ID</label>
+          <div class="col-md-6">
+            <label class="label-blue am-label required" for="accountId">Account</label>
             <div class="kairo-account-control" data-kairo-account-control>
-              <input type="text" id="accountId" name="accountId" class="kairo-account-control__id" aria-label="Account ID" />
-              <input type="text" id="accountName" class="kairo-account-control__name" aria-label="Account Name" placeholder="Account Name" readonly />
-              <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="accountId" aria-label="Search account"><i class="bi bi-search"></i></button>
+              <input type="text" id="accountId" name="accountId" class="kairo-account-control__id form-control am-input" placeholder="ID" readonly />
+              <input type="text" id="accountName" class="kairo-account-control__name form-control am-input" placeholder="Account Name" readonly />
+              <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Account" title="Lookup Account"><i class="bi bi-search"></i></button>
             </div>
           </div>
         </div>
@@ -35,66 +38,69 @@
 
     <!-- ACTIVATION DETAILS SECTION -->
     <div class="form-section">
-      <div class="section-header">
-        <span class="section-header__title"></span>
+      <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-check2-circle me-1"></i>Activation Details</span>
+        <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+          <i class="bi bi-chevron-up"></i>
+        </button>
       </div>
-      <div class="section-content">
-        <div class="form-row">
-          <div class="col">
-            <label class="label-blue" for="instructedBy">Instructed By</label>
-            <input id="instructedBy" name="instructedBy" type="text" class="bs-input-text form-control" />
+      <div class="section-content" data-section-content>
+        <div class="row g-2 mb-2">
+          <div class="col-md-12">
+            <label class="label-blue am-label required" for="instructedBy">Instructed By</label>
+            <input id="instructedBy" name="instructedBy" type="text" class="form-control am-input" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="col">
-            <label class="label-blue" for="comments">Comments</label>
-            <textarea id="comments" name="comments" class="bs-textarea form-control" rows="3"></textarea>
+        <div class="row g-2 mb-2">
+          <div class="col-md-12">
+            <label class="label-blue am-label" for="comments">Comments</label>
+            <textarea id="comments" name="comments" class="form-control am-input" rows="2"></textarea>
           </div>
         </div>
       </div>
     </div>
 
     <!-- BEHIND THE SCENE SECTION (COLLAPSIBLE) -->
-    <div class="form-section form-section--bts">
-      <div class="section-header" role="button" data-section-toggle aria-expanded="true">
-        <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
-        <button class="section-toggle-btn" type="button" aria-label="Toggle audit information"><i class="bi bi-chevron-up"></i></button>
+    <div class="form-section">
+      <div class="section-header" data-section-toggle>
+        <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind The Scene</span>
+        <button class="section-toggle-btn" type="button" aria-expanded="true"><i class="bi bi-chevron-up"></i></button>
       </div>
-      <div class="section-content">
-        <div class="form-row four-col">
-          <div class="col">
-            <label for="dormantDate">Dormant Date</label>
-            <input id="dormantDate" name="dormantDate" type="text" class="bs-input-text" readonly />
+      <div class="section-content" data-section-content>
+        <div class="row g-2 mb-2">
+          <div class="col-md-3">
+            <label class="am-label" for="dormantDate">Dormant Date</label>
+            <input id="dormantDate" name="dormantDate" type="text" class="form-control am-input" readonly />
           </div>
-          <div class="col">
-            <label for="originalProductId">Original Product ID</label>
-            <input id="originalProductId" name="originalProductId" type="text" class="bs-input-text" readonly />
+          <div class="col-md-3">
+            <label class="am-label" for="originalProductId">Original Prod</label>
+            <input id="originalProductId" name="originalProductId" type="text" class="form-control am-input" readonly />
           </div>
-          <div class="col">
-            <label for="dormantProductId">Dormant Product ID</label>
-            <input id="dormantProductId" name="dormantProductId" type="text" class="bs-input-text" readonly />
+          <div class="col-md-3">
+            <label class="am-label" for="dormantProductId">Dormant Prod</label>
+            <input id="dormantProductId" name="dormantProductId" type="text" class="form-control am-input" readonly />
           </div>
-          <div class="col">
-            <label for="balance">Balance</label>
-            <input id="balance" name="balance" type="text" class="bs-input-text" readonly />
+          <div class="col-md-3">
+            <label class="am-label" for="balance">Balance</label>
+            <input id="balance" name="balance" type="text" class="form-control am-input text-end" readonly />
           </div>
         </div>
-        <div class="form-row four-col">
-          <div class="col">
-            <label for="fixedAmount">Fixed Amount</label>
-            <input id="fixedAmount" name="fixedAmount" type="text" class="bs-input-text" readonly />
+        <div class="row g-2 mb-2">
+          <div class="col-md-3">
+            <label class="am-label" for="fixedAmount">Fixed Amount</label>
+            <input id="fixedAmount" name="fixedAmount" type="text" class="form-control am-input text-end" readonly />
           </div>
-          <div class="col">
-            <label for="lastCreditDate">Last Credit Date</label>
-            <input id="lastCreditDate" name="lastCreditDate" type="text" class="bs-input-text" readonly />
+          <div class="col-md-3">
+            <label class="am-label" for="lastCreditDate">Last Credit</label>
+            <input id="lastCreditDate" name="lastCreditDate" type="text" class="form-control am-input" readonly />
           </div>
-          <div class="col">
-            <label for="lastDebitDate">Last Debit Date</label>
-            <input id="lastDebitDate" name="lastDebitDate" type="text" class="bs-input-text" readonly />
+          <div class="col-md-3">
+            <label class="am-label" for="lastDebitDate">Last Debit</label>
+            <input id="lastDebitDate" name="lastDebitDate" type="text" class="form-control am-input" readonly />
           </div>
-          <div class="col">
-            <label for="fixedAmountId">Fixed Amount ID</label>
-            <input id="fixedAmountId" name="fixedAmountId" type="text" class="bs-input-text" readonly />
+          <div class="col-md-3">
+            <label class="am-label" for="fixedAmountId">Fixed Amt ID</label>
+            <input id="fixedAmountId" name="fixedAmountId" type="text" class="form-control am-input" readonly />
           </div>
         </div>
       </div>
@@ -105,38 +111,4 @@
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/utils/global-utils.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/shared/searchService.js"></script>
-  <script src="../../../assets/js/shared/search-modal.js"></script>
-  <script src="../../../assets/js/services/account/accountservice.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="account-activation.js?v=20250128"></script>
-  <script>
-function notifyParentFormOpened(){window.parent.postMessage({action:'submoduleOpened',source:'Activation'},'*');}
-function closeChildForm(){
-  console.log('[Window Control] Closing child form');
-  // Send message to parent to close this submodule
-  window.parent.postMessage({action:'submoduleClosed', source:'Activation'},'*');
-  // Also try to close the window directly
-  setTimeout(() => {
-    try {
-      window.close();
-    } catch(e) {
-      console.log('[Window Control] Could not close window:', e.message);
-    }
-  }, 100);
-}
-  </script>
-
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'AccountActivation') {
-        console.log('[AccountActivation] Submodule loaded');
-    }
-});
-</script>
+<script src="~/js/modules/accountsmaintenance/account-activation.js"></script>
