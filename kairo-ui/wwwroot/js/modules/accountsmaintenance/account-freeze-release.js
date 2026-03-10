@@ -676,6 +676,38 @@ window.AccountFreezeReleaseModule = (function () {
                     Direction: 0
                 });
                 records = extractRecords(currentResult);
+
+                // get-account-freeze commonly returns a single FreezeDetails object, not a list.
+                if (records.length === 0 && isSuccess(currentResult)) {
+                    const raw = currentResult?.Details || currentResult?.Data || currentResult?.data || currentResult || {};
+                    const freeze = pickFreezeDetails(raw);
+                    const acct = pickAccountDetails(raw);
+
+                    const hasFreezeData = !!(
+                        freeze?.ReferenceID || freeze?.referenceId ||
+                        freeze?.FreezedValue || freeze?.FreezeAmount ||
+                        freeze?.FreezedReason || freeze?.FreezeReason ||
+                        freeze?.EffectiveDate || freeze?.FreezedDate
+                    );
+
+                    if (hasFreezeData) {
+                        records = [{
+                            ClientID: acct?.ClientID || acct?.ClientId || '',
+                            ClientName: acct?.ClientName || '',
+                            AccountName: acct?.AccountName || acct?.AccountDescription || ctx.AccountName || '',
+                            ReferenceID: freeze?.ReferenceID || freeze?.referenceId || '',
+                            EffectiveDate: freeze?.EffectiveDate || freeze?.FreezeDate || freeze?.FreezedDate || '',
+                            FreezedDate: freeze?.FreezedDate || freeze?.FreezeDate || freeze?.EffectiveDate || '',
+                            FreezedValue: freeze?.FreezedValue || freeze?.FreezeAmount || 0,
+                            FreezeAmount: freeze?.FreezeAmount || freeze?.FreezedValue || 0,
+                            FreezedReason: freeze?.FreezedReason || freeze?.FreezeReason || '',
+                            FreezeReason: freeze?.FreezeReason || freeze?.FreezedReason || '',
+                            ReleasedDate: freeze?.ReleasedDate || '',
+                            ReleasedValue: freeze?.ReleasedValue || 0,
+                            ReleasedReason: freeze?.ReleasedReason || ''
+                        }];
+                    }
+                }
             }
 
             if (loading) loading.classList.add('d-none');
