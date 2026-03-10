@@ -9,6 +9,8 @@ namespace kairo_ui.Services
         public const string DELETE_GROUP_LOAN_SCHEMES = "p_DeleteGroupLoanSchemes";
         public const string GET_GROUP_LOAN_MENU = "p_GetGroupLoanMenu";
         public const string ADD_EDIT_GROUP_LOAN_MENU = "p_AddEditGroupLoanMenu";
+        public const string DELETE_GROUP_LOAN_MENU = "p_DeleteGroupLoanMenu";
+        public const string GET_INTEREST_MENU_COMBO = "p_getInterestmenucombo";
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
