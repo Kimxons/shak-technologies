@@ -1,541 +1,271 @@
 /**
- * Account Transfer Module - CRUD Operations
- * Manages account transfer details with full CRUD functionality
+ * Account Transfer Module
+ * Refactored to use AppCore.invokeControllerAsync and align with IApiService pattern.
  */
-
 window.AccountTransferModule = (function () {
     'use strict';
 
     const state = {
-        accountId: null,
-        branchId: null,
-        operatorId: null,
-        currentMode: 'VIEW',
-        transferData: null,
-        originalData: null
+        transferData: null
     };
 
     const API = {
-        GET: '/AccountsMaintenance/api/get-account-transfer-details',
-        ADD: '/AccountsMaintenance/api/add-account-transfer-details'
+        GET: 'AccountsMaintenance/api/get-account-transfer-details',
+        UPDATE: 'AccountsMaintenance/api/add-account-transfer-details'
     };
 
     /**
-     * Initialize the module
+     * Get context from global state or storage
      */
-    function init() {
-        console.log('[Transfer] Initializing module...');
-        getAccountContext();
-
-        if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
-            return;
-        }
-
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
-        setMode('VIEW');
-        loadData();
-    }
-
-    /**
-     * Get account context from parent page
-     */
-    function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
-        } else {
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
-        }
-    }
-
-    /**
-     * Wire header control buttons
-     */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', toggleMaximize);
-    }
-
-    /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'view': () => setMode('VIEW'),
-            'add': () => setMode('ADD'),
-            'edit': () => setMode('EDIT'),
-            'save': saveData,
-            'cancel': cancelChanges,
-            'close': closeSubmodule,
-            'initiate-transfer': initiateTransfer
+    function getContext() {
+        const ps = window.AccountMaintenanceState;
+        return {
+            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'web_portal'
         };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
     }
 
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content, [data-section-content]');
-                const icon = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+    // ── UI Helpers ─────────────────────────────────────────────
+    const el = (id) => document.getElementById(id);
+    const val = (id) => el(id)?.value?.trim() || '';
+    const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
+    const numVal = (id) => parseFloat(el(id)?.value || 0) || 0;
 
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-            });
-        });
+    function showMsg(msg, type) {
+        const t = window.showSystemToast || window.parent?.showSystemToast;
+        if (t) t(msg, { variant: type === 'error' ? 'danger' : type });
+        console.log(`[AccountTransfer] ${type}: ${msg}`);
     }
 
-    /**
-     * Set form mode
-     */
-    function setMode(mode) {
-        console.log('[Transfer] Setting mode:', mode);
-        state.currentMode = mode;
+    function formatAmount(v) {
+        const n = parseFloat(v);
+        return isNaN(n) ? '0.00' : n.toFixed(2);
+    }
 
-        const isEditing = mode === 'ADD' || mode === 'EDIT';
-        
-        // Enable/disable form fields
-        document.querySelectorAll('#transferType, #toBranch, #toAccountNumber, #transferReason, #transferDate, #remarks, #closeOriginal').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
-
-        // Update button states
-        const buttons = {
-            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            'add': { active: mode === 'ADD', disabled: isEditing },
-            'edit': { active: mode === 'EDIT', disabled: isEditing || !state.transferData },
-            'save': { active: false, disabled: !isEditing },
-            'cancel': { active: false, disabled: !isEditing },
-            'initiate-transfer': { active: false, disabled: !isEditing }
-        };
-
-        Object.keys(buttons).forEach(action => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (btn) {
-                btn.classList.toggle('active', buttons[action].active);
-                btn.disabled = buttons[action].disabled;
+    // ── Mode Management ────────────────────────────────────────
+    function setMode(editing) {
+        const fields = ['branchId', 'productId', 'retainAccountId', 'reason', 'remarks'];
+        fields.forEach(id => {
+            const e = el(id);
+            if (e) {
+                if (e.type === 'checkbox') e.disabled = !editing;
+                else e.readOnly = !editing;
             }
         });
 
-        if (mode === 'ADD') {
-            clearForm();
-        }
+        const lookups = document.querySelectorAll('.btn-lookup');
+        lookups.forEach(btn => btn.disabled = !editing);
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        if (btnView) btnView.disabled = editing;
+        if (btnAdd) btnAdd.disabled = editing;
+        if (btnEdit) btnEdit.disabled = editing;
+        if (btnSave) btnSave.disabled = !editing;
+        if (btnCancel) btnCancel.disabled = !editing;
+        if (btnDelete) btnDelete.disabled = editing;
     }
 
-    /**
-     * Load transfer details from API
-     */
+    // ── Calculations ───────────────────────────────────────────
+    function calculateNetPayable() {
+        const balance = numVal('balance');
+        const creditInt = numVal('creditInterestPayable');
+        const debitInt = numVal('debitInterestReceivable');
+        const penalInt = numVal('penalInterestReceivable');
+        const charges = numVal('transferCharges');
+
+        const net = balance + creditInt - debitInt - penalInt - charges;
+        setVal('netPayable', net.toFixed(2));
+    }
+
+    // ── Load Data ──────────────────────────────────────────────
     async function loadData() {
-        console.log('[Transfer] Loading transfer details...');
-        showLoading(true);
+        const ctx = getContext();
+        if (!ctx.AccountID || !ctx.OurBranchID) {
+            showMsg('Please select an account first', 'warning');
+            return;
+        }
 
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.GET, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            const result = await AppCore.invokeControllerAsync(API.GET, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                OperatorID: ctx.OperatorID
             });
 
-            const result = await response.json();
-            console.log('[Transfer] Response:', result);
-
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data;
-                state.transferData = Array.isArray(data) ? data[0] : data;
-                
-                if (state.transferData) {
-                    populateForm(state.transferData);
-                    renderHistoryGrid(result?.TransferHistory || []);
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                const data = result.Details?.[0] || result.data?.Details?.[0] || result.data || result.Details;
+                if (data) {
+                    state.transferData = data;
+                    populateForm(data);
+                    setMode(false);
                 } else {
+                    showMsg('No transfer details found', 'info');
                     clearForm();
                 }
-                showSuccess('Transfer details loaded');
             } else {
-                clearForm();
-                // Not an error - may just be no transfer setup
-                console.log('[Transfer] No transfer data found');
+                showMsg(result?.message || result?.ResponseMessage || 'Failed to load transfer details', 'error');
             }
-        } catch (error) {
-            console.error('[Transfer] Error:', error);
-            showError('Failed to load transfer details: ' + error.message);
-        } finally {
-            showLoading(false);
+        } catch (err) {
+            showMsg('Error loading transfer details: ' + err.message, 'error');
         }
     }
 
-    /**
-     * Render transfer history grid
-     */
-    function renderHistoryGrid(history) {
-        const tbody = document.querySelector('#transferHistoryGrid tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        if (!history || history.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No transfer history found.</td></tr>';
-            return;
-        }
-
-        history.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${formatDisplayDate(item.TransferDate) || '-'}</td>
-                <td>${escapeHtml(item.FromBranch || item.FromBranchName) || '-'}</td>
-                <td>${escapeHtml(item.ToBranch || item.ToBranchName) || '-'}</td>
-                <td>${escapeHtml(item.TransferReason || item.Reason) || '-'}</td>
-                <td>${getStatusBadge(item.Status)}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    /**
-     * Get status badge
-     */
-    function getStatusBadge(status) {
-        const statuses = {
-            'COMPLETED': '<span class="badge bg-success">Completed</span>',
-            'PENDING': '<span class="badge bg-warning text-dark">Pending</span>',
-            'REJECTED': '<span class="badge bg-danger">Rejected</span>',
-            'CANCELLED': '<span class="badge bg-secondary">Cancelled</span>'
-        };
-        return statuses[status?.toUpperCase()] || `<span class="badge bg-secondary">${escapeHtml(status) || '-'}</span>`;
-    }
-
-    /**
-     * Populate form with data
-     */
     function populateForm(data) {
-        if (!data) return;
+        setVal('branchId', data.ToBranchID || data.BranchID || '');
+        setVal('branchName', data.ToBranchName || data.BranchName || '');
+        setVal('productId', data.ToProductID || data.ProductID || '');
+        setVal('productName', data.ToProductName || data.ProductName || '');
 
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) {
-                if (el.type === 'checkbox') {
-                    el.checked = !!value;
-                } else {
-                    el.value = value || '';
-                }
-            }
-        };
+        const retain = el('retainAccountId');
+        if (retain) retain.checked = data.RetainAccountID === 'Y' || data.RetainAccountID === true;
 
-        setValue('transferType', data.TransferType || data.TransferTypeID);
-        setValue('toBranch', data.ToBranch || data.ToBranchID);
-        setValue('toAccountNumber', data.ToAccountNumber);
-        setValue('transferReason', data.TransferReason || data.ReasonID);
-        setValue('transferDate', formatDisplayDate(data.TransferDate));
-        setValue('remarks', data.Remarks || data.Notes);
-        setValue('closeOriginal', data.CloseOriginal);
+        setVal('reason', data.ReasonID || data.Reason || '');
+        setVal('remarks', data.Remarks || '');
 
-        // Display current account info
-        const currentBranchEl = document.getElementById('currentBranch');
-        if (currentBranchEl) currentBranchEl.textContent = data.CurrentBranch || state.branchId;
+        setVal('balance', formatAmount(data.Balance));
+        setVal('creditInterestPayable', formatAmount(data.InterestPayable || data.CreditInterestPayable));
+        setVal('debitInterestReceivable', formatAmount(data.InterestReceivable || data.DebitInterestReceivable));
+        setVal('penalInterestReceivable', formatAmount(data.PenaltyReceivable || data.PenalInterestReceivable));
+        setVal('transferCharges', formatAmount(data.TransferCharge || data.TransferCharges));
 
-        const currentAccountEl = document.getElementById('currentAccount');
-        if (currentAccountEl) currentAccountEl.textContent = data.CurrentAccountNumber || state.accountId;
-
-        populateAuditFields(data);
-        state.originalData = { ...data };
+        calculateNetPayable();
     }
 
-    /**
-     * Get form data
-     */
-    function getFormData() {
-        return {
-            TransferType: document.getElementById('transferType')?.value || '',
-            ToBranch: document.getElementById('toBranch')?.value || '',
-            ToAccountNumber: document.getElementById('toAccountNumber')?.value || '',
-            TransferReason: document.getElementById('transferReason')?.value || '',
-            TransferDate: parseApiDate(document.getElementById('transferDate')?.value),
-            Remarks: document.getElementById('remarks')?.value || '',
-            CloseOriginal: document.getElementById('closeOriginal')?.checked || false
-        };
-    }
-
-    /**
-     * Save transfer details
-     */
-    async function saveData() {
-        console.log('[Transfer] Saving transfer details...');
-        showLoading(true);
-
-        try {
-            const formData = getFormData();
-            if (!validateForm(formData)) return;
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                ...formData,
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.ADD, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Transfer details saved successfully');
-                setMode('VIEW');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to save transfer details');
-            }
-        } catch (error) {
-            console.error('[Transfer] Save error:', error);
-            showError('Failed to save: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Initiate account transfer
-     */
-    async function initiateTransfer() {
-        if (!confirm('Are you sure you want to initiate this account transfer? This action may close the original account.')) return;
-
-        console.log('[Transfer] Initiating transfer...');
-        showLoading(true);
-
-        try {
-            const formData = getFormData();
-            if (!validateForm(formData)) return;
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                ...formData,
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                InitiateTransfer: true
-            };
-
-            const response = await fetch(API.ADD, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Account transfer initiated successfully');
-                setMode('VIEW');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to initiate transfer');
-            }
-        } catch (error) {
-            console.error('[Transfer] Initiate error:', error);
-            showError('Failed to initiate transfer: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Validate form
-     */
-    function validateForm(data) {
-        if (!data.ToBranch) {
-            showWarning('Please select a destination branch');
-            return false;
-        }
-        if (!data.TransferReason) {
-            showWarning('Please select a transfer reason');
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Cancel changes
-     */
-    function cancelChanges() {
-        if (state.transferData) {
-            populateForm(state.transferData);
-        } else {
-            clearForm();
-        }
-        setMode('VIEW');
-    }
-
-    /**
-     * Clear form
-     */
     function clearForm() {
-        ['transferType', 'toBranch', 'toAccountNumber', 'transferReason', 'transferDate', 'remarks'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        const closeOriginalEl = document.getElementById('closeOriginal');
-        if (closeOriginalEl) closeOriginalEl.checked = false;
-        clearAuditFields();
+        ['branchId', 'branchName', 'productId', 'productName', 'reason', 'remarks',
+            'balance', 'creditInterestPayable', 'debitInterestReceivable', 'penalInterestReceivable', 'transferCharges', 'netPayable']
+            .forEach(id => setVal(id, ''));
+
+        const retain = el('retainAccountId');
+        if (retain) retain.checked = false;
     }
 
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
-        if (!data) return;
-        const fields = {
-            'MakerID': data.CreatedBy || '-',
-            'MakerDT': formatDate(data.CreatedOn) || '-',
-            'ModifierID': data.ModifiedBy || '-',
-            'ModifierDT': formatDate(data.ModifiedOn) || '-'
+    // ── Save ───────────────────────────────────────────────────
+    async function handleSave() {
+        if (!val('branchId')) { showMsg('Transfer Branch is required', 'warning'); return false; }
+        if (!val('productId')) { showMsg('New Product is required', 'warning'); return false; }
+        if (!val('reason')) { showMsg('Reason is required', 'warning'); return false; }
+
+        const ok = await AppCore.showConfirmation('Transfer Account', 'Are you sure you want to transfer this account?');
+        if (!ok) return false;
+
+        const ctx = getContext();
+        const payload = {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            ProductID: val('productId'),
+            NewAccountID: ctx.AccountID, // Same account for transfer
+            CurrentBranchID: ctx.OurBranchID,
+            NewBranchID: val('branchId'),
+            TransferReasonID: val('reason'),
+            TransferReason: val('remarks'),
+            RetainAccountID: el('retainAccountId')?.checked ? 'Y' : 'N',
+            TransferBy: ctx.OperatorID,
+            UpdateCount: 0,
+            SysTrx: '',
+            UserTrx: ''
         };
 
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
+        try {
+            const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Account transfer saved successfully', 'success');
+                loadData();
+                return true;
+            } else {
+                showMsg(result?.message || result?.ResponseMessage || 'Save failed', 'error');
+                return false;
+            }
+        } catch (err) {
+            showMsg('Save error: ' + err.message, 'error');
+            return false;
+        }
+    }
+
+    // ── Lookups ────────────────────────────────────────────────
+    function wireLookups() {
+        document.querySelector('[data-lookup="branchId"]')?.addEventListener('click', async () => {
+            if (window.BranchSearchService) {
+                await window.BranchSearchService.openSearchModal((id, name) => {
+                    setVal('branchId', id);
+                    setVal('branchName', name);
+                });
+            }
+        });
+
+        document.querySelector('[data-lookup="productId"]')?.addEventListener('click', () => {
+            const ctx = getContext();
+            if (window.SearchModal) {
+                const modal = new window.SearchModal({
+                    prefix: 'actransfer',
+                    moduleID: '1000',
+                    getOperatorId: () => ctx.OperatorID,
+                    getOurBranchId: () => ctx.OurBranchID
+                });
+                modal.open({
+                    title: 'Find Product',
+                    tableID: 'ProductID',
+                    whereStmt: '1=1',
+                    searchFields: [{ name: 'productId', label: 'Product ID', column: 'ProductID' }],
+                    displayFields: [{ key: 'ProductID', label: 'ID' }, { key: 'Description', label: 'Name' }],
+                    onSelect: (r) => {
+                        setVal('productId', r.ProductID);
+                        setVal('productName', r.Description);
+                    }
+                });
+            }
         });
     }
 
-    /**
-     * Clear audit fields
-     */
-    function clearAuditFields() {
-        ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '-';
+    // ── Init ───────────────────────────────────────────────────
+    function init() {
+        console.log('[AccountTransfer] Initializing submodule');
+        setMode(false);
+        wireLookups();
+
+        // Populate basic info from parent if available
+        const ctx = getContext();
+        if (ctx.AccountID && ctx.OurBranchID) {
+            loadData();
+        }
+
+        // Section toggles
+        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
+            hdr.addEventListener('click', function () {
+                const sec = this.closest('.form-section');
+                const content = sec?.querySelector('.section-content, [data-section-content]');
+                const btn = sec?.querySelector('.section-toggle-btn');
+                const icon = btn?.querySelector('i');
+                const exp = btn?.getAttribute('aria-expanded') === 'true';
+                if (content) content.hidden = exp;
+                btn?.setAttribute('aria-expanded', String(!exp));
+                icon?.classList.toggle('bi-chevron-up');
+                icon?.classList.toggle('bi-chevron-down');
+            });
         });
     }
 
-    // Utility functions
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 || 
-               result?.success === true || result?.Success === true;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
-        try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function formatDisplayDate(dateString) {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${date.getDate().toString().padStart(2, '0')}/${months[date.getMonth()]}/${date.getFullYear()}`;
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function parseApiDate(displayDate) {
-        if (!displayDate) return null;
-        const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 
-                        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
-        const match = displayDate.match(/(\d{2})\/(\w{3})\/(\d{4})/);
-        if (match) {
-            const date = new Date(parseInt(match[3]), months[match[2]], parseInt(match[1]));
-            return date.toISOString();
-        }
-        return displayDate;
-    }
-
-    function showLoading(show) {
-        const overlay = document.querySelector('.loading-overlay, .de-loading-overlay');
-        if (overlay) overlay.hidden = !show;
-    }
-
-    function toggleMaximize() {
-        const sidebar = document.getElementById('main-sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        }
-    }
-
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
-
-    function showMessage(message, type) {
-        const panel = document.querySelector('.am-message-panel, .de-message-bar');
-        if (panel) {
-            panel.className = `am-message-panel am-message-panel--${type}`;
-            panel.hidden = false;
-            const icon = panel.querySelector('i');
-            const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
-            if (span) span.textContent = message;
-            setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
-        }
-    }
-
-    // Public API
     return {
-        init,
-        loadData,
-        saveData,
-        initiateTransfer,
-        setMode,
-        cancelChanges
+        init: init,
+        save: handleSave,
+        edit: () => setMode(true),
+        cancel: async () => {
+            const ok = await AppCore.showConfirmation('Cancel', 'Are you sure you want to cancel your changes?');
+            if (ok) { loadData(); setMode(false); }
+        },
+        view: loadData,
+        refresh: loadData
     };
 })();
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountTransferModule?.init());
-} else {
-    window.AccountTransferModule?.init();
-}
-
-console.log('✅ Account Transfer module loaded');
+console.log('[AccountTransfer] Module loaded');
