@@ -22,7 +22,7 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="form-row two-col">
+                        <div class="form-row three-col">
                             <div class="col">
                                 <label class="label-blue">Branch ID</label>
                                 <div class="kairo-branch-control" data-kairo-control>
@@ -39,13 +39,13 @@
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-cid-lookup="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <label class="label-blue">Scheme ID</label>
-                            <div class="kairo-control" data-kairo-control>
-                                <input type="text" id="SchemeId" class="kairo-control__id" aria-label="Scheme ID" placeholder="Scheme ID">
-                                <input type="text" id="SchemeName" class="kairo-control__name" aria-label="Scheme Name" placeholder="Scheme Name" readonly>
-                                <button type="button" class="btn-lookup kairo-control__lookup" data-cid-lookup="scheme" aria-label="Search Scheme"><i class="bi bi-search"></i></button>
+                            <div class="col">
+                                <label class="label-blue">Scheme ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="SchemeId" class="kairo-control__id" aria-label="Scheme ID" placeholder="Scheme ID">
+                                    <input type="text" id="SchemeName" class="kairo-control__name" aria-label="Scheme Name" placeholder="Scheme Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-cid-lookup="scheme" aria-label="Search Scheme"><i class="bi bi-search"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -60,27 +60,19 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="form-row two-col">
+                        <div class="form-row four-col">
                             <div class="col">
-                                <label class="label-blue d-flex align-items-center gap-2">
+                                <label class="label-blue">
                                     <input type="radio" name="ChangeMode" value="holiday" class="bs-radio" checked>
-                                    Marking Holiday
+                                    <span>Marking Holiday</span>
                                 </label>
-                            </div>
-                            <div class="col">
-                                <label class="label-blue">Date</label>
                                 <input type="date" class="bs-input-date" id="InstallmentDate" placeholder="Select date">
                             </div>
-                        </div>
-                        <div class="form-row two-col">
                             <div class="col">
-                                <label class="label-blue d-flex align-items-center gap-2">
+                                <label class="label-blue">
                                     <input type="radio" name="ChangeMode" value="meeting" class="bs-radio">
-                                    Changing Meeting Day
+                                    <span>Changing Meeting Day</span>
                                 </label>
-                            </div>
-                            <div class="col">
-                                <label class="label-blue">Day Of Week</label>
                                 <select class="bs-select" id="DayOfWeek">
                                     <option selected>--Select--</option>
                                     <option>Monday</option>
@@ -92,16 +84,9 @@
                                     <option>Sunday</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="form-row two-col">
                             <div class="col">
                                 <label class="label-blue">Description</label>
                                 <input type="text" class="bs-input-text" id="Description" placeholder="Enter description">
-                            </div>
-                            <div class="col d-flex align-items-end">
-                                <button type="button" class="btn-action" id="btnGenerate">
-                                    <i class="bi bi-play-circle me-1"></i>Generate
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -136,22 +121,22 @@
                 </div>
 
                 <!-- Behind The Scene Section -->
-                <div class="form-section behind-scene" data-section="behind-scene">
+                <div class="form-section" data-section="behind-scene">
                     <div class="section-header" data-section-toggle>
-                        <span class="section-header__title"><i class="bi bi-eye-slash"></i>Behind The Scene</span>
+                        <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
                         <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
                             <i class="bi bi-chevron-up"></i>
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="form-row two-col">
-                            <div class="col">
-                                <label class="label-blue">Product ID</label>
-                                <input type="text" class="bs-input-text" id="ProductId" placeholder="Product ID" readonly>
+                        <div class="audit-section">
+                            <div class="audit-item">
+                                <label>Product ID</label>
+                                <span class="audit-value" id="ProductId">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue">Currency</label>
-                                <input type="text" class="bs-input-text" id="Currency" placeholder="Currency" readonly>
+                            <div class="audit-item">
+                                <label>Currency</label>
+                                <span class="audit-value" id="Currency">-</span>
                             </div>
                         </div>
                     </div>
@@ -168,6 +153,7 @@
             </div>
 
             <div class="action-buttons">
+                <button class="btn-action" type="button" id="btnGenerate" title="Generate"><i class="bi bi-play-circle me-1"></i>Generate</button>
                 <button class="btn-action" type="button" data-cid-action="save" title="Save"><i class="bi bi-floppy me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" data-cid-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
             </div>
@@ -201,9 +187,39 @@
         }
         /* Ensure Change Options section content is fully visible */
         [data-section="change-options"] .section-content {
-            min-height: 180px;
             overflow: visible !important;
             max-height: none !important;
+        }
+        /* Fix kairo controls in three-col: prevent nested inputs from being forced to 100% width */
+        [data-section="identifiers"] .form-row.three-col .col .kairo-branch-control,
+        [data-section="identifiers"] .form-row.three-col .col .kairo-control {
+            display: flex !important;
+            width: 100% !important;
+        }
+        [data-section="identifiers"] .form-row.three-col .col .kairo-branch-control input,
+        [data-section="identifiers"] .form-row.three-col .col .kairo-control input {
+            width: auto !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+        }
+        [data-section="identifiers"] .form-row.three-col .col {
+            align-items: flex-start !important;
+        }
+        [data-section="identifiers"] .form-row.three-col .col label {
+            text-align: left !important;
+            align-self: flex-start !important;
+        }
+        /* Align radio buttons inline with label text */
+        [data-section="change-options"] .col label.label-blue {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 0.4rem;
+        }
+        [data-section="change-options"] .col label.label-blue .bs-radio {
+            width: auto !important;
+            margin: 0;
+            flex-shrink: 0;
         }
     </style>
 }
