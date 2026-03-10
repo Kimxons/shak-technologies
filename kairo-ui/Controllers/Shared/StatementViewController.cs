@@ -25,7 +25,7 @@ namespace kairo_ui.Controllers.Shared
         }
 
         [Route("Index")]
-        public IActionResult Index(string? moduleId, string? branchId, string? accountId)
+        public IActionResult Index(string? moduleId, string? branchId, string? accountId, int? series = 0)
         {
             try
             {
@@ -41,6 +41,7 @@ namespace kairo_ui.Controllers.Shared
                 ViewBag.ModuleID = moduleId;
                 ViewBag.BranchID = branchId;
                 ViewBag.AccountID = accountId;
+                ViewBag.Series = series;
 
                 return PartialView("~/Views/Shared/_StatementView.cshtml");
             }

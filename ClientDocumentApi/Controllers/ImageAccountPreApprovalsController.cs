@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Models;
 using ClientDocumentApi.Services;
@@ -82,16 +83,92 @@ namespace ClientDocumentApi.Controllers
             });
         }
 
-        [HttpGet("client/{clientId}")]
-        public async Task<IActionResult> GetByClientId(string clientId, CancellationToken cancellationToken)
+        //[HttpGet("client/{clientId}")]
+        //public async Task<IActionResult> GetByClientId(string clientId, CancellationToken cancellationToken)
+        //{
+        //    try
+        //    {
+        //        IEnumerable<ImageAccountPreApproval> entities = await _repository.GetByClientIdAsync(clientId, cancellationToken);
+        //        IEnumerable<ImageAccountPreApproval> lsResp = entities.Select(i => new ImageAccountPreApproval
+        //        {
+
+        //        });
+        //        return Ok(new
+        //        {
+        //            responseCode = "00",
+        //            responseMessage = "Success",
+        //            details = entities
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve image accounts pre-approval", details = ex.Message });
+        //    }
+        //}
+
+        //[HttpGet("client/{clientId}")]
+        //public async Task<IActionResult> GetByClientId([FromQuery]string? clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        //{
+        //    try
+        //    {
+        //        IEnumerable<object> entities = await _repository.GetByClientIdEnrichedAsync(clientId!, cancellationToken);
+        //        //IEnumerable<ImageAccountPreApproval> lsResp = entities.Select(i => new ImageAccountPreApproval
+        //        //{
+
+        //        //});
+        //        if ((entities == null || entities.Count() == 0) && !string.IsNullOrWhiteSpace(requestId))
+        //        {
+        //            entities = await _repository.GetByRequestIdEnrichedAsync(requestId, cancellationToken);
+        //            //entities = await _tempImageRepository.GetByClientIdEnrichedAsync(requestId, cancellationToken);
+        //        }
+
+        //        if (entities == null || entities.Count() == 0)
+        //        {
+        //            return Ok(new
+        //            {
+        //                responseCode = "96",
+        //                responseMessage = "Image Pre-approval images not found",
+        //                details = new { clientId, requestId }
+        //            });
+        //        }
+        //        return Ok(new
+        //        {
+        //            responseCode = "00",
+        //            responseMessage = "Success",
+        //            details = entities
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve image accounts pre-approval", details = ex.Message });
+        //    }
+        //}
+
+        [HttpGet("client")]
+        public async Task<IActionResult> GetByClientId([FromQuery] string? clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
         {
             try
             {
-                IEnumerable<ImageAccountPreApproval> entities = await _repository.GetByClientIdAsync(clientId, cancellationToken);
-                IEnumerable<ImageAccountPreApproval> lsResp = entities.Select(i => new ImageAccountPreApproval
+                IEnumerable<object> entities = await _repository.GetByClientIdEnrichedAsync(clientId!, cancellationToken);
+                //IEnumerable<ImageAccountPreApproval> lsResp = entities.Select(i => new ImageAccountPreApproval
+                //{
+
+                //});
+                if ((entities == null || entities.Count() == 0) && !string.IsNullOrWhiteSpace(requestId))
                 {
-                    
-                });
+                    entities = await _repository.GetByRequestIdEnrichedAsync(requestId, cancellationToken);
+                    //entities = await _tempImageRepository.GetByClientIdEnrichedAsync(requestId, cancellationToken);
+                }
+
+                if (entities == null || entities.Count() == 0)
+                {
+                    return Ok(new ResponseDetail<object>
+                    {
+                        ResponseCode = "96",
+                        ResponseMessage = "Image Pre-approval images not found",
+                        Details = new { clientId, requestId }
+                    });
+                }
                 return Ok(new
                 {
                     responseCode = "00",

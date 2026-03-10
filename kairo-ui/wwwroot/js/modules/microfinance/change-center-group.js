@@ -40,11 +40,11 @@
     function getEnv() {
         const e = window.Environment || {};
         const bankID = e.defaultBankId || e.defaultBankID || e.bankID || e.bankId ||
-            sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
-        const ourBranchID = e.branchID || e.branchId || e.OurBranchID || e.defaultOurBranchId ||
-            sessionStorage.getItem('BranchID') || sessionStorage.getItem('OurBranchID') || localStorage.getItem('BranchID') || '0101';
+                       sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
+        const ourBranchID = e.OurBranchID || e.branchID || e.branchId ||
+                            sessionStorage.getItem('BranchID') || localStorage.getItem('BranchID') || '0603';
         const operatorID = e.operatorID || e.operatorId ||
-            sessionStorage.getItem('OperatorID') || sessionStorage.getItem('operatorId') || localStorage.getItem('OperatorID') || 'CSADM';
+                           sessionStorage.getItem('OperatorID') || localStorage.getItem('OperatorID') || 'CSADM';
         return { bankID, ourBranchID, operatorID };
     }
 
@@ -329,35 +329,62 @@
     }
 
     // =========================================================================
-    // ID Validation Handlers (via OldAPI p_GetIDDescription)
+    // Background Search — uses SearchModal/Search (same endpoint as the search button)
+    // =========================================================================
+    async function backgroundSearch(tableID, advFilterString, whereStmt, moduleID) {
+        const appCore = getAppCore();
+        if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
+            throw new Error('AppCore is not available');
+        }
+
+        const { ourBranchID } = getEnv();
+        const response = await appCore.invokeControllerAsync('SearchModal/Search', {
+            TableID: tableID,
+            WhereStmt: whereStmt || '',
+            AdvFilterString: advFilterString || '',
+            SearchKey: '',
+            ModuleID: String(moduleID || DEFAULT_SEARCH_MODULE_ID),
+            PageSize: 20,
+            RefID: '',
+            PrevOrNext: 1,
+            OurBranchID: ourBranchID
+        });
+
+        let results = [];
+        if (response?.success && response?.data) {
+            const d = response.data;
+            if (Array.isArray(d)) {
+                results = d;
+            } else if (d.Details) {
+                results = Array.isArray(d.Details) ? d.Details : [d.Details];
+            } else if (d.details?.SearchResults) {
+                results = Array.isArray(d.details.SearchResults) ? d.details.SearchResults : [];
+            } else if (d.Records) {
+                results = Array.isArray(d.Records) ? d.Records : [];
+            }
+        }
+        return results;
+    }
+
+    // =========================================================================
+    // ID Validation Handlers (via SearchModal/Search)
     // =========================================================================
     async function handleViewCenter() {
         const centerId = ($('CenterId')?.value || '').trim();
         if (!centerId) { showWarning('Please enter a Center ID'); return; }
 
         try {
-            showInfo('Loading center details...');
-            const { ourBranchID, bankID } = getEnv();
-            const result = await invokeChangeCenterGroupController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: ourBranchID,
-                    ControlTypeID: 'GroupID',
-                    ID: centerId,
-                    BankID: bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${ourBranchID}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const center = Array.isArray(details) ? details[0] : details;
-            if (center && (center.GroupName || center.Description)) {
-                $('CenterName').value = center.GroupName || center.Description || '';
-                clearGroupFields();
-                clearClientTable();
-                showSuccess(`Center '${center.GroupName || center.Description}' loaded`);
+            const config = searchDialogConfig['center'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(centerId).replace(/'/g, "''");
+            const whereStmt = `GroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('center', results[0]);
             } else {
+                $('CenterName').value = '';
                 showWarning('Center not found');
             }
         } catch (error) {
@@ -374,28 +401,17 @@
         if (!centerId) { showWarning('Please select a Center first'); return; }
 
         try {
-            showInfo('Loading group details...');
-            const { ourBranchID, bankID } = getEnv();
-            const result = await invokeChangeCenterGroupController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: ourBranchID,
-                    ControlTypeID: 'SubGroupID',
-                    ID: groupId,
-                    BankID: bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${ourBranchID}' AND GroupID='${centerId}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const group = Array.isArray(details) ? details[0] : details;
-            if (group && (group.SubGroupName || group.Description)) {
-                $('GroupName').value = group.SubGroupName || group.Description || '';
-                showSuccess(`Group '${group.SubGroupName || group.Description}' loaded`);
-                // Auto-load members
-                loadGroupMembers();
+            const config = searchDialogConfig['group'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(groupId).replace(/'/g, "''");
+            const whereStmt = `SubGroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('group', results[0]);
             } else {
+                $('GroupName').value = '';
                 showWarning('Group not found');
             }
         } catch (error) {
@@ -409,29 +425,17 @@
         if (!newCenterId) { showWarning('Please enter a New Center ID'); return; }
 
         try {
-            showInfo('Loading new center details...');
-            const { ourBranchID, bankID } = getEnv();
-            const result = await invokeChangeCenterGroupController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: ourBranchID,
-                    ControlTypeID: 'GroupID',
-                    ID: newCenterId,
-                    BankID: bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${ourBranchID}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const center = Array.isArray(details) ? details[0] : details;
-            if (center && (center.GroupName || center.Description)) {
-                $('NewCenterName').value = center.GroupName || center.Description || '';
-                if ($('NewGroupId')) $('NewGroupId').value = '';
-                if ($('NewGroupName')) $('NewGroupName').value = '';
-                showSuccess(`New Center '${center.GroupName || center.Description}' loaded`);
-                updateActionButtons();
+            const config = searchDialogConfig['newCenter'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(newCenterId).replace(/'/g, "''");
+            const whereStmt = `GroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('newCenter', results[0]);
             } else {
+                $('NewCenterName').value = '';
                 showWarning('Center not found');
             }
         } catch (error) {
@@ -448,27 +452,17 @@
         if (!newCenterId) { showWarning('Please select a New Center first'); return; }
 
         try {
-            showInfo('Loading new group details...');
-            const { ourBranchID, bankID } = getEnv();
-            const result = await invokeChangeCenterGroupController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: ourBranchID,
-                    ControlTypeID: 'SubGroupID',
-                    ID: newGroupId,
-                    BankID: bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${ourBranchID}' AND GroupID='${newCenterId}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const group = Array.isArray(details) ? details[0] : details;
-            if (group && (group.SubGroupName || group.Description)) {
-                $('NewGroupName').value = group.SubGroupName || group.Description || '';
-                showSuccess(`New Group '${group.SubGroupName || group.Description}' loaded`);
-                updateActionButtons();
+            const config = searchDialogConfig['newGroup'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(newGroupId).replace(/'/g, "''");
+            const whereStmt = `SubGroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('newGroup', results[0]);
             } else {
+                $('NewGroupName').value = '';
                 showWarning('Group not found');
             }
         } catch (error) {
@@ -482,6 +476,9 @@
     // =========================================================================
     function formatDate(dateStr) {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(dateStr);
+        }
         try {
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return dateStr;
@@ -626,15 +623,13 @@
             if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading members...</td></tr>';
 
             const { ourBranchID, operatorID } = getEnv();
-            const result = await invokeChangeCenterGroupController('old-api', {
-                FormId: 'p_GetGroupMembers',
-                RequestData: {
-                    OurBranchID: ourBranchID,
-                    GroupID: centerId,
-                    SubGroupID: groupId || '',
-                    OperatorID: operatorID,
-                    ModuleID: 5067
-                }
+            // Use dedicated endpoint (same pattern as center-loan-scheme)
+            const result = await invokeChangeCenterGroupController('group-member-list', {
+                OurBranchID: ourBranchID,
+                GroupID: centerId,
+                SubGroupID: groupId || '',
+                OperatorID: operatorID,
+                ModuleID: 5067
             });
 
             const apiErr = extractOldApiError(result);
@@ -689,27 +684,32 @@
             return;
         }
 
-        // First validate center
+        // Fetch center details using GroupService.getGroupDetails pattern (p_GetGroupDetails)
         try {
             showInfo('Loading center details...');
-            const { ourBranchID, bankID } = getEnv();
-            const result = await invokeChangeCenterGroupController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: ourBranchID,
-                    ControlTypeID: 'GroupID',
-                    ID: centerId,
-                    BankID: bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${ourBranchID}'`,
-                    LanguageID: 'en'
-                }
+            const { ourBranchID, operatorID } = getEnv();
+            // Use dedicated endpoint (same pattern as center-loan-scheme)
+            const result = await invokeChangeCenterGroupController('group-details', {
+                OurBranchID: ourBranchID,
+                GroupID: centerId,
+                OperatorID: operatorID,
+                Direction: 0
             });
-            const details = result?.Details || result?.data?.Details || [];
-            const center = Array.isArray(details) ? details[0] : details;
-            if (center && (center.GroupName || center.Description)) {
-                $('CenterName').value = center.GroupName || center.Description || '';
-                showSuccess(`Center '${center.GroupName || center.Description}' loaded`);
+
+            const apiErr = extractOldApiError(result);
+            if (apiErr) {
+                showWarning(apiErr.message);
+                return;
+            }
+
+            // GroupService.getGroupDetails returns center data in Details02[0]
+            const root = result?.data ?? result;
+            const details02 = root?.Details02 ?? root?.details02;
+            const center = Array.isArray(details02) && details02.length > 0 ? details02[0] : null;
+
+            if (center && (center.GroupName || center.GroupID)) {
+                $('CenterName').value = center.GroupName || '';
+                showSuccess(`Center '${center.GroupName}' loaded`);
 
                 // If group is also provided, load members
                 const groupId = ($('GroupId')?.value || '').trim();
@@ -782,9 +782,15 @@
         }
 
         // Confirm the transfer
-        const confirmMessage = `Are you sure you want to transfer ${selectedClients.length} client(s) to Center: ${newCenterId}, Group: ${newGroupId}?`;
-        if (!confirm(confirmMessage)) {
-            return;
+        const appCore = getAppCore();
+        if (appCore && typeof appCore.showConfirmation === 'function') {
+            const confirmed = await appCore.showConfirmation(
+                'Confirm Transfer',
+                `Are you sure you want to transfer ${selectedClients.length} client(s) to Center: ${newCenterId}, Group: ${newGroupId}?`
+            );
+            if (!confirmed) return;
+        } else {
+            if (!confirm(`Are you sure you want to transfer ${selectedClients.length} client(s) to Center: ${newCenterId}, Group: ${newGroupId}?`)) return;
         }
 
         try {
@@ -801,20 +807,23 @@
                 ) || {};
 
                 try {
-                    const result = await invokeChangeCenterGroupController('old-api', {
-                        FormId: 'p_ChangeCenterGroup',
-                        RequestData: {
-                            ClientID: clientId,
-                            RefID: clientData.RefID || 0,
-                            OurBranchID: ourBranchID,
-                            GroupID: newCenterId,
-                            SubGroupID: newGroupId,
-                            RegistrationDate: clientData.RegistrationDate || '',
-                            JoinDate: new Date().toISOString(),
-                            GroupMemberTypeID: clientData.GroupMemberTypeID || 'MEMBER',
-                            OperatorID: operatorID,
-                            NewRecord: 1
-                        }
+                    const currentDate = new Date().toISOString();
+                    // Use dedicated endpoint (same pattern as center-loan-scheme)
+                    const result = await invokeChangeCenterGroupController('change-member-group', {
+                        ClientID: clientId,
+                        RefID: clientData.RefID || 0,
+                        OurBranchID: ourBranchID,
+                        GroupID: newCenterId,
+                        SubGroupID: newGroupId,
+                        RegistrationDate: clientData.RegistrationDate || currentDate,
+                        JoinDate: currentDate,
+                        GroupMemberTypeID: clientData.GroupMemberTypeID || 'MEMBER',
+                        CreatedBy: operatorID,
+                        CreatedOn: currentDate,
+                        ModifiedBy: operatorID,
+                        ModifiedOn: currentDate,
+                        SupervisedBy: clientData.SupervisedBy || operatorID,
+                        NewRecord: 1
                     });
 
                     const apiErr = extractOldApiError(result);

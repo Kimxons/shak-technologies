@@ -116,12 +116,19 @@ window.AccountNotificationModule = (function () {
 
     function fmtDateTime(ds) {
         if (!ds) return '-';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(ds);
+        }
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
     // Attempt to format a date to HTML5 native input Date format (YYYY-MM-DD)
     function formatDateForInput(ds) {
         if (!ds) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(ds);
+            if (parsed) return parsed;
+        }
         try {
             const d = new Date(ds);
             if (isNaN(d.getTime())) return '';
