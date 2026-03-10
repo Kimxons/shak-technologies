@@ -58,10 +58,183 @@ namespace kairo_ui.Controllers.MicroFinance
             }
         }
 
+        [HttpPost]
+        [Route("save-group-loan-scheme")]
+        public async Task<IActionResult> SaveGroupLoanScheme([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.ADD_EDIT_GROUP_LOAN_SCHEMES, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving Microfinance group loan scheme");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error saving scheme: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Route("delete-group-loan-scheme")]
+        public async Task<IActionResult> DeleteGroupLoanScheme([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.DELETE_GROUP_LOAN_SCHEMES, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Microfinance group loan scheme");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error deleting scheme: {ex.Message}" });
+            }
+        }
+
         [Route("Index")]
         public IActionResult Index()
         {
             return RedirectToAction(nameof(GroupLoanScheme));
+        }
+
+        [Route("DataEntry/CenterLoanMenu")]
+        public IActionResult CenterLoanMenu(string? schemeId = null, string? loanProductId = null)
+        {
+            if (!_authService.IsAuthenticated())
+                return RedirectToAction("Index", "Login");
+
+            ViewData["SchemeId"] = schemeId ?? string.Empty;
+            ViewData["LoanProductId"] = loanProductId ?? string.Empty;
+            return PartialView("~/Views/MicroFinance/DataEntry/CenterLoanMenu.cshtml");
+        }
+
+        [HttpPost]
+        [Route("get-group-loan-menu")]
+        public async Task<IActionResult> GetGroupLoanMenu([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.GET_GROUP_LOAN_MENU, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching group loan menu");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error fetching menu: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Route("save-group-loan-menu")]
+        public async Task<IActionResult> SaveGroupLoanMenu([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.ADD_EDIT_GROUP_LOAN_MENU, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving group loan menu");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error saving menu: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Route("delete-group-loan-menu")]
+        public async Task<IActionResult> DeleteGroupLoanMenu([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.DELETE_GROUP_LOAN_MENU, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting group loan menu");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error deleting menu: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Route("get-interest-menu-combo")]
+        public async Task<IActionResult> GetInterestMenuCombo([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.GET_INTEREST_MENU_COMBO, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching interest menu combo");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error fetching interest menu: {ex.Message}" });
+            }
+        }
+
+        [Route("DataEntry/GroupLoanSchemeProducts")]
+        public IActionResult GroupLoanSchemeProducts(string? schemeId = null)
+        {
+            if (!_authService.IsAuthenticated())
+                return RedirectToAction("Index", "Login");
+
+            ViewData["SchemeId"] = schemeId ?? string.Empty;
+            return PartialView("~/Views/MicroFinance/DataEntry/GroupLoanSchemeProducts.cshtml");
+        }
+
+        [HttpPost]
+        [Route("get-group-loan-scheme-products")]
+        public async Task<IActionResult> GetGroupLoanSchemeProducts([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.GET_GROUP_LOAN_SCHEME_PRODUCTS, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching group loan scheme products");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error fetching products: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [Route("save-group-loan-scheme-products")]
+        public async Task<IActionResult> SaveGroupLoanSchemeProducts([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, OldApiDBConstants.ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving group loan scheme products");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error saving products: {ex.Message}" });
+            }
         }
 
         [Route("GroupLoanScheme")]
@@ -136,7 +309,7 @@ namespace kairo_ui.Controllers.MicroFinance
 
                 _logger.LogInformation("Microfinance OldAPI request for {FormId}: {Request}", request.FormId, JsonSerializer.Serialize(envelope));
 
-                var response = await _oldApiService.CreateAsync<JsonElement>(MicroFinanceApiName, "OldAPI", envelope);
+                var response = await _oldApiService.PostRawAsync<JsonElement>(MicroFinanceApiName, envelope);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -152,21 +325,21 @@ namespace kairo_ui.Controllers.MicroFinance
 
         private object BuildOldApiEnvelope(string formId, JsonElement requestData)
         {
-            var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
-                ? formId
-                : $"dbo.{formId}";
+            // Backend expects RequestID with "dbo." prefix, FormID without it
+            var withDbo    = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase) ? formId : $"dbo.{formId}";
+            var withoutDbo = withDbo.Substring(4); // strip "dbo."
 
             var requestDictionary = DeserializeRequestData(requestData);
             EnsureMicroFinanceDefaults(requestDictionary);
 
             return new
             {
-                RequestID = cleanFormId,
-                FormId = cleanFormId,
+                RequestID   = withDbo,
+                FormID      = withoutDbo,
                 RequestData = requestDictionary,
-                RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
-                AppName = ResolveOldApiAppName(),
-                Checksum = string.Empty
+                RequestTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),
+                AppName     = ResolveOldApiAppName(),
+                Checksum    = string.Empty
             };
         }
 
@@ -177,13 +350,30 @@ namespace kairo_ui.Controllers.MicroFinance
                 return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
             }
 
-            var dictionary = JsonSerializer.Deserialize<Dictionary<string, object?>>(requestData.GetRawText(), new JsonSerializerOptions
+            var raw = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(requestData.GetRawText(), new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            }) ?? new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            }) ?? [];
 
-            return new Dictionary<string, object?>(dictionary, StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (key, element) in raw)
+            {
+                result[key] = UnwrapJsonElement(element);
+            }
+            return result;
         }
+
+        private static object? UnwrapJsonElement(JsonElement element) => element.ValueKind switch
+        {
+            JsonValueKind.String  => element.GetString(),
+            JsonValueKind.True    => true,
+            JsonValueKind.False   => false,
+            JsonValueKind.Null    => null,
+            JsonValueKind.Number  => element.TryGetInt64(out long l)  ? (object)l
+                                   : element.TryGetDouble(out double d) ? d
+                                   : element.GetRawText(),
+            _                     => element.GetRawText()
+        };
 
         private void EnsureMicroFinanceDefaults(IDictionary<string, object?> requestData)
         {
