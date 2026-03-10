@@ -53,6 +53,7 @@
     <Compile Remove="wwwroot\js\services\user\**" />
     <Compile Remove="wwwroot\js\services\utilities\**" />
     <Compile Remove="wwwroot\js\services\workflow\**" />
+    <Compile Remove="wwwroot\js\ui\**" />
     <Content Remove="wwwroot\js\auth\**" />
     <Content Remove="wwwroot\js\pages\**" />
     <Content Remove="wwwroot\js\services\bill\**" />
@@ -96,6 +97,7 @@
     <Content Remove="wwwroot\js\services\user\**" />
     <Content Remove="wwwroot\js\services\utilities\**" />
     <Content Remove="wwwroot\js\services\workflow\**" />
+    <Content Remove="wwwroot\js\ui\**" />
     <EmbeddedResource Remove="wwwroot\js\auth\**" />
     <EmbeddedResource Remove="wwwroot\js\pages\**" />
     <EmbeddedResource Remove="wwwroot\js\services\bill\**" />
@@ -139,6 +141,7 @@
     <EmbeddedResource Remove="wwwroot\js\services\user\**" />
     <EmbeddedResource Remove="wwwroot\js\services\utilities\**" />
     <EmbeddedResource Remove="wwwroot\js\services\workflow\**" />
+    <EmbeddedResource Remove="wwwroot\js\ui\**" />
     <None Remove="wwwroot\js\auth\**" />
     <None Remove="wwwroot\js\pages\**" />
     <None Remove="wwwroot\js\services\bill\**" />
@@ -182,6 +185,7 @@
     <None Remove="wwwroot\js\services\user\**" />
     <None Remove="wwwroot\js\services\utilities\**" />
     <None Remove="wwwroot\js\services\workflow\**" />
+    <None Remove="wwwroot\js\ui\**" />
   </ItemGroup>
 
   <ItemGroup>

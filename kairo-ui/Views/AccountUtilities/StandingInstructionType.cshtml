@@ -1,0 +1,236 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Standing Instruction Type";
+    Layout = "_ApplicationLayout";
+
+    var siTransferTypeOptions = ViewData["SITransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var failedChargeTypeOptions = ViewData["FailedChargeTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<form id="frm_standingInstructionType" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="window">
+    <!-- Header Bar -->
+    <div class="am-header" role="banner" aria-label="Window title bar">
+        <div class="am-header__left">
+            <i class="bi bi-card-list am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Standing Instruction Type</span>
+        </div>
+        <div class="am-header__right" role="toolbar" aria-label="Window controls">
+            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-arrows-fullscreen"></i></button>
+            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container main-container--with-panel" aria-label="Standing Instruction Type form">
+        <div class="form-content" role="region" aria-label="Form fields">
+            <div class="form-card" data-main-form>
+
+                <!-- Instruction Type Details -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-card-list"></i> Instruction Type Details</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_instructionTypeId">Instruction Type ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_instructionTypeId" name="instructionTypeId" class="kairo-control__id" aria-label="Instruction Type ID">
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchSIType" aria-label="Search SI Type"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_description">Description</label>
+                                <input type="text" id="txt_description" name="description" class="bs-input-text">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="ddl_siTransferType">SI Transfer Type</label>
+                                <select id="ddl_siTransferType" name="siTransferType" class="bs-select">
+                                    <option value="">--Select--</option>
+                                    @foreach (var opt in siTransferTypeOptions)
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-sliders"></i> Settings</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_noOfRetries">No Of Retries</label>
+                                <input type="number" id="txt_noOfRetries" name="noOfRetries" class="bs-input-text">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_retryAfterDays">Retry After Day(s)</label>
+                                <input type="number" id="txt_retryAfterDays" name="retryAfterDays" class="bs-input-text">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="ddl_failedChargeType">Failed Charge Type</label>
+                                <select id="ddl_failedChargeType" name="failedChargeType" class="bs-select">
+                                    <option value="">--Select--</option>
+                                    @foreach (var opt in failedChargeTypeOptions)
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="chk_freezeAmountOnFailure">&nbsp;</label>
+                                <div class="form-check">
+                                    <input type="checkbox" id="chk_freezeAmountOnFailure" name="freezeAmountOnFailure" class="form-check-input">
+                                    <label class="form-check-label" for="chk_freezeAmountOnFailure">Freeze Amount On Failure</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Details Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-receipt"></i> Transaction Details</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_successfulTrxId">Successful Transaction ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_successfulTrxId" name="successfulTrxId" class="kairo-control__id" aria-label="Transaction ID">
+                                    <input type="text" id="txt_successfulTrxName" class="kairo-control__name" aria-label="Transaction Name" placeholder="Transaction Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchSuccessfulTrx" aria-label="Search Transaction"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_successfulNarration">Narration</label>
+                                <input type="text" id="txt_successfulNarration" name="successfulNarration" class="bs-input-text">
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_failureTrxId">Failure Transaction ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_failureTrxId" name="failureTrxId" class="kairo-control__id" aria-label="Transaction ID">
+                                    <input type="text" id="txt_failureTrxName" class="kairo-control__name" aria-label="Transaction Name" placeholder="Transaction Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchFailureTrx" aria-label="Search Transaction"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_failureNarration">Narration</label>
+                                <input type="text" id="txt_failureNarration" name="failureNarration" class="bs-input-text">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="false">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content hidden>
+                        <div class="audit-section audit-section--summary">
+                            <div class="audit-cell">
+                                <span class="audit-label">Created By</span>
+                                <span class="audit-value" id="spn_createdBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Created On</span>
+                                <span class="audit-value" id="spn_createdOn">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Modified By</span>
+                                <span class="audit-value" id="spn_modifiedBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Modified On</span>
+                                <span class="audit-value" id="spn_modifiedOn">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Supervised By</span>
+                                <span class="audit-value" id="spn_supervisedBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Supervised On</span>
+                                <span class="audit-value" id="spn_supervisedOn">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Panel (right rail) -->
+        <aside class="action-panel" aria-label="Form actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_view" type="button" data-action="view" title="View">
+                    <i class="bi bi-eye me-1"></i>View
+                </button>
+                <button class="btn-action" id="btn_add" type="button" data-action="add" title="Add">
+                    <i class="bi bi-plus-circle me-1"></i>Add
+                </button>
+                <button class="btn-action" id="btn_edit" type="button" data-action="edit" title="Edit">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </button>
+                <button class="btn-action" id="btn_delete" type="button" data-action="delete" title="Delete">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                <button class="btn-action" id="btn_save" type="button" data-action="save" title="Save">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+                <button class="btn-action btn-cancel" id="btn_cancel" type="button" data-action="cancel" title="Cancel">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span class="message-text"></span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="dv_loadingOverlay" hidden>
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/modules/accountutilities/standing-instruction-type.js"></script>
+}

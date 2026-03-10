@@ -143,6 +143,29 @@ namespace kairo_ui.Services
         // Validations use p_GetIDDescription with ControlTypeID:
         //   BranchID, GroupID, GroupLoanSchemeID
 
+        // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE VIEW SUBMODULES
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
+        public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
+        public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
+        public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
+        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // DIRECT DEBIT MAINTENANCE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_DIRECT_DEBIT_MAINTENANCE = "p_GetDirectDebitMaintenance";
+        public const string ADD_EDIT_DIRECT_DEBIT_MAINTENANCE = "p_AddEditDirectDebitMaintenance";
+        public const string DELETE_DIRECT_DEBIT_MAINTENANCE = "p_DeleteDirectDebitMaintenance";
+        public const string STOP_DIRECT_DEBIT_MAINTENANCE = "p_StopDirectDebitMaintenance";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // STANDING INSTRUCTION TYPE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_SI_TYPES = "p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
+        public const string DELETE_SI_TYPES = "p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
 
