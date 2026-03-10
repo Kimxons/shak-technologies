@@ -286,22 +286,49 @@
     };
 
     function ensureSharedSearchModal() {
-        // Member360 pattern: create a fresh instance with AppCore available
+        if (typeof window.SearchModal !== 'function') {
+            return null;
+        }
+
         const appCore = getAppCore();
         if (!appCore) {
-            console.error('[CenterLoanScheme] AppCore not available for SearchModal');
-            showError('Search dialog unavailable (AppCore missing).');
             return null;
         }
 
-        if (typeof window.SearchModal !== 'function') {
-            console.error('[CenterLoanScheme] window.SearchModal is not available');
-            showError('Search dialog script not loaded.');
-            return null;
-        }
+        const appCoreCompat = {
+            invokeControllerGetViewAsync: typeof appCore.invokeControllerGetViewAsync === 'function'
+                ? (endpoint, query) => appCore.invokeControllerGetViewAsync(endpoint, query)
+                : async (endpoint, query) => {
+                    const qs = new URLSearchParams(query || {}).toString();
+                    const resp = await fetch(`/${endpoint}?${qs}`, { credentials: 'same-origin' });
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        throw new Error(`Failed to load view (${resp.status}): ${text}`);
+                    }
+                    return resp.text();
+                },
+            invokeControllerAsync: typeof appCore.invokeControllerAsync === 'function'
+                ? (endpoint, data) => appCore.invokeControllerAsync(endpoint, data)
+                : async (endpoint, data) => {
+                    const resp = await fetch(`/${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(data || {})
+                    });
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        throw new Error(`Request failed (${resp.status}): ${text}`);
+                    }
+                    return resp.json();
+                },
+            showToastMessage: typeof appCore.showToastMessage === 'function'
+                ? (...args) => appCore.showToastMessage(...args)
+                : () => {}
+        };
 
-        // Always create new to avoid stale DOM/state issues
-        return new window.SearchModal(appCore);
+        // Keep per-open behavior to avoid stale/broken modal instances.
+        return new window.SearchModal(appCoreCompat);
     }
 
     function mapSelectedData(lookupType, data) {
@@ -339,8 +366,8 @@
             return;
         }
 
-        const modal = ensureSharedSearchModal();
-        if (!modal || !config.tableID) {
+        const searchModal = ensureSharedSearchModal();
+        if (!searchModal || !config.tableID) {
             showError('Shared search dialog is not available.');
             return;
         }
@@ -349,16 +376,12 @@
             ? config.getAdvFilterString()
             : (config.advFilterString || '');
 
-        const { ourBranchID } = getEnv();
-
-        modal.open({
-            title: config.title,
+        searchModal.open({
             tableID: config.tableID,
-            moduleID: config.moduleIDOverride || 5010,
+            moduleID: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
             whereStmt: '',
             advFilterString,
             searchKey: '',
-            ourbranchId: ourBranchID,
             onSelect: (record) => mapSelectedData(lookupType, record)
         });
     }
