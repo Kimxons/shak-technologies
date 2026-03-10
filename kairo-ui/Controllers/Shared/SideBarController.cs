@@ -132,6 +132,65 @@ namespace kairo_ui.Controllers.Shared
             }
         }
 
+        [HttpPost("AddRecentActivity")]
+        public async Task<IActionResult> AddRecentActivity([FromBody] AddRecentActivityRequest request)
+        {
+            if (!_authService.IsAuthenticated())
+            {
+                _logger.LogWarning("[SideBar] Unauthenticated access attempt to AddRecentActivity");
+                return Unauthorized(new { Success = false, ErrorMessage = "User not authenticated" });
+            }
+
+            if (request == null)
+            {
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            }
+
+            var accessedFields = request.AccessedFields?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(accessedFields))
+            {
+                return BadRequest(new { Success = false, ErrorMessage = "AccessedFields is required" });
+            }
+
+            try
+            {
+                var branchId = HttpContext.Session.GetString("branch_code") ?? request.OurBranchID ?? string.Empty;
+                var operatorId = HttpContext.Session.GetString("user_name") ?? request.LoggedInOperator ?? string.Empty;
+                var moduleId = request.ModuleID?.Trim() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(operatorId))
+                {
+                    return BadRequest(new { Success = false, ErrorMessage = "Operator or branch is missing" });
+                }
+
+                var requestData = new
+                {
+                    RequestData = new
+                    {
+                        OurBranchID = branchId,
+                        LoggedInOperator = operatorId,
+                        ModuleID = moduleId,
+                        AccessedFields = accessedFields
+                    }
+                };
+
+                _logger.LogInformation("[SideBar] AddRecentActivity for ModuleID: {ModuleID}, AccessedFields: {AccessedFields}", moduleId, accessedFields);
+
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>(
+                    "SystemCoreApi",
+                    ApiEndpoints.ADD_RECENT_ACTIVITY,
+                    requestData
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SideBar] Error adding recent activity");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
         /// <summary>
         /// Fetches role resources from the API (same as Dashboard)
         /// </summary>

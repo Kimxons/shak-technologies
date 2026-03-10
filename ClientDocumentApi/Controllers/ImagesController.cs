@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Models;
 using ClientDocumentApi.Services;
@@ -79,6 +80,44 @@ namespace ClientDocumentApi.Controllers
                 responseMessage = "Success",
                 details = entity
             });
+        }
+
+        [HttpGet("client")]
+        public async Task<IActionResult> GetByClientId([FromQuery]string clientId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var entities = await _imageRepository.GetByClientIdAsync(clientId, cancellationToken);
+                if (!entities.Any())
+                {
+                    return Ok(new ResponseDetail<object>
+                    {
+                        ResponseCode = "96",
+                        ResponseMessage = "Images not found",
+                        Details = new { clientId }
+                    });
+                }
+
+                return Ok(new
+                {
+                    responseCode = "00",
+                    responseMessage = "Success",
+                    details = entities
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    responseCode = "96",
+                    responseMessage = "Invalid clientId",
+                    details = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve images", details = ex.Message });
+            }
         }
 
         [HttpGet("{imageId:long}/download")]
@@ -250,7 +289,7 @@ namespace ClientDocumentApi.Controllers
 
                 // Get temp images for this client
                 var tempImages = await _tempImageRepository.GetByClientIdAsync(clientId, cancellationToken);
-                
+
                 // Get pre-approval images for this client
                 var preApprovalImages = (await _imageAccountPreApprovalRepository.GetByClientIdAsync(clientId, cancellationToken)).ToList();
 

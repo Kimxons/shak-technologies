@@ -104,7 +104,8 @@ namespace AccountManagement.Modules.AccountMaintenance
         // Account Document operations
         public async Task<ResponseDetail<object>> AddAccountDocument(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<string>? respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault();
+            if (respStr == null) return new ResponseDetail<object> { ResponseCode = "99", ResponseMessage = "System Error: No response from database." };
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
@@ -114,7 +115,8 @@ namespace AccountManagement.Modules.AccountMaintenance
         }
         public async Task<ResponseDetail<object>> UpdateAccountDocument(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.UPDATE_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<string>? respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.UPDATE_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault();
+            if (respStr == null) return new ResponseDetail<object> { ResponseCode = "99", ResponseMessage = "System Error: No response from database." };
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
@@ -124,7 +126,8 @@ namespace AccountManagement.Modules.AccountMaintenance
         }
         public async Task<ResponseDetail<object>> GetAccountDocument(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<string>? respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault();
+            if (respStr == null) return new ResponseDetail<object> { ResponseCode = "01", ResponseMessage = "No record found." };
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
@@ -134,7 +137,8 @@ namespace AccountManagement.Modules.AccountMaintenance
         }
         public async Task<ResponseDetail<object>> DeleteAccountDocument(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<string>? respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_DOCUMENT} @RequestData={requestJson}").AsEnumerable().FirstOrDefault();
+            if (respStr == null) return new ResponseDetail<object> { ResponseCode = "99", ResponseMessage = "System Error: No response from database." };
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
@@ -837,9 +841,20 @@ namespace AccountManagement.Modules.AccountMaintenance
                 ResponseMessage = respStr.ResponseMessage
             };
         }
-        public async Task<ResponseDetail<object>> AddEditAccountSignatories(string requestJson, CancellationToken cancellationToken = default)
+        public async Task<ResponseDetail<object>> AddAccountSignatories(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_EDIT_ACCOUNT_SIGNATORIES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_ACCOUNT_SIGNATORIES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            return new ResponseDetail<object>
+            {
+                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
+                ResponseCode = respStr.ResponseCode,
+                ResponseMessage = respStr.ResponseMessage
+            };
+        }
+
+        public async Task<ResponseDetail<object>> EditAccountSignatories(string requestJson, CancellationToken cancellationToken = default)
+        {
+            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.EDIT_ACCOUNT_SIGNATORIES} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),

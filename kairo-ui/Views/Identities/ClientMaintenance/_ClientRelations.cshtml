@@ -1,54 +1,56 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-   var relationTypeOptions = ViewData["RelationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    // ViewData["Title"] = "Client Relations";
+    // Layout = "_ApplicationLayout";
+    var relationTypeOptions = ViewData["RelationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationTitleOptions = ViewData["RelationTitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationGenderOptions = ViewData["RelationGenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-  var relationOptions = ViewData["RelationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationOptions = ViewData["RelationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <div class="form-card" data-section="client-relations" data-cm-tab="relations">
     <div class="section-header" data-section-toggle>
-   <span class="section-header__title"><i class="bi bi-people"></i>Relations</span>
-     <button id="btn_toggleClientRelations" type="button" class="section-toggle-btn" aria-label="Toggle Relations" aria-expanded="true">
-     <i class="bi bi-chevron-up"></i>
-     </button>
+        <span class="section-header__title"><i class="bi bi-people"></i>Relations</span>
+        <button id="btn_toggleClientRelations" type="button" class="section-toggle-btn" aria-label="Toggle Relations" aria-expanded="true">
+            <i class="bi bi-chevron-up"></i>
+        </button>
     </div>
     <div class="section-content" data-section-content>
-  <!-- Hidden fields for page context -->
-     <input type="hidden" id="moduleIdRelations" value="@ViewData["ModuleId"]" />
+        <!-- Hidden fields for page context -->
+        <input type="hidden" id="moduleIdRelations" value="@ViewData["ModuleId"]" />
 
         <form id="frm_clientRelations" data-relations-form autocomplete="off" novalidate>
-      <h5 class="mb-4">Client Relations &amp; Beneficiaries</h5>
+            <h5 class="mb-4">Client Relations &amp; Beneficiaries</h5>
 
-       <div class="form-row two-col">
-  <div class="col">
-       <label class="label-blue" for="txt_relationClientId" id="lbl_relationClientId">Client Relation</label>
-    <div class="kairo-control" data-kairo-control>
-       <input id="txt_relationClientId" name="relationClientId" data-relation-field="RelatedClientID" class="bs-input-text" />
-<input id="txt_relationClientName" class="bs-input-text" placeholder="Search Client..." readonly />
-      <button type="button" class="btn-lookup" data-relation-action="lookup" aria-label="Find client"><i class="bi bi-search"></i></button>
-         </div>
-    </div>
-    <div class="col">
-     <label for="ddl_relationType" id="lbl_relationType">Relation Type</label>
-      <select id="ddl_relationType" name="relationType" data-relation-field="RelationTypeID" class="bs-select" asp-items="@(relationTypeOptions.Skip(1))"><option value="">Select type...</option></select>
-        </div>
-     </div>
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="label-blue" for="txt_relationClientId" id="lbl_relationClientId">Client Relation</label>
+                    <div class="kairo-control" data-kairo-control>
+                        <input id="txt_relationClientId" name="relationClientId" data-relation-field="RelatedClientID" class="bs-input-text" />
+                        <input id="txt_relationClientName" class="bs-input-text" placeholder="Search Client..." readonly />
+                        <button type="button" class="btn-lookup" data-relation-action="lookup" aria-label="Find client"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+                <div class="col">
+                    <label for="ddl_relationType" id="lbl_relationType">Relation Type</label>
+                    <select id="ddl_relationType" name="relationType" data-relation-field="RelationTypeID" class="bs-select" asp-items="@(relationTypeOptions.Skip(1))"><option value="">Select type...</option></select>
+                </div>
+            </div>
 
             <div class="form-row four-col">
-<div class="col"><label for="ddl_relationTitle" id="lbl_relationTitle">Title</label><select id="ddl_relationTitle" name="relationTitle" data-relation-field="TitleID" class="bs-select" asp-items="@(relationTitleOptions.Skip(1))"><option value="">Select...</option></select></div>
-       <div class="col"><label for="txt_relationFirstName" id="lbl_relationFirstName">First Name</label><input id="txt_relationFirstName" name="relationFirstName" data-relation-field="FirstName" class="bs-input-text" /></div>
-<div class="col"><label for="txt_relationMiddleName" id="lbl_relationMiddleName">Middle Name</label><input id="txt_relationMiddleName" name="relationMiddleName" data-relation-field="MiddleName" class="bs-input-text" /></div>
-    <div class="col"><label for="txt_relationLastName" id="lbl_relationLastName">Last Name</label><input id="txt_relationLastName" name="relationLastName" data-relation-field="LastName" class="bs-input-text" /></div>
-         </div>
+                <div class="col"><label for="ddl_relationTitle" id="lbl_relationTitle">Title</label><select id="ddl_relationTitle" name="relationTitle" data-relation-field="TitleID" class="bs-select" asp-items="@(relationTitleOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="txt_relationFirstName" id="lbl_relationFirstName">First Name</label><input id="txt_relationFirstName" name="relationFirstName" data-relation-field="FirstName" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_relationMiddleName" id="lbl_relationMiddleName">Middle Name</label><input id="txt_relationMiddleName" name="relationMiddleName" data-relation-field="MiddleName" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_relationLastName" id="lbl_relationLastName">Last Name</label><input id="txt_relationLastName" name="relationLastName" data-relation-field="LastName" class="bs-input-text" /></div>
+            </div>
 
-       <div class="form-row four-col">
-    <div class="col"><label for="ddl_relationGender" id="lbl_relationGender">Gender</label><select id="ddl_relationGender" name="relationGender" data-relation-field="GenderID" class="bs-select" asp-items="@(relationGenderOptions.Skip(1))"><option value="">Select...</option></select></div>
-<div class="col"><label class="label-blue" for="ddl_relation" id="lbl_relation">Relation</label><select id="ddl_relation" name="relation" data-relation-field="RelationID" class="bs-select" asp-items="@(relationOptions.Skip(1))"><option value="">Select...</option></select></div>
-        <div class="col"><label for="txt_relationShare" id="lbl_relationShare">Share %</label><input id="txt_relationShare" name="relationShare" data-relation-field="SharePercent" class="bs-input-text" type="number" min="0" max="100" step="0.01" /></div>
-       <div class="col"><label for="txt_relationMobile" id="lbl_relationMobile">Mobile</label><input id="txt_relationMobile" name="relationMobile" data-relation-field="Mobile" class="bs-input-text" maxlength="15" /></div>
-     </div>
+            <div class="form-row four-col">
+                <div class="col"><label for="ddl_relationGender" id="lbl_relationGender">Gender</label><select id="ddl_relationGender" name="relationGender" data-relation-field="GenderID" class="bs-select" asp-items="@(relationGenderOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_relation" id="lbl_relation">Relation</label><select id="ddl_relation" name="relation" data-relation-field="RelationID" class="bs-select" asp-items="@(relationOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="txt_relationShare" id="lbl_relationShare">Share %</label><input id="txt_relationShare" name="relationShare" data-relation-field="SharePercent" class="bs-input-text" type="number" min="0" max="100" step="0.01" /></div>
+                <div class="col"><label for="txt_relationMobile" id="lbl_relationMobile">Mobile</label><input id="txt_relationMobile" name="relationMobile" data-relation-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+            </div>
         </form>
 
         <div class="d-flex justify-content-center gap-2 my-4">
@@ -79,4 +81,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-relations.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-relations.js"></script>

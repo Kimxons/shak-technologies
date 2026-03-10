@@ -1,517 +1,307 @@
 /**
- * Account Blocking Module - Block/Unblock Operations
- * Manages account blocking and unblocking with history
+ * Account Blocking / Unblocking Module
+ * Thoroughly refactored to match legacy behavior including context-sensitive reasons
+ * (Block vs Unblock) and dual API endpoints for blocking/unblocking operations.
  */
-
 window.AccountBlockingModule = (function () {
     'use strict';
 
     const state = {
-        accountId: null,
-        branchId: null,
-        operatorId: null,
         currentMode: 'VIEW',
-        blockedDetails: null,
-        blockedHistory: [],
-        originalData: null
+        blockingDetails: [],
+        currentActiveRecord: null,
+        isBlocked: false,
+        updateCount: 0
     };
 
     const API = {
-        GET_DETAILS: '/AccountsMaintenance/api/get-blocked-details',
-        GET_HISTORY: '/AccountsMaintenance/api/get-blocked-history',
-        BLOCK: '/AccountsMaintenance/api/block-entity',
-        UNBLOCK: '/AccountsMaintenance/api/unblock-entity'
+        GET_DETAILS: 'api/get-blocked-details',
+        BLOCK: 'api/block-entity',
+        UNBLOCK: 'api/unblock-entity'
     };
 
     /**
-     * Initialize the module
+     * Get context from global state or storage
      */
-    function init() {
-        console.log('[Blocking] Initializing module...');
-        getAccountContext();
-
-        if (!state.accountId) {
-            showError('No account selected. Please select an account first.');
-            return;
-        }
-
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
-        setMode('VIEW');
-        loadData();
-    }
-
-    /**
-     * Get account context from parent page
-     */
-    function getAccountContext() {
-        if (window.parent && window.parent !== window && window.parent.AccountMaintenanceState) {
-            const parentState = window.parent.AccountMaintenanceState;
-            state.accountId = parentState.AccountID;
-            state.branchId = parentState.OurBranchID || parentState.BranchID;
-            state.operatorId = parentState.OperatorID;
-        } else {
-            state.accountId = sessionStorage.getItem('currentAccountID');
-            state.branchId = sessionStorage.getItem('currentBranchID');
-            state.operatorId = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
-        }
-    }
-
-    /**
-     * Wire header control buttons
-     */
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', loadData);
-        document.querySelector('[data-action="close"]')?.addEventListener('click', closeSubmodule);
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', toggleMaximize);
-    }
-
-    /**
-     * Wire action panel buttons
-     */
-    function wireActionButtons() {
-        const actions = {
-            'view': () => setMode('VIEW'),
-            'block': () => setMode('BLOCK'),
-            'unblock': unblockEntity,
-            'save': saveBlock,
-            'cancel': cancelChanges,
-            'close': closeSubmodule
-        };
-
-        Object.keys(actions).forEach(action => {
-            document.querySelector(`[data-action="${action}"]`)?.addEventListener('click', actions[action]);
-        });
-    }
-
-    /**
-     * Wire section toggle buttons
-     */
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.closest('.form-section');
-                const content = section.querySelector('.section-content, [data-section-content]');
-                const icon = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', !isExpanded);
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up');
-                    icon.classList.toggle('bi-chevron-down');
-                }
-            });
-        });
-    }
-
-    /**
-     * Set form mode
-     */
-    function setMode(mode) {
-        console.log('[Blocking] Setting mode:', mode);
-        state.currentMode = mode;
-
-        const isEditing = mode === 'BLOCK';
-        
-        // Enable/disable form fields
-        document.querySelectorAll('#blockReasonId, #blockingType, #debitBlock, #creditBlock, #remarks').forEach(field => {
-            if (field) field.disabled = !isEditing;
-        });
-
-        // Update button states
-        const isBlocked = state.blockedDetails && (
-            state.blockedDetails.IsBlocked || 
-            state.blockedDetails.DebitBlock || 
-            state.blockedDetails.CreditBlock
-        );
-
-        const buttons = {
-            'view': { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            'block': { active: mode === 'BLOCK', disabled: isEditing || isBlocked },
-            'unblock': { active: false, disabled: !isBlocked },
-            'save': { active: false, disabled: !isEditing },
-            'cancel': { active: false, disabled: !isEditing }
-        };
-
-        Object.keys(buttons).forEach(action => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (btn) {
-                btn.classList.toggle('active', buttons[action].active);
-                btn.disabled = buttons[action].disabled;
-            }
-        });
-
-        if (mode === 'BLOCK') {
-            clearBlockForm();
-        }
-    }
-
-    /**
-     * Load blocking data from API
-     */
-    async function loadData() {
-        console.log('[Blocking] Loading blocking data...');
-        showLoading(true);
-
-        try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            // Load current blocked details
-            const detailsResponse = await fetch(API.GET_DETAILS, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const detailsResult = await detailsResponse.json();
-            console.log('[Blocking] Details response:', detailsResult);
-
-            // Load blocking history
-            const historyResponse = await fetch(API.GET_HISTORY, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const historyResult = await historyResponse.json();
-            console.log('[Blocking] History response:', historyResult);
-
-            if (isSuccess(detailsResult)) {
-                const data = detailsResult?.Details || detailsResult?.Data || detailsResult?.data;
-                state.blockedDetails = Array.isArray(data) ? data[0] : data;
-                populateBlockDetails(state.blockedDetails);
-            }
-
-            if (isSuccess(historyResult)) {
-                const histData = historyResult?.Details || historyResult?.Data || historyResult?.data || [];
-                state.blockedHistory = Array.isArray(histData) ? histData : [histData];
-                renderHistoryGrid();
-            }
-
-            updateBlockStatus();
-            showSuccess('Blocking data loaded');
-
-        } catch (error) {
-            console.error('[Blocking] Error:', error);
-            showError('Failed to load blocking data: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Populate block details
-     */
-    function populateBlockDetails(data) {
-        if (!data) return;
-
-        const setValue = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) {
-                if (el.type === 'checkbox') {
-                    el.checked = !!value;
-                } else {
-                    el.value = value || '';
-                }
-            }
-        };
-
-        setValue('blockReasonId', data.BlockReasonID || data.ReasonID);
-        setValue('blockReasonDesc', data.BlockReasonDescription || data.ReasonDescription);
-        setValue('blockingType', data.BlockingType || data.BlockType);
-        setValue('debitBlock', data.DebitBlock || data.IsDebitBlocked);
-        setValue('creditBlock', data.CreditBlock || data.IsCreditBlocked);
-        setValue('remarks', data.Remarks || data.BlockRemarks);
-
-        populateAuditFields(data);
-    }
-
-    /**
-     * Render blocking history grid
-     */
-    function renderHistoryGrid() {
-        const tbody = document.querySelector('#blockingHistoryGrid tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        if (state.blockedHistory.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No blocking history found.</td></tr>';
-            return;
-        }
-
-        state.blockedHistory.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${formatDate(item.BlockedOn || item.ActionDate) || '-'}</td>
-                <td>${escapeHtml(item.BlockedBy || item.ActionBy) || '-'}</td>
-                <td>${escapeHtml(item.Action || item.ActionType) || '-'}</td>
-                <td>${escapeHtml(item.Reason || item.BlockReason) || '-'}</td>
-                <td>${escapeHtml(item.Remarks) || '-'}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    /**
-     * Update block status indicator
-     */
-    function updateBlockStatus() {
-        const statusEl = document.getElementById('blockStatus');
-        if (!statusEl) return;
-
-        const isBlocked = state.blockedDetails && (
-            state.blockedDetails.IsBlocked || 
-            state.blockedDetails.DebitBlock || 
-            state.blockedDetails.CreditBlock
-        );
-
-        statusEl.className = isBlocked ? 'badge bg-danger' : 'badge bg-success';
-        statusEl.textContent = isBlocked ? 'BLOCKED' : 'NOT BLOCKED';
-
-        // Update mode after status update
-        setMode('VIEW');
-    }
-
-    /**
-     * Save block
-     */
-    async function saveBlock() {
-        console.log('[Blocking] Saving block...');
-        showLoading(true);
-
-        try {
-            const formData = getBlockFormData();
-            if (!validateBlockForm(formData)) return;
-
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                ...formData,
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                EntityType: 'ACCOUNT',
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId
-            };
-
-            const response = await fetch(API.BLOCK, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Account blocked successfully');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to block account');
-            }
-        } catch (error) {
-            console.error('[Blocking] Save error:', error);
-            showError('Failed to block account: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Unblock entity
-     */
-    async function unblockEntity() {
-        if (!confirm('Are you sure you want to unblock this account?')) return;
-
-        console.log('[Blocking] Unblocking...');
-        showLoading(true);
-
-        try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                SearchKey: searchKey,
-                AccountID: state.accountId,
-                EntityType: 'ACCOUNT',
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                UnblockRemarks: 'Unblocked via Account Maintenance'
-            };
-
-            const response = await fetch(API.UNBLOCK, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Account unblocked successfully');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to unblock account');
-            }
-        } catch (error) {
-            console.error('[Blocking] Unblock error:', error);
-            showError('Failed to unblock account: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    /**
-     * Get block form data
-     */
-    function getBlockFormData() {
+    function getContext() {
+        const ps = window.AccountMaintenanceState;
         return {
-            BlockReasonID: document.getElementById('blockReasonId')?.value || '',
-            BlockingType: document.getElementById('blockingType')?.value || '',
-            DebitBlock: document.getElementById('debitBlock')?.checked || false,
-            CreditBlock: document.getElementById('creditBlock')?.checked || false,
-            Remarks: document.getElementById('remarks')?.value || ''
+            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'web_portal'
         };
     }
 
-    /**
-     * Validate block form
-     */
-    function validateBlockForm(data) {
-        if (!data.BlockReasonID) {
-            showWarning('Please select a block reason');
-            return false;
+    // ── UI Helpers ─────────────────────────────────────────────
+    const el = (id) => document.getElementById(id);
+    const val = (id) => el(id)?.value?.trim() || '';
+    const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
+    const setTxt = (id, v) => { const e = el(id); if (e) e.textContent = (v == null) ? '-' : v; };
+
+    function showMsg(msg, type) {
+        const t = window.showSystemToast || window.parent?.showSystemToast;
+        if (t) t(msg, { variant: type === 'error' ? 'danger' : type });
+        console.log(`[Blocking] ${type}: ${msg}`);
+    }
+
+    // ── Mode Management ────────────────────────────────────────
+    function setMode(mode) {
+        state.currentMode = mode;
+        const editing = mode === 'ADD' || mode === 'EDIT';
+
+        ['reason', 'description', 'instructionGivenBy'].forEach(id => {
+            const e = el(id);
+            if (e) e.disabled = !editing;
+        });
+
+        if (editing) {
+            loadReasonsDropdown();
         }
-        if (!data.DebitBlock && !data.CreditBlock) {
-            showWarning('Please select at least one blocking type (Debit or Credit)');
-            return false;
+
+        // Update Global Buttons
+        const btnView = document.getElementById('submoduleBtnView');
+        const btnAdd = document.getElementById('submoduleBtnAdd');
+        const btnEdit = document.getElementById('submoduleBtnEdit');
+        const btnSave = document.getElementById('submoduleBtnSave');
+        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnDelete = document.getElementById('submoduleBtnDelete');
+
+        if (btnView) btnView.disabled = editing;
+        if (btnAdd) btnAdd.disabled = editing;
+        if (btnEdit) btnEdit.disabled = editing;
+        if (btnSave) btnSave.disabled = !editing;
+        if (btnCancel) btnCancel.disabled = !editing;
+        if (btnDelete) btnDelete.disabled = editing;
+    }
+
+    // ── Data Operations ────────────────────────────────────────
+    async function loadData() {
+        const ctx = getContext();
+        if (!ctx.AccountID) {
+            showMsg('Please select an account first', 'warning');
+            return;
         }
-        return true;
-    }
 
-    /**
-     * Cancel changes
-     */
-    function cancelChanges() {
-        populateBlockDetails(state.blockedDetails);
-        setMode('VIEW');
-    }
+        const loader = el('loadingOverlay');
+        if (loader) loader.hidden = false;
 
-    /**
-     * Clear block form
-     */
-    function clearBlockForm() {
-        ['blockReasonId', 'blockingType', 'remarks'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        ['debitBlock', 'creditBlock'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.checked = false;
-        });
-    }
-
-    /**
-     * Populate audit fields
-     */
-    function populateAuditFields(data) {
-        if (!data) return;
-        const fields = {
-            'MakerID': data.BlockedBy || data.CreatedBy || '-',
-            'MakerDT': formatDate(data.BlockedOn || data.CreatedOn) || '-',
-            'ModifierID': data.UnblockedBy || data.ModifiedBy || '-',
-            'ModifierDT': formatDate(data.UnblockedOn || data.ModifiedOn) || '-'
-        };
-
-        Object.keys(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = fields[id];
-        });
-    }
-
-    // Utility functions
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 || 
-               result?.success === true || result?.Success === true;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString || dateString === '-') return '-';
         try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleString();
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.GET_DETAILS}`, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                ModuleTypeID: 'A', // Acc
+                RelevantID: ctx.AccountID,
+                ModuleID: 1420, // Acc Blocking
+                OperatorID: ctx.OperatorID
+            });
+
+            if (result && result.success) {
+                const d = result.Details || result.data?.Details || result.data || {};
+                const allRecords = d.Details01 || [];
+                state.blockingDetails = allRecords;
+
+                // Find any record that is currently BLOCKED (has BlockedReasonID but no UnBlockedDate)
+                const activeRecord = allRecords.find(r => r.BlockedReasonID && !r.UnBlockedDate);
+                state.currentActiveRecord = activeRecord || null;
+                state.isBlocked = !!activeRecord;
+                state.updateCount = activeRecord?.UpdateCount || 0;
+
+                updateUILabels();
+                populateForm(activeRecord || allRecords[0]);
+
+                showMsg(state.isBlocked ? 'Account is currently blocked' : 'Account is active', 'info');
+                setMode('VIEW');
+            } else {
+                showMsg(result?.message || 'Failed to load blocking details', 'error');
+            }
+        } catch (err) {
+            showMsg('Error loading blocking details: ' + err.message, 'error');
+        } finally {
+            if (loader) loader.hidden = true;
+        }
+    }
+
+    function updateUILabels() {
+        const reasonLabel = document.querySelector('label[for="reason"]');
+        if (reasonLabel) {
+            reasonLabel.textContent = state.isBlocked ? 'Unblock Reason' : 'Block Reason';
+        }
+
+        const saveBtnText = document.querySelector('[data-action="save"] span');
+        if (saveBtnText) {
+            saveBtnText.textContent = state.isBlocked ? 'Unblock Account' : 'Block Account';
+        }
+    }
+
+    async function loadReasonsDropdown() {
+        const reasonSelect = el('reason');
+        if (!reasonSelect) return;
+
+        try {
+            const endpoint = state.isBlocked ? 'api/get-unblocked-reasons' : 'api/get-blocked-reasons';
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${endpoint}`, {});
+
+            const options = result?.Details || result?.data || [];
+            reasonSelect.innerHTML = '<option value="">Select Reason...</option>';
+            options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.Value || opt.ID;
+                o.textContent = opt.Label || opt.Description;
+                reasonSelect.appendChild(o);
+            });
         } catch (e) {
-            return dateString;
+            console.error('Failed to load reasons', e);
         }
     }
 
-    function showLoading(show) {
-        const overlay = document.querySelector('.loading-overlay, .de-loading-overlay');
-        if (overlay) overlay.hidden = !show;
-    }
-
-    function toggleMaximize() {
-        const sidebar = document.getElementById('main-sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-    }
-
-    function closeSubmodule() {
-        if (window.parent && window.parent.AccountMaintenanceCore) {
-            window.parent.AccountMaintenanceCore.closeSubmodule();
-        }
-    }
-
-    function showSuccess(message) { showMessage(message, 'success'); }
-    function showWarning(message) { showMessage(message, 'warning'); showLoading(false); }
-    function showError(message) { showMessage(message, 'error'); }
-
-    function showMessage(message, type) {
-        const panel = document.querySelector('.am-message-panel, .de-message-bar');
-        if (panel) {
-            panel.className = `am-message-panel am-message-panel--${type}`;
-            panel.hidden = false;
-            const icon = panel.querySelector('i');
-            const span = panel.querySelector('span');
-            if (icon) icon.className = type === 'success' ? 'bi bi-check-circle' : 
-                                       type === 'warning' ? 'bi bi-exclamation-triangle' : 'bi bi-exclamation-circle';
-            if (span) span.textContent = message;
-            setTimeout(() => { panel.hidden = true; }, type === 'error' ? 5000 : 3000);
+    function populateForm(d) {
+        if (!d) {
+            clearForm();
+            return;
         }
 
-        if (type === 'error' && window.parent?.showSystemToast) {
-            window.parent.showSystemToast(message, { variant: type });
-        }
+        // Form Fields
+        setVal('reason', state.isBlocked ? '' : (d.BlockedReasonID || d.ReasonID));
+        setVal('description', state.isBlocked ? '' : (d.BlockedDescription || d.Description));
+        setVal('instructionGivenBy', state.isBlocked ? '' : (d.BlockedInstructionBy || d.InstructionGivenBy));
+
+        // Audit Fields (Behind the Scene)
+        setVal('previousStatus', state.isBlocked ? 'Blocked' : 'Active');
+        setVal('btsDate', formatDate(d.BlockedDate || d.Date));
+        setVal('reasonId', d.BlockedReasonID || d.ReasonID || d.UnBlockedReasonID || '-');
+        setVal('btsDescription', d.BlockedDescription || d.Description || d.UnBlockedDescription || '-');
+        setVal('btsInstructionGivenBy', d.BlockedInstructionBy || d.InstructionGivenBy || d.UnBlockedInstructionBy || '-');
+
+        setTxt('MakerID', d.CreatedBy || d.MakerID);
+        setTxt('MakerDT', formatDate(d.CreatedOn || d.MakerDT));
+        setTxt('CheckerID', d.SupervisedBy || d.CheckerID);
+        setTxt('CheckerDT', formatDate(d.SupervisedOn || d.CheckerDT));
     }
 
-    // Public API
+    function clearForm() {
+        ['reason', 'description', 'instructionGivenBy', 'previousStatus', 'btsDate', 'reasonId', 'btsDescription', 'btsInstructionGivenBy'].forEach(id => setVal(id, ''));
+        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT'].forEach(id => setTxt(id, '-'));
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(dateStr);
+        }
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleString();
+    }
+
+    // ── Save Operation ─────────────────────────────────────────
+    async function handleSave() {
+        if (!val('reason')) { showMsg('Please select a reason', 'warning'); return false; }
+        if (!val('description')) { showMsg('Description is required', 'warning'); return false; }
+
+        const actionName = state.isBlocked ? 'Unblock' : 'Block';
+        const ok = await AppCore.showConfirmation(`${actionName} Account`, `Are you sure you want to ${actionName.toLowerCase()} this account?`);
+        if (!ok) return false;
+
+        const ctx = getContext();
+        const now = new Date().toISOString();
+
+        if (state.isBlocked) {
+            // PERFORM UNBLOCK
+            const payload = {
+                OurBranchID: ctx.OurBranchID,
+                ModuleTypeID: 'A',
+                RelevantID: ctx.AccountID,
+                ReferenceID: state.currentActiveRecord?.ReferenceID || state.currentActiveRecord?.BlockedID || state.currentActiveRecord?.ID || 0,
+                UnBlockedDate: now,
+                UnBlockedReasonID: val('reason'),
+                UnBlockedDescription: val('description'),
+                UnBlockedInstructionBy: val('instructionGivenBy'),
+                ModifiedBy: ctx.OperatorID,
+                ModifiedOn: now,
+                OperatorID: ctx.OperatorID,
+                NewRecord: state.updateCount || 0
+            };
+
+            try {
+                const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.UNBLOCK}`, payload);
+                if (result && result.success) {
+                    showMsg(result.message || 'Account unblocked successfully', 'success');
+                    loadData();
+                    return true;
+                } else {
+                    showMsg(result?.message || 'Unblock failed', 'error');
+                }
+            } catch (err) { showMsg('Error: ' + err.message, 'error'); }
+        } else {
+            // PERFORM BLOCK
+            const payload = {
+                OurBranchID: ctx.OurBranchID,
+                ModuleTypeID: 'A',
+                RelevantID: ctx.AccountID,
+                BlockedDate: now,
+                BlockedReasonID: val('reason'),
+                BlockedDescription: val('description'),
+                BlockedInstructionBy: val('instructionGivenBy'),
+                CreatedBy: ctx.OperatorID,
+                CreatedOn: now,
+                OperatorID: ctx.OperatorID
+            };
+
+            try {
+                const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.BLOCK}`, payload);
+                if (result && result.success) {
+                    showMsg(result.message || 'Account blocked successfully', 'success');
+                    loadData();
+                    return true;
+                } else {
+                    showMsg(result?.message || 'Block failed', 'error');
+                }
+            } catch (err) { showMsg('Error: ' + err.message, 'error'); }
+        }
+        return false;
+    }
+
+    // ── Init & Wire ───────────────────────────────────────────
+    function init() {
+        console.log('[AccountBlocking] Initializing (Thorough Migration)');
+        setMode('VIEW');
+
+        // Section toggles
+        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
+            hdr.addEventListener('click', function () {
+                const sec = this.closest('.form-section');
+                const content = sec?.querySelector('.section-content, [data-section-content]');
+                const icon = this.querySelector('.bi-chevron-up, .bi-chevron-down');
+                if (content) {
+                    content.hidden = !content.hidden;
+                    icon?.classList.toggle('bi-chevron-up');
+                    icon?.classList.toggle('bi-chevron-down');
+                }
+            });
+        });
+
+        // History Action
+        document.querySelector('[data-action="history"]')?.addEventListener('click', () => {
+            showMsg('Blocking history navigation requested', 'info');
+            // Logic to show a modal or navigate to a history view
+        });
+
+        const ctx = getContext();
+        if (ctx.AccountID) loadData();
+    }
+
+    function showHistory() {
+        showMsg('Blocking history navigation requested', 'info');
+    }
+
     return {
-        init,
-        loadData,
-        saveBlock,
-        unblockEntity,
-        setMode,
-        cancelChanges
+        init: init,
+        save: handleSave,
+        edit: () => setMode('EDIT'),
+        cancel: () => { loadData(); setMode('VIEW'); },
+        view: loadData,
+        showHistory: showHistory
     };
 })();
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountBlockingModule?.init());
-} else {
-    window.AccountBlockingModule?.init();
-}
-
-console.log('✅ Account Blocking module loaded');
+console.log('[AccountBlocking] Module loaded');

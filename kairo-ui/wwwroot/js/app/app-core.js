@@ -698,7 +698,7 @@
 
             // Handle response based on status
             if (response.ok) {
-                console.log('✅ [CONTROLLER] Request successful:', responseData);
+                console.log('✅ [CONTROLLER] Request successful:', fullUrl);
                 if (callback) callback(null, responseData, response.status);
             } else {
                 // Server returned an error status

@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Models;
 using ClientDocumentApi.Services;
@@ -246,7 +247,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpGet("{tempClientId}")]
-        public async Task<IActionResult> GetByTempClientId(string tempClientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByTempClientId(string? tempClientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
         {
             try
             {
@@ -323,51 +324,51 @@ namespace ClientDocumentApi.Controllers
             }
         }
 
-        [HttpGet("client/{clientId}")]
-        public async Task<IActionResult> GetByClientId(string clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
-        {
-            try
-            {
-                //var entities = await _tempImageRepository.GetByClientIdAsync(clientId, cancellationToken);
-                var entities = await _tempImageRepository.GetByClientIdEnrichedAsync(clientId, cancellationToken);
+        //[HttpGet("client/{clientId}")]
+        //public async Task<IActionResult> GetByClientId(string? clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        //{
+        //    try
+        //    {
+        //        //var entities = await _tempImageRepository.GetByClientIdAsync(clientId, cancellationToken);
+        //        var entities = await _tempImageRepository.GetByClientIdEnrichedAsync(clientId, cancellationToken);
 
-                // If no records found and requestId is available, try fetching by requestId
-                if ((entities == null || entities.Count == 0) && !string.IsNullOrWhiteSpace(requestId))
-                {
-                    //entities = await _tempImageRepository.GetByRequestIdAsync(requestId, cancellationToken);
-                    entities = await _tempImageRepository.GetByClientIdEnrichedAsync(requestId, cancellationToken);
-                }
+        //        // If no records found and requestId is available, try fetching by requestId
+        //        if ((entities == null || entities.Count == 0) && !string.IsNullOrWhiteSpace(requestId))
+        //        {
+        //            //entities = await _tempImageRepository.GetByRequestIdAsync(requestId, cancellationToken);
+        //            entities = await _tempImageRepository.GetByClientIdEnrichedAsync(requestId, cancellationToken);
+        //        }
 
-                if (entities == null || entities.Count == 0)
-                {
-                    return NotFound(new
-                    {
-                        responseCode = "96",
-                        responseMessage = "Temporary images not found",
-                        details = new { clientId, requestId }
-                    });
-                }
-                return Ok(new
-                {
-                    responseCode = "00",
-                    responseMessage = "Success",
-                    details = entities
-                });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new
-                {
-                    responseCode = "96",
-                    responseMessage = "Invalid clientId or requestId",
-                    details = ex.Message
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve temporary images", details = ex.Message });
-            }
-        }
+        //        if (entities == null || entities.Count == 0)
+        //        {
+        //            return NotFound(new
+        //            {
+        //                responseCode = "96",
+        //                responseMessage = "Temporary images not found",
+        //                details = new { clientId, requestId }
+        //            });
+        //        }
+        //        return Ok(new
+        //        {
+        //            responseCode = "00",
+        //            responseMessage = "Success",
+        //            details = entities
+        //        });
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            responseCode = "96",
+        //            responseMessage = "Invalid clientId or requestId",
+        //            details = ex.Message
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve temporary images", details = ex.Message });
+        //    }
+        //}
 
         [HttpDelete("client/{clientId}")]
         public async Task<IActionResult> DeleteByClientId(string clientId, CancellationToken cancellationToken)
@@ -408,8 +409,110 @@ namespace ClientDocumentApi.Controllers
             }
         }
 
+        [HttpGet("client")]
+        public async Task<IActionResult> GetByClientId([FromQuery] string? clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                //var entities = await _tempImageRepository.GetByClientIdAsync(clientId, cancellationToken);
+                var entities = await _tempImageRepository.GetByClientIdEnrichedAsync(clientId!, cancellationToken);
+
+                // If no records found and requestId is available, try fetching by requestId
+                if ((entities == null || entities.Count == 0) && !string.IsNullOrWhiteSpace(requestId))
+                {
+                    entities = await _tempImageRepository.GetByRequestIdEnrichedAsync(requestId, cancellationToken);
+                    //entities = await _tempImageRepository.GetByClientIdEnrichedAsync(requestId, cancellationToken);
+                }
+
+                if (entities == null || entities.Count == 0)
+                {
+                    //return NotFound(new
+                    //{
+                    //    responseCode = "96",
+                    //    responseMessage = "Temporary images not found",
+                    //    details = new { clientId, requestId }
+                    //});
+                    return Ok(new ResponseDetail<object>
+                    {
+                        ResponseCode = "96",
+                        ResponseMessage = "Temporary images not found",
+                        Details = new { clientId, requestId }
+                    });
+                }
+                return Ok(new ResponseDetail<object>
+                {
+                    ResponseCode = "00",
+                    ResponseMessage = "Success",
+                    Details = entities
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ResponseDetail<object>
+                {
+                    ResponseCode = "96",
+                    ResponseMessage = "Invalid clientId or requestId",
+                    Details = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to retrieve temporary images", details = ex.Message });
+            }
+        }
+
+        [HttpDelete("client")]
+        public async Task<IActionResult> DeleteByClientId([FromQuery] string? clientId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var entities = await _tempImageRepository.GetByClientIdAsync(clientId!, cancellationToken);
+                if (entities == null || entities.Count == 0)
+                {
+                    entities = await _tempImageRepository.GetByRequestIdAsync(requestId!, cancellationToken);
+                    if (entities == null || entities.Count == 0)
+                    {
+                        return Ok(new
+                        {
+                            responseCode = "96",
+                            responseMessage = "Temporary images not found",
+                            details = new { clientId }
+                        });
+                    }
+                    else
+                    {
+                        await _tempImageRepository.DeleteByRequestIdAsync(requestId!, cancellationToken);
+                    }
+                }
+                else
+                {
+                    await _tempImageRepository.DeleteByClientIdAsync(clientId!, cancellationToken);
+                }
+
+                return Ok(new
+                {
+                    responseCode = "00",
+                    responseMessage = "All temporary images for client deleted successfully",
+                    details = new { clientId }
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    responseCode = "96",
+                    responseMessage = "Invalid clientId",
+                    details = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { responseCode = "99", responseMessage = "Failed to delete temporary images", details = ex.Message });
+            }
+        }
+
         [HttpGet("account/{accountId}")]
-        public async Task<IActionResult> GetByAccountId(string accountId, [FromQuery] string? requestId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByAccountId(string? accountId, [FromQuery] string? requestId, CancellationToken cancellationToken)
         {
             try
             {
@@ -423,7 +526,7 @@ namespace ClientDocumentApi.Controllers
 
                 if (entities == null || entities.Count == 0)
                 {
-                    return NotFound(new
+                    return Ok(new
                     {
                         responseCode = "96",
                         responseMessage = "Temporary images not found",
@@ -460,7 +563,7 @@ namespace ClientDocumentApi.Controllers
                 var entities = await _tempImageRepository.GetByAccountIdAsync(accountId, cancellationToken);
                 if (entities == null || entities.Count == 0)
                 {
-                    return NotFound(new
+                    return Ok(new
                     {
                         responseCode = "96",
                         responseMessage = "Temporary images not found",

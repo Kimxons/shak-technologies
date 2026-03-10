@@ -5,323 +5,231 @@
 }
 
 <!-- ChequeBook Submodule -->
-<div class="window">
-    <div class="am-header" role="banner">
-      <div class="am-header__left">
-        <i class="bi bi-journal-bookmark am-header__icon" aria-hidden="true"></i>
-        <span class="am-header__title">Cheque Book</span>
-      </div>
-      <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
-    </div>
+<div class="form-content submodule-cheque-book" role="region" aria-label="Cheque Book form">
+    <div class="form-card" data-main-form>
 
-    <main class="main-container main-container--with-panel">
-      <div class="form-content" role="region" aria-label="Cheque Book form">
-        <div class="form-card" data-main-form>
-
-          <!-- ACCOUNT IDENTIFICATION SECTION -->
-          <div class="form-section" data-section="account-identification">
+        <!-- ACCOUNT IDENTIFICATION SECTION -->
+        <div class="form-section" data-section="account-identification">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-person-vcard"></i>Account Identification</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Identification" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-person-vcard me-2"></i>Account Identification</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Account Identification" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <form autocomplete="off">
-                <div class="row g-2 mb-2">
-                  <div class="col-6">
-                    <label class="label-blue" for="branchId">Branch ID</label>
-                    <div class="d-flex gap-2">
-                      <input id="branchId" name="branchId" type="text" class="bs-input-text form-control" readonly />
-                      <input id="branchName" name="branchName" type="text" class="bs-input-text form-control" readonly />
+                <div class="form-row">
+                    <div class="col">
+                        <label class="label-blue">Branch</label>
+                        <div class="d-flex gap-2">
+                            <input id="branchId" type="text" class="bs-input-text form-control w-25" readonly />
+                            <input id="branchName" type="text" class="bs-input-text form-control flex-grow-1" readonly />
+                        </div>
                     </div>
-                  </div>
-                  <div class="col-6">
-                    <label class="label-blue" for="accountId">Account ID</label>
-                    <div class="d-flex gap-2">
-                      <input id="accountId" name="accountId" type="text" class="bs-input-text form-control" readonly />
-                      <input id="accountName" name="accountName" type="text" class="bs-input-text form-control" readonly />
+                    <div class="col">
+                        <label class="label-blue">Account</label>
+                        <div class="d-flex gap-2">
+                            <input id="accountId" type="text" class="bs-input-text form-control w-25" readonly />
+                            <input id="accountName" type="text" class="bs-input-text form-control flex-grow-1" readonly />
+                        </div>
                     </div>
-                  </div>
                 </div>
-              </form>
             </div>
-          </div>
+        </div>
 
-          <!-- CHEQUE REQUEST SECTION -->
-          <div class="form-section" data-section="cheque-request">
+        <!-- CHEQUE REQUEST SECTION -->
+        <div class="form-section" data-section="cheque-request">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-file-earmark-text"></i>Cheque Request</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Cheque Request" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-file-earmark-text me-2"></i>Cheque Request</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Cheque Request" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <div class="form-row">
-                <div class="col">
-                  <label class="label-blue" for="issueDate">Issue Date</label>
-                  <input id="issueDate" name="issueDate" type="text" class="bs-input-text form-control" readonly />
+                <div class="form-row">
+                    <div class="col">
+                        <label class="label-blue" for="issueDate">Issue Date</label>
+                        <input id="issueDate" type="text" class="bs-input-text form-control" readonly />
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="bookType">Book Type</label>
+                        <select id="bookType" class="bs-select form-control">
+                            <option value="">-- Select Book Type --</option>
+                            @foreach (var option in bookTypeOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-                <div class="col">
-                  <label class="label-blue" for="bookType">Book Type</label>
-                  <select id="bookType" name="bookType" class="bs-select form-control">
-                    <option value="">-- Select Book Type --</option>
-                    @foreach (var option in bookTypeOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
-                  </select>
+                <div class="form-row">
+                    <div class="col">
+                        <label class="label-blue" for="noOfLeaves">No Of Leaves</label>
+                        <input id="noOfLeaves" type="number" class="bs-input-text form-control" readonly />
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="chequePrefix">Cheque Prefix</label>
+                        <input id="chequePrefix" type="text" class="bs-input-text form-control" readonly />
+                    </div>
                 </div>
-              </div>
-              <div class="form-row">
-                <div class="col">
-                  <label class="label-blue" for="noOfLeaves">No Of Leaves</label>
-                  <input id="noOfLeaves" name="noOfLeaves" type="number" class="bs-input-text form-control" readonly />
+                <div class="form-row">
+                    <div class="col">
+                        <label class="label-blue" for="chequeStart">Cheque Start</label>
+                        <input id="chequeStart" type="number" class="bs-input-text form-control" />
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="chequeEnd">Cheque End</label>
+                        <input id="chequeEnd" type="number" class="bs-input-text form-control" readonly />
+                    </div>
                 </div>
-                <div class="col">
-                  <label for="chequePrefix">Cheque Prefix</label>
-                  <input id="chequePrefix" name="chequePrefix" type="text" class="bs-input-text form-control" readonly />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="col">
-                  <label class="label-blue" for="chequeStart">Cheque Start</label>
-                  <input id="chequeStart" name="chequeStart" type="number" class="bs-input-text form-control" />
-                </div>
-                <div class="col">
-                  <label for="chequeEnd">Cheque End</label>
-                  <input id="chequeEnd" name="chequeEnd" type="number" class="bs-input-text form-control" readonly />
-                </div>
-              </div>
             </div>
-          </div>
+        </div>
 
-          <!-- CHEQUE BOOKS / REQUESTS TABS SECTION -->
-          <div class="form-section" data-section="cheque-tabs">
+        <!-- CHEQUE BOOKS / REQUESTS TABS SECTION -->
+        <div class="form-section" data-section="cheque-tabs">
             <div class="section-header">
-              <span class="section-header__title"><i class="bi bi-journal-bookmark"></i>Cheque Management</span>
-              <div class="de-tabs" role="tablist">
-                <button class="de-tab is-active" type="button" role="tab" data-tab="books" aria-selected="true">Cheque Books</button>
-                <button class="de-tab" type="button" role="tab" data-tab="requests" aria-selected="false">Cheque Requests</button>
-              </div>
+                <span class="section-header__title"><i class="bi bi-journal-bookmark me-2"></i>Cheque Management</span>
+                <div class="de-tabs ms-auto" role="tablist">
+                    <button class="de-tab is-active" type="button" role="tab" data-tab="books" aria-selected="true">Cheque Books</button>
+                    <button class="de-tab" type="button" role="tab" data-tab="requests" aria-selected="false">Cheque Requests</button>
+                </div>
             </div>
             <div class="section-content">
-              <!-- Cheque Books Tab -->
-              <div class="de-tab-panel" data-panel="books">
-                <div class="table-responsive">
-                  <table class="table table-sm table-hover align-middle mb-0" id="chequeBookGrid">
-                    <thead>
-                      <tr>
-                        <th scope="col">Start</th>
-                        <th scope="col">End</th>
-                        <th scope="col">Prefix</th>
-                        <th scope="col">Leaves</th>
-                        <th scope="col">Issue Date</th>
-                        <th scope="col">Paid</th>
-                        <th scope="col">Stopped</th>
-                        <th scope="col">Returned</th>
-                      </tr>
-                    </thead>
-                    <tbody id="chequeBookTableBody">
-                      <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
-                          <i class="bi bi-journal-x fs-3 d-block mb-2"></i>
-                          <span>No cheque books found</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <!-- Cheque Books Tab -->
+                <div class="de-tab-panel" data-panel="books">
+                    <div class="table-responsive" style="max-height: 250px;">
+                        <table class="table table-sm table-hover align-middle mb-0" id="chequeBookGrid">
+                            <thead class="sticky-top bg-white">
+                                <tr>
+                                    <th>Start No</th>
+                                    <th>End No</th>
+                                    <th>Prefix</th>
+                                    <th>Leaves</th>
+                                    <th>Issue Date</th>
+                                    <th>Paid</th>
+                                    <th>Stopped</th>
+                                    <th>Returned</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chequeBookTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
-              </div>
-              <!-- Cheque Requests Tab -->
-              <div class="de-tab-panel" data-panel="requests" hidden>
-                <div class="table-responsive">
-                  <table class="table table-sm table-hover align-middle mb-0" id="chequeRequestGrid">
-                    <thead>
-                      <tr>
-                        <th scope="col">Leaves</th>
-                        <th scope="col">Start</th>
-                        <th scope="col">End</th>
-                        <th scope="col">Issue Date</th>
-                        <th scope="col">Approved By</th>
-                        <th scope="col">Approved On</th>
-                        <th scope="col">Dispatched By</th>
-                      </tr>
-                    </thead>
-                    <tbody id="chequeRequestTableBody">
-                      <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">
-                          <i class="bi bi-file-earmark-x fs-3 d-block mb-2"></i>
-                          <span>No cheque requests found</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <!-- Cheque Requests Tab -->
+                <div class="de-tab-panel d-none" data-panel="requests">
+                    <div class="table-responsive" style="max-height: 250px;">
+                        <table class="table table-sm table-hover align-middle mb-0" id="chequeRequestGrid">
+                            <thead class="sticky-top bg-white">
+                                <tr>
+                                    <th>Leaves</th>
+                                    <th>Start No</th>
+                                    <th>End No</th>
+                                    <th>Issue Date</th>
+                                    <th>Approved By</th>
+                                    <th>Approved On</th>
+                                    <th>Dispatched By</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chequeRequestTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
+        </div>
 
-          <!-- ACCOUNT DETAILS SECTION -->
-          <div class="form-section" data-section="account-details">
+        <!-- ACCOUNT DETAILS SECTION -->
+        <div class="form-section" data-section="account-details">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-card-list"></i>Account Details</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-card-list me-2"></i>Account Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <form autocomplete="off">
                 <div class="form-row">
-                  <div class="col">
-                    <label for="clientId">Client ID</label>
-                    <div class="d-flex gap-1">
-                      <input id="clientId" name="clientId" type="text" class="bs-input-text form-control" readonly autocomplete="off" />
-                      <input id="clientName" name="clientName" type="text" class="bs-input-text form-control" readonly autocomplete="off" />
+                    <div class="col">
+                        <label>Client</label>
+                        <div class="d-flex gap-1">
+                            <input id="clientId" type="text" class="bs-input-text form-control w-25" readonly />
+                            <input id="clientName" type="text" class="bs-input-text form-control flex-grow-1" readonly />
+                        </div>
                     </div>
-                  </div>
-                  <div class="col">
-                    <label for="productId">Product ID</label>
-                    <div class="d-flex gap-1">
-                      <input id="productId" name="productId" type="text" class="bs-input-text form-control" readonly autocomplete="off" />
-                      <input id="productName" name="productName" type="text" class="bs-input-text form-control" readonly autocomplete="off" />
+                    <div class="col">
+                        <label>Product</label>
+                        <div class="d-flex gap-1">
+                            <input id="productId" type="text" class="bs-input-text form-control w-25" readonly />
+                            <input id="productName" type="text" class="bs-input-text form-control flex-grow-1" readonly />
+                        </div>
                     </div>
-                  </div>
                 </div>
                 <div class="form-row">
-                  <div class="col"><label for="address1">Address 1</label><input id="address1" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
-                  <div class="col"><label for="address2">Address 2</label><input id="address2" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
+                    <div class="col"><label>Address 1</label><input id="address1" type="text" class="bs-input-text form-control" readonly /></div>
+                    <div class="col"><label>Address 2</label><input id="address2" type="text" class="bs-input-text form-control" readonly /></div>
                 </div>
-                <div class="form-row">
-                  <div class="col"><label for="city">City</label><input id="city" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
-                  <div class="col"><label for="country">Country</label><input id="country" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
+                <div class="two-col mt-2">
+                    <div class="col"><label>City</label><input id="city" type="text" class="bs-input-text form-control" readonly /></div>
+                    <div class="col"><label>Country</label><input id="country" type="text" class="bs-input-text form-control" readonly /></div>
                 </div>
-                <div class="form-row">
-                  <div class="col"><label for="phoneHome">Phone (Home)</label><input id="phoneHome" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
-                  <div class="col"><label for="phoneWork">Phone (Work)</label><input id="phoneWork" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
+                <div class="two-col mt-2">
+                    <div class="col"><label>Phone (Home)</label><input id="phoneHome" type="text" class="bs-input-text form-control" readonly /></div>
+                    <div class="col"><label>Phone (Work)</label><input id="phoneWork" type="text" class="bs-input-text form-control" readonly /></div>
                 </div>
-                <div class="form-row">
-                  <div class="col"><label for="faxNo">Fax No</label><input id="faxNo" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
-                  <div class="col"><label for="mobile">Mobile</label><input id="mobile" type="text" class="bs-input-text form-control" readonly autocomplete="off" /></div>
+                <div class="two-col mt-2">
+                    <div class="col"><label>Fax No</label><input id="faxNo" type="text" class="bs-input-text form-control" readonly /></div>
+                    <div class="col"><label>Mobile</label><input id="mobile" type="text" class="bs-input-text form-control" readonly /></div>
                 </div>
-              </form>
             </div>
-          </div>
+        </div>
 
-          <!-- BEHIND THE SCENE SECTION -->
-          <div class="form-section" data-section="behind-scene">
+        <!-- BEHIND THE SCENE SECTION -->
+        <div class="form-section" data-section="behind-scene">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-gear me-2"></i>Behind The Scene</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <div class="behind-scene">
-                <div class="behind-scene-grid">
-                  <div class="behind-scene-item">
-                    <label>Currency</label>
-                    <div class="value-row"><span class="behind-scene-value" id="currencyId">-</span></div>
-                  </div>
-                  <div class="behind-scene-item">
-                    <label>Approved By</label>
-                    <div class="value-row"><span class="behind-scene-value" id="approvedBy">-</span></div>
-                  </div>
-                  <div class="behind-scene-item">
-                    <label>Approved On</label>
-                    <div class="value-row"><span class="behind-scene-value" id="approvedOn">-</span></div>
-                  </div>
-                  <div class="behind-scene-item">
-                    <label>Dispatched By</label>
-                    <div class="value-row"><span class="behind-scene-value" id="dispatchedBy">-</span></div>
-                  </div>
-                  <div class="behind-scene-item">
-                    <label>Dispatched On</label>
-                    <div class="value-row"><span class="behind-scene-value" id="dispatchedOn">-</span></div>
-                  </div>
+                <div class="behind-scene">
+                    <div class="behind-scene-grid">
+                        <div class="behind-scene-item">
+                            <label>Currency</label>
+                            <span class="behind-scene-value" id="currencyId">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Approved By</label>
+                            <span class="behind-scene-value" id="approvedBy">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Approved On</label>
+                            <span class="behind-scene-value" id="approvedOn">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Dispatched By</label>
+                            <span class="behind-scene-value" id="dispatchedBy">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Dispatched On</label>
+                            <span class="behind-scene-value" id="dispatchedOn">-</span>
+                        </div>
+                    </div>
                 </div>
-              </div>
 
-              <div class="audit-section">
-                <div class="audit-block">
-                  <div class="audit-item">
-                    <label>Created By</label>
-                    <span class="audit-value" id="MakerID">-</span>
-                  </div>
-                  <div class="audit-item">
-                    <label>Created On</label>
-                    <span class="audit-value" id="MakerDT">-</span>
-                  </div>
+                <div class="audit-section mt-3">
+                    <div class="audit-block">
+                        <div class="audit-item"><label>Created By</label><span class="audit-value" id="MakerID">-</span></div>
+                        <div class="audit-item"><label>Created On</label><span class="audit-value" id="MakerDT">-</span></div>
+                    </div>
+                    <div class="audit-block border-start px-3">
+                        <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifierID">-</span></div>
+                        <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifierDT">-</span></div>
+                    </div>
                 </div>
-                <div class="audit-block">
-                  <div class="audit-item">
-                    <label>Modified By</label>
-                    <span class="audit-value" id="ModifierID">-</span>
-                  </div>
-                  <div class="audit-item">
-                    <label>Modified On</label>
-                    <span class="audit-value" id="ModifierDT">-</span>
-                  </div>
-                </div>
-                <div class="audit-block">
-                  <div class="audit-item">
-                    <label>Supervised By</label>
-                    <span class="audit-value" id="CheckerID">-</span>
-                  </div>
-                  <div class="audit-item">
-                    <label>Supervised On</label>
-                    <span class="audit-value" id="CheckerDT">-</span>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-
         </div>
-      </div>
 
-      <!-- ACTION PANEL -->
-      <aside class="action-panel">
-        <div class="d-flex flex-column gap-2">
-          <button class="btn-action" type="button" data-action="approve" disabled title="Approve cheque request">
-            <i class="bi bi-check-circle"></i><span>Approve</span>
-          </button>
-          <button class="btn-action" type="button" data-action="dispatch" disabled title="Dispatch cheque book">
-            <i class="bi bi-truck"></i><span>Dispatch</span>
-          </button>
-        </div>
-        <div class="d-flex flex-column gap-2 mt-auto">
-          <button class="btn-action btn-view" type="button" data-action="view" title="View cheque books">
-            <i class="bi bi-eye"></i><span>View</span>
-          </button>
-          <button class="btn-action" type="button" data-action="add" title="Add new">
-            <i class="bi bi-plus-circle"></i><span>Add</span>
-          </button>
-          <button class="btn-action" type="button" data-action="edit" title="Edit">
-            <i class="bi bi-pencil-square"></i><span>Edit</span>
-          </button>
-          <button class="btn-action" type="button" data-action="save" title="Save changes">
-            <i class="bi bi-check-lg"></i><span>Save</span>
-          </button>
-          <button class="btn-action" type="button" data-action="cancel" title="Cancel changes">
-            <i class="bi bi-x-circle"></i><span>Cancel</span>
-          </button>
-        </div>
-      </aside>
-    </main>
+    </div>
+</div>
 
-    <div class="am-message-panel" role="alert" aria-live="polite"><i class="bi bi-info-circle"></i><span></span></div>
-    <div class="loading-overlay" id="loadingOverlay" hidden><div class="loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
+<div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'ChequeBook') {
-        console.log('[ChequeBook] Submodule loaded');
-    }
-});
-</script>
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-cheque-book.js"></script>

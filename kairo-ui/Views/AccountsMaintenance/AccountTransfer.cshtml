@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-transfer.html
     var transferTypeOptions = ViewData["TransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
@@ -6,265 +6,94 @@
 }
 
 <!-- AccountTransfer Submodule -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar" style="display:none !important">
-        <div class="am-header__left">
-            <i class="bi bi-arrow-left-right am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Account Transfer</span>
-        </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
-    </div>
-    <main class="main-container" aria-label="Account Transfer form">
-      <div class="form-content" role="region" aria-label="Account Transfer form">
-        <div class="form-card" data-main-form>
-          <!-- Transfer Details Section -->
-          <div class="form-section" data-section="transfer-details">
+<div class="form-content" role="region" aria-label="Account Transfer form">
+    <div class="form-card" data-main-form>
+        <!-- Transfer Details Section -->
+        <div class="form-section" data-section="transfer-details">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-arrow-repeat"></i>Transfer Details</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Transfer Details" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-arrow-repeat me-1"></i>Transfer Details</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Transfer Details" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <form autocomplete="off">
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="label-blue am-label" for="branchId">Branch ID</label>
-                <div class="d-flex gap-1">
-                  <input id="branchId" name="branchId" type="text" class="bs-input-text form-control am-input w-auto" />
-                  <input id="branchName" type="text" class="bs-input-text form-control am-input" readonly />
-                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="branchId"><i class="bi bi-search"></i></button>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="branchId">To Branch</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input id="branchId" name="branchId" type="text" class="form-control am-input kairo-account-control__id" readonly />
+                            <input id="branchName" type="text" class="form-control am-input kairo-account-control__name" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="branchId"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="productId">To Product</label>
+                        <div class="kairo-account-control" data-kairo-account-control>
+                            <input id="productId" name="productId" type="text" class="form-control am-input kairo-account-control__id" readonly />
+                            <input id="productName" type="text" class="form-control am-input kairo-account-control__name" readonly />
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="productId"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div class="col-6">
-                <label class="label-blue am-label" for="productId">Product ID</label>
-                <div class="d-flex gap-1">
-                  <input id="productId" name="productId" type="text" class="bs-input-text form-control am-input w-auto" />
-                  <input id="productName" type="text" class="bs-input-text form-control am-input" readonly />
-                  <button class="btn-lookup am-btn am-btn-secondary" type="button" data-lookup="productId"><i class="bi bi-search"></i></button>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6 d-flex align-items-center">
+                        <div class="form-check">
+                            <input id="retainAccountId" name="retainAccountId" type="checkbox" class="form-check-input" />
+                            <label class="form-check-label am-label" for="retainAccountId">Retain Account ID</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-blue am-label" for="reason">Transfer Reason</label>
+                        <select id="reason" name="reason" class="form-select am-input">
+                            <option value="">--Select--</option>
+                            @foreach (var option in transferReasonOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <div class="d-flex align-items-center">
-                  <input id="retainAccountId" name="retainAccountId" type="checkbox" class="bs-checkbox me-2" />
-                  <label for="retainAccountId">RetainAccountID</label>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-12">
+                        <label class="label-blue am-label" for="remarks">Remarks / Narrative</label>
+                        <textarea id="remarks" name="remarks" class="form-control am-input" rows="2" placeholder="Enter transfer remarks..."></textarea>
+                    </div>
                 </div>
-              </div>
-              <div class="col-6">
-                <label class="label-blue am-label" for="reason">Reason</label>
-                <select id="reason" name="reason" class="bs-select form-control am-select">
-                  <option value="">--Select--</option>
-                  @foreach (var option in transferTypeOptions)
-                  {
-                      <option value="@option.Value">@option.Text</option>
-                  }
-                </select>
-              </div>
+
+                <!-- Financial Details Section (BTS Style) -->
+                <div class="row g-2 mb-2 mt-3 pt-2 border-top">
+                    <div class="col-md-4">
+                        <label class="am-label" for="balance">Current Balance</label>
+                        <input id="balance" name="balance" type="text" class="form-control am-input text-end" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="am-label" for="debitInterestReceivable">Dr Int Receivable</label>
+                        <input id="debitInterestReceivable" name="debitInterestReceivable" type="text" class="form-control am-input text-end" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="am-label" for="creditInterestPayable">Cr Int Payable</label>
+                        <input id="creditInterestPayable" name="creditInterestPayable" type="text" class="form-control am-input text-end" readonly />
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                        <label class="am-label" for="penalInterestReceivable">Penal Int Receivable</label>
+                        <input id="penalInterestReceivable" name="penalInterestReceivable" type="text" class="form-control am-input text-end" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="am-label" for="transferCharges">Transfer Charges</label>
+                        <input id="transferCharges" name="transferCharges" type="text" class="form-control am-input text-end" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="am-label fw-bold" for="netPayable">NET PAYABLE</label>
+                        <input id="netPayable" name="netPayable" type="text" class="form-control am-input text-end fw-bold text-primary" readonly />
+                    </div>
+                </div>
             </div>
-            <div class="row g-2 mb-3">
-              <div class="col-12">
-                <label class="label-blue am-label" for="remarks">Remarks</label>
-                <textarea id="remarks" name="remarks" class="bs-textarea form-control am-input" rows="2"></textarea>
-              </div>
-            </div>
-            
-            <!-- Financial Details Grid -->
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label for="balance">Balance</label>
-                <input id="balance" name="balance" type="text" class="bs-input-text form-control am-input" readonly />
-              </div>
-              <div class="col-6">
-                <label for="debitInterestReceivable">Debit Interest Receivable</label>
-                <input id="debitInterestReceivable" name="debitInterestReceivable" type="text" class="bs-input-text form-control am-input" readonly />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label for="creditInterestPayable">Credit Interest Payable</label>
-                <input id="creditInterestPayable" name="creditInterestPayable" type="text" class="bs-input-text form-control am-input" readonly />
-              </div>
-              <div class="col-6">
-                <label for="penalInterestReceivable">Penal Interest Receivable</label>
-                <input id="penalInterestReceivable" name="penalInterestReceivable" type="text" class="bs-input-text form-control am-input" readonly />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label for="netPayable">Net Payable</label>
-                <input id="netPayable" name="netPayable" type="text" class="bs-input-text form-control am-input text-end fw-bold" readonly />
-              </div>
-              <div class="col-6">
-                <label for="transferCharges">TransferCharges</label>
-                <input id="transferCharges" name="transferCharges" type="text" class="bs-input-text form-control am-input" readonly />
-              </div>
-              
-            </div>
-              </form>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <!-- Action Panel -->
-      <div class="action-panel" aria-label="Form actions" style="display:none !important">
-        <div class="action-buttons">
-          <button class="btn-action" type="button" data-action="add" title="Add New">
-            <i class="bi bi-plus-circle"></i>Add
-          </button>
-          <button class="btn-action" type="button" data-action="save" title="Save">
-            <i class="bi bi-check-lg"></i>Save
-          </button>
-          <button class="btn-action btn-cancel" type="button" data-action="cancel" title="Cancel">
-            <i class="bi bi-x-lg"></i>Cancel
-          </button>
-          <button class="btn-action" type="button" data-action="back" title="Back">
-            <i class="bi bi-arrow-left"></i>Back
-          </button>
-        </div>
-      </div>
-    </main>
-
-    <div class="am-message-panel" role="alert" aria-live="polite">
-      <i class="bi bi-info-circle"></i>
-      <span></span>
     </div>
+</div>
 
-    <div class="loading-overlay" id="loadingOverlay" hidden>
-      <div class="loading-spinner">
-        <i class="bi bi-arrow-repeat"></i>
-        <span>Loading...</span>
-      </div>
-    </div>
-  </div>
+<div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-  <!-- Bootstrap JS Bundle (needed for modals) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/shared/searchService.js"></script>
-  <script src="~/js/modules/accountsmaintenance/account-transfer.js?v=20250527"></script>
-
-  <!-- Window Controls & Blur Behavior -->
-  <script>
-    (function() {
-      /**
-       * Send message to parent when form opens
-       */
-      function notifyParentFormOpened() {
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ 
-              action: 'submoduleOpened',
-              source: 'Account Transfer'
-            }, '*');
-          }
-        } catch (error) {
-          console.error('Error notifying parent of form open:', error);
-        }
-      }
-
-      /**
-       * Close the child form by notifying parent
-       */
-      function closeChildForm() {
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ 
-              action: 'submoduleClosed',
-              source: 'Account Transfer'
-            }, '*');
-          } else {
-            window.close();
-          }
-        } catch (error) {
-          console.error('Error closing form:', error);
-        }
-      }
-
-      /**
-       * Handle window control actions
-       */
-      function handleWindowAction(action, btn) {
-        const windowEl = document.querySelector('.window');
-        
-        switch (action) {
-          case 'refresh':
-            // Clear all validation errors before refresh
-            document.querySelectorAll('[class*="invalid"]').forEach(el => {
-              el.classList.remove(...Array.from(el.classList).filter(c => c.includes('invalid')));
-            });
-            window.location.reload();
-            break;
-
-          case 'maximize':
-            if (windowEl) {
-              const isMaximized = windowEl.classList.toggle('maximized');
-              const icon = btn.querySelector('i');
-              if (icon) {
-                icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
-              }
-              btn.title = isMaximized ? 'Restore' : 'Maximize';
-              btn.setAttribute('aria-label', isMaximized ? 'Restore window' : 'Maximize window');
-              
-              // Notify parent to collapse/expand sidebar
-              if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ 
-                  action: 'toggleSidebarForMaximize',
-                  maximize: isMaximized
-                }, '*');
-              }
-            }
-            break;
-
-          case 'close':
-            closeChildForm();
-            break;
-        }
-      }
-
-      /**
-       * Initialize window control buttons
-       */
-      function initWindowControls() {
-        document.querySelectorAll('[data-action]').forEach((btn) => {
-          const action = btn.getAttribute('data-action');
-          // Only wire up window control actions
-          if (['refresh', 'maximize', 'close'].includes(action)) {
-            btn.addEventListener('click', (e) => {
-              e.preventDefault();
-              handleWindowAction(action, btn);
-            });
-          }
-        });
-      }
-
-      // Initialize on DOM ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          initWindowControls();
-          notifyParentFormOpened();
-        });
-      } else {
-        initWindowControls();
-        notifyParentFormOpened();
-      }
-    })();
-  </script>
-
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'AccountTransfer') {
-        console.log('[AccountTransfer] Submodule loaded');
-    }
-});
-</script>
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-transfer.js"></script>

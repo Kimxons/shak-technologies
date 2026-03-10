@@ -1,0 +1,270 @@
+@{
+    ViewData["Title"] = "Center Loan Menu";
+    Layout = "_ApplicationLayout";
+    var schemeId = ViewData["SchemeId"]?.ToString() ?? string.Empty;
+    var loanProductId = ViewData["LoanProductId"]?.ToString() ?? string.Empty;
+}
+
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<input type="hidden" id="parentSchemeId" value="@schemeId" />
+<input type="hidden" id="parentLoanProductId" value="@loanProductId" />
+
+<div class="window">
+    <div class="am-header">
+        <div class="am-header__left">
+            <i class="bi bi-menu-button-wide am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Center Loan Menu</span>
+        </div>
+        <div class="am-header__right">
+            <button class="am-btn" type="button" data-window-action="refresh" title="Refresh" aria-label="Refresh data">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="am-btn am-btn--close" type="button" data-window-action="close" title="Close" aria-label="Close window">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <main class="main-container" aria-label="Center Loan Menu form">
+        <div class="form-content">
+            <div class="form-card" data-main-form>
+
+                <!-- Loan Cycle Details Section -->
+                <div class="form-section" data-section="loan-cycle-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-arrow-repeat"></i>Loan Cycle Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Loan Cycle Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-3 mb-3">
+                            <div class="col-4">
+                                <label class="label-blue" for="LoanCycleNo">Loan Cycle No.</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="LoanCycleNo" class="kairo-control__id bs-input-text" aria-label="Loan Cycle No" placeholder="Cycle No">
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="loan-cycle" aria-label="Lookup loan cycle"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <label class="label-blue" for="LoanLevelNo">Loan Level No</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="LoanLevelNo" class="kairo-control__id bs-input-text" aria-label="Loan Level No" placeholder="Level No">
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="loan-level" aria-label="Lookup loan level"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <label class="label-blue" for="EffectiveDate">Effective Date</label>
+                                <input type="date" id="EffectiveDate" class="bs-input-text form-control" aria-label="Effective Date">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Details Section -->
+                <div class="form-section" data-section="menu-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-ui-checks-grid"></i>Menu Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Menu Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="label-blue" for="MinimumLoanAmount">Minimum Loan Amount</label>
+                                <input id="MinimumLoanAmount" type="text" class="bs-input-text form-control" />
+                            </div>
+                            <div class="col-6">
+                                <label class="label-blue" for="MaximumLoanAmount">Maximum Loan Amount</label>
+                                <input id="MaximumLoanAmount" type="text" class="bs-input-text form-control" />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="label-blue" for="DefaultLoanAmount">Default Loan Amount</label>
+                                <input id="DefaultLoanAmount" type="text" class="bs-input-text form-control" />
+                            </div>
+                            <div class="col-6">
+                                <label class="label-blue" for="Term">Term</label>
+                                <input id="Term" type="text" class="bs-input-text form-control" />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="label-blue" for="InterestMenuId">Interest Menu ID</label>
+                                <select id="InterestMenuId" class="bs-select form-select">
+                                    <option value="" selected>--Select--</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="InstallmentGracePeriod">Installment Grace Period</label>
+                                <input id="InstallmentGracePeriod" type="text" class="bs-input-text form-control" />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MaxAdjustmentDays">Max Adjustment Days</label>
+                                <input id="MaxAdjustmentDays" type="text" class="bs-input-text form-control" />
+                            </div>
+                            <div class="col-6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collateral Details Section -->
+                <div class="form-section" data-section="collateral-details">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-shield-check"></i>Collateral Details</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Collateral Details" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuSavingToLoanRatio">Saving To Loan Ratio</label>
+                                <input id="MenuSavingToLoanRatio" type="text" class="bs-input-text form-control" />
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuSLRecoveryType">S/L Recovery Type</label>
+                                <select id="MenuSLRecoveryType" class="bs-select form-select">
+                                    <option value="" selected>--Select--</option>
+                                    <option value="installment">Installment</option>
+                                    <option value="lumpsum">Lump Sum</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="MenuCollectSavingWithInstallment">
+                                    <label class="form-check-label" for="MenuCollectSavingWithInstallment">Collect Saving With Installment</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuSavingsCollectionType">Savings Collection Type</label>
+                                <select id="MenuSavingsCollectionType" class="bs-select form-select">
+                                    <option value="" selected>--Select--</option>
+                                    <option value="fixed">Fixed</option>
+                                    <option value="percentage">Percentage</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuSavingsValue">Savings Value</label>
+                                <input id="MenuSavingsValue" type="text" class="bs-input-text form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind the Scene Section -->
+                <div class="form-section" data-section="behind-scene">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuLoanProductId">Loan Product ID</label>
+                                <input id="MenuLoanProductId" type="text" class="bs-input-text form-control" readonly />
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuCurrencyId">Currency ID</label>
+                                <input id="MenuCurrencyId" type="text" class="bs-input-text form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuTermExcludesGracePeriod">Term Excludes Grace Period</label>
+                                <input id="MenuTermExcludesGracePeriod" type="text" class="bs-input-text form-control" readonly />
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuLoanPeriod">Loan Period</label>
+                                <input id="MenuLoanPeriod" type="text" class="bs-input-text form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuCalculationMethod">Calculation Method</label>
+                                <input id="MenuCalculationMethod" type="text" class="bs-input-text form-control" readonly />
+                            </div>
+                            <div class="col-6"></div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuCreatedBy">Created By</label>
+                                <input type="text" id="MenuCreatedBy" class="bs-input-text form-control" readonly>
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuCreatedOn">Created On</label>
+                                <input type="text" id="MenuCreatedOn" class="bs-input-text form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuModifiedBy">Modified By</label>
+                                <input type="text" id="MenuModifiedBy" class="bs-input-text form-control" readonly>
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuModifiedOn">Modified On</label>
+                                <input type="text" id="MenuModifiedOn" class="bs-input-text form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="MenuSupervisedBy">Supervised By</label>
+                                <input type="text" id="MenuSupervisedBy" class="bs-input-text form-control" readonly>
+                            </div>
+                            <div class="col-6">
+                                <label for="MenuSupervisedOn">Supervised On</label>
+                                <input type="text" id="MenuSupervisedOn" class="bs-input-text form-control" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="action-panel" aria-label="Form actions">
+            <div class="action-buttons">
+                <button class="btn-action btn-view" type="button" data-mcs-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" data-mcs-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+
+        <!-- Search Modal -->
+        <div class="modal fade cls-search-modal" id="searchModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 900px; width: 90%;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="searchModalTitle">Search</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <iframe id="searchModalFrame" title="Search" src="about:blank" style="width: 100%; height: 500px; border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script src="/js/environment.js"></script>
+    <script src="/js/services/shared/coreApi.js"></script>
+    <script src="/js/services/shared/serviceLoader.js"></script>
+    <script src="/js/modules/microfinance/center-loan-menu.js"></script>
+}

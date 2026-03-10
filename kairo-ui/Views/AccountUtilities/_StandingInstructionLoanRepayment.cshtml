@@ -1,0 +1,299 @@
+@{
+    // ═══════════════════════════════════════════════════════════════════
+    // Standing Instruction Loan Repayment — Migrated from legacy HTML
+    // Uses ONLY styles.css classes — no custom CSS added
+    // ═══════════════════════════════════════════════════════════════════
+    ViewData["Title"] = "Standing Instruction Loan Repayment";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <div class="main-container">
+        <!-- Form Content -->
+        <div class="form-content">
+            <div class="form-card" data-main-form>
+                <form id="frm_silr" autocomplete="off" novalidate>
+                    <!-- Hidden fields for context -->
+                    <input type="hidden" id="moduleId_silr" value="@ViewData["ModuleId"]" />
+                    <input type="hidden" id="entityId_silr" value="@ViewData["EntityId"]" />
+                    <input type="hidden" id="sessionBranchCode_silr" value="@ViewData["BranchCode"]" />
+                    <input type="hidden" id="sessionBranchName_silr" value="@ViewData["BranchName"]" />
+                    <input type="hidden" id="sessionOperatorId_silr" value="@ViewData["OperatorId"]" />
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- SECTION: Standing Instruction Details                   -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="form-section" data-section="si-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-cash-coin"></i> Standing Instruction Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Standing Instruction Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_branchId">Branch ID</label>
+                                    <input id="txt_branchId" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_referenceNo">Reference No.</label>
+                                    <input id="txt_referenceNo" name="ReferenceNo" type="text" class="bs-input-text" maxlength="50" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_branchName">Branch Name</label>
+                                    <input id="txt_branchName" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_loanAccountId">Loan Account ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input id="txt_loanAccountId" name="LoanID" type="text" class="kairo-control__id" placeholder="ID" />
+                                        <input id="txt_loanAccountName" type="text" class="kairo-control__name" placeholder="Account Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="LoanAccountID" aria-label="Search Loan Account">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="ddl_siType">SI Type</label>
+                                    <select id="ddl_siType" name="RepaymentType" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_effectiveDate">Effective Date</label>
+                                    <input id="txt_effectiveDate" name="EffectiveDate" type="date" class="bs-input-text" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- SECTION: Savings Account Details                        -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="form-section" data-section="savings-account">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-piggy-bank"></i> Savings Account Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Savings Account Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_savBankId">Bank ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input id="txt_savBankId" name="BankID" type="text" class="kairo-control__id" placeholder="ID" />
+                                        <input id="txt_savBankName" type="text" class="kairo-control__name" placeholder="Bank Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="BankID" aria-label="Search Bank">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_savAccountName">Account Name</label>
+                                    <input id="txt_savAccountName" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_savBranchId">Branch ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input id="txt_savBranchId" name="BranchID" type="text" class="kairo-control__id" placeholder="ID" />
+                                        <input id="txt_savBranchName" type="text" class="kairo-control__name" placeholder="Branch Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="SavBranchID" aria-label="Search Branch">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_savAccountId">Account ID</label>
+                                    <div class="kairo-control kairo-control--single" data-kairo-control>
+                                        <input id="txt_savAccountId" name="AccountID" type="text" class="kairo-control__id" placeholder="Account ID" />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="SavAccountID" aria-label="Search Account">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- SECTION: Loan Account Details (all readonly)            -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="form-section" data-section="loan-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-cash-coin"></i> Loan Account Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Loan Account Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_loanSeries">Loan Series</label>
+                                    <input id="txt_loanSeries" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_firstInstallmentDate">First Installment Date</label>
+                                    <input id="txt_firstInstallmentDate" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_loanCurrencyId">Currency ID</label>
+                                    <input id="txt_loanCurrencyId" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_maturityDate">Maturity Date</label>
+                                    <input id="txt_maturityDate" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_repaymentTerm">Repayment Term</label>
+                                    <input id="txt_repaymentTerm" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_installmentAmount">Installment Amount</label>
+                                    <input id="txt_installmentAmount" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_repaymentFrequency">Repayment Frequency</label>
+                                    <input id="txt_repaymentFrequency" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_lastInstallmentAmount">Last Installment Amount</label>
+                                    <input id="txt_lastInstallmentAmount" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- SECTION: Behind The Scene                               -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">Next Execution Date</label>
+                                    <input id="txt_nextExecutionDate" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Standing Instruction Status</label>
+                                    <input id="txt_siStatus" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">Last Run Date</label>
+                                    <input id="txt_lastRunDate" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Last Run Status</label>
+                                    <input id="txt_lastRunStatus" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">No Of Times Failed</label>
+                                    <input id="txt_noOfTimesFailed" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">Stopped Reason</label>
+                                    <input id="txt_stoppedReason" type="text" class="bs-input-text" readonly data-always-readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- AUDIT TRAIL (3×2 grid)                                  -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="form-section" data-section="audit-trail">
+                        <div class="section-content" data-section-content>
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue">Created By</label>
+                                    <input id="audit_createdBy" type="text" class="bs-input-text" readonly data-always-readonly value="-" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Stopped By</label>
+                                    <input id="audit_stoppedBy" type="text" class="bs-input-text" readonly data-always-readonly value="-" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Supervised By</label>
+                                    <input id="audit_supervisedBy" type="text" class="bs-input-text" readonly data-always-readonly value="-" />
+                                </div>
+                            </div>
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue">Created On</label>
+                                    <input id="audit_createdOn" type="text" class="bs-input-text" readonly data-always-readonly value="-" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Stopped On</label>
+                                    <input id="audit_stoppedOn" type="text" class="bs-input-text" readonly data-always-readonly value="-" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Supervised On</label>
+                                    <input id="audit_supervisedOn" type="text" class="bs-input-text" readonly data-always-readonly value="-" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Action Panel -->
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" type="button" data-action="series-prev" aria-label="Previous Series"><i class="bi bi-chevron-left"></i></button>
+                <span>Series</span>
+                <button class="btn-nav green" type="button" data-action="series-next" aria-label="Next Series"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="nav-group">
+                <button class="btn-nav green" type="button" data-action="ref-prev" aria-label="Previous Reference"><i class="bi bi-chevron-left"></i></button>
+                <span>Reference No.</span>
+                <button class="btn-nav green" type="button" data-action="ref-next" aria-label="Next Reference"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="action-buttons">
+                <button class="btn-action" type="button" data-action="stop"><i class="bi bi-stop-circle me-1"></i>Stop</button>
+                <button class="btn-action" type="button" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-view" type="button" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" type="button" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" type="button" data-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" type="button" data-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action btn-save" type="button" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/modules/accountutilities/standing-instruction-loan-repayment.js"></script>
+}

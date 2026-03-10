@@ -9,6 +9,14 @@
     console.log('[StatementView] Initializing...');
 
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // PAGINATION STATE
+    var paginationState = {
+        allRows: [],
+        currentPage: 1,
+        pageSize: 25,
+        totalPages: 0
+    };
+
 
     // DATE UTILITIES
     function formatDateDisplay(date) {
@@ -161,6 +169,82 @@
         if (statusBar) statusBar.textContent = text;
     }
 
+    function setResponseMessage(message, type) {
+        var panel = document.getElementById('dv_statementResponseMessage');
+        if (!panel) return;
+
+        panel.classList.remove('d-none', 'alert-danger', 'alert-warning', 'alert-info', 'alert-success');
+
+        if (!message) {
+            panel.textContent = '';
+            panel.classList.add('d-none');
+            return;
+        }
+
+        panel.classList.add('alert-' + (type || 'info'));
+        panel.textContent = String(message);
+    }
+
+    function getResponseMessage(response) {
+        if (!response || typeof response !== 'object') return '';
+
+        return response.ResponseMessage ||
+            response.responseMessage ||
+            response.Message ||
+            response.message ||
+            response.ErrorMessage ||
+            response.errorMessage ||
+            '';
+    }
+
+    function isResponseSuccess(response) {
+        if (!response || typeof response !== 'object') return false;
+
+        if (Object.prototype.hasOwnProperty.call(response, 'ResponseCode')) {
+            return String(response.ResponseCode || '').trim() === '00';
+        }
+
+        if (response.ok === false) return false;
+        if (response.Success === false) return false;
+        if (response.success === false) return false;
+
+        return true;
+    }
+
+    function extractTransactionRows(response) {
+        if (!response) return [];
+
+        if (response.Details && Array.isArray(response.Details.Transactions)) {
+            return response.Details.Transactions;
+        }
+
+        if (response.details && Array.isArray(response.details.transactions)) {
+            return response.details.transactions;
+        }
+
+        if (Array.isArray(response.Details)) {
+            return response.Details;
+        }
+
+        if (Array.isArray(response.Transactions)) {
+            return response.Transactions;
+        }
+
+        if (Array.isArray(response.Data)) {
+            return response.Data;
+        }
+
+        if (Array.isArray(response.data)) {
+            return response.data;
+        }
+
+        if (Array.isArray(response)) {
+            return response;
+        }
+
+        return [];
+    }
+
     function showError(message) {
         const ddlStatementFor = document.getElementById('ddl_statementFor');
         if (ddlStatementFor) {
@@ -171,6 +255,7 @@
                 ddlStatementFor.style.boxShadow = '';
             }, 3000);
         }
+        setResponseMessage(message, 'danger');
         setStatus(message);
         alert(message);
     }
@@ -304,6 +389,7 @@
         };
 
         console.log('[StatementView] Request Data:', requestData);
+        setResponseMessage('');
         setStatus('Loading...');
 
         // Use app-core.js to invoke controller
@@ -313,16 +399,25 @@
                 .then(function (response) {
                     console.log('[StatementView] Transaction response:', response);
 
-                    if (response && response.ok === false) {
-                        showError(response.message || 'Failed to fetch transactions');
+                    var responseMessage = getResponseMessage(response);
+                    if (!isResponseSuccess(response)) {
+                        var errorMessage = responseMessage || 'Failed to fetch transactions';
+                        setResponseMessage(errorMessage, 'danger');
+                        setStatus(errorMessage);
+                        populateGrid([]);
                         return;
                     }
 
-                    var rows = [];
-                    if (response && response.Details && Array.isArray(response.Details)) {
-                        rows = response.Details;
-                    } else if (response && Array.isArray(response)) {
-                        rows = response;
+                    var rows = extractTransactionRows(response);
+
+                    if (!rows || rows.length === 0) {
+                        if (responseMessage && responseMessage.toLowerCase() !== 'success') {
+                            setResponseMessage(responseMessage, 'warning');
+                        } else {
+                            setResponseMessage('No transactions found for the selected period.', 'info');
+                        }
+                    } else {
+                        setResponseMessage('');
                     }
 
                     populateGrid(rows);
@@ -342,6 +437,11 @@
 
     // POPULATE GRID
     function populateGrid(rows) {
+            // Store all rows for pagination
+            paginationState.allRows = rows || [];
+            paginationState.currentPage = 1;
+            paginationState.totalPages = paginationState.pageSize === 'all' ? 1 : Math.ceil((rows || []).length / paginationState.pageSize);
+        
         var tbody = document.querySelector('#tbl_statementGrid tbody');
         var spnRecordCount = document.getElementById('spn_recordCount');
 
@@ -350,16 +450,51 @@
             return;
         }
 
-        tbody.innerHTML = '';
-
+                    tbody.innerHTML = '';
         if (!rows || rows.length === 0) {
             tbody.innerHTML = '<tr class="sv-empty-row"><td colspan="9" style="text-align:center;padding:40px;color:#64748b;">No transactions found for the selected period.</td></tr>';
             if (spnRecordCount) spnRecordCount.textContent = '(0 records)';
             console.log('[StatementView] No rows to display');
+                        var paginationContainer = document.getElementById('dv_statementPagination');
+                        if (paginationContainer) paginationContainer.style.display = 'none';
             return;
         }
 
         console.log('[StatementView] Populating', rows.length, 'rows');
+        
+        // Show pagination controls
+        var paginationContainer = document.getElementById('dv_statementPagination');
+        if (paginationContainer) paginationContainer.style.display = 'flex';
+        
+        if (spnRecordCount) spnRecordCount.textContent = '(' + rows.length + ' records)';
+        
+        // Render first page
+        renderCurrentPage();
+        updatePaginationControls();
+        
+        console.log('[StatementView] Grid populated with', rows.length, 'rows');
+    }
+
+    // PAGINATION HELPER FUNCTIONS
+    function getCurrentPageRows() {
+        if (!paginationState.allRows || paginationState.allRows.length === 0) return [];
+        
+        if (paginationState.pageSize === 'all') {
+            return paginationState.allRows;
+        }
+        
+        var startIdx = (paginationState.currentPage - 1) * paginationState.pageSize;
+        var endIdx = startIdx + paginationState.pageSize;
+        return paginationState.allRows.slice(startIdx, endIdx);
+    }
+
+    function renderCurrentPage() {
+        var rows = getCurrentPageRows();
+        var tbody = document.querySelector('#tbl_statementGrid tbody');
+        
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
 
         rows.forEach(function (row, idx) {
             var tr = document.createElement('tr');
@@ -403,9 +538,97 @@
 
             tbody.appendChild(tr);
         });
+    }
 
-        if (spnRecordCount) spnRecordCount.textContent = '(' + rows.length + ' records)';
-        console.log('[StatementView] Grid populated with', rows.length, 'rows');
+    function updatePaginationControls() {
+        var totalRecords = paginationState.allRows.length;
+        var pageSize = paginationState.pageSize === 'all' ? totalRecords : paginationState.pageSize;
+        var startRecord = totalRecords === 0 ? 0 : (paginationState.currentPage - 1) * pageSize + 1;
+        var endRecord = paginationState.pageSize === 'all' ? totalRecords : Math.min(paginationState.currentPage * pageSize, totalRecords);
+
+        var spnPaginationInfo = document.getElementById('spn_paginationInfo');
+        if (spnPaginationInfo) {
+            spnPaginationInfo.textContent = 'Showing ' + startRecord + ' - ' + endRecord + ' of ' + totalRecords;
+        }
+
+        var btnFirstPage = document.getElementById('btn_firstPage');
+        var btnPrevPage = document.getElementById('btn_prevPage');
+        var btnNextPage = document.getElementById('btn_nextPage');
+        var btnLastPage = document.getElementById('btn_lastPage');
+
+        if (btnFirstPage) btnFirstPage.disabled = paginationState.currentPage === 1;
+        if (btnPrevPage) btnPrevPage.disabled = paginationState.currentPage === 1;
+        if (btnNextPage) btnNextPage.disabled = paginationState.currentPage >= paginationState.totalPages;
+        if (btnLastPage) btnLastPage.disabled = paginationState.currentPage >= paginationState.totalPages;
+
+        renderPageNumbers();
+    }
+
+    function renderPageNumbers() {
+        var container = document.getElementById('dv_pageNumbers');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (paginationState.totalPages <= 1) return;
+
+        var maxButtons = 7;
+        var startPage = Math.max(1, paginationState.currentPage - Math.floor(maxButtons / 2));
+        var endPage = Math.min(paginationState.totalPages, startPage + maxButtons - 1);
+
+        if (endPage - startPage + 1 < maxButtons) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        if (startPage > 1) {
+            addPageButton(container, 1);
+            if (startPage > 2) {
+                addEllipsis(container);
+            }
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            addPageButton(container, i);
+        }
+
+        if (endPage < paginationState.totalPages) {
+            if (endPage < paginationState.totalPages - 1) {
+                addEllipsis(container);
+            }
+            addPageButton(container, paginationState.totalPages);
+        }
+    }
+
+    function addPageButton(container, pageNum) {
+        var btn = document.createElement('div');
+        btn.className = 'sv-page-number' + (pageNum === paginationState.currentPage ? ' active' : '');
+        btn.textContent = pageNum;
+        btn.onclick = function () {
+            goToPage(pageNum);
+        };
+        container.appendChild(btn);
+    }
+
+    function addEllipsis(container) {
+        var ellipsis = document.createElement('div');
+        ellipsis.className = 'sv-page-number ellipsis';
+        ellipsis.textContent = '...';
+        container.appendChild(ellipsis);
+    }
+
+    function goToPage(pageNum) {
+        if (pageNum < 1 || pageNum > paginationState.totalPages) return;
+        paginationState.currentPage = pageNum;
+        renderCurrentPage();
+        updatePaginationControls();
+    }
+
+    function changePageSize(newSize) {
+        paginationState.pageSize = newSize === 'all' ? 'all' : parseInt(newSize, 10);
+        paginationState.currentPage = 1;
+        paginationState.totalPages = paginationState.pageSize === 'all' ? 1 : Math.ceil(paginationState.allRows.length / paginationState.pageSize);
+        renderCurrentPage();
+        updatePaginationControls();
     }
 
     // HANDLE ROW DOUBLE-CLICK
@@ -456,14 +679,19 @@
             .then(function (response) {
                 console.log('[StatementView] Batch details response:', response);
 
-                if (!response || response.ok === false) {
-                    showError(response.message || 'Failed to fetch batch details');
+                var responseMessage = getResponseMessage(response);
+                if (!isResponseSuccess(response)) {
+                    showError(responseMessage || 'Failed to fetch batch details');
                     return;
                 }
 
                 var details = [];
-                if (Array.isArray(response.Details)) {
+                if (response && response.Details && Array.isArray(response.Details.Transactions)) {
+                    details = response.Details.Transactions;
+                } else if (Array.isArray(response.Details)) {
                     details = response.Details;
+                } else if (Array.isArray(response.Data)) {
+                    details = response.Data;
                 } else if (Array.isArray(response)) {
                     details = response;
                 }
@@ -704,7 +932,7 @@ var cells = rows[i].querySelectorAll('td');
             '.footer { margin-top: 20px; text-align: center; font-size: 10px; color: #64748b; }' +
    '@media print { th { background: #4a7c95 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }' +
  '</style></head><body>' +
-       '<div class="header"><h1>ACCOUNT STATEMENT</h1><div>' + new Date().toLocaleDateString() + '</div></div>' +
+     '<div class="header"><h1>ACCOUNT STATEMENT</h1><div>' + (window.GlobalUtils?.formatDate ? window.GlobalUtils.formatDate(new Date()) : new Date().toLocaleDateString()) + '</div></div>' +
    '<div class="info">' +
           '<span><strong>Branch:</strong> ' + (state.OurBranchID || '-') + '</span>' +
             '<span><strong>Account:</strong> ' + (state.AccountID || '-') + '</span>' +
@@ -750,6 +978,11 @@ var cells = rows[i].querySelectorAll('td');
         var btnHeaderRefresh = document.getElementById('btn_headerRefresh');
         var btnHeaderMaximize = document.getElementById('btn_headerMaximize');
         var btnHeaderClose = document.getElementById('btn_headerClose');
+    var ddlPageSize = document.getElementById('ddl_pageSize');
+    var btnFirstPage = document.getElementById('btn_firstPage');
+    var btnPrevPage = document.getElementById('btn_prevPage');
+    var btnNextPage = document.getElementById('btn_nextPage');
+    var btnLastPage = document.getElementById('btn_lastPage');
 
         console.log('[StatementView] Wiring actions...');
 
@@ -766,6 +999,42 @@ var cells = rows[i].querySelectorAll('td');
  printStatement();
 });
    }
+
+        // Pagination event handlers
+        if (ddlPageSize && !ddlPageSize.dataset.paginationBound) {
+            ddlPageSize.addEventListener('change', function () {
+                changePageSize(this.value);
+            });
+            ddlPageSize.dataset.paginationBound = 'true';
+        }
+
+        if (btnFirstPage && !btnFirstPage.dataset.paginationBound) {
+            btnFirstPage.addEventListener('click', function () {
+                goToPage(1);
+            });
+            btnFirstPage.dataset.paginationBound = 'true';
+        }
+
+        if (btnPrevPage && !btnPrevPage.dataset.paginationBound) {
+            btnPrevPage.addEventListener('click', function () {
+                goToPage(paginationState.currentPage - 1);
+            });
+            btnPrevPage.dataset.paginationBound = 'true';
+        }
+
+        if (btnNextPage && !btnNextPage.dataset.paginationBound) {
+            btnNextPage.addEventListener('click', function () {
+                goToPage(paginationState.currentPage + 1);
+            });
+            btnNextPage.dataset.paginationBound = 'true';
+        }
+
+        if (btnLastPage && !btnLastPage.dataset.paginationBound) {
+            btnLastPage.addEventListener('click', function () {
+                goToPage(paginationState.totalPages);
+            });
+            btnLastPage.dataset.paginationBound = 'true';
+        }
 
         var btnExportExcel = document.getElementById('btn_exportExcel');
         var btnExportPdf = document.getElementById('btn_exportPdf');

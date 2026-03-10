@@ -48,6 +48,9 @@ window.AccountActivationModule = (function () {
 
     function formatDate(ds) {
         if (!ds) return '-';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(ds);
+        }
         try {
             const d = new Date(ds);
             return isNaN(d.getTime()) ? ds : d.toLocaleDateString();

@@ -25,7 +25,7 @@ namespace kairo_ui.Controllers.Shared
         }
 
         [Route("Index")]
-        public IActionResult Index(string? moduleId, string? branchId, string? accountId)
+        public IActionResult Index(string? moduleId, string? branchId, string? accountId, int? series = 0)
         {
             try
             {
@@ -36,11 +36,12 @@ namespace kairo_ui.Controllers.Shared
                 }
 
                 _logger.LogInformation("Statement View loaded successfully with ModuleID: {ModuleID}, BranchID: {BranchID}, AccountID: {AccountID}", moduleId, branchId, accountId);
-                
+
                 // Store parameters in ViewBag to be used by JavaScript
                 ViewBag.ModuleID = moduleId;
                 ViewBag.BranchID = branchId;
                 ViewBag.AccountID = accountId;
+                ViewBag.Series = series;
 
                 return PartialView("~/Views/Shared/_StatementView.cshtml");
             }
@@ -146,7 +147,7 @@ namespace kairo_ui.Controllers.Shared
 
             if (string.IsNullOrWhiteSpace(requestData.OurBranchID))
             {
-                requestData.OurBranchID = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                requestData.OurBranchID = requestData.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
             }
         }
 

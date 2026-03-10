@@ -1,4 +1,146 @@
 /* ================================================================
+   MicroFinance - Group Members / Group Details Page Scopes
+================================================================ */
+
+body[data-page="group-members"] .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+body[data-page="group-members"] .loading-overlay[hidden],
+body[data-page="group-details"] .loading-overlay[hidden] {
+    display: none;
+}
+
+body[data-page="group-members"] .loading-spinner,
+body[data-page="group-details"] .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+body[data-page="group-members"] .loading-spinner i,
+body[data-page="group-details"] .loading-spinner i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+}
+
+body[data-page="group-members"] .scheme-row {
+    margin-bottom: 0;
+    align-items: center;
+}
+
+body[data-page="group-members"] .scheme-row .col-6 {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body[data-page="group-members"] .scheme-row .col-6:last-child {
+    display: none;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] {
+    margin-bottom: 0.5rem;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] .section-header {
+    padding: 0.5rem 1rem;
+    min-height: 0;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] .section-content {
+    padding: 0.25rem 1rem !important;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] .scheme-row {
+    margin-bottom: 0 !important;
+}
+
+body[data-page="group-details"] .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] {
+    margin-bottom: 0.5rem;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] .section-header {
+    padding: 0.5rem 1rem;
+    min-height: 0;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] .section-content {
+    padding: 0.25rem 1rem !important;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] .row {
+    margin-bottom: 0 !important;
+    justify-content: center;
+}
+
+body[data-page="group-details"] .gd-search-modal {
+    --modal-header-bg: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    --modal-table-header-bg: linear-gradient(to bottom, #4a90e2, #357abd);
+    --zebra-color: #e8f4ff;
+    --zebra-hover: #d0e8ff;
+    --btn-color: #e0e0e0;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-content {
+    border: none;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-header {
+    background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    color: white;
+    padding: 14px 20px;
+    border: none;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+body[data-page="group-details"] .gd-search-modal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+body[data-page="group-details"] .gd-search-modal .btn-close:hover {
+    opacity: 1;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-body {
+    padding: 0;
+}
+
+/* ================================================================
    Submodule Container - Dynamic Partial View Loading
 ================================================================ */
 
@@ -203,6 +345,203 @@ span[class*="label-conditional"] {
         font-size: var(--label-font-size) !important;
         font-weight: var(--label-font-weight) !important;
     }
+
+/* ================================================================
+   Group Maintenance (migrated) - Search Modal + Layout
+================================================================ */
+
+.cm-search-modal {
+    --modal-header-bg: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    --modal-table-header-bg: linear-gradient(to bottom, #4a90e2, #357abd);
+    --zebra-color: #e8f4ff;
+    --zebra-hover: #d0e8ff;
+    --btn-color: #e0e0e0;
+}
+
+.cm-search-modal .modal-content {
+    border: none;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.cm-search-modal .modal-header {
+    background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    color: white;
+    padding: 14px 20px;
+    border: none;
+}
+
+.cm-search-modal .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.cm-search-modal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.cm-search-modal .btn-close:hover {
+    opacity: 1;
+}
+
+.cm-search-modal .modal-body {
+    padding: 0;
+}
+
+.cm-search-modal .search-filters {
+    padding: 16px 20px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.cm-search-modal .search-filters .row {
+    gap: 12px;
+}
+
+.cm-search-modal .search-filters .col {
+    flex: 1;
+}
+
+.cm-search-modal .search-filters label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    display: block;
+    font-weight: 500;
+}
+
+.cm-search-modal .search-filters input,
+.cm-search-modal .search-filters select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    font-size: 13px;
+    background: white;
+}
+
+.cm-search-modal .search-filters input:focus,
+.cm-search-modal .search-filters select:focus {
+    outline: none;
+    border-color: #1e7cc4;
+    box-shadow: 0 0 0 3px rgba(30, 124, 196, 0.1);
+}
+
+.cm-search-modal .btn-search {
+    background: #0f6ba7;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cm-search-modal .btn-search:hover {
+    background: #0a4d75;
+}
+
+.cm-search-modal .btn-cancel {
+    background: #f5f5f5;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+    padding: 8px 20px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cm-search-modal .btn-cancel:hover {
+    background: #ffebee;
+}
+
+.cm-search-modal .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.cm-search-modal .results-table thead {
+    background: linear-gradient(to bottom, #4a90e2, #357abd);
+    color: white;
+}
+
+.cm-search-modal .results-table thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    border: none;
+}
+
+.cm-search-modal .results-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.cm-search-modal .results-table tbody tr:nth-child(even) {
+    background-color: #e8f4ff;
+}
+
+.cm-search-modal .results-table tbody tr:hover {
+    background-color: #d0e8ff !important;
+    cursor: pointer;
+}
+
+.cm-search-modal .results-table tbody tr.selected {
+    background-color: #bfe0ff !important;
+}
+
+.cm-search-modal .results-table tbody td {
+    padding: 10px 16px;
+    color: #333;
+}
+
+.cm-search-modal .modal-footer {
+    background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    padding: 12px 20px;
+    border: none;
+    text-align: center;
+}
+
+.cm-search-modal .btn-ok {
+    background: #e0e0e0;
+    color: #333;
+    border: 1px solid #999;
+    padding: 8px 24px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cm-search-modal .btn-ok:hover {
+    background: #d5d5d5;
+}
+
+.cm-search-modal .btn-ok:active {
+    background: #c5c5c5;
+}
+
+.form-row.two-col {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.form-row.two-col .col {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.form-row.two-col .col:empty {
+    display: none;
+}
 
 /* Warning (amber) - alerts, not labels */
 .label-warning,
@@ -958,14 +1297,14 @@ transition: all 0.2s ease;
 }
 
 .form-card {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
 .form-section {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -3115,6 +3454,11 @@ span[class*="label--blue"] {
     margin-bottom: 12px;
 }
 
+    .form-row.three-col .col[style*="span 3"],
+    .form-row.three-col .col.span-3 {
+        grid-column: span 3;
+    }
+
     .form-row.three-col .col {
         display: flex;
         flex-direction: column;
@@ -3157,6 +3501,13 @@ span[class*="label--blue"] {
         min-width: 0 !important;
         width: 100% !important;
         align-items: flex-start !important;
+    }
+
+    .form-row.four-col .col.span-4,
+    .form-card .form-row.four-col .col.span-4,
+    .form-section--bts .form-row.four-col .col.span-4,
+    .form-section--bts .section-content .form-row.four-col .col.span-4 {
+        grid-column: 1 / -1 !important;
     }
 
         .form-row.four-col .col label {
@@ -3256,7 +3607,9 @@ span[class*="label--blue"] {
         .form-row.four-col .col[style*="span 3"],
         .form-row.four-col .col.span-3,
         .form-row.four-col .col[style*="span 2"],
-        .form-row.four-col .col.span-2 {
+        .form-row.four-col .col.span-2,
+        .form-row.three-col .col[style*="span 3"],
+        .form-row.three-col .col.span-3 {
             grid-column: span 1;
         }
 }
@@ -31912,6 +32265,65 @@ body[data-page="group-loan-projection"] {
     opacity: 0;
     overflow: hidden;
     border-top: none;
+}
+
+.form-section--bts[data-section="meeting-details"] .section-content {
+    padding-bottom: 24px;
+}
+
+.form-section--bts[data-section="meeting-details"] .form-row.four-col:last-child {
+    margin-bottom: 28px !important;
+}
+
+.form-section--bts[data-section="group-snapshot"] > .section-header {
+    margin-top: 12px !important;
+}
+
+.window[data-page="group-maintenance"] .form-section {
+    flex: 0 0 auto;
+}
+
+body[data-page="group-bank-details"] .form-card,
+body[data-page="group-bank-details"] .form-section {
+    flex: 0 0 auto !important;
+}
+
+body[data-page="group-bank-details"] .form-section {
+    overflow: visible !important;
+}
+
+body[data-page="group-bank-details"] .form-content {
+    overflow-y: auto !important;
+}
+
+/* Keep Group Bank Details aligned with Group Maintenance form behavior */
+body[data-page="group-bank-details"] .form-row.three-col {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+body[data-page="group-bank-details"] .form-row.three-col .col {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-width: 0;
+}
+
+body[data-page="group-bank-details"] .form-row.three-col .col label {
+    min-width: 0;
+    text-align: left;
+    margin-bottom: 4px;
+}
+
+body[data-page="group-bank-details"] .form-row.three-col .col input,
+body[data-page="group-bank-details"] .form-row.three-col .col select,
+body[data-page="group-bank-details"] .form-row.three-col .col textarea {
+    width: 100%;
+    max-width: none;
 }
 
 /* ============================================================================

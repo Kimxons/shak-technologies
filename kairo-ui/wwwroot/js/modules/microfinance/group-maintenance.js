@@ -213,7 +213,10 @@ const LOOKUP_HANDLERS = {
     PrimaryScheme: () => handlePrimarySchemeSearch(),
     CreditOfficer: () => handleCreditOfficerSearch(),
     GroupFormedBy: () => handleGroupFormedBySearch(),
-    Ngo: () => handleNgoSearch()
+    Ngo: () => handleNgoSearch(),
+    GroupLeader1: () => handleGroupLeader1Search(),
+    GroupLeader2: () => handleGroupLeader2Search(),
+    GroupLeader3: () => handleGroupLeader3Search()
 };
 
 function wireLookupButtons() {
@@ -260,6 +263,28 @@ function hideCenterCreatedMessage() {
     }
 }
 
+function resetFormStateToDefault() {
+    isAddMode = false;
+    isEditMode = false;
+    setEditMode(false);
+    clearCenterFields();
+    hideCenterCreatedMessage();
+
+    const btnAdd = document.querySelector('.btn-action[onclick*="handleAdd"]');
+    const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
+    const btnDelete = document.querySelector('.btn-action[onclick*="handleDelete"]');
+    const btnSave = document.querySelector('.btn-action[data-action="save"]');
+    const btnPrev = document.querySelector('.btn-action[onclick*="handleNavigatePrevious"]');
+    const btnNext = document.querySelector('.btn-action[onclick*="handleNavigateNext"]');
+
+    if (btnAdd) btnAdd.disabled = false;
+    if (btnEdit) btnEdit.disabled = true;
+    if (btnDelete) btnDelete.disabled = true;
+    if (btnSave) btnSave.disabled = true;
+    if (btnPrev) btnPrev.disabled = true;
+    if (btnNext) btnNext.disabled = true;
+}
+
 function clearCenterFields() {
     const fieldsToClear = [
         'centerId', 'centerName', 'centerProductId', 'centerProductName',
@@ -268,9 +293,10 @@ function clearCenterFields() {
         'ngoId', 'ngoName', 'formationDate', 'firstMeetingDate', 'nextMeetingDate',
         'meetingDay', 'groupClass', 'totalSavingsAcs', 'totalSavingsBalance',
         'totalLoanAcs', 'totalLoanBalance', 'zeroBalance', 'loanCycleType', 'loanCycleNo',
-        'savingOsLoan', 'meetingFrequency', 'createdBy', 'modifiedBy', 'supervisedBy',
-        'createdOn', 'modifiedOn', 'supervisedOn', 'status', 'statusReason',
-        'firstDay', 'nextDay', 'meetingTime', 'meetingPlace'
+        'savingOsLoan', 'meetingFrequency', 'status', 'statusReason',
+        'firstDay', 'nextDay', 'meetingTime', 'meetingPlace',
+        'groupLeader1', 'groupLeader1Name', 'groupLeader2', 'groupLeader2Name',
+        'groupLeader3', 'groupLeader3Name', 'totalMembers'
     ];
 
     fieldsToClear.forEach(fieldId => {
@@ -280,6 +306,32 @@ function clearCenterFields() {
         }
     });
 
+    // Clear audit trail (span elements)
+    const auditFields = ['createdBy', 'createdOn', 'modifiedBy', 'modifiedOn', 'supervisedBy', 'supervisedOn'];
+    auditFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            element.textContent = '-';
+        }
+    });
+
+    // Reset currentCenter
+    currentCenter = null;
+    window.currentCenter = null;
+
+    // Disable Edit, Delete, Prev, Next buttons when fields are cleared
+    const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
+    const btnDelete = document.querySelector('.btn-action[onclick*="handleDelete"]');
+    const btnPrev = document.querySelector('.btn-action[onclick*="handleNavigatePrevious"]');
+    const btnNext = document.querySelector('.btn-action[onclick*="handleNavigateNext"]');
+
+    if (!isAddMode) {
+        if (btnEdit) btnEdit.disabled = true;
+        if (btnDelete) btnDelete.disabled = true;
+        if (btnPrev) btnPrev.disabled = true;
+        if (btnNext) btnNext.disabled = true;
+    }
+
     if (!isAddMode) {
         document.getElementById('centerName')?.setAttribute('readonly', 'readonly');
     }
@@ -287,6 +339,11 @@ function clearCenterFields() {
 
 function extractDateForInput(dateString) {
     if (!dateString) return '';
+
+    if (window.GlobalUtils?.parseDateInput) {
+        const parsed = window.GlobalUtils.parseDateInput(dateString);
+        if (parsed) return parsed;
+    }
 
     try {
         if (dateString.includes('T')) {
@@ -311,6 +368,25 @@ function extractDateForInput(dateString) {
         return '';
     } catch (e) {
         return '';
+    }
+}
+
+function formatDateDisplay(dateString) {
+    if (!dateString) return '';
+
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+        return dateString;
+    } catch (e) {
+        return dateString;
     }
 }
 
@@ -385,6 +461,173 @@ function wireChildFormLinks() {
     });
 }
 
+function setFormSectionCollapsed(section, isCollapsed) {
+    if (!section) return;
+    const content = section.querySelector('[data-section-content]');
+    const toggleBtn = section.querySelector('.section-toggle-btn');
+    const icon = toggleBtn?.querySelector('i');
+
+    section.classList.toggle('collapsed', Boolean(isCollapsed));
+    if (content) content.hidden = Boolean(isCollapsed);
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    if (icon) icon.className = isCollapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+}
+
+function wireSectionToggles() {
+    document.querySelectorAll('.form-section [data-section-toggle]').forEach(header => {
+        if (header.dataset.sectionToggleWired === 'true') return;
+
+        header.addEventListener('click', (event) => {
+            if (event.target.closest('button') && !event.target.closest('.section-toggle-btn')) return;
+
+            const section = header.closest('.form-section');
+            if (!section) return;
+            const shouldCollapse = !section.classList.contains('collapsed');
+            setFormSectionCollapsed(section, shouldCollapse);
+        });
+
+        header.dataset.sectionToggleWired = 'true';
+    });
+
+    document.querySelectorAll('.form-section').forEach(section => {
+        const content = section.querySelector('[data-section-content]');
+        const toggleBtn = section.querySelector('.section-toggle-btn');
+        const isCollapsed = section.classList.contains('collapsed')
+            || content?.hidden === true
+            || toggleBtn?.getAttribute('aria-expanded') === 'false';
+        setFormSectionCollapsed(section, isCollapsed);
+    });
+}
+
+function setNavSectionOpen(sectionEl, isOpen) {
+    if (!sectionEl) return;
+    sectionEl.classList.toggle('is-open', Boolean(isOpen));
+    sectionEl.classList.toggle('expanded', Boolean(isOpen));
+
+    const toggle = sectionEl.querySelector('.nav-arrow, .nav-arrow--card');
+    const items = sectionEl.querySelector('.nav-items, .nav-items--card');
+
+    if (toggle) toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (items) {
+        items.removeAttribute('hidden');
+        const sidebar = document.getElementById('main-sidebar');
+        if (sidebar && sidebar.classList.contains('collapsed')) return;
+
+        if (isOpen) {
+            items.classList.add('is-visible');
+            items.style.pointerEvents = 'auto';
+        } else {
+            items.classList.remove('is-visible');
+            items.style.pointerEvents = 'none';
+        }
+    }
+}
+
+function wireNavSections() {
+    const sections = Array.from(document.querySelectorAll('[data-nav-section]'));
+    sections.forEach(section => {
+        const header = section.querySelector('.nav-header, .nav-header--card');
+        const navArrow = section.querySelector('.nav-arrow, .nav-arrow--card');
+        if (!header || header.dataset.navSectionWired === 'true') return;
+
+        const toggleSection = (e) => {
+            if (e) e.preventDefault();
+            if (e && e.target.closest('.nav-badge') && !e.target.closest('.nav-arrow')) return;
+
+            const sidebar = document.getElementById('main-sidebar');
+            const mainContainer = document.querySelector('.main-container');
+            const toggle = document.getElementById('sidebarToggle');
+            const isCollapsed = sidebar && sidebar.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                sidebar.classList.remove('collapsed');
+                if (mainContainer) mainContainer.classList.remove('sidebar-collapsed');
+                if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            }
+
+            const willOpen = !section.classList.contains('is-open');
+            sections.forEach(s => setNavSectionOpen(s, false));
+            setNavSectionOpen(section, willOpen);
+        };
+
+        header.addEventListener('click', toggleSection);
+        if (navArrow) {
+            navArrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSection(e);
+            });
+        }
+
+        header.dataset.navSectionWired = 'true';
+    });
+
+    sections.forEach(section => {
+        const initiallyOpen = section.classList.contains('is-open');
+        setNavSectionOpen(section, initiallyOpen);
+    });
+}
+
+function wireSidebarToggle() {
+    const sidebar = document.getElementById('main-sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const mainContainer = document.querySelector('.main-container');
+    if (!sidebar || !toggle) return;
+
+    toggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        const isCollapsed = sidebar.classList.contains('collapsed');
+
+        if (isCollapsed) {
+            sidebar.classList.remove('collapsed');
+            if (mainContainer) mainContainer.classList.remove('sidebar-collapsed');
+            toggle.setAttribute('aria-expanded', 'true');
+            document.querySelectorAll('.nav-section--card').forEach(section => {
+                const items = section.querySelector('.nav-items--card');
+                if (items) {
+                    const isSectionOpen = section.classList.contains('is-open');
+                    items.hidden = !isSectionOpen;
+                }
+            });
+        } else {
+            sidebar.classList.add('collapsed');
+            if (mainContainer) mainContainer.classList.add('sidebar-collapsed');
+            toggle.setAttribute('aria-expanded', 'false');
+            document.querySelectorAll('.nav-items--card').forEach(items => {
+                items.hidden = false;
+            });
+        }
+    });
+}
+
+function wireSidebarSearch() {
+    const input = document.getElementById('submoduleSearch');
+    const clearBtn = document.getElementById('submoduleSearchClear');
+    if (!input) return;
+
+    const items = Array.from(document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced'));
+
+    const applyFilter = () => {
+        const query = input.value.trim().toLowerCase();
+        items.forEach(item => {
+            const text = item.textContent ? item.textContent.toLowerCase() : '';
+            item.style.display = text.includes(query) ? '' : 'none';
+        });
+        if (clearBtn) clearBtn.hidden = query.length === 0;
+    };
+
+    input.addEventListener('input', applyFilter);
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            applyFilter();
+            input.focus();
+        });
+        clearBtn.hidden = true;
+    }
+}
+
 async function initializeCenterMaintenance() {
     if (window.ServiceLoader?.loadCore) {
         await window.ServiceLoader.loadCore();
@@ -413,6 +656,10 @@ async function initializeCenterMaintenance() {
     setupEventListeners();
     wireLookupButtons();
     wireChildFormLinks();
+    wireSectionToggles();
+    wireNavSections();
+    wireSidebarToggle();
+    wireSidebarSearch();
 
     const maxDate = window.Environment?.workingDate || getLocalDateString();
     const formationDateInput = document.getElementById('formationDate');
@@ -480,13 +727,18 @@ function populateGroupClassDropdown(options) {
 
 function setupEventListeners() {
     document.getElementById('centerId').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleCenterSearch();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!isAddMode && !isEditMode) {
+                handleView();
+            }
+        }
     });
 
     document.getElementById('centerId').addEventListener('change', () => {
         const centerId = document.getElementById('centerId').value.trim();
         const branchId = document.getElementById('branchId').value.trim();
-        if (centerId && branchId && !isAddMode) {
+        if (centerId && branchId && !isAddMode && !isEditMode) {
             handleView();
         }
     });
@@ -499,7 +751,7 @@ function setupEventListeners() {
             await fetchBranchDetails(branchId);
         }
 
-        if (centerId && branchId && !isAddMode) {
+        if (centerId && branchId && !isAddMode && !isEditMode) {
             handleView();
         }
     });
@@ -543,6 +795,947 @@ function setupEventListeners() {
         }
     });
 
+    document.getElementById('ngoId').addEventListener('blur', async (e) => {
+        const ngoId = e.target.value.trim();
+        if (ngoId && window.LookupService) {
+            await fetchNgoDetails(ngoId);
+        }
+    });
+
+    // Status change handler - enable/disable reason field
+    document.getElementById('status').addEventListener('change', handleStatusChange);
+
+    // Meeting frequency change handler
+    document.getElementById('meetingFrequency').addEventListener('change', handleMeetingFrequencyChange);
+
+    // Meeting day change handler
+    document.getElementById('meetingDay').addEventListener('change', handleMeetingDayChange);
+
+    // First meeting date change handler
+    document.getElementById('firstMeetingDate').addEventListener('change', calculateMeetingDates);
+
+    // First day and next day change handlers for bimonthly/monthly calculations
+    document.getElementById('firstDay').addEventListener('change', calculateMeetingDates);
+    document.getElementById('nextDay').addEventListener('change', calculateMeetingDates);
+
+    // Status reason character limit
+    document.getElementById('statusReason')?.addEventListener('keypress', handleReasonLength);
+    document.getElementById('statusReason')?.addEventListener('paste', handleReasonLength);
+
+    // Center ID uppercase conversion
+    document.getElementById('centerId').addEventListener('keypress', convertToUppercase);
+
+    // Meeting time validation on blur
+    document.getElementById('meetingTime').addEventListener('blur', validateMeetingTime);
+
+    // Group Leader blur events (if fields exist)
+    const groupLeader1 = document.getElementById('groupLeader1');
+    const groupLeader2 = document.getElementById('groupLeader2');
+    const groupLeader3 = document.getElementById('groupLeader3');
+
+    if (groupLeader1) {
+        groupLeader1.addEventListener('blur', async (e) => {
+            const clientId = e.target.value.trim();
+            if (clientId && window.LookupService) {
+                await fetchGroupLeaderDetails(clientId, 1);
+            }
+        });
+    }
+
+    if (groupLeader2) {
+        groupLeader2.addEventListener('blur', async (e) => {
+            const clientId = e.target.value.trim();
+            if (clientId && window.LookupService) {
+                await fetchGroupLeaderDetails(clientId, 2);
+            }
+        });
+    }
+
+    if (groupLeader3) {
+        groupLeader3.addEventListener('blur', async (e) => {
+            const clientId = e.target.value.trim();
+            if (clientId && window.LookupService) {
+                await fetchGroupLeaderDetails(clientId, 3);
+            }
+        });
+    }
+
+}
+
+// ---------------------------------------------------------------------------
+// BUSINESS LOGIC IMPLEMENTATIONS (from legacy system)
+// ---------------------------------------------------------------------------
+
+/**
+ * Validates meeting time format (HH.MM where HH: 0-23, MM: 0-59)
+ * Legacy: fnTimeZoneDiff
+ */
+function validateMeetingTime() {
+    const meetingTimeInput = document.getElementById('meetingTime');
+    if (!meetingTimeInput) return true;
+
+    const timeValue = meetingTimeInput.value.trim();
+    if (!timeValue) return true;
+
+    // Parse time in format HHMM or HH.MM
+    let hours, minutes;
+    
+    if (timeValue.includes('.')) {
+        const parts = timeValue.split('.');
+        hours = parseInt(parts[0], 10);
+        minutes = parseInt(parts[1], 10);
+    } else if (timeValue.length === 4) {
+        hours = parseInt(timeValue.substring(0, 2), 10);
+        minutes = parseInt(timeValue.substring(2, 4), 10);
+    } else if (timeValue.length === 3) {
+        hours = parseInt(timeValue.substring(0, 1), 10);
+        minutes = parseInt(timeValue.substring(1, 3), 10);
+    } else {
+        hours = parseInt(timeValue, 10);
+        minutes = 0;
+    }
+
+    if (isNaN(hours) || isNaN(minutes)) {
+        showSnackbar('Invalid meeting time format. Use HH.MM (e.g., 09.30)', 'error');
+        meetingTimeInput.focus();
+        return false;
+    }
+
+    if (hours < 0 || hours > 23) {
+        showSnackbar('Hours must be between 0 and 23', 'error');
+        meetingTimeInput.focus();
+        return false;
+    }
+
+    if (minutes < 0 || minutes > 59) {
+        showSnackbar('Minutes must be between 0 and 59', 'error');
+        meetingTimeInput.focus();
+        return false;
+    }
+
+    // Format the time correctly
+    const formattedTime = `${String(hours).padStart(2, '0')}.${String(minutes).padStart(2, '0')}`;
+    meetingTimeInput.value = formattedTime;
+
+    return true;
+}
+
+/**
+ * Handles status change - enables/disables reason field
+ * Legacy: fnStatusChange
+ */
+function handleStatusChange() {
+    const statusInput = document.getElementById('status');
+    const reasonInput = document.getElementById('statusReason');
+    
+    if (!statusInput || !reasonInput || !currentCenter) return;
+
+    const originalStatus = currentCenter.GroupStatusID || 'A';
+    const newStatus = statusInput.value;
+
+    if (originalStatus !== newStatus) {
+        // Status changed - enable reason field
+        reasonInput.removeAttribute('readonly');
+        reasonInput.disabled = false;
+        reasonInput.required = true;
+    } else {
+        // Status unchanged - disable reason field
+        reasonInput.setAttribute('readonly', 'readonly');
+        reasonInput.disabled = true;
+        reasonInput.required = false;
+        reasonInput.value = '';
+    }
+}
+
+/**
+ * Limits reason field to 255 characters
+ * Legacy: fnChkReasonLength
+ */
+function handleReasonLength(event) {
+    const reasonInput = document.getElementById('statusReason');
+    if (!reasonInput) return;
+
+    const currentLength = reasonInput.value.length;
+    
+    if (event.type === 'keypress') {
+        if (currentLength >= 255 && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault();
+            showSnackbar('Reason cannot exceed 255 characters', 'warning');
+            return false;
+        }
+    } else if (event.type === 'paste') {
+        setTimeout(() => {
+            if (reasonInput.value.length > 255) {
+                reasonInput.value = reasonInput.value.substring(0, 255);
+                showSnackbar('Reason truncated to 255 characters', 'warning');
+            }
+        }, 0);
+    }
+}
+
+/**
+ * Converts input to uppercase (for Center ID)
+ * Legacy: txtGroupID_KeyPress
+ */
+function convertToUppercase(event) {
+    if (event.key && event.key.length === 1) {
+        event.preventDefault();
+        const input = event.target;
+        const char = event.key.toUpperCase();
+        
+        // Only allow alphanumeric
+        if (/[A-Z0-9]/.test(char)) {
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const currentValue = input.value;
+            input.value = currentValue.substring(0, start) + char + currentValue.substring(end);
+            input.selectionStart = input.selectionEnd = start + 1;
+        }
+    }
+}
+
+/**
+ * Handles meeting frequency change
+ * Legacy: fnOnChangeMeeting
+ */
+function handleMeetingFrequencyChange() {
+    const frequencyInput = document.getElementById('meetingFrequency');
+    const meetingDayInput = document.getElementById('meetingDay');
+    const firstDayInput = document.getElementById('firstDay');
+    const nextDayInput = document.getElementById('nextDay');
+    
+    if (!frequencyInput) return;
+
+    const frequency = frequencyInput.value?.toUpperCase();
+
+    // Enable/disable fields based on frequency
+    if (frequency === 'W') {
+        // Weekly - only meeting day
+        meetingDayInput?.removeAttribute('readonly');
+        meetingDayInput?.removeAttribute('disabled');
+        firstDayInput?.setAttribute('readonly', 'readonly');
+        nextDayInput?.setAttribute('readonly', 'readonly');
+        firstDayInput.value = '';
+        nextDayInput.value = '';
+    } else if (frequency === 'M' || frequency === 'B') {
+        // Monthly or Bimonthly - first day and next day
+        meetingDayInput?.setAttribute('readonly', 'readonly');
+        firstDayInput?.removeAttribute('readonly');
+        firstDayInput?.removeAttribute('disabled');
+        nextDayInput?.removeAttribute('readonly');
+        nextDayInput?.removeAttribute('disabled');
+    } else {
+        // Enable all
+        meetingDayInput?.removeAttribute('readonly');
+        meetingDayInput?.removeAttribute('disabled');
+        firstDayInput?.removeAttribute('readonly');
+        firstDayInput?.removeAttribute('disabled');
+        nextDayInput?.removeAttribute('readonly');
+        nextDayInput?.removeAttribute('disabled');
+    }
+
+    calculateMeetingDates();
+}
+
+/**
+ * Handles meeting day change
+ * Legacy: fnOnChangeMeetingDay
+ */
+function handleMeetingDayChange() {
+    calculateMeetingDates();
+}
+
+/**
+ * Calculates next meeting date based on frequency and first meeting date
+ * Legacy: fnCommon, fnCalNextMeetingDate, fnCalBimonthlyDate
+ */
+function calculateMeetingDates() {
+    const firstMeetingDateInput = document.getElementById('firstMeetingDate');
+    const nextMeetingDateInput = document.getElementById('nextMeetingDate');
+    const frequencyInput = document.getElementById('meetingFrequency');
+    const meetingDayInput = document.getElementById('meetingDay');
+    const firstDayInput = document.getElementById('firstDay');
+    const nextDayInput = document.getElementById('nextDay');
+
+    if (!firstMeetingDateInput || !nextMeetingDateInput || !frequencyInput) return;
+
+    const firstMeetingDate = firstMeetingDateInput.value;
+    if (!firstMeetingDate) return;
+
+    const frequency = frequencyInput.value?.toUpperCase();
+    const meetingDay = meetingDayInput?.value;
+    const firstDay = parseInt(firstDayInput?.value, 10);
+    const nextDay = parseInt(nextDayInput?.value, 10);
+
+    let nextMeetingDate = null;
+
+    try {
+        const firstDate = new Date(firstMeetingDate);
+
+        if (frequency === 'W') {
+            // Weekly - add 7 days
+            nextMeetingDate = new Date(firstDate);
+            nextMeetingDate.setDate(firstDate.getDate() + 7);
+        } else if (frequency === 'B' || frequency === 'F') {
+            // Biweekly/Fortnightly - add 14 days
+            nextMeetingDate = new Date(firstDate);
+            nextMeetingDate.setDate(firstDate.getDate() + 14);
+        } else if (frequency === 'M') {
+            // Monthly - calculate based on first day and next day
+            if (!isNaN(firstDay) && !isNaN(nextDay)) {
+                const currentDay = firstDate.getDate();
+                nextMeetingDate = new Date(firstDate);
+
+                if (currentDay === firstDay) {
+                    // Next meeting is on nextDay of same month if nextDay > firstDay
+                    if (nextDay > firstDay) {
+                        nextMeetingDate.setDate(nextDay);
+                    } else {
+                        // Next meeting is on nextDay of next month
+                        nextMeetingDate.setMonth(firstDate.getMonth() + 1);
+                        nextMeetingDate.setDate(nextDay);
+                    }
+                } else if (currentDay === nextDay) {
+                    // Next meeting is on firstDay of next month
+                    nextMeetingDate.setMonth(firstDate.getMonth() + 1);
+                    nextMeetingDate.setDate(firstDay);
+                } else {
+                    // Find next occurrence
+                    if (currentDay < firstDay) {
+                        nextMeetingDate.setDate(firstDay);
+                    } else if (currentDay < nextDay) {
+                        nextMeetingDate.setDate(nextDay);
+                    } else {
+                        nextMeetingDate.setMonth(firstDate.getMonth() + 1);
+                        nextMeetingDate.setDate(firstDay);
+                    }
+                }
+            }
+        } else if (frequency === 'BM') {
+            // Bimonthly - add 2 months
+            if (!isNaN(firstDay) && !isNaN(nextDay)) {
+                nextMeetingDate = new Date(firstDate);
+                const currentDay = firstDate.getDate();
+
+                if (currentDay === firstDay) {
+                    if (nextDay > firstDay) {
+                        nextMeetingDate.setDate(nextDay);
+                    } else {
+                        nextMeetingDate.setMonth(firstDate.getMonth() + 2);
+                        nextMeetingDate.setDate(nextDay);
+                    }
+                } else if (currentDay === nextDay) {
+                    nextMeetingDate.setMonth(firstDate.getMonth() + 2);
+                    nextMeetingDate.setDate(firstDay);
+                } else {
+                    nextMeetingDate.setMonth(firstDate.getMonth() + 2);
+                    nextMeetingDate.setDate(firstDay);
+                }
+            }
+        } else if (frequency === 'D') {
+            // Daily - add 1 day
+            nextMeetingDate = new Date(firstDate);
+            nextMeetingDate.setDate(firstDate.getDate() + 1);
+        }
+
+        // Set the calculated next meeting date
+        if (nextMeetingDate) {
+            const year = nextMeetingDate.getFullYear();
+            const month = String(nextMeetingDate.getMonth() + 1).padStart(2, '0');
+            const day = String(nextMeetingDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            setDateInputValue(nextMeetingDateInput, formattedDate);
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Error calculating next meeting date:', error);
+    }
+}
+
+/**
+ * Fetch Group Product details and populate related fields
+ * Legacy: GroupProductClass_CallBack
+ */
+async function fetchGroupProductDetails(productId) {
+    try {
+        if (!window.LookupService) {
+            console.warn('[GroupMaintenance] LookupService not available');
+            return;
+        }
+
+        console.log('[GroupMaintenance] Fetching product details for:', productId);
+        
+        // Call the lookup service to get product details
+        const requestData = {
+            BankID: '00',
+            GroupProductID: productId
+        };
+
+        let response = null;
+        if (window.LookupService.getGroupProductDetails) {
+            response = await window.LookupService.getGroupProductDetails(requestData);
+        } else {
+            response = await callMicroFinanceOldApi('dbo.p_GetGroupProductDetails', requestData);
+        }
+
+        const rows = unwrapOldApiRows(response?.data ?? response);
+        
+        if (rows.length > 0) {
+            const product = rows[0];
+            document.getElementById('centerProductName').value = product.GroupProductName 
+                || product.ProductName 
+                || product.Description 
+                || '';
+
+            // Populate primary scheme if available
+            if (product.DefaultLoanSchemeID) {
+                document.getElementById('primarySchemeId').value = product.DefaultLoanSchemeID;
+                document.getElementById('primarySchemeName').value = product.DefaultLoanScheme 
+                    || product.DefaultSchemeName 
+                    || '';
+            }
+        } else {
+            document.getElementById('centerProductName').value = '';
+            showSnackbar('Product not found', 'warning');
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Error fetching product details:', error);
+        document.getElementById('centerProductName').value = '';
+        showSnackbar('Error fetching product details', 'error');
+    }
+}
+
+/**
+ * Fetch Scheme details
+ */
+async function fetchSchemeDetails(schemeId) {
+    try {
+        if (!window.LookupService) {
+            console.warn('[GroupMaintenance] LookupService not available');
+            return;
+        }
+
+        console.log('[GroupMaintenance] Fetching scheme details for:', schemeId);
+        
+        const requestData = {
+            BankID: '00',
+            LoanSchemeID: schemeId
+        };
+
+        let response = null;
+        if (window.LookupService.getSchemeDetails) {
+            response = await window.LookupService.getSchemeDetails(requestData);
+        } else {
+            response = await callMicroFinanceOldApi('dbo.p_GetSchemeDetails', requestData);
+        }
+
+        const rows = unwrapOldApiRows(response?.data ?? response);
+        
+        if (rows.length > 0) {
+            const scheme = rows[0];
+            document.getElementById('primarySchemeName').value = scheme.Description 
+                || scheme.LoanSchemeName 
+                || scheme.Name 
+                || '';
+        } else {
+            document.getElementById('primarySchemeName').value = '';
+            showSnackbar('Scheme not found', 'warning');
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Error fetching scheme details:', error);
+        document.getElementById('primarySchemeName').value = '';
+        showSnackbar('Error fetching scheme details', 'error');
+    }
+}
+
+/**
+ * Fetch Officer details (Credit Officer or Group Formed By)
+ */
+async function fetchOfficerDetails(officerId, fieldType) {
+    try {
+        if (!window.LookupService) {
+            console.warn('[GroupMaintenance] LookupService not available');
+            return;
+        }
+
+        console.log('[GroupMaintenance] Fetching officer details for:', officerId, fieldType);
+        
+        const branchId = document.getElementById('branchId')?.value?.trim() || '';
+        const requestData = {
+            BankID: '00',
+            OfficerID: officerId,
+            BranchID: branchId
+        };
+
+        let response = null;
+        if (window.LookupService.getOfficerDetails) {
+            response = await window.LookupService.getOfficerDetails(requestData);
+        } else {
+            response = await callMicroFinanceOldApi('dbo.p_GetOfficerDetails', requestData);
+        }
+
+        const rows = unwrapOldApiRows(response?.data ?? response);
+        
+        if (rows.length > 0) {
+            const officer = rows[0];
+            const officerName = officer.Name || officer.OfficerName || officer.Description || '';
+            
+            if (fieldType === 'creditOfficer') {
+                document.getElementById('creditOfficerName').value = officerName;
+            } else if (fieldType === 'groupFormedBy') {
+                document.getElementById('groupFormedByName').value = officerName;
+            }
+        } else {
+            if (fieldType === 'creditOfficer') {
+                document.getElementById('creditOfficerName').value = '';
+            } else if (fieldType === 'groupFormedBy') {
+                document.getElementById('groupFormedByName').value = '';
+            }
+            showSnackbar('Officer not found', 'warning');
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Error fetching officer details:', error);
+        if (fieldType === 'creditOfficer') {
+            document.getElementById('creditOfficerName').value = '';
+        } else if (fieldType === 'groupFormedBy') {
+            document.getElementById('groupFormedByName').value = '';
+        }
+        showSnackbar('Error fetching officer details', 'error');
+    }
+}
+
+/**
+ * Fetch NGO details
+ */
+async function fetchNgoDetails(ngoId) {
+    try {
+        if (!window.LookupService) {
+            console.warn('[GroupMaintenance] LookupService not available');
+            return;
+        }
+
+        console.log('[GroupMaintenance] Fetching NGO details for:', ngoId);
+        
+        const branchId = document.getElementById('branchId')?.value?.trim() || '';
+        const requestData = {
+            BankID: '00',
+            NGOID: ngoId,
+            BranchID: branchId
+        };
+
+        let response = null;
+        if (window.LookupService.getNgoDetails) {
+            response = await window.LookupService.getNgoDetails(requestData);
+        } else {
+            response = await callMicroFinanceOldApi('dbo.p_GetNGODetails', requestData);
+        }
+
+        const rows = unwrapOldApiRows(response?.data ?? response);
+        
+        if (rows.length > 0) {
+            const ngo = rows[0];
+            document.getElementById('ngoName').value = ngo.NGOName || ngo.Name || ngo.Description || '';
+        } else {
+            document.getElementById('ngoName').value = '';
+            showSnackbar('NGO not found', 'warning');
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Error fetching NGO details:', error);
+        document.getElementById('ngoName').value = '';
+        showSnackbar('Error fetching NGO details', 'error');
+    }
+}
+
+/**
+ * Enhanced validation before save
+ * Legacy: fnIsValid
+ */
+function validateBeforeSave() {
+    const branchId = document.getElementById('branchId')?.value?.trim();
+    const centerName = document.getElementById('centerName')?.value?.trim();
+    const centerProductId = document.getElementById('centerProductId')?.value?.trim();
+    const primarySchemeId = document.getElementById('primarySchemeId')?.value?.trim();
+    const creditOfficer = document.getElementById('creditOfficer')?.value?.trim();
+    const groupFormedBy = document.getElementById('groupFormedBy')?.value?.trim();
+    const formationDate = document.getElementById('formationDate')?.value;
+    const firstMeetingDate = document.getElementById('firstMeetingDate')?.value;
+    const groupClass = document.getElementById('groupClass')?.value;
+    const meetingDay = document.getElementById('meetingDay')?.value;
+    const meetingTime = document.getElementById('meetingTime')?.value?.trim();
+    const frequencyInput = document.getElementById('meetingFrequency');
+    const nextMeetingDate = document.getElementById('nextMeetingDate')?.value;
+    const firstDay = document.getElementById('firstDay')?.value?.trim();
+    const nextDay = document.getElementById('nextDay')?.value?.trim();
+
+    // Basic required field validations
+    if (!branchId) {
+        showSnackbar('Branch ID is required', 'error');
+        document.getElementById('branchId')?.focus();
+        return false;
+    }
+
+    if (!centerName) {
+        showSnackbar('Center Name is required', 'error');
+        document.getElementById('centerName')?.focus();
+        return false;
+    }
+
+    if (!centerProductId) {
+        showSnackbar('Center Product is required', 'error');
+        document.getElementById('centerProductId')?.focus();
+        return false;
+    }
+
+    if (!primarySchemeId) {
+        showSnackbar('Primary Scheme is required', 'error');
+        document.getElementById('primarySchemeId')?.focus();
+        return false;
+    }
+
+    if (!creditOfficer) {
+        showSnackbar('Credit Officer is required', 'error');
+        document.getElementById('creditOfficer')?.focus();
+        return false;
+    }
+
+    if (!groupFormedBy) {
+        showSnackbar('Group Formed By is required', 'error');
+        document.getElementById('groupFormedBy')?.focus();
+        return false;
+    }
+
+    if (!formationDate) {
+        showSnackbar('Formation Date is required', 'error');
+        document.getElementById('formationDate')?.focus();
+        return false;
+    }
+
+    // Validate formation date is not in future
+    const formDate = new Date(formationDate);
+    const workingDate = new Date(window.Environment?.workingDate || getLocalDateString());
+    if (formDate > workingDate) {
+        showSnackbar('Formation Date cannot be in the future', 'error');
+        document.getElementById('formationDate')?.focus();
+        return false;
+    }
+
+    if (!firstMeetingDate) {
+        showSnackbar('First Meeting Date is required', 'error');
+        document.getElementById('firstMeetingDate')?.focus();
+        return false;
+    }
+
+    // Validate first meeting date is after or equal to formation date
+    const firstMeetDate = new Date(firstMeetingDate);
+    if (firstMeetDate < formDate) {
+        showSnackbar('First Meeting Date cannot be before Formation Date', 'error');
+        document.getElementById('firstMeetingDate')?.focus();
+        return false;
+    }
+
+    if (!groupClass) {
+        showSnackbar('Group Class is required', 'error');
+        document.getElementById('groupClass')?.focus();
+        return false;
+    }
+
+    if (!meetingTime) {
+        showSnackbar('Meeting Time is required', 'error');
+        document.getElementById('meetingTime')?.focus();
+        return false;
+    }
+
+    // Validate meeting time format
+    if (!validateMeetingTime()) {
+        return false;
+    }
+
+    // Frequency-specific validations
+    const frequency = frequencyInput?.value?.toUpperCase();
+    
+    if (frequency === 'W') {
+        // Weekly - meeting day required
+        if (!meetingDay) {
+            showSnackbar('Meeting Day is required for weekly frequency', 'error');
+            document.getElementById('meetingDay')?.focus();
+            return false;
+        }
+    } else if (frequency === 'M' || frequency === 'BM') {
+        // Monthly/Bimonthly - first day and next day required
+        if (!firstDay) {
+            showSnackbar('First Day is required for monthly/bimonthly frequency', 'error');
+            document.getElementById('firstDay')?.focus();
+            return false;
+        }
+
+        if (!nextDay) {
+            showSnackbar('Next Day is required for monthly/bimonthly frequency', 'error');
+            document.getElementById('nextDay')?.focus();
+            return false;
+        }
+
+        const firstDayNum = parseInt(firstDay, 10);
+        const nextDayNum = parseInt(nextDay, 10);
+
+        if (firstDayNum < 1 || firstDayNum > 31) {
+            showSnackbar('First Day must be between 1 and 31', 'error');
+            document.getElementById('firstDay')?.focus();
+            return false;
+        }
+
+        if (nextDayNum < 1 || nextDayNum > 31) {
+            showSnackbar('Next Day must be between 1 and 31', 'error');
+            document.getElementById('nextDay')?.focus();
+            return false;
+        }
+
+        if (firstDayNum === nextDayNum) {
+            showSnackbar('First Day and Next Day cannot be the same', 'error');
+            document.getElementById('nextDay')?.focus();
+            return false;
+        }
+    }
+
+    // Validate next meeting date
+    if (nextMeetingDate) {
+        const nextMeetDate = new Date(nextMeetingDate);
+        if (nextMeetDate <= firstMeetDate) {
+            showSnackbar('Next Meeting Date must be after First Meeting Date', 'error');
+            document.getElementById('nextMeetingDate')?.focus();
+            return false;
+        }
+    }
+
+    // Status change reason validation
+    if (currentCenter && !isAddMode) {
+        const originalStatus = currentCenter.GroupStatusID || 'A';
+        const newStatus = document.getElementById('status')?.value;
+        const reason = document.getElementById('statusReason')?.value?.trim();
+
+        if (originalStatus !== newStatus && !reason) {
+            showSnackbar('Reason is required when changing status', 'error');
+            document.getElementById('statusReason')?.focus();
+            return false;
+        }
+    }
+
+    // Validate group leaders
+    if (!validateGroupLeaders()) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Group Leader Search Handlers
+ * Legacy: txtGroupLeader1_KeyDown, txtGroupLeader2_KeyDown, txtGroupLeader3_KeyDown
+ */
+function handleGroupLeader1Search() {
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    const branchId = document.getElementById('branchId')?.value?.trim();
+
+    if (!centerId || !branchId) {
+        showSnackbar('Please load a center first before selecting group leaders', 'warning');
+        return;
+    }
+
+    runLookupSearch({
+        requireEditMode: true,
+        editModeMessage: 'Group Leader search is only available in Add or Edit mode.',
+        requireBranch: true,
+        buildConfig: (brId) => ({
+            tableID: 'GroupClientID',
+            advFilterString: `OurBranchID='${brId}' AND GroupID='${centerId}' AND ClientStatusID='A'`
+        }),
+        onSelect: (row) => {
+            const clientId = String(getFieldValue(row, 'ClientID', 'ID')).trim();
+            const clientName = String(getFieldValue(row, 'ClientName', 'Name', 'Description')).trim();
+            if (!clientId) return;
+
+            // Check if already selected as another leader
+            const leader2 = document.getElementById('groupLeader2')?.value?.trim();
+            const leader3 = document.getElementById('groupLeader3')?.value?.trim();
+
+            if (clientId === leader2 || clientId === leader3) {
+                showSnackbar('This client is already selected as another group leader', 'error');
+                return;
+            }
+
+            document.getElementById('groupLeader1').value = clientId;
+            document.getElementById('groupLeader1Name').value = clientName;
+        }
+    });
+}
+
+function handleGroupLeader2Search() {
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    const branchId = document.getElementById('branchId')?.value?.trim();
+
+    if (!centerId || !branchId) {
+        showSnackbar('Please load a center first before selecting group leaders', 'warning');
+        return;
+    }
+
+    runLookupSearch({
+        requireEditMode: true,
+        editModeMessage: 'Group Leader search is only available in Add or Edit mode.',
+        requireBranch: true,
+        buildConfig: (brId) => ({
+            tableID: 'GroupClientID',
+            advFilterString: `OurBranchID='${brId}' AND GroupID='${centerId}' AND ClientStatusID='A'`
+        }),
+        onSelect: (row) => {
+            const clientId = String(getFieldValue(row, 'ClientID', 'ID')).trim();
+            const clientName = String(getFieldValue(row, 'ClientName', 'Name', 'Description')).trim();
+            if (!clientId) return;
+
+            // Check if already selected as another leader
+            const leader1 = document.getElementById('groupLeader1')?.value?.trim();
+            const leader3 = document.getElementById('groupLeader3')?.value?.trim();
+
+            if (clientId === leader1 || clientId === leader3) {
+                showSnackbar('This client is already selected as another group leader', 'error');
+                return;
+            }
+
+            document.getElementById('groupLeader2').value = clientId;
+            document.getElementById('groupLeader2Name').value = clientName;
+        }
+    });
+}
+
+function handleGroupLeader3Search() {
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    const branchId = document.getElementById('branchId')?.value?.trim();
+
+    if (!centerId || !branchId) {
+        showSnackbar('Please load a center first before selecting group leaders', 'warning');
+        return;
+    }
+
+    runLookupSearch({
+        requireEditMode: true,
+        editModeMessage: 'Group Leader search is only available in Add or Edit mode.',
+        requireBranch: true,
+        buildConfig: (brId) => ({
+            tableID: 'GroupClientID',
+            advFilterString: `OurBranchID='${brId}' AND GroupID='${centerId}' AND ClientStatusID='A'`
+        }),
+        onSelect: (row) => {
+            const clientId = String(getFieldValue(row, 'ClientID', 'ID')).trim();
+            const clientName = String(getFieldValue(row, 'ClientName', 'Name', 'Description')).trim();
+            if (!clientId) return;
+
+            // Check if already selected as another leader
+            const leader1 = document.getElementById('groupLeader1')?.value?.trim();
+            const leader2 = document.getElementById('groupLeader2')?.value?.trim();
+
+            if (clientId === leader1 || clientId === leader2) {
+                showSnackbar('This client is already selected as another group leader', 'error');
+                return;
+            }
+
+            document.getElementById('groupLeader3').value = clientId;
+            document.getElementById('groupLeader3Name').value = clientName;
+        }
+    });
+}
+
+/**
+ * Fetch Group Leader details by Client ID
+ * Legacy: txtGroupLeader1_GetDescription, txtGroupLeader2_GetDescription, txtGroupLeader3_GetDescription
+ */
+async function fetchGroupLeaderDetails(clientId, leaderNumber) {
+    try {
+        if (!clientId) return;
+
+        const centerId = document.getElementById('centerId')?.value?.trim();
+        const branchId = document.getElementById('branchId')?.value?.trim();
+
+        if (!centerId || !branchId) {
+            return;
+        }
+
+        if (!window.LookupService) {
+            console.warn('[GroupMaintenance] LookupService not available');
+            return;
+        }
+
+        console.log('[GroupMaintenance] Fetching group leader details for:', clientId);
+        
+        const requestData = {
+            BankID: '00',
+            ClientID: clientId,
+            GroupID: centerId,
+            OurBranchID: branchId
+        };
+
+        let response = null;
+        if (window.LookupService.getGroupClientDetails) {
+            response = await window.LookupService.getGroupClientDetails(requestData);
+        } else {
+            response = await callMicroFinanceOldApi('dbo.p_GetGroupClientDetails', requestData);
+        }
+
+        const rows = unwrapOldApiRows(response?.data ?? response);
+        
+        if (rows.length > 0) {
+            const client = rows[0];
+            const clientName = client.ClientName || client.Name || client.Description || '';
+            
+            // Check if client status is active
+            const clientStatus = client.ClientStatusID || client.StatusID || '';
+            if (clientStatus !== 'A') {
+                showSnackbar('Selected client is not active', 'warning');
+                document.getElementById(`groupLeader${leaderNumber}`).value = '';
+                document.getElementById(`groupLeader${leaderNumber}Name`).value = '';
+                return;
+            }
+
+            // Check if already selected as another leader
+            const otherLeaders = [1, 2, 3]
+                .filter(n => n !== leaderNumber)
+                .map(n => document.getElementById(`groupLeader${n}`)?.value?.trim())
+                .filter(Boolean);
+
+            if (otherLeaders.includes(clientId)) {
+                showSnackbar('This client is already selected as another group leader', 'error');
+                document.getElementById(`groupLeader${leaderNumber}`).value = '';
+                document.getElementById(`groupLeader${leaderNumber}Name`).value = '';
+                return;
+            }
+
+            document.getElementById(`groupLeader${leaderNumber}Name`).value = clientName;
+        } else {
+            document.getElementById(`groupLeader${leaderNumber}Name`).value = '';
+            showSnackbar('Group member not found', 'warning');
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Error fetching group leader details:', error);
+        document.getElementById(`groupLeader${leaderNumber}Name`).value = '';
+        showSnackbar('Error fetching group leader details', 'error');
+    }
+}
+
+/**
+ * Enhanced validation for group leaders before save
+ */
+function validateGroupLeaders() {
+    const leader1 = document.getElementById('groupLeader1')?.value?.trim();
+    const leader2 = document.getElementById('groupLeader2')?.value?.trim();
+    const leader3 = document.getElementById('groupLeader3')?.value?.trim();
+
+    const leaders = [leader1, leader2, leader3].filter(Boolean);
+    
+    // Check for duplicates
+    const uniqueLeaders = [...new Set(leaders)];
+    if (leaders.length !== uniqueLeaders.length) {
+        showSnackbar('Group leaders must be unique', 'error');
+        return false;
+    }
+
+    return true;
 }
 
 async function handleBranchSearch() {
@@ -837,6 +2030,21 @@ function mapMeetingDay(meetingDayId) {
     return dayMap[String(meetingDayId).trim()] || '';
 }
 
+function getMeetingDayId(meetingDayName) {
+    const nameMap = {
+        'monday': '1',
+        'tuesday': '2',
+        'wednesday': '3',
+        'thursday': '4',
+        'friday': '5',
+        'saturday': '6',
+        'sunday': '7'
+    };
+    if (!meetingDayName) return '';
+    const key = String(meetingDayName).trim().toLowerCase();
+    return nameMap[key] || '';
+}
+
 function applyGroupDetails(details01, details02) {
     if (details02) {
         document.getElementById('branchId').value = details02.OurBranchID || document.getElementById('branchId')?.value || '';
@@ -856,24 +2064,56 @@ function applyGroupDetails(details01, details02) {
         document.getElementById('registrationNo').value = details02.RegistrationNo || '';
         document.getElementById('groupClass').value = details02.GroupClassID || '';
         document.getElementById('meetingDay').value = mapMeetingDay(details02.MeetingDayID) || '';
-        document.getElementById('meetingTime').value = details02.MeetingTime || '';
+        document.getElementById('meetingTime').value = details02.MeetingTime !== undefined && details02.MeetingTime !== null
+            ? String(details02.MeetingTime)
+            : '';
         document.getElementById('meetingPlace').value = details02.MeetingPlace || '';
         document.getElementById('status').value = details02.GroupStatusID || 'A';
         document.getElementById('firstDay').value = details02.FirstDay || '';
         document.getElementById('nextDay').value = details02.NextDay || '';
+        document.getElementById('village').value = details02.VillageID || '';
+        document.getElementById('location').value = details02.CityID || '';
+        document.getElementById('centre').value = details02.CenterID || '';
+        document.getElementById('meetingFrequency').value = details02.MeetingFrequencyID || details02.MeetingFrequency || '';
 
         setDateInputValue(document.getElementById('formationDate'), extractDateForInput(details02.FormationDate));
         setDateInputValue(document.getElementById('firstMeetingDate'), extractDateForInput(details02.FirstMeetingDate));
         setDateInputValue(document.getElementById('nextMeetingDate'), extractDateForInput(details02.NextMeetingDate));
 
-        document.getElementById('createdBy').value = details02.CreatedBy || '';
-        document.getElementById('createdOn').value = extractDateForInput(details02.CreatedOn) || '';
-        document.getElementById('modifiedBy').value = details02.ModifiedBy || '';
-        document.getElementById('modifiedOn').value = extractDateForInput(details02.ModifiedOn) || '';
-        document.getElementById('supervisedBy').value = details02.SupervisedBy || '';
-        document.getElementById('supervisedOn').value = extractDateForInput(details02.SupervisedOn) || '';
+        // Group Leaders (if fields exist)
+        const groupLeader1El = document.getElementById('groupLeader1');
+        const groupLeader2El = document.getElementById('groupLeader2');
+        const groupLeader3El = document.getElementById('groupLeader3');
+        const groupLeader1NameEl = document.getElementById('groupLeader1Name');
+        const groupLeader2NameEl = document.getElementById('groupLeader2Name');
+        const groupLeader3NameEl = document.getElementById('groupLeader3Name');
 
-        currentCenter = details02;
+        if (groupLeader1El) groupLeader1El.value = details02.GroupLead1 || '';
+        if (groupLeader2El) groupLeader2El.value = details02.GroupLead2 || '';
+        if (groupLeader3El) groupLeader3El.value = details02.GroupLead3 || '';
+        if (groupLeader1NameEl) groupLeader1NameEl.value = details02.GroupLeadName1 || '';
+        if (groupLeader2NameEl) groupLeader2NameEl.value = details02.GroupLeadName2 || '';
+        if (groupLeader3NameEl) groupLeader3NameEl.value = details02.GroupLeadName3 || '';
+
+        // Update audit trail (using textContent for span elements)
+        const createdByEl = document.getElementById('createdBy');
+        const modifiedByEl = document.getElementById('modifiedBy');
+        const supervisedByEl = document.getElementById('supervisedBy');
+        const createdOnEl = document.getElementById('createdOn');
+        const modifiedOnEl = document.getElementById('modifiedOn');
+        const supervisedOnEl = document.getElementById('supervisedOn');
+
+        if (createdByEl) createdByEl.textContent = details02.CreatedBy || '-';
+        if (createdOnEl) createdOnEl.textContent = formatDateDisplay(details02.CreatedOn) || '-';
+        if (modifiedByEl) modifiedByEl.textContent = details02.ModifiedBy || '-';
+        if (modifiedOnEl) modifiedOnEl.textContent = formatDateDisplay(details02.ModifiedOn) || '-';
+        if (supervisedByEl) supervisedByEl.textContent = details02.SupervisedBy || '-';
+        if (supervisedOnEl) supervisedOnEl.textContent = formatDateDisplay(details02.SupervisedOn) || '-';
+
+        currentCenter = {
+            ...details02,
+            UpdateCount: details02.UpdateCount ?? details02.updateCount ?? details02.UPDATECOUNT ?? null
+        };
         window.currentCenter = currentCenter;
     }
 
@@ -891,7 +2131,505 @@ function applyGroupDetails(details01, details02) {
     }
 }
 
-async function handleView() {
+function setEditMode(enabled) {
+    const editableFields = [
+        'centerProductId', 'centerProductName',
+        'primarySchemeId', 'primarySchemeName', 'creditOfficer', 'creditOfficerName',
+        'registrationNo', 'groupFormedBy', 'groupFormedByName', 'village', 'location', 'centre',
+        'ngoId', 'ngoName', 'formationDate', 'firstMeetingDate', 'nextMeetingDate',
+        'meetingDay', 'groupClass', 'firstDay', 'nextDay', 'meetingTime', 'meetingPlace',
+        'meetingFrequency'
+    ];
+
+    // Legacy: In Edit mode, status field handling depends on whether status changed
+    const statusField = document.getElementById('status');
+    const statusReasonField = document.getElementById('statusReason');
+
+    // Group Leader fields - only enabled in Add/Edit modes if a group is loaded
+    const groupLeaderFields = ['groupLeader1', 'groupLeader1Name', 'groupLeader2', 'groupLeader2Name', 'groupLeader3', 'groupLeader3Name'];
+
+    editableFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            if (enabled) {
+                element.removeAttribute('readonly');
+                element.disabled = false;
+            } else {
+                if (element.type === 'text' || element.type === 'date' || element.tagName === 'TEXTAREA') {
+                    element.setAttribute('readonly', 'readonly');
+                } else if (element.tagName === 'SELECT') {
+                    element.disabled = true;
+                } else {
+                    element.disabled = true;
+                }
+            }
+        }
+    });
+
+    // Handle Group Leader fields
+    groupLeaderFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            if (enabled && !isAddMode) {
+                // In Edit mode, leaders can be changed
+                element.removeAttribute('readonly');
+                element.disabled = false;
+            } else if (enabled && isAddMode) {
+                // In Add mode, leaders are disabled until group is created
+                element.setAttribute('readonly', 'readonly');
+                element.disabled = true;
+            } else {
+                // View mode - disabled
+                element.setAttribute('readonly', 'readonly');
+                element.disabled = true;
+            }
+        }
+    });
+
+    // Group Leader lookup buttons - disabled in Add mode, enabled in Edit mode
+    const leaderLookupButtons = [
+        document.querySelector('.btn-lookup[data-lookup="GroupLeader1"]'),
+        document.querySelector('.btn-lookup[data-lookup="GroupLeader2"]'),
+        document.querySelector('.btn-lookup[data-lookup="GroupLeader3"]')
+    ];
+
+    leaderLookupButtons.forEach(btn => {
+        if (btn) {
+            if (enabled && !isAddMode) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        }
+    });
+
+    // Status and Status Reason handling
+    if (statusField) {
+        if (enabled && !isAddMode) {
+            // In Edit mode, status can be changed
+            statusField.disabled = false;
+        } else if (isAddMode) {
+            // In Add mode, status is always 'A' (Active) - disabled
+            statusField.disabled = true;
+            statusField.value = 'A';
+        } else {
+            // View mode
+            statusField.disabled = true;
+        }
+    }
+
+    // Status reason is handled by handleStatusChange() function
+
+    // Special handling for Center ID and Center Name
+    const centerIdElement = document.getElementById('centerId');
+    const centerNameElement = document.getElementById('centerName');
+    const centerLookupBtn = document.querySelector('.btn-lookup[data-lookup="Center"]');
+
+    if (isAddMode) {
+        // In Add Mode: Center ID is auto-generated (readonly/disabled), Center Name is editable
+        if (centerIdElement) {
+            centerIdElement.setAttribute('readonly', 'readonly');
+            centerIdElement.disabled = true;
+        }
+        if (centerNameElement) {
+            centerNameElement.removeAttribute('readonly');
+            centerNameElement.disabled = false;
+        }
+        if (centerLookupBtn) {
+            centerLookupBtn.disabled = true;
+            centerLookupBtn.style.opacity = '0.5';
+            centerLookupBtn.style.cursor = 'not-allowed';
+        }
+    } else if (enabled) {
+        // In Edit Mode: Center ID is readonly (key field), but Center Name is editable
+        if (centerIdElement) {
+            centerIdElement.setAttribute('readonly', 'readonly');
+            centerIdElement.disabled = true;
+        }
+        if (centerNameElement) {
+            // In Edit mode, Group Name can be changed (per legacy system behavior)
+            centerNameElement.removeAttribute('readonly');
+            centerNameElement.disabled = false;
+        }
+        if (centerLookupBtn) {
+            centerLookupBtn.disabled = true;
+            centerLookupBtn.style.opacity = '0.5';
+            centerLookupBtn.style.cursor = 'not-allowed';
+        }
+    } else {
+        // In View Mode: Center ID is searchable, Center Name is display-only
+        if (centerIdElement) {
+            centerIdElement.removeAttribute('readonly');
+            centerIdElement.disabled = false;
+        }
+        if (centerNameElement) {
+            centerNameElement.setAttribute('readonly', 'readonly');
+            centerNameElement.disabled = false;
+        }
+        if (centerLookupBtn) {
+            centerLookupBtn.disabled = false;
+            centerLookupBtn.style.opacity = '1';
+            centerLookupBtn.style.cursor = 'pointer';
+        }
+    }
+
+    // Button states
+    const btnAdd = document.querySelector('.btn-action[onclick*="handleAdd"]');
+    const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
+    const btnDelete = document.querySelector('.btn-action[onclick*="handleDelete"]');
+    const btnSave = document.querySelector('.btn-action[data-action="save"]');
+    const btnCancel = document.querySelector('.btn-action[data-action="cancel"]');
+    const btnPrev = document.querySelector('.btn-action[onclick*="handleNavigatePrevious"]');
+    const btnNext = document.querySelector('.btn-action[onclick*="handleNavigateNext"]');
+    const btnView = document.querySelector('.btn-action[onclick*="handleView"]');
+
+    if (enabled) {
+        // In Add/Edit mode
+        if (btnAdd) btnAdd.disabled = true;
+        if (btnEdit) btnEdit.disabled = true;
+        if (btnDelete) btnDelete.disabled = true;
+        if (btnSave) btnSave.disabled = false;
+        if (btnCancel) btnCancel.disabled = false;
+        if (btnPrev) btnPrev.disabled = true;
+        if (btnNext) btnNext.disabled = true;
+        if (btnView) btnView.disabled = true;
+    } else {
+        // In View mode
+        const hasLoadedCenter = document.getElementById('centerId')?.value?.trim();
+        
+        if (btnAdd) btnAdd.disabled = false;
+        if (btnEdit) btnEdit.disabled = !hasLoadedCenter;
+        if (btnDelete) btnDelete.disabled = !hasLoadedCenter;
+        if (btnSave) btnSave.disabled = true;
+        if (btnCancel) btnCancel.disabled = false;
+        if (btnPrev) btnPrev.disabled = !hasLoadedCenter;
+        if (btnNext) btnNext.disabled = !hasLoadedCenter;
+        if (btnView) btnView.disabled = false;
+    }
+
+    // Disable/Enable Branch ID field
+    const branchIdElement = document.getElementById('branchId');
+    const branchLookupBtn = document.querySelector('.btn-lookup[data-lookup="Branch"]');
+    
+    if (enabled) {
+        // During Add/Edit, branch cannot be changed
+        if (branchIdElement) {
+            branchIdElement.setAttribute('readonly', 'readonly');
+            branchIdElement.disabled = true;
+        }
+        if (branchLookupBtn) {
+            branchLookupBtn.disabled = true;
+            branchLookupBtn.style.opacity = '0.5';
+            branchLookupBtn.style.cursor = 'not-allowed';
+        }
+    } else {
+        // In View mode, branch can be changed
+        if (branchIdElement) {
+            branchIdElement.removeAttribute('readonly');
+            branchIdElement.disabled = false;
+        }
+        if (branchLookupBtn) {
+            branchLookupBtn.disabled = false;
+            branchLookupBtn.style.opacity = '1';
+            branchLookupBtn.style.cursor = 'pointer';
+        }
+    }
+}
+
+function handleAdd() {
+    const branchId = document.getElementById('branchId')?.value?.trim();
+    if (!branchId) {
+        showSnackbar('Please select a branch first', 'warning');
+        return;
+    }
+
+    isAddMode = true;
+    isEditMode = true;
+    clearCenterFields();
+    
+    // Set default values for Add mode
+    const statusField = document.getElementById('status');
+    if (statusField) {
+        statusField.value = 'A'; // Active status by default
+    }
+    
+    setEditMode(true);
+    hideCenterCreatedMessage();
+    
+    const btnAdd = document.querySelector('.btn-action[onclick*="handleAdd"]');
+    if (btnAdd) btnAdd.disabled = true;
+    
+    showSnackbar('Add mode enabled. Enter center details and click Save.', 'info');
+    
+    // Focus on center name field (first editable field)
+    const centerNameField = document.getElementById('centerName');
+    if (centerNameField) {
+        setTimeout(() => centerNameField.focus(), 100);
+    }
+}
+
+function handleEdit() {
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    if (!centerId) {
+        showSnackbar('Please load a center first', 'warning');
+        return;
+    }
+
+    isEditMode = true;
+    isAddMode = false;
+    setEditMode(true);
+    hideCenterCreatedMessage();
+    
+    const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
+    if (btnEdit) btnEdit.disabled = true;
+    
+    showSnackbar('Edit mode enabled. Make changes and click Save.', 'info');
+}
+
+async function handleSave() {
+    // Run comprehensive validation
+    if (!validateBeforeSave()) {
+        return;
+    }
+
+    const branchId = document.getElementById('branchId')?.value?.trim();
+    const centerName = document.getElementById('centerName')?.value?.trim();
+
+    if (!window.GroupService) {
+        showSnackbar('GroupService not available. Please refresh the page.', 'error');
+        console.error('[GroupMaintenance] GroupService is not available');
+        return;
+    }
+
+    try {
+        const groupClass = document.getElementById('groupClass')?.value || '';
+        const formationDate = document.getElementById('formationDate')?.value || '';
+        const meetingDay = document.getElementById('meetingDay')?.value || '';
+        const firstMeetingDate = document.getElementById('firstMeetingDate')?.value || '';
+        const meetingTimeRaw = document.getElementById('meetingTime')?.value || '';
+        const nextMeetingDate = document.getElementById('nextMeetingDate')?.value || '';
+        const meetingDayId = getMeetingDayId(meetingDay);
+        const operatorId = window.Environment?.OperatorID || window.Environment?.operatorId || 'CSADM';
+        const workingDate = window.Environment?.workingDate || getLocalDateString();
+
+        // Parse meeting time to Numeric(5,2) format
+        let meetingTime = '';
+        if (meetingTimeRaw) {
+            const timeParts = meetingTimeRaw.includes('.') ? meetingTimeRaw.split('.') : [meetingTimeRaw.substring(0, 2), meetingTimeRaw.substring(2, 4)];
+            const hours = parseInt(timeParts[0], 10) || 0;
+            const minutes = parseInt(timeParts[1], 10) || 0;
+            meetingTime = `${hours}.${minutes}`; // e.g., "9.30" or "14.45"
+        }
+
+        // Parse FirstDay and NextDay to tinyint (numbers or empty string)
+        const firstDayRaw = document.getElementById('firstDay')?.value?.trim();
+        const nextDayRaw = document.getElementById('nextDay')?.value?.trim();
+        const firstDay = firstDayRaw ? parseInt(firstDayRaw, 10) : '';
+        const nextDay = nextDayRaw ? parseInt(nextDayRaw, 10) : '';
+
+        // Handle optional fields - send null or empty string for empty values
+        const cityId = document.getElementById('location')?.value?.trim() || null;
+        const centerId = document.getElementById('centre')?.value?.trim() || null;
+        const villageId = document.getElementById('village')?.value?.trim() || null;
+        const ngoId = document.getElementById('ngoId')?.value?.trim() || null;
+
+        // Build request data matching stored procedure parameters exactly
+        const requestData = {
+            OurBranchID: branchId,
+            GroupID: isAddMode ? null : (document.getElementById('centerId')?.value || null),
+            GroupName: centerName,
+            GroupProductID: document.getElementById('centerProductId')?.value || '',
+            DefaultLoanSchemeID: document.getElementById('primarySchemeId')?.value || '',
+            FormationDate: formationDate,
+            OpenDate: workingDate,
+            GroupClassID: groupClass,
+            CreditOfficerID: document.getElementById('creditOfficer')?.value || '',
+            GroupFormedBy: document.getElementById('groupFormedBy')?.value || '',
+            CityID: cityId,
+            CenterID: centerId,
+            VillageID: villageId,
+            NGOID: ngoId,
+            MeetingFrequencyID: document.getElementById('meetingFrequency')?.value || '',
+            FirstMeetingDate: firstMeetingDate,
+            FirstDay: firstDay,
+            NextDay: nextDay,
+            MeetingDayID: meetingDayId || meetingDay || '',
+            MeetingPlace: document.getElementById('meetingPlace')?.value || '',
+            MeetingTime: meetingTime,
+            NextMeetingDate: nextMeetingDate,
+            RegistrationNo: document.getElementById('registrationNo')?.value || '',
+            GroupLead1: document.getElementById('groupLeader1')?.value?.trim() || '',
+            GroupLead2: document.getElementById('groupLeader2')?.value?.trim() || '',
+            GroupLead3: document.getElementById('groupLeader3')?.value?.trim() || '',
+            GroupStatusID: document.getElementById('status')?.value || 'A',
+            CreatedBy: operatorId,
+            CreatedOn: isAddMode ? workingDate : (currentCenter?.CreatedOn || workingDate),
+            ModifiedBy: isAddMode ? null : operatorId,
+            ModifiedOn: isAddMode ? null : workingDate,
+            SupervisedBy: null,
+            NewRecord: isAddMode ? 1 : (currentCenter?.UpdateCount ?? 0)
+        };
+
+        console.log('[GroupMaintenance] Saving group with data:', requestData);
+        const result = await window.GroupService.addEditGroup(requestData);
+
+        const dbErrorMessage = result?.ResponseMessage
+            || result?.data?.ResponseMessage
+            || result?.Message
+            || result?.data?.Message
+            || result?.message
+            || result?.data?.message
+            || result?.error
+            || result?.data?.error;
+
+        const isFailure = result?.success === false
+            || result?.data?.success === false
+            || result?.error
+            || result?.data?.error;
+
+        if (!isFailure) {
+            const savedGroupId = result?.Details?.[0]?.GroupID
+                || result?.data?.Details?.[0]?.GroupID
+                || result?.data?.GroupID
+                || document.getElementById('centerId')?.value
+                || '';
+            
+            showSnackbar(`Center ${isAddMode ? 'created' : 'updated'} successfully. Group ID: ${savedGroupId}`, 'success');
+            
+            if (isAddMode) {
+                showCenterCreatedMessage(savedGroupId);
+                // After Add, update the center ID field with the newly created ID
+                if (savedGroupId) {
+                    document.getElementById('centerId').value = savedGroupId;
+                }
+            }
+            
+            // Reset mode flags
+            const wasAddMode = isAddMode;
+            isAddMode = false;
+            isEditMode = false;
+            
+            // If we just added a center, load its details to show in view mode
+            if (wasAddMode && savedGroupId) {
+                // Set the modes to false before calling handleView
+                await handleView(0);
+            } else {
+                // For edit, just switch to view mode
+                setEditMode(false);
+                
+                // Enable navigation buttons
+                const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
+                const btnDelete = document.querySelector('.btn-action[onclick*="handleDelete"]');
+                const btnPrev = document.querySelector('.btn-action[onclick*="handleNavigatePrevious"]');
+                const btnNext = document.querySelector('.btn-action[onclick*="handleNavigateNext"]');
+                
+                if (btnEdit) btnEdit.disabled = false;
+                if (btnDelete) btnDelete.disabled = false;
+                if (btnPrev) btnPrev.disabled = false;
+                if (btnNext) btnNext.disabled = false;
+            }
+            
+            // Enable Add button
+            const btnAdd = document.querySelector('.btn-action[onclick*="handleAdd"]');
+            if (btnAdd) btnAdd.disabled = false;
+        } else {
+            if (dbErrorMessage) {
+                console.error('[GroupMaintenance] DB error:', dbErrorMessage);
+            }
+            showSnackbar(dbErrorMessage || 'Failed to save center details', 'error');
+        }
+    } catch (error) {
+        console.error('[GroupMaintenance] Save error:', error);
+        showSnackbar('Error saving center details: ' + (error?.message || 'Unknown error'), 'error');
+    }
+}
+
+function handleCancel() {
+    if (!isEditMode && !isAddMode) {
+        showSnackbar('No changes to cancel', 'info');
+        return;
+    }
+
+    const wasAddMode = isAddMode;
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    const branchId = document.getElementById('branchId')?.value?.trim();
+    
+    isEditMode = false;
+    isAddMode = false;
+    
+    setEditMode(false);
+    hideCenterCreatedMessage();
+
+    if (wasAddMode) {
+        // After canceling Add mode, clear all fields
+        clearCenterFields();
+        showSnackbar('Add mode cancelled', 'info');
+    } else {
+        // After canceling Edit mode, reload the data to restore original values
+        if (centerId && branchId) {
+            handleView();
+            showSnackbar('Changes cancelled, data restored', 'info');
+        } else {
+            clearCenterFields();
+            showSnackbar('Edit mode cancelled', 'info');
+        }
+    }
+    
+    const btnAdd = document.querySelector('.btn-action[onclick*="handleAdd"]');
+    if (btnAdd) btnAdd.disabled = false;
+}
+
+function handleDelete() {
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    if (!centerId) {
+        showSnackbar('Please load a center first', 'warning');
+        return;
+    }
+
+    if (!window.GroupService) {
+        showSnackbar('GroupService not available. Please refresh the page.', 'error');
+        console.error('[GroupMaintenance] GroupService is not available');
+        return;
+    }
+
+    showConfirmationDialog(
+        'Delete Center',
+        `Are you sure you want to delete center ${centerId}? This action cannot be undone.`,
+        'danger'
+    ).then(async (confirmed) => {
+        if (!confirmed) return;
+
+        try {
+            const branchId = document.getElementById('branchId')?.value?.trim();
+            const requestData = {
+                OurBranchID: branchId,
+                GroupID: centerId,
+                OperatorID: window.Environment?.OperatorID || window.Environment?.operatorId || 'CSADM'
+            };
+
+            console.log('[GroupMaintenance] Deleting group with data:', requestData);
+            const result = await window.GroupService.deleteGroupDetails(requestData);
+
+            if (result?.success || result?.data?.success || !result?.error) {
+                showSnackbar('Center deleted successfully', 'success');
+                clearCenterFields();
+                document.getElementById('branchId').focus();
+            } else {
+                showSnackbar(result?.message || 'Failed to delete center', 'error');
+            }
+        } catch (error) {
+            console.error('[GroupMaintenance] Delete error:', error);
+            showSnackbar('Error deleting center: ' + (error?.message || 'Unknown error'), 'error');
+        }
+    });
+}
+
+async function handleView(direction = 0) {
+    console.log('[GroupMaintenance] handleView called with direction:', direction);
     const centerId = document.getElementById('centerId')?.value?.trim();
     const branchId = document.getElementById('branchId')?.value?.trim();
 
@@ -910,10 +2648,12 @@ async function handleView() {
             OurBranchID: branchId,
             GroupID: centerId,
             OperatorID: window.Environment?.OperatorID || window.Environment?.operatorId || 'CSADM',
-            Direction: 0
+            Direction: direction
         };
 
+        console.log('[GroupMaintenance] Calling GroupService.getGroupDetails with:', requestData);
         const result = await window.GroupService.getGroupDetails(requestData);
+        console.log('[GroupMaintenance] GroupService.getGroupDetails result:', result);
         const details01 = result?.data?.Details01?.[0]
             || result?.Details01?.[0]
             || null;
@@ -930,9 +2670,61 @@ async function handleView() {
 
         isEditMode = false;
         isAddMode = false;
+        setEditMode(false);
+
+        // Enable Edit, Delete, Prev, Next buttons after successfully loading a center
+        const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
+        const btnDelete = document.querySelector('.btn-action[onclick*="handleDelete"]');
+        const btnPrev = document.querySelector('.btn-action[onclick*="handleNavigatePrevious"]');
+        const btnNext = document.querySelector('.btn-action[onclick*="handleNavigateNext"]');
+
+        if (btnEdit) btnEdit.disabled = false;
+        if (btnDelete) btnDelete.disabled = false;
+        if (btnPrev) btnPrev.disabled = false;
+        if (btnNext) btnNext.disabled = false;
+
+        showSnackbar('Center details loaded successfully', 'success');
     } catch (error) {
         showSnackbar('Error loading group details', 'error');
     }
+}
+
+function handleNavigatePrevious() {
+    console.log('[GroupMaintenance] handleNavigatePrevious called');
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    const branchId = document.getElementById('branchId')?.value?.trim();
+
+    if (!centerId || !branchId) {
+        showSnackbar('Please load a center first before navigating', 'warning');
+        return;
+    }
+
+    if (isEditMode || isAddMode) {
+        showSnackbar('Please save or cancel changes before navigating', 'warning');
+        return;
+    }
+
+    console.log('[GroupMaintenance] Calling handleView(-1)');
+    handleView(-1);
+}
+
+function handleNavigateNext() {
+    console.log('[GroupMaintenance] handleNavigateNext called');
+    const centerId = document.getElementById('centerId')?.value?.trim();
+    const branchId = document.getElementById('branchId')?.value?.trim();
+
+    if (!centerId || !branchId) {
+        showSnackbar('Please load a center first before navigating', 'warning');
+        return;
+    }
+
+    if (isEditMode || isAddMode) {
+        showSnackbar('Please save or cancel changes before navigating', 'warning');
+        return;
+    }
+
+    console.log('[GroupMaintenance] Calling handleView(1)');
+    handleView(1);
 }
 
 window.handleBranchSearch = handleBranchSearch;
@@ -942,7 +2734,19 @@ window.handlePrimarySchemeSearch = handlePrimarySchemeSearch;
 window.handleCreditOfficerSearch = handleCreditOfficerSearch;
 window.handleGroupFormedBySearch = handleGroupFormedBySearch;
 window.handleNgoSearch = handleNgoSearch;
+window.handleGroupLeader1Search = handleGroupLeader1Search;
+window.handleGroupLeader2Search = handleGroupLeader2Search;
+window.handleGroupLeader3Search = handleGroupLeader3Search;
 window.handleView = handleView;
+window.handleViewButton = () => handleView(0); // Explicit View button handler
+window.handleAdd = handleAdd;
+window.handleEdit = handleEdit;
+window.handleSave = handleSave;
+window.handleCancel = handleCancel;
+window.handleDelete = handleDelete;
+window.handleNavigatePrevious = handleNavigatePrevious;
+window.handleNavigateNext = handleNavigateNext;
+window.setEditMode = setEditMode;
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

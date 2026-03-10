@@ -1,0 +1,218 @@
+@{
+    ViewData["Title"] = "Center Penalty Interest Waive Off";
+    Layout = "_ApplicationLayout";
+}
+
+<!-- Toast Container -->
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+
+        <!-- Form Content -->
+        <div class="form-content form-content-without-leftbar">
+            <div class="form-card" data-main-form>
+                <div id="statusMsg" class="status-msg hidden" role="status" aria-live="polite">
+                    <span class="status-text"></span>
+                </div>
+
+                <!-- Identifiers Section -->
+                <div class="form-section" data-section="identifiers">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-info-square"></i>Identifiers</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Identifiers" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="BranchId">Branch ID <span class="text-danger">*</span></label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="BranchId" class="kairo-control__id" aria-label="Branch ID" placeholder="ID">
+                                    <input type="text" id="BranchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-cpiw-lookup="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="CenterId">Center ID <span class="text-danger">*</span></label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="CenterId" class="kairo-control__id" aria-label="Center ID" placeholder="ID">
+                                    <input type="text" id="CenterName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-cpiw-lookup="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="label-blue" for="SchemeId">Scheme ID <span class="text-danger">*</span></label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="SchemeId" class="kairo-control__id" aria-label="Scheme ID" placeholder="ID">
+                                    <input type="text" id="SchemeName" class="kairo-control__name" aria-label="Scheme Name" placeholder="Scheme Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" data-cpiw-lookup="scheme" aria-label="Search Scheme"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Penalty Accounts Section -->
+                <div class="form-section" data-section="penalty-accounts">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-table"></i>Penalty Accounts</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Penalty Accounts" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="table-responsive">
+                            <table id="penaltyTable" class="table table-sm table-hover data-table" aria-label="Penalty Accounts">
+                                <thead>
+                                    <tr>
+                                        <th><input class="form-check-input" type="checkbox" id="selectAllPenalty" aria-label="Select all" disabled></th>
+                                        <th>Account ID</th>
+                                        <th>Account Name</th>
+                                        <th>Penalty Amount</th>
+                                        <th>Penalty Waived Off</th>
+                                        <th>Penalty Interest Suspended</th>
+                                        <th>Penalty Receivable</th>
+                                        <th>ODue Penalty Receivable</th>
+                                        <th>Penalty Accrued Upto</th>
+                                        <th>Penalty Applied Upto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-row">
+                                        <td colspan="10" class="text-center text-muted">No records to display</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="form-label" for="PenaltyWaivedOff">Penalty Waived Off</label>
+                                <input type="text" class="form-control" id="PenaltyWaivedOff" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reason Section -->
+                <div class="form-section" data-section="reason">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-exclamation-triangle"></i>Reason</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Reason" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row">
+                            <label class="form-label" for="Reason">Reason</label>
+                            <input type="text" class="form-control" id="Reason" disabled>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="form-section" data-section="behind-the-scene">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-eye-slash"></i>Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="form-label" for="WaiveOffStatus">Waive-Off Status</label>
+                                <input type="text" class="form-control" id="WaiveOffStatus" readonly>
+                            </div>
+                        </div>
+                        <div class="audit-section audit-section--summary" aria-label="Audit Summary">
+                            <div class="audit-cell">
+                                <div class="audit-label">Created By</div>
+                                <div class="audit-value">
+                                    <input type="text" class="form-control" id="CreatedBy" readonly aria-label="Created By">
+                                </div>
+                            </div>
+                            <div class="audit-cell">
+                                <div class="audit-label">Created On</div>
+                                <div class="audit-value">
+                                    <input type="text" class="form-control" id="CreatedOn" readonly aria-label="Created On">
+                                </div>
+                            </div>
+                            <div class="audit-cell">
+                                <div class="audit-label">Modified By</div>
+                                <div class="audit-value">
+                                    <input type="text" class="form-control" id="ModifiedBy" readonly aria-label="Modified By">
+                                </div>
+                            </div>
+                            <div class="audit-cell">
+                                <div class="audit-label">Modified On</div>
+                                <div class="audit-value">
+                                    <input type="text" class="form-control" id="ModifiedOn" readonly aria-label="Modified On">
+                                </div>
+                            </div>
+                            <div class="audit-cell">
+                                <div class="audit-label">Supervised By</div>
+                                <div class="audit-value">
+                                    <input type="text" class="form-control" id="SupervisedBy" readonly aria-label="Supervised By">
+                                </div>
+                            </div>
+                            <div class="audit-cell">
+                                <div class="audit-label">Supervised On</div>
+                                <div class="audit-value">
+                                    <input type="text" class="form-control" id="SupervisedOn" readonly aria-label="Supervised On">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <aside class="action-panel" aria-label="Actions">
+            <div class="action-buttons">
+                <button type="button" class="btn-action" data-cpiw-action="supervise" disabled><i class="bi bi-shield me-1"></i>Supervise</button>
+                <button type="button" class="btn-action" data-cpiw-action="history" disabled><i class="bi bi-clock-history me-1"></i>History</button>
+                <button type="button" class="btn-action btn-view" data-cpiw-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action" data-cpiw-action="add" disabled><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button type="button" class="btn-action" data-cpiw-action="edit" disabled><i class="bi bi-pencil me-1"></i>Edit</button>
+                <button type="button" class="btn-action btn-delete" data-cpiw-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button type="button" class="btn-action btn-save" data-cpiw-action="save" disabled><i class="bi bi-check-circle me-1"></i>Save</button>
+                <button type="button" class="btn-action btn-cancel" data-cpiw-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+            <div class="nav-group">
+                <button type="button" class="btn-nav" data-nav="first" disabled><i class="bi bi-chevron-bar-left"></i></button>
+                <button type="button" class="btn-nav" data-nav="prev" disabled><i class="bi bi-chevron-left"></i></button>
+                <button type="button" class="btn-nav" data-nav="next" disabled><i class="bi bi-chevron-right"></i></button>
+                <button type="button" class="btn-nav" data-nav="last" disabled><i class="bi bi-chevron-bar-right"></i></button>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Shared Search Modal -->
+<div class="search-modal-overlay" id="searchOverlay" style="display:none;">
+    <iframe id="searchFrame" class="search-modal-frame" frameborder="0" title="Search"></iframe>
+</div>
+
+@section Styles {
+    <style>
+        .form-card[data-main-form] {
+            flex: 0 0 auto !important;
+        }
+        .form-section {
+            flex: 0 0 auto !important;
+        }
+        .form-section [data-section-content] {
+            overflow: visible !important;
+            max-height: none !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/modules/microfinance/center-penalty-interest-waive-off.js"></script>
+}

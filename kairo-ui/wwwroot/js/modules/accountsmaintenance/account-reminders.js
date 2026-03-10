@@ -189,7 +189,6 @@ window.AccountRemindersModule = (function () {
             showMsg('Select Add or Edit before entering reminder details', 'warning');
             return false;
         }
-
         const reminderText = val('reminder');
         if (!reminderText) {
             showMsg('Reminder text is required', 'warning');
@@ -325,7 +324,6 @@ window.AccountRemindersModule = (function () {
 
         reminderLookupButton?.addEventListener('click', scheduleReminderSelectionSync);
     }
-
     // ── Initialization ─────────────────────────────────────────
     function init() {
         console.log('[AccountReminders] Initializing submodule');
@@ -346,7 +344,6 @@ window.AccountRemindersModule = (function () {
         }
 
         wireReminderSelection();
-
         // Wire section toggles if they exist
         document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
             hdr.addEventListener('click', function () {

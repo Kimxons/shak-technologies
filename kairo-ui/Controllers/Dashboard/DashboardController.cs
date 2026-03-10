@@ -187,6 +187,9 @@ namespace kairo_ui.Controllers.Dashboard
                     })
                     .ToList();
 
+                // ── MVC-migrated modules: inject items not yet registered in the DB ──
+                AppendMvcMigratedMenuItems(startMenuViewModel);
+
                 // Get user branches for switch branch functionality
                 var currentUserId = HttpContext.Session.GetString("user_id");
                 if (!string.IsNullOrEmpty(currentUserId) && int.TryParse(currentUserId, out var userId))
@@ -212,6 +215,70 @@ namespace kairo_ui.Controllers.Dashboard
             {
                 _logger.LogError(ex, "Error loading start menu and resources");
                 return new StartMenuViewModel();
+            }
+        }
+
+        /// <summary>
+        /// Appends MVC-migrated modules that are not yet registered in the database.
+        /// As modules are added to the DB, remove the corresponding entry here.
+        /// </summary>
+        private static void AppendMvcMigratedMenuItems(StartMenuViewModel vm)
+        {
+            // Find the Account MainModuleID by locating the existing "Account Maintenance" item
+            var accountMenuItem = vm.MenuItems.FirstOrDefault(mi =>
+                mi.MenuDescription != null &&
+                mi.MenuDescription.Contains("Account Maintenance", StringComparison.OrdinalIgnoreCase));
+
+            if (accountMenuItem == null) return; // Account module not loaded – nothing to supplement
+
+            var accountMainModuleId = accountMenuItem.MainModuleID;
+
+            // ── Standing Instruction Loan Repayment ──
+            var hasSilr = vm.MenuItems.Any(mi =>
+                mi.MenuDescription != null &&
+                mi.MenuDescription.Contains("Standing Instruction Loan Repayment", StringComparison.OrdinalIgnoreCase));
+
+            if (!hasSilr)
+            {
+                vm.MenuItems.Add(new StartMenuItem
+                {
+                    ModuleID = 9901,                        // Temporary client-side ID
+                    MainModuleID = accountMainModuleId,
+                    ModuleName = "StandingInstructionLoanRepayment",
+                    Abbreviation = "SILR",
+                    MenuURL = "/AccountUtilities/StandingInstructionLoanRepayment/Index",
+                    MenuDescription = "Standing Instruction Loan Repayment",
+                    ModuleIcon = "<i class='fas fa-building-columns'></i>",
+                    CanAdd = true,
+                    CanEdit = true,
+                    CanDelete = true,
+                    CanView = true,
+                    MenuItemOrder = 50
+                });
+            }
+
+            // ── Standing Instruction Transfer ──
+            var hasSit = vm.MenuItems.Any(mi =>
+                mi.MenuDescription != null &&
+                mi.MenuDescription.Contains("Standing Instruction Transfer", StringComparison.OrdinalIgnoreCase));
+
+            if (!hasSit)
+            {
+                vm.MenuItems.Add(new StartMenuItem
+                {
+                    ModuleID = 9902,                        // Temporary client-side ID
+                    MainModuleID = accountMainModuleId,
+                    ModuleName = "StandingInstructionTransfer",
+                    Abbreviation = "SIT",
+                    MenuURL = "/AccountUtilities/StandingInstructionTransfer/Index",
+                    MenuDescription = "Standing Instruction Transfer",
+                    ModuleIcon = "<i class='fas fa-right-left'></i>",
+                    CanAdd = true,
+                    CanEdit = true,
+                    CanDelete = true,
+                    CanView = true,
+                    MenuItemOrder = 51
+                });
             }
         }
 
@@ -250,7 +317,7 @@ namespace kairo_ui.Controllers.Dashboard
                 // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
                 // Main modules are automatically cached and shared across requests
                 var mainModules = await _apiCachedService.GetMainModulesAsync(lsmodules, userName);
-     
+
                 _logger.LogInformation("Fetched {Count} main modules", mainModules.Count);
                 return mainModules;
             }
@@ -268,24 +335,24 @@ namespace kairo_ui.Controllers.Dashboard
         private async Task<List<CBS.Entities.SystemCore.Module>> FetchModules()
         {
             try
-         {
-       _logger.LogInformation("Fetching modules");
-              string auth_userJson = HttpContext.Session.GetString("auth_user")!;
-      JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
-      var userName = jsonAuthUser.RootElement.GetProperty("username").GetString()!;
-
-    // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
-   // Modules are automatically cached and shared across requests
-          var modules = await _apiCachedService.GetModulesAsync(userName);
-        
- _logger.LogInformation("Fetched {Count} modules", modules.Count);
-  return modules;
-    }
-        catch (Exception ex)
             {
-       _logger.LogError(ex, "Error fetching modules");
-        return [];
-         }
+                _logger.LogInformation("Fetching modules");
+                string auth_userJson = HttpContext.Session.GetString("auth_user")!;
+                JsonDocument jsonAuthUser = JsonDocument.Parse(auth_userJson);
+                var userName = jsonAuthUser.RootElement.GetProperty("username").GetString()!;
+
+                // ✅ CACHED: Uses ApiCachedService with ModuleStructurePolicy (1 hour cache, high priority)
+                // Modules are automatically cached and shared across requests
+                var modules = await _apiCachedService.GetModulesAsync(userName);
+
+                _logger.LogInformation("Fetched {Count} modules", modules.Count);
+                return modules;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching modules");
+                return [];
+            }
         }
 
         /// <summary>
@@ -322,7 +389,8 @@ namespace kairo_ui.Controllers.Dashboard
                 _logger.LogInformation("Fetching branches for user {UserId}", userId);
                 //var endpoint = $"BranchSetting?userId={userId}";
                 var response = await _apiService.GetAsync<BranchSetting>("IdentityAccessManagentApi", "BranchSetting", new KeyValuePair<string, object>("userId", userId));
-                return response?.ToList() ?? [];
+                //return response?.ToList() ?? [];
+                return [response];
             }
             catch (Exception ex)
             {

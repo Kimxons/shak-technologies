@@ -1,3 +1,8 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    // ViewData["Title"] = "Client Products & Services";
+    // Layout = "_ApplicationLayout";
+}
 <div class="form-card" data-section="client-products" data-cm-tab="products">
     <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-grid"></i>Products &amp; Services</span>
@@ -24,8 +29,26 @@
                                     <th class="text-center">Select</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbl_clientProductsBody"></tbody>
+                            <tbody id="tbl_clientProductsBody" data-products-body></tbody>
                         </table>
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 py-2 border-top" data-pager="products">
+                            <div class="small text-muted" data-pager-info>—</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Products Pagination">
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-prev disabled>Prev</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-next disabled>Next</button>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted">Show</span>
+                                    <select class="form-select form-select-sm" style="width:auto" data-pager-size>
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="col">
@@ -41,8 +64,26 @@
                                     <th class="text-center">Active</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbl_clientServicesBody"></tbody>
+                            <tbody id="tbl_clientServicesBody" data-services-body></tbody>
                         </table>
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center px-3 py-2 border-top" data-pager="services">
+                            <div class="small text-muted" data-pager-info>—</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Services Pagination">
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-prev disabled>Prev</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-pager-next disabled>Next</button>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted">Show</span>
+                                    <select class="form-select form-select-sm" style="width:auto" data-pager-size>
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -50,4 +91,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-products.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-products.js"></script>

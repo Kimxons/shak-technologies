@@ -10,7 +10,7 @@ namespace ClientDocumentApi.Data
         }
 
         public DbSet<TempImage> TempImages => Set<TempImage>();
-        public DbSet<ImageAccountPreApproval> ImageAccountPreApprovels => Set<ImageAccountPreApproval>();
+        public DbSet<ImageAccountPreApproval> ImageAccountPreApprovals => Set<ImageAccountPreApproval>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
