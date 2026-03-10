@@ -10,6 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\js\auth\**" />
+    <Compile Remove="wwwroot\js\pages\**" />
+    <Content Remove="wwwroot\js\auth\**" />
+    <Content Remove="wwwroot\js\pages\**" />
+    <EmbeddedResource Remove="wwwroot\js\auth\**" />
+    <EmbeddedResource Remove="wwwroot\js\pages\**" />
+    <None Remove="wwwroot\js\auth\**" />
+    <None Remove="wwwroot\js\pages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="bootstrap" Version="5.3.8" />
     <PackageReference Include="font-awesome" Version="4.7.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
@@ -23,6 +34,7 @@
     <Folder Include="Controllers\Dashboard\" />
     <Folder Include="Views\Dashboard\" />
     <Folder Include="wwwroot\js\constants\" />
+    <Folder Include="wwwroot\js\utils\" />
   </ItemGroup>
 
   <ItemGroup>

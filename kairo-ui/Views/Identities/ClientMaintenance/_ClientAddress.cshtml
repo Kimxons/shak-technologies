@@ -1,12 +1,16 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    // ViewData["Title"] = "Client Address";
+    // Layout = "_ApplicationLayout";
     var addressTypeOptions = ViewData["AddressTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var countryOptions = ViewData["AddressCountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var cityOptions = ViewData["AddressCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var regionOptions = ViewData["AddressRegionOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var subCityOptions = ViewData["AddressSubCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var languageOptions = ViewData["AddressLanguageOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var showActionPanel = moduleId != "1000";
 }
 
 <div class="form-card" data-section="client-address" data-cm-tab="address">
@@ -19,7 +23,7 @@
     <div class="section-content" data-section-content>
         <form id="frm_clientAddress" data-address-form autocomplete="off" novalidate>
             <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdAddress" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="moduleIdAddress" value="@moduleId" />
 
             <h5 class="mb-4">Physical &amp; Mailing Addresses</h5>
 
@@ -42,8 +46,8 @@
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="addressCity" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="ddl_addressCountry" id="lbl_addressCountry">Country</label><select id="ddl_addressCountry" name="addressCountry" data-address-field="CountryID" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="addressCity" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="ddl_addressRegion" id="lbl_addressRegion">Region</label><select id="ddl_addressRegion" name="addressRegion" data-address-field="Region" class="bs-select" asp-items="@(regionOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="ddl_addressSubCity" id="lbl_addressSubCity">Sub-City / Zone</label><select id="ddl_addressSubCity" name="addressSubCity" data-address-field="SubCityZone" class="bs-select" asp-items="@(subCityOptions.Skip(1))"><option value="">Select...</option></select></div>
             </div>
@@ -70,13 +74,16 @@
             </div>
         </form>
 
-        <div class="d-flex justify-content-center gap-2 my-4">
-            <button id="btn_newClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-            <button id="btn_alterClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-            <button id="btn_deleteClientAddress" type="button" class="btn btn-sm btn-outline-danger" data-address-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-            <button id="btn_updateClientAddress" type="button" class="btn btn-sm btn-primary" data-address-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-            <button id="btn_clearClientAddress" type="button" class="btn btn-sm btn-outline-secondary" data-address-action="clear">Clear</button>
-        </div>
+        @if (!showActionPanel)
+        {
+            <div class="d-flex justify-content-center gap-2 my-4">
+                <button id="btn_newClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                <button id="btn_alterClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                <button id="btn_deleteClientAddress" type="button" class="btn btn-sm btn-outline-danger" data-address-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
+                <button id="btn_updateClientAddress" type="button" class="btn btn-sm btn-primary" data-address-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
+                <button id="btn_clearClientAddress" type="button" class="btn btn-sm btn-outline-secondary" data-address-action="clear">Clear</button>
+            </div>
+        }
 
         <div class="section-header py-1 mb-2 bg-light border">
             <span class="small fw-bold px-2">ADDRESSES</span>
@@ -99,4 +106,17 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-address.js"></script>
+@if (showActionPanel)
+{
+    <aside class="action-panel" aria-label="Client address actions">
+        <div class="d-flex flex-column gap-2 mt-auto">
+            <button id="btn_newClientAddress" type="button" class="btn-action" data-address-action="new"><i class="bi bi-plus-lg"></i><span>New</span></button>
+            <button id="btn_alterClientAddress" type="button" class="btn-action" data-address-action="alter"><i class="bi bi-pencil-square"></i><span>Alter</span></button>
+            <button id="btn_deleteClientAddress" type="button" class="btn-action btn-delete" data-address-action="remove"><i class="bi bi-trash"></i><span>Remove</span></button>
+            <button id="btn_updateClientAddress" type="button" class="btn-action btn-save" data-address-action="update"><i class="bi bi-check2-circle"></i><span>Update</span></button>
+            <button id="btn_clearClientAddress" type="button" class="btn-action btn-cancel" data-address-action="clear"><i class="bi bi-x-circle"></i><span>Clear</span></button>
+        </div>
+    </aside>
+}
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-address.js"></script>

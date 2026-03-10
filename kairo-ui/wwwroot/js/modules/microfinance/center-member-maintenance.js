@@ -17,11 +17,14 @@
   function getEnv() {
     const e = window.Environment || {};
     const session = window.getAuthSession?.() || {};
+    const defaultWorkingDate = window.GlobalUtils?.getCurrentDate
+      ? window.GlobalUtils.getCurrentDate()
+      : new Date().toISOString().split('T')[0];
     return {
       operatorId: String(e.operatorId || e.operatorID || session.operatorId || session.name || 'CSADM').trim(),
       ourBranchId: String(e.OurBranchID || e.branchId || session.branchId || sessionStorage.getItem('BranchID') || '').trim(),
       bankId: String(e.defaultBankId || e.defaultBankID || e.bankID || sessionStorage.getItem('BankID') || '00').trim(),
-      workingDate: e.workingDate || new Date().toISOString().split('T')[0]
+      workingDate: e.workingDate || defaultWorkingDate
     };
   }
 

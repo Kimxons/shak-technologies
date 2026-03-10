@@ -85,6 +85,9 @@
 
     function formatDateTime(dateString) {
         if (!dateString) return '';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(dateString);
+        }
         try {
             const date = new Date(dateString);
             return date.toLocaleString('en-US', {

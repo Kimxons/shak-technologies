@@ -116,6 +116,9 @@ window.AccountSignatoriesModule = (function () {
 
     function formatDate(value) {
         if (!value) return '-';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(value);
+        }
         try {
             const d = new Date(value);
             if (isNaN(d.getTime())) return String(value);
