@@ -73,6 +73,9 @@
         wireWithinDaysSync();
         wireOnTopFeedback();
 
+        // Enforce After(Days) as derived from Within(Days)
+        enforceAfterDaysRule();
+
         // Default mode
         setMode('VIEW');
         setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
@@ -86,6 +89,18 @@
         }
 
         console.log('✅ Exit Types module initialized', state);
+    }
+
+    function enforceAfterDaysRule() {
+        const withinDaysInput = document.getElementById('txt_withinDays');
+        const afterDaysInput = document.getElementById('txt_afterDays');
+        if (!withinDaysInput || !afterDaysInput) return;
+
+        // Make After(Days) derived and non-editable in edit/new.
+        afterDaysInput.readOnly = true;
+
+        // Keep it in sync immediately.
+        afterDaysInput.value = withinDaysInput.value;
     }
 
     function wireOnTopFeedback() {
@@ -219,6 +234,8 @@
         withinDaysInput?.addEventListener('input', function () {
             if (afterDaysInput) {
                 afterDaysInput.value = withinDaysInput.value;
+                // Keep enforced read-only behavior
+                afterDaysInput.readOnly = true;
             }
         });
     }
@@ -403,8 +420,11 @@
 
     async function handleSave() {
         const appCore = getAppCore();
-        if (!validateForm()) {
-            showError('Please correct the errors before saving');
+        const validation = validateForm();
+        if (!validation.isValid) {
+            showError((validation.errors || []).join('\n') || 'Please correct the errors before saving');
+            validation.firstInvalidEl?.focus?.();
+            validation.firstInvalidEl?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
             return;
         }
 
@@ -632,6 +652,31 @@
     function validateForm() {
         let isValid = true;
         const errors = [];
+        let firstInvalidEl = null;
+
+        const readNonNegativeInt = (fieldId, label, { allowEmpty = true } = {}) => {
+            const el = document.getElementById(fieldId);
+            const raw = String(el?.value ?? '').trim();
+
+            if (!el) return { ok: true, value: 0, el: null };
+
+            if (raw === '') {
+                if (allowEmpty) return { ok: true, value: 0, el };
+                return { ok: false, value: 0, el, error: `${label} is required` };
+            }
+
+            // Reject negatives, decimals, scientific notation, etc. Only allow digits.
+            if (!/^[0-9]+$/.test(raw)) {
+                return { ok: false, value: 0, el, error: `${label} must be a whole number (0 or greater)` };
+            }
+
+            const n = Number(raw);
+            if (!Number.isFinite(n) || n < 0) {
+                return { ok: false, value: 0, el, error: `${label} must be 0 or greater` };
+            }
+
+            return { ok: true, value: n, el };
+        };
 
         // Clear previous validation states
         document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
@@ -641,6 +686,7 @@
         if (!exitTypeId?.value?.trim()) {
             errors.push('Exit Type ID is required');
             exitTypeId?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = exitTypeId;
             isValid = false;
         }
 
@@ -649,23 +695,125 @@
         if (!description?.value?.trim()) {
             errors.push('Description is required');
             description?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = description;
             isValid = false;
         }
 
-        // Validation: Within Days should not exceed Not Allowed After Days (only when both set)
-        const notAllowedAfter = parseInt(document.getElementById('txt_notAllowedAfter')?.value) || 0;
-        const withinDays = parseInt(document.getElementById('txt_withinDays')?.value) || 0;
-        if (notAllowedAfter > 0 && withinDays > notAllowedAfter) {
+        // Numeric fields: must be non-negative whole numbers when provided
+        const notAllowedAfterRes = readNonNegativeInt('txt_notAllowedAfter', 'Not Allowed After (Days)');
+        if (!notAllowedAfterRes.ok) {
+            errors.push(notAllowedAfterRes.error);
+            notAllowedAfterRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = notAllowedAfterRes.el;
+            isValid = false;
+        }
+
+        // Business rule: Not allowed After (Days) must be strictly more than 0
+        if (notAllowedAfterRes.ok && notAllowedAfterRes.value <= 0) {
+            errors.push("'Not allowed After (Days)' must be more than 0");
+            notAllowedAfterRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = notAllowedAfterRes.el;
+            isValid = false;
+        }
+
+        const withinDaysRes = readNonNegativeInt('txt_withinDays', 'Within (Days)');
+        if (!withinDaysRes.ok) {
+            errors.push(withinDaysRes.error);
+            withinDaysRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = withinDaysRes.el;
+            isValid = false;
+        }
+
+        // Business rule: Within (Days) must be strictly more than 0
+        if (withinDaysRes.ok && withinDaysRes.value <= 0) {
+            errors.push("'Within (Days)' must be more than 0");
+            withinDaysRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = withinDaysRes.el;
+            isValid = false;
+        }
+
+        const afterDaysRes = readNonNegativeInt('txt_afterDays', 'After (Days)');
+        if (!afterDaysRes.ok) {
+            errors.push(afterDaysRes.error);
+            afterDaysRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = afterDaysRes.el;
+            isValid = false;
+        }
+
+        // Business rule: After (Days) must be strictly more than 0
+        // (Avoid duplicate errors when Within is already failing and After is derived from it.)
+        if (afterDaysRes.ok && afterDaysRes.value <= 0 && !(withinDaysRes.ok && withinDaysRes.value <= 0)) {
+            errors.push("'After (Days)' must be more than 0");
+            afterDaysRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = afterDaysRes.el;
+            isValid = false;
+        }
+
+        // After (Days) is derived from Within (Days) and must always match.
+        if (withinDaysRes.ok && afterDaysRes.ok && withinDaysRes.value !== afterDaysRes.value) {
+            errors.push("'After (Days)' must be equal to 'Within (Days)'");
+            afterDaysRes.el?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = afterDaysRes.el;
+            isValid = false;
+        }
+
+        // Validation: Within Days should not exceed Not Allowed After Days
+        const notAllowedAfter = notAllowedAfterRes.value || 0;
+        const withinDays = withinDaysRes.value || 0;
+        if (withinDaysRes.ok && notAllowedAfterRes.ok && withinDays > notAllowedAfter) {
             errors.push("'Within (Days)' cannot be greater than 'Not Allowed After (Days)'");
             document.getElementById('txt_withinDays')?.classList.add('is-invalid');
+            if (!firstInvalidEl) firstInvalidEl = document.getElementById('txt_withinDays');
             isValid = false;
         }
 
-        if (!isValid) {
-            showError(errors.join('\n'));
+        // Required: Loan level reinstatement selections
+        const withinLevelEl = document.getElementById('ddl_withinLevel');
+        const afterLevelEl = document.getElementById('ddl_afterLevel');
+        const withinLevelVal = String(withinLevelEl?.value ?? '').trim();
+        const afterLevelVal = String(afterLevelEl?.value ?? '').trim();
+        if (withinLevelEl && afterLevelEl && (withinLevelVal === '' || afterLevelVal === '')) {
+            errors.push('Please select Loan level reinstatement');
+
+            if (withinLevelVal === '') withinLevelEl.classList.add('is-invalid');
+            if (afterLevelVal === '') afterLevelEl.classList.add('is-invalid');
+
+            if (!firstInvalidEl) firstInvalidEl = withinLevelVal === '' ? withinLevelEl : afterLevelEl;
+            isValid = false;
         }
 
-        return isValid;
+        // Cross-field rule: Within Level cannot be From First Level if After Level is not From First Level.
+        // Also: do not allow choosing After(Days) level as From Next Level.
+        const levelKind = (selectEl) => {
+            if (!selectEl) return '';
+            const text = String(selectEl.selectedOptions?.[0]?.text ?? '').trim().toLowerCase();
+            const value = String(selectEl.value ?? '').trim().toLowerCase();
+            const raw = text || value;
+            if (raw.includes('first')) return 'first';
+            if (raw.includes('next')) return 'next';
+            return raw;
+        };
+
+        if (withinLevelEl && afterLevelEl && withinLevelVal !== '' && afterLevelVal !== '') {
+            const withinKind = levelKind(withinLevelEl);
+            const afterKind = levelKind(afterLevelEl);
+
+            // If Within Level is First Level, After Level must also be First Level.
+            if (withinKind === 'first' && afterKind !== 'first') {
+                errors.push('After(Days) should be chosen as First level');
+                afterLevelEl.classList.add('is-invalid');
+                if (!firstInvalidEl) firstInvalidEl = afterLevelEl;
+                isValid = false;
+            } else if (afterKind === 'next') {
+                // Generic block: do not allow After(Days) as Next level.
+                errors.push('Cannot choose After(Days) as Next level,');
+                afterLevelEl.classList.add('is-invalid');
+                if (!firstInvalidEl) firstInvalidEl = afterLevelEl;
+                isValid = false;
+            }
+        }
+
+        return { isValid, errors, firstInvalidEl };
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -711,6 +859,10 @@
         // Sync nested controls
         handleReinstateChange();
         syncChargeOffTypeEnabled();
+
+        // Enforce derived After(Days) rule for all modes.
+        // (In VIEW mode the generic logic disables it anyway.)
+        enforceAfterDaysRule();
 
         console.log(`📝 Mode: ${mode}`);
     }

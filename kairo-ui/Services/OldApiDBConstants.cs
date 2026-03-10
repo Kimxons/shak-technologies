@@ -120,5 +120,11 @@ namespace kairo_ui.Services
         public const string DELETE_GROUP_ATTENDANCE = "p_DeleteGroupAttendance";
         public const string VALIDATE_ID_DESCRIPTION = "p_GetIDDescription";
 
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTER LOAN / DISBURSEMENT REVERSAL
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_LOAN_REVERSALS = "p_GetGroupLoanReversals";
+        public const string ADD_LOAN_REVERSAL_TRX = "p_AddLoanReversalTrx";
+
     }
 }
