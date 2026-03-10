@@ -27,11 +27,14 @@ window.AccountChequeBookModule = (function () {
      */
     function getContext() {
         const ps = window.AccountMaintenanceState;
+        const defaultWorkingDate = window.GlobalUtils?.getCurrentDate
+            ? window.GlobalUtils.getCurrentDate()
+            : new Date().toISOString().split('T')[0];
         return {
             AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
             OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
             OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'web_portal',
-            WorkingDate: ps?.WorkingDate || new Date().toISOString().split('T')[0]
+            WorkingDate: ps?.WorkingDate || defaultWorkingDate
         };
     }
 

@@ -103,6 +103,9 @@ function formatClient360RecentViewedAt(ts) {
 
     // Compact, readable timestamp.
     try {
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(d);
+        }
         return d.toLocaleString(undefined, {
             year: 'numeric',
             month: '2-digit',
@@ -1871,14 +1874,16 @@ function loadAccountsSection(accounts, balance) {
     });
 }
 
-function openAccountStatement(accountId, branchId = '') {
+function openAccountStatement(accountId, branchId = '', series = '') {
     try {
         const ctx = getContext();
         const statementUrl = new URL('Statement/Index', window.location.origin);
 
         const branch = (branchId && String(branchId).trim() !== '') ? String(branchId).trim() : (ctx?.OurBranchID || '');
+        const statementSeries = String(series || '').trim();
         if (branch) statementUrl.searchParams.set('branchId', branch);
         if (accountId) statementUrl.searchParams.set('accountId', String(accountId));
+        if (statementSeries) statementUrl.searchParams.set('series', statementSeries);
         statementUrl.searchParams.set('Source', 'Client360');
         statementUrl.searchParams.set('moduleId', String(MODULEID_CLIENT360));
 
@@ -1936,24 +1941,13 @@ function openAccountSignatories(accountId, branchId = '') {
 
 function openLoanStatement(rowOrAccountId) {
     try {
-        const ctx = getContext();
         const rowObj = (rowOrAccountId && typeof rowOrAccountId === 'object') ? rowOrAccountId : null;
         const accountId = rowObj ? extractAccountIdFromRow(rowObj) : rowOrAccountId;
         const branchId = rowObj ? extractBranchIdFromRow(rowObj) : '';
         const loanSeries = rowObj ? extractLoanSeriesFromRow(rowObj) : '';
-        const url = new URL('../loans/loan-maintenance/view/loan-statement.html', window.location.href);
-        url.searchParams.set('ModuleID', String(MODULEID_CLIENT360));
 
-        seedLoanMaintenanceContext({
-            branchId: branchId || ctx?.OurBranchID || '',
-            accountId: accountId || '',
-            loanSeries
-        });
-
-        openClient360Overlay(url.toString(), {
-            title: `Loan Statement - ${String(accountId || '').trim() || 'Account'}`,
-            loadingText: 'Loading loan statement...'
-        });
+        // Keep all statement actions in Client360 on the same endpoint.
+        openAccountStatement(accountId, branchId, loanSeries);
     } catch (e) {
         console.error('Failed to open loan statement view:', e);
         client360Toast('Failed to open loan statement view: ' + (e?.message || e), 'error');

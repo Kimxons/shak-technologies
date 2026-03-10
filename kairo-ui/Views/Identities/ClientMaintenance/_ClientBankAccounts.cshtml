@@ -1,8 +1,12 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    ViewData["Title"] = "Client Bank Accounts";
+    Layout = "_ApplicationLayout";
     var accountTypeOptions = ViewData["AccountTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var institutionTypeOptions = ViewData["InstitutionTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var showActionPanel = moduleId != "1000";
 }
 
 <div class="form-card" data-section="client-bank-accounts" data-cm-tab="bank-accounts">
@@ -15,7 +19,7 @@
     <div class="section-content" data-section-content>
         <form id="frm_clientBankAccounts" data-bankaccounts-form autocomplete="off" novalidate>
             <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdBankAccounts" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="moduleIdBankAccounts" value="@moduleId" />
             <input type="hidden" id="hdn_bankAccountId" name="bankAccountId" />
 
             <h5 class="mb-4">Bank Account Details</h5>
@@ -75,13 +79,16 @@
             </div>
         </form>
 
-        <div class="d-flex justify-content-center gap-2 my-4">
-            <button id="btn_newBankAccount" type="button" class="btn btn-sm btn-outline-primary" data-bankaccount-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-            <button id="btn_alterBankAccount" type="button" class="btn btn-sm btn-outline-primary" data-bankaccount-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-            <button id="btn_deleteBankAccount" type="button" class="btn btn-sm btn-outline-danger" data-bankaccount-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-            <button id="btn_updateBankAccount" type="button" class="btn btn-sm btn-primary" data-bankaccount-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-            <button id="btn_clearBankAccount" type="button" class="btn btn-sm btn-outline-secondary" data-bankaccount-action="clear">Clear</button>
-        </div>
+        @if (!showActionPanel)
+        {
+            <div class="d-flex justify-content-center gap-2 my-4">
+                <button id="btn_newBankAccount" type="button" class="btn btn-sm btn-outline-primary" data-bankaccount-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                <button id="btn_alterBankAccount" type="button" class="btn btn-sm btn-outline-primary" data-bankaccount-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                <button id="btn_deleteBankAccount" type="button" class="btn btn-sm btn-outline-danger" data-bankaccount-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
+                <button id="btn_updateBankAccount" type="button" class="btn btn-sm btn-primary" data-bankaccount-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
+                <button id="btn_clearBankAccount" type="button" class="btn btn-sm btn-outline-secondary" data-bankaccount-action="clear">Clear</button>
+            </div>
+        }
 
         <div class="section-header py-1 mb-2 bg-light border">
             <span class="small fw-bold px-2">REGISTERED BANK ACCOUNTS</span>
@@ -106,4 +113,17 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-bank-accounts.js"></script>
+@if (showActionPanel)
+{
+    <aside class="action-panel" aria-label="Client bank account actions">
+        <div class="d-flex flex-column gap-2 mt-auto">
+            <button id="btn_newBankAccount" type="button" class="btn-action" data-bankaccount-action="new"><i class="bi bi-plus-lg"></i><span>New</span></button>
+            <button id="btn_alterBankAccount" type="button" class="btn-action" data-bankaccount-action="alter"><i class="bi bi-pencil-square"></i><span>Alter</span></button>
+            <button id="btn_deleteBankAccount" type="button" class="btn-action btn-delete" data-bankaccount-action="remove"><i class="bi bi-trash"></i><span>Remove</span></button>
+            <button id="btn_updateBankAccount" type="button" class="btn-action btn-save" data-bankaccount-action="update"><i class="bi bi-check2-circle"></i><span>Update</span></button>
+            <button id="btn_clearBankAccount" type="button" class="btn-action btn-cancel" data-bankaccount-action="clear"><i class="bi bi-x-circle"></i><span>Clear</span></button>
+        </div>
+    </aside>
+}
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-bank-accounts.js"></script>

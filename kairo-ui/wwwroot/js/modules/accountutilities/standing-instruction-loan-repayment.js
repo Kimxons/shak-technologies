@@ -757,6 +757,10 @@
 
     function formatDateForInput(dateString) {
         if (!dateString) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateString);
+            if (parsed) return parsed;
+        }
         try {
             return new Date(dateString).toISOString().split('T')[0];
         } catch {
