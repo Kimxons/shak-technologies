@@ -71,8 +71,16 @@ namespace kairo_ui.Services
         // CHANGE INSTALLMENT DATE (Module 5095)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_INSTALLMENT_DATES = "p_GetInstallmentDates";
+        public const string GET_GROUP_LOAN_INST_DATE_CHANGE = "p_GetGroupLoanInstDateChange";
         public const string CHANGE_INSTALLMENT_DATE = "p_ChangeInstallmentDate";
         public const string VALIDATE_INSTALLMENT_DATE_CHANGE = "p_ValidateInstallmentDateChange";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CHANGE CENTER/GROUP
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_DETAILS = "p_GetGroupDetails";
+        public const string GET_GROUP_MEMBER_LIST = "p_GetGroupMemberList";
+        public const string CHANGE_MEMBER_GROUP_ID = "p_ChangeMemberGroupID";
 
         // ═══════════════════════════════════════════════════════════════════
         // CENTER MEMBER MAINTENANCE

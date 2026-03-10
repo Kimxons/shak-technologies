@@ -107,17 +107,33 @@ function bindAddressCrud(tabRoot, moduleId) {
 
     const state = {
         enabled: false,
-        editing: null
+        editing: null,
+        mode: 'view'
     };
 
     const form = tabRoot.querySelector('[data-address-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="addresses"]');
 
+    const setMode = (mode) => {
+        state.mode = mode || 'view';
+    };
+
+    const setEntryActionButtons = (enabled) => {
+        const updateBtn = tabRoot.querySelector('[data-address-action="update"]');
+        const clearBtn = tabRoot.querySelector('[data-address-action="clear"]');
+        if (updateBtn) updateBtn.disabled = !enabled;
+        if (clearBtn) clearBtn.disabled = !enabled;
+    };
+
     const setFieldsEnabled = (enabled) => {
-        state.enabled = enabled;
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+        const nextEnabled = allowEdit && enabled;
+
+        state.enabled = nextEnabled;
         form.querySelectorAll('[data-address-field]').forEach((field) => {
-            field.disabled = !enabled;
+            field.disabled = !nextEnabled;
         });
+        setEntryActionButtons(nextEnabled);
     };
 
     const getSelectLabel = (selector, value) => {
@@ -193,23 +209,24 @@ function bindAddressCrud(tabRoot, moduleId) {
     };
 
     const refreshAddressTable = async (requestData) => {
-      // Get client ID from parent context if not provided in requestData
-   const clientId = requestData?.ClientID || 
-       window.ClientMaintenanceCore?.getSelectedId?.() || 
-          window.ClientMaintenanceCore?.clientId || '';
+        // Get client ID and request ID from parent context
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
+        const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
         
-      if (!clientId) {
-     renderAddressTable([]);
-      return;
-    }
+        // Need at least one identifier (ClientID or RequestID) to fetch addresses
+        if (!clientId && !requestId) {
+            renderAddressTable([]);
+            return;
+        }
         try {
- const response = await window.ClientMaintenanceAddressService.get({
-    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-     ClientID: clientId,
-      RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
-          });
+            const response = await window.ClientMaintenanceAddressService.get({
+                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+                ClientID: clientId,
+                RequestID: requestId
+            });
    const rows = normalizeAddressRows(extractList(response));
             renderAddressTable(rows);
+                        setMode(rows.length > 0 ? 'edit' : 'view');
         } catch (error) {
     window.ClientMaintenanceCore.showToast(`Address load failed - ${error.message}`, 'error');
   }
@@ -224,6 +241,7 @@ function bindAddressCrud(tabRoot, moduleId) {
             }
         });
         state.editing = null;
+        setMode('view');
     };
 
     const readFieldValue = (field) => {
@@ -243,9 +261,8 @@ function bindAddressCrud(tabRoot, moduleId) {
 
    return {
     ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-     // Always use parent client ID from ClientMaintenanceCore
-     ClientID: window.ClientMaintenanceCore?.getSelectedId?.() || 
-    window.ClientMaintenanceCore?.clientId || '',
+     // Use actual ClientID and RequestID from parent context
+     ClientID: window.ClientMaintenanceCore?.clientId || '',
       RequestID: window.ClientMaintenanceCore?.requestId || '',
       Payload: payload
   };
@@ -269,6 +286,26 @@ function bindAddressCrud(tabRoot, moduleId) {
     tabRoot._cmLoadData = (requestData) => refreshAddressTable(requestData);
     window.ClientMaintenanceCore.registerTabLoadFunction('Address', (requestData) => refreshAddressTable(requestData));
 
+    // Initialize all action buttons as disabled until edit mode
+    const newBtn = tabRoot.querySelector('[data-address-action="new"]');
+    if (newBtn) newBtn.disabled = true;
+    enableGridRowActions(tabRoot, false);
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        if (isEditMode) {
+            // Enable New button to add addresses in edit mode
+            const newBtn = tabRoot.querySelector('[data-address-action="new"]');
+            if (newBtn) newBtn.disabled = false;
+        } else {
+            // Disable action buttons when exiting edit mode
+            setFieldsEnabled(false);
+            const newBtn = tabRoot.querySelector('[data-address-action="new"]');
+            if (newBtn) newBtn.disabled = true;
+            enableGridRowActions(tabRoot, false);
+        }
+    };
+
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
@@ -280,7 +317,10 @@ function bindAddressCrud(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
+        setMode('edit');
         setFieldsEnabled(false);
+        // Enable action buttons (update/alter, remove, clear) when row is selected
+        enableGridRowActions(tabRoot, true);
     });
 
     table?.addEventListener('dblclick', (event) => {
@@ -294,17 +334,24 @@ function bindAddressCrud(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
+        setMode('edit');
         setFieldsEnabled(true);
     });
 
-    form.querySelectorAll('[data-address-action]').forEach((button) => {
+    tabRoot.querySelectorAll('[data-address-action]').forEach((button) => {
         button.addEventListener('click', async () => {
             const action = button.dataset.addressAction;
             if (!action) return;
+            if (!['new', 'alter', 'clear', 'remove', 'update'].includes(action)) {
+                return;
+            }
 
             if (action === 'new') {
                 resetForm();
                 setFieldsEnabled(true);
+                setMode('add');
+                // Disable New button after clicking
+                button.disabled = true;
                 return;
             }
 
@@ -314,19 +361,57 @@ function bindAddressCrud(tabRoot, moduleId) {
                     return;
                 }
                 setFieldsEnabled(true);
+                setMode('edit');
                 return;
             }
 
             if (action === 'clear') {
                 resetForm();
                 setFieldsEnabled(false);
+                enableGridRowActions(tabRoot, false);
+                setMode('view');
+                // Re-enable New button
+                const newBtn = tabRoot.querySelector('[data-address-action="new"]');
+                if (newBtn) newBtn.disabled = false;
                 return;
+            }
+
+            // Confirm before removing
+            if (action === 'remove') {
+                if (!state.editing) {
+                    window.ClientMaintenanceCore.showToast('Select an address to remove.', 'warning');
+                    return;
+                }
+                
+                const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+                let confirmed = false;
+                if (!appCore || !appCore.showConfirmation) {
+                    confirmed = window.confirm('Are you sure you want to remove this address?');
+                } else {
+                    confirmed = await appCore.showConfirmation(
+                        'Confirm Remove',
+                        'Are you sure you want to remove this address?'
+                    );
+                }
+                if (!confirmed) return;
+                setMode('delete');
             }
 
             const request = buildPayload();
             const service = window.ClientMaintenanceAddressService;
-            const isUpdate = action === 'update' && state.editing;
-            const handler = action === 'remove' ? service.delete : (isUpdate ? service.update : service.create);
+            const mode = state.mode === 'view'
+                ? (state.editing ? 'edit' : 'add')
+                : state.mode;
+
+            if ((mode === 'edit' || mode === 'delete') && !state.editing) {
+                window.ClientMaintenanceCore.showToast('Select an address first.', 'warning');
+                return;
+            }
+
+            const handler = mode === 'delete'
+                ? service.delete
+                : (mode === 'edit' ? service.update : service.create);
+            const actionLabel = mode === 'delete' ? 'remove' : (mode === 'edit' ? 'update' : 'create');
 
             try {
                 const response = await handler(request);
@@ -337,12 +422,17 @@ function bindAddressCrud(tabRoot, moduleId) {
                     return;
                 }
 
-                window.ClientMaintenanceCore.showToast(`Address ${action} completed`, 'success');
+                window.ClientMaintenanceCore.showToast(`Address ${actionLabel} completed`, 'success');
                 resetForm();
                 setFieldsEnabled(false);
+                enableGridRowActions(tabRoot, false);
+                setMode('view');
+                // Re-enable New button after successful save
+                const newBtn = tabRoot.querySelector('[data-address-action="new"]');
+                if (newBtn) newBtn.disabled = false;
                 await refreshAddressTable();
             } catch (error) {
-                window.ClientMaintenanceCore.showToast(`Address ${action} failed - ${error.message}`, 'error');
+                window.ClientMaintenanceCore.showToast(`Address ${actionLabel} failed - ${error.message}`, 'error');
             }
         });
     });

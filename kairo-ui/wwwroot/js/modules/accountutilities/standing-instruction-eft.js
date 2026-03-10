@@ -540,6 +540,9 @@ window.SIEFTModule = (function () {
         if (!dateString || dateString === '-') return '-';
         try {
             const date = new Date(dateString);
+            if (window.GlobalUtils?.formatDateTime) {
+                return window.GlobalUtils.formatDateTime(dateString);
+            }
             return isNaN(date.getTime()) ? dateString : date.toLocaleString();
         } catch (e) {
             return dateString;

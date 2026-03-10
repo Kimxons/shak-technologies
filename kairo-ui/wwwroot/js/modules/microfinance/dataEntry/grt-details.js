@@ -174,6 +174,10 @@
 
     function formatDateForInput(isoDate) {
         if (!isoDate) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(isoDate);
+            if (parsed) return parsed;
+        }
         try {
             if (isoDate.includes('T')) {
                 const datePart = isoDate.split('T')[0];

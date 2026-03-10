@@ -113,19 +113,35 @@ function bindRelationsCrud(tabRoot, moduleId) {
 
     const state = {
         enabled: false,
-        editing: null
+        editing: null,
+        mode: 'view'
     };
 
     const form = tabRoot.querySelector('[data-relations-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="relations"]');
 
+    const setMode = (mode) => {
+        state.mode = mode || 'view';
+    };
+
+    const setEntryActionButtons = (enabled) => {
+        const updateBtn = tabRoot.querySelector('[data-relation-action="update"]');
+        const clearBtn = tabRoot.querySelector('[data-relation-action="clear"]');
+        if (updateBtn) updateBtn.disabled = !enabled;
+        if (clearBtn) clearBtn.disabled = !enabled;
+    };
+
     const setFieldsEnabled = (enabled) => {
-        state.enabled = enabled;
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+        const nextEnabled = allowEdit && enabled;
+
+        state.enabled = nextEnabled;
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
-            field.disabled = !enabled;
+            field.disabled = !nextEnabled;
         });
         const lookupBtn = form.querySelector('[data-relation-action="lookup"]');
-        if (lookupBtn) lookupBtn.disabled = !enabled;
+        if (lookupBtn) lookupBtn.disabled = !nextEnabled;
+        setEntryActionButtons(nextEnabled);
     };
 
     const extractList = (response) => {
@@ -194,23 +210,24 @@ function bindRelationsCrud(tabRoot, moduleId) {
     };
 
     const refreshRelationsTable = async (requestData) => {
-  // Get client ID from parent context if not provided in requestData
-   const clientId = requestData?.ClientID || 
-  window.ClientMaintenanceCore?.getSelectedId?.() || 
-       window.ClientMaintenanceCore?.clientId || '';
+        // Get client ID and request ID from parent context
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
+        const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
         
- if (!clientId) {
+        // Need at least one identifier (ClientID or RequestID) to fetch relations
+        if (!clientId && !requestId) {
             renderRelationsTable([]);
             return;
         }
         try {
-   const response = await window.ClientMaintenanceRelationsService.get({
-     ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-    ClientID: clientId,
-   RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
-  });
+            const response = await window.ClientMaintenanceRelationsService.get({
+                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+                ClientID: clientId,
+                RequestID: requestId
+            });
             const rows = normalizeRelationRows(extractList(response));
-   renderRelationsTable(rows);
+            renderRelationsTable(rows);
+            setMode(rows.length > 0 ? 'edit' : 'view');
         } catch (error) {
             window.ClientMaintenanceCore.showToast(`Relations load failed - ${error.message}`, 'error');
         }
@@ -224,7 +241,10 @@ function bindRelationsCrud(tabRoot, moduleId) {
                 field.value = '';
             }
         });
+        const clientNameField = form.querySelector('#txt_relationClientName');
+        if (clientNameField) clientNameField.value = '';
         state.editing = null;
+        setMode('view');
     };
 
     const readFieldValue = (field) => {
@@ -242,11 +262,16 @@ function bindRelationsCrud(tabRoot, moduleId) {
             payload[key] = readFieldValue(field);
         });
 
+        // Include ID fields from editing state for update/delete operations
+        if (state.editing) {
+            payload.ID = state.editing.ID || state.editing.ClientToRelationID || null;
+            payload.ClientToRelationID = state.editing.ClientToRelationID || state.editing.ID || null;
+        }
+
         return {
             ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            // Always use parent client ID from ClientMaintenanceCore
-            ClientID: window.ClientMaintenanceCore?.getSelectedId?.() || 
-    window.ClientMaintenanceCore?.clientId || '',
+            // Use actual ClientID and RequestID from parent context
+            ClientID: window.ClientMaintenanceCore?.clientId || '',
             RequestID: window.ClientMaintenanceCore?.requestId || '',
             Payload: payload
         };
@@ -266,9 +291,64 @@ function bindRelationsCrud(tabRoot, moduleId) {
         });
     };
 
+    // Validation: Check for duplicate RelatedClientID
+    const isDuplicateRelation = (relatedClientId) => {
+        if (!relatedClientId) return false;
+        const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
+        if (!tbody) return false;
+        
+        const rows = tbody.querySelectorAll('tr[data-payload]');
+        for (const row of rows) {
+            const existingPayload = JSON.parse(row.dataset.payload || '{}');
+            // Skip the row we're currently editing
+            if (state.editing && existingPayload.ID === state.editing.ID) continue;
+            if (existingPayload.RelatedClientID === relatedClientId) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Validation: Calculate total share percentage
+    const calculateTotalShare = (excludeCurrentEdit = false) => {
+        const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
+        if (!tbody) return 0;
+        
+        const rows = tbody.querySelectorAll('tr[data-payload]');
+        let total = 0;
+        for (const row of rows) {
+            const existingPayload = JSON.parse(row.dataset.payload || '{}');
+            // Skip the row we're currently editing when checking for update
+            if (excludeCurrentEdit && state.editing && existingPayload.ID === state.editing.ID) continue;
+            const share = parseFloat(existingPayload.SharePercent) || 0;
+            total += share;
+        }
+        return total;
+    };
+
     setFieldsEnabled(false);
     tabRoot._cmLoadData = (requestData) => refreshRelationsTable(requestData);
     window.ClientMaintenanceCore.registerTabLoadFunction('Relations', (requestData) => refreshRelationsTable(requestData));
+
+    // Initialize all action buttons as disabled until edit mode
+    const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
+    if (newBtn) newBtn.disabled = true;
+    enableGridRowActions(tabRoot, false);
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        if (isEditMode) {
+            // Enable New button to add relations in edit mode
+            const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
+            if (newBtn) newBtn.disabled = false;
+        } else {
+            // Disable action buttons when exiting edit mode
+            setFieldsEnabled(false);
+            const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
+            if (newBtn) newBtn.disabled = true;
+            enableGridRowActions(tabRoot, false);
+        }
+    };
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');
@@ -281,7 +361,10 @@ function bindRelationsCrud(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
+        setMode('edit');
         setFieldsEnabled(false);
+        // Enable action buttons (update/alter, remove, clear) when row is selected
+        enableGridRowActions(tabRoot, true);
     });
 
     table?.addEventListener('dblclick', (event) => {
@@ -295,17 +378,24 @@ function bindRelationsCrud(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
+        setMode('edit');
         setFieldsEnabled(true);
     });
 
-    form.querySelectorAll('[data-relation-action]').forEach((button) => {
+    tabRoot.querySelectorAll('[data-relation-action]').forEach((button) => {
         button.addEventListener('click', async () => {
             const action = button.dataset.relationAction;
             if (!action) return;
+            if (!['new', 'alter', 'clear', 'remove', 'update'].includes(action)) {
+                return;
+            }
 
             if (action === 'new') {
                 resetForm();
                 setFieldsEnabled(true);
+                setMode('add');
+                // Disable New button after clicking
+                button.disabled = true;
                 return;
             }
 
@@ -315,19 +405,86 @@ function bindRelationsCrud(tabRoot, moduleId) {
                     return;
                 }
                 setFieldsEnabled(true);
+                setMode('edit');
                 return;
             }
 
             if (action === 'clear') {
                 resetForm();
                 setFieldsEnabled(false);
+                enableGridRowActions(tabRoot, false);
+                setMode('view');
+                // Re-enable New button
+                const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
+                if (newBtn) newBtn.disabled = false;
                 return;
             }
 
+            // Validation: Remove requires selection
+            if (action === 'remove') {
+                if (!state.editing) {
+                    window.ClientMaintenanceCore.showToast('Select a relation to remove.', 'warning');
+                    return;
+                }
+                
+                // Confirm before removing
+                const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+                let confirmed = false;
+                if (!appCore || !appCore.showConfirmation) {
+                    confirmed = window.confirm('Are you sure you want to remove this relation?');
+                } else {
+                    confirmed = await appCore.showConfirmation(
+                        'Confirm Remove',
+                        'Are you sure you want to remove this relation?'
+                    );
+                }
+                if (!confirmed) return;
+                setMode('delete');
+            }
+
             const request = buildPayload();
+            const relatedClientId = request?.Payload?.RelatedClientID;
+            const sharePercent = parseFloat(request?.Payload?.SharePercent) || 0;
+
+            const mode = state.mode === 'view'
+                ? (state.editing ? 'edit' : 'add')
+                : state.mode;
+
+            if ((mode === 'edit' || mode === 'delete') && !state.editing) {
+                window.ClientMaintenanceCore.showToast('Select a relation first.', 'warning');
+                return;
+            }
+
+            // Validation: Duplicate check for create/update
+            if ((mode === 'add' || mode === 'edit') && relatedClientId) {
+                if (isDuplicateRelation(relatedClientId)) {
+                    window.ClientMaintenanceCore.showToast(
+                        `Relation with Client ID "${relatedClientId}" already exists.`,
+                        'warning'
+                    );
+                    return;
+                }
+            }
+
+            // Validation: Total share cannot exceed 100%
+            if (mode === 'add' || mode === 'edit') {
+                const currentTotal = calculateTotalShare(mode === 'edit');
+                const newTotal = currentTotal + sharePercent;
+                
+                if (newTotal > 100) {
+                    window.ClientMaintenanceCore.showToast(
+                        `Total share percentage cannot exceed 100%. Current total: ${currentTotal.toFixed(2)}%, Attempting to add: ${sharePercent.toFixed(2)}%`,
+                        'warning'
+                    );
+                    return;
+                }
+            }
+
             const service = window.ClientMaintenanceRelationsService;
-            const isUpdate = action === 'update' && state.editing;
-            const handler = action === 'remove' ? service.delete : (isUpdate ? service.update : service.create);
+            const handler = mode === 'delete'
+                ? service.delete
+                : (mode === 'edit' ? service.update : service.create);
+            const actionLabel = mode === 'delete' ? 'remove' : (mode === 'edit' ? 'update' : 'create');
 
             try {
                 const response = await handler(request);
@@ -338,15 +495,66 @@ function bindRelationsCrud(tabRoot, moduleId) {
                     return;
                 }
 
-                window.ClientMaintenanceCore.showToast(`Relations ${action} completed`, 'success');
+                window.ClientMaintenanceCore.showToast(`Relations ${actionLabel} completed`, 'success');
                 resetForm();
                 setFieldsEnabled(false);
+                enableGridRowActions(tabRoot, false);
+                setMode('view');
+                // Re-enable New button after successful save
+                const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
+                if (newBtn) newBtn.disabled = false;
                 await refreshRelationsTable();
             } catch (error) {
-                window.ClientMaintenanceCore.showToast(`Relations ${action} failed - ${error.message}`, 'error');
+                window.ClientMaintenanceCore.showToast(`Relations ${actionLabel} failed - ${error.message}`, 'error');
             }
         });
     });
+}
+
+/**
+ * Hydrate relation form fields from related client ID
+ */
+async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) {
+    if (!relatedClientId || !window.ClientMaintenanceCore) return;
+    
+    try {
+        // Use ClientMaintenance service to fetch individual client details
+        if (typeof window.ClientMaintenanceCore.invokeControllerMethod !== 'function') return;
+
+        const response = await window.ClientMaintenanceCore.invokeControllerMethod(
+            'Identities/ClientMaintenance/ClientIndividual',
+            'get',
+            'POST',
+            {
+                ModuleID: window.ClientMaintenanceCore.moduleId || '',
+                ClientID: relatedClientId
+            }
+        );
+        
+        if (!response?.Success && !response?.success) return;
+        
+        const clientData = response?.Data || response?.data || response?.Payload || {};
+        
+        // Populate name fields
+        const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
+        const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
+        const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
+        const genderField = tabRoot.querySelector('[data-relation-field="GenderID"]');
+        const clientNameField = tabRoot.querySelector('#txt_relationClientName');
+        
+        if (firstNameField && clientData.FirstName) firstNameField.value = clientData.FirstName;
+        if (middleNameField && clientData.MiddleName) middleNameField.value = clientData.MiddleName;
+        if (lastNameField && clientData.LastName) lastNameField.value = clientData.LastName;
+        if (genderField && clientData.GenderID) genderField.value = clientData.GenderID;
+        
+        if (clientNameField) {
+            const name = [clientData.FirstName, clientData.MiddleName, clientData.LastName]
+                .filter(Boolean).join(' ') || clientData.Name || '';
+            clientNameField.value = name;
+        }
+    } catch (error) {
+        console.warn('[Relations] Failed to hydrate from related client ID:', error);
+    }
 }
 
 /**
@@ -376,8 +584,8 @@ function initRelationsSearchModal(tabRoot, moduleId) {
         return;
     }
     
-    searchBtn.addEventListener('click', (e) => {
-        e.preventDefault();
+    // Helper function to open the search modal
+    const openSearchModal = () => {
         const currentValue = tabRoot.querySelector('[data-relation-field="RelatedClientID"]')?.value || '';
         
         searchModal.open({
@@ -389,7 +597,7 @@ function initRelationsSearchModal(tabRoot, moduleId) {
                 { name: 'Name', label: 'Client Name', column: 'Name' }
             ],
             autoSearch: false,
-            onSelect: (record) => {
+            onSelect: async (record) => {
                 // Populate the related client ID
                 const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
                 if (clientIdField) {
@@ -411,7 +619,37 @@ function initRelationsSearchModal(tabRoot, moduleId) {
                 if (middleNameField) middleNameField.value = record.MiddleName || '';
                 if (lastNameField) lastNameField.value = record.LastName || '';
                 if (genderField) genderField.value = record.GenderID || '';
+
+                const selectedId = record.ClientID || '';
+                if (selectedId) {
+                    await hydrateRelationFormFromRelatedClientId(tabRoot, selectedId);
+                }
             }
         });
+    };
+    
+    // Button click handler
+    searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSearchModal();
     });
+    
+    // Add blur event handler for auto-hydration when RelatedClientID is manually entered
+    const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
+    if (clientIdField) {
+        clientIdField.addEventListener('blur', async (e) => {
+            const value = e.target.value?.trim();
+            if (value) {
+                await hydrateRelationFormFromRelatedClientId(tabRoot, value);
+            }
+        });
+        
+        // F2 key handler to open search modal
+        clientIdField.addEventListener('keydown', (e) => {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                openSearchModal();
+            }
+        });
+    }
 }

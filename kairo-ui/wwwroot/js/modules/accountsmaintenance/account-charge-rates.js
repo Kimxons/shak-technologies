@@ -153,6 +153,10 @@ window.AccountChargeRatesModule = (function () {
 
     function formatDateForInput(dateStr) {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateStr);
+            if (parsed) return parsed;
+        }
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return dateStr;
         return d.toISOString().split('T')[0];

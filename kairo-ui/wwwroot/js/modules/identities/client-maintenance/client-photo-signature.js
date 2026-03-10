@@ -380,7 +380,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             tr.innerHTML = `
                 <td class="ps-2">${typeLabel}</td>
                 <td>${description}</td>
-                <td>${createdOn ? new Date(createdOn).toLocaleString() : ''}</td>
+                <td>${createdOn ? (window.GlobalUtils?.formatDateTime ? window.GlobalUtils.formatDateTime(createdOn) : new Date(createdOn).toLocaleString()) : ''}</td>
                 <td class="text-center">
                     <div class="btn-group btn-group-sm">
                         <button type="button" class="btn btn-primary" data-action="view"><i class="bi bi-eye"></i></button>
@@ -394,8 +394,12 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
     };
 
     const refreshTable = async (requestData) => {
-        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
-        if (!clientId) {
+        // Get client ID and request ID from parent context
+        const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
+        const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
+        
+        // Need at least one identifier (ClientID or RequestID) to fetch photo/signature
+        if (!clientId && !requestId) {
             renderTable([]);
             return;
         }
@@ -403,7 +407,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             const response = await window.ClientMaintenancePhotoSignatureService.get({
                 ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
                 ClientID: clientId,
-                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
+                RequestID: requestId
             });
             const rows = response?.Details || response?.data?.Details || response?.data || response || [];
             state.items = Array.isArray(rows) ? rows : [];
@@ -663,4 +667,10 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
 
     tabRoot._cmLoadData = (requestData) => refreshTable(requestData);
     window.ClientMaintenanceCore.registerTabLoadFunction('PhotoSignature', (requestData) => refreshTable(requestData));
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        // Photo/Signature upload is available in edit mode
+        // No table row selection needed here
+    };
 }

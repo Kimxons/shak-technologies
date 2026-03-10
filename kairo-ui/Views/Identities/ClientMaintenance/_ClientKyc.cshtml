@@ -1,5 +1,7 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    // ViewData["Title"] = "Client KYC";
+    // Layout = "_ApplicationLayout";
     var clientAreaOptions = ViewData["KycClientAreaOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var personalStatusOptions = ViewData["KycPersonalStatusOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var closeLawSuitOptions = ViewData["KycCloseLawSuitOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
@@ -120,4 +122,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-kyc.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-kyc.js"></script>

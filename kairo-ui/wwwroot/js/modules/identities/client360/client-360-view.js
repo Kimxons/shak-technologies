@@ -103,6 +103,9 @@ function formatClient360RecentViewedAt(ts) {
 
     // Compact, readable timestamp.
     try {
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(d);
+        }
         return d.toLocaleString(undefined, {
             year: 'numeric',
             month: '2-digit',

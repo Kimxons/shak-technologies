@@ -217,7 +217,7 @@
                 <td>${member.ClientName || member.Name || ''}</td>
                 <td>${member.GroupID || ''}</td>
                 <td>${member.GroupName || ''}</td>
-                <td>${member.JoinDate ? new Date(member.JoinDate).toLocaleDateString() : ''}</td>
+                <td>${member.JoinDate ? (window.GlobalUtils?.formatDate ? window.GlobalUtils.formatDate(member.JoinDate) : new Date(member.JoinDate).toLocaleDateString()) : ''}</td>
                 <td>${member.LoanAccountID || member.LoanAcID || ''}</td>
                 <td>${member.LoanBalance || member.LoanOSBalance || '0'}</td>
                 <td>${member.SavingsAccountID || member.SavingsAcID || ''}</td>

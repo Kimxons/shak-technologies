@@ -1,4 +1,4 @@
-﻿@using kairo_ui.Models.Login
+@using kairo_ui.Models.Login
 @model LoginViewModel
 
 @{
@@ -19,7 +19,7 @@
     @* <link rel="stylesheet" href="@Url.Content("~/css/styles.css")" /> *@
     <link rel="stylesheet" href="/css/styles.css" />
     <!-- Global Theme Manager - Load before any scripts -->
-    <script src="@Url.Content("~/js/theme-manager.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/theme-manager.js")"></script>
 </head>
 
 <body data-page="login" class="auth-page">
@@ -49,12 +49,12 @@
     c
     <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js" type="text/javascript"></script>
     <!-- Environment Configuration -->
-    <script src="@Url.Content("~/js/environment.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/environment.js")"></script>
     <!-- Auth Services -->
-    <script src="@Url.Content("~/js/auth/auth.config.js")"></script>
-    <script src="@Url.Content("~/js/auth/auth.service.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/auth/auth.config.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/auth/auth.service.js")"></script>
     <!-- Main App -->
-    <script src="@Url.Content("~/js/app.js?v=20260114-11")"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/app.js?v=20260114-11")"></script>
     <script>
         // Simple password toggle logic
         document.addEventListener("DOMContentLoaded", function () {

@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using kairo_ui.Models.Identities.ClientMaintenance;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         public IActionResult Index(string? moduleId = null, string? clientId = null, string? requestId = null)
         {
             if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
-            
+
             ViewData["ModuleId"] = moduleId ?? string.Empty;
             ViewData["ClientId"] = clientId ?? string.Empty;
             ViewData["RequestId"] = requestId ?? string.Empty;
@@ -44,7 +45,13 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
                 _logger.LogInformation("client-maintenance.submit.get request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_SUBMISSION_SUMMARY, requestData);
+                var response = new ResponseDetail<object>
+                {
+                    ResponseCode = "00",
+                    ResponseMessage = "Success",
+                    Details = null
+                };
+                //var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_SUBMISSION_SUMMARY, requestData);
                 return Ok(response);
             }
             catch (Exception ex)

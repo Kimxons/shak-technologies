@@ -6,6 +6,18 @@
 (function (global) {
     'use strict';
 
+    const FIELD_CONTAINER_SELECTOR = '.kairo-branch-control, .kairo-client-control, .kairo-product-control, .kairo-account-control, .kairo-user-control, .kairo-document-control, .kairo-file-control, .kairo-control';
+
+    function findFieldContainer(input) {
+        if (!input || typeof input.closest !== 'function') return null;
+        return input.closest(FIELD_CONTAINER_SELECTOR);
+    }
+
+    function findErrorHost(input) {
+        if (!input || typeof input.closest !== 'function') return input?.parentElement || null;
+        return input.closest('.field-wrapper') || input.closest('.col') || input.parentElement || null;
+    }
+
     const ValidationUtils = {
         /**
          * Check if value contains only alphabetic characters (letters and spaces)
@@ -286,15 +298,32 @@
          */
         showError(input, message) {
             if (!input) return;
-            input.classList.add('is-invalid');
-            
-            let errorDiv = input.parentElement.querySelector('.invalid-feedback');
-            if (!errorDiv) {
-                errorDiv = document.createElement('div');
-                errorDiv.className = 'invalid-feedback';
-                input.parentElement.appendChild(errorDiv);
+            const fieldContainer = findFieldContainer(input);
+            const errorHost = findErrorHost(input);
+
+            if (fieldContainer) {
+                fieldContainer.classList.add('field-invalid');
+                fieldContainer.classList.remove('is-invalid');
             }
-            errorDiv.textContent = message;
+
+            input.classList.add('field-invalid');
+            input.classList.remove('is-invalid');
+
+            if (errorHost) {
+                errorHost.classList.add('field-wrapper', 'has-error');
+                let errorDiv = errorHost.querySelector('.field-error-message');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'field-error-message';
+                    errorHost.appendChild(errorDiv);
+                }
+                errorDiv.textContent = message;
+
+                const legacyError = errorHost.querySelector('.invalid-feedback');
+                if (legacyError) {
+                    legacyError.remove();
+                }
+            }
         },
 
         /**
@@ -302,10 +331,25 @@
          */
         clearError(input) {
             if (!input) return;
-            input.classList.remove('is-invalid');
-            const errorDiv = input.parentElement.querySelector('.invalid-feedback');
-            if (errorDiv) {
-                errorDiv.remove();
+            const fieldContainer = findFieldContainer(input);
+            const errorHost = findErrorHost(input);
+
+            if (fieldContainer) {
+                fieldContainer.classList.remove('field-invalid', 'is-invalid');
+            }
+
+            input.classList.remove('field-invalid', 'is-invalid');
+
+            if (errorHost) {
+                errorHost.classList.remove('has-error');
+                const errorDiv = errorHost.querySelector('.field-error-message');
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+                const legacyError = errorHost.querySelector('.invalid-feedback');
+                if (legacyError) {
+                    legacyError.remove();
+                }
             }
         }
     };
