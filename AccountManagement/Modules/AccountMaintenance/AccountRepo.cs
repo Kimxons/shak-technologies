@@ -339,7 +339,33 @@ namespace AccountManagement.Modules.AccountMaintenance
         }
         public async Task<ResponseDetail<object>> GetBlockedHistory(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_BLOCKED_HISTORY} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            // Freeze/Release history popup uses ModuleID=1300 but calls GetBlockedHistory route.
+            // Route that specific case to freeze history SP and keep default for other modules.
+            var procedure = DBObjectConstants.GET_BLOCKED_HISTORY;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(requestJson))
+                {
+                    using var doc = JsonDocument.Parse(requestJson);
+                    if (doc.RootElement.TryGetProperty("ModuleID", out var moduleEl))
+                    {
+                        var moduleId = moduleEl.ValueKind == JsonValueKind.Number
+                            ? moduleEl.GetInt32()
+                            : int.TryParse(moduleEl.GetString(), out var parsed) ? parsed : 0;
+
+                        if (moduleId == 1300)
+                        {
+                            procedure = DBObjectConstants.GET_ACCOUNT_FREEZE_HISTORY;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Keep default procedure if payload cannot be parsed.
+            }
+
+            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {procedure} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),

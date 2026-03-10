@@ -51,6 +51,7 @@ namespace AccountManagement.Helpers
         public const string BLOCK_ENTITY = "p_BlockEntity_V0";
         public const string UNBLOCK_ENTITY = "p_UnblockEntity_V0";
         public const string GET_BLOCKED_HISTORY = "p_GetBlockedHistory_V0";
+        public const string GET_ACCOUNT_FREEZE_HISTORY = "p_GetAccountFreezeHistory";
         public const string GET_BLOCKED_DETAILS = "p_GetBlockedDetails_V0";
 
         // Account Classification procedures
