@@ -69,7 +69,11 @@ function initPersonalValidation() {
             const ageAsOnInput = document.getElementById('txt_personalAgeAsOn');
             
             if (ageInput) ageInput.value = age;
-            if (ageAsOnInput) ageAsOnInput.value = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            if (ageAsOnInput) {
+                ageAsOnInput.value = window.GlobalUtils?.formatDate
+                    ? window.GlobalUtils.formatDate(new Date())
+                    : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
             
             // Validate minimum age
             if (age < 18) {

@@ -2325,7 +2325,9 @@
 
         // Add OpenedBy and OpenedDate for account creation (not nullable)
         formData.OpenedBy = operatorId;
-        formData.OpenedDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        formData.OpenedDate = window.GlobalUtils?.getCurrentDate
+            ? window.GlobalUtils.getCurrentDate()
+            : new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
         return formData;
     }

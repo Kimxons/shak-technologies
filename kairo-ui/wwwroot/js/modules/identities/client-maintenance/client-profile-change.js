@@ -89,14 +89,27 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
     const setFormState = (mode) => {
         state.mode = mode;
         const isView = mode === 'view';
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
 
         // Form fields (except readonly fields and clientName which is always readonly)
         const fields = form?.querySelectorAll('input:not([type="hidden"]):not([readonly]), select, textarea');
         fields?.forEach(field => {
             if (field.id !== 'txt_clientName' && field.id !== 'txt_age') {
-                field.disabled = isView;
+                field.disabled = !allowEdit || isView;
             }
         });
+
+        if (!allowEdit) {
+            ['#btn_editProfileChange', '#btn_saveProfileChange', '#btn_cancelProfileChange']
+                .forEach((selector) => {
+                    const btn = moduleRoot.querySelector(selector);
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.display = '';
+                    }
+                });
+            return;
+        }
 
         // Buttons
         toggleButton('#btn_editProfileChange', isView);
@@ -270,6 +283,9 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(dateStr);
+        }
         try {
             const date = new Date(dateStr);
             return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -280,6 +296,10 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     const formatDateForInput = (dateStr) => {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateStr);
+            if (parsed) return parsed;
+        }
         try {
             const date = new Date(dateStr);
             return date.toISOString().split('T')[0];

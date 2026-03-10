@@ -21,11 +21,16 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 
     const state = {
         enabled: false,
-        editing: null
+        editing: null,
+        mode: 'view'
     };
 
     const form = tabRoot.querySelector('[data-documents-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="documents"]');
+
+    const setMode = (mode) => {
+        state.mode = mode || 'view';
+    };
 
     const setEntryActionButtons = (enabled) => {
         const updateBtn = tabRoot.querySelector('[data-document-action="update"]');
@@ -35,13 +40,16 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     };
 
     const setFieldsEnabled = (enabled) => {
-        state.enabled = enabled;
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+        const nextEnabled = allowEdit && enabled;
+
+        state.enabled = nextEnabled;
         form.querySelectorAll('[data-document-field]').forEach((field) => {
-            field.disabled = !enabled;
+            field.disabled = !nextEnabled;
         });
         const lookupBtn = form.querySelector('[data-document-action="lookup-receiver"]');
-        if (lookupBtn) lookupBtn.disabled = !enabled;
-        setEntryActionButtons(enabled);
+        if (lookupBtn) lookupBtn.disabled = !nextEnabled;
+        setEntryActionButtons(nextEnabled);
     };
 
     const extractList = (response) => {
@@ -126,6 +134,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             const rows = normalizeDocumentRows(extractList(response));
             console.log(rows);
             renderDocumentsTable(rows);
+            setMode(rows.length > 0 ? 'edit' : 'view');
         } catch (error) {
             window.ClientMaintenanceCore.showToast(`Documents load failed - ${error.message}`, 'error');
         }
@@ -144,6 +153,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         const receiverName = form.querySelector('#txt_documentReceivedByName');
         if (receiverName) receiverName.value = '';
         state.editing = null;
+        setMode('view');
     };
 
     const readFieldValue = (field) => {
@@ -282,6 +292,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
+        setMode('edit');
         setFieldsEnabled(false);
         // Enable action buttons (update, remove, clear) when row is selected
         enableGridRowActions(tabRoot, true);
@@ -304,6 +315,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
+        setMode('edit');
         setFieldsEnabled(true);
     });
 
@@ -318,6 +330,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             if (action === 'new') {
                 resetForm();
                 setFieldsEnabled(true);
+                setMode('add');
                 // Disable New button after clicking
                 button.disabled = true;
                 return;
@@ -329,6 +342,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                     return;
                 }
                 setFieldsEnabled(true);
+                setMode('edit');
                 return;
             }
 
@@ -336,6 +350,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 resetForm();
                 setFieldsEnabled(false);
                 enableGridRowActions(tabRoot, false);
+                setMode('view');
                 // Re-enable New button
                 const newBtn = tabRoot.querySelector('[data-document-action="new"]');
                 if (newBtn) newBtn.disabled = false;
@@ -360,12 +375,24 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                     );
                 }
                 if (!confirmed) return;
+                setMode('delete');
             }
 
             const request = buildPayload();
             const service = window.ClientMaintenanceDocumentsService;
-            const isUpdate = action === 'update' && state.editing;
-            const handler = action === 'remove' ? service.delete : (isUpdate ? service.update : service.create);
+            const mode = state.mode === 'view'
+                ? (state.editing ? 'edit' : 'add')
+                : state.mode;
+
+            if ((mode === 'edit' || mode === 'delete') && !state.editing) {
+                window.ClientMaintenanceCore.showToast('Select a document first.', 'warning');
+                return;
+            }
+
+            const handler = mode === 'delete'
+                ? service.delete
+                : (mode === 'edit' ? service.update : service.create);
+            const actionLabel = mode === 'delete' ? 'remove' : (mode === 'edit' ? 'update' : 'create');
 
             try {
                 const response = await handler(request);
@@ -376,16 +403,17 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                     return;
                 }
 
-                window.ClientMaintenanceCore.showToast(`Documents ${action} completed`, 'success');
+                window.ClientMaintenanceCore.showToast(`Documents ${actionLabel} completed`, 'success');
                 resetForm();
                 setFieldsEnabled(false);
                 enableGridRowActions(tabRoot, false);
+                setMode('view');
                 // Re-enable New button after successful save
                 const newBtn = tabRoot.querySelector('[data-document-action="new"]');
                 if (newBtn) newBtn.disabled = false;
                 await refreshDocumentsTable();
             } catch (error) {
-                window.ClientMaintenanceCore.showToast(`Documents ${action} failed - ${error.message}`, 'error');
+                window.ClientMaintenanceCore.showToast(`Documents ${actionLabel} failed - ${error.message}`, 'error');
             }
         });
     });

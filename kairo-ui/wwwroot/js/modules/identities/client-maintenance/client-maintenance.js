@@ -113,6 +113,8 @@ window.ClientMaintenanceCore = {
     workflowId: null,
     workflowStageRequestId: 0,
     isMainWorkflowLocked: false,
+    isEditMode: false,
+    canEditCurrent: false,
     // Registry to track loaded tabs and their load functions
     _loadedTabsRegistry: new Map(),
 
@@ -1141,6 +1143,25 @@ function pickFirstNonEmpty(values) {
     return '';
 }
 
+function isPendingWorkflowStatus(row) {
+    if (!row || typeof row !== 'object') return false;
+
+    const candidates = [
+        row?.WFClientStatusID,
+        row?.ClientStatusID,
+        row?.ClientStatus,
+        row?.ClientStatusDescription,
+        row?.Status
+    ];
+
+    return candidates.some((value) => {
+        if (value == null) return false;
+        const text = String(value).trim().toLowerCase();
+        if (!text) return false;
+        return text === 'p' || text === 'pending' || text.includes('pending');
+    });
+}
+
 function formatAuditDate(value) {
     if (value == null) return '';
 
@@ -1150,6 +1171,10 @@ function formatAuditDate(value) {
     const date = new Date(text);
     if (Number.isNaN(date.getTime())) {
         return text;
+    }
+
+    if (window.GlobalUtils?.formatDateTime) {
+        return window.GlobalUtils.formatDateTime(date);
     }
 
     return date.toLocaleString('en-GB', {
@@ -1274,6 +1299,52 @@ async function loadAllTabsData() {
     await Promise.all(loadPromises);
 }
 
+function buildRecentActivityAccessedFields({ selectionMode, clientId, requestId } = {}) {
+    const mode = String(selectionMode || '').toLowerCase();
+    const resolvedClientId = String(clientId || '').trim();
+    const resolvedRequestId = String(requestId || '').trim();
+
+    if (mode === 'request' && resolvedRequestId) {
+        return `ApplicationID:${resolvedRequestId}`;
+    }
+
+    if (resolvedClientId) {
+        return `ClientID:${resolvedClientId}`;
+    }
+
+    if (resolvedRequestId) {
+        return `ApplicationID:${resolvedRequestId}`;
+    }
+
+    return '';
+}
+
+async function addRecentActivityAndRefreshSidebar(accessedFields) {
+    const trimmedFields = String(accessedFields || '').trim();
+    if (!trimmedFields) return;
+
+    try {
+        const moduleId = window.ClientMaintenanceCore?.moduleId || '1000';
+        const response = await invokeController('SideBar', 'AddRecentActivity', {
+            ModuleID: moduleId,
+            AccessedFields: trimmedFields
+        });
+
+        const responseCode = response?.ResponseCode || response?.responseCode || '';
+        const success = response?.Success === true || response?.success === true || responseCode === '00';
+
+        if (!success) {
+            const message = response?.ErrorMessage || response?.ResponseMessage || response?.responseMessage || response?.message || 'Failed to add recent activity';
+            console.warn('[Client Maintenance] Recent activity not tracked:', message);
+            return;
+        }
+
+        await loadSidebar(moduleId);
+    } catch (error) {
+        console.warn('[Client Maintenance] Error tracking recent activity:', error);
+    }
+}
+
 async function loadClientBasicDetails(selectionContext) {
     const context = typeof selectionContext === 'string'
         ? { clientId: selectionContext }
@@ -1284,6 +1355,10 @@ async function loadClientBasicDetails(selectionContext) {
     const selectionMode = context.selectionMode || (window.ClientMaintenanceCore.useRequestId ? 'request' : 'client');
     const lockClientId = selectionMode === 'request';
     const lockRequestId = selectionMode === 'client';
+
+    if (window.ClientMaintenanceCore) {
+        window.ClientMaintenanceCore.canEditCurrent = false;
+    }
 
     if (!clientId && !requestId) return;
 
@@ -1315,6 +1390,11 @@ async function loadClientBasicDetails(selectionContext) {
             applyBasicDetailsToPersonal(row);
             applyBasicDetailsToBehindScene(row);
 
+            if (window.ClientMaintenanceCore) {
+                const isPending = isPendingWorkflowStatus(row);
+                window.ClientMaintenanceCore.canEditCurrent = window.ClientMaintenanceCore.useRequestId && isPending;
+            }
+
             // Keep parent context aligned with IDs resolved from get-basic.
             const resolvedClientId = String(row?.ClientID || row?.ClientId || clientId).trim();
             const resolvedRequestId = String(row?.RequestID || row?.RequestId || requestId).trim();
@@ -1334,9 +1414,24 @@ async function loadClientBasicDetails(selectionContext) {
                     mainApplicationIdInput.value = resolvedRequestId;
                 }
             }
+
+            const accessedFields = buildRecentActivityAccessedFields({
+                selectionMode,
+                clientId: resolvedClientId,
+                requestId: resolvedRequestId
+            });
+
+            if (accessedFields) {
+                addRecentActivityAndRefreshSidebar(accessedFields);
+            }
         } else {
             resetBehindSceneFields();
+            if (window.ClientMaintenanceCore) {
+                window.ClientMaintenanceCore.canEditCurrent = false;
+            }
         }
+
+        setClientLoadedState(true);
 
         // Load all tab data after basic details are loaded
         // If tab data loading fails, just show error message but keep workflow visible
@@ -1346,8 +1441,13 @@ async function loadClientBasicDetails(selectionContext) {
             window.ClientMaintenanceCore.showToast(`Failed to load some tab data - ${error.message}`, 'error');
             console.error('[ClientMaintenance] Error loading tab data:', error);
             // Continue - don't fail the whole operation, just show the error
+        } finally {
+            setClientEditMode(false);
         }
     } catch (error) {
+        if (window.ClientMaintenanceCore) {
+            window.ClientMaintenanceCore.canEditCurrent = false;
+        }
         window.ClientMaintenanceCore.showToast(`Failed to load client - ${error.message}`, 'error');
     }
 }
@@ -1539,6 +1639,8 @@ async function loadTabPartial(config, forceDataRefresh = false) {
                 // Continue - don't prevent other tabs from loading
             }
         }
+
+        applyTabEditMode(pane, window.ClientMaintenanceCore?.isEditMode);
         return;
     }
 
@@ -1571,6 +1673,8 @@ async function loadTabPartial(config, forceDataRefresh = false) {
         window.ClientMaintenanceCore.showToast(`${config.key} tab initialization failed - ${error.message}`, 'error');
         // Continue - tab HTML is already loaded, just data/initialization failed
     }
+
+    applyTabEditMode(pane, window.ClientMaintenanceCore?.isEditMode);
 }
 
 async function loadSidebar(moduleId) {
@@ -1899,20 +2003,141 @@ async function saveCurrentTabData() {
     }
 }
 
+function storeControlState(control) {
+    if (!control) return;
+    if (control.dataset.cmPrevDisabled === undefined) {
+        control.dataset.cmPrevDisabled = control.disabled ? 'true' : 'false';
+    }
+    if (typeof control.readOnly === 'boolean' && control.dataset.cmPrevReadOnly === undefined) {
+        control.dataset.cmPrevReadOnly = control.readOnly ? 'true' : 'false';
+    }
+}
+
+function restoreControlState(control) {
+    if (!control) return;
+    if (control.dataset.cmPrevDisabled !== undefined) {
+        control.disabled = control.dataset.cmPrevDisabled === 'true';
+        delete control.dataset.cmPrevDisabled;
+    }
+    if (typeof control.readOnly === 'boolean' && control.dataset.cmPrevReadOnly !== undefined) {
+        control.readOnly = control.dataset.cmPrevReadOnly === 'true';
+        delete control.dataset.cmPrevReadOnly;
+    }
+}
+
+function toggleFormControl(control, isEditMode) {
+    if (!control) return;
+    const tag = String(control.tagName || '').toLowerCase();
+    const type = String(control.type || '').toLowerCase();
+
+    if (type === 'hidden') return;
+
+    if (isEditMode) {
+        restoreControlState(control);
+        return;
+    }
+
+    storeControlState(control);
+
+    if (tag === 'select' || type === 'checkbox' || type === 'radio' || type === 'file' || type === 'date') {
+        control.disabled = true;
+        return;
+    }
+
+    if (type === 'button' || type === 'submit' || type === 'reset') {
+        control.disabled = true;
+        return;
+    }
+
+    if (typeof control.readOnly === 'boolean') {
+        control.readOnly = true;
+    } else {
+        control.disabled = true;
+    }
+}
+
+function toggleButtonControl(button, isEditMode) {
+    if (!button) return;
+    if (button.classList.contains('section-toggle-btn')) return;
+
+    if (isEditMode) {
+        restoreControlState(button);
+        return;
+    }
+
+    storeControlState(button);
+    button.disabled = true;
+}
+
+function ensureTabEditObserver(tabRoot) {
+    if (!tabRoot || tabRoot._cmEditObserver) return;
+
+    tabRoot._cmEditObserver = new MutationObserver((mutations) => {
+        if (window.ClientMaintenanceCore?.isEditMode) return;
+
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (!(node instanceof HTMLElement)) return;
+
+                if (node.matches('input, select, textarea')) {
+                    toggleFormControl(node, false);
+                }
+
+                if (node.matches('button')) {
+                    toggleButtonControl(node, false);
+                }
+
+                node.querySelectorAll('input, select, textarea').forEach((field) => {
+                    toggleFormControl(field, false);
+                });
+
+                node.querySelectorAll('button').forEach((button) => {
+                    toggleButtonControl(button, false);
+                });
+            });
+        });
+    });
+
+    tabRoot._cmEditObserver.observe(tabRoot, { childList: true, subtree: true });
+}
+
+function applyTabEditMode(tabRoot, isEditMode) {
+    if (!tabRoot) return;
+
+    ensureTabEditObserver(tabRoot);
+
+    tabRoot.querySelectorAll('input, select, textarea').forEach((field) => {
+        toggleFormControl(field, isEditMode);
+    });
+
+    tabRoot.querySelectorAll('button').forEach((button) => {
+        toggleButtonControl(button, isEditMode);
+    });
+
+    if (typeof tabRoot._cmSetEditMode === 'function') {
+        tabRoot._cmSetEditMode(isEditMode);
+    }
+}
+
 /**
  * Set client maintenance edit mode
  * When enabled, partial view fields become editable and grid action buttons are enabled
  */
 function setClientEditMode(isEditMode) {
+    const editMode = Boolean(isEditMode);
+    if (window.ClientMaintenanceCore) {
+        window.ClientMaintenanceCore.isEditMode = editMode;
+    }
+
     const stageTabs = Array.isArray(clientMaintenanceStageTabs) ? clientMaintenanceStageTabs : [];
     stageTabs.forEach((config) => {
         const pane = document.getElementById(config.pane);
-        if (pane && typeof pane._cmSetEditMode === 'function') {
-            pane._cmSetEditMode(isEditMode);
+        if (pane) {
+            applyTabEditMode(pane, editMode);
         }
     });
 
-    if (isEditMode && window.ClientMaintenanceCore?.showToast) {
+    if (editMode && window.ClientMaintenanceCore?.showToast) {
         window.ClientMaintenanceCore.showToast('Edit mode enabled - you can now modify records', 'info');
     }
 }
@@ -1924,6 +2149,9 @@ function setClientEditMode(isEditMode) {
 function enableGridRowActions(tabRoot, hasSelection) {
     if (!tabRoot) return;
 
+    const canEnable = Boolean(window.ClientMaintenanceCore?.isEditMode);
+    const enableActions = Boolean(hasSelection) && canEnable;
+
     const actionTargets = new Set(['update', 'alter', 'remove', 'delete', 'clear']);
     const buttons = tabRoot.querySelectorAll('button');
 
@@ -1932,7 +2160,7 @@ function enableGridRowActions(tabRoot, hasSelection) {
         if (actionKeys.length === 0) return;
         const hasMatch = actionKeys.some((key) => actionTargets.has(String(button.dataset[key] || '').toLowerCase()));
         if (hasMatch) {
-            button.disabled = !hasSelection;
+            button.disabled = !enableActions;
         }
     });
 }
@@ -2007,7 +2235,8 @@ function setClientLoadedState(isLoaded) {
 
     if (viewBtn) viewBtn.disabled = isLoaded;
     if (addBtn) addBtn.disabled = isLoaded;
-    if (editBtn) editBtn.disabled = !isLoaded;
+    const allowEdit = isLoaded && window.ClientMaintenanceCore?.useRequestId && window.ClientMaintenanceCore?.canEditCurrent;
+    if (editBtn) editBtn.disabled = !allowEdit;
 
     if (cancelBtn) cancelBtn.disabled = !isLoaded;
     if (clearBtn) clearBtn.disabled = !isLoaded;
@@ -2057,6 +2286,7 @@ async function resetClientMaintenance() {
         window.ClientMaintenanceCore.requestId = null;
         window.ClientMaintenanceCore.useRequestId = false;
         window.ClientMaintenanceCore.workflowId = null;
+        window.ClientMaintenanceCore.canEditCurrent = false;
 
         // Clear all tab content
         const tabContentWrapper = document.getElementById('dv_clientMaintenanceTabContent');

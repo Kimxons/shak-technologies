@@ -932,7 +932,7 @@ var cells = rows[i].querySelectorAll('td');
             '.footer { margin-top: 20px; text-align: center; font-size: 10px; color: #64748b; }' +
    '@media print { th { background: #4a7c95 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }' +
  '</style></head><body>' +
-       '<div class="header"><h1>ACCOUNT STATEMENT</h1><div>' + new Date().toLocaleDateString() + '</div></div>' +
+     '<div class="header"><h1>ACCOUNT STATEMENT</h1><div>' + (window.GlobalUtils?.formatDate ? window.GlobalUtils.formatDate(new Date()) : new Date().toLocaleDateString()) + '</div></div>' +
    '<div class="info">' +
           '<span><strong>Branch:</strong> ' + (state.OurBranchID || '-') + '</span>' +
             '<span><strong>Account:</strong> ' + (state.AccountID || '-') + '</span>' +

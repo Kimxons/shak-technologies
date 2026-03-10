@@ -1193,6 +1193,10 @@
             forfeitsHtml = '<tr><td colspan="5" class="text-center">No records to display.</td></tr>';
         }
 
+        const generatedOn = window.GlobalUtils?.formatDateTime
+            ? window.GlobalUtils.formatDateTime(new Date())
+            : new Date().toLocaleString();
+
         const printContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Exit Process Report</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:20px;font-size:12px;line-height:1.4}
 .report-header{text-align:center;margin-bottom:20px;border-bottom:2px solid #333;padding-bottom:10px}
@@ -1208,7 +1212,7 @@ th{background:#e2e8f0;font-weight:bold}.text-end{text-align:right}.text-center{t
 .total-row{background:#e2e8f0;font-weight:bold}
 @media print{body{padding:10px}.section{page-break-inside:avoid}}</style></head>
 <body>
-<div class="report-header"><h1>Exit Process Report</h1><p>Generated on ${new Date().toLocaleString()}</p></div>
+<div class="report-header"><h1>Exit Process Report</h1><p>Generated on ${generatedOn}</p></div>
 <div class="client-info">
 <div class="info-row"><span class="info-label">Branch:</span><span>${val('BranchId')} - ${val('BranchName')}</span></div>
 <div class="info-row"><span class="info-label">Center:</span><span>${val('CenterId')} - ${val('CenterName')}</span></div>

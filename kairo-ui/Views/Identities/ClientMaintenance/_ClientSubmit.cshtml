@@ -1,3 +1,8 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    // ViewData["Title"] = "Client Products & Services";
+    // Layout = "_ApplicationLayout";
+}
 <div class="form-card" data-section="client-submit" data-cm-tab="submit">
     <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-check2-circle"></i>Submit</span>
@@ -6,8 +11,8 @@
         </button>
     </div>
     <div class="section-content" data-section-content>
-                    <!-- Hidden fields for page context -->
-                    <input type="hidden" id="moduleIdSubmit" value="@ViewData["ModuleId"]" />
+        <!-- Hidden fields for page context -->
+        <input type="hidden" id="moduleIdSubmit" value="@ViewData["ModuleId"]" />
 
         <header class="cm-summary-header d-flex justify-content-between gap-3 flex-wrap">
             <div>
@@ -53,4 +58,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-submit.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-submit.js"></script>

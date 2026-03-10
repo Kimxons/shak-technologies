@@ -2134,6 +2134,10 @@ body:not(.micro-interactions-enabled) * {
   width: 100%;
 }
 
+.form-card .form-row.four-col .col.span-4 {
+  grid-column: 1 / -1 !important;
+}
+
 .form-card .form-row.four-col .col label {
   text-align: left !important;
   width: 100% !important;
