@@ -474,6 +474,17 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             return PartialView("CardMaintenance");
         }
 
+        [Route("EditCardStatus")]
+        [Route("EditCardStatus/Index")]
+        public IActionResult EditCardStatus()
+        {
+            if (!_authService.IsAuthenticated())
+                return RedirectToAction("Index", "Login");
+
+            var queryString = Request.QueryString.HasValue ? Request.QueryString.Value : string.Empty;
+            return Redirect($"{Url.Content("~/EditCardStatus/Index")}{queryString}");
+        }
+
         [Route("AccountNotes")]
         public IActionResult AccountNotes() => _authService.IsAuthenticated() ? PartialView("AccountNotes") : Unauthorized();
 
@@ -1682,6 +1693,66 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         // ============================================================================
 
         [HttpPost]
+        [Route("api/get-blocked-reasons")]
+        public async Task<IActionResult> GetBlockedReasons()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "BlockedReasonID"
+                });
+
+                dropdownOptions.TryGetValue("BlockedReasonID", out var blockedReasonOptions);
+
+                return Ok(new
+                {
+                    Details = blockedReasonOptions ?? Enumerable.Empty<SelectListItem>(),
+                    ResponseCode = "00",
+                    ResponseMessage = "Blocked reasons retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting blocked reasons");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/get-unblocked-reasons")]
+        public async Task<IActionResult> GetUnblockedReasons()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "UnBlockedReasonID"
+                });
+
+                dropdownOptions.TryGetValue("UnBlockedReasonID", out var unblockedReasonOptions);
+
+                return Ok(new
+                {
+                    Details = unblockedReasonOptions ?? Enumerable.Empty<SelectListItem>(),
+                    ResponseCode = "00",
+                    ResponseMessage = "Unblocked reasons retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unblocked reasons");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/block-entity")]
         public async Task<IActionResult> BlockEntity([FromBody] JsonElement request)
         {
@@ -1737,19 +1808,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-blocked-history")]
-        public async Task<IActionResult> GetBlockedHistory([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetBlockedHistory([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_BLOCKED_HISTORY,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1763,19 +1835,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-blocked-details")]
-        public async Task<IActionResult> GetBlockedDetails([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetBlockedDetails([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_BLOCKED_DETAILS,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1793,19 +1866,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-account-charge-rate")]
-        public async Task<IActionResult> GetAccountChargeRate([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountChargeRate([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_CHARGE_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2894,21 +2968,21 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 // Inject session data with fallbacks (following ClientMaintenanceControllerBase pattern)
                 if (string.IsNullOrWhiteSpace(requestData.OperatorID))
                 {
-                    requestData.OperatorID = HttpContext.Session.GetString("user_name") 
-                        ?? HttpContext.Session.GetString("user_id") 
+                    requestData.OperatorID = HttpContext.Session.GetString("user_name")
+                        ?? HttpContext.Session.GetString("user_id")
                         ?? "web_portal";
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(requestData.OurBranchID))
                 {
-                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code") 
-                        ?? HttpContext.Session.GetString("branch_id") 
+                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code")
+                        ?? HttpContext.Session.GetString("branch_id")
                         ?? "0101";
                 }
 
                 // Get BankID from session (required field)
-                var bankId = HttpContext.Session.GetString("bank_id") 
-                    ?? HttpContext.Session.GetString("bank_code") 
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
                     ?? "00";
 
                 // Request structure matching ClientMaintenanceCrudRequest (required for GET_CLIENT_BASIC_DETAILS)
@@ -3025,6 +3099,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
+
     }
 
     // Request DTOs
@@ -3057,7 +3132,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? OurBranchID { get; set; }
         public string? ClientID { get; set; }
         public string? ProductID { get; set; }
-        
+
         // Account details
         public string? AccountName { get; set; }
         public string? Name { get; set; }  // Database column name (t_AccountCustomer.Name)
@@ -3066,13 +3141,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? CurrencyCode { get; set; }
         public string? CurrencyID { get; set; }
         public string? Status { get; set; }
-        
+
         // Address fields
         public string? Address1 { get; set; }
         public string? Address2 { get; set; }
         public string? CityID { get; set; }
         public string? CountryID { get; set; }
-        
+
         // Contact fields
         public string? PhoneHome { get; set; }
         public string? Phone1 { get; set; }  // API field name
@@ -3082,27 +3157,27 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? Mobile { get; set; }
         public string? EmailID { get; set; }
         public string? ContactPerson { get; set; }
-        
+
         // Operating details
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructions { get; set; }
-        
+
         // Classification and officers
         public string? AccountClassID { get; set; }
         public string? AccountOfficerID { get; set; }
         public string? LiquidationAccountID { get; set; }
         public string? SalesOfficerID { get; set; }
-        
+
         // Passbook
         public string? PassbookSerialID { get; set; }
         public bool? ExemptPassBook { get; set; }
-        
+
         // System fields (injected by server)
         public string? UserID { get; set; }
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
-        
+
         // Update tracking
         public int? UpdateCount { get; set; }
         public string? ModifiedBy { get; set; }
@@ -3114,7 +3189,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ClientID { get; set; }
         public string? OurBranchID { get; set; }
         public string? ProductID { get; set; }
-        
+
         // Account details
         public string? AccountName { get; set; }
         public string? Name { get; set; }  // Database column name (t_AccountCustomer.Name)
@@ -3123,13 +3198,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? CurrencyCode { get; set; }
         public string? CurrencyID { get; set; }
         public string? AccountTypeCode { get; set; }
-        
+
         // Address fields
         public string? Address1 { get; set; }
         public string? Address2 { get; set; }
         public string? CityID { get; set; }
         public string? CountryID { get; set; }
-        
+
         // Contact fields
         public string? PhoneHome { get; set; }
         public string? Phone1 { get; set; }  // API field name
@@ -3139,28 +3214,28 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? Mobile { get; set; }
         public string? EmailID { get; set; }
         public string? ContactPerson { get; set; }
-        
+
         // Operating details
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructions { get; set; }
-        
+
         // Classification and officers
         public string? AccountClassID { get; set; }
         public string? AccountOfficerID { get; set; }
         public string? LiquidationAccountID { get; set; }
         public string? SalesOfficerID { get; set; }
-        
+
         // Passbook
         public string? PassbookSerialID { get; set; }
         public bool? ExemptPassBook { get; set; }
-        
+
         // System fields (injected by server)
         public string? UserID { get; set; }
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
         public string? CreatedBy { get; set; }
-        
+
         // Opening details (not nullable)
         public string? OpenedBy { get; set; }
         public string? OpenedDate { get; set; }
@@ -3542,6 +3617,9 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? AccountID { get; set; }
         public string? AccountTypeID { get; set; }
         public string? AccountNumber { get; set; }
+        public string? ChargeID { get; set; }
+        public string? EffectiveDate { get; set; }
+        public int? EffectiveDateID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public string? FromDate { get; set; }

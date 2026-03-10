@@ -3,7 +3,7 @@ namespace kairo_ui.Services
     public static class OldApiDBConstants
     {
 
-        public const string GET_SEARCHRESULT = "p_GetSearchResult";        
+        public const string GET_SEARCHRESULT = "p_GetSearchResult";
         public const string GET_GROUP_LOAN_SCHEMES = "p_GetGroupLoanSchemes";
         public const string ADD_EDIT_GROUP_LOAN_SCHEMES = "p_AddEditGroupLoanSchemes";
         public const string DELETE_GROUP_LOAN_SCHEMES = "p_DeleteGroupLoanSchemes";
@@ -116,5 +116,12 @@ namespace kairo_ui.Services
         // Validations use p_GetIDDescription with ControlTypeID:
         //   BranchID, GroupID, GroupLoanSchemeID
 
+        public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
+        public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
+
+        public const string GET_MERGE_CLIENT_ACCOUNTS = "p_GetCustomerQuery_MergeClientAccount";
+        public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
+        public const string SEARCH_SYSTEM_BRANCHES = "pc_SearchSystemBranches";
+        public const string MERGE_ACCOUNTS = "p_MergeAccounts";
     }
 }
