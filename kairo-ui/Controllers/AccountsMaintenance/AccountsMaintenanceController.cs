@@ -2,6 +2,7 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace kairo_ui.Controllers.AccountsMaintenance
 {
@@ -3234,10 +3235,22 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     // ============================================================================
     public class GetAccountRemindersRequest
     {
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+        public string? AccountId { get; set; }
+=======
+        public string? AccountID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? ReminderID { get; set; }
+>>>>>>> Stashed changes
+=======
         public string? AccountID { get; set; }
         public string? ReminderID { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? Direction { get; set; }
     }
 
     public class AddAccountReminderRequest
@@ -3250,11 +3263,51 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderEndDate { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+=======
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
         public int? NewRecord { get; set; }
+>>>>>>> Stashed changes
+=======
+        public int? NewRecord { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
     }
 
     public class UpdateAccountReminderRequest
     {
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+        public string? AccountId { get; set; }
+        public string? ReminderId { get; set; }
+        public string? ReminderText { get; set; }
+        public string? ReminderDate { get; set; }
+        public string? ReminderType { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+=======
+        public string? AccountID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? ReminderID { get; set; }
+        public string? Reminder { get; set; }
+        public string? ColorID { get; set; }
+        public string? Priority { get; set; }
+        public string? ReminderStartDate { get; set; }
+        public string? ReminderEndDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public int? UpdateCount { get; set; }
+>>>>>>> Stashed changes
+=======
         public string? AccountID { get; set; }
         public string? ReminderID { get; set; }
         public string? Reminder { get; set; }
@@ -3265,12 +3318,24 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public int? UpdateCount { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
     }
 
     public class DeleteAccountReminderRequest
     {
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+        public string? AccountId { get; set; }
+        public string? ReminderId { get; set; }
+=======
+        public string? AccountID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? ReminderID { get; set; }
+>>>>>>> Stashed changes
+=======
         public string? AccountID { get; set; }
         public string? ReminderID { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }

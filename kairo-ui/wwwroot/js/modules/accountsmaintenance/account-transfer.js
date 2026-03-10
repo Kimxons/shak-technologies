@@ -100,7 +100,8 @@ window.AccountTransferModule = (function () {
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
                 const data = result.Details?.[0] || result.data?.Details?.[0] || result.data || result.Details;
                 if (data) {
                     state.transferData = data;
@@ -111,7 +112,7 @@ window.AccountTransferModule = (function () {
                     clearForm();
                 }
             } else {
-                showMsg(result?.message || 'Failed to load transfer details', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Failed to load transfer details', 'error');
             }
         } catch (err) {
             showMsg('Error loading transfer details: ' + err.message, 'error');
@@ -176,12 +177,13 @@ window.AccountTransferModule = (function () {
 
         try {
             const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
-            if (result && result.success) {
-                showMsg(result.message || 'Account transfer saved successfully', 'success');
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Account transfer saved successfully', 'success');
                 loadData();
                 return true;
             } else {
-                showMsg(result?.message || 'Save failed', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Save failed', 'error');
                 return false;
             }
         } catch (err) {
