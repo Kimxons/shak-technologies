@@ -116,6 +116,72 @@ namespace kairo_ui.Controllers.AccountUtilities
                 return RedirectToAction("Index", "Dashboard");
             }
         }
+        /// <summary>
+        /// Direct Debit Maintenance 
+        /// </summary>
+        [Route("DirectDebitMaintenance/Index")]
+        public async Task<IActionResult> DirectDebitMaintenance()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return RedirectToAction("Index", "Login");
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "DirectDebitTypeID",
+                    "TransferFrequencyID",
+                    "ChargeRecoveryID"
+                });
+
+                dropdownOptions.TryGetValue("DirectDebitTypeID", out var directDebitTypeOptions);
+                dropdownOptions.TryGetValue("TransferFrequencyID", out var transferFrequencyOptions);
+                dropdownOptions.TryGetValue("ChargeRecoveryID", out var chargeRecoveryOptions);
+
+                ViewData["DirectDebitTypeOptions"] = directDebitTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["TransferFrequencyOptions"] = transferFrequencyOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["ChargeRecoveryOptions"] = chargeRecoveryOptions ?? Enumerable.Empty<SelectListItem>();
+
+                return PartialView("DirectDebitMaintenance");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Direct Debit Maintenance");
+                return RedirectToAction("Index", "Dashboard");
+            }
+        }
+
+        /// <summary>
+        /// Standing Instruction Type
+        /// </summary>
+        [Route("StandingInstructionType/Index")]
+        public async Task<IActionResult> StandingInstructionType()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return RedirectToAction("Index", "Login");
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "SITransferTypeID",
+                    "FailedChargeTypeID"
+                });
+
+                dropdownOptions.TryGetValue("SITransferTypeID", out var siTransferTypeOptions);
+                dropdownOptions.TryGetValue("FailedChargeTypeID", out var failedChargeTypeOptions);
+
+                ViewData["SITransferTypeOptions"] = siTransferTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["FailedChargeTypeOptions"] = failedChargeTypeOptions ?? Enumerable.Empty<SelectListItem>();
+
+                return PartialView("StandingInstructionType");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Standing Instruction Type");
+                return RedirectToAction("Index", "Dashboard");
+            }
+        }
 
         #endregion
 

@@ -858,6 +858,41 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             }
         }
 
+        /// <summary>
+        /// API endpoint - Get client images (signature/photo) from ClientDocumentApi
+        /// </summary>
+        [HttpGet]
+        [Route("api/get-client-images/{clientId}")]
+        public async Task<IActionResult> GetClientImages(string clientId)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, errorMessage = "Not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(clientId))
+                    return BadRequest(new { success = false, errorMessage = "ClientID is required" });
+
+                // Build the endpoint URL using the constant
+                var endpoint = string.Format(ApiEndpoints.GET_IMAGE_ACCOUNTS_BY_CLIENT, clientId);
+
+                _logger.LogInformation("Fetching client images from ClientDocumentApi: {Endpoint}", endpoint);
+
+                var response = await _apiService.GetAsync<JsonElement>(
+                    "ClientDocumentApi",
+                    endpoint,
+                    []
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting client images for ClientID: {ClientID}", clientId);
+                return Ok(new { success = false, errorMessage = ex.Message });
+            }
+        }
+
         // ============================================================================
         // DOCUMENTS
         // ============================================================================

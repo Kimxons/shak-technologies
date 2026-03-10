@@ -108,12 +108,12 @@ window.CreditInterestWorksheetModule = (function () {
         // Date picker buttons
         const fromDatePicker = el('btn_fromDatePicker');
         if (fromDatePicker) {
-            fromDatePicker.addEventListener('click', () => openDatePicker('txt_fromDate'));
+            fromDatePicker.onclick = function(e) { e.preventDefault(); openDatePicker('txt_fromDate'); };
         }
 
         const toDatePicker = el('btn_toDatePicker');
         if (toDatePicker) {
-            toDatePicker.addEventListener('click', () => openDatePicker('txt_toDate'));
+            toDatePicker.onclick = function(e) { e.preventDefault(); openDatePicker('txt_toDate'); };
         }
     }
 
@@ -148,24 +148,35 @@ window.CreditInterestWorksheetModule = (function () {
 
     // ── Date Picker ────────────────────────────────────────────
     function openDatePicker(inputId) {
-        const input = el(inputId);
-        if (input) {
-            const dateInput = document.createElement('input');
-            dateInput.type = 'date';
-            dateInput.style.position = 'absolute';
-            dateInput.style.opacity = '0';
-            document.body.appendChild(dateInput);
-            
-            dateInput.addEventListener('change', function() {
-                if (this.value) {
-                    const date = new Date(this.value);
-                    input.value = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        var input = document.getElementById(inputId);
+        if (!input) return;
+
+        var picker = document.createElement('input');
+        picker.type = 'date';
+        picker.style.position = 'absolute';
+        picker.style.opacity = '0';
+        picker.style.pointerEvents = 'none';
+
+        picker.onchange = function () {
+            if (picker.value) {
+                var dateParts = picker.value.split('-');
+                if (dateParts.length === 3) {
+                    var d = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+                    input.value = formatDate(d);
                 }
-                document.body.removeChild(dateInput);
-            });
-            
-            dateInput.click();
-        }
+            }
+            if (document.body.contains(picker)) document.body.removeChild(picker);
+        };
+
+        picker.onblur = function () {
+            setTimeout(function () {
+                if (document.body.contains(picker)) document.body.removeChild(picker);
+            }, 100);
+        };
+
+        document.body.appendChild(picker);
+        if (picker.showPicker) picker.showPicker();
+        else picker.click();
     }
 
     // ── Parse Date from Display Format ─────────────────────────
