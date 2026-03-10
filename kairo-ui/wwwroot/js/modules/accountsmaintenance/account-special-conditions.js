@@ -282,7 +282,7 @@ window.AccountSpecialConditionsModule = (function () {
 
         showLoading(true);
         try {
-            const result = await window.AppCore.invokeControllerAsync(API.GET, {
+            const result = await window.AppCore.invokeControllerAsync(`${API.GET}`, {
                 AccountID: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
@@ -343,7 +343,7 @@ window.AccountSpecialConditionsModule = (function () {
                     OperatorID: ctx.OperatorID
                 };
 
-                const result = await window.AppCore.invokeControllerAsync(API.UPDATE, payload);
+                const result = await window.AppCore.invokeControllerAsync(`${API.UPDATE}`, payload);
                 if (isSuccess(result)) successCount++;
                 else errorCount++;
             }

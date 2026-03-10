@@ -18,11 +18,11 @@ window.CancelStopPaymentModule = (function () {
         currentUpdateCount: 0
     };
 
-    // API Paths (Relative to AccountsMaintenance controller)
+    // API Paths
     const API = {
-        GET: 'api/get-cancel-stop-payments',
-        ADD: 'api/add-cancel-stop-payment',
-        UPDATE: 'api/update-cancel-stop-payment'
+        GET: 'AccountsMaintenance/api/get-cancel-stop-payments',
+        ADD: 'AccountsMaintenance/api/add-cancel-stop-payment',
+        UPDATE: 'AccountsMaintenance/api/update-cancel-stop-payment'
     };
 
     /**
@@ -82,7 +82,7 @@ window.CancelStopPaymentModule = (function () {
                 AccountID: state.accountId,
                 OperatorID: state.operatorId
             };
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, {
+            const result = await AppCore.invokeControllerAsync(API.GET, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -368,15 +368,16 @@ window.CancelStopPaymentModule = (function () {
                 UpdateCount: state.currentUpdateCount
             };
 
-            const endpoint = 'AccountsMaintenance/' + (isAdd ? API.ADD : API.UPDATE);
+            const endpoint = isAdd ? API.ADD : API.UPDATE;
             const result = await AppCore.invokeControllerAsync(endpoint, payload);
 
-            if (result && result.ResponseCode === '00') {
-                AppCore.showMsg(result.ResponseMessage || 'Record saved successfully', 'success');
+            const isOk = result && (result.ResponseCode === '00' || result.success || result.Success);
+            if (isOk) {
+                AppCore.showMsg(result.ResponseMessage || result.message || 'Record saved successfully', 'success');
                 setMode('VIEW');
                 loadData();
             } else {
-                AppCore.showMsg(result.ResponseMessage || 'Failed to save record', 'error');
+                AppCore.showMsg(result?.ResponseMessage || result?.message || 'Failed to save record', 'error');
             }
         } catch (error) {
             console.error('[CancelStopPayment] Error saving data:', error);
@@ -410,13 +411,14 @@ window.CancelStopPaymentModule = (function () {
                 NewRecord: -1 // Signal for delete
             };
 
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.UPDATE, payload);
+            const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
 
-            if (result && result.ResponseCode === '00') {
-                AppCore.showMsg(result.ResponseMessage || 'Record deleted successfully', 'success');
+            const isOk = result && (result.ResponseCode === '00' || result.success || result.Success);
+            if (isOk) {
+                AppCore.showMsg(result.ResponseMessage || result.message || 'Record deleted successfully', 'success');
                 loadData();
             } else {
-                AppCore.showMsg(result.ResponseMessage || 'Failed to delete record', 'error');
+                AppCore.showMsg(result?.ResponseMessage || result?.message || 'Failed to delete record', 'error');
             }
         } catch (error) {
             console.error('[CancelStopPayment] Error deleting data:', error);

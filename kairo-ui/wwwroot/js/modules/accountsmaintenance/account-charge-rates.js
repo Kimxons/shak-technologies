@@ -98,7 +98,7 @@ window.AccountChargeRatesModule = (function () {
         if (loader) loader.hidden = false;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.GET, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -253,7 +253,7 @@ window.AccountChargeRatesModule = (function () {
         };
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.SAVE, payload);
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.SAVE}`, payload);
             if (result && result.success) {
                 showMsg(result.message || 'Charge rates saved successfully', 'success');
                 loadData();
@@ -276,7 +276,7 @@ window.AccountChargeRatesModule = (function () {
         if (!ok) return;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.DELETE, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.DELETE}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 ChargeID: val('chargeId'),

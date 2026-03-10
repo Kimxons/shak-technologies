@@ -82,7 +82,7 @@ window.AccountSweepingModule = (function () {
         if (loader) loader.hidden = false;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.GET, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -169,7 +169,7 @@ window.AccountSweepingModule = (function () {
         };
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.ADD, payload);
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.ADD}`, payload);
             if (result && result.success) {
                 showMsg(result.message || 'Sweeping configuration saved successfully', 'success');
                 loadData();
@@ -192,7 +192,7 @@ window.AccountSweepingModule = (function () {
 
         const ctx = getContext();
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance', API.DELETE, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.DELETE}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID

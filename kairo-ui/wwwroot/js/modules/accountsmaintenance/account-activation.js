@@ -11,8 +11,8 @@ window.AccountActivationModule = (function () {
     };
 
     const API = {
-        GET: 'api/get-account-activation',
-        UPDATE: 'api/update-account-activation'
+        GET: 'AccountsMaintenance/api/get-account-activation',
+        UPDATE: 'AccountsMaintenance/api/update-account-activation'
     };
 
     /**
@@ -111,7 +111,7 @@ window.AccountActivationModule = (function () {
         }
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, {
+            const result = await AppCore.invokeControllerAsync(API.GET, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 OperatorID: ctx.OperatorID
@@ -193,7 +193,7 @@ window.AccountActivationModule = (function () {
         if (!confirmed) return false;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.UPDATE, payload);
+            const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
             if (result && result.success) {
                 showMsg(result.message || 'Account activation saved successfully', 'success');
                 loadData();

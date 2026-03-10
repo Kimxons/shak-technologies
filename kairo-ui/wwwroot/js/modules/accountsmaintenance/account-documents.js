@@ -237,17 +237,27 @@ window.AccountDocumentsModule = (function () {
 
         // File selection handling
         var fileInput = el('documentImage_file');
+        var browseBtn = el('browseFileBtn');
+        var nameDisplay = el('fileNameDisplay');
 
         if (fileInput && !fileInput._wiredDoc) {
             fileInput._wiredDoc = true;
+
+            if (browseBtn) {
+                browseBtn.addEventListener('click', function () {
+                    if (state.editMode !== 'NONE') fileInput.click();
+                });
+            }
 
             fileInput.addEventListener('change', function (e) {
                 var file = e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
                 if (file) {
                     state.selectedFile = file;
+                    if (nameDisplay) nameDisplay.textContent = file.name;
                     console.log('[AccountDocuments] File staged for record: ' + file.name);
                 } else {
                     state.selectedFile = null;
+                    if (nameDisplay) nameDisplay.textContent = 'No file chosen';
                 }
             });
         }
@@ -391,7 +401,7 @@ window.AccountDocumentsModule = (function () {
 
         showLoading(true);
 
-        AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET, {
+        AppCore.invokeControllerAsync(`AccountsMaintenance/${API.GET}`, {
             AccountID: ctx.AccountID,
             DocumentID: docId,
             Direction: direction,
@@ -525,7 +535,7 @@ window.AccountDocumentsModule = (function () {
 
             showLoading(true);
 
-            AppCore.invokeControllerAsync('AccountsMaintenance/' + (isAdd ? API.ADD : API.UPDATE), payload)
+            AppCore.invokeControllerAsync(`AccountsMaintenance/${isAdd ? API.ADD : API.UPDATE}`, payload)
                 .then(function (result) {
                     showLoading(false);
                     if (isSuccess(result)) {
@@ -569,7 +579,7 @@ window.AccountDocumentsModule = (function () {
                 OperatorID: ctx.OperatorID
             };
 
-            AppCore.invokeControllerAsync('AccountsMaintenance/' + API.DELETE, payload)
+            AppCore.invokeControllerAsync(`AccountsMaintenance/${API.DELETE}`, payload)
                 .then(function (result) {
                     showLoading(false);
                     if (isSuccess(result)) {
@@ -648,6 +658,8 @@ window.AccountDocumentsModule = (function () {
         AUDIT.forEach(function (id) { setVal(id, ''); });
         // Clear file input
         var fileIn = el('documentImage_file'); if (fileIn) fileIn.value = '';
+        var nameDisplay = el('fileNameDisplay');
+        if (nameDisplay) nameDisplay.textContent = 'No file chosen';
         var display = el('documentClassDisplay');
         if (display) display.textContent = '--Select--';
         var ms = el('documentClassMultiselect');

@@ -18,8 +18,14 @@
     <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
     <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+    <style>
+        #bankAccountsTableBody tr.table-active {
+            background-color: #e7f3ff;
+            font-weight: 500;
+        }
+    </style>
 </head>
-<body>
+<body data-page="group-bank-details">
     <input type="hidden" id="moduleId_group_bank_details" value="@moduleId" />
 
     <div class="window">
@@ -41,7 +47,7 @@
         <main class="main-container" aria-label="Group Bank Details form">
             <div class="form-content" role="region" aria-label="Group Bank Details form">
                 <div class="form-card" data-main-form>
-                    <div class="form-section" data-section="bank-account-details">
+                    <div class="form-section form-section--bts" data-section="bank-account-details">
                         <div class="section-header" data-section-toggle>
                             <span class="section-header__title"><i class="bi bi-bank"></i>Bank Account Details</span>
                             <button type="button" class="section-toggle-btn" aria-label="Toggle Bank Account Details" aria-expanded="true">
@@ -50,8 +56,8 @@
                         </div>
                         <div class="section-content" data-section-content>
                             <form autocomplete="off">
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
+                                <div class="form-row three-col">
+                                    <div class="col">
                                         <label class="label-blue" for="AccountType">Account Type</label>
                                         <select id="AccountType" class="bs-select">
                                             <option value="">--Select--</option>
@@ -61,7 +67,7 @@
                                             }
                                         </select>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="col">
                                         <label class="label-blue" for="InstitutionType">Institution Type</label>
                                         <select id="InstitutionType" class="bs-select">
                                             <option value="">--Select--</option>
@@ -71,96 +77,79 @@
                                             }
                                         </select>
                                     </div>
-                                </div>
-
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
-                                        <label class="label-blue" for="BankId">Bank ID</label>
-                                        <div class="d-flex gap-2">
-                                            <input id="BankId" type="text" class="bs-input-text flex-grow-1" />
-                                            <button class="btn-lookup" type="button" data-lookup="Bank" title="Lookup bank">
-                                                <i class="bi bi-search" aria-hidden="true"></i>
-                                            </button>
+                                    <div class="col">
+                                        <label class="label-blue">Bank ID</label>
+                                        <div class="kairo-control" data-kairo-control>
+                                            <input type="text" id="BankId" class="kairo-control__id" aria-label="Bank ID" readonly>
+                                            <input type="text" id="InstitutionName" class="kairo-control__name" aria-label="Institution Name" placeholder="Institution Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Bank" aria-label="Search Bank"><i class="bi bi-search"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <label class="label-blue" for="InstitutionName">Institution Name</label>
-                                        <input id="InstitutionName" type="text" class="bs-input-text" />
-                                    </div>
                                 </div>
 
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
-                                        <label class="label-blue" for="BranchId">Branch ID</label>
-                                        <div class="d-flex gap-2">
-                                            <input id="BranchId" type="text" class="bs-input-text flex-grow-1" />
-                                            <button class="btn-lookup" type="button" data-lookup="Branch" title="Lookup branch">
-                                                <i class="bi bi-search" aria-hidden="true"></i>
-                                            </button>
+                                <div class="form-row three-col">
+                                    <div class="col">
+                                        <label class="label-blue">Branch ID</label>
+                                        <div class="kairo-control" data-kairo-control>
+                                            <input type="text" id="BranchId" class="kairo-control__id" aria-label="Branch ID" readonly>
+                                            <input type="text" id="BranchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                            <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <label class="label-blue" for="BranchName">Branch Name</label>
-                                        <input id="BranchName" type="text" class="bs-input-text" />
-                                    </div>
-                                </div>
-
-                                <div class="row g-3 mb-3">
-                                    <div class="col-12">
+                                    <div class="col">
                                         <label class="label-blue" for="TitleOfAccount">Title Of Account</label>
                                         <input id="TitleOfAccount" type="text" class="bs-input-text" />
                                     </div>
-                                </div>
-
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
+                                    <div class="col">
                                         <label class="label-blue" for="AccountId">Account ID</label>
                                         <input id="AccountId" type="text" class="bs-input-text" />
                                     </div>
-                                    <div class="col-6">
+                                </div>
+
+                                <div class="form-row three-col">
+                                    <div class="col">
                                         <label class="label-blue" for="Signatory">Signatory</label>
                                         <input id="Signatory" type="text" class="bs-input-text" />
                                     </div>
-                                </div>
-
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
+                                    <div class="col">
                                         <label class="label-blue" for="Balance">Balance</label>
                                         <input id="Balance" type="text" class="bs-input-text" />
                                     </div>
-                                    <div class="col-6">
-                                        <label class="form-label" for="AdvanceAmount">Advance Amount</label>
+                                    <div class="col">
+                                        <label class="label-blue" for="AdvanceAmount">Advance Amount</label>
                                         <input id="AdvanceAmount" type="text" class="bs-input-text" />
                                     </div>
                                 </div>
 
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label" for="Terms">Terms</label>
+                                <div class="form-row three-col">
+                                    <div class="col">
+                                        <label class="label-blue" for="Terms">Terms</label>
                                         <input id="Terms" type="text" class="bs-input-text" />
                                     </div>
-                                    <div class="col-6">
-                                        <label class="form-label" for="MonthlyPayment">Monthly Payment</label>
+                                    <div class="col">
+                                        <label class="label-blue" for="MonthlyPayment">Monthly Payment</label>
                                         <input id="MonthlyPayment" type="text" class="bs-input-text" />
+                                    </div>
+                                    <div class="col">
                                     </div>
                                 </div>
 
-                                <div class="row g-3 mb-3">
-                                    <div class="col-12">
-                                        <div class="d-flex gap-2 justify-content-end">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" data-cbd-inline="new" disabled>
+                                <div class="form-row three-col">
+                                    <div class="col span-3">
+                                        <div class="d-flex gap-2 w-100">
+                                            <button type="button" class="btn btn-sm btn-outline-primary flex-fill" data-cbd-inline="new" disabled>
                                                 <i class="bi bi-plus-circle" aria-hidden="true"></i> New
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-cbd-inline="alter" disabled>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" data-cbd-inline="alter" disabled>
                                                 <i class="bi bi-pencil" aria-hidden="true"></i> Alter
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" data-cbd-inline="remove" disabled>
+                                            <button type="button" class="btn btn-sm btn-outline-danger flex-fill" data-cbd-inline="remove" disabled>
                                                 <i class="bi bi-trash" aria-hidden="true"></i> Remove
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-success" data-cbd-inline="update" disabled>
+                                            <button type="button" class="btn btn-sm btn-outline-success flex-fill" data-cbd-inline="update" disabled>
                                                 <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Update
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-warning" data-cbd-inline="clear" disabled>
+                                            <button type="button" class="btn btn-sm btn-outline-warning flex-fill" data-cbd-inline="clear" disabled>
                                                 <i class="bi bi-x-circle" aria-hidden="true"></i> Clear
                                             </button>
                                         </div>
@@ -170,7 +159,7 @@
                         </div>
                     </div>
 
-                    <div class="form-section" data-section="bank-accounts-list">
+                    <div class="form-section form-section--bts" data-section="bank-accounts-list">
                         <div class="section-header" data-section-toggle>
                             <span class="section-header__title"><i class="bi bi-table"></i>Bank Accounts List</span>
                             <button type="button" class="section-toggle-btn" aria-label="Toggle Bank Accounts List" aria-expanded="true">
@@ -201,7 +190,7 @@
                         </div>
                     </div>
 
-                    <div class="form-section" data-section="behind-scene">
+                    <div class="form-section form-section--bts" data-section="behind-scene">
                         <div class="section-header" data-section-toggle>
                             <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
                             <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
@@ -209,14 +198,30 @@
                             </button>
                         </div>
                         <div class="section-content" data-section-content>
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <label class="label-blue">Created By</label>
-                                    <input type="text" class="bs-input-text" readonly />
+                            <div class="audit-section">
+                                <div class="audit-item">
+                                    <label>Created By</label>
+                                    <span class="audit-value" id="createdBy">-</span>
                                 </div>
-                                <div class="col-6">
-                                    <label class="label-blue">Created On</label>
-                                    <input type="text" class="bs-input-text" readonly />
+                                <div class="audit-item">
+                                    <label>Created On</label>
+                                    <span class="audit-value" id="createdOn">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Modified By</label>
+                                    <span class="audit-value" id="modifiedBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Modified On</label>
+                                    <span class="audit-value" id="modifiedOn">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Supervised By</label>
+                                    <span class="audit-value" id="supervisedBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Supervised On</label>
+                                    <span class="audit-value" id="supervisedOn">-</span>
                                 </div>
                             </div>
                         </div>
@@ -225,17 +230,11 @@
             </div>
 
             <div class="action-panel">
-                <div class="nav-group">
-                    <button class="btn-nav green" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
-                    <span>Record</span>
-                    <button class="btn-nav green" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
-                </div>
-
                 <div class="action-buttons">
-                    <button class="btn-action btn-view" type="button" onclick="window.groupBankDetailsActions?.view?.()" title="View"><i class="bi bi-eye me-1"></i>View</button>
-                    <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.add?.()" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                    <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.edit?.()" title="Edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                    <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.delete?.()" title="Delete"><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button class="btn-action btn-view" type="button" onclick="window.groupBankDetailsActions?.view?.()" title="View" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                    <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.add?.()" title="Add" data-action="add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.edit?.()" title="Edit" data-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.delete?.()" title="Delete" data-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
                     <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.save?.()" title="Save" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
                     <button class="btn-action btn-cancel" type="button" onclick="window.groupBankDetailsActions?.cancel?.()" title="Cancel" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 </div>

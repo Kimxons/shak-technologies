@@ -112,16 +112,25 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "DocumentClassID"
+                    "DocumentClassID",
+                    "DocumentTypeID",
+                    "DocumentLocationID"
                 });
 
                 dropdownOptions.TryGetValue("DocumentClassID", out var documentClassOptions);
+                dropdownOptions.TryGetValue("DocumentTypeID", out var documentTypeOptions);
+                dropdownOptions.TryGetValue("DocumentLocationID", out var documentLocationOptions);
+
                 ViewData["DocumentClassOptions"] = documentClassOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["DocumentTypeOptions"] = documentTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["DocumentLocationOptions"] = documentLocationOptions ?? Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading Documents dropdown options");
                 ViewData["DocumentClassOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["DocumentTypeOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["DocumentLocationOptions"] = Enumerable.Empty<SelectListItem>();
             }
 
             return PartialView("Documents");
@@ -1163,10 +1172,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_NOMINEE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1187,10 +1199,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_NOMINEE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1211,10 +1226,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_NOMINEE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1265,10 +1283,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_SPECIAL_CONDITION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1289,10 +1310,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_SPECIAL_CONDITION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1313,10 +1337,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_SPECIAL_CONDITION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1367,10 +1394,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_INTEREST_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1391,10 +1421,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_INTEREST_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1443,10 +1476,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_CLOSING_DETAILS,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1467,10 +1503,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.CLOSE_ACCOUNT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1491,10 +1530,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.TRANSFER_ACCOUNT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1519,10 +1561,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.BLOCK_ENTITY,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1543,10 +1588,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UNBLOCK_ENTITY,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1649,10 +1697,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_CHARGE_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1673,10 +1724,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_CHARGE_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1697,10 +1751,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_CHARGE_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1751,10 +1808,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_SWEEPING,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1775,10 +1835,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_SWEEPING,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1799,10 +1862,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_SWEEPING,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1853,10 +1919,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_CLASSIFICATION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1877,10 +1946,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_CLASSIFICATION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1901,10 +1973,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_CLASSIFICATION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1918,308 +1993,215 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         // ============================================================================
         // USER DEFINED FIELDS
+        // NOTE: Backend stored procedures not yet implemented - returning stub response
         // ============================================================================
 
         [HttpPost]
         [Route("api/get-user-defined-fields")]
-        public async Task<IActionResult> GetUserDefinedFields([FromBody] GenericAccountRequest request)
+        public IActionResult GetUserDefinedFields([FromBody] GenericAccountRequest request)
         {
-            try
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+            // Return empty data with success - feature not yet implemented in backend
+            _logger.LogInformation("GetUserDefinedFields called - backend feature not yet implemented");
+            return Ok(new
             {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                _commonUtilities.EnsureDefaults(request);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.GET_USER_DEFINED_FIELDS,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting user defined fields");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = true,
+                Message = "User Defined Fields feature is not yet available.",
+                Details = Array.Empty<object>(),
+                Data = Array.Empty<object>()
+            });
         }
 
         [HttpPost]
         [Route("api/add-user-defined-fields")]
-        public async Task<IActionResult> AddUserDefinedFields([FromBody] JsonElement request)
+        public IActionResult AddUserDefinedFields([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.ADD_USER_DEFINED_FIELDS,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("AddUserDefinedFields called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error adding user defined fields");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "User Defined Fields feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         [HttpPost]
         [Route("api/update-user-defined-fields")]
-        public async Task<IActionResult> UpdateUserDefinedFields([FromBody] JsonElement request)
+        public IActionResult UpdateUserDefinedFields([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.UPDATE_USER_DEFINED_FIELDS,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("UpdateUserDefinedFields called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error updating user defined fields");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "User Defined Fields feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         [HttpPost]
         [Route("api/delete-user-defined-fields")]
-        public async Task<IActionResult> DeleteUserDefinedFields([FromBody] JsonElement request)
+        public IActionResult DeleteUserDefinedFields([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.DELETE_USER_DEFINED_FIELDS,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("DeleteUserDefinedFields called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error deleting user defined fields");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "User Defined Fields feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         // ============================================================================
         // ACCOUNT NOTIFICATION
+        // NOTE: Backend stored procedures not yet implemented - returning stub response
         // ============================================================================
 
         [HttpPost]
         [Route("api/get-account-notification")]
-        public async Task<IActionResult> GetAccountNotification([FromBody] GenericAccountRequest request)
+        public IActionResult GetAccountNotification([FromBody] GenericAccountRequest request)
         {
-            try
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+            // Return empty data with success - feature not yet implemented in backend
+            _logger.LogInformation("GetAccountNotification called - backend feature not yet implemented");
+            return Ok(new
             {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                _commonUtilities.EnsureDefaults(request);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.GET_ACCOUNT_NOTIFICATION,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting account notification");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = true,
+                Message = "Account Notification feature is not yet available.",
+                Details = Array.Empty<object>(),
+                Data = Array.Empty<object>()
+            });
         }
 
         [HttpPost]
         [Route("api/add-account-notification")]
-        public async Task<IActionResult> AddAccountNotification([FromBody] JsonElement request)
+        public IActionResult AddAccountNotification([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.ADD_ACCOUNT_NOTIFICATION,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("AddAccountNotification called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error adding account notification");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "Account Notification feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         [HttpPost]
         [Route("api/update-account-notification")]
-        public async Task<IActionResult> UpdateAccountNotification([FromBody] JsonElement request)
+        public IActionResult UpdateAccountNotification([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.UPDATE_ACCOUNT_NOTIFICATION,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("UpdateAccountNotification called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error updating account notification");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "Account Notification feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         [HttpPost]
         [Route("api/delete-account-notification")]
-        public async Task<IActionResult> DeleteAccountNotification([FromBody] JsonElement request)
+        public IActionResult DeleteAccountNotification([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.DELETE_ACCOUNT_NOTIFICATION,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("DeleteAccountNotification called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error deleting account notification");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "Account Notification feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         // ============================================================================
         // CARD MAINTENANCE
+        // NOTE: Backend stored procedures not yet implemented - returning stub response
         // ============================================================================
 
         [HttpPost]
         [Route("api/get-account-card")]
-        public async Task<IActionResult> GetAccountCard([FromBody] GenericAccountRequest request)
+        public IActionResult GetAccountCard([FromBody] GenericAccountRequest request)
         {
-            try
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+            // Return empty data with success - feature not yet implemented in backend
+            _logger.LogInformation("GetAccountCard called - backend feature not yet implemented");
+            return Ok(new
             {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                _commonUtilities.EnsureDefaults(request);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.GET_ACCOUNT_CARD,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting account card");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = true,
+                Message = "Card Maintenance feature is not yet available.",
+                Details = Array.Empty<object>(),
+                Data = Array.Empty<object>()
+            });
         }
 
         [HttpPost]
         [Route("api/add-account-card")]
-        public async Task<IActionResult> AddAccountCard([FromBody] JsonElement request)
+        public IActionResult AddAccountCard([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.ADD_ACCOUNT_CARD,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("AddAccountCard called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error adding account card");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         [HttpPost]
         [Route("api/update-account-card")]
-        public async Task<IActionResult> UpdateAccountCard([FromBody] JsonElement request)
+        public IActionResult UpdateAccountCard([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.UPDATE_ACCOUNT_CARD,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("UpdateAccountCard called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error updating account card");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         [HttpPost]
         [Route("api/delete-account-card")]
-        public async Task<IActionResult> DeleteAccountCard([FromBody] JsonElement request)
+        public IActionResult DeleteAccountCard([FromBody] JsonElement request)
         {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.DELETE_ACCOUNT_CARD,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
+            // Feature not yet implemented in backend
+            _logger.LogInformation("DeleteAccountCard called - backend feature not yet implemented");
+            return Ok(new
             {
-                _logger.LogError(ex, "Error deleting account card");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
+                Success = false,
+                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
+            });
         }
 
         // ============================================================================
@@ -2261,10 +2243,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_STOP_PAYMENT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2285,10 +2270,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_STOP_PAYMENT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2296,6 +2284,33 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating stop payment");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/delete-stop-payment")]
+        public async Task<IActionResult> DeleteStopPayment([FromBody] JsonElement request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.DELETE_STOP_PAYMENT,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting stop payment");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -2339,10 +2354,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_CANCEL_STOP_PAYMENT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2363,10 +2381,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_CANCEL_STOP_PAYMENT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2417,10 +2438,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.EDIT_ACCOUNT_DORMANT,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2471,10 +2495,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.UPDATE_ACCOUNT_ACTIVATION,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2525,10 +2552,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.ADD_ACCOUNT_TRANSFER_DETAILS,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -3268,5 +3298,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? SearchKey { get; set; }
         public string? SearchID { get; set; }
         public int? ModuleID { get; set; }
+        public string? ModuleTypeID { get; set; }
+        public string? RelevantID { get; set; }
     }
 }

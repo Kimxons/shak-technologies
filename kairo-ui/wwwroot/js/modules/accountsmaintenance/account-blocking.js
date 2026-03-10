@@ -86,7 +86,7 @@ window.AccountBlockingModule = (function () {
         if (loader) loader.hidden = false;
 
         try {
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.GET_DETAILS, {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.GET_DETAILS}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 ModuleTypeID: 'A', // Acc
@@ -139,7 +139,7 @@ window.AccountBlockingModule = (function () {
 
         try {
             const endpoint = state.isBlocked ? 'api/get-unblocked-reasons' : 'api/get-blocked-reasons';
-            const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + endpoint, {});
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${endpoint}`, {});
 
             const options = result?.Details || result?.data || [];
             reasonSelect.innerHTML = '<option value="">Select Reason...</option>';
@@ -223,7 +223,7 @@ window.AccountBlockingModule = (function () {
             };
 
             try {
-                const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.UNBLOCK, payload);
+                const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.UNBLOCK}`, payload);
                 if (result && result.success) {
                     showMsg(result.message || 'Account unblocked successfully', 'success');
                     loadData();
@@ -248,7 +248,7 @@ window.AccountBlockingModule = (function () {
             };
 
             try {
-                const result = await AppCore.invokeControllerAsync('AccountsMaintenance/' + API.BLOCK, payload);
+                const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.BLOCK}`, payload);
                 if (result && result.success) {
                     showMsg(result.message || 'Account blocked successfully', 'success');
                     loadData();
@@ -290,12 +290,17 @@ window.AccountBlockingModule = (function () {
         if (ctx.AccountID) loadData();
     }
 
+    function showHistory() {
+        showMsg('Blocking history navigation requested', 'info');
+    }
+
     return {
         init: init,
         save: handleSave,
         edit: () => setMode('EDIT'),
         cancel: () => { loadData(); setMode('VIEW'); },
-        view: loadData
+        view: loadData,
+        showHistory: showHistory
     };
 })();
 
