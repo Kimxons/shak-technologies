@@ -14,50 +14,6 @@
     <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
     <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
-    <style>
-        /* Keep GRT Details aligned with Group Bank Details layout sizing */
-        body[data-page="grt-details"] .form-card,
-        body[data-page="grt-details"] .form-section {
-            flex: 0 0 auto !important;
-        }
-
-        body[data-page="grt-details"] .form-section {
-            overflow: visible !important;
-        }
-
-        body[data-page="grt-details"] .form-content {
-            overflow-y: auto !important;
-        }
-
-        body[data-page="grt-details"] .form-row.three-col {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-            margin-top: 12px;
-            margin-bottom: 12px;
-        }
-
-        body[data-page="grt-details"] .form-row.three-col .col {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 4px;
-            min-width: 0;
-        }
-
-        body[data-page="grt-details"] .form-row.three-col .col label {
-            min-width: 0;
-            text-align: left;
-            margin-bottom: 4px;
-        }
-
-        body[data-page="grt-details"] .form-row.three-col .col input,
-        body[data-page="grt-details"] .form-row.three-col .col select,
-        body[data-page="grt-details"] .form-row.three-col .col textarea {
-            width: 100%;
-            max-width: none;
-        }
-    </style>
 </head>
 <body data-page="grt-details">
     <input type="hidden" id="moduleId_grt_details" value="@moduleId" />

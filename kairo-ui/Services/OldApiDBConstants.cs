@@ -98,11 +98,87 @@ namespace kairo_ui.Services
         // CENTER PENALTY INTEREST WAIVE OFF
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_GLOAN_PEN_INT_WAIVE_OFF = "p_GetGLoanPenIntWaiveOff";
+
+            // ═══════════════════════════════════════════════════════════════════
+            // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
+            // ═══════════════════════════════════════════════════════════════════
+            public const string GETLOANSANCTION = "p_GetWFLoanSanction";
+            public const string SAVELOANSANCTION = "p_AddWFLoanSanction";
+            public const string DEVIATEAPPLICATION = "p_DeviateWFApplication";
+            
+            // Loan Sanction - Disbursement Schedule (Data Entry Submodule)
+            public const string GETDISBURSEMENTSCHEDULES = "p_GetWFLoanDisbSchedules";
+            public const string SAVEDISBURSEMENTSCHEDULES = "p_AddEditWFLoanDisbSchedules";
+            
+        // ═══════════════════════════════════════════════════════════════════
+        // WORKFLOW LOAN - LOAN DISBURSEMENT (Module 7097)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GETLOANDISBURSEMENT = "p_GetLoanDisbursement";
+        public const string SAVELOANDISBURSEMENT = "p_AddLoanDisbursement";
+        public const string GETLOANINSTALLMENTS = "p_GetLoanInstallments";
+        public const string GETWFCHARGES = "p_GetWFCharges";
+        public const string GETTILLDETAILS = "pc_GetTillDetailPerTill";
+            
         public const string ADD_GLOAN_PEN_INT_WAIVE_OFF = "p_AddGLoanPenIntWaiveOff";
         public const string DELETE_GLOAN_PEN_INT_WAIVE_OFF = "p_DeleteGLoanPenIntWaiveOff";
         public const string GET_DEFAULT_ADV_TYPE = "p_GetDefaultAdvType";
         // Validations use p_GetIDDescription with ControlTypeID:
         //   BranchID, GroupID, GroupLoanSchemeID
+
+        // ═══════════════════════════════════════════════════════════════════
+        // WORKFLOW LOAN - LOAN APPLICATION SYNDICATE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_WF_LOAN_BANK_SYNDICATE = "p_GetWFLoanBankSyndicate";
+        public const string ADD_EDIT_WF_LOAN_APPLICATIONS = "p_AddEditWFLoanApplications";
+        public const string ADD_EDIT_WF_LOAN_BANK_SYNDICATE = "p_AddEditWFLoanBankSyndicate";
+        public const string DELETE_WF_LOAN_APPLICATIONS = "p_DeleteWFLoanApplications";
+        public const string GET_WF_PRODUCT_DETAILS = "p_GetWFProductDetails";
+        public const string GET_CLIENT_MIN_DETAILS = "p_GetClientMinDetails";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // GROUP MAINTENANCE MODULE (MicroFinance/GroupMaintenance)
+        // ═══════════════════════════════════════════════════════════════════
+        
+        // Main Group Operations
+        public const string GET_GROUP_DETAILS = "p_GetGroupDetails";
+        public const string ADD_EDIT_GROUP_DETAILS = "p_AddEditGroupDetails";
+        public const string UPDATE_GROUP = "p_UpdateGroup";
+        public const string DELETE_GROUP = "p_DeleteGroup";
+        public const string DELETE_GROUP_DETAILS = "p_DeleteGroupDetails";
+        public const string GET_GROUP_PRODUCT_MIN_DETAIL = "p_GetGroupProductMinDetail";
+        public const string GET_GROUP_LOAN_SCHEME_COMBO = "p_GetGroupLoanSchemeCombo";
+        
+        // Sub-Group Operations (DataEntry/GroupDetails)
+        public const string GET_SUB_GROUP = "p_GetSubGroup";
+        public const string GET_SUB_GROUP_DETAILS = "p_GetSubGroupDetails";
+        public const string ADD_EDIT_SUB_GROUP = "p_AddEditSubGroup";
+        public const string DELETE_SUB_GROUP = "p_DeleteSubGroup";
+        
+        // GRT Operations (DataEntry/GRTDetails)
+        public const string GET_GRT_DETAILS = "p_GetGRTDetails";
+        public const string ADD_EDIT_GRT_DETAILS = "p_AddEditGRTDetails";
+        public const string DELETE_GRT_DETAILS = "p_DeleteGRTDetails";
+        
+        // Group Bank Accounts (DataEntry/GroupBankDetails)
+        public const string GET_GROUP_BANK_ACCOUNTS = "p_GetGroupBankAccounts";
+        public const string ADD_EDIT_GROUP_BANK_ACCOUNTS = "p_AddEditGroupBankAccounts";
+        public const string DELETE_GROUP_BANK_ACCOUNTS = "p_DeleteGroupBankAccounts";
+        public const string SEARCH_CLEARING_BANKS = "pc_SearchClearingBanks";
+        public const string GET_BANK_BRANCHES = "p_rw_GetBranches";
+        
+        // User Defined Fields (DataEntry/UserDefinedFields)
+        public const string GET_USER_FIELDS_DATA = "p_GetUserFieldsData";
+        
+        // Group Members (View/GroupMembers)
+        public const string VIEW_GROUP_MEMBERS = "p_ViewGroupMembers";
+        public const string GET_GROUP_MEMBER_LIST = "p_GetGroupMemberList";
+        public const string CHANGE_MEMBER_GROUP_ID = "p_ChangeMemberGroupID";
+        
+        // Supporting Operations
+        public const string GET_GROUP_LOAN_INST_DATE_CHANGE = "p_GetGroupLoanInstDateChange";
+        public const string GET_INTEREST_MENU_COMBO = "p_getInterestmenucombo";
+        public const string GET_SP_CONDITION_CLASS_COMBO = "p_GetSpConditionCalssCombo"; // Note: Typo in DB
+        public const string USER_RIGHTS = "p_UserRights";
 
     }
 }
