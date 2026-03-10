@@ -227,8 +227,15 @@ namespace kairo_ui.Controllers.EditCardStatus
         private static void RestrictRequestDataForForm(string cleanFormId, IDictionary<string, object?> requestData)
         {
             HashSet<string>? allowedKeys = null;
+            var normalizedFormId = cleanFormId.Trim();
+            var formIdWithoutSchema = normalizedFormId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
+                ? normalizedFormId.Substring(4)
+                : normalizedFormId;
 
-            if (cleanFormId.Equals(OldApiDBConstants.GET_ELECTRONIC_CARDS_STAGE_WISE, StringComparison.OrdinalIgnoreCase))
+            if (normalizedFormId.Equals(OldApiDBConstants.GET_ELECTRONIC_CARDS_STAGE_WISE, StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals(OldApiDBConstants.GET_ELECTRONIC_CARDS_STAGE_WISE, StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals("p_GetElectronicCardsStageWise", StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals("GETELECTRONICCARDSSTAGEWISE", StringComparison.OrdinalIgnoreCase))
             {
                 allowedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                 {
@@ -238,10 +245,12 @@ namespace kairo_ui.Controllers.EditCardStatus
                     "OperatorID"
                 };
             }
-            else if (cleanFormId.Equals(OldApiDBConstants.GET_EDIT_CARD_STATUS, StringComparison.OrdinalIgnoreCase)
-                || cleanFormId.Equals("EDIT_CARD_STATUS", StringComparison.OrdinalIgnoreCase)
-                || cleanFormId.Equals("EDITCARDSTATUS", StringComparison.OrdinalIgnoreCase)
-                || cleanFormId.Equals("EDIT_CARD", StringComparison.OrdinalIgnoreCase))
+            else if (normalizedFormId.Equals(OldApiDBConstants.GET_EDIT_CARD_STATUS, StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals(OldApiDBConstants.GET_EDIT_CARD_STATUS, StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals("p_EditCardStatus", StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals("EDIT_CARD_STATUS", StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals("EDITCARDSTATUS", StringComparison.OrdinalIgnoreCase)
+                || formIdWithoutSchema.Equals("EDIT_CARD", StringComparison.OrdinalIgnoreCase))
             {
                 if (!requestData.ContainsKey("BranchID") && requestData.TryGetValue("OurBranchID", out var ourBranchId))
                 {

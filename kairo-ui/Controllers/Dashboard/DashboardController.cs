@@ -233,6 +233,34 @@ namespace kairo_ui.Controllers.Dashboard
 
             var accountMainModuleId = accountMenuItem.MainModuleID;
 
+            // ── Merge Client Accounts ──
+            var hasMergeClientAccounts = vm.MenuItems.Any(mi =>
+                mi.MainModuleID == accountMainModuleId
+                && mi.ParentMenuModuleID is null
+                && (
+                    (mi.MenuDescription != null && mi.MenuDescription.Contains("Merge Client Accounts", StringComparison.OrdinalIgnoreCase))
+                    || (mi.MenuURL != null && mi.MenuURL.Contains("MergeClientAccounts", StringComparison.OrdinalIgnoreCase))
+                ));
+
+            if (!hasMergeClientAccounts)
+            {
+                vm.MenuItems.Add(new StartMenuItem
+                {
+                    ModuleID = 9900,                        // Temporary client-side ID
+                    MainModuleID = accountMainModuleId,
+                    ModuleName = "MergeClientAccounts",
+                    Abbreviation = "MCA",
+                    MenuURL = "/AccountCustomers/MergeClientAccounts",
+                    MenuDescription = "Merge Client Accounts",
+                    ModuleIcon = "<i class='fas fa-code-merge'></i>",
+                    CanAdd = true,
+                    CanEdit = true,
+                    CanDelete = true,
+                    CanView = true,
+                    MenuItemOrder = 42
+                });
+            }
+
             // ── Standing Instruction Loan Repayment ──
             var hasSilr = vm.MenuItems.Any(mi =>
                 mi.MenuDescription != null &&

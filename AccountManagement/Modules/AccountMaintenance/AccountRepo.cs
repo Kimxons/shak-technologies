@@ -1,5 +1,6 @@
 using CBS.Entities.Common;
 using AccountManagement.Helpers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace AccountManagement.Modules.AccountMaintenance
     public class AccountRepo : IAccountRepo
     {
         private readonly CommonDBCtxt _dal;
+        private const string ClassificationLegacyTableName = "t_ClientClassification";
 
         private static readonly HashSet<string> AllowedProcedures =
             typeof(DBObjectConstants)
@@ -361,37 +363,72 @@ namespace AccountManagement.Modules.AccountMaintenance
         // Account Classification operations
         public async Task<ResponseDetail<object>> AddAccountClassification(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_ACCOUNT_CLASSIFICATION} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteAccountClassificationWithFallback(
+                DBObjectConstants.ADD_ACCOUNT_CLASSIFICATION,
+                "p_AddAccountClassification",
+                requestJson
+            );
         }
         public async Task<ResponseDetail<object>> UpdateAccountClassification(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.UPDATE_ACCOUNT_CLASSIFICATION} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteAccountClassificationWithFallback(
+                DBObjectConstants.UPDATE_ACCOUNT_CLASSIFICATION,
+                "p_UpdateAccountClassification",
+                requestJson
+            );
         }
         public async Task<ResponseDetail<object>> GetAccountClassification(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_CLASSIFICATION} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteAccountClassificationWithFallback(
+                DBObjectConstants.GET_ACCOUNT_CLASSIFICATION,
+                "p_GetAccountClassification",
+                requestJson
+            );
         }
         public async Task<ResponseDetail<object>> DeleteAccountClassification(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_CLASSIFICATION} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
+            return await ExecuteAccountClassificationWithFallback(
+                DBObjectConstants.DELETE_ACCOUNT_CLASSIFICATION,
+                "p_DeleteAccountClassification",
+                requestJson
+            );
+        }
+
+        private async Task<ResponseDetail<object>> ExecuteAccountClassificationWithFallback(string primaryProcedureName, string fallbackProcedureName, string requestJson)
+        {
+            try
+            {
+                return ExecuteStoredProcedure(primaryProcedureName, requestJson);
+            }
+            catch (SqlException ex) when (CanRetryAccountClassification(ex))
+            {
+                return ExecuteStoredProcedure(fallbackProcedureName, requestJson);
+            }
+        }
+
+        private bool CanRetryAccountClassification(SqlException ex)
+        {
+            var msg = ex.Message ?? string.Empty;
+            return msg.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase)
+                && msg.Contains(ClassificationLegacyTableName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private ResponseDetail<object> ExecuteStoredProcedure(string procedureName, string requestJson)
+        {
+            ResponseDetail<string>? respStr = _dal.Data
+                .FromSqlInterpolated(FormattableStringFactory.Create($"EXECUTE {procedureName} @RequestData={{0}}", requestJson))
+                .AsEnumerable()
+                .FirstOrDefault();
+
+            if (respStr is null)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Empty response"
+                };
+            }
+
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),

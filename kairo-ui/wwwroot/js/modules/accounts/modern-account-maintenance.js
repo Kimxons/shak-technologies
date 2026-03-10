@@ -1287,7 +1287,7 @@
 
         // ClientID blur handler - fetch client details when user tabs out
         if (clientIdInput) {
-            clientIdInput.addEventListener('blur', async function() {
+            clientIdInput.addEventListener('blur', async function () {
                 const clientId = this.value.trim();
                 if (!clientId) return;
 
@@ -1303,7 +1303,7 @@
 
         // ProductID blur handler - fetch product details when user tabs out
         if (productIdInput) {
-            productIdInput.addEventListener('blur', async function() {
+            productIdInput.addEventListener('blur', async function () {
                 const productId = this.value.trim();
                 if (!productId) return;
 
@@ -1313,7 +1313,7 @@
                 // Update state and trigger auto-populate
                 window.AccountMaintenanceState.ProductID = productId;
                 console.log('[AccountMaintenance] ProductID entered manually:', productId);
-                
+
                 // Fetch product details to get CurrencyID and MinimumBalance
                 try {
                     const response = await fetch(`/AccountsMaintenance/get-product-details?productId=${encodeURIComponent(productId)}`, {
@@ -1324,7 +1324,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         const product = result.data || result;
-                        
+
                         if (product) {
                             // Update Product Name if available
                             const productNameInput = document.getElementById('ProductName');
@@ -1343,11 +1343,11 @@
                             }
                             if (minBalanceSpan && product.MinimumBalance !== undefined) {
                                 const num = parseFloat(product.MinimumBalance);
-                                minBalanceSpan.textContent = !isNaN(num) 
+                                minBalanceSpan.textContent = !isNaN(num)
                                     ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                                     : product.MinimumBalance;
                             }
-                            
+
                             console.log('[AccountMaintenance] Product details loaded:', product);
                         }
                     }
@@ -1576,6 +1576,7 @@
         'ClientID': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
         'ProductID': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
         'AccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'ChargeID': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
         'LiquidationAccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'SalesOfficerID': { tableID: 'OfficerID', keyField: 'OfficerID', nameField: 'OfficerName' },
         'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' },
@@ -2078,8 +2079,8 @@
                             } else {
                                 // Handle display spans (Account Snapshot, Audit Trail)
                                 // Format numeric balance fields with proper number formatting
-                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance', 
-                                                       'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
+                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
+                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
                                 const fieldId = el.id || '';
                                 if (numericFields.includes(fieldId) && !isNaN(parseFloat(account[key]))) {
                                     // Format as number with 2 decimal places and comma separators
@@ -2561,14 +2562,14 @@
         if (btns.cancel) {
             btns.cancel.addEventListener('click', async function () {
                 if (this.disabled) return;
-                
+
                 // Determine the context for the dialog
                 const isAfterCreate = window.AccountMaintenanceState.isAccountJustCreated || false;
                 const isViewingRecord = window.AccountMaintenanceState.isAccountLoaded && !isAfterCreate && currentMode === 'VIEW';
                 const isEditingRecord = currentMode === 'EDIT';
-                
+
                 let dialogTitle, dialogMessage;
-                
+
                 if (isAfterCreate) {
                     dialogTitle = 'Clear Form';
                     dialogMessage = 'Clear the form to add a new account?';
@@ -2582,7 +2583,7 @@
                     dialogTitle = 'Clear Form';
                     dialogMessage = 'Clear the form?';
                 }
-                
+
                 // Use showDialog for confirmation
                 const confirmed = await AppCore.showDialog({
                     type: 'confirmation',

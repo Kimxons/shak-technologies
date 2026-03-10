@@ -27,8 +27,23 @@ window.AccountBlockingModule = (function () {
         const ps = window.AccountMaintenanceState;
         return {
             AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
-            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
-            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'web_portal'
+            OurBranchID:
+                ps?.OurBranchID ||
+                ps?.BranchID ||
+                sessionStorage.getItem('currentBranchID') ||
+                sessionStorage.getItem('branch_code') ||
+                sessionStorage.getItem('branch_id') ||
+                localStorage.getItem('OurBranchID') ||
+                localStorage.getItem('BranchID') ||
+                '',
+            OperatorID:
+                ps?.OperatorID ||
+                sessionStorage.getItem('currentOperatorID') ||
+                sessionStorage.getItem('user_name') ||
+                sessionStorage.getItem('user_id') ||
+                localStorage.getItem('OperatorID') ||
+                localStorage.getItem('user_name') ||
+                'web_portal'
         };
     }
 
@@ -42,6 +57,111 @@ window.AccountBlockingModule = (function () {
         const t = window.showSystemToast || window.parent?.showSystemToast;
         if (t) t(msg, { variant: type === 'error' ? 'danger' : type });
         console.log(`[Blocking] ${type}: ${msg}`);
+    }
+
+    function isResultFailure(result) {
+        if (!result) return false;
+
+        const envelope = (result?.data && typeof result.data === 'object') ? result.data : result;
+
+        const successFlag = envelope?.success ?? envelope?.Success ?? result?.success ?? result?.Success;
+        if (successFlag === false || String(successFlag).toLowerCase() === 'false') {
+            return true;
+        }
+
+        const responseCode = String(
+            envelope?.ResponseCode ?? envelope?.responseCode ?? result?.ResponseCode ?? result?.responseCode ?? ''
+        ).trim();
+
+        if (responseCode && !['00', '0', '000'].includes(responseCode)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function getResultMessage(result, fallback = '') {
+        if (!result) return fallback;
+
+        const envelope = (result?.data && typeof result.data === 'object') ? result.data : result;
+
+        return (
+            envelope?.ResponseMessage ||
+            envelope?.message ||
+            envelope?.Message ||
+            envelope?.ErrorMessage ||
+            envelope?.error ||
+            envelope?.Details?.error ||
+            result?.message ||
+            result?.Message ||
+            fallback
+        );
+    }
+
+    function isNoBlockedDetailsResult(result) {
+        if (!result) return false;
+
+        const envelope = (result?.data && typeof result.data === 'object') ? result.data : result;
+        const responseCode = String(envelope?.ResponseCode ?? envelope?.responseCode ?? '').trim();
+        const message = String(getResultMessage(result, '')).trim().toLowerCase();
+        const detailsError = String(envelope?.Details?.error ?? envelope?.error ?? '').trim().toLowerCase();
+
+        return responseCode === 'DBEX000020' || detailsError === 'no_blocked_details' || message.includes('no blocked details');
+    }
+
+    function normalizeBlockingDetails(result) {
+        const envelope = (result?.data && typeof result.data === 'object') ? result.data : result;
+        const details = envelope?.Details ?? envelope?.data ?? envelope ?? {};
+
+        if (Array.isArray(details)) return details;
+        if (Array.isArray(details?.Details01)) return details.Details01;
+        if (Array.isArray(details?.BlockedDetails)) return details.BlockedDetails;
+        if (Array.isArray(details?.blockedDetails)) return details.blockedDetails;
+        if (Array.isArray(envelope?.Details01)) return envelope.Details01;
+        if (
+            details &&
+            typeof details === 'object' &&
+            !Array.isArray(details) &&
+            (
+                details.ReferenceID != null ||
+                details.BlockedDate ||
+                details.BlockedReasonID ||
+                details.BlockedReason ||
+                details.Status
+            )
+        ) {
+            return [details];
+        }
+        return [];
+    }
+
+    function isActiveBlockedRecord(record) {
+        if (!record) return false;
+
+        const hasBlockMarker = !!(
+            record.BlockedReasonID ||
+            record.BlockedReason ||
+            record.BlockedDate ||
+            String(record.Status || '').trim().toLowerCase() === 'entity_blocked'
+        );
+
+        return hasBlockMarker && !record.UnBlockedDate;
+    }
+
+    function applyEmptyState(message) {
+        state.blockingDetails = [];
+        state.currentActiveRecord = null;
+        state.isBlocked = false;
+        state.updateCount = 0;
+
+        updateUILabels();
+        clearForm();
+        setVal('previousStatus', 'Active');
+        setMode('VIEW');
+
+        if (message) {
+            showMsg(message, 'info');
+        }
     }
 
     // ── Mode Management ────────────────────────────────────────
@@ -95,25 +215,36 @@ window.AccountBlockingModule = (function () {
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
-                const d = result.Details || result.data?.Details || result.data || {};
-                const allRecords = d.Details01 || [];
-                state.blockingDetails = allRecords;
-
-                // Find any record that is currently BLOCKED (has BlockedReasonID but no UnBlockedDate)
-                const activeRecord = allRecords.find(r => r.BlockedReasonID && !r.UnBlockedDate);
-                state.currentActiveRecord = activeRecord || null;
-                state.isBlocked = !!activeRecord;
-                state.updateCount = activeRecord?.UpdateCount || 0;
-
-                updateUILabels();
-                populateForm(activeRecord || allRecords[0]);
-
-                showMsg(state.isBlocked ? 'Account is currently blocked' : 'Account is active', 'info');
-                setMode('VIEW');
-            } else {
-                showMsg(result?.message || 'Failed to load blocking details', 'error');
+            if (isNoBlockedDetailsResult(result)) {
+                applyEmptyState('Account is active');
+                return;
             }
+
+            if (isResultFailure(result)) {
+                showMsg(getResultMessage(result, 'Failed to load blocking details'), 'error');
+                return;
+            }
+
+            const allRecords = normalizeBlockingDetails(result);
+            state.blockingDetails = allRecords;
+
+            // Find any record that is currently blocked, even when backend returns reason text instead of reason ID.
+            const activeRecord = allRecords.find(isActiveBlockedRecord);
+            state.currentActiveRecord = activeRecord || null;
+            state.isBlocked = !!activeRecord;
+            state.updateCount = activeRecord?.UpdateCount || allRecords[0]?.UpdateCount || 0;
+
+            updateUILabels();
+
+            if (allRecords.length === 0) {
+                applyEmptyState('Account is active');
+                return;
+            }
+
+            populateForm(activeRecord || allRecords[0]);
+
+            showMsg(state.isBlocked ? 'Account is currently blocked' : 'Account is active', 'info');
+            setMode('VIEW');
         } catch (err) {
             showMsg('Error loading blocking details: ' + err.message, 'error');
         } finally {
@@ -133,6 +264,25 @@ window.AccountBlockingModule = (function () {
         }
     }
 
+    function getOptionValue(option) {
+        return option?.Value || option?.ID || option?.SubCodeID || option?.CodeID || '';
+    }
+
+    function getOptionLabel(option) {
+        return option?.Label || option?.Description || option?.CodeDescription || option?.Text || '';
+    }
+
+    function isHistoricalUnblockedRecord(record) {
+        if (!record) return false;
+
+        return !!(
+            record.UnBlockedDate ||
+            record.UnBlockedReasonID ||
+            record.UnBlockedReason ||
+            String(record.Status || '').trim().toLowerCase() === 'entity_unblocked'
+        );
+    }
+
     async function loadReasonsDropdown() {
         const reasonSelect = el('reason');
         if (!reasonSelect) return;
@@ -141,12 +291,12 @@ window.AccountBlockingModule = (function () {
             const endpoint = state.isBlocked ? 'api/get-unblocked-reasons' : 'api/get-blocked-reasons';
             const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${endpoint}`, {});
 
-            const options = result?.Details || result?.data || [];
+            const options = result?.Details || result?.data?.Details || result?.data || [];
             reasonSelect.innerHTML = '<option value="">Select Reason...</option>';
             options.forEach(opt => {
                 const o = document.createElement('option');
-                o.value = opt.Value || opt.ID;
-                o.textContent = opt.Label || opt.Description;
+                o.value = getOptionValue(opt);
+                o.textContent = getOptionLabel(opt);
                 reasonSelect.appendChild(o);
             });
         } catch (e) {
@@ -160,17 +310,30 @@ window.AccountBlockingModule = (function () {
             return;
         }
 
+        const hasHistoricalUnblock = isHistoricalUnblockedRecord(d);
+        const primaryStatus = state.isBlocked ? 'Blocked' : 'Active';
+        const detailDate = hasHistoricalUnblock ? (d.UnBlockedDate || d.ModifiedOn || d.SupervisedOn) : (d.BlockedDate || d.Date);
+        const detailReason = hasHistoricalUnblock
+            ? (d.UnBlockedReasonID || d.UnBlockedReason || '-')
+            : (d.BlockedReasonID || d.BlockedReason || d.ReasonID || '-');
+        const detailDescription = hasHistoricalUnblock
+            ? (d.UnBlockedDescription || d.BlockedDescription || d.Description || '-')
+            : (d.BlockedDescription || d.Description || d.UnBlockedDescription || '-');
+        const detailInstruction = hasHistoricalUnblock
+            ? (d.UnBlockedInstructionBy || d.BlockedInstructionBy || d.InstructionGivenBy || '-')
+            : (d.BlockedInstructionBy || d.InstructionGivenBy || d.UnBlockedInstructionBy || '-');
+
         // Form Fields
-        setVal('reason', state.isBlocked ? '' : (d.BlockedReasonID || d.ReasonID));
-        setVal('description', state.isBlocked ? '' : (d.BlockedDescription || d.Description));
-        setVal('instructionGivenBy', state.isBlocked ? '' : (d.BlockedInstructionBy || d.InstructionGivenBy));
+        setVal('reason', '');
+        setVal('description', '');
+        setVal('instructionGivenBy', '');
 
         // Audit Fields (Behind the Scene)
-        setVal('previousStatus', state.isBlocked ? 'Blocked' : 'Active');
-        setVal('btsDate', formatDate(d.BlockedDate || d.Date));
-        setVal('reasonId', d.BlockedReasonID || d.ReasonID || d.UnBlockedReasonID || '-');
-        setVal('btsDescription', d.BlockedDescription || d.Description || d.UnBlockedDescription || '-');
-        setVal('btsInstructionGivenBy', d.BlockedInstructionBy || d.InstructionGivenBy || d.UnBlockedInstructionBy || '-');
+        setVal('previousStatus', primaryStatus);
+        setVal('btsDate', formatDate(detailDate));
+        setVal('reasonId', detailReason);
+        setVal('btsDescription', detailDescription);
+        setVal('btsInstructionGivenBy', detailInstruction);
 
         setTxt('MakerID', d.CreatedBy || d.MakerID);
         setTxt('MakerDT', formatDate(d.CreatedOn || d.MakerDT));
@@ -221,12 +384,12 @@ window.AccountBlockingModule = (function () {
 
             try {
                 const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.UNBLOCK}`, payload);
-                if (result && result.success) {
-                    showMsg(result.message || 'Account unblocked successfully', 'success');
+                if (!isResultFailure(result)) {
+                    showMsg(getResultMessage(result, 'Account unblocked successfully'), 'success');
                     loadData();
                     return true;
                 } else {
-                    showMsg(result?.message || 'Unblock failed', 'error');
+                    showMsg(getResultMessage(result, 'Unblock failed'), 'error');
                 }
             } catch (err) { showMsg('Error: ' + err.message, 'error'); }
         } else {
@@ -246,12 +409,12 @@ window.AccountBlockingModule = (function () {
 
             try {
                 const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${API.BLOCK}`, payload);
-                if (result && result.success) {
-                    showMsg(result.message || 'Account blocked successfully', 'success');
+                if (!isResultFailure(result)) {
+                    showMsg(getResultMessage(result, 'Account blocked successfully'), 'success');
                     loadData();
                     return true;
                 } else {
-                    showMsg(result?.message || 'Block failed', 'error');
+                    showMsg(getResultMessage(result, 'Block failed'), 'error');
                 }
             } catch (err) { showMsg('Error: ' + err.message, 'error'); }
         }
