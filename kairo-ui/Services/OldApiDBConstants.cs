@@ -9,6 +9,8 @@ namespace kairo_ui.Services
         public const string DELETE_GROUP_LOAN_SCHEMES = "p_DeleteGroupLoanSchemes";
         public const string GET_GROUP_LOAN_MENU = "p_GetGroupLoanMenu";
         public const string ADD_EDIT_GROUP_LOAN_MENU = "p_AddEditGroupLoanMenu";
+        public const string DELETE_GROUP_LOAN_MENU = "p_DeleteGroupLoanMenu";
+        public const string GET_INTEREST_MENU_COMBO = "p_getInterestmenucombo";
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
@@ -53,8 +55,16 @@ namespace kairo_ui.Services
         // CHANGE INSTALLMENT DATE (Module 5095)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_INSTALLMENT_DATES = "p_GetInstallmentDates";
+        public const string GET_GROUP_LOAN_INST_DATE_CHANGE = "p_GetGroupLoanInstDateChange";
         public const string CHANGE_INSTALLMENT_DATE = "p_ChangeInstallmentDate";
         public const string VALIDATE_INSTALLMENT_DATE_CHANGE = "p_ValidateInstallmentDateChange";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CHANGE CENTER/GROUP
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_DETAILS = "p_GetGroupDetails";
+        public const string GET_GROUP_MEMBER_LIST = "p_GetGroupMemberList";
+        public const string CHANGE_MEMBER_GROUP_ID = "p_ChangeMemberGroupID";
 
         // ═══════════════════════════════════════════════════════════════════
         // CENTER MEMBER MAINTENANCE

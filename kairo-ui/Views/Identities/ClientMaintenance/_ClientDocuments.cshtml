@@ -33,24 +33,27 @@
                         <option value="">Select...</option>
                     </select>
                 </div>
-                <div class="col">
-                    <label class="label-blue" for="ddl_documentLocation" id="lbl_documentLocation">Location</label>
-                    <select id="ddl_documentLocation" name="documentLocation" data-document-field="LocationID" class="bs-select" asp-items="@(documentLocationOptions.Skip(1))">
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="col">
+                <div class="col span-2">
                     <label class="label-blue" for="fil_documentFile" id="lbl_documentFile">Document Image</label>
                     <input id="fil_documentFile" name="documentFile" data-document-field="Image" class="bs-input-text" type="file" accept="image/*,.pdf,.doc,.docx" />
                 </div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col-6">
-                    <label for="txt_documentRemarks" id="lbl_documentRemarks">Remarks</label>
-                    <input id="txt_documentRemarks" name="documentRemarks" data-document-field="Remarks" class="bs-input-text" />
+                <div class="col span-2">
+                    <label class="label-blue" for="ddl_documentLocation" id="lbl_documentLocation">Location</label>
+                    <select id="ddl_documentLocation" name="documentLocation" data-document-field="LocationID" class="bs-select" asp-items="@(documentLocationOptions.Skip(1))">
+                        <option value="">Select...</option>
+                    </select>
                 </div>
-                <div class="col">
+                <div class="col span-2">
+                    <label class="label-blue" for="dt_documentReceivedDate" id="lbl_documentReceivedDate">Received Date</label>
+                    <input id="dt_documentReceivedDate" name="documentReceivedDate" data-document-field="ReceivedDate" class="bs-input-text" type="date" />
+                </div>
+            </div>
+
+            <div class="form-row four-col">
+                <div class="col span-4">
                     <label class="label-blue" for="txt_documentReceivedBy" id="lbl_documentReceivedBy">Received By</label>
                     <div class="kairo-control" data-kairo-control>
                         <input id="txt_documentReceivedBy" name="documentReceivedBy" data-document-field="ReceivedBy" class="bs-input-text" />
@@ -58,9 +61,12 @@
                         <button type="button" class="btn-lookup" data-document-action="lookup-receiver" aria-label="Find document receiver"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
-                <div class="col">
-                    <label class="label-blue" for="dt_documentReceivedDate" id="lbl_documentReceivedDate">Received Date</label>
-                    <input id="dt_documentReceivedDate" name="documentReceivedDate" data-document-field="ReceivedDate" class="bs-input-text" type="date" />
+            </div>
+
+            <div class="form-row four-col">
+                <div class="col span-4">
+                    <label for="txt_documentRemarks" id="lbl_documentRemarks">Remarks</label>
+                    <input id="txt_documentRemarks" name="documentRemarks" data-document-field="Remarks" class="bs-input-text" />
                 </div>
             </div>
         </form>
@@ -94,4 +100,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-documents.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-documents.js"></script>

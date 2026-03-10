@@ -370,6 +370,8 @@ namespace ClientDocumentApi.Services
         }
         public async Task<List<object>> GetByClientIdEnrichedAsync(string clientID, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(clientID))
+                return [];
             List<TempImage>? lsTempImages = await GetByClientIdAsync(clientID, cancellationToken);
             SystemCodeResponse sresp = await _commonRepository.GetSystemCodesAsync(["ImageTypeID"], cancellationToken);
             return lsTempImages.Select(ti => new
@@ -394,6 +396,8 @@ namespace ClientDocumentApi.Services
         }
         public async Task<List<TempImage>> GetByClientIdAsync(string clientID, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(clientID))
+                return [];
             if (string.IsNullOrWhiteSpace(clientID))
                 throw new ArgumentException("ClientID cannot be null or empty.", nameof(clientID));
             List<TempImage> tempImage = [];

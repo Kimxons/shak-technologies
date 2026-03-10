@@ -130,4 +130,30 @@ function initEmploymentValidation() {
 window.initClientMaintenanceEmploymentTab = function (tabRoot, moduleId) {
     bindClientMaintenanceCrud(tabRoot, moduleId, window.ClientMaintenanceEmploymentService, 'employment');
     initEmploymentValidation();
+    
+    // Initialize all form fields as readonly until edit mode
+    tabRoot.querySelectorAll('input, select, textarea').forEach((field) => {
+        if (field.type !== 'button' && field.type !== 'submit') {
+            field.readOnly = true;
+            if (field.tagName === 'SELECT') {
+                field.disabled = true;
+            }
+        }
+    });
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        tabRoot.querySelectorAll('input, select, textarea, button[data-employment-action]').forEach((field) => {
+            if (field.type === 'button' || field.type === 'submit') {
+                // Enable/disable action buttons if any
+                if (field.dataset.employmentAction) {
+                    field.disabled = !isEditMode;
+                }
+            } else if (field.tagName === 'SELECT') {
+                field.disabled = !isEditMode;
+            } else if (field.type !== 'hidden') {
+                field.readOnly = !isEditMode;
+            }
+        });
+    };
 };

@@ -37,6 +37,9 @@ window.AccountChequeBookModule = (function () {
      */
     function getContext() {
         const ps = window.AccountMaintenanceState;
+        const defaultWorkingDate = window.GlobalUtils?.getCurrentDate
+            ? window.GlobalUtils.getCurrentDate()
+            : new Date().toISOString().split('T')[0];
         return {
             AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
             OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',

@@ -34,6 +34,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\CBS.COMMON\CBS.Entities.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="BRNetSecurityCore">
 			<HintPath>..\Libraries\BRNetSecurityCore.dll</HintPath>
 		</Reference>

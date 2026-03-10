@@ -94,4 +94,30 @@ function initKycValidation() {
 window.initClientMaintenanceKycTab = function (tabRoot, moduleId) {
     bindClientMaintenanceCrud(tabRoot, moduleId, window.ClientMaintenanceKycService, 'kyc');
     initKycValidation();
+    
+    // Initialize all form fields as readonly until edit mode
+    tabRoot.querySelectorAll('input, select, textarea').forEach((field) => {
+        if (field.type !== 'button' && field.type !== 'submit') {
+            field.readOnly = true;
+            if (field.tagName === 'SELECT') {
+                field.disabled = true;
+            }
+        }
+    });
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        tabRoot.querySelectorAll('input, select, textarea, button[data-kyc-action]').forEach((field) => {
+            if (field.type === 'button' || field.type === 'submit') {
+                // Enable/disable action buttons if any
+                if (field.dataset.kycAction) {
+                    field.disabled = !isEditMode;
+                }
+            } else if (field.tagName === 'SELECT') {
+                field.disabled = !isEditMode;
+            } else if (field.type !== 'hidden') {
+                field.readOnly = !isEditMode;
+            }
+        });
+    };
 };

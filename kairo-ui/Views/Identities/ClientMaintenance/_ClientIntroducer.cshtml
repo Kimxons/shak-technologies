@@ -1,4 +1,8 @@
 @{
+    ViewData["Title"] = "Client Introducer";
+    Layout = "_ApplicationLayout";
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var showActionPanel = moduleId != "1000";
 }
 
 <div class="form-card" data-section="client-introducer" data-cm-tab="introducer">
@@ -11,7 +15,7 @@
     <div class="section-content" data-section-content>
         <form id="frm_clientIntroducer" data-introducer-form autocomplete="off" novalidate>
             <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdIntroducer" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="moduleIdIntroducer" value="@moduleId" />
             <input type="hidden" id="hdn_introducerId" name="introducerId" />
 
             <h5 class="mb-4">Introducer Information</h5>
@@ -51,13 +55,16 @@
             </div>
         </form>
 
-        <div class="d-flex justify-content-center gap-2 my-4">
-            <button id="btn_newIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-            <button id="btn_alterIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-            <button id="btn_deleteIntroducer" type="button" class="btn btn-sm btn-outline-danger" data-introducer-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-            <button id="btn_updateIntroducer" type="button" class="btn btn-sm btn-primary" data-introducer-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-            <button id="btn_clearIntroducer" type="button" class="btn btn-sm btn-outline-secondary" data-introducer-action="clear">Clear</button>
-        </div>
+        @if (!showActionPanel)
+        {
+            <div class="d-flex justify-content-center gap-2 my-4">
+                <button id="btn_newIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                <button id="btn_alterIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                <button id="btn_deleteIntroducer" type="button" class="btn btn-sm btn-outline-danger" data-introducer-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
+                <button id="btn_updateIntroducer" type="button" class="btn btn-sm btn-primary" data-introducer-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
+                <button id="btn_clearIntroducer" type="button" class="btn btn-sm btn-outline-secondary" data-introducer-action="clear">Clear</button>
+            </div>
+        }
 
         <div class="section-header py-1 mb-2 bg-light border">
             <span class="small fw-bold px-2">REGISTERED INTRODUCERS</span>
@@ -80,4 +87,17 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-introducer.js"></script>
+@if (showActionPanel)
+{
+    <aside class="action-panel" aria-label="Introducer actions">
+        <div class="d-flex flex-column gap-2 mt-auto">
+            <button id="btn_newIntroducer" type="button" class="btn-action" data-introducer-action="new"><i class="bi bi-plus-lg"></i><span>New</span></button>
+            <button id="btn_alterIntroducer" type="button" class="btn-action" data-introducer-action="alter"><i class="bi bi-pencil-square"></i><span>Alter</span></button>
+            <button id="btn_deleteIntroducer" type="button" class="btn-action btn-delete" data-introducer-action="remove"><i class="bi bi-trash"></i><span>Remove</span></button>
+            <button id="btn_updateIntroducer" type="button" class="btn-action btn-save" data-introducer-action="update"><i class="bi bi-check2-circle"></i><span>Update</span></button>
+            <button id="btn_clearIntroducer" type="button" class="btn-action btn-cancel" data-introducer-action="clear"><i class="bi bi-x-circle"></i><span>Clear</span></button>
+        </div>
+    </aside>
+}
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-introducer.js"></script>

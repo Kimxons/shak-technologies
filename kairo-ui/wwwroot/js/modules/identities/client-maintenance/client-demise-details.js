@@ -88,17 +88,31 @@ window.initClientMaintenanceDemiseDetails = function (moduleRoot, moduleId) {
     const setFormState = (mode) => {
         state.mode = mode;
         const isView = mode === 'view';
-        const isAdd = mode === 'add';
-        const isEdit = mode === 'edit';
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
 
         // Form fields
         const fields = form?.querySelectorAll('input:not([type="hidden"]), select, textarea');
         fields?.forEach(field => {
-            field.disabled = isView;
+            field.disabled = !allowEdit || isView;
             if (field.id === 'txt_documentImage') {
                 field.readOnly = true; // Always readonly, file selected via browse
             }
         });
+
+        if (!allowEdit) {
+            ['#btn_addDemiseDetail', '#btn_editDemiseDetail', '#btn_deleteDemiseDetail', '#btn_saveDemiseDetail', '#btn_cancelDemiseDetail']
+                .forEach((selector) => {
+                    const btn = moduleRoot.querySelector(selector);
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.display = '';
+                    }
+                });
+            if (isView) {
+                clearForm();
+            }
+            return;
+        }
 
         // Buttons
         toggleButton('#btn_addDemiseDetail', isView);
@@ -303,6 +317,9 @@ window.initClientMaintenanceDemiseDetails = function (moduleRoot, moduleId) {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(dateStr);
+        }
         try {
             const date = new Date(dateStr);
             return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -313,6 +330,10 @@ window.initClientMaintenanceDemiseDetails = function (moduleRoot, moduleId) {
 
     const formatDateForInput = (dateStr) => {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateStr);
+            if (parsed) return parsed;
+        }
         try {
             const date = new Date(dateStr);
             return date.toISOString().split('T')[0];
@@ -371,6 +392,23 @@ window.initClientMaintenanceDemiseDetails = function (moduleRoot, moduleId) {
 
     // Register load function for external calls
     moduleRoot._cmLoadData = (requestData) => refreshTable(requestData);
+
+    // Edit mode handler - called from main client maintenance view
+    moduleRoot._cmSetEditMode = (isEditMode) => {
+        if (isEditMode) {
+            // Enable Add button to add demise details in edit mode
+            const addBtn = moduleRoot.querySelector('#btn_addDemiseDetail');
+            if (addBtn) addBtn.disabled = false;
+        } else {
+            // Disable action buttons when exiting edit mode
+            const addBtn = moduleRoot.querySelector('#btn_addDemiseDetail');
+            if (addBtn) addBtn.disabled = true;
+            const editBtn = moduleRoot.querySelector('#btn_editDemiseDetail');
+            const deleteBtn = moduleRoot.querySelector('#btn_deleteDemiseDetail');
+            if (editBtn) editBtn.disabled = true;
+            if (deleteBtn) deleteBtn.disabled = true;
+        }
+    };
 
     // Initial state
     setFormState('view');
