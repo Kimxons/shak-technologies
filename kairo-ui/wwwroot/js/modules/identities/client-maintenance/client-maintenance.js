@@ -114,7 +114,7 @@ window.ClientMaintenanceCore = {
     workflowStageRequestId: 0,
     // Registry to track loaded tabs and their load functions
     _loadedTabsRegistry: new Map(),
-    
+
     /**
      * Register a tab's load function
      * Called by tab initializers when they set up the _cmLoadData function
@@ -125,21 +125,21 @@ window.ClientMaintenanceCore = {
             console.log(`[ClientMaintenance] Registered load function for tab: ${tabKey}`);
         }
     },
-    
+
     /**
      * Get all registered tab load functions
      */
     getLoadedTabLoadFunctions() {
         return Array.from(this._loadedTabsRegistry.values());
     },
-    
+
     /**
      * Clear the registry (useful for reset)
      */
     clearTabRegistry() {
         this._loadedTabsRegistry.clear();
     },
-    
+
     getSelectedId() {
         if (this.useRequestId) {
             return this.requestId || '';
@@ -257,6 +257,104 @@ const clientMaintenanceTabServiceMap = {
     Documents: 'ClientMaintenanceDocumentsService',
     Submit: 'ClientMaintenanceSubmitService'
 };
+
+const clientMaintenanceTabScriptMap = {
+    Personal: '/js/modules/identities/client-maintenance/client-personal.js',
+    Corporate: '/js/modules/identities/client-maintenance/client-corporate.js',
+    Address: '/js/modules/identities/client-maintenance/client-address.js',
+    Relations: '/js/modules/identities/client-maintenance/client-relations.js',
+    Employment: '/js/modules/identities/client-maintenance/client-employment.js',
+    Offers: '/js/modules/identities/client-maintenance/client-offers.js',
+    GroupDetail: '/js/modules/identities/client-maintenance/client-group-detail.js',
+    Kyc: '/js/modules/identities/client-maintenance/client-kyc.js',
+    Products: '/js/modules/identities/client-maintenance/client-products.js',
+    PhotoSignature: '/js/modules/identities/client-maintenance/client-photo-signature.js',
+    Documents: '/js/modules/identities/client-maintenance/client-documents.js',
+    Submit: '/js/modules/identities/client-maintenance/client-submit.js'
+};
+
+const loadedTabScriptSet = new Set();
+const tabScriptLoadPromiseMap = new Map();
+
+function resolveTabScriptUrl(scriptPath) {
+    const normalizedPath = scriptPath.startsWith('/') ? scriptPath : `/${scriptPath}`;
+    const marker = '/js/modules/identities/client-maintenance/client-maintenance.js';
+
+    const currentScript = Array.from(document.scripts || []).find((script) => {
+        const src = String(script?.src || '').toLowerCase();
+        return src.includes(marker);
+    });
+
+    if (!currentScript?.src) {
+        return normalizedPath;
+    }
+
+    const currentSrc = String(currentScript.src || '');
+    const markerIndex = currentSrc.toLowerCase().indexOf(marker);
+    if (markerIndex === -1) {
+        return normalizedPath;
+    }
+
+    return `${currentSrc.substring(0, markerIndex)}${normalizedPath}`;
+}
+
+async function ensureTabScriptLoaded(config) {
+    console.log(config);
+    const tabKey = config?.key || '';
+    const scriptPath = clientMaintenanceTabScriptMap[tabKey];
+    console.log(scriptPath);
+    if (!scriptPath) return;
+
+    const normalizedPath = scriptPath.toLowerCase();
+    const scriptUrl = resolveTabScriptUrl(scriptPath);
+
+    console.log(scriptUrl);
+    console.log(normalizedPath);
+    console.log(loadedTabScriptSet);
+    if (loadedTabScriptSet.has(normalizedPath)) {
+        let isExistingScript = Array.from(document.scripts || []).find((script) => {
+            const src = String(script?.src || '').toLowerCase();
+            return src.includes(normalizedPath);
+        });
+        console.log(isExistingScript);
+        if (isExistingScript)
+            return;
+    }
+
+    console.log(tabScriptLoadPromiseMap);
+    if (tabScriptLoadPromiseMap.has(normalizedPath)) {
+        await tabScriptLoadPromiseMap.get(normalizedPath);
+        return;
+    }
+
+    const existingScript = Array.from(document.head.querySelectorAll('script') || []).find((script) => {
+        //const existingScript = Array.from(document.scripts || []).find((script) => {
+        const src = String(script?.src || '').toLowerCase();
+        return src.includes(normalizedPath);
+    });
+    console.log(existingScript);
+    if (existingScript) {
+        loadedTabScriptSet.add(normalizedPath);
+        return;
+    }
+
+    const loadPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = scriptUrl;
+        script.type = "text/javascript";
+        script.async = false;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Failed to load script for ${tabKey}: ${scriptUrl}`));
+        document.head.appendChild(script);
+    }).finally(() => {
+        tabScriptLoadPromiseMap.delete(normalizedPath);
+    });
+    console.log("finished loading scripts")
+    tabScriptLoadPromiseMap.set(normalizedPath, loadPromise);
+    await loadPromise;
+
+    loadedTabScriptSet.add(normalizedPath);
+}
 
 let clientMaintenanceStageTabs = [];
 
@@ -854,7 +952,8 @@ async function loadWorkflowStagesForClientType(clientTypeId) {
         if (window.ClientMaintenanceCore.getSelectedId()) {
             await preloadWorkflowTabs(stageTabs);
         } else {
-            await loadTabPartial(stageTabs[0]);
+            /*await loadTabPartial(stageTabs[0]);*/
+            stageTabs.forEach((tab) => loadTabPartial(tab, true));
         }
     } catch (error) {
         if (requestId !== window.ClientMaintenanceCore.workflowStageRequestId) return;
@@ -987,6 +1086,116 @@ function applyBasicDetailsToPersonal(row) {
     }
 }
 
+function pickFirstNonEmpty(values) {
+    if (!Array.isArray(values)) return '';
+
+    for (const value of values) {
+        if (value == null) continue;
+        const text = String(value).trim();
+        if (text) {
+            return value;
+        }
+    }
+
+    return '';
+}
+
+function formatAuditDate(value) {
+    if (value == null) return '';
+
+    const text = String(value).trim();
+    if (!text) return '';
+
+    const date = new Date(text);
+    if (Number.isNaN(date.getTime())) {
+        return text;
+    }
+
+    return date.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function setBehindSceneValue(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const text = String(value ?? '').trim();
+    element.textContent = text || '-';
+}
+
+function resetBehindSceneFields() {
+    [
+        'auditStatus',
+        'auditOpenDate',
+        'auditClosedDate',
+        'auditCreatedBy',
+        'auditCreatedOn',
+        'auditModifiedBy',
+        'auditModifiedOn',
+        'auditSupervisedBy',
+        'auditSupervisedOn'
+    ].forEach((id) => setBehindSceneValue(id, '-'));
+}
+
+function applyBasicDetailsToBehindScene(row) {
+    if (!row || typeof row !== 'object') {
+        resetBehindSceneFields();
+        return;
+    }
+
+    setBehindSceneValue('auditStatus', pickFirstNonEmpty([
+        row?.ClientStatusDescription,
+        row?.ClientStatus,
+        row?.ClientStatusID,
+        row?.Status,
+        row?.WFClientStatusID
+    ]));
+
+    setBehindSceneValue('auditOpenDate', formatAuditDate(pickFirstNonEmpty([
+        row?.OpenedDate,
+        row?.OpenedOn,
+        row?.OpenDate
+    ])));
+
+    setBehindSceneValue('auditClosedDate', formatAuditDate(pickFirstNonEmpty([
+        row?.CloseDate,
+        row?.ClosedDate
+    ])));
+
+    setBehindSceneValue('auditCreatedBy', pickFirstNonEmpty([
+        row?.CreatedBy,
+        row?.OpenedBy
+    ]));
+
+    setBehindSceneValue('auditCreatedOn', formatAuditDate(pickFirstNonEmpty([
+        row?.CreatedOn,
+        row?.CreatedDate
+    ])));
+
+    setBehindSceneValue('auditModifiedBy', pickFirstNonEmpty([
+        row?.ModifiedBy
+    ]));
+
+    setBehindSceneValue('auditModifiedOn', formatAuditDate(pickFirstNonEmpty([
+        row?.ModifiedOn,
+        row?.ModifiedDate
+    ])));
+
+    setBehindSceneValue('auditSupervisedBy', pickFirstNonEmpty([
+        row?.SupervisedBy
+    ]));
+
+    setBehindSceneValue('auditSupervisedOn', formatAuditDate(pickFirstNonEmpty([
+        row?.SupervisedOn,
+        row?.SupervisedDate
+    ])));
+}
+
 /**
  * Load data for all initialized tabs
  * This invokes the Get/View JS functions of all partial views/stages/steps
@@ -998,9 +1207,13 @@ async function loadAllTabsData() {
         return;
     }
 
+    if (Array.isArray(clientMaintenanceStageTabs) && clientMaintenanceStageTabs.length > 0) {
+        await preloadWorkflowTabs(clientMaintenanceStageTabs);
+        return;
+    }
+
     // Get all registered tab load functions
     const loadFunctions = window.ClientMaintenanceCore.getLoadedTabLoadFunctions();
-    
     if (loadFunctions.length === 0) {
         console.log('[ClientMaintenance] loadAllTabsData: No tabs registered yet');
         return;
@@ -1020,13 +1233,30 @@ async function loadAllTabsData() {
     await Promise.all(loadPromises);
 }
 
-async function loadClientBasicDetails(clientId) {
-    if (!clientId) return;
+async function loadClientBasicDetails(selectionContext) {
+    const context = typeof selectionContext === 'string'
+        ? { clientId: selectionContext }
+        : (selectionContext || {});
+
+    const clientId = String(context.clientId || context.ClientID || '').trim();
+    const requestId = String(context.requestId || context.RequestID || '').trim();
+
+    if (!clientId && !requestId) return;
+
     try {
-        const response = await window.ClientMaintenanceService.getBasic({
-            ModuleID: window.ClientMaintenanceCore.moduleId || '',
-            ClientID: clientId
-        });
+        const requestData = {
+            ModuleID: window.ClientMaintenanceCore.moduleId || ''
+        };
+
+        if (clientId) {
+            requestData.ClientID = clientId;
+        }
+
+        if (requestId) {
+            requestData.RequestID = requestId;
+        }
+
+        const response = await window.ClientMaintenanceService.getBasic(requestData);
 
         const success = response?.Success ?? response?.success ?? true;
         if (!success) {
@@ -1039,6 +1269,29 @@ async function loadClientBasicDetails(clientId) {
         if (row) {
             applyBasicDetailsToMain(row);
             applyBasicDetailsToPersonal(row);
+            applyBasicDetailsToBehindScene(row);
+
+            // Keep parent context aligned with IDs resolved from get-basic.
+            const resolvedClientId = String(row?.ClientID || row?.ClientId || clientId).trim();
+            const resolvedRequestId = String(row?.RequestID || row?.RequestId || requestId).trim();
+
+            if (resolvedClientId) {
+                window.ClientMaintenanceCore.clientId = resolvedClientId;
+                const mainClientIdInput = document.getElementById('txt_mainClientId');
+                if (mainClientIdInput && !String(mainClientIdInput.value || '').trim()) {
+                    mainClientIdInput.value = resolvedClientId;
+                }
+            }
+
+            if (resolvedRequestId) {
+                window.ClientMaintenanceCore.requestId = resolvedRequestId;
+                const mainApplicationIdInput = document.getElementById('txt_mainApplicationId');
+                if (mainApplicationIdInput && !String(mainApplicationIdInput.value || '').trim()) {
+                    mainApplicationIdInput.value = resolvedRequestId;
+                }
+            }
+        } else {
+            resetBehindSceneFields();
         }
 
         // Load all tab data after basic details are loaded
@@ -1097,7 +1350,7 @@ function initMainClientSearch(shell) {
                 if (applicationIdInput) applicationIdInput.value = '';
                 if (applicationNameInput) applicationNameInput.value = '';
                 enableCancelButton();
-                await loadClientBasicDetails(selectedClientId);
+                await loadClientBasicDetails({ clientId: selectedClientId });
 
                 // Notify sidebar that main client record is loaded
                 if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
@@ -1134,7 +1387,7 @@ function initMainClientSearch(shell) {
 
                 window.ClientMaintenanceCore.requestId = selectedRequestId;
                 window.ClientMaintenanceCore.useRequestId = true;
-                window.ClientMaintenanceCore.clientId = selectedClientId || window.ClientMaintenanceCore.clientId || '';
+                window.ClientMaintenanceCore.clientId = selectedClientId || '';
 
                 setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
                 setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
@@ -1144,11 +1397,16 @@ function initMainClientSearch(shell) {
                 if (selectedClientId) {
                     if (clientIdInput) clientIdInput.value = selectedClientId;
                     if (clientNameInput && !clientNameInput.value) clientNameInput.value = selectedName;
-                    await loadClientBasicDetails(selectedClientId);
                 } else {
-                    // If no client ID, still load all tab data with the request ID
-                    await loadAllTabsData();
+                    if (clientIdInput) clientIdInput.value = '';
                 }
+
+                // Always invoke get-basic for application selection so Behind The Scene
+                // binds even when only RequestID is available.
+                await loadClientBasicDetails({
+                    clientId: selectedClientId,
+                    requestId: selectedRequestId
+                });
 
                 // Notify sidebar that main client record is loaded
                 if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
@@ -1182,6 +1440,13 @@ async function loadTabPartial(config, forceDataRefresh = false) {
 
     if (pane.dataset.loaded === 'true') {
         if (forceDataRefresh) {
+            await ensureTabScriptLoaded(config);
+
+            const initializer = window[config.initFn];
+            if (typeof pane._cmLoadData !== 'function' && typeof initializer === 'function') {
+                initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+            }
+
             await autoLoadTabData(config, pane);
         }
         return;
@@ -1200,9 +1465,13 @@ async function loadTabPartial(config, forceDataRefresh = false) {
     pane.innerHTML = await response.text();
     pane.dataset.loaded = 'true';
 
+    await ensureTabScriptLoaded(config);
+
     const initializer = window[config.initFn];
     if (typeof initializer === 'function') {
         initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+    } else {
+        console.warn(`[ClientMaintenance] Initializer not found for ${config.key}: ${config.initFn}`);
     }
 
     await autoLoadTabData(config, pane);
@@ -1598,8 +1867,10 @@ async function resetClientMaintenance() {
         }
 
         // Reset all tab tracking
+        window.ClientMaintenanceCore.clearTabRegistry();
         clientMaintenanceStageTabs = [];
         clearAllTabCompletions();
+        resetBehindSceneFields();
 
         // Reset action buttons to disabled state
         setClientLoadedState(false);

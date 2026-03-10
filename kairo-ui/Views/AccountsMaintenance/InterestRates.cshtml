@@ -1,215 +1,113 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // Interest Rates Submodule - Clean Migration
-    // Per UI Guidelines: No inline styles, only reference styles.css
+    // Migrated from: account-interest-rates.html
     var interestRateTypeOptions = ViewData["InterestRateTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- InterestRates Submodule -->
-<div class="window">
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-percent am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Interest Rates</span>
-        </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-        </div>
-    </div>
+<div class="form-card" data-main-form>
+  <!-- Rate Details Section -->
+  <div class="form-section" data-section="rate-details">
+      <div class="section-header" data-section-toggle>
+          <span class="section-header__title"><i class="bi bi-percent me-1"></i>Rate Details</span>
+          <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Details" aria-expanded="true">
+              <i class="bi bi-chevron-up"></i>
+          </button>
+      </div>
+      <div class="section-content" data-section-content>
+          <!-- Row 1: Rate Type, Base Rate -->
+          <div class="form-row two-col">
+              <div class="col">
+                  <label class="label-blue" for="rateType">Rate Type<span class="text-danger">*</span></label>
+                  <select id="rateType" name="rateType" class="bs-select">
+                      <option value="">--Select--</option>
+                      @foreach (var option in interestRateTypeOptions)
+                      {
+                          <option value="@option.Value">@option.Text</option>
+                      }
+                  </select>
+              </div>
+              <div class="col">
+                  <label class="label-blue" for="baseRate">Base Rate</label>
+                  <input id="baseRate" name="baseRate" type="text" class="bs-input-text text-end" value="0.0000" readonly />
+              </div>
+          </div>
 
-    <main class="main-container">
-        <div class="form-content">
-            <div class="form-card" data-main-form>
-                <form autocomplete="off" novalidate>
-                    
-                    <!-- Rate Details Section -->
-                    <div class="form-section" data-section="rate-details">
-                        <div class="section-header" data-section-toggle>
-                            <span class="section-header__title"><i class="bi bi-percent"></i>Rate Details</span>
-                            <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Details" aria-expanded="true">
-                                <i class="bi bi-chevron-up"></i>
-                            </button>
-                        </div>
-                        <div class="section-content" data-section-content>
-                            
-                            <!-- Row 1: Rate Type, Base Rate -->
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label class="label-blue" for="rateType">Rate Type</label>
-                                    <select id="rateType" name="rateType" class="bs-select">
-                                        <option value="">--Select--</option>
-                                        @foreach (var option in interestRateTypeOptions)
-                                        {
-                                            <option value="@option.Value">@option.Text</option>
-                                        }
-                                    </select>
-                                </div>
-                                <div class="col">
-                                    <label class="label-blue" for="baseRate">Base Rate</label>
-                                    <input id="baseRate" name="baseRate" type="text" class="bs-input-text text-end" value="0.0000" readonly />
-                                </div>
-                            </div>
+          <!-- Row 2: Effective Date, Expiry Date -->
+          <div class="form-row two-col">
+              <div class="col">
+                  <label class="label-blue" for="effectiveDate">Effective Date</label>
+                  <input type="date" id="effectiveDate" name="effectiveDate" class="bs-input-text">
+              </div>
+              <div class="col">
+                  <label class="label-blue" for="expiryDate">Expiry Date</label>
+                  <input type="date" id="expiryDate" name="expiryDate" class="bs-input-text">
+              </div>
+          </div>
 
-                            <!-- Row 2: Effective Date, Expiry Date -->
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label class="label-blue" for="effectiveDate">Effective Date</label>
-                                    <div class="kairo-control">
-                                        <input type="text" id="effectiveDate" name="effectiveDate" class="bs-input-text" placeholder="DD/MMM/YYYY" readonly>
-                                        <input type="date" id="effectiveDate_picker" class="hidden-datepicker">
-                                        <button type="button" class="kairo-control__lookup" data-date-toggle="effectiveDate" title="Calendar">
-                                            <i class="bi bi-calendar-event"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <label class="label-blue" for="expiryDate">Expiry Date</label>
-                                    <div class="kairo-control">
-                                        <input type="text" id="expiryDate" name="expiryDate" class="bs-input-text" placeholder="DD/MMM/YYYY" readonly>
-                                        <input type="date" id="expiryDate_picker" class="hidden-datepicker">
-                                        <button type="button" class="kairo-control__lookup" data-date-toggle="expiryDate" title="Calendar">
-                                            <i class="bi bi-calendar-event"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+          <!-- Row 3: Ref ID -->
+          <div class="form-row two-col">
+              <div class="col">
+                  <label class="label-blue" for="refId">Ref ID</label>
+                  <input id="refId" name="refId" type="text" class="bs-input-text" />
+              </div>
+              <div class="col"></div>
+          </div>
+      </div>
+  </div>
 
-                            <!-- Row 3: Ref ID -->
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label class="label-blue" for="refId">Ref ID</label>
-                                    <input id="refId" name="refId" type="text" class="bs-input-text" />
-                                </div>
-                                <div class="col"></div>
-                            </div>
+  <!-- Interest Rate Slabs Section -->
+  <div class="form-section" data-section="rate-slabs">
+      <div class="section-header" data-section-toggle>
+          <span class="section-header__title"><i class="bi bi-table me-1"></i>Amount Slab Wise Rate of Interest</span>
+          <div class="ms-auto me-3">
+              <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlab" style="display: none;">
+                  <i class="bi bi-plus-circle me-1"></i>Add Slab
+              </button>
+          </div>
+          <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Slabs" aria-expanded="true">
+              <i class="bi bi-chevron-up"></i>
+          </button>
+      </div>
+      <div class="section-content table-responsive" data-section-content>
+          <table class="table table-sm table-hover" id="rateSlabGrid">
+              <thead class="table-light">
+                  <tr>
+                      <th>From Amount</th>
+                      <th>To Amount</th>
+                      <th>Spread / Margin</th>
+                      <th>Interest Rate</th>
+                      <th class="text-center" style="width: 80px;">Action</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr class="table__empty">
+                      <td colspan="5">No rate slabs defined.</td>
+                  </tr>
+              </tbody>
+          </table>
+      </div>
+  </div>
 
-                        </div>
-                    </div>
-
-                    <!-- Interest Rate Slabs Section -->
-                    <div class="form-section" data-section="rate-slabs">
-                        <div class="section-header" data-section-toggle>
-                            <span class="section-header__title"><i class="bi bi-table"></i>Amount Slab Wise Rate of Interest</span>
-                            <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Slabs" aria-expanded="true">
-                                <i class="bi bi-chevron-up"></i>
-                            </button>
-                        </div>
-                        <div class="section-content table-responsive" data-section-content>
-                            <table class="table table-sm table-hover" id="rateSlabGrid">
-                                <thead>
-                                    <tr>
-                                        <th>From Amount</th>
-                                        <th>To Amount</th>
-                                        <th>Spread / Margin</th>
-                                        <th>Interest Rate</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="table__empty">
-                                        <td colspan="5">No rate slabs defined. Click ADD to create one.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Behind the Scene Section -->
-                    <div class="form-section" data-section="behind-scene">
-                        <div class="section-header" data-section-toggle>
-                            <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
-                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-                                <i class="bi bi-chevron-up"></i>
-                            </button>
-                        </div>
-                        <div class="section-content" data-section-content>
-                            <div class="audit-section audit-section--summary">
-                                <div class="audit-cell">
-                                    <span class="audit-label">Created By</span>
-                                    <span class="audit-value" id="CreatedBy" data-field="createdBy">-</span>
-                                </div>
-                                <div class="audit-cell">
-                                    <span class="audit-label">Modified By</span>
-                                    <span class="audit-value" id="ModifiedBy" data-field="modifiedBy">-</span>
-                                </div>
-                                <div class="audit-cell">
-                                    <span class="audit-label">Supervised By</span>
-                                    <span class="audit-value" id="SupervisedBy" data-field="supervisedBy">-</span>
-                                </div>
-                                <div class="audit-cell">
-                                    <span class="audit-label">Created On</span>
-                                    <span class="audit-value" id="CreatedOn" data-field="createdOn">-</span>
-                                </div>
-                                <div class="audit-cell">
-                                    <span class="audit-label">Modified On</span>
-                                    <span class="audit-value" id="ModifiedOn" data-field="modifiedOn">-</span>
-                                </div>
-                                <div class="audit-cell">
-                                    <span class="audit-label">Supervised On</span>
-                                    <span class="audit-value" id="SupervisedOn" data-field="supervisedOn">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </form>
-            </div>
-        </div>
-
-        <!-- Action Panel -->
-        <div class="action-panel" aria-label="Form actions">
-            <div class="action-buttons">
-                <button class="btn-action btn-view" type="button" data-action="view">
-                    <i class="bi bi-eye"></i>
-                    <span>View</span>
-                </button>
-                <button class="btn-action" type="button" data-action="add">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add</span>
-                </button>
-                <button class="btn-action" type="button" data-action="edit">
-                    <i class="bi bi-pencil-square"></i>
-                    <span>Edit</span>
-                </button>
-                <button class="btn-action" type="button" data-action="delete">
-                    <i class="bi bi-trash"></i>
-                    <span>Delete</span>
-                </button>
-                <button class="btn-action" type="button" data-action="save">
-                    <i class="bi bi-check-lg"></i>
-                    <span>Save</span>
-                </button>
-                <button class="btn-action btn-cancel" type="button" data-action="cancel">
-                    <i class="bi bi-x-lg"></i>
-                    <span>Cancel</span>
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Message Panel -->
-    <div class="am-message-panel" role="alert" aria-live="polite">
-        <i class="bi bi-info-circle"></i>
-        <span></span>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay" hidden>
-        <div class="loading-spinner">
-            <i class="bi bi-arrow-repeat"></i>
-            <span>Loading...</span>
-        </div>
-    </div>
+  <!-- Behind the Scene Section -->
+  <div class="form-section" data-section="behind-scene">
+      <div class="section-header" data-section-toggle>
+          <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind the Scene</span>
+          <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+              <i class="bi bi-chevron-up"></i>
+          </button>
+      </div>
+      <div class="section-content" data-section-content>
+          <div class="audit-section audit-section--summary">
+              <div class="audit-item"><label>Created By</label><span class="audit-value" id="CreatedBy">-</span></div>
+              <div class="audit-item"><label>Created On</label><span class="audit-value" id="CreatedOn">-</span></div>
+              <div class="audit-item"><label>Supervised By</label><span class="audit-value" id="SupervisedBy">-</span></div>
+              <div class="audit-item"><label>Supervised On</label><span class="audit-value" id="SupervisedOn">-</span></div>
+              <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifiedBy">-</span></div>
+              <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifiedOn">-</span></div>
+          </div>
+      </div>
+  </div>
 </div>
 
-<script src="~/js/modules/accountsmaintenance/account-interest-rates.js?v=20250527"></script>
-
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'InterestRates') {
-        console.log('[InterestRates] Submodule loaded');
-    }
-});
-</script>
+<script src="~/js/modules/accountsmaintenance/account-interest-rates.js" asp-append-version="true"></script>

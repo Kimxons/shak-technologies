@@ -1,4 +1,146 @@
 /* ================================================================
+   MicroFinance - Group Members / Group Details Page Scopes
+================================================================ */
+
+body[data-page="group-members"] .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+body[data-page="group-members"] .loading-overlay[hidden],
+body[data-page="group-details"] .loading-overlay[hidden] {
+    display: none;
+}
+
+body[data-page="group-members"] .loading-spinner,
+body[data-page="group-details"] .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+body[data-page="group-members"] .loading-spinner i,
+body[data-page="group-details"] .loading-spinner i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+}
+
+body[data-page="group-members"] .scheme-row {
+    margin-bottom: 0;
+    align-items: center;
+}
+
+body[data-page="group-members"] .scheme-row .col-6 {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body[data-page="group-members"] .scheme-row .col-6:last-child {
+    display: none;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] {
+    margin-bottom: 0.5rem;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] .section-header {
+    padding: 0.5rem 1rem;
+    min-height: 0;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] .section-content {
+    padding: 0.25rem 1rem !important;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body[data-page="group-members"] .form-section[data-section="scheme-selection"] .scheme-row {
+    margin-bottom: 0 !important;
+}
+
+body[data-page="group-details"] .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] {
+    margin-bottom: 0.5rem;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] .section-header {
+    padding: 0.5rem 1rem;
+    min-height: 0;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] .section-content {
+    padding: 0.25rem 1rem !important;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body[data-page="group-details"] .form-section[data-section="group-information"] .row {
+    margin-bottom: 0 !important;
+    justify-content: center;
+}
+
+body[data-page="group-details"] .gd-search-modal {
+    --modal-header-bg: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    --modal-table-header-bg: linear-gradient(to bottom, #4a90e2, #357abd);
+    --zebra-color: #e8f4ff;
+    --zebra-hover: #d0e8ff;
+    --btn-color: #e0e0e0;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-content {
+    border: none;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-header {
+    background: linear-gradient(90deg, #1e7cc4 0%, #1a6ba3 100%);
+    color: white;
+    padding: 14px 20px;
+    border: none;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+body[data-page="group-details"] .gd-search-modal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+body[data-page="group-details"] .gd-search-modal .btn-close:hover {
+    opacity: 1;
+}
+
+body[data-page="group-details"] .gd-search-modal .modal-body {
+    padding: 0;
+}
+
+/* ================================================================
    Submodule Container - Dynamic Partial View Loading
 ================================================================ */
 
@@ -1155,14 +1297,14 @@ transition: all 0.2s ease;
 }
 
 .form-card {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
 .form-section {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;

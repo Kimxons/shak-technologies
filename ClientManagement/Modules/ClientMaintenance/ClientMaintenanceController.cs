@@ -19,6 +19,9 @@ namespace ClientManagement.Modules.ClientMaintenance
             , IClientEmploymentRepo repoClientEmployment
             , IClientIndividualRepo repoClientIndividual
             , IClientCorporateRepo repoClientCorporate
+            , IClientProductAndServicesRepo repoClientProductAndServices
+            , IClientOtherDetailsRepo repoClientOtherDetails
+            , IClientSpecialOffersRepo repoClientSpecialOffers
             ) : ControllerBase
     {
         private readonly ILogger<ClientMaintenanceController> _logger = logger;
@@ -29,6 +32,9 @@ namespace ClientManagement.Modules.ClientMaintenance
         private readonly IClientEmploymentRepo _repoClientEmployment = repoClientEmployment;
         private readonly IClientIndividualRepo _repoClientIndividual = repoClientIndividual;
         private readonly IClientCorporateRepo _repoClientCorporate = repoClientCorporate;
+        private readonly IClientProductAndServicesRepo _repoClientProductAndServices = repoClientProductAndServices;
+        private readonly IClientOtherDetailsRepo _repoClientOtherDetails = repoClientOtherDetails;
+        private readonly IClientSpecialOffersRepo _repoClientSpecialOffers = repoClientSpecialOffers;
 
         [HttpPost("GetClientBasicDetails")]
         public async Task<IActionResult> GetClientBasicDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
@@ -200,7 +206,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientAddress")]
-        public async Task<IActionResult> GetClientAddress([FromBody] InDataRequest<ClientMultipleAddress?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientAddress([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -369,7 +375,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientDocuments")]
-        public async Task<IActionResult> GetClientDocuments([FromBody] InDataRequest<ClientDocuments?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientDocuments([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -538,7 +544,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientRelations")]
-        public async Task<IActionResult> GetClientRelations([FromBody] InDataRequest<ClientRelations?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientRelations([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -707,7 +713,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientEmployment")]
-        public async Task<IActionResult> GetClientEmployment([FromBody] InDataRequest<ClientEmployment?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientEmployment([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -876,7 +882,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientIndividual")]
-        public async Task<IActionResult> GetClientIndividual([FromBody] InDataRequest<ClientIndividual?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientIndividual([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -1046,7 +1052,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientCorporate")]
-        public async Task<IActionResult> GetClientCorporate([FromBody] InDataRequest<ClientCorporate?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientCorporate([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -1179,6 +1185,513 @@ namespace ClientManagement.Modules.ClientMaintenance
                     requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
                     requestJson = Regex.Unescape(requestJson);
                     resp = await _repoClientCorporate.UpdateClientCorporate(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "APIEX96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    else
+                    {
+                        logLevel = LogLevel.Information;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message,
+                };
+                httpStatusCode = 500;
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("GetClientProductAndServices")]
+        public async Task<IActionResult> GetClientProductAndServices([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty or Invalid Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientProductAndServices.GetClientProductAndServices(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "APIEX96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    else
+                    {
+                        logLevel = LogLevel.Information;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message,
+                };
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("GetClientOtherDetails")]
+        public async Task<IActionResult> GetClientOtherDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty or Invalid Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientOtherDetails.GetClientOtherDetails(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "APIEX96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    else
+                    {
+                        logLevel = LogLevel.Information;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message,
+                };
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("GetClientSpecialOffers")]
+        public async Task<IActionResult> GetClientSpecialOffers([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty or Invalid Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientSpecialOffers.GetClientSpecialOffers(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "APIEX96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    else
+                    {
+                        logLevel = LogLevel.Information;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message,
+                };
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("CreateClientProductAndServices")]
+        public async Task<IActionResult> CreateClientProductAndServices([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientProductAndServices.CreateClientProductAndServices(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    logLevel = LogLevel.Information;
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "96",
+                    ResponseMessage = ex.Message,
+                };
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path!.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("EditClientProductAndServices")]
+        public async Task<IActionResult> UpdateClientProductAndServices([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientProductAndServices.UpdateClientProductAndServices(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "APIEX96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    else
+                    {
+                        logLevel = LogLevel.Information;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message,
+                };
+                httpStatusCode = 500;
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("CreateClientOtherDetails")]
+        public async Task<IActionResult> CreateClientOtherDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientOtherDetails.CreateClientOtherDetails(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    logLevel = LogLevel.Information;
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "96",
+                    ResponseMessage = ex.Message,
+                };
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path!.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("EditClientOtherDetails")]
+        public async Task<IActionResult> UpdateClientOtherDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientOtherDetails.UpdateClientOtherDetails(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "APIEX96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    else
+                    {
+                        logLevel = LogLevel.Information;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message,
+                };
+                httpStatusCode = 500;
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("CreateClientSpecialOffers")]
+        public async Task<IActionResult> CreateClientSpecialOffers([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientSpecialOffers.CreateClientSpecialOffers(requestJson!, cancellationToken);
+                    if (resp is null)
+                    {
+                        logLevel = LogLevel.Error;
+                        resp = new ResponseDetail<string>
+                        {
+                            ResponseCode = "96",
+                            ResponseMessage = "Empty response"
+                        };
+                        httpStatusCode = 400;
+                    }
+                    logLevel = LogLevel.Information;
+                }
+            }
+            catch (Exception ex)
+            {
+                logLevel = LogLevel.Error;
+                resp = new Response
+                {
+                    ResponseCode = "96",
+                    ResponseMessage = ex.Message,
+                };
+            }
+            finally
+            {
+                _logger.Log(logLevel, "{@message}", new { MethodName = Request.Path!.ToString(), Request = reqDat, Response = resp, RemoteIp = Request.HttpContext.Connection.RemoteIpAddress!.MapToIPv4().ToString() });
+            }
+            return StatusCode(httpStatusCode, resp);
+
+        }
+
+        [HttpPost("EditClientSpecialOffers")]
+        public async Task<IActionResult> UpdateClientSpecialOffers([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
+        {
+            LogLevel logLevel = LogLevel.None;
+            int httpStatusCode = 200;
+            object? resp = null;
+            try
+            {
+                if (reqDat is null)
+                {
+                    logLevel = LogLevel.Error;
+                    resp = new ResponseDetail<string>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "Empty Body"
+                    };
+                    httpStatusCode = 400;
+                }
+                else
+                {
+                    string? requestJson = await Utils.GetRequestBody(Request);
+                    requestJson = string.IsNullOrEmpty(requestJson) ? JsonSerializer.Serialize(reqDat) : requestJson;
+                    requestJson = Regex.Unescape(requestJson);
+                    resp = await _repoClientSpecialOffers.UpdateClientSpecialOffers(requestJson!, cancellationToken);
                     if (resp is null)
                     {
                         logLevel = LogLevel.Error;

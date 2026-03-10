@@ -1836,7 +1836,7 @@
     if (!result.isConfirmed) return;
 
     try {
-      await ensureServicesLoaded();
+      //await ensureServicesLoaded();
       const ctx = getContext();
       const now = new Date();
       const pad2 = (n) => String(n).padStart(2, "0");

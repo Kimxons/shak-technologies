@@ -268,6 +268,7 @@ function bindRelationsCrud(tabRoot, moduleId) {
 
     setFieldsEnabled(false);
     tabRoot._cmLoadData = (requestData) => refreshRelationsTable(requestData);
+    window.ClientMaintenanceCore.registerTabLoadFunction('Relations', (requestData) => refreshRelationsTable(requestData));
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');

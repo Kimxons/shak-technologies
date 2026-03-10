@@ -3,123 +3,108 @@
     // Migrated from: public/modules/account-maintenance/DataEntry/user-defined-fields.html
 }
 
-<!-- UserDefinedFields Submodule - Original HTML Preserved -->
-<div class="window am-form">
-    <div class="am-header" role="banner">
-      <div class="am-header__left"><i class="bi bi-sliders am-header__icon"></i><span class="am-header__title">User Defined Fields</span></div>
-      <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
+<!-- UserDefinedFields Submodule -->
+<div class="form-card">
+    <div class="form-section" data-section="user-defined-fields">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-sliders me-1"></i>User Defined Fields</span>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle User Defined Fields" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content" data-section-content>
+            <form id="frm_UserDefinedFields" autocomplete="off" novalidate>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="udf1">UDF 1</label>
+                        <input id="udf1" name="udf1" type="text" class="bs-input-text">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="udf2">UDF 2</label>
+                        <input id="udf2" name="udf2" type="text" class="bs-input-text">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="udf3">UDF 3</label>
+                        <input id="udf3" name="udf3" type="text" class="bs-input-text">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="udf4">UDF 4</label>
+                        <input id="udf4" name="udf4" type="text" class="bs-input-text">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="udf5">UDF 5</label>
+                        <input id="udf5" name="udf5" type="text" class="bs-input-text">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="udf6">UDF 6</label>
+                        <input id="udf6" name="udf6" type="text" class="bs-input-text">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="udf7">UDF 7</label>
+                        <input id="udf7" name="udf7" type="text" class="bs-input-text">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="udf8">UDF 8</label>
+                        <input id="udf8" name="udf8" type="text" class="bs-input-text">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="udf9">UDF 9</label>
+                        <input id="udf9" name="udf9" type="text" class="bs-input-text">
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="udf10">UDF 10</label>
+                        <input id="udf10" name="udf10" type="text" class="bs-input-text">
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-    <main class="main-container main-container--with-panel">
-      <div class="form-content" role="region">
-        <div class="form-section am-section">
-          <div class="section-header"><span class="section-header__title">User Defined Fields</span></div>
-          <form class="de-card__body" autocomplete="off">
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="de-label am-label" for="udf1">UDF 1</label>
-                <input id="udf1" name="udf1" type="text" class="bs-input-text form-control am-input" />
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="udf2">UDF 2</label>
-                <input id="udf2" name="udf2" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="de-label am-label" for="udf3">UDF 3</label>
-                <input id="udf3" name="udf3" type="text" class="bs-input-text form-control am-input" />
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="udf4">UDF 4</label>
-                <input id="udf4" name="udf4" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="de-label am-label" for="udf5">UDF 5</label>
-                <input id="udf5" name="udf5" type="text" class="bs-input-text form-control am-input" />
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="udf6">UDF 6</label>
-                <input id="udf6" name="udf6" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="de-label am-label" for="udf7">UDF 7</label>
-                <input id="udf7" name="udf7" type="text" class="bs-input-text form-control am-input" />
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="udf8">UDF 8</label>
-                <input id="udf8" name="udf8" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-            <div class="row g-2 mb-2">
-              <div class="col-6">
-                <label class="de-label am-label" for="udf9">UDF 9</label>
-                <input id="udf9" name="udf9" type="text" class="bs-input-text form-control am-input" />
-              </div>
-              <div class="col-6">
-                <label class="de-label am-label" for="udf10">UDF 10</label>
-                <input id="udf10" name="udf10" type="text" class="bs-input-text form-control am-input" />
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="form-section form-section form-section--bts am-section" id="btsSection">
-          <div class="section-header section-header section-header--bts" id="btsHeader" role="button">
-            <span class="section-header__title"><i class="bi bi-gear"></i> BEHIND THE SCENE</span>
-            <button type="button" class="de-bts-toggle am-btn am-btn-secondary"><i class="bi bi-chevron-up"></i></button>
-          </div>
-          <div class="section-content section-content section-content--bts" id="btsBody">
-            <div class="de-audit-grid">
-              <div class="de-audit-cell"><span class="de-audit-label">Created By</span><span class="de-audit-value" id="MakerID">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Created On</span><span class="de-audit-value" id="MakerDT">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Checked By</span><span class="de-audit-value" id="CheckerID">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Checked On</span><span class="de-audit-value" id="CheckerDT">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Modified By</span><span class="de-audit-value" id="ModifierID">-</span></div>
-              <div class="de-audit-cell"><span class="de-audit-label">Modified On</span><span class="de-audit-value" id="ModifierDT">-</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <aside class="action-panel">
-        <div class="d-flex flex-column gap-2 mt-auto">
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="view"><i class="bi bi-eye"></i><span>View</span></button>
-          <button class="btn-action am-btn am-btn-primary" type="button" data-action="add"><i class="bi bi-plus-circle"></i><span>Add</span></button>
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="edit"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
-          <button class="btn-action am-btn am-btn-primary" type="button" data-action="save"><i class="bi bi-check-lg"></i><span>Save</span></button>
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="delete"><i class="bi bi-trash3"></i><span>Delete</span></button>
-          <button class="btn-action btn-cancel am-btn am-btn-secondary" type="button" data-action="cancel"><i class="bi bi-x-lg"></i><span>Cancel</span></button>
-          <button class="btn-action am-btn am-btn-secondary" type="button" data-action="close" title="Close">
-            <i class="bi bi-box-arrow-right"></i><span>Close</span>
-          </button>
-        </div>
-      </aside>
-    </main>
-    <div class="de-message-bar am-message-panel" role="alert"><i class="bi bi-info-circle"></i><span></span></div>
-    <footer class="de-status-bar" role="status">Ready</footer>
-    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
-  <script src="/js/config.js"></script>
-  <script src="/js/environment.js"></script>
-  <script src="/js/services/shared/coreApi.js"></script>
-  <script src="/js/services/Account/AccountService.js"></script>
-  <script src="dataentry-base.js?v=20250128"></script>
-  <script src="dataentry-utils.js"></script>
-  <script src="user-defined-fields.js?v=20250128"></script>
 
-<script>
-    // UserDefinedFields submodule initialization
-    document.addEventListener('submodule:loaded', function(e) {
-        if (e.detail.submoduleName === 'UserDefinedFields') {
-            console.log('[UserDefinedFields] Submodule initialized - Original HTML preserved');
-            // Original JS logic should be loaded here
-            // Include corresponding JS file or inline the business logic
-        }
-    });
-</script>
+    <!-- Behind The Scene -->
+    <div class="form-section" data-section="behind-scene">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind The Scene</span>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content" data-section-content>
+            <div class="audit-section audit-section--summary">
+                <div class="audit-item">
+                    <label>Created By</label>
+                    <span class="audit-value" id="MakerID">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Created On</label>
+                    <span class="audit-value" id="MakerDT">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Checked By</label>
+                    <span class="audit-value" id="CheckerID">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Checked On</label>
+                    <span class="audit-value" id="CheckerDT">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Modified By</label>
+                    <span class="audit-value" id="ModifierID">-</span>
+                </div>
+                <div class="audit-item">
+                    <label>Modified On</label>
+                    <span class="audit-value" id="ModifierDT">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/modules/accountsmaintenance/user-defined-fields.js" asp-append-version="true"></script>

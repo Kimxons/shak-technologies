@@ -59,6 +59,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 
     const normalizeDocumentRows = (rows) => (rows || []).map((row) => ({
         ID: row.ID ?? row.DocumentID ?? null,
+        ImageID: row.ImageID ?? row.ID ?? null,
+        TempImageID: row.TempImageID ?? null,
         DocumentID: row.DocumentID ?? '',
         DocumentTypeID: row.DocumentTypeID ?? '',
         LocationID: row.LocationID ?? '',
@@ -148,10 +150,62 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             payload[key] = readFieldValue(field);
         });
 
+        const selectedImageId = state.editing?.ImageID ?? state.editing?.ID ?? null;
+        const selectedTempImageId = state.editing?.TempImageID ?? null;
+
+        if (selectedImageId !== null && selectedImageId !== undefined && selectedImageId !== '') {
+            payload.ImageID = selectedImageId;
+        }
+
+        if (selectedTempImageId !== null && selectedTempImageId !== undefined && selectedTempImageId !== '') {
+            payload.TempImageID = selectedTempImageId;
+        }
+
+        const requestId = window.ClientMaintenanceCore.requestId || '';
+
         return {
             ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
             ClientID: window.ClientMaintenanceCore.clientId || '',
+            RequestID: requestId,
+            ApplicationID: requestId,
             Payload: payload
+        };
+    };
+
+    const fetchSingleDocumentDetails = async (rowPayload) => {
+        if (!rowPayload) return rowPayload;
+
+        const imageId = rowPayload.ImageID ?? rowPayload.ID ?? null;
+        const tempImageId = rowPayload.TempImageID ?? null;
+        const requestedId = imageId ?? tempImageId;
+
+        if (requestedId === null || requestedId === undefined || requestedId === '') {
+            return rowPayload;
+        }
+
+        const requestId = window.ClientMaintenanceCore.requestId || '';
+        const response = await window.ClientMaintenanceDocumentsService.get({
+            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+            ClientID: window.ClientMaintenanceCore.clientId || '',
+            RequestID: requestId,
+            ApplicationID: requestId,
+            Payload: {
+                ImageID: requestedId,
+                TempImageID: tempImageId
+            }
+        });
+
+        const details = response?.Details ?? response?.data?.Details ?? response?.data ?? null;
+        const single = Array.isArray(details) ? details[0] : details;
+        if (!single || typeof single !== 'object') {
+            return rowPayload;
+        }
+
+        return {
+            ...rowPayload,
+            ...single,
+            ImageID: single.ImageID ?? rowPayload.ImageID ?? rowPayload.ID ?? null,
+            TempImageID: single.TempImageID ?? rowPayload.TempImageID ?? null
         };
     };
 
@@ -175,29 +229,42 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 
     setFieldsEnabled(false);
     tabRoot._cmLoadData = (requestData) => refreshDocumentsTable(requestData);
+    window.ClientMaintenanceCore.registerTabLoadFunction('Documents', (requestData) => refreshDocumentsTable(requestData));
 
-    table?.addEventListener('click', (event) => {
+    table?.addEventListener('click', async (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
         table.querySelectorAll('tr[data-index]').forEach((tr) => {
             tr.classList.toggle('is-selected', tr === row);
         });
-        const payload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
-        if (payload) {
+        const basePayload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
+        let payload = basePayload;
+        if (basePayload) {
+            try {
+                payload = await fetchSingleDocumentDetails(basePayload);
+            } catch {
+                payload = basePayload;
+            }
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
         setFieldsEnabled(false);
     });
 
-    table?.addEventListener('dblclick', (event) => {
+    table?.addEventListener('dblclick', async (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
         table.querySelectorAll('tr[data-index]').forEach((tr) => {
             tr.classList.toggle('is-selected', tr === row);
         });
-        const payload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
-        if (payload) {
+        const basePayload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
+        let payload = basePayload;
+        if (basePayload) {
+            try {
+                payload = await fetchSingleDocumentDetails(basePayload);
+            } catch {
+                payload = basePayload;
+            }
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };

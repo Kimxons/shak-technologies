@@ -23,5 +23,6 @@ namespace kairo_ui.Services
         /// <param name="moduleId">Optional module ID to set as default if available</param>
         /// <returns>The request data object with defaults applied</returns>
         void EnsureDefaults<T>(T requestData, string? moduleId = null) where T : class;
+        void EnsureDefaults(System.Collections.Generic.Dictionary<string, object> requestData, string? moduleId = null);
     }
 }
