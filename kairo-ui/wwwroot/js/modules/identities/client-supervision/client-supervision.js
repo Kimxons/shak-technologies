@@ -414,16 +414,27 @@ class ClientSupervisionController {
     }
 
     async openClientSearch() {
+        // Require at least one branch to be selected
+        if (!this.selectedBranches || this.selectedBranches.length === 0) {
+            this.showMessage('Please select at least one branch first', 'warning');
+            return;
+        }
+
         if (!this.searchModal) {
             this.searchClient();
             return;
         }
 
+        // Build branch filter based on selected branches
+        const branchIds = this.selectedBranches.map(b => `'${(b.id || '').replace(/'/g, "''")}'`).join(',');
+        const advFilterString = `OurBranchID IN (${branchIds})`;
+
         const currentClientId = this.elements.clientIdSearch.value || '';
         this.searchModal.open({
             title: 'Find Client - Pending Supervision',
             tableID: 'ClientID',
-                        moduleID: this.moduleId,
+            moduleID: this.moduleId,
+            advFilterString: advFilterString,
             searchFields: [
                 { name: 'ClientID', label: 'Client ID', column: 'ClientID', value: currentClientId },
                 { name: 'Name', label: 'Client Name', column: 'Name' }
@@ -438,6 +449,12 @@ class ClientSupervisionController {
     }
 
     async searchClient() {
+        // Require at least one branch to be selected
+        if (!this.selectedBranches || this.selectedBranches.length === 0) {
+            this.showMessage('Please select at least one branch first', 'warning');
+            return;
+        }
+
         const query = (this.elements.clientIdSearch.value || '').trim().toLowerCase();
         if (!query) {
             return;

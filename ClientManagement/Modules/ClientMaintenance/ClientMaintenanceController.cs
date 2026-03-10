@@ -200,7 +200,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientAddress")]
-        public async Task<IActionResult> GetClientAddress([FromBody] InDataRequest<ClientMultipleAddress?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientAddress([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -707,7 +707,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientEmployment")]
-        public async Task<IActionResult> GetClientEmployment([FromBody] InDataRequest<ClientEmployment?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientEmployment([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -876,7 +876,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientIndividual")]
-        public async Task<IActionResult> GetClientIndividual([FromBody] InDataRequest<ClientIndividual?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientIndividual([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -1046,7 +1046,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
 
         [HttpPost("GetClientCorporate")]
-        public async Task<IActionResult> GetClientCorporate([FromBody] InDataRequest<ClientCorporate?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetClientCorporate([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
