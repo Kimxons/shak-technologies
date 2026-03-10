@@ -53,15 +53,15 @@
                 <div class="form-row two-col align-items-center">
                     <div class="col"><label class="mb-0 fw-semibold">Politically Exposed Person</label></div>
                     <div class="col">
-                        <div class="d-flex gap-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="IsPEP" id="rad_pepYes" value="Y" />
-                                <label class="form-check-label" for="rad_pepYes">Yes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="IsPEP" id="rad_pepNo" value="N" />
-                                <label class="form-check-label" for="rad_pepNo">No</label>
-                            </div>
+                        <div class="kyc-radio-group" role="radiogroup" aria-label="Politically Exposed Person">
+                            <label class="kyc-radio-option" for="rad_pepYes">
+                                <input class="bs-radio" type="radio" name="IsPEP" id="rad_pepYes" value="Y" />
+                                <span>Yes</span>
+                            </label>
+                            <label class="kyc-radio-option" for="rad_pepNo">
+                                <input class="bs-radio" type="radio" name="IsPEP" id="rad_pepNo" value="N" />
+                                <span>No</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -80,15 +80,15 @@
                 <div class="form-row two-col align-items-center">
                     <div class="col"><label class="mb-0 fw-semibold">US Person</label></div>
                     <div class="col">
-                        <div class="d-flex gap-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="IsUSPerson" id="rad_usPersonYes" value="Y" />
-                                <label class="form-check-label" for="rad_usPersonYes">Yes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="IsUSPerson" id="rad_usPersonNo" value="N" />
-                                <label class="form-check-label" for="rad_usPersonNo">No</label>
-                            </div>
+                        <div class="kyc-radio-group" role="radiogroup" aria-label="US Person">
+                            <label class="kyc-radio-option" for="rad_usPersonYes">
+                                <input class="bs-radio" type="radio" name="IsUSPerson" id="rad_usPersonYes" value="Y" />
+                                <span>Yes</span>
+                            </label>
+                            <label class="kyc-radio-option" for="rad_usPersonNo">
+                                <input class="bs-radio" type="radio" name="IsUSPerson" id="rad_usPersonNo" value="N" />
+                                <span>No</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -105,15 +105,15 @@
                 <div class="form-row two-col align-items-center">
                     <div class="col"><label class="mb-0 fw-semibold">Data Cleansed</label></div>
                     <div class="col">
-                        <div class="d-flex gap-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="IsDataCleansed" id="rad_dataCleansedYes" value="Y" />
-                                <label class="form-check-label" for="rad_dataCleansedYes">Yes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="IsDataCleansed" id="rad_dataCleansedNo" value="N" />
-                                <label class="form-check-label" for="rad_dataCleansedNo">No</label>
-                            </div>
+                        <div class="kyc-radio-group" role="radiogroup" aria-label="Data Cleansed">
+                            <label class="kyc-radio-option" for="rad_dataCleansedYes">
+                                <input class="bs-radio" type="radio" name="IsDataCleansed" id="rad_dataCleansedYes" value="Y" />
+                                <span>Yes</span>
+                            </label>
+                            <label class="kyc-radio-option" for="rad_dataCleansedNo">
+                                <input class="bs-radio" type="radio" name="IsDataCleansed" id="rad_dataCleansedNo" value="N" />
+                                <span>No</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -121,5 +121,29 @@
         </form>
     </div>
 </div>
+
+<style>
+    [data-cm-tab="kyc"] .kyc-radio-group {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    [data-cm-tab="kyc"] .kyc-radio-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0;
+        cursor: pointer;
+        font-weight: 500;
+        color: #334155;
+        line-height: 1;
+    }
+
+    [data-cm-tab="kyc"] .kyc-radio-option .bs-radio {
+        margin: 0;
+    }
+</style>
 
 <script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-kyc.js"></script>
