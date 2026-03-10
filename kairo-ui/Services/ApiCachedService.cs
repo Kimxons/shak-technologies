@@ -796,6 +796,7 @@ namespace kairo_ui.Services
 
                     // Transform system codes to SelectListItem
                     var codeOptions = responses[i]
+                        .Where(code => code.IsActive)
                         .OrderBy(code => code.DisplayOrder)
                         .Select(code => new SelectListItem
                         {

@@ -2,14 +2,17 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace kairo_ui.Controllers.AccountsMaintenance
 {
     [Route("AccountsMaintenance")]
     public class AccountsMaintenanceController : Controller
     {
+        private const string AccountManagementApiName = "AccountManagementApi";
         private readonly IAuthService _authService;
         private readonly IApiService _apiService;
+        private readonly IOldApiService _oldApiService;
         private readonly IApiCachedService _apiCachedService;
         private readonly IConfiguration _config;
         private readonly ILogger<AccountsMaintenanceController> _logger;
@@ -18,6 +21,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public AccountsMaintenanceController(
             IAuthService authService,
             IApiService apiService,
+            IOldApiService oldApiService,
             IApiCachedService apiCachedService,
             IConfiguration configuration,
             ILogger<AccountsMaintenanceController> logger,
@@ -25,6 +29,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         {
             _authService = authService;
             _apiService = apiService;
+            _oldApiService = oldApiService;
             _apiCachedService = apiCachedService;
             _config = configuration;
             _logger = logger;
@@ -96,6 +101,66 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 return Unauthorized();
 
             return PartialView("_DataEntry");
+        }
+
+        [HttpPost]
+        [Route("old-api")]
+        public async Task<IActionResult> PostOldApi([FromBody] AccountsMaintenanceOldApiRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                {
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.FormId))
+                {
+                    return BadRequest(new { Success = false, ErrorMessage = "FormId and request data are required" });
+                }
+
+                var envelope = BuildAccountsOldApiEnvelope(request.FormId!, request.RequestData);
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    AccountManagementApiName,
+                    "OldAPI",
+                    envelope
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing AccountsMaintenance old-api request");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        private object BuildAccountsOldApiEnvelope(string formId, JsonElement? requestData)
+        {
+            var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
+                ? formId
+                : $"dbo.{formId}";
+
+            var requestDictionary = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            if (requestData.HasValue && requestData.Value.ValueKind != JsonValueKind.Null && requestData.Value.ValueKind != JsonValueKind.Undefined)
+            {
+                requestDictionary = JsonSerializer.Deserialize<Dictionary<string, object?>>(
+                    requestData.Value.GetRawText(),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                ) ?? requestDictionary;
+            }
+
+            _commonUtilities.EnsureDefaults(requestDictionary);
+
+            return new
+            {
+                RequestID = cleanFormId,
+                FormId = cleanFormId,
+                RequestData = requestDictionary,
+                RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
+                AppName = _config["ApiSettings:OldApiAppName"] ?? "KAIRO",
+                Checksum = string.Empty
+            };
         }
 
         /// <summary>
@@ -407,6 +472,17 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             }
 
             return PartialView("CardMaintenance");
+        }
+
+        [Route("EditCardStatus")]
+        [Route("EditCardStatus/Index")]
+        public IActionResult EditCardStatus()
+        {
+            if (!_authService.IsAuthenticated())
+                return RedirectToAction("Index", "Login");
+
+            var queryString = Request.QueryString.HasValue ? Request.QueryString.Value : string.Empty;
+            return Redirect($"{Url.Content("~/EditCardStatus/Index")}{queryString}");
         }
 
         [Route("AccountNotes")]
@@ -900,6 +976,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                // Normalize legacy aliases so downstream APIs/SPs receive required keys.
+                request.OurBranchID ??= request.BranchID;
+                request.FreezeDate ??= request.EffectiveDate ?? request.FreezedDate;
+                request.OperatorID ??= request.CreatedBy ?? request.MakerID;
+                request.CreatedBy ??= request.OperatorID;
+                request.FreezeAmount ??= request.FreezedValue;
+
                 _commonUtilities.EnsureDefaults(request);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
@@ -913,6 +996,37 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding account freeze");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/update-account-freeze")]
+        public async Task<IActionResult> UpdateAccountFreeze([FromBody] UpdateAccountFreezeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OurBranchID ??= request.BranchID;
+                request.FreezeDate ??= request.EffectiveDate ?? request.FreezedDate;
+                request.OperatorID ??= request.ModifiedBy ?? request.MakerID;
+                request.FreezeAmount ??= request.FreezedValue;
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_FREEZE,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account freeze");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -939,7 +1053,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error releasing account freeze");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message, Detail = ex.InnerException?.Message, StackTrace = ex.StackTrace });
             }
         }
 
@@ -1021,6 +1135,32 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding cheque book");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-cheque-book-request")]
+        public async Task<IActionResult> AddChequeBookRequest([FromBody] AddChequeBookRequestPayload request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_CHEQUE_BOOK_REQUEST,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding cheque book request");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -1553,6 +1693,66 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         // ============================================================================
 
         [HttpPost]
+        [Route("api/get-blocked-reasons")]
+        public async Task<IActionResult> GetBlockedReasons()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "BlockedReasonID"
+                });
+
+                dropdownOptions.TryGetValue("BlockedReasonID", out var blockedReasonOptions);
+
+                return Ok(new
+                {
+                    Details = blockedReasonOptions ?? Enumerable.Empty<SelectListItem>(),
+                    ResponseCode = "00",
+                    ResponseMessage = "Blocked reasons retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting blocked reasons");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/get-unblocked-reasons")]
+        public async Task<IActionResult> GetUnblockedReasons()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "UnBlockedReasonID"
+                });
+
+                dropdownOptions.TryGetValue("UnBlockedReasonID", out var unblockedReasonOptions);
+
+                return Ok(new
+                {
+                    Details = unblockedReasonOptions ?? Enumerable.Empty<SelectListItem>(),
+                    ResponseCode = "00",
+                    ResponseMessage = "Unblocked reasons retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unblocked reasons");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/block-entity")]
         public async Task<IActionResult> BlockEntity([FromBody] JsonElement request)
         {
@@ -1608,19 +1808,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-blocked-history")]
-        public async Task<IActionResult> GetBlockedHistory([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetBlockedHistory([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_BLOCKED_HISTORY,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1634,19 +1835,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-blocked-details")]
-        public async Task<IActionResult> GetBlockedDetails([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetBlockedDetails([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_BLOCKED_DETAILS,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1664,19 +1866,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-account-charge-rate")]
-        public async Task<IActionResult> GetAccountChargeRate([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountChargeRate([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_CHARGE_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -2765,21 +2968,21 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 // Inject session data with fallbacks (following ClientMaintenanceControllerBase pattern)
                 if (string.IsNullOrWhiteSpace(requestData.OperatorID))
                 {
-                    requestData.OperatorID = HttpContext.Session.GetString("user_name") 
-                        ?? HttpContext.Session.GetString("user_id") 
+                    requestData.OperatorID = HttpContext.Session.GetString("user_name")
+                        ?? HttpContext.Session.GetString("user_id")
                         ?? "web_portal";
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(requestData.OurBranchID))
                 {
-                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code") 
-                        ?? HttpContext.Session.GetString("branch_id") 
+                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code")
+                        ?? HttpContext.Session.GetString("branch_id")
                         ?? "0101";
                 }
 
                 // Get BankID from session (required field)
-                var bankId = HttpContext.Session.GetString("bank_id") 
-                    ?? HttpContext.Session.GetString("bank_code") 
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
                     ?? "00";
 
                 // Request structure matching ClientMaintenanceCrudRequest (required for GET_CLIENT_BASIC_DETAILS)
@@ -2896,6 +3099,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
+
     }
 
     // Request DTOs
@@ -2928,7 +3132,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? OurBranchID { get; set; }
         public string? ClientID { get; set; }
         public string? ProductID { get; set; }
-        
+
         // Account details
         public string? AccountName { get; set; }
         public string? Name { get; set; }  // Database column name (t_AccountCustomer.Name)
@@ -2937,13 +3141,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? CurrencyCode { get; set; }
         public string? CurrencyID { get; set; }
         public string? Status { get; set; }
-        
+
         // Address fields
         public string? Address1 { get; set; }
         public string? Address2 { get; set; }
         public string? CityID { get; set; }
         public string? CountryID { get; set; }
-        
+
         // Contact fields
         public string? PhoneHome { get; set; }
         public string? Phone1 { get; set; }  // API field name
@@ -2953,27 +3157,27 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? Mobile { get; set; }
         public string? EmailID { get; set; }
         public string? ContactPerson { get; set; }
-        
+
         // Operating details
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructions { get; set; }
-        
+
         // Classification and officers
         public string? AccountClassID { get; set; }
         public string? AccountOfficerID { get; set; }
         public string? LiquidationAccountID { get; set; }
         public string? SalesOfficerID { get; set; }
-        
+
         // Passbook
         public string? PassbookSerialID { get; set; }
         public bool? ExemptPassBook { get; set; }
-        
+
         // System fields (injected by server)
         public string? UserID { get; set; }
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
-        
+
         // Update tracking
         public int? UpdateCount { get; set; }
         public string? ModifiedBy { get; set; }
@@ -2985,7 +3189,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ClientID { get; set; }
         public string? OurBranchID { get; set; }
         public string? ProductID { get; set; }
-        
+
         // Account details
         public string? AccountName { get; set; }
         public string? Name { get; set; }  // Database column name (t_AccountCustomer.Name)
@@ -2994,13 +3198,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? CurrencyCode { get; set; }
         public string? CurrencyID { get; set; }
         public string? AccountTypeCode { get; set; }
-        
+
         // Address fields
         public string? Address1 { get; set; }
         public string? Address2 { get; set; }
         public string? CityID { get; set; }
         public string? CountryID { get; set; }
-        
+
         // Contact fields
         public string? PhoneHome { get; set; }
         public string? Phone1 { get; set; }  // API field name
@@ -3010,28 +3214,28 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? Mobile { get; set; }
         public string? EmailID { get; set; }
         public string? ContactPerson { get; set; }
-        
+
         // Operating details
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructions { get; set; }
-        
+
         // Classification and officers
         public string? AccountClassID { get; set; }
         public string? AccountOfficerID { get; set; }
         public string? LiquidationAccountID { get; set; }
         public string? SalesOfficerID { get; set; }
-        
+
         // Passbook
         public string? PassbookSerialID { get; set; }
         public bool? ExemptPassBook { get; set; }
-        
+
         // System fields (injected by server)
         public string? UserID { get; set; }
         public string? OperatorID { get; set; }
         public string? BranchID { get; set; }
         public string? BankID { get; set; }
         public string? CreatedBy { get; set; }
-        
+
         // Opening details (not nullable)
         public string? OpenedBy { get; set; }
         public string? OpenedDate { get; set; }
@@ -3175,6 +3379,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class GetAccountFreezeRequest
     {
         public string? AccountID { get; set; }
+        public int? ReferenceID { get; set; }
+        public int Direction { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }
@@ -3183,19 +3389,43 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     {
         public string? AccountID { get; set; }
         public string? FreezeAmount { get; set; }
+        public string? FreezedValue { get; set; }
         public string? FreezeReason { get; set; }
         public string? FreezeDate { get; set; }
+        public string? EffectiveDate { get; set; }
+        public string? FreezedDate { get; set; }
         public string? OurBranchID { get; set; }
+        public string? BranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? MakerID { get; set; }
     }
 
     public class ReleaseAccountFreezeRequest
     {
         public string? AccountID { get; set; }
-        public string? FreezeId { get; set; }
-        public string? ReleaseReason { get; set; }
+        public string? ReferenceID { get; set; }
+        public string? ReleasedDate { get; set; }
+        public string? ReleasedReason { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+    }
+
+    public class UpdateAccountFreezeRequest
+    {
+        public string? AccountID { get; set; }
+        public string? ReferenceID { get; set; }
+        public string? FreezeAmount { get; set; }
+        public string? FreezedValue { get; set; }
+        public string? FreezeReason { get; set; }
+        public string? FreezeDate { get; set; }
+        public string? EffectiveDate { get; set; }
+        public string? FreezedDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? BranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? MakerID { get; set; }
     }
 
     // ============================================================================
@@ -3224,8 +3454,38 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? BookType { get; set; }
         public string? NoOfLeaves { get; set; }
         public string? ChequeStart { get; set; }
+        public string? ChequeEnd { get; set; }
         public string? IssueDate { get; set; }
         public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    // Maps to p_AddChequeBookRequest_V0 SP parameters
+    public class AddChequeBookRequestPayload
+    {
+        public string? AccountID { get; set; }
+        public string? AccountTypeID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? ChequeRequestsID { get; set; }
+        public string? BookTypeID { get; set; }
+        public object? NoOfLeaves { get; set; }
+        public object? ChequeStart { get; set; }
+        public object? ChequeEnd { get; set; }
+        public string? ChequePrefix { get; set; }
+        public string? DateIssued { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public string? RequestDate { get; set; }
+        public string? ChequeRequestStatusID { get; set; }
+        public string? ApprovedBy { get; set; }
+        public string? ApprovedOn { get; set; }
+        public string? DispatchedBy { get; set; }
+        public string? DispatchedOn { get; set; }
+        public object? UpdateCount { get; set; }
+        public object? NewRecord { get; set; }
         public string? OperatorID { get; set; }
     }
 
@@ -3234,10 +3494,22 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     // ============================================================================
     public class GetAccountRemindersRequest
     {
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+        public string? AccountId { get; set; }
+=======
+        public string? AccountID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? ReminderID { get; set; }
+>>>>>>> Stashed changes
+=======
         public string? AccountID { get; set; }
         public string? ReminderID { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? Direction { get; set; }
     }
 
     public class AddAccountReminderRequest
@@ -3250,11 +3522,51 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderEndDate { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+=======
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
         public int? NewRecord { get; set; }
+>>>>>>> Stashed changes
+=======
+        public int? NewRecord { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
     }
 
     public class UpdateAccountReminderRequest
     {
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+        public string? AccountId { get; set; }
+        public string? ReminderId { get; set; }
+        public string? ReminderText { get; set; }
+        public string? ReminderDate { get; set; }
+        public string? ReminderType { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+=======
+        public string? AccountID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? ReminderID { get; set; }
+        public string? Reminder { get; set; }
+        public string? ColorID { get; set; }
+        public string? Priority { get; set; }
+        public string? ReminderStartDate { get; set; }
+        public string? ReminderEndDate { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public int? UpdateCount { get; set; }
+>>>>>>> Stashed changes
+=======
         public string? AccountID { get; set; }
         public string? ReminderID { get; set; }
         public string? Reminder { get; set; }
@@ -3265,12 +3577,24 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public int? UpdateCount { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
     }
 
     public class DeleteAccountReminderRequest
     {
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+        public string? AccountId { get; set; }
+        public string? ReminderId { get; set; }
+=======
+        public string? AccountID { get; set; }
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public int? ReminderID { get; set; }
+>>>>>>> Stashed changes
+=======
         public string? AccountID { get; set; }
         public string? ReminderID { get; set; }
+>>>>>>> 77fcb387d89022d80f6076223e57cbcc28516ea9
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }
@@ -3293,12 +3617,23 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? AccountID { get; set; }
         public string? AccountTypeID { get; set; }
         public string? AccountNumber { get; set; }
+        public string? ChargeID { get; set; }
+        public string? EffectiveDate { get; set; }
+        public int? EffectiveDateID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? FromDate { get; set; }
+        public string? ToDate { get; set; }
         public string? SearchKey { get; set; }
         public string? SearchID { get; set; }
         public int? ModuleID { get; set; }
         public string? ModuleTypeID { get; set; }
         public string? RelevantID { get; set; }
+    }
+
+    public class AccountsMaintenanceOldApiRequest
+    {
+        public string? FormId { get; set; }
+        public JsonElement? RequestData { get; set; }
     }
 }

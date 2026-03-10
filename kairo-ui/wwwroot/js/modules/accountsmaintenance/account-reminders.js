@@ -8,7 +8,9 @@ window.AccountRemindersModule = (function () {
     const state = {
         currentMode: 'NONE',   // NONE | VIEW | ADD | EDIT | DELETE
         reminderData: null,     // last fetched reminder record
-        currentUpdateCount: 0
+        currentUpdateCount: 0,
+        lastLoadedReminderId: '',
+        reminderLookupTimers: []
     };
 
     const API = {
@@ -91,7 +93,9 @@ window.AccountRemindersModule = (function () {
     }
 
     // ── Load Data ──────────────────────────────────────────────
-    async function loadData() {
+    async function loadData(options = {}) {
+        const modeOnFound = options.modeOnFound || 'VIEW';
+        const modeOnMissing = options.modeOnMissing || null;
         const ctx = getContext();
         const remId = val('reminderId');
 
@@ -124,12 +128,19 @@ window.AccountRemindersModule = (function () {
 
                 if (rem) {
                     state.reminderData = rem;
+                    state.lastLoadedReminderId = String(rem.ReminderID || rem.ReminderId || remId || '');
                     state.currentUpdateCount = parseInt(rem.UpdateCount || 0) || 0;
                     bindForm(rem);
+                    setMode(modeOnFound);
                     // showMsg('Reminder details loaded', 'success');
                 } else {
                     state.reminderData = null;
-                    if (remId) showMsg('Reminder not found', 'warning');
+                    state.lastLoadedReminderId = '';
+                    if (remId) {
+                        clearForm();
+                        setMode(modeOnMissing || 'ADD');
+                        showMsg('Reminder not found. You can add a new reminder.', 'warning');
+                    }
                 }
 
                 // Ensure identification fields are correct
@@ -174,6 +185,10 @@ window.AccountRemindersModule = (function () {
 
     // ── Save ───────────────────────────────────────────────────
     async function saveData() {
+        if (state.currentMode !== 'ADD' && state.currentMode !== 'EDIT') {
+            showMsg('Select Add or Edit before entering reminder details', 'warning');
+            return false;
+        }
         const reminderText = val('reminder');
         if (!reminderText) {
             showMsg('Reminder text is required', 'warning');
@@ -183,6 +198,8 @@ window.AccountRemindersModule = (function () {
 
         const ctx = getContext();
         const isAdd = state.currentMode === 'ADD';
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
         const payload = {
             AccountID: ctx.AccountID,
@@ -194,7 +211,13 @@ window.AccountRemindersModule = (function () {
             ReminderEndDate: val('toDate'),
             OurBranchID: ctx.OurBranchID,
             OperatorID: ctx.OperatorID,
-            NewRecord: isAdd ? 1 : state.currentUpdateCount
+            CreatedBy: ctx.OperatorID,
+            CreatedOn: timestamp,
+            ModifiedBy: ctx.OperatorID,
+            ModifiedOn: timestamp,
+            SupervisedBy: ctx.OperatorID,
+            NewRecord: isAdd ? 1 : 0,
+            UpdateCount: isAdd ? 0 : state.currentUpdateCount
         };
 
         try {
@@ -253,18 +276,54 @@ window.AccountRemindersModule = (function () {
     function cancelChanges() {
         if (state.reminderData) {
             bindForm(state.reminderData);
+            setMode('VIEW');
         } else {
             clearForm();
+            setMode('ADD');
         }
-        setMode('NONE');
     }
 
     function clearForm() {
         [...EDITABLE, 'reminderId'].forEach(id => setVal(id, ''));
         ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach(id => setText(id, '-'));
+        state.reminderData = null;
+        state.lastLoadedReminderId = '';
         state.currentUpdateCount = 0;
     }
 
+    function syncSelectedReminder() {
+        const remId = val('reminderId');
+        if (!remId || state.currentMode === 'ADD' || state.currentMode === 'EDIT') {
+            return;
+        }
+
+        if (String(remId) === String(state.lastLoadedReminderId)) {
+            return;
+        }
+
+        loadData({ modeOnFound: 'EDIT' });
+    }
+
+    function scheduleReminderSelectionSync() {
+        state.reminderLookupTimers.forEach(window.clearTimeout);
+        state.reminderLookupTimers = [300, 900, 1600].map((delay) => window.setTimeout(syncSelectedReminder, delay));
+    }
+
+    function wireReminderSelection() {
+        const reminderIdInput = el('reminderId');
+        const reminderLookupButton = document.querySelector('[data-lookup="reminderId"]');
+
+        reminderIdInput?.addEventListener('change', syncSelectedReminder);
+        reminderIdInput?.addEventListener('blur', syncSelectedReminder);
+        reminderIdInput?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                syncSelectedReminder();
+            }
+        });
+
+        reminderLookupButton?.addEventListener('click', scheduleReminderSelectionSync);
+    }
     // ── Initialization ─────────────────────────────────────────
     function init() {
         console.log('[AccountReminders] Initializing submodule');
@@ -284,6 +343,7 @@ window.AccountRemindersModule = (function () {
             loadData();
         }
 
+        wireReminderSelection();
         // Wire section toggles if they exist
         document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
             hdr.addEventListener('click', function () {

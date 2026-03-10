@@ -53,5 +53,11 @@ namespace CBS.Entities.SystemCore
         /// Whether this code is active
         /// </summary>
         public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Charging currency identifier — used as dropdown value for Amount In fields
+        /// </summary>
+        [StringLength(50)]
+        public string? ChargingCurrencyID { get; set; }
     }
 }
