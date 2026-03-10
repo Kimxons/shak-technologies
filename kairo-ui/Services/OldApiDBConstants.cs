@@ -3,12 +3,14 @@ namespace kairo_ui.Services
     public static class OldApiDBConstants
     {
 
-        public const string GET_SEARCHRESULT = "p_GetSearchResult";        
+        public const string GET_SEARCHRESULT = "p_GetSearchResult";
         public const string GET_GROUP_LOAN_SCHEMES = "p_GetGroupLoanSchemes";
         public const string ADD_EDIT_GROUP_LOAN_SCHEMES = "p_AddEditGroupLoanSchemes";
         public const string DELETE_GROUP_LOAN_SCHEMES = "p_DeleteGroupLoanSchemes";
         public const string GET_GROUP_LOAN_MENU = "p_GetGroupLoanMenu";
         public const string ADD_EDIT_GROUP_LOAN_MENU = "p_AddEditGroupLoanMenu";
+        public const string DELETE_GROUP_LOAN_MENU = "p_DeleteGroupLoanMenu";
+        public const string GET_INTEREST_MENU_COMBO = "p_getInterestmenucombo";
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
@@ -66,6 +68,8 @@ namespace kairo_ui.Services
         public const string ADD_EDIT_STANDING_INSTRUCTION_TRANSFER = "p_AddEditStandingInstructionTransfer";
         public const string DELETE_STANDING_INSTRUCTION_TRANSFER = "p_DeleteStandingInstructionTransfer";
         public const string STOP_STANDING_INSTRUCTION_TRANSFER = "p_StopStandingInstructionTransfer";
+        public const string GET_ACCOUNT_SIGNATORIES = "p_GetAccountSignatories";
+        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
 
         // ═══════════════════════════════════════════════════════════════════
         // CHANGE INSTALLMENT DATE (Module 5095)
@@ -132,5 +136,12 @@ namespace kairo_ui.Services
         // Validations use p_GetIDDescription with ControlTypeID:
         //   BranchID, GroupID, GroupLoanSchemeID
 
+        public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
+        public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
+
+        public const string GET_MERGE_CLIENT_ACCOUNTS = "p_GetCustomerQuery_MergeClientAccount";
+        public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
+        public const string SEARCH_SYSTEM_BRANCHES = "pc_SearchSystemBranches";
+        public const string MERGE_ACCOUNTS = "p_MergeAccounts";
     }
 }

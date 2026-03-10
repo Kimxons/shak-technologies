@@ -192,8 +192,16 @@
                 <div class="behind-scene">
                     <div class="behind-scene-grid">
                         <div class="behind-scene-item">
-                            <label>Currency</label>
+                            <label>Currency ID</label>
                             <span class="behind-scene-value" id="currencyId">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Created By</label>
+                            <span class="behind-scene-value" id="MakerID">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Created On</label>
+                            <span class="behind-scene-value" id="MakerDT">-</span>
                         </div>
                         <div class="behind-scene-item">
                             <label>Approved By</label>
@@ -213,17 +221,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="audit-section mt-3">
-                    <div class="audit-block">
-                        <div class="audit-item"><label>Created By</label><span class="audit-value" id="MakerID">-</span></div>
-                        <div class="audit-item"><label>Created On</label><span class="audit-value" id="MakerDT">-</span></div>
-                    </div>
-                    <div class="audit-block border-start px-3">
-                        <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifierID">-</span></div>
-                        <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifierDT">-</span></div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -232,4 +229,4 @@
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-cheque-book.js"></script>
+<script src="~/js/modules/accountsmaintenance/account-cheque-book.js" asp-append-version="true"></script>

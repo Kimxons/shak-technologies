@@ -45,6 +45,11 @@ namespace kairo_ui.Services
         /// Deletes an item from the specified endpoint
         /// </summary>
         Task DeleteAsync(string apiName, string formId, int id);
+
+        /// <summary>
+        /// Posts a pre-built envelope object directly to the endpoint without any additional wrapping.
+        /// </summary>
+        Task<T> PostRawAsync<T>(string apiName, object envelope);
     }
 
     /// <summary>
@@ -378,6 +383,39 @@ namespace kairo_ui.Services
             }
         }
 
+        /// <summary>
+        /// Posts a pre-built envelope object directly to the endpoint without any additional wrapping.
+        /// </summary>
+        public async Task<T> PostRawAsync<T>(string apiName, object envelope)
+        {
+            var fullUrl = endpoint;
+            try
+            {
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var requestJson = JsonSerializer.Serialize(envelope, _jsonSerializerOptions);
+                _logger.LogInformation("API POST Raw Request: {Endpoint} | Payload Size: {PayloadSize} bytes | Data: {RequestData}",
+                    fullUrl, requestJson.Length, requestJson);
+
+                var startTime = DateTime.UtcNow;
+                var response = await _httpClient.PostAsJsonAsync(fullUrl, envelope, _jsonSerializerOptions);
+                var duration = DateTime.UtcNow - startTime;
+
+                _logger.LogInformation("API POST Raw Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
+                    fullUrl, (int)response.StatusCode, duration.TotalMilliseconds);
+
+                response.EnsureSuccessStatusCode();
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<T>(responseJson, _jsonSerializerOptions);
+                return result!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "API POST Raw Exception: {Endpoint} | Error: {ErrorMessage}", fullUrl, ex.Message);
+                throw new Exception($"Failed to post to {fullUrl}: {ex.Message}", ex);
+            }
+        }
+
         private void EnsureDefaults<T>(T requestData) where T : class
         {
             var type = requestData.GetType();
@@ -385,19 +423,21 @@ namespace kairo_ui.Services
             var branchIdProp = type.GetProperty("OurBranchID");
             var bankIdProp = type.GetProperty("BankID");
 
-            if (operatorIdProp != null && string.IsNullOrWhiteSpace(operatorIdProp.GetValue(requestData) as string))
+            TrySetDefault(requestData, operatorIdProp, ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+            TrySetDefault(requestData, branchIdProp, ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
+            TrySetDefault(requestData, bankIdProp, ResolveSessionValue("bank_id", "bank_code") ?? "00");
+        }
+
+        private static void TrySetDefault<T>(T requestData, System.Reflection.PropertyInfo? property, string value) where T : class
+        {
+            if (property is null || !property.CanWrite || property.PropertyType != typeof(string))
             {
-                operatorIdProp.SetValue(requestData, ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+                return;
             }
 
-            if (branchIdProp != null && string.IsNullOrWhiteSpace(branchIdProp.GetValue(requestData) as string))
+            if (string.IsNullOrWhiteSpace(property.GetValue(requestData) as string))
             {
-                branchIdProp.SetValue(requestData, ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
-            }
-
-            if (bankIdProp != null && string.IsNullOrWhiteSpace(bankIdProp.GetValue(requestData) as string))
-            {
-                bankIdProp.SetValue(requestData, ResolveSessionValue("bank_id", "bank_code") ?? "00");
+                property.SetValue(requestData, value);
             }
         }
 

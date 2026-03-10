@@ -51,6 +51,7 @@ namespace AccountManagement.Helpers
         public const string BLOCK_ENTITY = "p_BlockEntity_V0";
         public const string UNBLOCK_ENTITY = "p_UnblockEntity_V0";
         public const string GET_BLOCKED_HISTORY = "p_GetBlockedHistory_V0";
+        public const string GET_ACCOUNT_FREEZE_HISTORY = "p_GetAccountFreezeHistory";
         public const string GET_BLOCKED_DETAILS = "p_GetBlockedDetails_V0";
 
         // Account Classification procedures
@@ -129,5 +130,19 @@ namespace AccountManagement.Helpers
         public const string GET_SYSTEMSEARCH = "p_GetSystemSearch_V0";
         public const string GET_SYSTEMSEARCH_RESULT = "p_GetSystemSearchResult_V0";
         public const string GET_SYSTEMCODES = "p_GetSystemCodes_V0";
+
+        // Standing Instruction EFT procedures (ModuleID 1906)
+        public const string GET_SI_EFT = "p_GetSITransfer";
+        public const string ADD_SI_EFT = "p_AddEditSITransfer";
+        public const string UPDATE_SI_EFT = "p_AddEditSITransfer";
+        public const string DELETE_SI_EFT = "p_DeleteSITransfer";
+        public const string STOP_SI_EFT = "p_StopResumeSITransfer";
+
+        // Standing Instruction Demand Draft procedures (ModuleID 1920)
+        public const string GET_SI_DD = "p_GetSIDD";
+        public const string ADD_SI_DD = "p_AddEditSIDD";
+        public const string UPDATE_SI_DD = "p_AddEditSIDD";
+        public const string DELETE_SI_DD = "p_DeleteSIDD";
+        public const string STOP_SI_DD = "p_StopResumeSIDD";
     }
 }
