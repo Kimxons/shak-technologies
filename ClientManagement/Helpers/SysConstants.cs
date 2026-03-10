@@ -66,5 +66,6 @@
         public const string CREATE_CLIENT_SPECIAL_OFFERS = "p_V8_CreateClientSpecialOffers";
         public const string UPDATE_CLIENT_SPECIAL_OFFERS = "p_V8_UpdateClientSpecialOffers";
 
+
     }
 }
