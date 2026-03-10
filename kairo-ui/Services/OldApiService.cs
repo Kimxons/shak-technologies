@@ -423,19 +423,21 @@ namespace kairo_ui.Services
             var branchIdProp = type.GetProperty("OurBranchID");
             var bankIdProp = type.GetProperty("BankID");
 
-            if (operatorIdProp != null && string.IsNullOrWhiteSpace(operatorIdProp.GetValue(requestData) as string))
+            TrySetDefault(requestData, operatorIdProp, ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+            TrySetDefault(requestData, branchIdProp, ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
+            TrySetDefault(requestData, bankIdProp, ResolveSessionValue("bank_id", "bank_code") ?? "00");
+        }
+
+        private static void TrySetDefault<T>(T requestData, System.Reflection.PropertyInfo? property, string value) where T : class
+        {
+            if (property is null || !property.CanWrite || property.PropertyType != typeof(string))
             {
-                operatorIdProp.SetValue(requestData, ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+                return;
             }
 
-            if (branchIdProp != null && string.IsNullOrWhiteSpace(branchIdProp.GetValue(requestData) as string))
+            if (string.IsNullOrWhiteSpace(property.GetValue(requestData) as string))
             {
-                branchIdProp.SetValue(requestData, ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
-            }
-
-            if (bankIdProp != null && string.IsNullOrWhiteSpace(bankIdProp.GetValue(requestData) as string))
-            {
-                bankIdProp.SetValue(requestData, ResolveSessionValue("bank_id", "bank_code") ?? "00");
+                property.SetValue(requestData, value);
             }
         }
 

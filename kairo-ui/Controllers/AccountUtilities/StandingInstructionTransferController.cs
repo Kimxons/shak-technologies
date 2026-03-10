@@ -53,7 +53,7 @@ namespace kairo_ui.Controllers.AccountUtilities
 
         [HttpGet]
         [Route("get-dropdown-options")]
-        public async Task<IActionResult> GetDropdownOptions([FromQuery] string codeId)
+        public async Task<IActionResult> GetDropdownOptions([FromQuery] string codeId, [FromQuery] string? valueField = null)
         {
             try
             {
@@ -64,7 +64,9 @@ namespace kairo_ui.Controllers.AccountUtilities
 
                 var result = options.Select(o => new
                 {
-                    value = o.SubCodeID,
+                    value = string.Equals(valueField, "ChargingCurrencyID", StringComparison.OrdinalIgnoreCase)
+                        ? (o.ChargingCurrencyID ?? o.SubCodeID)
+                        : o.SubCodeID,
                     label = o.CodeDescription ?? o.SubCodeID
                 });
 
@@ -205,6 +207,66 @@ namespace kairo_ui.Controllers.AccountUtilities
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // GET SIGNATORIES - Fetch account signatory records
+        // ═══════════════════════════════════════════════════════════════════
+
+        [HttpPost]
+        [Route("get-signatories")]
+        public async Task<IActionResult> GetSignatories([FromBody] SignatoryRequest requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, message = "Not authenticated" });
+
+                requestData.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(requestData.OurBranchID))
+                    requestData.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.GET_ACCOUNT_SIGNATORIES,
+                    requestData
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account signatories");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // GET SIGNATORY IMAGE - Fetch signature/photo image data
+        // ═══════════════════════════════════════════════════════════════════
+
+        [HttpPost]
+        [Route("get-signatory-image")]
+        public async Task<IActionResult> GetSignatoryImage([FromBody] SignatoryImageRequest requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, message = "Not authenticated" });
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.GET_SIGNATORY_IMAGE,
+                    requestData
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting signatory image");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -249,5 +311,19 @@ namespace kairo_ui.Controllers.AccountUtilities
 
         // Action mode
         public string? ActionMode { get; set; }
+    }
+
+    public class SignatoryRequest
+    {
+        public string? OurBranchID { get; set; }
+        public string? AccountID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class SignatoryImageRequest
+    {
+        public int? SignID { get; set; }
+        public int? PhotoID { get; set; }
+        public int? DocumentID { get; set; }
     }
 }

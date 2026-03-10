@@ -844,6 +844,7 @@
                 <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
                 <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>Add</button>
                 <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-delete" type="button" id="submoduleBtnDelete"><i class="bi bi-trash3 me-1"></i>Delete</button>
                 <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
@@ -1144,6 +1145,8 @@
 
                 if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
                 if (addBtn) addBtn.addEventListener('click', () => mod.add());
+                if (editBtn) editBtn.addEventListener('click', () => mod.edit());
+                if (deleteBtn) deleteBtn.addEventListener('click', () => mod.delete());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
                 if (approveBtn) approveBtn.addEventListener('click', () => mod.approve());
@@ -1419,7 +1422,7 @@
 
         // ClientID blur handler - fetch client details when user tabs out
         if (clientIdInput) {
-            clientIdInput.addEventListener('blur', async function() {
+            clientIdInput.addEventListener('blur', async function () {
                 const clientId = this.value.trim();
                 if (!clientId) return;
 
@@ -1435,7 +1438,7 @@
 
         // ProductID blur handler - fetch product details when user tabs out
         if (productIdInput) {
-            productIdInput.addEventListener('blur', async function() {
+            productIdInput.addEventListener('blur', async function () {
                 const productId = this.value.trim();
                 if (!productId) return;
 
@@ -1445,7 +1448,7 @@
                 // Update state and trigger auto-populate
                 window.AccountMaintenanceState.ProductID = productId;
                 console.log('[AccountMaintenance] ProductID entered manually:', productId);
-                
+
                 // Fetch product details to get CurrencyID and MinimumBalance
                 try {
                     const response = await fetch(`/AccountsMaintenance/get-product-details?productId=${encodeURIComponent(productId)}`, {
@@ -1456,7 +1459,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         const product = result.data || result;
-                        
+
                         if (product) {
                             // Update Product Name if available
                             const productNameInput = document.getElementById('ProductName');
@@ -1475,11 +1478,11 @@
                             }
                             if (minBalanceSpan && product.MinimumBalance !== undefined) {
                                 const num = parseFloat(product.MinimumBalance);
-                                minBalanceSpan.textContent = !isNaN(num) 
+                                minBalanceSpan.textContent = !isNaN(num)
                                     ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                                     : product.MinimumBalance;
                             }
-                            
+
                             console.log('[AccountMaintenance] Product details loaded:', product);
                         }
                     }
@@ -1708,6 +1711,7 @@
         'ClientID': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
         'ProductID': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
         'AccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'ChargeID': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
         'LiquidationAccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'SalesOfficerID': { tableID: 'OfficerID', keyField: 'OfficerID', nameField: 'OfficerName' },
         'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' },
@@ -2210,8 +2214,8 @@
                             } else {
                                 // Handle display spans (Account Snapshot, Audit Trail)
                                 // Format numeric balance fields with proper number formatting
-                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance', 
-                                                       'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
+                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
+                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
                                 const fieldId = el.id || '';
                                 if (numericFields.includes(fieldId) && !isNaN(parseFloat(account[key]))) {
                                     // Format as number with 2 decimal places and comma separators
@@ -2695,14 +2699,14 @@
         if (btns.cancel) {
             btns.cancel.addEventListener('click', async function () {
                 if (this.disabled) return;
-                
+
                 // Determine the context for the dialog
                 const isAfterCreate = window.AccountMaintenanceState.isAccountJustCreated || false;
                 const isViewingRecord = window.AccountMaintenanceState.isAccountLoaded && !isAfterCreate && currentMode === 'VIEW';
                 const isEditingRecord = currentMode === 'EDIT';
-                
+
                 let dialogTitle, dialogMessage;
-                
+
                 if (isAfterCreate) {
                     dialogTitle = 'Clear Form';
                     dialogMessage = 'Clear the form to add a new account?';
@@ -2716,7 +2720,7 @@
                     dialogTitle = 'Clear Form';
                     dialogMessage = 'Clear the form?';
                 }
-                
+
                 // Use showDialog for confirmation
                 const confirmed = await AppCore.showDialog({
                     type: 'confirmation',
