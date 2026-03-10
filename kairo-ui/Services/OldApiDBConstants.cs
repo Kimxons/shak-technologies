@@ -104,5 +104,14 @@ namespace kairo_ui.Services
         // Validations use p_GetIDDescription with ControlTypeID:
         //   BranchID, GroupID, GroupLoanSchemeID
 
+        // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE VIEW SUBMODULES
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
+        public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
+        public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
+        public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
+        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+
     }
 }

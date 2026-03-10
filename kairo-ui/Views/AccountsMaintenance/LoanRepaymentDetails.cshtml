@@ -1,63 +1,57 @@
-﻿@{
-    // Migrated from: loan-repayment-details.html
-}
+﻿@* Loan Repayment Details Submodule - Loaded as Partial View *@
+@* Migrated from: loan-repayment-details.html *@
 
-<!-- LoanRepaymentDetails Submodule -->
-<div class="window de-window" data-ktb-window>
-    <div data-kairo-titlebar data-title="Loan Repayment Details" data-icon="bi-cash-coin"></div>
-    <main class="main-container main-container--with-panel">
-      <div class="form-content" role="region">
-        <div class="form-card" data-main-form>
-        <div class="form-section form-section--grid">
-          <div class="section-header"><span class="section-header__title">Loan Repayment Schedule</span><span class="de-record-count" id="recordCount">0 records</span></div>
-          <div class="section-content section-content--grid">
-            <div class="table table-sm table-hover-wrap">
-              <table class="table table-sm table-hover" id="repaymentGrid">
-                  <thead>
-                    <tr>
-                      <th class="de-table-check"><input type="checkbox" id="selectAll" /></th>
-                      <th>Due Date</th>
-                      <th>Value Date</th>
-                      <th>Particulars</th>
-                      <th class="text-end">Principal</th>
-                      <th class="text-end">Interest</th>
-                      <th class="text-end">Total Due</th>
-                      <th class="text-end">Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="de-table__empty"><td colspan="8">No records to display.</td></tr>
-                  </tbody>
-                </table>
+<form id="loanRepaymentForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Form Content -->
+<div class="form-content" role="region" aria-label="Loan Repayment Details" data-submodule-content>
+    <div class="form-card" data-submodule-form>
+        <!-- Loan Repayment Schedule Section -->
+        <div class="form-section form-section--grid" data-section="repayment-schedule">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-cash-coin"></i> LOAN REPAYMENT SCHEDULE</span>
+                <span class="de-record-count" id="spn_recordCount">(0 records)</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Repayment Schedule" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
-          </div>
+            <div class="section-content section-content--grid" data-section-content>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="tbl_repaymentGrid">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="de-table-check"><input type="checkbox" id="chk_selectAll" /></th>
+                                <th>Due Date</th>
+                                <th>Value Date</th>
+                                <th>Particulars</th>
+                                <th class="text-end">Principal</th>
+                                <th class="text-end">Interest</th>
+                                <th class="text-end">Total Due</th>
+                                <th class="text-end">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        </div>
-      </div>
-      <aside class="action-panel">
-        <div class="d-flex flex-column gap-2 mt-auto">
-          <button class="btn-action" type="button" data-action="print"><i class="bi bi-printer"></i><span>Print</span></button>
-          <button class="btn-action" type="button" data-action="export"><i class="bi bi-download"></i><span>Export</span></button>
-          <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
-          <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
-        </div>
-      </aside>
-    </main>
-    <footer class="de-status-bar" role="status">Ready</footer>
-    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/account/AccountService.js"></script>
-  <script src="../../../assets/js/components/TitleBar.js"></script>
-  <script src="view-base.js?v=20250128"></script>
-  <script src="loan-repayment-details.js?v=20250129"></script>
+    </div>
+</div>
 
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'LoanRepaymentDetails') {
-        console.log('[LoanRepaymentDetails] Submodule loaded');
-    }
-});
-</script>
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="div_loadingOverlay" style="display:none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Message Panel -->
+<div class="message-panel" id="div_messagePanel" style="display:none;"></div>
+
+<script src="/js/modules/accountsmaintenance/loan-repayment-details.js"></script>

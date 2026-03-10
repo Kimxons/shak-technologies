@@ -1,155 +1,143 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+﻿@* Signature / Photo Submodule - Loaded as Partial View *@
+@* Migrated from: signature-photo.html *@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // Migrated from: signature-photo.html
     var operatingModeOptions = ViewData["OperatingModeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<!-- SignaturePhoto Submodule -->
-<div class="window de-window" data-ktb-window>
-    <div data-kairo-titlebar data-title="Signature / Photo" data-icon="bi-person-badge"></div>
+<form id="signaturePhotoForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
 
-    <main class="main-container">
-      <div class="form-content" role="region">
-        <div class="form-card">
-          <!-- Signatories Section -->
-          <div class="form-section" data-section="signatories">
+<!-- Form Content -->
+<div class="form-content" role="region" aria-label="Signature / Photo" data-submodule-content>
+    <div class="form-card" data-submodule-form>
+        <!-- Signatories Section -->
+        <div class="form-section" data-section="signatories">
             <div class="section-header" data-section-toggle>
-              <span class="section-header__title"><i class="bi bi-people"></i>Signatories</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Signatories" aria-expanded="true">
-                <i class="bi bi-chevron-up"></i>
-              </button>
+                <span class="section-header__title"><i class="bi bi-people"></i> SIGNATORIES</span>
+                <span class="de-record-count" id="spn_signatoriesRecordCount">(0 records)</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Signatories" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="section-content" data-section-content>
-              <div class="overflow-auto" data-signature-list>
-                <table class="table table-sm table-hover" id="signatoriesGrid">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Signatory ID</th>
-                      <th>Signatory Name</th>
-                      <th>Signatory Type</th>
-                      <th>Limit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colspan="4" class="text-center text-muted py-4">No records to display.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="row g-3 mb-3">
-                <div class="col-6">
-                  <label class="label-blue" for="operatingMode">Operating Mode</label>
-                  <select id="operatingMode" name="operatingMode" class="bs-select form-control">
-                    <option value="">--Select--</option>
-                    @foreach (var option in operatingModeOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
-                  </select>
+                <div class="table-responsive" data-signature-list>
+                    <table class="table table-sm table-hover" id="tbl_signatoriesGrid">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Signatory ID</th>
+                                <th>Signatory Name</th>
+                                <th>Signatory Type</th>
+                                <th class="text-end">Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="col-6">
-                  <label for="operatingInstruction">Operating Instruction</label>
-                  <input id="operatingInstruction" name="operatingInstruction" type="text" class="bs-input-text form-control" readonly />
+                <div class="form-row two-col mt-3">
+                    <div class="col">
+                        <label class="label-blue" for="ddl_operatingMode">Operating Mode</label>
+                        <select id="ddl_operatingMode" name="operatingMode" class="bs-select">
+                            <option value="">--Select--</option>
+                            @foreach (var option in operatingModeOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="txt_operatingInstruction">Operating Instruction</label>
+                        <input id="txt_operatingInstruction" name="operatingInstruction" type="text" class="bs-input-text" readonly />
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
-
-          <!-- Signature and Photo Section -->
-          <div class="row g-3 mb-3">
-            <div class="col-6">
-              <div class="form-section" data-section="signature">
-                <div class="section-header" data-section-toggle>
-                  <span class="section-header__title"><i class="bi bi-pen"></i>Signature</span>
-                  <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="zoom-sig" title="Zoom"><i class="bi bi-zoom-in"></i></button>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="download-sig" title="Download"><i class="bi bi-download"></i></button>
-                    <button type="button" class="section-toggle-btn" aria-label="Toggle Signature" aria-expanded="true">
-                      <i class="bi bi-chevron-up"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="section-content" data-section-content>
-                  <div class="text-center p-4 border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden" id="signatureImage" data-image-container>
-                    <span class="text-muted">No signature available</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-section" data-section="photo">
-                <div class="section-header" data-section-toggle>
-                  <span class="section-header__title"><i class="bi bi-camera"></i>Photo</span>
-                  <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="zoom-photo" title="Zoom"><i class="bi bi-zoom-in"></i></button>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-action="download-photo" title="Download"><i class="bi bi-download"></i></button>
-                    <button type="button" class="section-toggle-btn" aria-label="Toggle Photo" aria-expanded="true">
-                      <i class="bi bi-chevron-up"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="section-content" data-section-content>
-                  <div class="text-center p-4 border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden" id="photoImage" data-image-container>
-                    <span class="text-muted">No photo available</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Audit Section -->
-          <div class="audit-section audit-section--summary">
-            <div class="audit-cell">
-              <span class="audit-label">Created By</span>
-              <span class="audit-value" id="createdBy">-</span>
-            </div>
-            <div class="audit-cell">
-              <span class="audit-label">Modified By</span>
-              <span class="audit-value" id="modifiedBy">-</span>
-            </div>
-            <div class="audit-cell">
-              <span class="audit-label">Supervised By</span>
-              <span class="audit-value" id="supervisedBy">-</span>
-            </div>
-            <div class="audit-cell">
-              <span class="audit-label">Created On</span>
-              <span class="audit-value" id="createdOn">-</span>
-            </div>
-            <div class="audit-cell">
-              <span class="audit-label">Modified On</span>
-              <span class="audit-value" id="modifiedOn">-</span>
-            </div>
-            <div class="audit-cell">
-              <span class="audit-label">Supervised On</span>
-              <span class="audit-value" id="supervisedOn">-</span>
-            </div>
-          </div>
         </div>
-      </div>
 
-      <aside class="action-panel">
-        <div class="d-flex flex-column gap-2">
-          <button class="btn-action" type="button" data-action="print"><i class="bi bi-printer"></i><span>Print</span></button>
-          <button class="btn-action" type="button" data-action="export"><i class="bi bi-download"></i><span>Export</span></button>
-          <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
-          <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+        <!-- Signature and Photo Section -->
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="form-section" data-section="signature">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-pen"></i> SIGNATURE</span>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="zoom-sig" title="Zoom"><i class="bi bi-zoom-in"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="download-sig" title="Download"><i class="bi bi-download"></i></button>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Signature" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="text-center p-4 border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden" id="div_signatureImage" data-image-container style="min-height: 200px; max-height: 300px;">
+                            <span class="text-muted">No signature available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-section" data-section="photo">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-camera"></i> PHOTO</span>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="zoom-photo" title="Zoom"><i class="bi bi-zoom-in"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="download-photo" title="Download"><i class="bi bi-download"></i></button>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Photo" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="text-center p-4 border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden" id="div_photoImage" data-image-container style="min-height: 200px; max-height: 300px;">
+                            <span class="text-muted">No photo available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </aside>
-    </main>
-  </div>
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/account/AccountService.js"></script>
-  <script src="../../../assets/js/components/TitleBar.js"></script>
-  <script src="view-base.js?v=20250128"></script>
-  <script src="signature-photo.js?v=20250129"></script>
 
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'SignaturePhoto') {
-        console.log('[SignaturePhoto] Submodule loaded');
-    }
-});
-</script>
+        <!-- Audit Section -->
+        <div class="audit-section audit-section--summary">
+            <div class="audit-cell">
+                <span class="audit-label">Created By</span>
+                <span class="audit-value" id="spn_createdBy">-</span>
+            </div>
+            <div class="audit-cell">
+                <span class="audit-label">Modified By</span>
+                <span class="audit-value" id="spn_modifiedBy">-</span>
+            </div>
+            <div class="audit-cell">
+                <span class="audit-label">Supervised By</span>
+                <span class="audit-value" id="spn_supervisedBy">-</span>
+            </div>
+            <div class="audit-cell">
+                <span class="audit-label">Created On</span>
+                <span class="audit-value" id="spn_createdOn">-</span>
+            </div>
+            <div class="audit-cell">
+                <span class="audit-label">Modified On</span>
+                <span class="audit-value" id="spn_modifiedOn">-</span>
+            </div>
+            <div class="audit-cell">
+                <span class="audit-label">Supervised On</span>
+                <span class="audit-value" id="spn_supervisedOn">-</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="div_loadingOverlay" style="display:none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Message Panel -->
+<div class="message-panel" id="div_messagePanel" style="display:none;"></div>
+
+<script src="/js/modules/accountsmaintenance/signature-photo.js"></script>

@@ -918,6 +918,43 @@
                 <button class="btn-action btn-history" type="button" id="submoduleBtnHistory"><i class="bi bi-clock-history me-1"></i>History</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
+        }
+        // VIEW SUBMODULES - Read-only view modules with Print/Export/Refresh/Close buttons
+        else if (submoduleName === 'ClientPortfolio' || submoduleName === 'LoanRepaymentDetails') {
+            newButtonsHtml = `
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'SignaturePhoto') {
+            newButtonsHtml = `
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'DebitInterestWorksheet' || submoduleName === 'CreditInterestWorksheet') {
+            newButtonsHtml = `
+                <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'StatementView') {
+            newButtonsHtml = `
+                <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export-excel" type="button" id="submoduleBtnExportExcel" data-action="exportExcel"><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
+                <button class="btn-action btn-export-pdf" type="button" id="submoduleBtnExportPdf" data-action="exportPdf"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+                <button class="btn-action btn-reverse" type="button" id="submoduleBtnReverse" data-action="reverse"><i class="bi bi-arrow-counterclockwise me-1"></i>Reverse</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
         } else {
             // Define standard buttons for other submodules
             newButtonsHtml = `
@@ -1217,6 +1254,101 @@
             if (submoduleName === 'Signatories') {
                 // The module script has already executed and wired everything.
                 // Just re-trigger wireLookups so the lookup buttons get connected.
+                return;
+            }
+
+            // ============================================================
+            // VIEW SUBMODULES WIRING - Read-only view modules
+            // ============================================================
+            
+            // Client Portfolio module
+            if (submoduleName === 'ClientPortfolio' && window.ClientPortfolioModule) {
+                const mod = window.ClientPortfolioModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Signature Photo module
+            if (submoduleName === 'SignaturePhoto' && window.SignaturePhotoModule) {
+                const mod = window.SignaturePhotoModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Loan Repayment Details module
+            if (submoduleName === 'LoanRepaymentDetails' && window.LoanRepaymentDetailsModule) {
+                const mod = window.LoanRepaymentDetailsModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Debit Interest Worksheet module
+            if (submoduleName === 'DebitInterestWorksheet' && window.DebitInterestWorksheetModule) {
+                const mod = window.DebitInterestWorksheetModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Credit Interest Worksheet module
+            if (submoduleName === 'CreditInterestWorksheet' && window.CreditInterestWorksheetModule) {
+                const mod = window.CreditInterestWorksheetModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Statement View module - uses proxy clicks since statement-view.js auto-initializes
+            if (submoduleName === 'StatementView') {
+                const container = document.getElementById('submodule-container');
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportExcelBtn = document.getElementById('submoduleBtnExportExcel');
+                const exportPdfBtn = document.getElementById('submoduleBtnExportPdf');
+                const reverseBtn = document.getElementById('submoduleBtnReverse');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                // Proxy click to internal buttons
+                const proxyClick = (internalId) => {
+                    const internalBtn = container?.querySelector('#' + internalId);
+                    if (internalBtn) internalBtn.click();
+                };
+
+                if (viewBtn) viewBtn.addEventListener('click', () => proxyClick('btn_view'));
+                if (printBtn) printBtn.addEventListener('click', () => proxyClick('btn_print'));
+                if (exportExcelBtn) exportExcelBtn.addEventListener('click', () => proxyClick('btn_exportExcel'));
+                if (exportPdfBtn) exportPdfBtn.addEventListener('click', () => proxyClick('btn_exportPdf'));
+                if (reverseBtn) reverseBtn.addEventListener('click', () => proxyClick('btn_reverse'));
+                if (refreshBtn) refreshBtn.addEventListener('click', () => proxyClick('btn_refresh'));
                 return;
             }
 
