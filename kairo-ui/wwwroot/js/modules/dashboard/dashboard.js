@@ -902,7 +902,9 @@ chatInput.addEventListener('keypress', (e) => {
 function updateDateTime() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const dateStr = window.GlobalUtils?.formatDate
+        ? window.GlobalUtils.formatDate(now)
+        : now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     const timeEl = document.getElementById('currentTime');
     const dateEl = document.getElementById('currentDate');

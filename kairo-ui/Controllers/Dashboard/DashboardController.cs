@@ -416,7 +416,8 @@ namespace kairo_ui.Controllers.Dashboard
                 _logger.LogInformation("Fetching branches for user {UserId}", userId);
                 //var endpoint = $"BranchSetting?userId={userId}";
                 var response = await _apiService.GetAsync<BranchSetting>("IdentityAccessManagentApi", "BranchSetting", new KeyValuePair<string, object>("userId", userId));
-                return response?.ToList() ?? [];
+                //return response?.ToList() ?? [];
+                return [response];
             }
             catch (Exception ex)
             {

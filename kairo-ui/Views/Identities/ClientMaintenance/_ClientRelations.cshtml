@@ -1,6 +1,8 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    // ViewData["Title"] = "Client Relations";
+    // Layout = "_ApplicationLayout";
     var relationTypeOptions = ViewData["RelationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationTitleOptions = ViewData["RelationTitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationGenderOptions = ViewData["RelationGenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
@@ -79,4 +81,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-relations.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-relations.js"></script>

@@ -45,6 +45,11 @@ namespace kairo_ui.Services
         /// Deletes an item from the specified endpoint
         /// </summary>
         Task DeleteAsync(string apiName, string formId, int id);
+
+        /// <summary>
+        /// Posts a pre-built envelope object directly to the endpoint without any additional wrapping.
+        /// </summary>
+        Task<T> PostRawAsync<T>(string apiName, object envelope);
     }
 
     /// <summary>
@@ -375,6 +380,39 @@ namespace kairo_ui.Services
             {
                 _logger.LogError(ex, $"Failed to delete {endpoint}/{id}");
                 throw new Exception($"Failed to delete {endpoint}/{id}: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Posts a pre-built envelope object directly to the endpoint without any additional wrapping.
+        /// </summary>
+        public async Task<T> PostRawAsync<T>(string apiName, object envelope)
+        {
+            var fullUrl = endpoint;
+            try
+            {
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var requestJson = JsonSerializer.Serialize(envelope, _jsonSerializerOptions);
+                _logger.LogInformation("API POST Raw Request: {Endpoint} | Payload Size: {PayloadSize} bytes | Data: {RequestData}",
+                    fullUrl, requestJson.Length, requestJson);
+
+                var startTime = DateTime.UtcNow;
+                var response = await _httpClient.PostAsJsonAsync(fullUrl, envelope, _jsonSerializerOptions);
+                var duration = DateTime.UtcNow - startTime;
+
+                _logger.LogInformation("API POST Raw Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
+                    fullUrl, (int)response.StatusCode, duration.TotalMilliseconds);
+
+                response.EnsureSuccessStatusCode();
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<T>(responseJson, _jsonSerializerOptions);
+                return result!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "API POST Raw Exception: {Endpoint} | Error: {ErrorMessage}", fullUrl, ex.Message);
+                throw new Exception($"Failed to post to {fullUrl}: {ex.Message}", ex);
             }
         }
 

@@ -135,7 +135,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthenticationHandler>();
 
 builder.Services.AddScoped<IApiService, ApiService>();
-builder.Services.AddScoped<IOldApiService, OldApiService>();
+
 builder.Services.AddScoped<IOldApiService, OldApiService>();
 
 // Register Common Utilities Service for shared utility methods
@@ -199,7 +199,6 @@ builder.Services.AddHttpClient("MicroFinanceApi")
             ?? builder.Configuration.GetValue<Uri>("ApiSettings:OldApiBaseUrl");
     });
 
-
 builder.Services.AddHttpClient("ClientDocumentApi")
     .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
@@ -208,7 +207,6 @@ builder.Services.AddHttpClient("ClientDocumentApi")
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:ClientDocumentBaseUrl");
     });
 
-
 builder.Services.AddHttpClient("KairoAIApi")
     .AddHttpMessageHandler<AuthenticationHandler>()
     .ConfigureHttpClient(client =>
@@ -216,8 +214,6 @@ builder.Services.AddHttpClient("KairoAIApi")
         client.Timeout = TimeSpan.FromSeconds(apiTimeoutSeconds);
         client.BaseAddress = builder.Configuration.GetValue<Uri>("ApiSettings:KairoAIBaseUrl");
     });
-
-
 
 builder.Services.AddHttpClient("ImageRecognitionApi")
     .AddHttpMessageHandler<AuthenticationHandler>()

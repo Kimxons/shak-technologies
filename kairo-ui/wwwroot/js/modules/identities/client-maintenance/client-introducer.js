@@ -149,6 +149,17 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
         const clearBtn = tabRoot.querySelector('[data-introducer-action="clear"]');
 
         const fields = form?.querySelectorAll('input:not([type="hidden"]), select, textarea');
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+
+        if (!allowEdit) {
+            fields?.forEach(f => f.disabled = true);
+            if (newBtn) newBtn.disabled = true;
+            if (alterBtn) alterBtn.disabled = true;
+            if (removeBtn) removeBtn.disabled = true;
+            if (updateBtn) updateBtn.disabled = true;
+            if (clearBtn) clearBtn.disabled = true;
+            return;
+        }
 
         if (mode === 'view') {
             fields?.forEach(f => f.disabled = true);
