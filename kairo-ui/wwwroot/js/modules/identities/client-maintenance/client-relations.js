@@ -132,13 +132,16 @@ function bindRelationsCrud(tabRoot, moduleId) {
     };
 
     const setFieldsEnabled = (enabled) => {
-        state.enabled = enabled;
+        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+        const nextEnabled = allowEdit && enabled;
+
+        state.enabled = nextEnabled;
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
-            field.disabled = !enabled;
+            field.disabled = !nextEnabled;
         });
         const lookupBtn = form.querySelector('[data-relation-action="lookup"]');
-        if (lookupBtn) lookupBtn.disabled = !enabled;
-        setEntryActionButtons(enabled);
+        if (lookupBtn) lookupBtn.disabled = !nextEnabled;
+        setEntryActionButtons(nextEnabled);
     };
 
     const extractList = (response) => {
@@ -522,7 +525,10 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
             'Identities/ClientMaintenance/ClientIndividual',
             'get',
             'POST',
-            { ClientID: relatedClientId }
+            {
+                ModuleID: window.ClientMaintenanceCore.moduleId || '',
+                ClientID: relatedClientId
+            }
         );
         
         if (!response?.Success && !response?.success) return;

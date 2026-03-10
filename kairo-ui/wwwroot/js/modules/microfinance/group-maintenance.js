@@ -288,6 +288,11 @@ function clearCenterFields() {
 function extractDateForInput(dateString) {
     if (!dateString) return '';
 
+    if (window.GlobalUtils?.parseDateInput) {
+        const parsed = window.GlobalUtils.parseDateInput(dateString);
+        if (parsed) return parsed;
+    }
+
     try {
         if (dateString.includes('T')) {
             const datePart = dateString.split('T')[0];

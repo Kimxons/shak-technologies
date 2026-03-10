@@ -380,7 +380,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             tr.innerHTML = `
                 <td class="ps-2">${typeLabel}</td>
                 <td>${description}</td>
-                <td>${createdOn ? new Date(createdOn).toLocaleString() : ''}</td>
+                <td>${createdOn ? (window.GlobalUtils?.formatDateTime ? window.GlobalUtils.formatDateTime(createdOn) : new Date(createdOn).toLocaleString()) : ''}</td>
                 <td class="text-center">
                     <div class="btn-group btn-group-sm">
                         <button type="button" class="btn btn-primary" data-action="view"><i class="bi bi-eye"></i></button>

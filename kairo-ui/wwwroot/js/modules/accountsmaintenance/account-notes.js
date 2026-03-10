@@ -402,6 +402,9 @@ window.AccountNotesModule = (function () {
         try {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return dateString;
+            if (window.GlobalUtils?.formatDateTime) {
+                return window.GlobalUtils.formatDateTime(dateString);
+            }
             return date.toLocaleString();
         } catch (e) {
             return dateString;

@@ -1,94 +1,96 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    // ViewData["Title"] = "Client Corporate";
+    // Layout = "_ApplicationLayout";
     var businessOwnershipOptions = ViewData["CorporateBusinessOwnershipOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var businessLineOptions = ViewData["CorporateBusinessLineOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var identificationTypeOptions = ViewData["CorporateIdentificationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-  var countryOptions = ViewData["CorporateCountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["CorporateCountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationshipManagerOptions = ViewData["CorporateRelationshipManagerOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <div class="form-card" data-section="client-corporate" data-cm-tab="corporate">
     <div class="section-header" data-section-toggle>
-   <span class="section-header__title"><i class="bi bi-building"></i>Corporate</span>
+        <span class="section-header__title"><i class="bi bi-building"></i>Corporate</span>
         <button id="btn_toggleClientCorporate" type="button" class="section-toggle-btn" aria-label="Toggle Corporate" aria-expanded="true">
-   <i class="bi bi-chevron-up"></i>
+            <i class="bi bi-chevron-up"></i>
         </button>
     </div>
     <div class="section-content" data-section-content>
         <form id="frm_clientCorporate" autocomplete="off" novalidate>
-  <!-- Hidden fields for page context -->
-<input type="hidden" id="moduleIdCorporate" value="@ViewData["ModuleId"]" />
+            <!-- Hidden fields for page context -->
+            <input type="hidden" id="moduleIdCorporate" value="@ViewData["ModuleId"]" />
 
-     <!-- ROW 1: Company Name, Constitution, Line of Business, Description -->
-      <div class="form-row four-col">
-     <div class="col"><label class="label-blue" for="txt_corporateCompanyName" id="lbl_corporateCompanyName">Company Name</label><input id="txt_corporateCompanyName" name="CompanyName" class="bs-input-text" required /></div>
-  <div class="col"><label class="label-blue" for="ddl_corporateConstitution" id="lbl_corporateConstitution">Constitution</label><select id="ddl_corporateConstitution" name="BusinessOwnershipID" class="bs-select" required asp-items="@(businessOwnershipOptions.Skip(1))"><option value="">Select...</option></select></div>
-   <div class="col"><label class="label-blue" for="ddl_corporateLineOfBusiness" id="lbl_corporateLineOfBusiness">Line Of Business</label><select id="ddl_corporateLineOfBusiness" name="BusinessLineID" class="bs-select" required asp-items="@(businessLineOptions.Skip(1))"><option value="">Select...</option></select></div>
-    <div class="col"><label for="txt_corporateDescription" id="lbl_corporateDescription">Description</label><input id="txt_corporateDescription" name="BusinessDescription" class="bs-input-text" /></div>
-  </div>
-
-      <!-- ROW 2: ID Type, Registration Date, Registration No, Registered Office -->
-    <div class="form-row four-col">
-  <div class="col"><label class="label-blue" for="ddl_corporateIdType" id="lbl_corporateIdType">Identification Type</label><select id="ddl_corporateIdType" name="IdentificationTypeID" class="bs-select" required asp-items="@(identificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
-    <div class="col"><label class="label-blue" for="dt_corporateRegDate" id="lbl_corporateRegDate">Reg. Date</label><input id="dt_corporateRegDate" name="RegistrationDate" class="bs-input-text" type="date" required /></div>
-     <div class="col"><label class="label-blue" for="txt_corporateRegNo" id="lbl_corporateRegNo">Reg. No.</label><input id="txt_corporateRegNo" name="RegistrationNumber" class="bs-input-text" required /></div>
-   <div class="col"><label for="txt_corporateRegOffice" id="lbl_corporateRegOffice">Registered Office</label><input id="txt_corporateRegOffice" name="RegisteredOffice" class="bs-input-text" /></div>
-  </div>
-
-      <!-- ROW 3: Registered At, TIN Number, Business Started Year, Employees -->
-       <div class="form-row four-col">
-       <div class="col"><label for="txt_corporateRegAt" id="lbl_corporateRegAt">Registered At</label><input id="txt_corporateRegAt" name="RegistratedAt" class="bs-input-text" /></div>
-  <div class="col"><label for="txt_corporateTin" id="lbl_corporateTin">TIN Number</label><input id="txt_corporateTin" name="TinNumber" class="bs-input-text" /></div>
-       <div class="col"><label for="txt_corporateYearStarted" id="lbl_corporateYearStarted">Year Started</label><input id="txt_corporateYearStarted" name="BusinessStartedYear" class="bs-input-text" pattern="[0-9]{4}" maxlength="4" placeholder="YYYY" /></div>
-<div class="col"><label for="txt_corporateEmployees" id="lbl_corporateEmployees">No. Employees</label><input id="txt_corporateEmployees" name="NumberOfEmployees" class="bs-input-text" type="number" /></div>
-   </div>
-
-      <!-- ROW 4: Country of Incorporation, ID Issue Date, Issued By, ID Expiry Date -->
-     <div class="form-row four-col">
-<div class="col"><label for="ddl_corporateCountryOfIncorporation" id="lbl_corporateCountryOfIncorporation">Country of Incorporation</label><select id="ddl_corporateCountryOfIncorporation" name="CountryOfIncorporation" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
-     <div class="col"><label for="dt_corporateIssueDate" id="lbl_corporateIssueDate">ID Issue Date</label><input id="dt_corporateIssueDate" name="CorporateIssueDate" class="bs-input-text" type="date" /></div>
-   <div class="col"><label for="txt_corporateIssuedBy" id="lbl_corporateIssuedBy">Issued By</label><input id="txt_corporateIssuedBy" name="CorporateIssueBy" class="bs-input-text" /></div>
-      <div class="col"><label for="dt_corporateExpiryDate" id="lbl_corporateExpiryDate">ID Expiry Date</label><input id="dt_corporateExpiryDate" name="CorporateExpireDate" class="bs-input-text" type="date" /></div>
-  </div>
-
-    <!-- ROW 5: VAT Reg No, VAT Reg Date, Website, Comments -->
-      <div class="form-row four-col">
-  <div class="col"><label for="txt_corporateVatRegNo" id="lbl_corporateVatRegNo">VAT Reg. No</label><input id="txt_corporateVatRegNo" name="VATRegNumber" class="bs-input-text" /></div>
-      <div class="col"><label for="dt_corporateVatRegDate" id="lbl_corporateVatRegDate">VAT Reg. Date</label><input id="dt_corporateVatRegDate" name="VATRegDate" class="bs-input-text" type="date" /></div>
-      <div class="col"><label for="txt_corporateWebsite" id="lbl_corporateWebsite">Website</label><input id="txt_corporateWebsite" name="Website" class="bs-input-text" type="url" placeholder="https://example.com" /></div>
-    <div class="col"><label for="txt_corporateComments" id="lbl_corporateComments">Comments</label><input id="txt_corporateComments" name="Comments" class="bs-input-text" /></div>
+            <!-- ROW 1: Company Name, Constitution, Line of Business, Description -->
+            <div class="form-row four-col">
+                <div class="col"><label class="label-blue" for="txt_corporateCompanyName" id="lbl_corporateCompanyName">Company Name</label><input id="txt_corporateCompanyName" name="CompanyName" class="bs-input-text" required /></div>
+                <div class="col"><label class="label-blue" for="ddl_corporateConstitution" id="lbl_corporateConstitution">Constitution</label><select id="ddl_corporateConstitution" name="BusinessOwnershipID" class="bs-select" required asp-items="@(businessOwnershipOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_corporateLineOfBusiness" id="lbl_corporateLineOfBusiness">Line Of Business</label><select id="ddl_corporateLineOfBusiness" name="BusinessLineID" class="bs-select" required asp-items="@(businessLineOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="txt_corporateDescription" id="lbl_corporateDescription">Description</label><input id="txt_corporateDescription" name="BusinessDescription" class="bs-input-text" /></div>
             </div>
 
-    <!-- ROW 6: Reporting GL Account -->
-            <div class="form-row two-col">
-      <div class="col">
-      <label class="label-blue" for="txt_corporateReportingGL" id="lbl_corporateReportingGL">Reporting GL Account</label>
-         <div class="kairo-account-control" data-kairo-control>
-         <input id="txt_corporateReportingGL" name="ReportingGLID" class="bs-input-text" />
-       <input id="txt_corporateReportingGLName" placeholder="GL Account Name" class="bs-input-text" readonly />
-         <button type="button" class="btn-lookup kairo-control__lookup" data-corporate-action="lookup-gl" aria-label="GL Lookup"><i class="bi bi-search"></i></button>
-       </div>
-       </div>
-        <div class="col"></div>
- </div>
+            <!-- ROW 2: ID Type, Registration Date, Registration No, Registered Office -->
+            <div class="form-row four-col">
+                <div class="col"><label class="label-blue" for="ddl_corporateIdType" id="lbl_corporateIdType">Identification Type</label><select id="ddl_corporateIdType" name="IdentificationTypeID" class="bs-select" required asp-items="@(identificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="dt_corporateRegDate" id="lbl_corporateRegDate">Reg. Date</label><input id="dt_corporateRegDate" name="RegistrationDate" class="bs-input-text" type="date" required /></div>
+                <div class="col"><label class="label-blue" for="txt_corporateRegNo" id="lbl_corporateRegNo">Reg. No.</label><input id="txt_corporateRegNo" name="RegistrationNumber" class="bs-input-text" required /></div>
+                <div class="col"><label for="txt_corporateRegOffice" id="lbl_corporateRegOffice">Registered Office</label><input id="txt_corporateRegOffice" name="RegisteredOffice" class="bs-input-text" /></div>
+            </div>
 
-  <!-- ROW 7: Opened By, Relationship Manager, Opened On -->
-      <div class="form-row four-col">
-<div class="col">
-  <label class="label-blue" for="txt_corporateOpenedBy" id="lbl_corporateOpenedBy">Opened By</label>
-  <div class="kairo-user-control" data-kairo-user-control>
-    <input id="txt_corporateOpenedBy" name="OpenedBy" class="bs-input-text uppercase" readonly />
-    <input id="txt_corporateOpenedByName" class="bs-input-text" placeholder="User Name" readonly />
-    <button type="button" class="btn-lookup kairo-user-control__lookup" data-corporate-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
-  </div>
-</div>
-  <div class="col"><label class="label-blue" for="ddl_corporateRelationshipManager" id="lbl_corporateRelationshipManager">Relationship Manager</label><select id="ddl_corporateRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select...</option></select></div>
-     <div class="col"><label for="dt_corporateOpenedOn" id="lbl_corporateOpenedOn">Opened On</label><input id="dt_corporateOpenedOn" name="OpenedOn" class="bs-input-text" type="date" readonly /></div>
-    <div class="col"></div>
-         </div>
+            <!-- ROW 3: Registered At, TIN Number, Business Started Year, Employees -->
+            <div class="form-row four-col">
+                <div class="col"><label for="txt_corporateRegAt" id="lbl_corporateRegAt">Registered At</label><input id="txt_corporateRegAt" name="RegistratedAt" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_corporateTin" id="lbl_corporateTin">TIN Number</label><input id="txt_corporateTin" name="TinNumber" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_corporateYearStarted" id="lbl_corporateYearStarted">Year Started</label><input id="txt_corporateYearStarted" name="BusinessStartedYear" class="bs-input-text" pattern="[0-9]{4}" maxlength="4" placeholder="YYYY" /></div>
+                <div class="col"><label for="txt_corporateEmployees" id="lbl_corporateEmployees">No. Employees</label><input id="txt_corporateEmployees" name="NumberOfEmployees" class="bs-input-text" type="number" /></div>
+            </div>
+
+            <!-- ROW 4: Country of Incorporation, ID Issue Date, Issued By, ID Expiry Date -->
+            <div class="form-row four-col">
+                <div class="col"><label for="ddl_corporateCountryOfIncorporation" id="lbl_corporateCountryOfIncorporation">Country of Incorporation</label><select id="ddl_corporateCountryOfIncorporation" name="CountryOfIncorporation" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="dt_corporateIssueDate" id="lbl_corporateIssueDate">ID Issue Date</label><input id="dt_corporateIssueDate" name="CorporateIssueDate" class="bs-input-text" type="date" /></div>
+                <div class="col"><label for="txt_corporateIssuedBy" id="lbl_corporateIssuedBy">Issued By</label><input id="txt_corporateIssuedBy" name="CorporateIssueBy" class="bs-input-text" /></div>
+                <div class="col"><label for="dt_corporateExpiryDate" id="lbl_corporateExpiryDate">ID Expiry Date</label><input id="dt_corporateExpiryDate" name="CorporateExpireDate" class="bs-input-text" type="date" /></div>
+            </div>
+
+            <!-- ROW 5: VAT Reg No, VAT Reg Date, Website, Comments -->
+            <div class="form-row four-col">
+                <div class="col"><label for="txt_corporateVatRegNo" id="lbl_corporateVatRegNo">VAT Reg. No</label><input id="txt_corporateVatRegNo" name="VATRegNumber" class="bs-input-text" /></div>
+                <div class="col"><label for="dt_corporateVatRegDate" id="lbl_corporateVatRegDate">VAT Reg. Date</label><input id="dt_corporateVatRegDate" name="VATRegDate" class="bs-input-text" type="date" /></div>
+                <div class="col"><label for="txt_corporateWebsite" id="lbl_corporateWebsite">Website</label><input id="txt_corporateWebsite" name="Website" class="bs-input-text" type="url" placeholder="https://example.com" /></div>
+                <div class="col"><label for="txt_corporateComments" id="lbl_corporateComments">Comments</label><input id="txt_corporateComments" name="Comments" class="bs-input-text" /></div>
+            </div>
+
+            <!-- ROW 6: Reporting GL Account -->
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="label-blue" for="txt_corporateReportingGL" id="lbl_corporateReportingGL">Reporting GL Account</label>
+                    <div class="kairo-account-control" data-kairo-control>
+                        <input id="txt_corporateReportingGL" name="ReportingGLID" class="bs-input-text" />
+                        <input id="txt_corporateReportingGLName" placeholder="GL Account Name" class="bs-input-text" readonly />
+                        <button type="button" class="btn-lookup kairo-control__lookup" data-corporate-action="lookup-gl" aria-label="GL Lookup"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+                <div class="col"></div>
+            </div>
+
+            <!-- ROW 7: Opened By, Relationship Manager, Opened On -->
+            <div class="form-row four-col">
+                <div class="col">
+                    <label class="label-blue" for="txt_corporateOpenedBy" id="lbl_corporateOpenedBy">Opened By</label>
+                    <div class="kairo-user-control" data-kairo-user-control>
+                        <input id="txt_corporateOpenedBy" name="OpenedBy" class="bs-input-text uppercase" readonly />
+                        <input id="txt_corporateOpenedByName" class="bs-input-text" placeholder="User Name" readonly />
+                        <button type="button" class="btn-lookup kairo-user-control__lookup" data-corporate-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+                <div class="col"><label class="label-blue" for="ddl_corporateRelationshipManager" id="lbl_corporateRelationshipManager">Relationship Manager</label><select id="ddl_corporateRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="dt_corporateOpenedOn" id="lbl_corporateOpenedOn">Opened On</label><input id="dt_corporateOpenedOn" name="OpenedOn" class="bs-input-text" type="date" readonly /></div>
+                <div class="col"></div>
+            </div>
         </form>
     </div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-corporate.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-corporate.js"></script>

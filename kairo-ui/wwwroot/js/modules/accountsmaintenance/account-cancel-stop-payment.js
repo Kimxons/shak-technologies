@@ -184,11 +184,11 @@ window.CancelStopPaymentModule = (function () {
         document.getElementById('requestRef').value = rec.RequestReferenceNo || rec.RequestRef || '';
         document.getElementById('chequeNoStart').value = rec.StartChequeID || rec.ChequeNoStart || '';
         document.getElementById('chequeNoEnd').value = rec.EndChequeID || rec.ChequeNoEnd || '';
-        document.getElementById('chequeDate').value = rec.ChequeDate ? rec.ChequeDate.split('T')[0] : '';
+        document.getElementById('chequeDate').value = formatDateForInput(rec.ChequeDate);
         document.getElementById('chequeAmount').value = rec.ChequeAmount || '0.00';
         document.getElementById('reasonId').value = rec.CancelReasonID || rec.ReasonId || '';
         document.getElementById('reasonText').value = rec.CancelReason || rec.ReasonText || '';
-        document.getElementById('cancellationDate').value = (rec.CancelledDate || rec.CancellationDate) ? (rec.CancelledDate || rec.CancellationDate).split('T')[0] : '';
+        document.getElementById('cancellationDate').value = formatDateForInput(rec.CancelledDate || rec.CancellationDate);
         document.getElementById('instructionGivenBy').value = rec.CancelledBy || rec.InstructionGivenBy || '';
 
         state.currentUpdateCount = parseInt(rec.UpdateCount || 0);
@@ -199,6 +199,21 @@ window.CancelStopPaymentModule = (function () {
         document.getElementById('MakerDT').textContent = AppCore.formatDate(rec.MakerDT || rec.CreatedOn, true);
         document.getElementById('SupervisorID').textContent = rec.SupervisorID || rec.SupervisedBy || '-';
         document.getElementById('SupervisorDT').textContent = AppCore.formatDate(rec.SupervisorDT || rec.SupervisedOn, true);
+    }
+
+    function formatDateForInput(dateStr) {
+        if (!dateStr) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateStr);
+            if (parsed) return parsed;
+        }
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            return d.toISOString().split('T')[0];
+        } catch {
+            return '';
+        }
     }
 
     /**

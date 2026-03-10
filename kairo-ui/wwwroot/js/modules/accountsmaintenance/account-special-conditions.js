@@ -116,6 +116,9 @@ window.AccountSpecialConditionsModule = (function () {
 
     function fmtDateTime(ds) {
         if (!ds) return '-';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(ds);
+        }
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 

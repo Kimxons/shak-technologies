@@ -90,6 +90,9 @@ window.AccountDocumentsModule = (function () {
 
     function fmtDate(ds) {
         if (!ds) return '';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(ds);
+        }
         try {
             const d = new Date(ds);
             if (isNaN(d.getTime())) return ds;
@@ -100,6 +103,9 @@ window.AccountDocumentsModule = (function () {
 
     function fmtDateTime(ds) {
         if (!ds) return '-';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(ds);
+        }
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
