@@ -14,6 +14,53 @@
   function initializeCancelStop() {
     initializeButtons();
     initializeFormControls();
+    initializeCollapsibleSections();
+  }
+
+  /**
+   * Make titled sections collapsible.
+   */
+  function initializeCollapsibleSections() {
+    const titles = document.querySelectorAll('[data-collapsible-title]');
+
+    titles.forEach(function(title) {
+      const section = title.parentElement;
+      if (!section) return;
+
+      const contentNodes = Array.from(section.children).filter(function(node) {
+        return node !== title;
+      });
+      if (!contentNodes.length) return;
+
+      const indicator = document.createElement('span');
+      indicator.textContent = ' [-]';
+      indicator.style.fontWeight = '700';
+      title.appendChild(indicator);
+
+      title.style.cursor = 'pointer';
+      title.setAttribute('role', 'button');
+      title.setAttribute('tabindex', '0');
+      title.setAttribute('aria-expanded', 'true');
+
+      const toggle = function() {
+        const isExpanded = title.getAttribute('aria-expanded') === 'true';
+        const nextExpanded = !isExpanded;
+        title.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+        indicator.textContent = nextExpanded ? ' [-]' : ' [+]';
+
+        contentNodes.forEach(function(node) {
+          node.style.display = nextExpanded ? '' : 'none';
+        });
+      };
+
+      title.addEventListener('click', toggle);
+      title.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggle();
+        }
+      });
+    });
   }
 
   /**
