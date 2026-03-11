@@ -164,11 +164,11 @@ namespace kairo_ui.Controllers.AccountUtilities
 
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "SITransferTypeID",
+                    "SITypeID",
                     "FailedChargeTypeID"
                 });
 
-                dropdownOptions.TryGetValue("SITransferTypeID", out var siTransferTypeOptions);
+                dropdownOptions.TryGetValue("SITypeID", out var siTransferTypeOptions);
                 dropdownOptions.TryGetValue("FailedChargeTypeID", out var failedChargeTypeOptions);
 
                 ViewData["SITransferTypeOptions"] = siTransferTypeOptions ?? Enumerable.Empty<SelectListItem>();

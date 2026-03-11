@@ -150,7 +150,6 @@ namespace kairo_ui.Services
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
-        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
 
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
@@ -163,9 +162,9 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_SI_TYPES = "p_GetSITypes";
-        public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
-        public const string DELETE_SI_TYPES = "p_DeleteSITypes";
+        public const string GET_SI_TYPES = "dbo.p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "dbo.p_AddEditSITypes";
+        public const string DELETE_SI_TYPES = "dbo.p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
 

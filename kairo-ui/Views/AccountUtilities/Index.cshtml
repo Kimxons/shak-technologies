@@ -3,43 +3,6 @@
     ViewData["Title"] = "Account Utilities";
     Layout = "_ApplicationLayout";
 }
-
-@section Styles {
-    <style>
-        /* Suppress duplicate headers, action panels and overlays injected by submodule partials */
-        #submodule-container .am-header,
-        #submodule-container .am-message-panel,
-        #submodule-container .loading-overlay,
-        #submodule-container .action-panel,
-        #submodule-container aside.action-panel {
-            display: none !important;
-        }
-
-        /* Reset legacy container sizing that may conflict with the parent layout */
-        #submodule-container .window {
-            height: auto !important;
-            width: 100% !important;
-            position: static !important;
-            background: transparent !important;
-            box-shadow: none !important;
-        }
-
-        #submodule-container .main-container {
-            height: auto !important;
-            padding: 0 !important;
-        }
-
-        /* Keep the alert container pinned at top of form-content */
-        #accountUtilitiesAlertContainer {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: inherit;
-            width: 100%;
-        }
-    </style>
-}
-
 <form id="accountUtilitiesForm" style="display:none;">
     @Html.AntiForgeryToken()
 </form>
