@@ -63,6 +63,45 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             return PartialView("~/Views/Identities/ClientMaintenance/_ClientRelations.cshtml");
         }
+        [HttpGet]
+        [Route("ClientRelation")]
+        public async Task<IActionResult> ClientRelation(string? moduleId = null, string? clientId = null, string? requestId = null)
+        {
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+
+            ViewData["ModuleId"] = moduleId ?? string.Empty;
+            ViewData["ClientId"] = clientId ?? string.Empty;
+            ViewData["RequestId"] = requestId ?? string.Empty;
+            ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(clientId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
+
+            try
+            {
+                // Use GetMultipleDropdownCodeOptionsAsync - now returns SelectListItem format
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(
+                [
+                "RelationTypeID",
+                "TitleID",
+                "GenderID",
+                "RelationID"
+                ]);
+
+                dropdownOptions.TryGetValue("RelationTypeID", out var relationTypeOptions);
+                dropdownOptions.TryGetValue("TitleID", out var titleOptions);
+                dropdownOptions.TryGetValue("GenderID", out var genderOptions);
+                dropdownOptions.TryGetValue("RelationID", out var relationOptions);
+
+                ViewData["RelationTypeOptions"] = relationTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["RelationTitleOptions"] = titleOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["RelationGenderOptions"] = genderOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["RelationOptions"] = relationOptions ?? Enumerable.Empty<SelectListItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Relations dropdown options");
+            }
+
+            return View("~/Views/Identities/ClientMaintenance/ClientRelations.cshtml");
+        }
 
         [HttpPost, Route("get")]
         public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)

@@ -79,6 +79,34 @@ namespace kairo_ui.Controllers.Dashboard
                     _logger.LogWarning(ex, "Failed to load bank settings from cache, using session values");
                 }
 
+                // Load working date (SOD date) for the current branch
+                try
+                {
+                    var branchCode = HttpContext.Session.GetString("branch_code");
+                    if (!string.IsNullOrEmpty(branchCode))
+                    {
+                        var requestId = HttpContext.Connection.Id ?? Guid.NewGuid().ToString();
+                        var branchStatusResp = await _apiService.CreateAsync<ResponseDetail<object>>(
+                            "SystemCoreApi",
+                            ApiEndpoints.GET_SYSTEM_BRANCH_STATUS,
+                            new { RequestID = requestId, OurBranchID = branchCode });
+
+                        if (branchStatusResp?.ResponseCode == "00" && branchStatusResp.Details != null)
+                        {
+                            var detailsJson = JsonSerializer.Serialize(branchStatusResp.Details);
+                            var branchStatus = JsonSerializer.Deserialize<SystemBranchStatus>(detailsJson, JsonOptions);
+                            if (branchStatus?.SODDate != default)
+                            {
+                                viewModel.CurrentDate = branchStatus.SODDate;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load branch status/working date, using current date");
+                }
+
                 // Load start menu and resources
                 var startMenuData = await LoadStartMenuAndResources();
                 if (startMenuData != null)

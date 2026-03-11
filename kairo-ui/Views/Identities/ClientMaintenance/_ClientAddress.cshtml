@@ -1,8 +1,6 @@
 @using CBS.Entities.SystemCore
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // ViewData["Title"] = "Client Address";
-    // Layout = "_ApplicationLayout";
     var addressTypeOptions = ViewData["AddressTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var countryOptions = ViewData["AddressCountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var cityOptions = ViewData["AddressCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
@@ -10,10 +8,12 @@
     var subCityOptions = ViewData["AddressSubCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var languageOptions = ViewData["AddressLanguageOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
-    var showActionPanel = moduleId != "1000";
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
 }
 
-<div class="form-card" data-section="client-address" data-cm-tab="address">
+<div class="form-card" data-section="client-address" data-cm-tab="address" data-address-host="tab">
     <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-geo-alt"></i>Address</span>
         <button id="btn_toggleClientAddress" type="button" class="section-toggle-btn" aria-label="Toggle Address" aria-expanded="true">
@@ -74,16 +74,14 @@
             </div>
         </form>
 
-        @if (!showActionPanel)
-        {
-            <div class="d-flex justify-content-center gap-2 my-4">
-                <button id="btn_newClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-                <button id="btn_alterClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-                <button id="btn_deleteClientAddress" type="button" class="btn btn-sm btn-outline-danger" data-address-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-                <button id="btn_updateClientAddress" type="button" class="btn btn-sm btn-primary" data-address-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-                <button id="btn_clearClientAddress" type="button" class="btn btn-sm btn-outline-secondary" data-address-action="clear">Clear</button>
-            </div>
-        }
+        <div class="d-flex justify-content-center gap-2 my-4">
+            <button id="btn_newClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+            <button id="btn_alterClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
+            <button id="btn_deleteClientAddress" type="button" class="btn btn-sm btn-outline-danger" data-address-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
+            <button id="btn_updateClientAddress" type="button" class="btn btn-sm btn-primary" data-address-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
+            <button id="btn_clearClientAddress" type="button" class="btn btn-sm btn-outline-secondary" data-address-action="clear">Clear</button>
+        </div>
+
 
         <div class="section-header py-1 mb-2 bg-light border">
             <span class="small fw-bold px-2">ADDRESSES</span>
@@ -106,17 +104,15 @@
     </div>
 </div>
 
-@if (showActionPanel)
-{
-    <aside class="action-panel" aria-label="Client address actions">
-        <div class="d-flex flex-column gap-2 mt-auto">
-            <button id="btn_newClientAddress" type="button" class="btn-action" data-address-action="new"><i class="bi bi-plus-lg"></i><span>New</span></button>
-            <button id="btn_alterClientAddress" type="button" class="btn-action" data-address-action="alter"><i class="bi bi-pencil-square"></i><span>Alter</span></button>
-            <button id="btn_deleteClientAddress" type="button" class="btn-action btn-delete" data-address-action="remove"><i class="bi bi-trash"></i><span>Remove</span></button>
-            <button id="btn_updateClientAddress" type="button" class="btn-action btn-save" data-address-action="update"><i class="bi bi-check2-circle"></i><span>Update</span></button>
-            <button id="btn_clearClientAddress" type="button" class="btn-action btn-cancel" data-address-action="clear"><i class="bi bi-x-circle"></i><span>Clear</span></button>
-        </div>
-    </aside>
-}
+<script>
+    // Store Statement View parameters from controller
+    window.ClientAddressState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: false
+    };
+</script>
 
-<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-address.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/_clientAddress.js"></script>

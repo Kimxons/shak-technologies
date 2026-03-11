@@ -61,6 +61,35 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             return PartialView("~/Views/Identities/ClientMaintenance/_ClientPhotoSignature.cshtml");
         }
 
+        [HttpGet]
+        [Route("ClientPhotoSignature")]
+        public async Task<IActionResult> ClientPhotoSignature(string? moduleId = null, string? clientId = null, string? requestId = null)
+        {
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+
+            ViewData["ModuleId"] = moduleId ?? string.Empty;
+            ViewData["ClientId"] = clientId ?? string.Empty;
+            ViewData["RequestId"] = requestId ?? string.Empty;
+            ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(clientId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
+
+            try
+            {
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "ImageTypeID"
+                });
+
+                dropdownOptions.TryGetValue("ImageTypeID", out var imageTypeOptions);
+                ViewData["ImageTypeOptions"] = imageTypeOptions ?? Enumerable.Empty<SelectListItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading standalone Photo & Signature dropdown options");
+            }
+
+            return View("~/Views/Identities/ClientMaintenance/ClientPhotoSignature.cshtml");
+        }
+
         [HttpPost, Route("get")]
         public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
         {
