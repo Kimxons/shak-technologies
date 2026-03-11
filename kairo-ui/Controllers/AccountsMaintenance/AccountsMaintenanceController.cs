@@ -453,45 +453,28 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "StopPaymentReasonID"
+                    "StopPayReasonID",
+                    "VoidReasonID",
+                    "ChequePrefix"
                 });
 
-                dropdownOptions.TryGetValue("StopPaymentReasonID", out var reasonOptions);
+                dropdownOptions.TryGetValue("StopPayReasonID", out var stopPayReasonOptions);
+                dropdownOptions.TryGetValue("VoidReasonID", out var voidReasonOptions);
+                dropdownOptions.TryGetValue("ChequePrefix", out var chequePrefixOptions);
 
-                ViewData["StopPaymentReasonOptions"] = reasonOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["StopPaymentReasonOptions"] = stopPayReasonOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["VoidReasonOptions"] = voidReasonOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["ChequePrefixOptions"] = chequePrefixOptions ?? Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading StopPaymentVoid dropdown options");
+                ViewData["StopPaymentReasonOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["VoidReasonOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["ChequePrefixOptions"] = Enumerable.Empty<SelectListItem>();
             }
 
             return PartialView("StopPaymentVoid");
-        }
-
-        [Route("CancelStopPayment")]
-        public async Task<IActionResult> CancelStopPayment()
-        {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized();
-
-            try
-            {
-                // Use same reason code as StopPaymentVoid since cancel uses same reasons
-                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
-                {
-                    "StopPaymentReasonID"
-                });
-
-                dropdownOptions.TryGetValue("StopPaymentReasonID", out var reasonOptions);
-
-                ViewData["CancelStopPaymentReasonOptions"] = reasonOptions ?? Enumerable.Empty<SelectListItem>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading CancelStopPayment dropdown options");
-            }
-
-            return PartialView("CancelStopPayment");
         }
 
         [Route("ActivateDormant")]
@@ -2589,90 +2572,6 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting stop payment");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
-        // ============================================================================
-        // CANCEL STOP PAYMENT
-        // ============================================================================
-
-        [HttpPost]
-        [Route("api/get-cancel-stop-payments")]
-        public async Task<IActionResult> GetCancelStopPayments([FromBody] GenericAccountRequest request)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                _commonUtilities.EnsureDefaults(request);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.GET_CANCEL_STOP_PAYMENTS,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting cancel stop payments");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [Route("api/add-cancel-stop-payment")]
-        public async Task<IActionResult> AddCancelStopPayment([FromBody] JsonElement request)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
-                _commonUtilities.EnsureDefaults(requestDict);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.ADD_CANCEL_STOP_PAYMENT,
-                    requestDict
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding cancel stop payment");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [Route("api/update-cancel-stop-payment")]
-        public async Task<IActionResult> UpdateCancelStopPayment([FromBody] JsonElement request)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
-                _commonUtilities.EnsureDefaults(requestDict);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.UPDATE_CANCEL_STOP_PAYMENT,
-                    requestDict
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating cancel stop payment");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }

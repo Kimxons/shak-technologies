@@ -330,7 +330,7 @@ namespace kairo_ui.Controllers.MicroFinance
             var withoutDbo = withDbo.Substring(4); // strip "dbo."
 
             var requestDictionary = DeserializeRequestData(requestData);
-            EnsureMicroFinanceDefaults(requestDictionary);
+            EnsureMicroFinanceDefaults(requestDictionary, withDbo);
 
             return new
             {
@@ -375,11 +375,31 @@ namespace kairo_ui.Controllers.MicroFinance
             _                     => element.GetRawText()
         };
 
-        private void EnsureMicroFinanceDefaults(IDictionary<string, object?> requestData)
+        private void EnsureMicroFinanceDefaults(IDictionary<string, object?> requestData, string formId)
         {
-            SetIfMissing(requestData, "OperatorID", ResolveSessionValue("user_name", "user_id") ?? "web_portal");
-            SetIfMissing(requestData, "OurBranchID", ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
-            SetIfMissing(requestData, "BankID", ResolveSessionValue("bank_id", "bank_code") ?? "00");
+            var normalizedFormId = (formId ?? string.Empty).Trim();
+
+            // Lookup/dropdown procedures below do not accept OperatorID/OurBranchID.
+            // Injecting those causes SQL argument mismatch and empty dropdowns.
+            var skipBranchAndOperator =
+                normalizedFormId.Equals("dbo.p_GetSpConditionCalssCombo", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("p_GetSpConditionCalssCombo", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("dbo.p_GetSpConditionClassCombo", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("p_GetSpConditionClassCombo", StringComparison.OrdinalIgnoreCase);
+
+            if (!skipBranchAndOperator)
+            {
+                SetIfMissing(requestData, "OperatorID", ResolveSessionValue("user_name", "user_id") ?? "web_portal");
+                SetIfMissing(requestData, "OurBranchID", ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
+            }
+
+            // Some procedures (e.g., dbo.p_GetGroupDetails) do not declare BankID.
+            // Injecting it causes "too many arguments specified" at SQL execution time.
+            if (!normalizedFormId.Equals("dbo.p_GetGroupDetails", StringComparison.OrdinalIgnoreCase)
+                && !normalizedFormId.Equals("p_GetGroupDetails", StringComparison.OrdinalIgnoreCase))
+            {
+                SetIfMissing(requestData, "BankID", ResolveSessionValue("bank_id", "bank_code") ?? "00");
+            }
         }
 
         private void SetIfMissing(IDictionary<string, object?> requestData, string key, string value)
