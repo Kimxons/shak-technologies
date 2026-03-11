@@ -4,8 +4,6 @@
     Layout = "_ApplicationLayout";
 
     var cityOptions = ViewData["CityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var siTransferTypeOptions = ViewData["SITransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var chargeRecoveryOptions = ViewData["ChargeRecoveryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <form id="siDemandDraftForm" style="display:none;">
@@ -38,7 +36,7 @@
                   </div>
                 </div>
                 <div class="col">
-                  <label class="label-blue" id="lbl_accountId" for="txt_accountId">Account ID <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_accountId" for="txt_accountId">Account ID</label>
                   <div class="kairo-control" data-kairo-control>
                     <input type="text" id="txt_accountId" name="accountId" class="kairo-control__id" aria-label="Account ID">
                     <input type="text" id="txt_accountName" class="kairo-control__name" aria-label="Account Name" placeholder="Account Name" readonly>
@@ -49,7 +47,7 @@
               <!-- Row 2: Standing Instruction ID | Reference No -->
               <div class="form-row two-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_standingInstructionId" for="txt_standingInstructionId">Standing Instruction ID <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_standingInstructionId" for="txt_standingInstructionId">Standing Instruction ID</label>
                   <div class="kairo-control kairo-control--single" data-kairo-control>
                     <input type="text" id="txt_standingInstructionId" name="standingInstructionId" class="kairo-control__id" aria-label="Standing Instruction ID" readonly>
                     <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="standingInstruction" aria-label="Search Standing Instruction"><i class="bi bi-search"></i></button>
@@ -63,17 +61,13 @@
               <!-- Row 3: SI Transfer Type | Effective Date -->
               <div class="form-row two-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_siTransferType" for="ddl_siTransferType">SI Transfer Type <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_siTransferType" for="ddl_siTransferType">SI Transfer Type</label>
                   <select id="ddl_siTransferType" name="siTransferType" class="bs-select">
                     <option value="">--Select--</option>
-                    @foreach (var option in siTransferTypeOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
                   </select>
                 </div>
                 <div class="col">
-                  <label class="label-blue" id="lbl_effectiveDate" for="ddl_effectiveDate">Effective Date <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_effectiveDate" for="ddl_effectiveDate">Effective Date</label>
                   <select id="ddl_effectiveDate" name="effectiveDate" class="bs-select">
                     <option value="">--Select--</option>
                   </select>
@@ -82,7 +76,7 @@
               <!-- Row 4: Transfer Currency ID | Amount In -->
               <div class="form-row two-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_transferCurrencyId" for="txt_transferCurrencyId">Transfer Currency ID <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_transferCurrencyId" for="txt_transferCurrencyId">Transfer Currency ID</label>
                   <div class="kairo-control" data-kairo-control>
                     <input type="text" id="txt_transferCurrencyId" name="transferCurrencyId" class="kairo-control__id" aria-label="Transfer Currency ID">
                     <input type="text" id="txt_transferCurrencyName" class="kairo-control__name" aria-label="Currency Name" placeholder="Currency Name" readonly>
@@ -90,20 +84,20 @@
                   </div>
                 </div>
                 <div class="col">
-                  <label class="label-blue" id="lbl_amountIn" for="ddl_amountIn">Amount In <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_amountIn" for="ddl_amountIn">Amount In</label>
                   <select id="ddl_amountIn" name="amountIn" class="bs-select">
-                    <option value="TransactionCurrencyID">Transaction CurrencyID</option>
+                    <option value="">--Select--</option>
                   </select>
                 </div>
               </div>
               <!-- Row 5: Fixed Amount | Beneficiary Name -->
               <div class="form-row two-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_fixedAmount" for="txt_fixedAmount">Fixed Amount <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_fixedAmount" for="txt_fixedAmount">Fixed Amount</label>
                   <input type="text" id="txt_fixedAmount" name="fixedAmount" class="bs-input-text" aria-label="Fixed Amount">
                 </div>
                 <div class="col">
-                  <label class="label-blue" id="lbl_beneficiaryName" for="txt_beneficiaryName">Beneficiary Name <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_beneficiaryName" for="txt_beneficiaryName">Beneficiary Name</label>
                   <input type="text" id="txt_beneficiaryName" name="beneficiaryName" class="bs-input-text" aria-label="Beneficiary Name">
                 </div>
               </div>
@@ -120,23 +114,16 @@
                   <input type="text" id="txt_payeeAccountId" name="payeeAccountId" class="bs-input-text" aria-label="Payee Account ID">
                 </div>
                 <div class="col">
-                  <label class="label-blue" id="lbl_payableAt" for="txt_payableAt">Payable At <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_payableAt" for="txt_payableAt">Payable At</label>
                   <input type="text" id="txt_payableAt" name="payableAt" class="bs-input-text" aria-label="Payable At">
                 </div>
               </div>
               <!-- Row 7: Transfer Frequency | No Of Execution | Regular Execution Day -->
               <div class="form-row three-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_transferFrequency" for="ddl_transferFrequency">Transfer Frequency <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_transferFrequency" for="ddl_transferFrequency">Transfer Frequency</label>
                   <select id="ddl_transferFrequency" name="transferFrequency" class="bs-select">
                     <option value="">--Select--</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Bi-Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="halfyearly">Half Yearly</option>
-                    <option value="yearly">Yearly</option>
                   </select>
                 </div>
                 <div class="col">
@@ -151,7 +138,7 @@
               <!-- Row 8: First Execution Date | Last Execution Date -->
               <div class="form-row two-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_firstExecutionDate" for="ddl_firstExecutionDate">First Execution Date <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_firstExecutionDate" for="ddl_firstExecutionDate">First Execution Date</label>
                   <select id="ddl_firstExecutionDate" name="firstExecutionDate" class="bs-select">
                     <option value="">--Select--</option>
                   </select>
@@ -164,20 +151,15 @@
               <!-- Row 9: Charge Recovery | Mailing Address -->
               <div class="form-row two-col">
                 <div class="col">
-                  <label class="label-blue" id="lbl_chargeRecovery" for="ddl_chargeRecovery">Charge Recovery <span class="text-danger">*</span></label>
+                  <label class="label-blue" id="lbl_chargeRecovery" for="ddl_chargeRecovery">Charge Recovery</label>
                   <select id="ddl_chargeRecovery" name="chargeRecovery" class="bs-select">
                     <option value="">--Select--</option>
-                    @foreach (var option in chargeRecoveryOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
                   </select>
                 </div>
                 <div class="col">
                   <label id="lbl_mailingAddress" for="ddl_mailingAddress">Mailing Address</label>
                   <select id="ddl_mailingAddress" name="mailingAddress" class="bs-select">
-                    <option value="ResidentialAddress">Residential Address</option>
-                    <option value="OfficeAddress">Office Address</option>
+                    <option value="">--Select--</option>
                   </select>
                 </div>
               </div>

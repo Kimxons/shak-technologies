@@ -22,28 +22,25 @@ window.SIDemandDraftModule = (function () {
         CREATE: '/AccountUtilities/api/create-si-demand-draft',
         UPDATE: '/AccountUtilities/api/update-si-demand-draft',
         DELETE: '/AccountUtilities/api/delete-si-demand-draft',
-        STOP:   '/AccountUtilities/api/stop-si-demand-draft'
+        STOP:   '/AccountUtilities/api/stop-si-demand-draft',
+        DROPDOWN: '/AccountUtilities/StandingInstructionDemandDraft/get-dropdown-options'
     };
 
-    const requiredFieldSpecs = [
-        { id: 'txt_accountId', label: 'Account ID' },
-        { id: 'txt_standingInstructionId', label: 'Standing Instruction ID', skipInAddMode: true },
-        { id: 'ddl_siTransferType', label: 'SI Transfer Type' },
-        { id: 'ddl_effectiveDate', label: 'Effective Date' },
-        { id: 'txt_transferCurrencyId', label: 'Transfer Currency ID' },
-        { id: 'ddl_amountIn', label: 'Amount In' },
-        { id: 'txt_fixedAmount', label: 'Fixed Amount' },
-        { id: 'txt_beneficiaryName', label: 'Beneficiary Name' },
-        { id: 'txt_payableAt', label: 'Payable At' },
-        { id: 'ddl_transferFrequency', label: 'Transfer Frequency' },
-        { id: 'ddl_firstExecutionDate', label: 'First Execution Date' },
-        { id: 'ddl_chargeRecovery', label: 'Charge Recovery' }
-    ];
+    const STATIC_SELECT_OPTIONS = {
+        ddl_amountIn: [
+            { value: 'T', label: 'Transaction CurrencyID' },
+            { value: 'F', label: 'Transfer CurrencyID' }
+        ],
+        ddl_mailingAddress: [
+            { value: 'R', label: 'Residential Address' },
+            { value: 'O', label: 'Office Address' }
+        ]
+    };
 
     /* ====================================================================
        INIT
        ==================================================================== */
-    function init() {
+    async function init() {
         console.log('[SI-DD] Initializing module...');
         getContext();
         wireHeaderControls();
@@ -51,7 +48,72 @@ window.SIDemandDraftModule = (function () {
         wireSectionToggles();
         wireLookupButtons();
         initSearchModals();
+        initStaticSelects();
+        await loadDropdowns();
         setMode('VIEW');
+    }
+
+    async function loadDropdowns() {
+        try {
+            const [siTypeOptions, chargeRecoveryOptions, transferFrequencyOptions] = await Promise.all([
+                fetchDropdownOptions('SITypeID').catch(() => []),
+                fetchDropdownOptions('SIChargeTypeID').catch(() => []),
+                fetchDropdownOptions('TrfFrequencyID').catch(() => [])
+            ]);
+
+            populateSelect('ddl_siTransferType', siTypeOptions, '--Select--');
+            populateSelect('ddl_chargeRecovery', chargeRecoveryOptions, '--Select--');
+            populateSelect('ddl_transferFrequency', transferFrequencyOptions, '--Select--');
+
+            if (state.currentRecord) {
+                populateForm(state.currentRecord);
+            }
+        } catch (error) {
+            console.error('[SI-DD] Failed to load dropdowns:', error);
+        }
+    }
+
+    function initStaticSelects() {
+        populateSelect('ddl_amountIn', STATIC_SELECT_OPTIONS.ddl_amountIn, '--Select--');
+        populateSelect('ddl_mailingAddress', STATIC_SELECT_OPTIONS.ddl_mailingAddress, '--Select--');
+    }
+
+    async function fetchDropdownOptions(codeId, valueField) {
+        let url = `${API.DROPDOWN}?codeId=${encodeURIComponent(codeId)}`;
+        if (valueField) {
+            url += `&valueField=${encodeURIComponent(valueField)}`;
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load options');
+        }
+
+        return result.data || [];
+    }
+
+    function populateSelect(selectId, options, placeholder) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        const currentValue = select.value;
+        select.innerHTML = `<option value="">${placeholder || '--Select--'}</option>`;
+
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value ?? '';
+            option.textContent = opt.label ?? opt.value ?? '';
+            select.appendChild(option);
+        });
+
+        if (currentValue) {
+            ensureSelectOption(selectId, currentValue, resolveSelectLabel(selectId, currentValue));
+        }
     }
 
     function getContext() {
@@ -295,8 +357,13 @@ window.SIDemandDraftModule = (function () {
         const set = (id, value) => {
             const el = document.getElementById(id);
             if (el) {
-                if (el.type === 'checkbox') el.checked = !!value;
-                else el.value = value ?? '';
+                if (el.type === 'checkbox') {
+                    el.checked = !!value;
+                } else if (el.tagName === 'SELECT') {
+                    ensureSelectOption(id, value, resolveSelectLabel(id, value));
+                } else {
+                    el.value = value ?? '';
+                }
             }
         };
 
@@ -310,7 +377,7 @@ window.SIDemandDraftModule = (function () {
         set('ddl_effectiveDate',           data.EffectiveDate);
         set('txt_transferCurrencyId',      data.TransferCurrencyID);
         set('txt_transferCurrencyName',    data.CurrencyName || data.TransferCurrencyName);
-        set('ddl_amountIn',               data.AmountIn);
+        set('ddl_amountIn',                data.AmountIn);
         set('txt_fixedAmount',             data.FixedAmount);
         set('ddl_transferFrequency',       data.TransferFrequency);
         set('txt_noOfExecution',           data.NoOfExecution);
@@ -322,10 +389,10 @@ window.SIDemandDraftModule = (function () {
         set('chk_accountPayee',            data.AccountPayee);
         set('txt_payeeAccountId',          data.PayeeAccountID);
         set('txt_payableAt',               data.PayableAt);
-        set('ddl_mailingAddress',          data.MailingAddress);
+        set('ddl_mailingAddress',          data.MailingAddress || data.MailingAddressID);
         set('txt_address1',                data.Address1);
         set('txt_address2',                data.Address2);
-        set('ddl_city',                    data.City);
+        set('ddl_city',                    data.City || data.CityID);
         set('txt_zipCode',                 data.ZipCode);
         set('txt_phone',                   data.Phone);
         set('txt_landMark',                data.LandMark);
@@ -363,23 +430,6 @@ window.SIDemandDraftModule = (function () {
        VALIDATION
        ==================================================================== */
     function validateForm() {
-        for (const field of requiredFieldSpecs) {
-            if (field.skipInAddMode && state.currentMode === 'ADD') {
-                continue;
-            }
-
-            const el = document.getElementById(field.id);
-            const value = el?.type === 'checkbox'
-                ? (el.checked ? 'true' : '')
-                : (el?.value?.trim() || '');
-
-            if (!value) {
-                showMessage(`${field.label} is required`, 'warning');
-                focusField(field.id);
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -718,6 +768,60 @@ window.SIDemandDraftModule = (function () {
         } catch (e) {
             return dateString;
         }
+    }
+
+    function ensureSelectOption(id, value, label) {
+        const select = document.getElementById(id);
+        if (!select) return;
+
+        const normalizedValue = value ?? '';
+        if (!normalizedValue) {
+            select.value = '';
+            return;
+        }
+
+        const valueAsString = String(normalizedValue);
+        let option = Array.from(select.options).find(item => item.value === valueAsString);
+
+        if (!option) {
+            option = document.createElement('option');
+            option.value = valueAsString;
+            option.textContent = label || valueAsString;
+            select.appendChild(option);
+        }
+
+        select.value = valueAsString;
+    }
+
+    function resolveSelectLabel(id, value) {
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+
+        const valueAsString = String(value);
+        const staticOption = (STATIC_SELECT_OPTIONS[id] || []).find(option => option.value === valueAsString);
+        if (staticOption) {
+            return staticOption.label;
+        }
+
+        if (id === 'ddl_effectiveDate' || id === 'ddl_firstExecutionDate') {
+            return formatDateOnly(valueAsString);
+        }
+
+        return valueAsString;
+    }
+
+    function formatDateOnly(dateString) {
+        if (!dateString) {
+            return '';
+        }
+
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) {
+            return dateString;
+        }
+
+        return date.toLocaleDateString();
     }
 
     function showLoading(show) {
