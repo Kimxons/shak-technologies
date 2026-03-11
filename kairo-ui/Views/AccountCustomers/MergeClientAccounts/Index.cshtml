@@ -5,6 +5,11 @@
     var branchName = Context.Session.GetString("branch_name") ?? string.Empty;
     var operatorId = Context.Session.GetString("user_name") ?? Context.Session.GetString("user_id") ?? string.Empty;
     var bankId = Context.Session.GetString("bank_id") ?? Context.Session.GetString("bank_code") ?? "00";
+    var moduleId = (ViewData["ModuleId"]?.ToString() ?? Context.Request.Query["ModuleID"].ToString() ?? "9900").Trim();
+    if (string.IsNullOrWhiteSpace(moduleId))
+    {
+        moduleId = "9900";
+    }
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -17,360 +22,400 @@
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
     <style>
-            #mergeClientAccountsModule .window {
-                display: flex;
-                flex-direction: column;
-                min-height: 100vh;
-                overflow: hidden;
-            }
+        #mergeClientAccountsModule {
+            --mca-gap: 10px;
+            --mca-section-padding: 12px;
+            --mca-surface: #f4f7fb;
+            --mca-section-surface: #ffffff;
+        }
 
-            #mergeClientAccountsModule .am-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                min-height: 40px;
-                padding: 0 10px;
-                background: linear-gradient(180deg, #5b8ea8 0%, #4a7c95 100%) !important;
-            }
+        #mergeClientAccountsModule .window {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-            #mergeClientAccountsModule .am-header__left {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                min-width: 0;
-            }
+        #mergeClientAccountsModule .main-container {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            gap: 10px;
+            padding: 8px 10px 10px;
+            height: calc(100vh - 40px);
+            background: var(--mca-surface);
+        }
 
-            #mergeClientAccountsModule .am-header__right {
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                margin-left: auto;
-            }
+        #mergeClientAccountsModule .form-content {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            margin-top: 0;
+            padding-top: 0;
+            padding-right: 0;
+        }
 
-            #mergeClientAccountsModule .am-header__right .am-btn {
-                width: 28px;
-                height: 28px;
-                border: 1px solid #d4dce4;
-                background: #ffffff;
-                color: #21475e;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 4px;
-                line-height: 1;
-            }
+        #mergeClientAccountsModule .form-card {
+            display: flex;
+            flex-direction: column;
+            gap: var(--mca-gap);
+            border-radius: 0;
+            box-shadow: none !important;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            font-size: 12px;
+        }
 
-            #mergeClientAccountsModule .am-header__right .am-btn:hover {
-                background: #f0f6fb;
-                border-color: #b8c7d4;
-            }
+        #mergeClientAccountsModule .form-section {
+            box-shadow: none !important;
+            border: 1px solid var(--am-border-light, #e2e8f0);
+            border-radius: 0;
+            overflow: hidden;
+            margin-bottom: 0;
+            background: var(--mca-section-surface);
+        }
 
-            #mergeClientAccountsModule .am-header__right .am-btn--close {
-                background: #d84a43;
-                border-color: #ba3a33;
-                color: #ffffff;
-            }
+        #mergeClientAccountsModule .form-section .section-header {
+            gap: 8px;
+        }
 
-            #mergeClientAccountsModule .am-header__right .am-btn--close:hover {
-                background: #bf3a33;
-                border-color: #a9332e;
-            }
+        #mergeClientAccountsModule .form-section .section-header::before {
+            content: none !important;
+            display: none !important;
+        }
 
+        #mergeClientAccountsModule .form-section .section-content {
+            padding: var(--mca-section-padding);
+        }
+
+        #mergeClientAccountsModule .section-toggle-btn {
+            margin-left: auto;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 2px 4px;
+            line-height: 1;
+        }
+
+        #mergeClientAccountsModule .section-toggle-btn i {
+            font-size: 14px;
+        }
+
+        #mergeClientAccountsModule .lookup-card {
+            border: 1px solid #dbe4ee;
+            border-radius: 8px;
+            padding: 12px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        #mergeClientAccountsModule .lookup-card .label-blue {
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        #mergeClientAccountsModule .lookup-card .form-control,
+        #mergeClientAccountsModule .lookup-card .btn {
+            height: 38px;
+            font-size: 12px;
+        }
+
+        #mergeClientAccountsModule .lookup-hint {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #4f647a;
+        }
+
+        #mergeClientAccountsModule .record-count-badge {
+            margin-left: auto;
+            background: #ffffff;
+            border: 1px solid #c9d5e2;
+            color: #35557d;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 3px 10px;
+            line-height: 1;
+        }
+
+        #mergeClientAccountsModule .parity-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #c8d4df;
+            font-weight: 700;
+            font-size: 12px;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            text-align: left;
+        }
+
+        #mergeClientAccountsModule .parity-header .section-header__title {
+            text-align: left;
+        }
+
+        #mergeClientAccountsModule .parity-header--from {
+            color: #7b2e2f;
+            background: linear-gradient(180deg, #fbe3e3 0%, #f6cccc 100%);
+        }
+
+        #mergeClientAccountsModule .parity-header--to {
+            color: #114061;
+            background: linear-gradient(180deg, #dff3ff 0%, #c6e9ff 100%);
+        }
+
+        #mergeClientAccountsModule .card-table {
+            border: 0;
+            border-radius: 0;
+            overflow: hidden;
+            background: #fff;
+            max-height: 230px;
+            overflow-y: auto;
+        }
+
+        #mergeClientAccountsModule .parity-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        #mergeClientAccountsModule .parity-table thead th {
+            color: #35557d !important;
+            font-weight: 600;
+            font-size: 11px;
+            padding: 10px 8px;
+            border: 1px solid #bcc6d2;
+            white-space: nowrap;
+            background: #eef3f8 !important;
+            vertical-align: middle;
+            text-align: left;
+        }
+
+        #mergeClientAccountsModule .parity-table tbody td {
+            font-size: 11px;
+            padding: 8px;
+            border-bottom: 1px solid #d4dbe4;
+            vertical-align: middle;
+            background-color: #fff;
+        }
+
+        #mergeClientAccountsModule .parity-table tbody tr:hover td {
+            background: #e7f3ff;
+        }
+
+        #mergeClientAccountsModule .parity-table tbody tr.row-selected td,
+        #mergeClientAccountsModule .parity-table tbody tr.selected td,
+        #mergeClientAccountsModule .parity-table tbody tr.table-active td {
+            background: #d6ecff;
+            border-top-color: #8ec4e8;
+            border-bottom-color: #8ec4e8;
+        }
+
+        #mergeClientAccountsModule .table-empty td {
+            color: #6c757d;
+            text-align: center;
+            padding: 40px 12px;
+        }
+
+        #mergeClientAccountsModule .table-empty i {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.35;
+        }
+
+        #mergeClientAccountsModule .summary-strip {
+            border: 1px solid #dae3ea;
+            border-radius: 6px;
+            background: linear-gradient(180deg, #fdfefe 0%, #f5f8fb 100%);
+            padding: 10px 12px;
+            line-height: 1.2;
+        }
+
+        #mergeClientAccountsModule .summary-strip__label {
+            color: #2a4a63;
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        #mergeClientAccountsModule .summary-strip__warning {
+            color: #9a6800;
+            font-size: 0.85rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        #mergeClientAccountsModule .summary-badge {
+            min-width: 58px;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: 0.01em;
+            border: 1px solid transparent;
+        }
+
+        #mergeClientAccountsModule .summary-badge--count {
+            color: #0c3b63;
+            background: #d8eefe;
+            border-color: #9fc6e3;
+        }
+
+        #mergeClientAccountsModule .summary-badge--balance {
+            color: #0a4f47;
+            background: #d9f5ef;
+            border-color: #9ad1c6;
+        }
+
+        #mergeClientAccountsModule .action-panel {
+            flex: 0 0 var(--action-panel-width);
+            align-self: stretch;
+            position: sticky;
+            top: 6px;
+            max-height: calc(100vh - 56px);
+            overflow-y: auto;
+            padding-top: 4px;
+            z-index: 2;
+            min-height: calc(100vh - var(--title-bar-height) - 8px);
+        }
+
+        #mergeClientAccountsModule .action-panel .d-flex {
+            position: sticky;
+            top: 0;
+        }
+
+        #mergeClientAccountsModule .action-panel .btn-action {
+            height: 54px;
+            min-height: 54px;
+        }
+
+        #mergeClientAccountsModule .action-panel .btn-action i {
+            font-size: 18px;
+        }
+
+        #mergeClientAccountsModule .action-panel .btn-action span {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        #mergeClientAccountsModule .am-message-panel {
+            top: 74px;
+            right: 20px;
+            left: auto;
+            transform: translateY(-10px) scale(0.98);
+            min-width: 320px;
+            max-width: min(520px, calc(100vw - 32px));
+            padding: 12px 14px;
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            border-left-width: 0;
+            border-radius: 12px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+            backdrop-filter: blur(8px);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        #mergeClientAccountsModule .am-message-panel::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 12px 0 0 12px;
+            background: #3b82f6;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.show {
+            transform: translateY(0) scale(1);
+        }
+
+        #mergeClientAccountsModule .am-message-panel__icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.12);
+            flex-shrink: 0;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.success {
+            background: linear-gradient(180deg, #f4fff7 0%, #eafff2 100%) !important;
+            color: #14532d !important;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.success::before {
+            background: #16a34a;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.success .am-message-panel__icon {
+            color: #16a34a;
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        #mergeClientAccountsModule .am-message-panel.error {
+            background: linear-gradient(180deg, #fff7f7 0%, #ffecec 100%) !important;
+            color: #7f1d1d !important;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.error::before {
+            background: #dc2626;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.error .am-message-panel__icon {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.14);
+        }
+
+        #mergeClientAccountsModule .am-message-panel.warning {
+            background: linear-gradient(180deg, #fffdf4 0%, #fff7e8 100%) !important;
+            color: #78350f !important;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.warning::before {
+            background: #d97706;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.warning .am-message-panel__icon {
+            color: #d97706;
+            background: rgba(217, 119, 6, 0.14);
+        }
+
+        @@media (max-width: 992px) {
             #mergeClientAccountsModule .main-container {
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow: hidden;
-                gap: 10px;
-                padding: 8px 10px 10px;
-                height: calc(100vh - 40px);
-            }
-
-            #mergeClientAccountsModule .form-content {
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow-y: auto;
-                margin-top: 0;
-                padding-top: 0;
-                padding-right: 4px;
-            }
-
-            #mergeClientAccountsModule .form-card {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
+                height: auto;
+                overflow: auto;
             }
 
             #mergeClientAccountsModule .action-panel {
-                flex: 0 0 var(--action-panel-width);
-                align-self: stretch;
-                position: sticky;
-                top: 6px;
-                max-height: calc(100vh - 56px);
-                overflow-y: auto;
-                padding-top: 4px;
-                z-index: 2;
+                position: static;
+                max-height: none;
+                overflow: visible;
+                min-height: 0;
             }
 
             #mergeClientAccountsModule .action-panel .d-flex {
-                position: sticky;
-                top: 0;
+                position: static;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            #mergeClientAccountsModule .am-message-panel {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                min-width: 0;
             }
 
-            #mergeClientAccountsModule .parity-card .table-responsive {
-                max-height: 230px;
-                overflow-y: auto;
+            #mergeClientAccountsModule .lookup-card {
+                padding: 10px;
             }
-
-            #mergeClientAccountsModule .form-section {
-                margin-bottom: 0;
-            }
-
-            @@media (max-width: 992px) {
-                #mergeClientAccountsModule .main-container {
-                    height: auto;
-                    overflow: auto;
-                }
-
-                #mergeClientAccountsModule .action-panel {
-                    position: static;
-                    max-height: none;
-                    overflow: visible;
-                }
-
-                #mergeClientAccountsModule .action-panel .d-flex {
-                    position: static;
-                }
-            }
-
-            .parity-card {
-                border: 1px solid #ccd6e0;
-                border-radius: 6px;
-                background: #fff;
-                overflow: hidden;
-                margin-bottom: 10px;
-            }
-
-            .parity-header {
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
-                gap: 8px;
-                padding: 8px 12px;
-                border-bottom: 1px solid #c8d4df;
-                font-weight: 700;
-                font-size: 0.9rem;
-                line-height: 1.2;
-                letter-spacing: 0.02em;
-                text-transform: uppercase;
-                text-align: left;
-            }
-
-            .parity-header .section-header__title {
-                text-align: left;
-            }
-
-            .section-content {
-                padding-top: 10px;
-                padding-bottom: 10px;
-            }
-
-            .section-content .label-blue,
-            .section-content .form-label {
-                line-height: 1.15;
-                margin-bottom: 0.3rem;
-            }
-
-            .parity-header--from {
-                color: #7b2e2f;
-                background: linear-gradient(180deg, #fbe3e3 0%, #f6cccc 100%);
-            }
-
-            .parity-header--to {
-                color: #114061;
-                background: linear-gradient(180deg, #dff3ff 0%, #c6e9ff 100%);
-            }
-
-            .parity-table thead th {
-                background: linear-gradient(180deg, #f0f4f8 0%, #e2e8ef 100%);
-                color: #1a3550;
-                border-color: #c7d3df;
-                font-size: 0.8rem;
-                line-height: 1.15;
-                white-space: nowrap;
-                padding-top: 0.44rem;
-                padding-bottom: 0.44rem;
-            }
-
-            .parity-table tbody td {
-                border-color: #e0e7ee;
-                background-color: #fff;
-                vertical-align: middle;
-                line-height: 1.18;
-                padding-top: 0.34rem;
-                padding-bottom: 0.34rem;
-            }
-
-            .parity-table tbody tr:hover td {
-                background: #eef7ff;
-            }
-
-            .parity-table tbody tr.row-selected td,
-            .parity-table tbody tr.selected td {
-                background: #d6ecff;
-                border-top-color: #8ec4e8;
-                border-bottom-color: #8ec4e8;
-            }
-
-            .summary-strip {
-                border: 1px solid #dae3ea;
-                border-radius: 6px;
-                background: linear-gradient(180deg, #fdfefe 0%, #f5f8fb 100%);
-                padding: 7px 10px;
-                line-height: 1.2;
-            }
-
-            .summary-strip__label {
-                color: #2a4a63;
-                font-weight: 700;
-                margin-right: 6px;
-            }
-
-            .summary-strip__warning {
-                color: #9a6800;
-                font-size: 0.85rem;
-                font-weight: 600;
-                line-height: 1.2;
-            }
-
-            .summary-badge {
-                min-width: 58px;
-                padding: 0.3rem 0.5rem;
-                font-size: 0.78rem;
-                font-weight: 700;
-                line-height: 1.05;
-                letter-spacing: 0.01em;
-                border: 1px solid transparent;
-            }
-
-            .summary-badge--count {
-                color: #0c3b63;
-                background: #d8eefe;
-                border-color: #9fc6e3;
-            }
-
-            .summary-badge--balance {
-                color: #0a4f47;
-                background: #d9f5ef;
-                border-color: #9ad1c6;
-            }
-
-            .modal-header-parity {
-                border-bottom: 1px solid #b8c7d5;
-                padding-top: 0.52rem;
-                padding-bottom: 0.52rem;
-                padding-left: 0.88rem;
-                padding-right: 0.88rem;
-            }
-
-            .modal-header-parity .modal-title {
-                font-size: 0.96rem;
-                font-weight: 700;
-                line-height: 1.2;
-                letter-spacing: 0.01em;
-            }
-
-            .modal-header-parity--client {
-                color: #ffffff;
-                background: linear-gradient(180deg, #2f6e9a 0%, #265b83 100%);
-            }
-
-            .modal-header-parity--branch {
-                color: #ffffff;
-                background: linear-gradient(180deg, #2f7f73 0%, #256559 100%);
-            }
-
-            #clientSearchResultsTable thead th,
-            #branchSearchResultsTable thead th {
-                background: linear-gradient(180deg, #f2f6fa 0%, #e4ebf2 100%);
-                color: #284760;
-                border-color: #cbd6e0;
-                font-size: 0.79rem;
-                line-height: 1.14;
-                padding-top: 0.43rem;
-                padding-bottom: 0.43rem;
-            }
-
-            #clientSearchResultsTable tbody td,
-            #branchSearchResultsTable tbody td {
-                line-height: 1.16;
-                padding-top: 0.35rem;
-                padding-bottom: 0.35rem;
-            }
-
-            .modal-footer {
-                padding-top: 0.5rem;
-                padding-bottom: 0.5rem;
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-                line-height: 1.15;
-            }
-
-            .branch-results-shell {
-                border: 1px solid #8ea6bb;
-                border-top: none;
-                margin: 0 8px 8px;
-                background: #f4f7fb;
-            }
-
-            .branch-results-caption-wrap {
-                padding: 0;
-                border-bottom: 1px solid #b7c7d6;
-                background: #edf2f8;
-            }
-
-            .branch-results-caption {
-                display: inline-block;
-                min-width: 155px;
-                text-align: center;
-                font-size: 0.82rem;
-                line-height: 1.2;
-                color: #1a2f43;
-                background: #ffffff;
-                border-top: 2px solid #f2a100;
-                border-right: 1px solid #c6d1dc;
-                padding: 6px 10px 5px;
-            }
-
-            #branchSearchResultsTable {
-                margin-bottom: 0;
-            }
-
-            #branchSearchResultsTable thead th {
-                background: #0f85cb;
-                color: #ffffff;
-                border-color: #0f85cb;
-                font-weight: 700;
-            }
-
-            #branchSearchResultsTable tbody tr:nth-child(odd) td {
-                background: #c4def0;
-                color: #042842;
-            }
-
-            #branchSearchResultsTable tbody tr:nth-child(even) td {
-                background: #a7cce7;
-                color: #042842;
-            }
-
-            #branchSearchResultsTable tbody tr:hover td {
-                background: #84b9de;
-            }
-
-            #branchSearchResultsTable tbody tr.selected td {
-                background: #0b74b4;
-                color: #ffffff;
-            }
+        }
     </style>
 </head>
 
@@ -379,44 +424,54 @@
         @Html.AntiForgeryToken()
     </form>
 
-    <div id="mergeClientAccountsModule" data-branch-id="@branchId" data-branch-name="@branchName"
-         data-operator-id="@operatorId" data-bank-id="@bankId">
+        <div id="mergeClientAccountsModule" data-branch-id="@branchId" data-branch-name="@branchName"
+            data-operator-id="@operatorId" data-bank-id="@bankId" data-module-id="@moduleId" data-close-mode="window">
         <div class="window">
             <main class="main-container" aria-label="Merge Client Accounts workspace">
                 <div class="form-content" role="region" aria-label="Merge Client Accounts form">
                     <div class="form-card" data-main-form>
-                        <div class="form-section">
-                            <div class="section-header">
+                        <div class="form-section" data-section="branch-selection">
+                            <div class="section-header" data-section-toggle>
                                 <i class="bi bi-building section-header__icon"></i>
                                 <span class="section-header__title">Branch Selection</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Branch Selection" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
                             </div>
-                            <div class="section-content">
-                                <div class="row g-2 align-items-end">
-                                    <div class="col-12 col-lg-3">
-                                        <label class="label-blue" for="branchId">Branch ID</label>
-                                        <input type="text" id="branchId" class="form-control" value="@branchId" />
+                            <div class="section-content" data-section-content>
+                                <div class="lookup-card">
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-12 col-lg-3">
+                                            <label class="label-blue" for="branchId">Branch ID</label>
+                                            <input type="text" id="branchId" class="form-control" value="@branchId" />
+                                        </div>
+                                        <div class="col-12 col-lg-7">
+                                            <label class="label-blue" for="branchName">Branch Name</label>
+                                            <input type="text" id="branchName" class="form-control" value="@branchName"
+                                                   readonly />
+                                        </div>
+                                        <div class="col-12 col-lg-2">
+                                            <button type="button" class="btn btn-primary w-100" id="btnBranchLookup"
+                                                    aria-label="Search Branch">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="col-12 col-lg-7">
-                                        <label class="label-blue" for="branchName">Branch Name</label>
-                                        <input type="text" id="branchName" class="form-control" value="@branchName"
-                                               readonly />
-                                    </div>
-                                    <div class="col-12 col-lg-2">
-                                        <button type="button" class="btn btn-primary w-100" id="btnBranchLookup"
-                                                aria-label="Search Branch">
-                                            <i class="bi bi-search"></i>
-                                        </button>
-                                    </div>
+                                    <div class="lookup-hint">Enter a branch or use search to load the available branch list before selecting source and target clients.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-section parity-card">
-                            <div class="section-header parity-header parity-header--from">
+                        <div class="form-section parity-card" data-section="source-client">
+                            <div class="section-header parity-header parity-header--from" data-section-toggle>
                                 <i class="bi bi-box-arrow-right section-header__icon"></i>
                                 <span class="section-header__title">Source Client (Move Accounts FROM)</span>
+                                <span class="record-count-badge" id="fromRecordCount">0 records</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Source Client Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
                             </div>
-                            <div class="section-content">
+                            <div class="section-content" data-section-content>
                                 <div class="row g-2 align-items-end mb-3">
                                     <div class="col-12 col-lg-3">
                                         <label class="label-blue" for="fromClientId">From Client/Account ID</label>
@@ -434,7 +489,7 @@
                                     </div>
                                 </div>
 
-                                <div class="table-responsive">
+                                <div class="card-table table-responsive">
                                     <table class="table table-sm table-hover align-middle mb-0 parity-table">
                                         <thead>
                                             <tr>
@@ -449,22 +504,28 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="fromAccountsGrid">
-                                                <tr>
-                                                    <td colspan="6" class="text-center text-muted py-3">No records to
-                                                        display.</td>
-                                                    </tr>
+                                                <tr class="table-empty">
+                                                    <td colspan="6">
+                                                        <i class="bi bi-inbox" aria-hidden="true"></i>
+                                                        <span>No records to display. Select a branch and source client.</span>
+                                                    </td>
+                                                </tr>
                                                 </tbody>
                                             </table>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="form-section parity-card">
-                                    <div class="section-header parity-header parity-header--to">
+                                <div class="form-section parity-card" data-section="target-client">
+                                    <div class="section-header parity-header parity-header--to" data-section-toggle>
                                         <i class="bi bi-box-arrow-in-left section-header__icon"></i>
                                         <span class="section-header__title">Target Client (Merge Accounts TO)</span>
+                                        <span class="record-count-badge" id="toRecordCount">0 records</span>
+                                        <button type="button" class="section-toggle-btn" aria-label="Toggle Target Client Section" aria-expanded="true">
+                                            <i class="bi bi-chevron-up"></i>
+                                        </button>
                                     </div>
-                                    <div class="section-content">
+                                    <div class="section-content" data-section-content>
                                         <div class="row g-2 align-items-end mb-3">
                                             <div class="col-12 col-lg-3">
                                                 <label class="label-blue" for="toClientId">To Client/Account ID</label>
@@ -482,7 +543,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="table-responsive">
+                                        <div class="card-table table-responsive">
                                             <table class="table table-sm table-hover align-middle mb-0 parity-table">
                                                 <thead>
                                                     <tr>
@@ -494,22 +555,27 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody id="toAccountsGrid">
-                                                    <tr>
-                                                        <td colspan="5" class="text-center text-muted py-3">No records to
-                                                            display.</td>
-                                                        </tr>
+                                                    <tr class="table-empty">
+                                                        <td colspan="5">
+                                                            <i class="bi bi-inbox" aria-hidden="true"></i>
+                                                            <span>No records to display. Select a branch and target client.</span>
+                                                        </td>
+                                                    </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="form-section">
-                                        <div class="section-header">
+                                    <div class="form-section" data-section="merge-summary">
+                                        <div class="section-header" data-section-toggle>
                                             <i class="bi bi-info-circle section-header__icon"></i>
                                             <span class="section-header__title">Merge Summary</span>
+                                            <button type="button" class="section-toggle-btn" aria-label="Toggle Merge Summary" aria-expanded="true">
+                                                <i class="bi bi-chevron-up"></i>
+                                            </button>
                                         </div>
-                                        <div class="section-content">
+                                        <div class="section-content" data-section-content>
                                             <div class="row g-2">
                                                 <div class="col-md-4">
                                                     <div
@@ -544,16 +610,16 @@
 
                                     <aside class="action-panel" aria-label="Merge actions">
                                         <div class="d-flex flex-column gap-2 mt-auto">
-                                            <button class="btn-action btn-view" type="button" id="btnView">
+                                            <button class="btn-action btn-view" type="button" id="btnView" data-action="view">
                                                 <i class="bi bi-eye"></i><span>View</span>
                                             </button>
-                                            <button class="btn-action btn-save" type="button" id="btnMerge" disabled>
+                                            <button class="btn-action btn-save" type="button" id="btnMerge" data-action="merge" disabled>
                                                 <i class="bi bi-arrow-left-right"></i><span>Merge</span>
                                             </button>
-                                            <button class="btn-action" type="button" id="btnClear">
+                                            <button class="btn-action btn-clear" type="button" id="btnClear" data-action="clear">
                                                 <i class="bi bi-eraser"></i><span>Clear</span>
                                             </button>
-                                            <button class="btn-action btn-cancel" type="button" id="btnCancel">
+                                            <button class="btn-action btn-cancel" type="button" id="btnCancel" data-action="cancel">
                                                 <i class="bi bi-x-lg"></i><span>Cancel</span>
                                             </button>
                                         </div>
@@ -595,155 +661,12 @@
                                 <button class="d-none" type="button" id="btnCancelMobile"></button>
                             </div>
 
-                            <div class="modal fade" id="clientSearchModal" tabindex="-1" aria-labelledby="clientSearchModalLabel"
-                                 aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header modal-header-parity modal-header-parity--client">
-                                            <h5 class="modal-title" id="clientSearchModalLabel"><i
-                                                class="bi bi-person-search me-2"></i>Client Search</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                                        aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body p-0">
-                                                <div class="p-3 bg-light border-bottom">
-                                                    <div class="row g-2">
-                                                        <div class="col-md-4"><label class="form-label small mb-1">Client ID</label><input
-                                                            type="text" class="form-control form-control-sm" id="filterClientID" /></div>
-                                                            <div class="col-md-4"><label class="form-label small mb-1">Name</label><input
-                                                                type="text" class="form-control form-control-sm" id="filterName" /></div>
-                                                                <div class="col-md-4"><label class="form-label small mb-1">ID Number</label><input
-                                                                    type="text" class="form-control form-control-sm" id="filterIDNumber" /></div>
-                                                                    <div class="col-md-4"><label class="form-label small mb-1">MobileNo</label><input
-                                                                        type="text" class="form-control form-control-sm" id="filterMobileNo" /></div>
-                                                                        <div class="col-md-4"><label class="form-label small mb-1">Client Application
-                                                                            ID</label><input type="text" class="form-control form-control-sm"
-                                                                                             id="filterClientApplicationID" /></div>
-                                                                            <div class="col-md-4"><label class="form-label small mb-1">Account ID</label><input
-                                                                                type="text" class="form-control form-control-sm" id="filterAccountID" /></div>
-                                                                                <div class="col-md-4"><label class="form-label small mb-1">Mother Name</label><input
-                                                                                    type="text" class="form-control form-control-sm" id="filterMotherName" /></div>
-                                                                                </div>
-                                                                                <div class="mt-2 text-end">
-                                                                                    <button class="btn btn-outline-secondary btn-sm me-1" type="button"
-                                                                                            id="btnClearFilters"><i class="bi bi-x-circle me-1"></i>Clear</button>
-                                                                                    <button class="btn btn-primary btn-sm" type="button" id="btnSearchClients"><i
-                                                                                        class="bi bi-search me-1"></i>Search</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div style="max-height: 300px; overflow-y: auto;">
-                                                                                    <table class="table table-sm table-hover mb-0" id="clientSearchResultsTable">
-                                                                                        <thead class="table-light sticky-top">
-                                                                                            <tr>
-                                                                                                <th>Client ID</th>
-                                                                                                <th>Name</th>
-                                                                                                <th>ID Number</th>
-                                                                                                <th>Application ID</th>
-                                                                                                <th>Client Type</th>
-                                                                                            </tr>
-                                                                                        </thead>
-                                                                                        <tbody id="clientSearchResultsBody">
-                                                                                            <tr>
-                                                                                                <td colspan="5" class="text-center text-muted py-4">Enter search criteria and
-                                                                                                    click Search</td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="modal-footer">
-                                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                                                                                    <button type="button" class="btn btn-primary btn-sm" id="btnSelectClient" disabled><i
-                                                                                        class="bi bi-check-circle me-1"></i>Select</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
+                            <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+                            <script src="~/js/environment.js" asp-append-version="true"></script>
+                            <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+                            <script src="~/js/app/app-core.js" asp-append-version="true"></script>
+                            <script src="~/js/modules/shared/searchModal.js" asp-append-version="true"></script>
+                            <script src="~/modules/account-maintenance/merge-client-accounts.js" asp-append-version="true"></script>
+                        </body>
 
-                                                                        <div class="modal fade" id="branchSearchModal" tabindex="-1" aria-labelledby="branchSearchModalLabel"
-                                                                             aria-hidden="true">
-                                                                            <div class="modal-dialog">
-                                                                                <div class="modal-content">
-                                                                                    <div class="modal-header modal-header-parity modal-header-parity--branch">
-                                                                                        <h5 class="modal-title" id="branchSearchModalLabel"><i class="bi bi-building me-2"></i>Branch
-                                                                                            Search</h5>
-                                                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                                                                                    aria-label="Close"></button>
-                                                                                        </div>
-                                                                                        <div class="modal-body p-0">
-                                                                                            <div class="p-3 bg-light border-bottom">
-                                                                                                <div class="row g-2">
-                                                                                                    <div class="col-md-6"><label class="form-label small mb-1">Branch ID</label>
-                                                                                                        <div class="input-group input-group-sm">
-                                                                                                            <select class="form-select" id="filterBranchIDOperator"
-                                                                                                                    style="max-width: 110px;">
-                                                                                                                <option value="Like" selected>Like</option>
-                                                                                                                <option value="Equal">Equal</option>
-                                                                                                                <option value="StartsWith">Starts With</option>
-                                                                                                                <option value="EndsWith">Ends With</option>
-                                                                                                            </select>
-                                                                                                            <input type="text" class="form-control" id="filterBranchID" />
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div class="col-md-6"><label class="form-label small mb-1">Branch Name</label>
-                                                                                                        <div class="input-group input-group-sm">
-                                                                                                            <select class="form-select" id="filterBranchNameOperator"
-                                                                                                                    style="max-width: 110px;">
-                                                                                                                <option value="Like" selected>Like</option>
-                                                                                                                <option value="Equal">Equal</option>
-                                                                                                                <option value="StartsWith">Starts With</option>
-                                                                                                                <option value="EndsWith">Ends With</option>
-                                                                                                            </select>
-                                                                                                            <input type="text" class="form-control" id="filterBranchName" />
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div class="mt-2 text-end">
-                                                                                                    <button class="btn btn-outline-secondary btn-sm me-1" type="button"
-                                                                                                            id="btnClearBranchFilters"><i class="bi bi-x-circle me-1"></i>Clear</button>
-                                                                                                    <button class="btn btn-primary btn-sm" type="button" id="btnSearchBranches"><i
-                                                                                                        class="bi bi-search me-1"></i>Search</button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div class="branch-results-shell">
-                                                                                                    <div class="branch-results-caption-wrap">
-                                                                                                        <span class="branch-results-caption">Search Results</span>
-                                                                                                    </div>
-                                                                                                    <div style="max-height: 300px; overflow-y: auto;">
-                                                                                                        <table class="table table-sm table-hover mb-0" id="branchSearchResultsTable">
-                                                                                                            <thead class="sticky-top">
-                                                                                                                <tr>
-                                                                                                                    <th style="width: 42px;">#</th>
-                                                                                                                    <th>OurBranchID</th>
-                                                                                                                    <th>BranchName</th>
-                                                                                                                </tr>
-                                                                                                            </thead>
-                                                                                                            <tbody id="branchSearchResultsBody">
-                                                                                                                <tr>
-                                                                                                                    <td colspan="3" class="text-center text-muted py-4">Enter search criteria
-                                                                                                                        and
-                                                                                                                        click Search</td>
-                                                                                                                    </tr>
-                                                                                                                </tbody>
-                                                                                                            </table>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div class="modal-footer">
-                                                                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                                                                                                    <button type="button" class="btn btn-primary btn-sm" id="btnSelectBranch" disabled><i
-                                                                                                        class="bi bi-check-circle me-1"></i>Select</button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-
-                                                                                    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
-                                                                                    <script src="~/js/environment.js" asp-append-version="true"></script>
-                                                                                    <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
-                                                                                    <script src="~/js/app/app-core.js" asp-append-version="true"></script>
-                                                                                    <script src="~/modules/account-maintenance/merge-client-accounts.js" asp-append-version="true"></script>
-                                                                                </body>
-
-                                                                            </html>
+                    </html>

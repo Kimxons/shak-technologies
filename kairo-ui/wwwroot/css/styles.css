@@ -4334,6 +4334,26 @@ x .audit-item input {
     color: var(--white);
 }
 
+.action-panel .btn-action.btn-clear,
+.action-panel .btn-action[data-action="clear"] {
+    background: #eef3f8;
+    border-color: #b8c8d8;
+    color: #35557d;
+    font-weight: 600;
+}
+
+.action-panel .btn-action.btn-clear:hover:not(:disabled),
+.action-panel .btn-action[data-action="clear"]:hover:not(:disabled) {
+    background: #dfeaf5;
+    border-color: #9fb4c8;
+    color: #24415f;
+}
+
+.action-panel .btn-action.btn-clear:focus-visible,
+.action-panel .btn-action[data-action="clear"]:focus-visible {
+    box-shadow: 0 0 0 2px rgba(83, 122, 158, 0.35);
+}
+
 .btn-action:disabled {
     opacity: 0.5;
     cursor: not-allowed;

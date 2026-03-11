@@ -25,13 +25,13 @@ namespace kairo_ui.Services
         public const string GET_WF_DATA_CHECK_FIELDS = "p_GetWFDataCheckFields";
         public const string ADD_CLIENT_SUPERVISION_DATA = "dbo.p_AddClientSupervisionData";
 
-        public const string GET_CLIENT                 = "p_V8_GetClientBasicDetails";
-        public const string GET_CLIENT_INDIVIDUAL      = "p_V8_GetClientIndividual";
-        public const string GET_CLIENT_CORPORATE       = "p_V8_GetClientCorporate";
-        public const string GET_CLIENT_ADDRESS         = "p_V8_GetClientAddress";
-        public const string GET_CLIENT_EMPLOYMENT      = "p_V8_GetClientEmployment";
+        public const string GET_CLIENT = "p_V8_GetClientBasicDetails";
+        public const string GET_CLIENT_INDIVIDUAL = "p_V8_GetClientIndividual";
+        public const string GET_CLIENT_CORPORATE = "p_V8_GetClientCorporate";
+        public const string GET_CLIENT_ADDRESS = "p_V8_GetClientAddress";
+        public const string GET_CLIENT_EMPLOYMENT = "p_V8_GetClientEmployment";
         public const string GET_CLIENT_INDIVIDUAL_IMAGE = "p_GetClientPhotoIDSignIDBioID";
-        public const string GET_CLIENT_IMAGES          = "p_V8_GetImages";
+        public const string GET_CLIENT_IMAGES = "p_V8_GetImages";
 
         public const string GET_CLIENT_SUPERVISION_PENDING = "p_getclientsupervisionpending";
 
@@ -150,7 +150,7 @@ namespace kairo_ui.Services
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
-        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+        // public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
 
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
