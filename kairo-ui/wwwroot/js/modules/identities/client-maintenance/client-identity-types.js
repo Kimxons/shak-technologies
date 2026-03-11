@@ -22,6 +22,199 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
 
     const form = tabRoot.querySelector('[data-identitytypes-form]');
     const tbody = tabRoot.querySelector('[data-identitytypes-body]');
+    const issueDateInput = form?.querySelector('#dt_identityIssueDate');
+    const monthIndexes = {
+        jan: 0,
+        feb: 1,
+        mar: 2,
+        apr: 3,
+        may: 4,
+        jun: 5,
+        jul: 6,
+        aug: 7,
+        sep: 8,
+        sept: 8,
+        oct: 9,
+        nov: 10,
+        dec: 11
+    };
+
+    const toIdentityTypesString = (value) => {
+        return value === undefined || value === null ? '' : String(value).trim();
+    };
+
+    const isValidDateParts = (year, monthIndex, day) => {
+        const candidate = new Date(year, monthIndex, day);
+        return candidate.getFullYear() === year &&
+            candidate.getMonth() === monthIndex &&
+            candidate.getDate() === day;
+    };
+
+    const parseSystemDateValue = (value) => {
+        if (value instanceof Date) {
+            return Number.isNaN(value.getTime()) ? null : new Date(value.getTime());
+        }
+
+        const text = toIdentityTypesString(value);
+        if (!text) {
+            return null;
+        }
+
+        let match = text.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+        if (match) {
+            const year = parseInt(match[1], 10);
+            const monthIndex = parseInt(match[2], 10) - 1;
+            const day = parseInt(match[3], 10);
+            if (isValidDateParts(year, monthIndex, day)) {
+                return new Date(year, monthIndex, day);
+            }
+        }
+
+        match = text.match(/^(\d{1,2})[-\/\s.,]+([a-zA-Z]{3,})[-\/\s.,]+(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const monthKey = match[2].toLowerCase().substring(0, 4).replace(/[^a-z]/g, '');
+            const monthIndex = monthIndexes[monthKey] ?? monthIndexes[monthKey.substring(0, 3)];
+            const year = parseInt(match[3], 10);
+            if (monthIndex !== undefined && isValidDateParts(year, monthIndex, day)) {
+                return new Date(year, monthIndex, day);
+            }
+        }
+
+        match = text.match(/^(\d{1,2})[-\/\s.,]+(\d{1,2})[-\/\s.,]+(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const monthIndex = parseInt(match[2], 10) - 1;
+            const year = parseInt(match[3], 10);
+            if (isValidDateParts(year, monthIndex, day)) {
+                return new Date(year, monthIndex, day);
+            }
+        }
+
+        const normalized = window.GlobalUtils?.parseDateInput?.(text);
+        if (normalized) {
+            const parsed = new Date(`${normalized}T00:00:00`);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed;
+            }
+        }
+
+        const fallback = new Date(text);
+        return Number.isNaN(fallback.getTime()) ? null : fallback;
+    };
+
+    const toIsoDateValue = (value) => {
+        const parsed = parseSystemDateValue(value);
+        if (!parsed) {
+            return '';
+        }
+
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const syncDateFieldState = (input) => {
+        if (!input || !input._flatpickr) return;
+
+        const isDisabled = Boolean(input.disabled || input.readOnly);
+        try {
+            input._flatpickr.set('clickOpens', !isDisabled);
+            input._flatpickr.set('allowInput', !isDisabled);
+            if (input._flatpickr.altInput) {
+                input._flatpickr.altInput.disabled = isDisabled;
+                input._flatpickr.altInput.readOnly = isDisabled;
+            }
+            if (isDisabled) {
+                input._flatpickr.close();
+            }
+        } catch (error) {
+            console.warn('[IdentityTypes] Failed to sync flatpickr state:', error);
+        }
+    };
+
+    const initDateField = (input) => {
+        if (!input || typeof window.flatpickr !== 'function') return;
+
+        const initialIsoValue = toIsoDateValue(input.value);
+        if (initialIsoValue) {
+            input.value = initialIsoValue;
+        }
+
+        if (!input._flatpickr) {
+            try {
+                window.flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd-M-Y',
+                    disableMobile: true,
+                    monthSelectorType: 'dropdown',
+                    clickOpens: !(input.disabled || input.readOnly),
+                    allowInput: !(input.disabled || input.readOnly),
+                    parseDate: (dateStr) => parseSystemDateValue(dateStr),
+                    onReady: (_selectedDates, _dateStr, instance) => {
+                        syncDateFieldState(instance.input);
+                    },
+                    onOpen: (_selectedDates, _dateStr, instance) => {
+                        if (instance.input.disabled || instance.input.readOnly) {
+                            instance.close();
+                        }
+                    },
+                    onClose: (_selectedDates, _dateStr, instance) => {
+                        const rawValue = instance.altInput?.value || instance.input.value;
+                        const normalized = toIsoDateValue(rawValue);
+                        if (normalized) {
+                            instance.setDate(normalized, true, 'Y-m-d');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn('[IdentityTypes] Failed to initialize flatpickr:', error);
+            }
+        }
+
+        if (input._flatpickr && initialIsoValue) {
+            input._flatpickr.setDate(initialIsoValue, true, 'Y-m-d');
+        }
+
+        syncDateFieldState(input);
+    };
+
+    const setDateFieldValue = (input, value) => {
+        if (!input) return;
+
+        const normalized = toIsoDateValue(value);
+        if (input._flatpickr) {
+            if (normalized) {
+                input._flatpickr.setDate(normalized, true, 'Y-m-d');
+            } else {
+                input._flatpickr.clear();
+            }
+            syncDateFieldState(input);
+            return;
+        }
+
+        input.value = normalized;
+    };
+
+    const getDateFieldValue = (input) => {
+        if (!input) return '';
+
+        const rawValue = input._flatpickr?.altInput?.value || input.value;
+        if (!rawValue) return '';
+
+        const normalized = toIsoDateValue(rawValue);
+        if (!normalized) return '';
+
+        if (input._flatpickr) {
+            input._flatpickr.setDate(normalized, true, 'Y-m-d');
+        } else {
+            input.value = normalized;
+        }
+
+        return normalized;
+    };
 
     // ──────────────────────────────────────────────────────────
     // TABLE RENDERING
@@ -91,6 +284,10 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
     const setFieldValue = (id, value) => {
         const field = form?.querySelector(`#${id}`);
         if (!field) return;
+        if (id === 'dt_identityIssueDate') {
+            setDateFieldValue(field, value);
+            return;
+        }
         if (field.tagName === 'SELECT') {
             field.value = value || '';
         } else if (field.type === 'checkbox') {
@@ -105,6 +302,9 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
     const getFieldValue = (id) => {
         const field = form?.querySelector(`#${id}`);
         if (!field) return '';
+        if (id === 'dt_identityIssueDate') {
+            return getDateFieldValue(field);
+        }
         if (field.type === 'checkbox') return field.checked;
         return field.value || '';
     };
@@ -127,6 +327,7 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
             if (f.type === 'checkbox') f.checked = false;
             else f.value = '';
         });
+        setDateFieldValue(issueDateInput, '');
         setFieldValue('hdn_identityTypeId', '');
         state.selectedRecord = null;
         tbody?.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
@@ -176,6 +377,7 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
         if (!allowEdit) {
             fields?.forEach(f => f.disabled = true);
             [newBtn, alterBtn, removeBtn, updateBtn, clearBtn].forEach(b => { if (b) b.disabled = true; });
+            syncDateFieldState(issueDateInput);
             return;
         }
 
@@ -194,6 +396,8 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
             if (updateBtn) updateBtn.disabled = false;
             if (clearBtn) clearBtn.disabled = false;
         }
+
+        syncDateFieldState(issueDateInput);
     };
 
     // ──────────────────────────────────────────────────────────
@@ -358,8 +562,11 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
     // EXTERNAL HOOKS (called by client-maintenance.js)
     // ──────────────────────────────────────────────────────────
     tabRoot._cmLoadData = (requestData) => refreshTable(requestData || {});
+    tabRoot._cmRefreshData = (requestData) => refreshTable(requestData || {});
+    tabRoot._cmSetEditMode = () => setFormState(state.mode);
 
     // Initial state
+    initDateField(issueDateInput);
     setFormState('view');
     refreshTable({});
 };
@@ -385,6 +592,10 @@ const escapeHtml = (typeof window.escapeHtml === 'function')
 function formatDate(dateString) {
     if (!dateString) return '-';
     if (String(dateString).startsWith('1900') || String(dateString).startsWith('0001')) return '-';
+    if (window.GlobalUtils?.formatDate) {
+        return window.GlobalUtils.formatDate(dateString);
+    }
+
     try {
         return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     } catch {

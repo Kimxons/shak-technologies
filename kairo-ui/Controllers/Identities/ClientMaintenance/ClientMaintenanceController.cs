@@ -99,7 +99,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("get-basic")]
-        public async Task<IActionResult> GetBasic([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> GetBasic([FromBody] JsonDocument requestData)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -113,7 +113,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                //_commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData?.RootElement.GetProperty("ModuleID").GetString());
                 _logger.LogInformation("client-maintenance.get-basic request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_BASIC_DETAILS, requestData);

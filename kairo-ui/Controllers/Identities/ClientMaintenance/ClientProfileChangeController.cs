@@ -69,7 +69,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Profile Change dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientProfileChange.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/ClientProfileChange.cshtml");
         }
 
         [HttpPost, Route("get")]

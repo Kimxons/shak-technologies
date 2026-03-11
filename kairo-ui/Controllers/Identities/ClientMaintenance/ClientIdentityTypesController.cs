@@ -59,7 +59,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Identity Types tab dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientIdentityTypes.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/ClientIdentityTypes.cshtml");
         }
 
         [HttpPost, Route("get")]
