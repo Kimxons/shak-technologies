@@ -46,52 +46,201 @@ namespace kairo_ui.Controllers.MicroFinance
         }
 
         // ═════════════════════════════════════════════════════════════════
-        // OLD API - Generic endpoint for OldAPI calls
+        // GET - View penalty waive-off data (p_GetGLoanPenIntWaiveOff)
         // ═════════════════════════════════════════════════════════════════
 
         [HttpPost]
-        [Route("old-api")]
-        public async Task<IActionResult> PostOldApi([FromBody] CenterPenaltyOldApiRequest request)
+        [Route("get")]
+        public async Task<IActionResult> GetPenaltyWaiveOff([FromBody] GetPenaltyWaiveOffRequest request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(request.GroupID) || string.IsNullOrWhiteSpace(request.LoanSchemeID))
+                    return BadRequest(new { Success = false, ErrorMessage = "Center ID and Scheme ID are required" });
+
+                var requestData = new Dictionary<string, object?>
                 {
-                    _logger.LogWarning("Unauthenticated Center Penalty Interest Waive Off OldAPI attempt");
-                    return Unauthorized(new
-                    {
-                        Success = false,
-                        ErrorMessage = "User is not authenticated"
-                    });
-                }
+                    ["OurBranchID"] = request.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty,
+                    ["GroupID"] = request.GroupID,
+                    ["LoanSchemeID"] = request.LoanSchemeID,
+                    ["OperatorID"] = request.OperatorID ?? ResolveSessionValue("user_name", "user_id") ?? "web_portal"
+                };
 
-                if (request == null || string.IsNullOrWhiteSpace(request.FormId))
-                {
-                    return BadRequest(new
-                    {
-                        Success = false,
-                        ErrorMessage = "FormId and request data are required"
-                    });
-                }
+                var envelope = BuildOldApiEnvelope(OldApiDBConstants.GET_GLOAN_PEN_INT_WAIVE_OFF, requestData);
 
-                var envelope = BuildOldApiEnvelope(request.FormId!, request.RequestData);
+                _logger.LogInformation("GetPenaltyWaiveOff: GroupID={GroupID}, LoanSchemeID={LoanSchemeID}",
+                    request.GroupID, request.LoanSchemeID);
 
-                _logger.LogInformation("Center Penalty Interest Waive Off OldAPI request for {FormId}: {Request}",
-                    request.FormId, JsonSerializer.Serialize(envelope));
-
-                var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, "OldAPI", envelope);
-
+                var response = await _oldApiService.PostRawAsync<JsonElement>(MicroFinanceApiName, envelope);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing Center Penalty Interest Waive Off OldAPI request");
-                return StatusCode(500, new
+                _logger.LogError(ex, "Error fetching penalty waive-off data");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error: {ex.Message}" });
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // ADD - Save penalty waive-off entries (p_AddGLoanPenIntWaiveOff)
+        // ═════════════════════════════════════════════════════════════════
+
+        [HttpPost]
+        [Route("add")]
+        public async Task<IActionResult> AddPenaltyWaiveOff([FromBody] AddPenaltyWaiveOffRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(request.GroupID) || string.IsNullOrWhiteSpace(request.LoanSchemeID))
+                    return BadRequest(new { Success = false, ErrorMessage = "Center ID and Scheme ID are required" });
+
+                if (string.IsNullOrWhiteSpace(request.Reason))
+                    return BadRequest(new { Success = false, ErrorMessage = "Reason is required" });
+
+                var requestData = new Dictionary<string, object?>
                 {
-                    Success = false,
-                    ErrorMessage = $"Error processing request: {ex.Message}"
-                });
+                    ["OurBranchID"] = request.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty,
+                    ["GroupID"] = request.GroupID,
+                    ["LoanSchemeID"] = request.LoanSchemeID,
+                    ["Reason"] = request.Reason,
+                    ["PenaltyWaivedOff"] = request.PenaltyWaivedOff,
+                    ["OperatorID"] = request.OperatorID ?? ResolveSessionValue("user_name", "user_id") ?? "web_portal",
+                    ["Accounts"] = request.Accounts
+                };
+
+                var envelope = BuildOldApiEnvelope(OldApiDBConstants.ADD_GLOAN_PEN_INT_WAIVE_OFF, requestData);
+
+                _logger.LogInformation("AddPenaltyWaiveOff: GroupID={GroupID}, LoanSchemeID={LoanSchemeID}, Accounts={Count}",
+                    request.GroupID, request.LoanSchemeID, request.Accounts?.Count ?? 0);
+
+                var response = await _oldApiService.PostRawAsync<JsonElement>(MicroFinanceApiName, envelope);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving penalty waive-off");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error: {ex.Message}" });
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // DELETE - Delete penalty waive-off record (p_DeleteGLoanPenIntWaiveOff)
+        // ═════════════════════════════════════════════════════════════════
+
+        [HttpPost]
+        [Route("delete")]
+        public async Task<IActionResult> DeletePenaltyWaiveOff([FromBody] DeletePenaltyWaiveOffRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(request.GroupID) || string.IsNullOrWhiteSpace(request.LoanSchemeID))
+                    return BadRequest(new { Success = false, ErrorMessage = "Center ID and Scheme ID are required" });
+
+                var requestData = new Dictionary<string, object?>
+                {
+                    ["OurBranchID"] = request.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty,
+                    ["GroupID"] = request.GroupID,
+                    ["LoanSchemeID"] = request.LoanSchemeID,
+                    ["OperatorID"] = request.OperatorID ?? ResolveSessionValue("user_name", "user_id") ?? "web_portal"
+                };
+
+                var envelope = BuildOldApiEnvelope(OldApiDBConstants.DELETE_GLOAN_PEN_INT_WAIVE_OFF, requestData);
+
+                _logger.LogInformation("DeletePenaltyWaiveOff: GroupID={GroupID}, LoanSchemeID={LoanSchemeID}",
+                    request.GroupID, request.LoanSchemeID);
+
+                var response = await _oldApiService.PostRawAsync<JsonElement>(MicroFinanceApiName, envelope);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting penalty waive-off");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error: {ex.Message}" });
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // GET DEFAULT ADVANCE TYPE - Auto-populate scheme (p_GetDefaultAdvType)
+        // ═════════════════════════════════════════════════════════════════
+
+        [HttpPost]
+        [Route("get-default-adv-type")]
+        public async Task<IActionResult> GetDefaultAdvType([FromBody] DefaultAdvTypeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(request.GroupID))
+                    return BadRequest(new { Success = false, ErrorMessage = "Center ID is required" });
+
+                var requestData = new Dictionary<string, object?>
+                {
+                    ["OurBranchID"] = request.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty,
+                    ["GroupID"] = request.GroupID,
+                    ["OperatorID"] = request.OperatorID ?? ResolveSessionValue("user_name", "user_id") ?? "web_portal"
+                };
+
+                var envelope = BuildOldApiEnvelope(OldApiDBConstants.GET_DEFAULT_ADV_TYPE, requestData);
+
+                _logger.LogInformation("GetDefaultAdvType: GroupID={GroupID}", request.GroupID);
+
+                var response = await _oldApiService.PostRawAsync<JsonElement>(MicroFinanceApiName, envelope);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching default advance type");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error: {ex.Message}" });
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // VALIDATE - Field validation via p_GetIDDescription
+        // ═════════════════════════════════════════════════════════════════
+
+        [HttpPost]
+        [Route("validate")]
+        public async Task<IActionResult> ValidateField([FromBody] ValidateFieldRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(request.ControlTypeID) || string.IsNullOrWhiteSpace(request.ControlID))
+                    return BadRequest(new { Success = false, ErrorMessage = "ControlTypeID and ControlID are required" });
+
+                var requestData = new Dictionary<string, object?>
+                {
+                    ["ControlTypeID"] = request.ControlTypeID,
+                    ["ControlID"] = request.ControlID,
+                    ["OurBranchID"] = request.OurBranchID ?? ResolveSessionValue("branch_code", "branch_id") ?? string.Empty,
+                    ["OperatorID"] = request.OperatorID ?? ResolveSessionValue("user_name", "user_id") ?? "web_portal"
+                };
+
+                var envelope = BuildOldApiEnvelope(OldApiDBConstants.GET_ID_DESCRIPTION, requestData);
+
+                _logger.LogInformation("ValidateField: ControlTypeID={ControlTypeID}, ControlID={ControlID}",
+                    request.ControlTypeID, request.ControlID);
+
+                var response = await _oldApiService.PostRawAsync<JsonElement>(MicroFinanceApiName, envelope);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating field");
+                return StatusCode(500, new { Success = false, ErrorMessage = $"Error: {ex.Message}" });
             }
         }
 
@@ -99,41 +248,24 @@ namespace kairo_ui.Controllers.MicroFinance
         // HELPERS
         // ═════════════════════════════════════════════════════════════════
 
-        private object BuildOldApiEnvelope(string formId, JsonElement requestData)
+        private object BuildOldApiEnvelope(string formId, IDictionary<string, object?> requestData)
         {
             var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
                 ? formId
                 : $"dbo.{formId}";
 
-            var requestDictionary = DeserializeRequestData(requestData);
-            EnsureDefaults(requestDictionary);
+            EnsureDefaults(requestData);
 
             return new
             {
                 RequestID = cleanFormId,
                 FormId = cleanFormId,
-                RequestData = requestDictionary,
+                RequestData = requestData,
                 RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss",
                     System.Globalization.CultureInfo.InvariantCulture),
                 AppName = ResolveOldApiAppName(),
                 Checksum = string.Empty
             };
-        }
-
-        private Dictionary<string, object?> DeserializeRequestData(JsonElement requestData)
-        {
-            if (requestData.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
-            {
-                return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-            }
-
-            var dictionary = JsonSerializer.Deserialize<Dictionary<string, object?>>(
-                requestData.GetRawText(), new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-
-            return new Dictionary<string, object?>(dictionary, StringComparer.OrdinalIgnoreCase);
         }
 
         private void EnsureDefaults(IDictionary<string, object?> requestData)
@@ -142,8 +274,6 @@ namespace kairo_ui.Controllers.MicroFinance
                 ResolveSessionValue("user_name", "user_id") ?? "web_portal");
             SetIfMissing(requestData, "OurBranchID",
                 ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
-            SetIfMissing(requestData, "BankID",
-                ResolveSessionValue("bank_id", "bank_code") ?? "00");
         }
 
         private static void SetIfMissing(IDictionary<string, object?> requestData, string key, string value)
@@ -180,9 +310,52 @@ namespace kairo_ui.Controllers.MicroFinance
     // DTOs
     // ═════════════════════════════════════════════════════════════════
 
-    public class CenterPenaltyOldApiRequest
+    public class GetPenaltyWaiveOffRequest
     {
-        public string? FormId { get; set; }
-        public JsonElement RequestData { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? GroupID { get; set; }
+        public string? LoanSchemeID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class AddPenaltyWaiveOffRequest
+    {
+        public string? OurBranchID { get; set; }
+        public string? GroupID { get; set; }
+        public string? LoanSchemeID { get; set; }
+        public string? Reason { get; set; }
+        public string? PenaltyWaivedOff { get; set; }
+        public string? OperatorID { get; set; }
+        public List<PenaltyAccountItem>? Accounts { get; set; }
+    }
+
+    public class PenaltyAccountItem
+    {
+        public string? AccountID { get; set; }
+        public decimal PenaltyWaivedOff { get; set; }
+        public bool IsSelect { get; set; }
+    }
+
+    public class DeletePenaltyWaiveOffRequest
+    {
+        public string? OurBranchID { get; set; }
+        public string? GroupID { get; set; }
+        public string? LoanSchemeID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class DefaultAdvTypeRequest
+    {
+        public string? OurBranchID { get; set; }
+        public string? GroupID { get; set; }
+        public string? OperatorID { get; set; }
+    }
+
+    public class ValidateFieldRequest
+    {
+        public string? ControlTypeID { get; set; }
+        public string? ControlID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
     }
 }

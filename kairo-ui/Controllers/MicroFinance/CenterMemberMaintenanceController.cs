@@ -41,6 +41,12 @@ namespace kairo_ui.Controllers.MicroFinance
                 return RedirectToAction("Index", "Login");
             }
 
+            // Fetch session values for authenticated user
+            var userName = HttpContext.Session.GetString("user_name");
+            var branchCode = HttpContext.Session.GetString("branch_code");
+            ViewBag.UserName = userName;
+            ViewBag.BranchCode = branchCode;
+
             _logger.LogInformation("Center Member Maintenance loaded successfully");
             return PartialView("~/Views/MicroFinance/CenterMemberMaintenance.cshtml");
         }
