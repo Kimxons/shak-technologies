@@ -1,0 +1,753 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Edit Card Status";
+    Layout = "_ApplicationLayout";
+
+    var stageOptions = ViewData["StageOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var apiBase = ViewData["ApiBase"] as string ?? Url.Content("~/EditCardStatus/api");
+}
+
+<style>
+    #editCardStatusModule {
+        --ecs-gap: 10px;
+        --ecs-section-padding: 12px;
+        --ecs-header-bg: linear-gradient(180deg, #5887a1 0%, #3f6f88 100%);
+        --ecs-surface: #eef2f6;
+        --ecs-section-surface: #f3f5f7;
+    }
+
+    #editCardStatusModule .main-container {
+        background: var(--ecs-surface);
+    }
+
+    #editCardStatusModule .form-card {
+        border-radius: 10px;
+        box-shadow: none !important;
+        background: transparent;
+        border: 0;
+        padding: 12px;
+        gap: var(--ecs-gap);
+        font-size: 12px;
+    }
+
+    #editCardStatusModule .form-section {
+        box-shadow: none !important;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 0;
+        background: var(--ecs-section-surface);
+    }
+
+    #editCardStatusModule .form-section .section-header {
+        justify-content: flex-start;
+        gap: 10px;
+        background: var(--ecs-header-bg);
+        min-height: 54px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--am-border-light, #e2e8f0);
+    }
+
+    #editCardStatusModule .section-header__title,
+    #editCardStatusModule .section-header__title i {
+        color: #ffffff !important;
+    }
+
+    #editCardStatusModule .section-header__title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    #editCardStatusModule .form-section .section-header::before {
+        content: none !important;
+        display: none !important;
+    }
+
+    #editCardStatusModule .form-section .section-content {
+        padding: var(--ecs-section-padding);
+    }
+
+    #editCardStatusModule .filter-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+    }
+
+    #editCardStatusModule .filter-row .label-blue {
+        min-width: 60px;
+        margin-bottom: 0;
+    }
+
+    #editCardStatusModule .filter-row .form-control {
+        max-width: 320px;
+    }
+
+    #editCardStatusModule .stage-hint {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #4f647a;
+    }
+
+    #editCardStatusModule .card-table {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    #editCardStatusModule .card-table table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    #editCardStatusModule .card-table thead {
+        display: table-header-group;
+        background: #d0d6de !important;
+    }
+
+    #editCardStatusModule .card-table thead th {
+        color: #35557d !important;
+        font-weight: 600;
+        font-size: 11px;
+        padding: 10px 8px;
+        border: 1px solid #bcc6d2;
+        white-space: nowrap;
+        background: #d0d6de !important;
+        vertical-align: middle;
+        text-align: left;
+    }
+
+    #editCardStatusModule .card-table thead th.col-select {
+        width: 34px;
+        min-width: 34px;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-tracking {
+        width: 84px;
+        min-width: 84px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-card-id {
+        width: 110px;
+        min-width: 110px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-card-name {
+        width: 176px;
+        min-width: 176px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-provider {
+        width: 100px;
+        min-width: 100px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-branch,
+    #editCardStatusModule .card-table thead th.col-approved,
+    #editCardStatusModule .card-table thead th.col-active {
+        white-space: normal;
+        line-height: 1.15;
+    }
+
+    #editCardStatusModule .card-table thead th.col-branch {
+        width: 64px;
+        min-width: 64px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-account {
+        width: 132px;
+        min-width: 132px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-status {
+        width: 112px;
+        min-width: 112px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-approved,
+    #editCardStatusModule .card-table thead th.col-active,
+    #editCardStatusModule .card-table thead th.col-collected {
+        width: 80px;
+        min-width: 80px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-approved {
+        width: 86px;
+        min-width: 86px;
+    }
+
+    #editCardStatusModule .card-table tbody tr:hover {
+        background-color: #e7f3ff;
+    }
+
+    #editCardStatusModule .card-table tbody td {
+        font-size: 11px;
+        padding: 8px;
+        border-bottom: 1px solid #d4dbe4;
+    }
+
+    #editCardStatusModule .record-count-badge {
+        margin-left: auto;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 3px 10px;
+        line-height: 1;
+    }
+
+    #editCardStatusModule .audit-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border-radius: 4px;
+        align-items: start;
+    }
+
+    #editCardStatusModule .audit-grid .audit-field {
+        min-width: 0;
+    }
+
+    #editCardStatusModule .audit-grid .audit-field--by {
+        grid-column: auto;
+    }
+
+    #editCardStatusModule .audit-grid .audit-field--on {
+        grid-column: auto;
+    }
+
+
+    #editCardStatusModule .audit-grid .audit-field {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    #editCardStatusModule .audit-grid .audit-field label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #1a5276;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    #editCardStatusModule .audit-grid .audit-field input {
+        height: 32px;
+        width: 100%;
+        font-size: 11px;
+        padding: 4px 8px;
+        border: 1px solid #d1d9e0;
+        border-radius: 3px;
+        background: #fff;
+    }
+
+    #editCardStatusModule .audit-grid .audit-field input:read-only {
+        background: #f5f7fa;
+        color: #495057;
+    }
+
+    #editCardStatusModule .table-empty td {
+        color: #6c757d;
+        text-align: center;
+        padding: 40px 12px;
+    }
+
+    #editCardStatusModule .table-empty i {
+        font-size: 36px;
+        display: block;
+        margin-bottom: 8px;
+        opacity: 0.35;
+    }
+
+    #editCardStatusModule .action-panel {
+        border-left: 1px solid var(--am-border-light, #e2e8f0);
+        background: #e8edf2;
+        position: sticky;
+        top: 0;
+        height: calc(100vh - var(--title-bar-height) - 8px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #editCardStatusModule .action-panel .btn-action {
+        height: 72px;
+        min-height: 72px;
+        border-radius: 10px;
+        padding: 10px 8px;
+        gap: 6px;
+    }
+
+    #editCardStatusModule .action-panel .btn-action i {
+        font-size: 18px;
+    }
+
+    #editCardStatusModule .action-panel .btn-action span {
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    #editCardStatusModule .am-message-panel {
+        top: 74px;
+        right: 20px;
+        left: auto;
+        transform: translateY(-10px) scale(0.98);
+        min-width: 320px;
+        max-width: min(520px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(148, 163, 184, 0.32);
+        border-left-width: 0;
+        border-radius: 12px;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+        backdrop-filter: blur(8px);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    #editCardStatusModule .am-message-panel::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 12px 0 0 12px;
+        background: #3b82f6;
+    }
+
+    #editCardStatusModule .am-message-panel.show {
+        transform: translateY(0) scale(1);
+    }
+
+    #editCardStatusModule .am-message-panel__icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #2563eb;
+        background: rgba(37, 99, 235, 0.12);
+        flex-shrink: 0;
+    }
+
+    #editCardStatusModule .am-message-panel.success {
+        background: linear-gradient(180deg, #f4fff7 0%, #eafff2 100%) !important;
+        color: #14532d !important;
+    }
+
+    #editCardStatusModule .am-message-panel.success::before {
+        background: #16a34a;
+    }
+
+    #editCardStatusModule .am-message-panel.success .am-message-panel__icon {
+        color: #16a34a;
+        background: rgba(22, 163, 74, 0.14);
+    }
+
+    #editCardStatusModule .am-message-panel.error {
+        background: linear-gradient(180deg, #fff7f7 0%, #ffecec 100%) !important;
+        color: #7f1d1d !important;
+    }
+
+    #editCardStatusModule .am-message-panel.error::before {
+        background: #dc2626;
+    }
+
+    #editCardStatusModule .am-message-panel.error .am-message-panel__icon {
+        color: #dc2626;
+        background: rgba(220, 38, 38, 0.14);
+    }
+
+    #editCardStatusModule .am-message-panel.warning {
+        background: linear-gradient(180deg, #fffdf4 0%, #fff7e8 100%) !important;
+        color: #78350f !important;
+    }
+
+    #editCardStatusModule .am-message-panel.warning::before {
+        background: #d97706;
+    }
+
+    #editCardStatusModule .am-message-panel.warning .am-message-panel__icon {
+        color: #d97706;
+        background: rgba(217, 119, 6, 0.14);
+    }
+
+    #editCardStatusModule .ecs-confirm {
+        position: fixed;
+        inset: 0;
+        z-index: 11000;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+    }
+
+    #editCardStatusModule .ecs-confirm[hidden] {
+        display: none;
+    }
+
+    #editCardStatusModule .ecs-confirm__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(2px);
+    }
+
+    #editCardStatusModule .ecs-confirm__dialog {
+        position: relative;
+        width: min(560px, calc(100vw - 24px));
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.34);
+        background: #ffffff;
+        box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
+        padding: 18px 16px 14px;
+        transform: translateY(10px) scale(0.98);
+        opacity: 0;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    #editCardStatusModule .ecs-confirm.show .ecs-confirm__dialog {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    #editCardStatusModule .ecs-confirm__header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    #editCardStatusModule .ecs-confirm__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #1d4ed8;
+        background: rgba(37, 99, 235, 0.14);
+        font-size: 16px;
+    }
+
+    #editCardStatusModule .ecs-confirm__title {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    #editCardStatusModule .ecs-confirm__text {
+        margin: 0;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: #1e293b;
+        white-space: pre-wrap;
+    }
+
+    #editCardStatusModule .ecs-confirm__actions {
+        margin-top: 14px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    #editCardStatusModule .ecs-confirm__btn {
+        height: 40px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        line-height: 1;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    #editCardStatusModule .ecs-confirm__btn:hover {
+        transform: translateY(-1px);
+    }
+
+    #editCardStatusModule .ecs-confirm__btn:active {
+        transform: translateY(0);
+    }
+
+    #editCardStatusModule .ecs-confirm__btn--cancel {
+        width: 102px;
+        color: #1e3a5f;
+        background: linear-gradient(180deg, #e9f1ff 0%, #dbe8ff 100%);
+        border-color: #c9d9f3;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 4px 10px rgba(37, 99, 235, 0.08);
+    }
+
+    #editCardStatusModule .ecs-confirm__btn--confirm {
+        width: 116px;
+        color: #ffffff;
+        background: linear-gradient(180deg, #2b67ed 0%, #1f4fd8 100%);
+        border-color: #1f4fd8;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 18px rgba(29, 78, 216, 0.34);
+    }
+
+    #editCardStatusModule .ecs-confirm__btn:focus {
+        outline: none;
+    }
+
+    #editCardStatusModule .ecs-confirm__btn:focus-visible {
+        outline: 2px solid rgba(37, 99, 235, 0.4);
+        outline-offset: 2px;
+    }
+
+    @@media (max-width: 992px) {
+        #editCardStatusModule .form-card {
+            padding: 10px;
+        }
+
+        #editCardStatusModule .action-panel {
+            position: static;
+            height: auto;
+            border-left: 0;
+            border-top: 1px solid var(--am-border-light, #e2e8f0);
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+
+        #editCardStatusModule .action-panel .btn-action {
+            height: 56px;
+            min-height: 56px;
+        }
+
+        #editCardStatusModule .ecs-confirm__actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        #editCardStatusModule .ecs-confirm__btn {
+            width: 100%;
+            min-height: 40px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        #editCardStatusModule .am-message-panel {
+            right: 10px;
+            left: 10px;
+            max-width: none;
+            min-width: 0;
+        }
+
+        #editCardStatusModule .audit-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            padding: 10px 12px;
+        }
+
+        #editCardStatusModule .audit-grid .audit-field label {
+            font-size: 9.5px;
+        }
+
+        #editCardStatusModule .audit-grid .audit-field input {
+            height: 34px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+<div id="editCardStatusModule"
+     data-operator-id="@(Context.Session.GetString("user_name") ?? Context.Session.GetString("user_id") ?? string.Empty)"
+     data-branch-id="@(Context.Session.GetString("branch_code") ?? Context.Session.GetString("branch_id") ?? string.Empty)"
+     data-bank-id="@(Context.Session.GetString("bank_id") ?? Context.Session.GetString("bank_code") ?? "00")"
+     data-api-base="@apiBase" data-close-mode="window">
+    <div class="window">
+        <main class="main-container">
+            <div class="form-content" role="region" aria-label="Edit Card Status form">
+                <div class="form-card">
+                    <div class="form-section" data-section="stage-selection">
+                        <div class="section-content">
+                            <div class="filter-row">
+                                <label class="label-blue" for="stageFilter">Stage</label>
+                                <select id="stageFilter" class="form-control" aria-label="Card stage filter">
+                                    <option value="">-- Select Stage --</option>
+                                    @foreach (var option in stageOptions)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(option.Value))
+                                        {
+                                            <option value="@option.Value">@option.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="stage-hint">Select a stage, then click <strong>View</strong> to load Card Status
+                                List.</div>
+                            </div>
+                        </div>
+
+                        <div class="form-section" data-section="card-status-list">
+                            <div class="section-header">
+                                <span class="section-header__title"><i class="bi bi-table"></i>Card Status List</span>
+                                <span class="record-count-badge" id="recordCount">0 records</span>
+                            </div>
+                            <div class="section-content p-0">
+                                <div class="card-table">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-select"><input id="selectAllCards" type="checkbox"
+                                                                                  class="form-check-input" aria-label="Select all" /></th>
+                                                    <th class="col-tracking">TrackingID</th>
+                                                    <th class="col-card-id">Card ID</th>
+                                                    <th class="col-card-name">CardName</th>
+                                                    <th class="col-provider">Card Provider</th>
+                                                    <th class="col-branch">Branch ID</th>
+                                                    <th class="col-account">Account ID</th>
+                                                    <th class="col-status">Card Status</th>
+                                                    <th class="text-center col-approved">Is Approved</th>
+                                                    <th class="text-center col-active">Is Active</th>
+                                                    <th class="text-center col-collected">Collected</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="cardStatusGrid">
+                                                <tr class="table-empty">
+                                                    <td colspan="11">
+                                                        <i class="bi bi-credit-card-2-back" aria-hidden="true"></i>
+                                                        <span>No records to display. Select a stage and click View.</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section" data-section="audit">
+                                <div class="section-header" data-section-toggle>
+                                    <span class="section-header__title"><i class="bi bi-clock-history"></i>Behind The
+                                        Scene</span>
+                                        <button type="button" class="section-toggle-btn" aria-label="Toggle audit trail"
+                                                aria-expanded="true">
+                                            <i class="bi bi-chevron-up"></i>
+                                        </button>
+                                    </div>
+                                    <div class="section-content" data-section-content>
+                                        <div class="audit-grid">
+                                            <div class="audit-field audit-field--by">
+                                                <label for="createdBy">Created By</label>
+                                                <input type="text" id="createdBy" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--on">
+                                                <label for="createdOn">Created On</label>
+                                                <input type="text" id="createdOn" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--by">
+                                                <label for="approvedBy">Approved By</label>
+                                                <input type="text" id="approvedBy" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--on">
+                                                <label for="approvedOn">Approved On</label>
+                                                <input type="text" id="approvedOn" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--by">
+                                                <label for="exportedBy">Exported By</label>
+                                                <input type="text" id="exportedBy" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--on">
+                                                <label for="exportedOn">Exported On</label>
+                                                <input type="text" id="exportedOn" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--by">
+                                                <label for="activatedBy">Activated By</label>
+                                                <input type="text" id="activatedBy" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--on">
+                                                <label for="activatedOn">Activated On</label>
+                                                <input type="text" id="activatedOn" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--by">
+                                                <label for="disbursedBy">Disbursed By</label>
+                                                <input type="text" id="disbursedBy" readonly value="-" />
+                                            </div>
+                                            <div class="audit-field audit-field--on">
+                                                <label for="disbursedOn">Disbursed On</label>
+                                                <input type="text" id="disbursedOn" readonly value="-" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside class="action-panel" aria-label="Form actions">
+                            <div class="d-flex flex-column gap-2 mt-auto">
+                                <button class="btn-action btn-view" type="button" data-action="view">
+                                    <i class="bi bi-eye"></i><span>View</span>
+                                </button>
+                                <button class="btn-action btn-edit" type="button" data-action="edit" disabled>
+                                    <i class="bi bi-pencil"></i><span>Edit</span>
+                                </button>
+                                <button class="btn-action btn-save" type="button" data-action="approve" disabled>
+                                    <i class="bi bi-check-circle"></i><span>Approve</span>
+                                </button>
+                                <button class="btn-action btn-cancel" type="button" data-action="cancel">
+                                    <i class="bi bi-x-lg"></i><span>Cancel</span>
+                                </button>
+                            </div>
+                        </aside>
+                    </main>
+
+                    <footer class="de-status-bar" id="editCardStatusBar" role="status" aria-live="polite">Ready</footer>
+
+                    <div class="de-loading-overlay" id="loadingOverlay" hidden>
+                        <div class="de-loading-spinner">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>Loading...</span>
+                        </div>
+                    </div>
+
+                    <div class="am-message-panel" id="amMessagePanel" role="alert" aria-live="polite" hidden>
+                        <i class="bi bi-info-circle-fill am-message-panel__icon" id="messagePanelIcon" aria-hidden="true"></i>
+                        <span id="messagePanelText"></span>
+                        <button type="button" class="am-message-panel__close" id="messagePanelClose" aria-label="Close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+
+                    <div class="ecs-confirm" id="approveConfirmModal" role="dialog" aria-modal="true"
+                         aria-labelledby="approveConfirmTitle" aria-describedby="approveConfirmText" hidden>
+                        <div class="ecs-confirm__backdrop" data-confirm-dismiss="backdrop"></div>
+                        <div class="ecs-confirm__dialog">
+                            <div class="ecs-confirm__header">
+                                <span class="ecs-confirm__icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>
+                                <h2 class="ecs-confirm__title" id="approveConfirmTitle">Confirm approval</h2>
+                            </div>
+                            <p class="ecs-confirm__text" id="approveConfirmText"></p>
+                            <div class="ecs-confirm__actions">
+                                <button type="button" class="ecs-confirm__btn ecs-confirm__btn--confirm"
+                                        id="approveConfirmOk">OK</button>
+                                <button type="button" class="ecs-confirm__btn ecs-confirm__btn--cancel"
+                                        id="approveConfirmCancel">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @section Scripts {
+                <script src="~/js/modules/accounts/edit-card-status.js?v=20260309e"></script>
+            }

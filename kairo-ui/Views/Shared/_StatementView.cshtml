@@ -4,7 +4,7 @@
 }
 
 <!-- Module-specific CSS (use local reference) -->
-<link rel="stylesheet" href="~/css/search-modal.css" />
+@* <link rel="stylesheet" href="~/css/search-modal.css" /> *@
 
 <div class="window">
     <main class="main-container">
@@ -61,7 +61,7 @@
                             <i class="bi bi-chevron-up"></i>
                         </button>
                     </div>
-                    <div class="section-content" data-section-content style="overflow-x: auto;">
+                    <div class="section-content" data-section-content style="overflow-x: auto;overflow-y:scroll;">
                         <table class="table table-sm table-hover" id="tbl_statementGrid" style="margin-bottom: 0;">
                             <thead class="table-light">
                                 <tr>
@@ -82,37 +82,37 @@
                                 </tr>
                             </tbody>
                         </table>
-                            <!-- Pagination Controls -->
-                            <div id="dv_statementPagination" class="sv-pagination-container" style="display: none;">
-                                <div class="sv-pagination-info">
-                                    <span id="spn_paginationInfo">Showing 0 - 0 of 0</span>
-                                </div>
-                                <div class="sv-pagination-controls">
-                                    <button id="btn_firstPage" class="sv-page-btn" title="First Page" aria-label="First Page">
-                                        <i class="bi bi-chevron-bar-left"></i>
-                                    </button>
-                                    <button id="btn_prevPage" class="sv-page-btn" title="Previous Page" aria-label="Previous Page">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-                                    <div class="sv-page-numbers" id="dv_pageNumbers"></div>
-                                    <button id="btn_nextPage" class="sv-page-btn" title="Next Page" aria-label="Next Page">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                    <button id="btn_lastPage" class="sv-page-btn" title="Last Page" aria-label="Last Page">
-                                        <i class="bi bi-chevron-bar-right"></i>
-                                    </button>
-                                </div>
-                                <div class="sv-pagination-size">
-                                    <label for="ddl_pageSize">Show:</label>
-                                    <select id="ddl_pageSize" class="sv-page-size-select">
-                                        <option value="10">10</option>
-                                        <option value="25" selected>25</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
-                                        <option value="all">All</option>
-                                    </select>
-                                </div>
+                        <!-- Pagination Controls -->
+                        <div id="dv_statementPagination" class="sv-pagination-container" style="display: none;">
+                            <div class="sv-pagination-info">
+                                <span id="spn_paginationInfo">Showing 0 - 0 of 0</span>
                             </div>
+                            <div class="sv-pagination-controls">
+                                <button id="btn_firstPage" class="sv-page-btn" title="First Page" aria-label="First Page">
+                                    <i class="bi bi-chevron-bar-left"></i>
+                                </button>
+                                <button id="btn_prevPage" class="sv-page-btn" title="Previous Page" aria-label="Previous Page">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <div class="sv-page-numbers" id="dv_pageNumbers"></div>
+                                <button id="btn_nextPage" class="sv-page-btn" title="Next Page" aria-label="Next Page">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                                <button id="btn_lastPage" class="sv-page-btn" title="Last Page" aria-label="Last Page">
+                                    <i class="bi bi-chevron-bar-right"></i>
+                                </button>
+                            </div>
+                            <div class="sv-pagination-size">
+                                <label for="ddl_pageSize">Show:</label>
+                                <select id="ddl_pageSize" class="sv-page-size-select">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,133 +226,134 @@
                     color: #b91c1c;
                 }
 
-        /* Pagination Styles */
-        .sv-pagination-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            border-top: 1px solid var(--am-border-light, #e2e8f0);
-            background: var(--am-bg-subtle, #f8fafc);
-            gap: 16px;
-            flex-wrap: wrap;
+    /* Pagination Styles */
+    .sv-pagination-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-top: 1px solid var(--am-border-light, #e2e8f0);
+        background: var(--am-bg-subtle, #f8fafc);
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .sv-pagination-info {
+        color: var(--am-text-secondary, #64748b);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .sv-pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .sv-page-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 6px;
+        background: white;
+        color: var(--am-text-primary, #1e293b);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+        .sv-page-btn:hover:not(:disabled) {
+            background: var(--am-primary-50, #eff6ff);
+            border-color: var(--am-primary-200, #bfdbfe);
+            color: var(--am-primary-600, #2563eb);
         }
 
-        .sv-pagination-info {
-            color: var(--am-text-secondary, #64748b);
-            font-size: 13px;
-            font-weight: 500;
+        .sv-page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
-        .sv-pagination-controls {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+    .sv-page-numbers {
+        display: flex;
+        gap: 4px;
+        margin: 0 8px;
+    }
+
+    .sv-page-number {
+        min-width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 6px;
+        background: white;
+        color: var(--am-text-primary, #1e293b);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        padding: 0 8px;
+    }
+
+        .sv-page-number:hover:not(.active) {
+            background: var(--am-primary-50, #eff6ff);
+            border-color: var(--am-primary-200, #bfdbfe);
+            color: var(--am-primary-600, #2563eb);
         }
 
-        .sv-page-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border: 1px solid var(--am-border-light, #e2e8f0);
-            border-radius: 6px;
-            background: white;
-            color: var(--am-text-primary, #1e293b);
-            cursor: pointer;
-            transition: all 0.15s;
+        .sv-page-number.active {
+            background: var(--am-primary-600, #2563eb);
+            border-color: var(--am-primary-600, #2563eb);
+            color: white;
+            cursor: default;
         }
 
-            .sv-page-btn:hover:not(:disabled) {
-                background: var(--am-primary-50, #eff6ff);
-                border-color: var(--am-primary-200, #bfdbfe);
-                color: var(--am-primary-600, #2563eb);
-            }
-
-            .sv-page-btn:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
-
-        .sv-page-numbers {
-            display: flex;
-            gap: 4px;
-            margin: 0 8px;
+        .sv-page-number.ellipsis {
+            border: none;
+            background: transparent;
+            cursor: default;
+            pointer-events: none;
         }
 
-        .sv-page-number {
-            min-width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--am-border-light, #e2e8f0);
-            border-radius: 6px;
-            background: white;
-            color: var(--am-text-primary, #1e293b);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
-            padding: 0 8px;
+    .sv-pagination-size {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--am-text-secondary, #64748b);
+    }
+
+    .sv-page-size-select {
+        padding: 6px 24px 6px 10px;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 6px;
+        background: white;
+        color: var(--am-text-primary, #1e293b);
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+    }
+
+        .sv-page-size-select:hover {
+            border-color: var(--am-primary-300, #93c5fd);
         }
 
-            .sv-page-number:hover:not(.active) {
-                background: var(--am-primary-50, #eff6ff);
-                border-color: var(--am-primary-200, #bfdbfe);
-                color: var(--am-primary-600, #2563eb);
-            }
-
-            .sv-page-number.active {
-                background: var(--am-primary-600, #2563eb);
-                border-color: var(--am-primary-600, #2563eb);
-                color: white;
-                cursor: default;
-            }
-
-            .sv-page-number.ellipsis {
-                border: none;
-                background: transparent;
-                cursor: default;
-                pointer-events: none;
-            }
-
-        .sv-pagination-size {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--am-text-secondary, #64748b);
+        .sv-page-size-select:focus {
+            outline: 2px solid var(--am-primary-200, #bfdbfe);
+            border-color: var(--am-primary-500, #3b82f6);
         }
-
-        .sv-page-size-select {
-            padding: 6px 24px 6px 10px;
-            border: 1px solid var(--am-border-light, #e2e8f0);
-            border-radius: 6px;
-            background: white;
-            color: var(--am-text-primary, #1e293b);
-            font-size: 13px;
-            cursor: pointer;
-            transition: border-color 0.15s;
-        }
-
-            .sv-page-size-select:hover {
-                border-color: var(--am-primary-300, #93c5fd);
-            }
-
-            .sv-page-size-select:focus {
-                outline: 2px solid var(--am-primary-200, #bfdbfe);
-                border-color: var(--am-primary-500, #3b82f6);
-            }
 </style>
 
 <script>
     // Store Statement View parameters from controller
     window.StatementViewState = {
         ModuleID: '@ViewBag.ModuleID',
-      BranchID: '@ViewBag.BranchID',
-        AccountID: '@ViewBag.AccountID'
+        BranchID: '@ViewBag.BranchID',
+        AccountID: '@ViewBag.AccountID',
+        Series: '@ViewBag.Series'
     };
 </script>
 

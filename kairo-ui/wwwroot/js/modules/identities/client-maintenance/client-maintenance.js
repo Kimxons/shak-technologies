@@ -96,6 +96,54 @@ function invokeClientMaintenanceController(action, requestData) {
     return invokeController(CLIENT_MAINTENANCE_CONTROLLER_BASE, action, requestData);
 }
 
+function syncClientMaintenanceDateInput(input) {
+    if (!input || !input._flatpickr) return;
+
+    const isDisabled = Boolean(input.disabled || input.readOnly);
+    try {
+        input._flatpickr.set('clickOpens', !isDisabled);
+        input._flatpickr.set('allowInput', !isDisabled);
+        if (isDisabled) input._flatpickr.close();
+    } catch (error) {
+        console.warn('[ClientMaintenance] Failed to sync flatpickr state:', error);
+    }
+}
+
+function initializeClientMaintenanceDatePickers(scopeRoot = document) {
+    if (!scopeRoot || typeof window.flatpickr !== 'function') return;
+
+    const dateInputs = Array.from(scopeRoot.querySelectorAll('input[type="date"]')).filter((input) => {
+        return !input.hasAttribute('data-no-flatpickr');
+    });
+
+    dateInputs.forEach((input) => {
+        if (input._flatpickr) {
+            syncClientMaintenanceDateInput(input);
+            return;
+        }
+
+        try {
+            window.flatpickr(input, {
+                dateFormat: 'Y-m-d',
+                disableMobile: true,
+                monthSelectorType: 'dropdown',
+                clickOpens: !(input.disabled || input.readOnly),
+                allowInput: !(input.disabled || input.readOnly),
+                onReady: (_selectedDates, _dateStr, instance) => {
+                    syncClientMaintenanceDateInput(instance.input);
+                },
+                onOpen: (_selectedDates, _dateStr, instance) => {
+                    if (instance.input.disabled || instance.input.readOnly) {
+                        instance.close();
+                    }
+                }
+            });
+        } catch (error) {
+            console.warn('[ClientMaintenance] Failed to initialize flatpickr:', error);
+        }
+    });
+}
+
 window.ClientMaintenanceCore = {
     getAppCore,
     invokeController,
@@ -1640,6 +1688,7 @@ async function loadTabPartial(config, forceDataRefresh = false) {
             }
         }
 
+        initializeClientMaintenanceDatePickers(pane);
         applyTabEditMode(pane, window.ClientMaintenanceCore?.isEditMode);
         return;
     }
@@ -1674,6 +1723,7 @@ async function loadTabPartial(config, forceDataRefresh = false) {
         // Continue - tab HTML is already loaded, just data/initialization failed
     }
 
+    initializeClientMaintenanceDatePickers(pane);
     applyTabEditMode(pane, window.ClientMaintenanceCore?.isEditMode);
 }
 
@@ -1738,6 +1788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize main client search
     initMainClientSearch(shell);
+    initializeClientMaintenanceDatePickers(shell);
 
     const clientTypeSelect = shell.querySelector('#ddl_mainClientType');
     if (clientTypeSelect) {
@@ -2117,6 +2168,8 @@ function applyTabEditMode(tabRoot, isEditMode) {
     if (typeof tabRoot._cmSetEditMode === 'function') {
         tabRoot._cmSetEditMode(isEditMode);
     }
+
+    initializeClientMaintenanceDatePickers(tabRoot);
 }
 
 /**

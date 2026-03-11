@@ -37,7 +37,7 @@
             <!-- ROW 2: Gender, DOB, Age, Age As On -->
             <div class="form-row four-col">
                 <div class="col"><label class="label-blue" for="ddl_personalGender" id="lbl_personalGender">Gender</label><select id="ddl_personalGender" name="GenderID" class="bs-select" asp-items="@(genderOptions.Skip(1))"><option value="">Select gender</option></select></div>
-                <div class="col"><label class="label-blue" for="dt_personalDob" id="lbl_personalDob">Date Of Birth</label><input id="dt_personalDob" name="DateOfBirth" class="bs-input-text" type="date" required /></div>
+                <div class="col"><label class="label-blue" for="dt_personalDob" id="lbl_personalDob">Date Of Birth</label><input id="dt_personalDob" name="DateOfBirth" class="bs-input-text" type="date"  required /></div>
                 <div class="col"><label for="txt_personalAge" id="lbl_personalAge">Age</label><input id="txt_personalAge" name="Age" class="bs-input-text" placeholder="Auto" readonly /></div>
                 <div class="col"><label for="txt_personalAgeAsOn" id="lbl_personalAgeAsOn">Age As On</label><input id="txt_personalAgeAsOn" name="AgeAsOn" class="bs-input-text" placeholder="Derived" readonly /></div>
             </div>

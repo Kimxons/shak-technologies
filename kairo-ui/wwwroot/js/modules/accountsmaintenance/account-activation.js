@@ -117,7 +117,8 @@ window.AccountActivationModule = (function () {
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
                 let details = null;
                 const d = result.Details || result.data;
                 if (d?.Details01?.[0]) details = d.Details01[0];
@@ -133,7 +134,7 @@ window.AccountActivationModule = (function () {
                     showMsg('No activation data found for this account', 'warning');
                 }
             } else {
-                showMsg(result?.message || 'Failed to load activation data', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Failed to load activation data', 'error');
             }
         } catch (err) {
             showMsg('Error loading activation data: ' + err.message, 'error');
@@ -194,12 +195,13 @@ window.AccountActivationModule = (function () {
 
         try {
             const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
-            if (result && result.success) {
-                showMsg(result.message || 'Account activation saved successfully', 'success');
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Account activation saved successfully', 'success');
                 loadData();
                 return true;
             } else {
-                showMsg(result?.message || 'Save failed', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Save failed', 'error');
                 return false;
             }
         } catch (err) {
