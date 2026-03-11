@@ -12,19 +12,6 @@
 </form>
 
 <div class="window">
-    <!-- Header Bar -->
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-card-list am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Standing Instruction Type</span>
-        </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-arrows-fullscreen"></i></button>
-            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-        </div>
-    </div>
-
     <!-- Main Container -->
     <main class="main-container main-container--with-panel" aria-label="Standing Instruction Type form">
         <div class="form-content" role="region" aria-label="Form fields">
@@ -44,6 +31,7 @@
                                 <label class="label-blue" for="txt_instructionTypeId">Instruction Type ID</label>
                                 <div class="kairo-control" data-kairo-control>
                                     <input type="text" id="txt_instructionTypeId" name="instructionTypeId" class="kairo-control__id" aria-label="Instruction Type ID">
+                                    <input type="text" id="txt_instructionTypeName" class="kairo-control__name" aria-label="Instruction Type Description" placeholder="Description" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchSIType" aria-label="Search SI Type"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
