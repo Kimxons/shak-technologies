@@ -41,6 +41,12 @@ namespace kairo_ui.Controllers.MicroFinance
                 return RedirectToAction("Index", "Login");
             }
 
+            // Fetch session values for authenticated user
+            var userName = HttpContext.Session.GetString("user_name");
+            var branchCode = HttpContext.Session.GetString("branch_code");
+            ViewBag.UserName = userName;
+            ViewBag.BranchCode = branchCode;
+
             _logger.LogInformation("Savings Refund loaded successfully");
             return PartialView("~/Views/MicroFinance/SavingsRefund.cshtml");
         }
@@ -79,8 +85,8 @@ namespace kairo_ui.Controllers.MicroFinance
                 _logger.LogInformation("Savings Refund OldAPI request for {FormId}: {Request}",
                     request.FormId, JsonSerializer.Serialize(envelope));
 
-                var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, "OldAPI", envelope);
+                var response = await _oldApiService.PostRawAsync<JsonElement>(
+                    MicroFinanceApiName, envelope);
 
                 return Ok(response);
             }
@@ -127,13 +133,35 @@ namespace kairo_ui.Controllers.MicroFinance
                 return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
             }
 
-            var dictionary = JsonSerializer.Deserialize<Dictionary<string, object?>>(
-                requestData.GetRawText(), new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
 
-            return new Dictionary<string, object?>(dictionary, StringComparer.OrdinalIgnoreCase);
+            if (requestData.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in requestData.EnumerateObject())
+                {
+                    result[property.Name] = UnwrapJsonElement(property.Value);
+                }
+            }
+
+            return result;
+        }
+
+        private static object? UnwrapJsonElement(JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.String => element.GetString(),
+                JsonValueKind.Number => element.TryGetInt64(out long l) ? l :
+                                       element.TryGetDouble(out double d) ? d :
+                                       element.GetDecimal(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                JsonValueKind.Array => element.EnumerateArray().Select(UnwrapJsonElement).ToArray(),
+                JsonValueKind.Object => element.EnumerateObject()
+                    .ToDictionary(p => p.Name, p => UnwrapJsonElement(p.Value), StringComparer.OrdinalIgnoreCase),
+                _ => element.GetRawText()
+            };
         }
 
         private void EnsureDefaults(IDictionary<string, object?> requestData)
