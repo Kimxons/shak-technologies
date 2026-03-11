@@ -1014,6 +1014,7 @@
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
+                mod.init();
                 return;
             }
 
