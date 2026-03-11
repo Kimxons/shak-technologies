@@ -579,6 +579,38 @@ span[class*="label-optional"] {
     display: none !important;
 }
 
+/* Loading Icon and Text */
+.loading-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.5;
+}
+
+.loading-text {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Table Scrollable Containers */
+.table-scrollable {
+    max-height: 400px;
+    overflow: auto;
+}
+
+.table-scrollable-sm {
+    max-height: 250px;
+    overflow: auto;
+}
+
+/* Sticky Table Header */
+.table-header-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8f9fa;
+}
+
 /* Status Message */
 .status-msg {
     padding: 12px 16px;
@@ -32343,6 +32375,54 @@ body[data-page="group-bank-details"] .form-row.three-col .col label {
 body[data-page="group-bank-details"] .form-row.three-col .col input,
 body[data-page="group-bank-details"] .form-row.three-col .col select,
 body[data-page="group-bank-details"] .form-row.three-col .col textarea {
+    width: 100%;
+    max-width: none;
+}
+
+body[data-page="group-bank-details"] #bankAccountsTableBody tr.table-active {
+    background-color: #e7f3ff;
+    font-weight: 500;
+}
+
+/* Keep GRT Details aligned with Group Bank Details layout sizing */
+body[data-page="grt-details"] .form-card,
+body[data-page="grt-details"] .form-section {
+    flex: 0 0 auto !important;
+}
+
+body[data-page="grt-details"] .form-section {
+    overflow: visible !important;
+}
+
+body[data-page="grt-details"] .form-content {
+    overflow-y: auto !important;
+}
+
+body[data-page="grt-details"] .form-row.three-col {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+body[data-page="grt-details"] .form-row.three-col .col {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-width: 0;
+}
+
+body[data-page="grt-details"] .form-row.three-col .col label {
+    min-width: 0;
+    text-align: left;
+    margin-bottom: 4px;
+}
+
+body[data-page="grt-details"] .form-row.three-col .col input,
+body[data-page="grt-details"] .form-row.three-col .col select,
+body[data-page="grt-details"] .form-row.three-col .col textarea {
     width: 100%;
     max-width: none;
 }

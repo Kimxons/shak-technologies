@@ -6,130 +6,124 @@
     var demiseReasonOptions = ViewData["DemiseReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var documentProofOptions = ViewData["DocumentProofOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
-    var showActionPanel = moduleId != "1000";
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
 }
 
-<div class="form-card" data-section="client-demise-details" data-cm-module="demise-details">
-    <div class="section-header" data-section-toggle>
-        <span class="section-header__title"><i class="bi bi-calendar-x"></i> Demise Details</span>
-        <button id="btn_toggleClientDemiseDetails" type="button" class="section-toggle-btn" aria-label="Toggle Demise Details" aria-expanded="true">
-            <i class="bi bi-chevron-up"></i>
-        </button>
-    </div>
-    <div class="section-content" data-section-content>
-        <form id="frm_clientDemiseDetails" data-demisedetails-form autocomplete="off" novalidate>
-            <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdDemiseDetails" value="@moduleId" />
-            <input type="hidden" id="hdn_demiseDetailId" name="demiseDetailId" />
+<div class="window de-window" data-ktb-window data-demise-host="standalone">
+    <div data-kairo-titlebar data-title="Client Demise Details" data-icon="bi-calendar-x"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
+            <div class="form-card" data-section="client-demise-details" data-cm-module="demise-details">
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-calendar-x"></i> Demise Details</span>
+                    <button id="btn_toggleClientDemiseDetails" type="button" class="section-toggle-btn" aria-label="Toggle Demise Details" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <form id="frm_clientDemiseDetails" data-demisedetails-form autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdDemiseDetails" value="@moduleId" />
+                        <input type="hidden" id="hdn_demiseDetailId" name="demiseDetailId" />
 
-            <h5 class="mb-4">Demise Information</h5>
+                        <h5 class="mb-4">Demise Information</h5>    
 
-            <div class="form-row four-col">
-                <div class="col">
-                    <label class="label-blue" for="txt_demiseDate" id="lbl_demiseDate">Demise Date</label>
-                    <input type="date" id="txt_demiseDate" name="demiseDate" data-demisedetail-field="DemiseDate" class="bs-input-text" />
-                </div>
-                <div class="col">
-                    <label class="label-blue" for="ddl_reasonId" id="lbl_reasonId">Reason</label>
-                    <select id="ddl_reasonId" name="reasonId" data-demisedetail-field="ReasonID" class="bs-select" asp-items="@demiseReasonOptions">
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <label class="label-blue" for="ddl_documentProofId" id="lbl_documentProofId">Document Proof</label>
-                    <select id="ddl_documentProofId" name="documentProofId" data-demisedetail-field="DocumentProofID" class="bs-select" asp-items="@documentProofOptions">
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <label class="label-blue" for="txt_notificationDate" id="lbl_notificationDate">Notification Date</label>
-                    <input type="date" id="txt_notificationDate" name="notificationDate" data-demisedetail-field="NotificationDate" class="bs-input-text" />
-                </div>
-            </div>
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_demiseDate" id="lbl_demiseDate">Demise Date</label>
+                                <input type="date" id="txt_demiseDate" name="demiseDate" data-demisedetail-field="DemiseDate" class="bs-input-text" />
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="ddl_reasonId" id="lbl_reasonId">Reason</label>
+                                <select id="ddl_reasonId" name="reasonId" data-demisedetail-field="ReasonID" class="bs-select" asp-items="@demiseReasonOptions">
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="ddl_documentProofId" id="lbl_documentProofId">Document Proof</label>
+                                <select id="ddl_documentProofId" name="documentProofId" data-demisedetail-field="DocumentProofID" class="bs-select" asp-items="@documentProofOptions">
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_notificationDate" id="lbl_notificationDate">Notification Date</label>
+                                <input type="date" id="txt_notificationDate" name="notificationDate" data-demisedetail-field="NotificationDate" class="bs-input-text" />
+                            </div>
+                        </div>
 
-            <div class="form-row four-col">
-                <div class="col col-span-2">
-                    <label class="label-blue" for="txt_documentImage" id="lbl_documentImage">Document Image</label>
-                    <div class="kairo-control" data-kairo-control>
-                        <input type="text" id="txt_documentImage" name="documentImage" data-demisedetail-field="DocumentImage" class="bs-input-text" readonly placeholder="No file selected" />
-                        <button type="button" class="btn-lookup" data-demisedetail-action="browse-file" aria-label="Browse file"><i class="bi bi-folder2-open"></i></button>
+                        <div class="form-row four-col">
+                            <div class="col col-span-2">
+                                <label class="label-blue" for="txt_documentImage" id="lbl_documentImage">Document Image</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_documentImage" name="documentImage" data-demisedetail-field="DocumentImage" class="bs-input-text" readonly placeholder="No file selected" />
+                                    <button type="button" class="btn-lookup" data-demisedetail-action="browse-file" aria-label="Browse file"><i class="bi bi-folder2-open"></i></button>
+                                </div>
+                                <input type="file" id="file_documentImage" style="display: none;" accept="image/*,.pdf" />
+                            </div>
+                            <div class="col col-span-2">
+                                <label for="txa_remarks" id="lbl_remarks">Remarks</label>
+                                <textarea id="txa_remarks" name="remarks" data-demisedetail-field="Remarks" class="bs-input-text" rows="1" placeholder="Any additional comments..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="d-flex justify-content-center gap-2 my-4">
+                        <button id="btn_newDemiseDetail" type="button" class="btn btn-sm btn-outline-primary" data-demisedetail-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                        <button id="btn_alterDemiseDetail" type="button" class="btn btn-sm btn-outline-primary" data-demisedetail-action="alter" disabled><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                        <button id="btn_removeDemiseDetail" type="button" class="btn btn-sm btn-outline-danger" data-demisedetail-action="remove" disabled><i class="bi bi-trash me-1"></i>Remove</button>
+                        <button id="btn_updateDemiseDetail" type="button" class="btn btn-sm btn-primary" data-demisedetail-action="update" disabled><i class="bi bi-check2-circle me-1"></i>Update</button>
+                        <button id="btn_clearDemiseDetail" type="button" class="btn btn-sm btn-outline-secondary" data-demisedetail-action="clear" disabled>Clear</button>
                     </div>
-                    <input type="file" id="file_documentImage" style="display: none;" accept="image/*,.pdf" />
-                </div>
-                <div class="col col-span-2">
-                    <label for="txa_remarks" id="lbl_remarks">Remarks</label>
-                    <textarea id="txa_remarks" name="remarks" data-demisedetail-field="Remarks" class="bs-input-text" rows="1" placeholder="Any additional comments..."></textarea>
+
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">DEMISE DETAILS RECORDS</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white mb-4">
+                        <table class="table table-sm table-hover mb-0" data-table="demise-details">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Demise Date</th>
+                                    <th>Reason</th>
+                                    <th>Document Proof</th>
+                                    <th>Notification Date</th>
+                                    <th>Remarks</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody data-demisedetails-body>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">No demise details registered</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </form>
-
-        @if (!showActionPanel)
-        {
-            <div class="d-flex justify-content-center gap-2 my-4">
-                <button id="btn_addDemiseDetail" type="button" class="btn btn-sm btn-outline-primary" data-demisedetail-action="add"><i class="bi bi-plus-lg me-1"></i>Add</button>
-                <button id="btn_editDemiseDetail" type="button" class="btn btn-sm btn-outline-primary" data-demisedetail-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                <button id="btn_deleteDemiseDetail" type="button" class="btn btn-sm btn-outline-danger" data-demisedetail-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
-                <button id="btn_saveDemiseDetail" type="button" class="btn btn-sm btn-primary" data-demisedetail-action="save"><i class="bi bi-check2-circle me-1"></i>Save</button>
-                <button id="btn_cancelDemiseDetail" type="button" class="btn btn-sm btn-outline-secondary" data-demisedetail-action="cancel">Cancel</button>
+        </div>
+        <aside class="action-panel" aria-label="Client demise details actions">
+            
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+                <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
             </div>
-        }
+        </aside>
 
-        <div class="section-header py-1 mb-2 bg-light border">
-            <span class="small fw-bold px-2">DEMISE DETAILS RECORDS</span>
-        </div>
-        <div class="table-responsive border rounded bg-white mb-4">
-            <table class="table table-sm table-hover mb-0" data-table="demise-details">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-2">Demise Date</th>
-                        <th>Reason</th>
-                        <th>Document Proof</th>
-                        <th>Notification Date</th>
-                        <th>Remarks</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody data-demisedetails-body>
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-3">No demise details registered</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 </div>
 
-@if (showActionPanel)
-{
-    <aside class="action-panel" aria-label="Client demise actions">
-        <div class="d-flex flex-column gap-2 mt-auto">
-            <button id="btn_addDemiseDetail" type="button" class="btn-action" data-demisedetail-action="add"><i class="bi bi-plus-lg"></i><span>Add</span></button>
-            <button id="btn_editDemiseDetail" type="button" class="btn-action" data-demisedetail-action="edit"><i class="bi bi-pencil-square"></i><span>Edit</span></button>
-            <button id="btn_deleteDemiseDetail" type="button" class="btn-action btn-delete" data-demisedetail-action="delete"><i class="bi bi-trash"></i><span>Delete</span></button>
-            <button id="btn_saveDemiseDetail" type="button" class="btn-action btn-save" data-demisedetail-action="save"><i class="bi bi-check2-circle"></i><span>Save</span></button>
-            <button id="btn_cancelDemiseDetail" type="button" class="btn-action btn-cancel" data-demisedetail-action="cancel"><i class="bi bi-x-circle"></i><span>Cancel</span></button>
-        </div>
-    </aside>
-}
-
-<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-demise-details.js" asp-append-version="true"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const moduleRoot = document.querySelector('[data-section="client-demise-details"]');
-        const moduleId = document.getElementById('moduleIdDemiseDetails')?.value;
-        const autoLoad = '@ViewData["AutoLoad"]' === 'true';
-        const clientId = '@ViewData["ClientId"]';
-
-        if (moduleRoot && typeof window.initClientMaintenanceDemiseDetails === 'function') {
-            window.initClientMaintenanceDemiseDetails(moduleRoot, moduleId);
-
-            if (autoLoad && clientId) {
-                setTimeout(() => {
-                    if (moduleRoot._cmLoadData) {
-                        moduleRoot._cmLoadData({ ClientID: clientId, ModuleID: moduleId });
-                    }
-                }, 100);
-            }
-        }
-    });
+    window.ClientDemiseDetailsState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: true
+    };
 </script>
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-demise-details.js" asp-append-version="true"></script>

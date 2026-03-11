@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using SystemCoreApi.Helpers;
 using SystemCoreApi.Modules.SystemCore;
 using SystemCoreApi.Modules.SystemBankSettings;
+using SystemCoreApi.Modules.SystemBranchStatus;
 using SystemCoreApi.Modules.Shared;
 
 var configS = new ConfigurationBuilder()
@@ -159,6 +160,7 @@ try
     // Register services
     builder.Services.AddScoped<ISystemCoreRepo, SystemCoreRepo>();
     builder.Services.AddScoped<ISystemBankSettingRepo, SystemBankSettingRepo>();
+    builder.Services.AddScoped<ISystemBranchStatusRepo, SystemBranchStatusRepo>();
     builder.Services.AddScoped<ISharedRepo, SharedRepo>();
     // Configure CORS
     var corsOrigins = builder.Configuration["AppSettings:cors"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
