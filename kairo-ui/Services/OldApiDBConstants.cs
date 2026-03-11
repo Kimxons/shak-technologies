@@ -258,6 +258,8 @@ namespace kairo_ui.Services
         public const string DELETE_SI_TYPES = "dbo.p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
+        public const string GET_ACCOUNT_CLOSING_DETAILS = "p_GetAcClosingDetails";
+        public const string ADD_ACCOUNT_CLOSING_DETAILS = "p_AddAcClosingDetails";
 
         public const string GET_MERGE_CLIENT_ACCOUNTS = "p_GetCustomerQuery_MergeClientAccount";
         public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
