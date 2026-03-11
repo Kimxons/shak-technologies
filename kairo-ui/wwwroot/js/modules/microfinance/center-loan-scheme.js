@@ -28,7 +28,13 @@
             const endpoint = `MicroFinance/${action}`;
             appCore.invokeController(endpoint, requestData || {}, (error, response) => {
                 if (error) {
-                    reject(error);
+                    // Resolve with the error payload so getOldApiStatus can read ResponseCode/ResponseMessage
+                    // Only reject on network-level failures (no response at all)
+                    if (response) {
+                        resolve(response);
+                    } else {
+                        reject(error);
+                    }
                 } else {
                     resolve(response);
                 }
@@ -286,22 +292,49 @@
     };
 
     function ensureSharedSearchModal() {
-        // Member360 pattern: create a fresh instance with AppCore available
+        if (typeof window.SearchModal !== 'function') {
+            return null;
+        }
+
         const appCore = getAppCore();
         if (!appCore) {
-            console.error('[CenterLoanScheme] AppCore not available for SearchModal');
-            showError('Search dialog unavailable (AppCore missing).');
             return null;
         }
 
-        if (typeof window.SearchModal !== 'function') {
-            console.error('[CenterLoanScheme] window.SearchModal is not available');
-            showError('Search dialog script not loaded.');
-            return null;
-        }
+        const appCoreCompat = {
+            invokeControllerGetViewAsync: typeof appCore.invokeControllerGetViewAsync === 'function'
+                ? (endpoint, query) => appCore.invokeControllerGetViewAsync(endpoint, query)
+                : async (endpoint, query) => {
+                    const qs = new URLSearchParams(query || {}).toString();
+                    const resp = await fetch(`/${endpoint}?${qs}`, { credentials: 'same-origin' });
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        throw new Error(`Failed to load view (${resp.status}): ${text}`);
+                    }
+                    return resp.text();
+                },
+            invokeControllerAsync: typeof appCore.invokeControllerAsync === 'function'
+                ? (endpoint, data) => appCore.invokeControllerAsync(endpoint, data)
+                : async (endpoint, data) => {
+                    const resp = await fetch(`/${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(data || {})
+                    });
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        throw new Error(`Request failed (${resp.status}): ${text}`);
+                    }
+                    return resp.json();
+                },
+            showToastMessage: typeof appCore.showToastMessage === 'function'
+                ? (...args) => appCore.showToastMessage(...args)
+                : () => {}
+        };
 
-        // Always create new to avoid stale DOM/state issues
-        return new window.SearchModal(appCore);
+        // Keep per-open behavior to avoid stale/broken modal instances.
+        return new window.SearchModal(appCoreCompat);
     }
 
     function mapSelectedData(lookupType, data) {
@@ -339,8 +372,8 @@
             return;
         }
 
-        const modal = ensureSharedSearchModal();
-        if (!modal || !config.tableID) {
+        const searchModal = ensureSharedSearchModal();
+        if (!searchModal || !config.tableID) {
             showError('Shared search dialog is not available.');
             return;
         }
@@ -349,16 +382,12 @@
             ? config.getAdvFilterString()
             : (config.advFilterString || '');
 
-        const { ourBranchID } = getEnv();
-
-        modal.open({
-            title: config.title,
+        searchModal.open({
             tableID: config.tableID,
-            moduleID: config.moduleIDOverride || 5010,
+            moduleID: config.moduleIDOverride || Number(DEFAULT_SEARCH_MODULE_ID),
             whereStmt: '',
             advFilterString,
             searchKey: '',
-            ourbranchId: ourBranchID,
             onSelect: (record) => mapSelectedData(lookupType, record)
         });
     }
@@ -504,35 +533,28 @@
 
         try {
             showInfo('Deleting scheme...');
-            
-            if (!window.GroupService) {
-                throw new Error('GroupService not available');
-            }
 
-            const result = await window.GroupService.deleteGroupLoanSchemes(requestData);
+            const resp = await invokeCenterLoanController('delete-group-loan-scheme', requestData);
+            const payload = resp?.raw ?? resp?.data ?? resp;
+            const status = getOldApiStatus(payload);
 
-            console.log('Delete API response:', result);
-
-            if (result.success) {
+            if (status.ok) {
                 showSuccess(`Scheme "${schemeId}" deleted successfully`);
-                
-                // Remove from schemes list if present
-                const index = schemesList.findIndex(s => 
+
+                const index = schemesList.findIndex(s =>
                     (s.LoanSchemeID || s.SchemeId) === schemeId
                 );
                 if (index > -1) {
                     schemesList.splice(index, 1);
-                    // Adjust current index if needed
                     if (currentSchemeIndex >= schemesList.length) {
                         currentSchemeIndex = schemesList.length - 1;
                     }
                 }
-                
-                // Clear form and reset state
+
                 clearForm();
                 setFormMode('default');
             } else {
-                showError(result.message || 'Failed to delete scheme');
+                showError(status.message || 'Failed to delete scheme');
             }
         } catch (error) {
             console.error('Error deleting scheme:', error);
@@ -594,36 +616,24 @@
         try {
             console.log('Saving scheme with data:', requestData);
             showInfo('Saving scheme...');
-            
-            // Check if GroupService is available
-            if (!window.GroupService || !window.GroupService.addEditGroupLoanSchemes) {
-                showError('GroupService not available. Please ensure services are loaded.');
-                return;
-            }
-            
-            const response = await window.GroupService.addEditGroupLoanSchemes(requestData);
-            
-            if (response && (response.success || response.Success || response.ResponseCode === '00' || response.ResponseCode === 0)) {
-                if (isAddMode) {
-                    showSuccess('Scheme created successfully');
-                } else {
-                    showSuccess('Scheme updated successfully');
-                }
-                
-                // Reset modes
+
+            const resp = await invokeCenterLoanController('save-group-loan-scheme', requestData);
+            const payload = resp?.raw ?? resp?.data ?? resp;
+            const status = getOldApiStatus(payload);
+
+            if (status.ok) {
+                showSuccess(isAddMode ? 'Scheme created successfully' : 'Scheme updated successfully');
                 isAddMode = false;
                 isEditMode = false;
-                
-                // Reset to default state
                 clearForm();
                 setFormMode('default');
             } else {
-                const errorMsg = response?.ResponseMessage || response?.message || response?.Message || 'Failed to save scheme';
-                showError(errorMsg);
+                showError(status.message || 'Failed to save scheme');
             }
         } catch (error) {
             console.error('Error saving scheme:', error);
-            showError('An error occurred while saving the scheme. Please try again.');
+            const msg = error?.response?.ErrorMessage || error?.response?.ResponseMessage || error?.message || 'Unknown error';
+            showError(`Failed to save scheme: ${msg}`);
         }
     }
 
@@ -1074,6 +1084,28 @@
         }
    }
 
+    function formatDateTime(value) {
+        if (!value) return '';
+        try {
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return String(value);
+            return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        } catch {
+            return String(value);
+        }
+    }
+
+    function formatDateForApi(value) {
+        if (!value) return '';
+        try {
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return '';
+            return d.toISOString().slice(0, 19);
+        } catch {
+            return '';
+        }
+    }
+
     function clearForm() {
         const form = document.querySelector('.form-card');
         if (!form) return;
@@ -1109,29 +1141,34 @@
         };
 
         try {
-            // Call server controller (OldAPI) without exposing procedure names in JS
-            const response = await invokeCenterLoanController('group-loan-schemes', requestData);
+            const resp = await invokeCenterLoanController('group-loan-schemes', requestData);
 
-            console.log('[CenterLoanScheme] loadSchemeData Response:', response);
+            console.log('[CenterLoanScheme] loadSchemeData Response:', resp);
 
-            // Handle response - data is in response.data.Details01
-            const details = response?.data?.Details01 || response?.Details01 || response?.ResponseData || [];
-            const data = Array.isArray(details) ? details[0] : details;
+            // Unwrap envelope the same way Client360 does
+            const payload = resp?.raw ?? resp?.data ?? resp;
 
-            if (data && data.LoanSchemeID) {
-                // Map API response using the view model mapper
-                currentScheme = mapSchemeDataToViewModel(data);
-                populateForm(currentScheme);
-                
-                updateActionButtons('view');
-                return currentScheme;
-            } else if (response?.success === false || response?.code !== '00') {
-                showError(response?.message || 'Failed to load scheme');
-                return null;
-            } else {
-                showWarning('No scheme found with the provided ID');
+            // Check OldAPI status
+            const status = getOldApiStatus(payload);
+            if (!status.ok) {
+                showError(status.message || 'Failed to load scheme');
                 return null;
             }
+
+            // Normalise details — SP may return Details01 or Details array
+            const detailsArr = payload?.Details01 ?? payload?.Details ?? payload?.details ?? payload?.ResponseData ?? [];
+            const details = Array.isArray(detailsArr) ? detailsArr : [detailsArr];
+            const data = details.find(d => d && d.LoanSchemeID) ?? details[0] ?? null;
+
+            if (data && data.LoanSchemeID) {
+                currentScheme = mapSchemeDataToViewModel(data);
+                populateForm(currentScheme);
+                updateActionButtons('view');
+                return currentScheme;
+            }
+
+            showWarning('No scheme found with the provided ID');
+            return null;
         } catch (error) {
             console.error('Error loading scheme data:', error);
             showError('Failed to load scheme data: ' + (error.message || 'Unknown error'));
@@ -1298,9 +1335,59 @@
         });
     }
 
+    function wireSidebarItems() {
+        document.querySelectorAll('.sidebar-item[data-child-form]').forEach(item => {
+            item.addEventListener('click', function () {
+                if (!currentScheme) {
+                    showWarning('Please load a record before accessing this feature.');
+                    return;
+                }
+                const formName = this.dataset.childForm;
+                openChildForm(formName);
+            });
+        });
+    }
+
+    function openChildForm(formName) {
+        const childInline = document.querySelector('[data-child-inline]');
+        const childIframe = document.querySelector('[data-child-iframe]');
+        const mainForm = document.querySelector('[data-main-form]');
+        const mainContainer = document.querySelector('.main-container');
+
+        if (!childInline || !childIframe || !mainForm || !mainContainer) return;
+
+        const schemeId = currentScheme?.SchemeId || '';
+        const loanProductId = currentScheme?.LoanProductId || '';
+
+        const formConfig = {
+            'center-loan-menu': { url: `/MicroFinance/DataEntry/CenterLoanMenu?schemeId=${encodeURIComponent(schemeId)}&loanProductId=${encodeURIComponent(loanProductId)}` },
+            'products':         { url: `/MicroFinance/DataEntry/GroupLoanSchemeProducts?schemeId=${encodeURIComponent(schemeId)}` }
+        };
+
+        const config = formConfig[formName];
+        if (!config) return;
+
+        mainContainer.classList.add('child-opening');
+        childInline.hidden = false;
+        childIframe.src = config.url;
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                mainContainer.classList.add('child-open');
+                childInline.classList.add('is-visible');
+                childInline.classList.remove('is-closing');
+                setTimeout(() => {
+                    mainContainer.classList.remove('child-opening');
+                    mainForm.hidden = true;
+                }, 350);
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         wireLookupButtons();
         wireActionButtons();
+        wireSidebarItems();
         setFormMode('default');
     });
 })();

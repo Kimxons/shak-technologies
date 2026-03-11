@@ -34,6 +34,7 @@ window.SIEFTModule = (function () {
         wireActionButtons();
         wireSectionToggles();
         wireLookupButtons();
+        initSearchModals();
         setMode('VIEW');
     }
 
@@ -100,7 +101,7 @@ window.SIEFTModule = (function () {
         document.querySelectorAll('[data-open-search]').forEach(btn => {
             btn.addEventListener('click', function () {
                 const type = this.getAttribute('data-open-search');
-                openLookup(type);
+                openSearchModal(type);
             });
         });
     }
@@ -489,34 +490,86 @@ window.SIEFTModule = (function () {
     }
 
     /* ====================================================================
-       LOOKUP
+       SEARCH MODALS
        ==================================================================== */
-    function openLookup(type) {
-        console.log('[SI-EFT] Opening lookup:', type);
-        if (window.SearchModal) {
-            window.SearchModal.open({
-                type: type,
-                callback: function (selected) {
-                    applyLookupResult(type, selected);
-                }
-            });
+    let _searchModal = null;
+
+    function initSearchModals() {
+        if (typeof window.SearchModal === 'undefined') {
+            setTimeout(initSearchModals, 500);
+            return;
         }
+        _searchModal = new window.SearchModal(window.AppCore);
+        console.log('[SI-EFT] SearchModal initialized');
     }
 
-    function applyLookupResult(type, selected) {
-        if (!selected) return;
-        const map = {
-            'branch':              ['txt_branchId', 'txt_branchName'],
-            'account':             ['txt_accountId', 'txt_accountName'],
-            'standingInstruction': ['txt_standingInstructionId', 'txt_standingInstructionName'],
-            'currency':            ['txt_transactionCurrencyId', 'txt_transactionCurrencyName'],
-            'bank':                ['txt_bankId', 'txt_bankName'],
-            'beneficiaryBranch':   ['txt_beneficiaryBranchId', 'txt_beneficiaryBranchName']
+    function openSearchModal(type) {
+        if (!_searchModal) {
+            showMessage('Search modal not ready, please try again', 'warning');
+            return;
+        }
+
+        const branchId = document.getElementById('txt_branchId')?.value?.trim() || state.branchId || '';
+
+        const configs = {
+            branch: {
+                tableID: 'BranchID',
+                onSelect: (rec) => {
+                    document.getElementById('txt_branchId').value   = rec.OurBranchID || rec.BranchID || '';
+                    document.getElementById('txt_branchName').value = rec.BranchName  || rec.Name    || '';
+                    state.branchId = rec.OurBranchID || rec.BranchID || state.branchId;
+                }
+            },
+            account: {
+                tableID: 'AccountID',
+                whereStmt: branchId ? `OurBranchID='${branchId}'` : '',
+                onSelect: (rec) => {
+                    document.getElementById('txt_accountId').value   = rec.AccountID   || '';
+                    document.getElementById('txt_accountName').value = rec.AccountName || rec.Name || '';
+                    state.accountId = rec.AccountID || state.accountId;
+                }
+            },
+            bank: {
+                tableID: 'MastClrBankID',
+                onSelect: (rec) => {
+                    document.getElementById('txt_bankId').value   = rec.BankID   || rec.ClearingBankID || rec.ID   || '';
+                    document.getElementById('txt_bankName').value = rec.BankName || rec.ClearingBankName || rec.Name || '';
+                }
+            },
+            currency: {
+                tableID: 'BranchCurrencyID',
+                advFilterString: branchId ? `OurBranchID='${branchId}'` : '',
+                onSelect: (rec) => {
+                    document.getElementById('txt_transactionCurrencyId').value   = rec.CurrencyID          || rec.ID          || '';
+                    document.getElementById('txt_transactionCurrencyName').value = rec.CurrencyDescription || rec.Description || rec.CurrencyName || rec.Name || '';
+                }
+            },
+            beneficiaryBranch: {
+                tableID: 'BranchID',
+                onSelect: (rec) => {
+                    document.getElementById('txt_beneficiaryBranchId').value   = rec.OurBranchID || rec.BranchID || '';
+                    document.getElementById('txt_beneficiaryBranchName').value = rec.BranchName  || rec.Name    || '';
+                }
+            },
+            standingInstruction: {
+                tableID: 'InstructionID',
+                onSelect: (rec) => {
+                    document.getElementById('txt_standingInstructionId').value   = rec.InstructionID || rec.StandingInstructionID || rec.ID   || '';
+                    document.getElementById('txt_standingInstructionName').value = rec.AccountID     || rec.AccountName          || rec.Name || '';
+                }
+            }
         };
-        const fields = map[type];
-        if (!fields) return;
-        if (fields[0]) document.getElementById(fields[0]).value = selected.ID || selected.Code || '';
-        if (fields[1]) document.getElementById(fields[1]).value = selected.Name || selected.Description || '';
+
+        const config = configs[type];
+        if (!config) {
+            console.warn('[SI-EFT] Unknown lookup type:', type);
+            return;
+        }
+
+        _searchModal.open(config).catch(err => {
+            console.error('[SI-EFT] Search modal error:', err);
+            showMessage('Error opening search', 'error');
+        });
     }
 
     /* ====================================================================

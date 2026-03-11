@@ -186,24 +186,31 @@
                 }
 
                 if (!this.appCore) {
-                     this.appCore = window.AppCore;
+                    this.appCore = window.AppCore;
                 }
 
                 // Check if reload is needed (different TableID or not initialized)
-                const shouldReload = !this.isInitialized || 
-                                   (this.currentConfig && this.currentConfig.tableID !== config.tableID);
+                const shouldReload = !this.isInitialized ||
+                    (this.currentConfig && this.currentConfig.tableID !== config.tableID);
 
                 this.currentConfig = config;
+
+                // Always reset pagination state so each open starts fresh
+                this.refID = '';
+                this.prevOrNext = 0;
+                this.currentResults = [];
+                this.selectedRow = null;
+                this.currentPage = 0;
 
                 // Load modal if needed
                 if (shouldReload) {
                     // Start fresh if reloading for a new table
                     if (this.isInitialized) {
-                         // Reset state but keep the instance structure
-                         this.currentResults = [];
-                         this.selectedRow = null; 
-                         this.currentPage = 0;
-                         // Note: loadModal will replace the DOM element
+                        // Reset state but keep the instance structure
+                        this.currentResults = [];
+                        this.selectedRow = null;
+                        this.currentPage = 0;
+                        // Note: loadModal will replace the DOM element
                     }
 
                     await this.loadModal(config.tableID, {
@@ -308,7 +315,7 @@
                 if (results && results.length > 0) {
                     this.currentResults = results;
                     this.currentPage = 0;
-                    
+
                     // Extract the last value of KeyForNavigation from results for next pagination
                     const keyField = document.getElementById('search-key-for-nav')?.value;
                     if (keyField && results.length > 0) {
@@ -316,7 +323,7 @@
                         this.refID = lastRow[keyField] || '';
                         console.log('[SearchModal] Updated RefID:', this.refID);
                     }
-                    
+
                     this.renderResults(results);
                     this.showState('results');
                 } else {

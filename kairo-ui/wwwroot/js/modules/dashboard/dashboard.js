@@ -114,6 +114,7 @@ function openKairoWindow(module) {
 
     let moduleUrl = new URL(module.route, window.location.origin);
     moduleUrl.searchParams.set("ModuleID", module.moduleId);
+    moduleUrl.searchParams.set("__r", Date.now().toString());
 
     let kmodal = '  <div class="modal fade legacy-modal legacy-modal--workspace" id="modal_' + module.modalId + '" data-window-title="' + module.label + '"		'
         + ' data-window-icon="fas fa-users" tabindex="-1" aria-hidden="true">                                                         '

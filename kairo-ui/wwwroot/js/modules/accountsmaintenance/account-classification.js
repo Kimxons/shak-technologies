@@ -14,7 +14,11 @@ window.AccountClassificationModule = (function () {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
         classifications: [],
         selectedIndex: -1,
-        operatorID: null
+        operatorID: null,
+        filters: {
+            search: '',
+            classCode: ''
+        }
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
@@ -50,6 +54,40 @@ window.AccountClassificationModule = (function () {
         }
     }
 
+    function setSelectValueEnsureOption(id, value, label) {
+        var select = el(id);
+        if (!select) return;
+
+        var v = String(value || '').trim();
+        if (!v) {
+            select.value = '';
+            return;
+        }
+
+        var exists = Array.prototype.some.call(select.options || [], function (opt) {
+            return String(opt.value || '') === v;
+        });
+
+        if (!exists) {
+            var option = document.createElement('option');
+            option.value = v;
+            option.text = label ? (v + ' - ' + label) : v;
+            select.appendChild(option);
+        }
+
+        select.value = v;
+    }
+
+    function debounce(fn, delayMs) {
+        var timer = null;
+        return function () {
+            var ctx = this;
+            var args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function () { fn.apply(ctx, args); }, delayMs);
+        };
+    }
+
     function showLoading(show) {
         const o = el('loadingOverlay');
         if (o) o.hidden = !show;
@@ -65,6 +103,40 @@ window.AccountClassificationModule = (function () {
     function isSuccess(r) {
         if (!r) return false;
         return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+    }
+
+    function getEnvelope(r) {
+        return (r && r.data && typeof r.data === 'object') ? r.data : r;
+    }
+
+    function isResultFailure(r) {
+        if (!r) return true;
+        const envelope = getEnvelope(r);
+        const successFlag = envelope?.success ?? envelope?.Success ?? r?.success ?? r?.Success;
+        if (successFlag === false || String(successFlag).toLowerCase() === 'false') {
+            return true;
+        }
+
+        const responseCode = String(
+            envelope?.ResponseCode ?? envelope?.responseCode ?? r?.ResponseCode ?? r?.responseCode ?? ''
+        ).trim();
+
+        return !!(responseCode && !['00', '0', '000'].includes(responseCode));
+    }
+
+    function getResultMessage(r, fallback) {
+        const envelope = getEnvelope(r);
+        return (
+            envelope?.ResponseMessage ||
+            envelope?.message ||
+            envelope?.Message ||
+            envelope?.ErrorMessage ||
+            envelope?.error ||
+            envelope?.Details?.error ||
+            r?.message ||
+            r?.Message ||
+            fallback
+        );
     }
 
     function showConfirm(message, title, iconClass) {
@@ -190,8 +262,11 @@ window.AccountClassificationModule = (function () {
 
     /* ── Bind form data ──────────────────────────────────────── */
     function bindForm(doc) {
-        setVal('classificationCode', doc.ClassificationCode || doc.ClassReq || doc.Code || '');
-        setVal('classificationSubCode', doc.ClassificationSubCode || doc.SubClassReq || doc.SubCode || '');
+        var classCode = doc.ClassificationCode || doc.ClassificationCodeID || doc.ClassReq || doc.Code || '';
+        var subClassCode = doc.ClassificationSubCode || doc.ClassificationSubCodeID || doc.SubClassReq || doc.SubCode || '';
+
+        setSelectValueEnsureOption('classificationCode', classCode, doc.ClassDescription || '');
+        setSelectValueEnsureOption('classificationSubCode', subClassCode, doc.SubClassDescription || '');
 
         // Audit
         setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
@@ -212,21 +287,38 @@ window.AccountClassificationModule = (function () {
         if (!tbody) return;
 
         tbody.innerHTML = '';
-        if (countSpan) countSpan.textContent = state.classifications.length + ' records';
+        const filteredRows = getFilteredClassifications();
+        if (countSpan) {
+            countSpan.textContent = filteredRows.length === state.classifications.length
+                ? state.classifications.length + ' records'
+                : filteredRows.length + ' of ' + state.classifications.length + ' records';
+        }
 
         if (state.classifications.length === 0) {
             tbody.innerHTML = '<tr class="table__empty"><td colspan="2">No classifications found.</td></tr>';
             return;
         }
 
-        state.classifications.forEach((item, index) => {
+        if (filteredRows.length === 0) {
+            tbody.innerHTML = '<tr class="table__empty"><td colspan="2">No classifications match the current filters.</td></tr>';
+            return;
+        }
+
+        filteredRows.forEach(function (entry) {
+            var item = entry.item;
+            var index = entry.index;
             const row = document.createElement('tr');
             row.style.cursor = 'pointer';
             row.className = index === state.selectedIndex ? 'table-active' : '';
 
+            var classCode = getClassificationCode(item) || '-';
+            var subClassCode = getClassificationSubCode(item) || '-';
+            var classLabel = item.ClassDescription ? (classCode + ' - ' + item.ClassDescription) : classCode;
+            var subClassLabel = item.SubClassDescription ? (subClassCode + ' - ' + item.SubClassDescription) : subClassCode;
+
             row.innerHTML = `
-                <td>${item.ClassificationCode || item.ClassReq || item.Code || '-'}</td>
-                <td>${item.ClassificationSubCode || item.SubClassReq || item.SubCode || '-'}</td>
+                <td>${classLabel}</td>
+                <td>${subClassLabel}</td>
             `;
 
             row.addEventListener('click', () => {
@@ -240,6 +332,138 @@ window.AccountClassificationModule = (function () {
         });
     }
 
+    function normalizeCode(val) {
+        return String(val || '').trim();
+    }
+
+    function getClassificationCode(item) {
+        return normalizeCode(item.ClassificationCode || item.ClassificationCodeID || item.ClassReq || item.Code || '');
+    }
+
+    function getClassificationSubCode(item) {
+        return normalizeCode(item.ClassificationSubCode || item.ClassificationSubCodeID || item.SubClassReq || item.SubCode || '');
+    }
+
+    function buildSearchText(item) {
+        return (
+            getClassificationCode(item) + ' ' +
+            getClassificationSubCode(item) + ' ' +
+            normalizeCode(item.ClassDescription) + ' ' +
+            normalizeCode(item.SubClassDescription)
+        ).toLowerCase();
+    }
+
+    function getFilteredClassifications() {
+        var q = String(state.filters.search || '').trim().toLowerCase();
+        var codeFilter = String(state.filters.classCode || '').trim().toLowerCase();
+
+        return state.classifications
+            .map(function (item, index) { return { item: item, index: index }; })
+            .filter(function (entry) {
+                var code = getClassificationCode(entry.item).toLowerCase();
+                if (codeFilter && code !== codeFilter) return false;
+                if (q && buildSearchText(entry.item).indexOf(q) === -1) return false;
+                return true;
+            });
+    }
+
+    function syncSearchClearButton() {
+        var input = el('classificationGridSearch');
+        var clearBtn = el('clearClassificationGridSearch');
+        if (!clearBtn) return;
+        var hasValue = !!(input && String(input.value || '').trim());
+        clearBtn.classList.toggle('d-none', !hasValue);
+    }
+
+    function populateClassCodeFilter() {
+        var select = el('classificationCodeFilter');
+        if (!select) return;
+
+        var current = String(state.filters.classCode || '');
+        var seen = {};
+        var codes = [];
+
+        state.classifications.forEach(function (item) {
+            var code = getClassificationCode(item);
+            if (!code || seen[code]) return;
+            seen[code] = true;
+            codes.push(code);
+        });
+
+        codes.sort();
+        select.innerHTML = '<option value="">All class codes</option>' +
+            codes.map(function (code) {
+                return '<option value="' + code.replace(/"/g, '&quot;') + '">' + code + '</option>';
+            }).join('');
+
+        if (current && seen[current]) {
+            select.value = current;
+        } else {
+            state.filters.classCode = '';
+            select.value = '';
+        }
+    }
+
+    function wireGridFilters() {
+        var searchInput = el('classificationGridSearch');
+        var clearBtn = el('clearClassificationGridSearch');
+        var codeFilter = el('classificationCodeFilter');
+
+        if (searchInput && !searchInput.dataset.wired) {
+            var onInput = debounce(function () {
+                state.filters.search = searchInput.value || '';
+                syncSearchClearButton();
+                renderGrid();
+            }, 180);
+            searchInput.addEventListener('input', onInput);
+            searchInput.dataset.wired = 'true';
+        }
+
+        if (clearBtn && !clearBtn.dataset.wired) {
+            clearBtn.addEventListener('click', function () {
+                if (searchInput) searchInput.value = '';
+                state.filters.search = '';
+                syncSearchClearButton();
+                renderGrid();
+            });
+            clearBtn.dataset.wired = 'true';
+        }
+
+        if (codeFilter && !codeFilter.dataset.wired) {
+            codeFilter.addEventListener('change', function () {
+                state.filters.classCode = codeFilter.value || '';
+                renderGrid();
+            });
+            codeFilter.dataset.wired = 'true';
+        }
+
+        syncSearchClearButton();
+    }
+
+    function normalizeClassificationRows(result) {
+        const envelope = getEnvelope(result) || {};
+        const details = envelope.Details ?? envelope.Data ?? envelope.data ?? envelope;
+
+        if (Array.isArray(details)) return details;
+        if (Array.isArray(details?.Details01)) return details.Details01;
+        if (Array.isArray(envelope?.Details01)) return envelope.Details01;
+        if (details && typeof details === 'object') return [details];
+        return [];
+    }
+
+    function normalizeClassificationItem(item) {
+        if (!item || typeof item !== 'object') return item;
+
+        return {
+            ...item,
+            ClassificationCode: item.ClassificationCode || item.ClassificationCodeID || item.ClassReq || item.Code || '',
+            ClassificationSubCode: item.ClassificationSubCode || item.ClassificationSubCodeID || item.SubClassReq || item.SubCode || '',
+            ClassDescription: item.ClassDescription || item.ClassificationDescription || '',
+            SubClassDescription: item.SubClassDescription || item.ClassificationSubDescription || '',
+            ReferenceID: item.ReferenceID || item.ID || 0
+        };
+    }
+
     /* ── Load / Navigate ─────────────────────────────────────── */
     async function navigate() {
         const ctx = getContext();
@@ -249,19 +473,15 @@ window.AccountClassificationModule = (function () {
         try {
             const result = await window.AppCore.invokeControllerAsync(API.GET, {
                 AccountID: ctx.AccountID,
+                AccountNumber: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID
             });
 
             showLoading(false);
-            if (isSuccess(result)) {
-                let data = [];
-                const d = result.Details || result.Data || result;
-                if (Array.isArray(d)) data = d;
-                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                else if (d && typeof d === 'object') data = [d];
-
-                state.classifications = data;
+            if (!isResultFailure(result) || isSuccess(result)) {
+                state.classifications = normalizeClassificationRows(result).map(normalizeClassificationItem);
+                populateClassCodeFilter();
                 if (state.classifications.length > 0) {
                     state.selectedIndex = 0;
                     bindForm(state.classifications[0]);
@@ -274,9 +494,11 @@ window.AccountClassificationModule = (function () {
             } else {
                 state.classifications = [];
                 state.selectedIndex = -1;
+                populateClassCodeFilter();
                 renderGrid();
                 clearForm();
                 setMode('NONE');
+                showMsg(getResultMessage(result, 'No account classifications found.'), 'info');
             }
         } catch (err) {
             showLoading(false);
@@ -297,26 +519,35 @@ window.AccountClassificationModule = (function () {
         if (!confirmed) return;
 
         const ctx = getContext();
+        const selected = state.selectedIndex > -1 ? state.classifications[state.selectedIndex] : null;
         const payload = {
             OurBranchID: ctx.OurBranchID,
             AccountID: ctx.AccountID,
+            AccountNumber: ctx.AccountID,
             CreatedBy: ctx.OperatorID,
             OperatorID: ctx.OperatorID,
             SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
             ClassificationCode: val('classificationCode').trim(),
-            ClassificationSubCode: val('classificationSubCode').trim()
+            ClassificationSubCode: val('classificationSubCode').trim(),
+            ClassificationCodeID: val('classificationCode').trim(),
+            ClassificationSubCodeID: val('classificationSubCode').trim(),
+            ClassReq: val('classificationCode').trim(),
+            SubClassReq: val('classificationSubCode').trim(),
+            ModifiedBy: ctx.OperatorID,
+            UpdateCount: Number(selected?.UpdateCount || 0),
+            ReferenceID: selected?.ReferenceID || selected?.ID || 0
         };
 
         showLoading(true);
         try {
             const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
             showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Changes saved successfully.', 'success');
+            if (!isResultFailure(result) || isSuccess(result)) {
+                showMsg(getResultMessage(result, 'Changes saved successfully.'), 'success');
                 setMode('NONE');
                 navigate();
             } else {
-                showMsg(result.ResponseMessage || 'Save failed.', 'error');
+                showMsg(getResultMessage(result, 'Save failed.'), 'error');
             }
         } catch (err) {
             showLoading(false);
@@ -340,20 +571,28 @@ window.AccountClassificationModule = (function () {
         try {
             const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
                 AccountID: ctx.AccountID,
+                AccountNumber: ctx.AccountID,
                 OurBranchID: ctx.OurBranchID,
                 OperatorID: ctx.OperatorID,
                 SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
-                ClassificationCode: item.ClassificationCode || item.ClassReq || item.Code || ''
+                ClassificationCode: item.ClassificationCode || item.ClassReq || item.Code || '',
+                ClassificationSubCode: item.ClassificationSubCode || item.SubClassReq || item.SubCode || '',
+                ClassificationCodeID: item.ClassificationCode || item.ClassificationCodeID || item.ClassReq || item.Code || '',
+                ClassificationSubCodeID: item.ClassificationSubCode || item.ClassificationSubCodeID || item.SubClassReq || item.SubCode || '',
+                ClassReq: item.ClassificationCode || item.ClassReq || item.Code || '',
+                SubClassReq: item.ClassificationSubCode || item.SubClassReq || item.SubCode || '',
+                UpdateCount: Number(item.UpdateCount || 0),
+                ReferenceID: item.ReferenceID || item.ID || 0
             });
             showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Deleted successfully.', 'success');
+            if (!isResultFailure(result) || isSuccess(result)) {
+                showMsg(getResultMessage(result, 'Deleted successfully.'), 'success');
                 state.selectedIndex = -1;
                 clearForm();
                 setMode('NONE');
                 navigate();
             } else {
-                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+                showMsg(getResultMessage(result, 'Delete failed.'), 'error');
             }
         } catch (err) {
             showLoading(false);
@@ -377,6 +616,7 @@ window.AccountClassificationModule = (function () {
 
     function init() {
         wireSectionToggles();
+        wireGridFilters();
         setMode('NONE');
         const ctx = getContext();
         if (ctx.AccountID) navigate();

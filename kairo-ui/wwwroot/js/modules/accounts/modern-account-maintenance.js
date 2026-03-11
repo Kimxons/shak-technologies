@@ -844,6 +844,7 @@
                 <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
                 <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>Add</button>
                 <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-delete" type="button" id="submoduleBtnDelete"><i class="bi bi-trash3 me-1"></i>Delete</button>
                 <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
@@ -917,6 +918,43 @@
                 <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action btn-history" type="button" id="submoduleBtnHistory"><i class="bi bi-clock-history me-1"></i>History</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        // VIEW SUBMODULES - Read-only view modules with Print/Export/Refresh/Close buttons
+        else if (submoduleName === 'ClientPortfolio' || submoduleName === 'LoanRepaymentDetails') {
+            newButtonsHtml = `
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'SignaturePhoto') {
+            newButtonsHtml = `
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'DebitInterestWorksheet' || submoduleName === 'CreditInterestWorksheet') {
+            newButtonsHtml = `
+                <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i>Export</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'StatementView') {
+            newButtonsHtml = `
+                <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                <button class="btn-action btn-export-excel" type="button" id="submoduleBtnExportExcel" data-action="exportExcel"><i class="bi bi-file-earmark-excel me-1"></i>Excel</button>
+                <button class="btn-action btn-export-pdf" type="button" id="submoduleBtnExportPdf" data-action="exportPdf"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+                <button class="btn-action btn-reverse" type="button" id="submoduleBtnReverse" data-action="reverse"><i class="bi bi-arrow-counterclockwise me-1"></i>Reverse</button>
+                <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
         } else {
             // Define standard buttons for other submodules
@@ -1107,6 +1145,8 @@
 
                 if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
                 if (addBtn) addBtn.addEventListener('click', () => mod.add());
+                if (editBtn) editBtn.addEventListener('click', () => mod.edit());
+                if (deleteBtn) deleteBtn.addEventListener('click', () => mod.delete());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
                 if (approveBtn) approveBtn.addEventListener('click', () => mod.approve());
@@ -1220,6 +1260,101 @@
                 return;
             }
 
+            // ============================================================
+            // VIEW SUBMODULES WIRING - Read-only view modules
+            // ============================================================
+            
+            // Client Portfolio module
+            if (submoduleName === 'ClientPortfolio' && window.ClientPortfolioModule) {
+                const mod = window.ClientPortfolioModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Signature Photo module
+            if (submoduleName === 'SignaturePhoto' && window.SignaturePhotoModule) {
+                const mod = window.SignaturePhotoModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Loan Repayment Details module
+            if (submoduleName === 'LoanRepaymentDetails' && window.LoanRepaymentDetailsModule) {
+                const mod = window.LoanRepaymentDetailsModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Debit Interest Worksheet module
+            if (submoduleName === 'DebitInterestWorksheet' && window.DebitInterestWorksheetModule) {
+                const mod = window.DebitInterestWorksheetModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Credit Interest Worksheet module
+            if (submoduleName === 'CreditInterestWorksheet' && window.CreditInterestWorksheetModule) {
+                const mod = window.CreditInterestWorksheetModule;
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportBtn = document.getElementById('submoduleBtnExport');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
+                if (printBtn) printBtn.addEventListener('click', () => mod.print());
+                if (exportBtn) exportBtn.addEventListener('click', () => mod.exportData());
+                if (refreshBtn) refreshBtn.addEventListener('click', () => mod.refresh());
+                return;
+            }
+
+            // Statement View module - uses proxy clicks since statement-view.js auto-initializes
+            if (submoduleName === 'StatementView') {
+                const container = document.getElementById('submodule-container');
+                const printBtn = document.getElementById('submoduleBtnPrint');
+                const exportExcelBtn = document.getElementById('submoduleBtnExportExcel');
+                const exportPdfBtn = document.getElementById('submoduleBtnExportPdf');
+                const reverseBtn = document.getElementById('submoduleBtnReverse');
+                const refreshBtn = document.getElementById('submoduleBtnRefresh');
+
+                // Proxy click to internal buttons
+                const proxyClick = (internalId) => {
+                    const internalBtn = container?.querySelector('#' + internalId);
+                    if (internalBtn) internalBtn.click();
+                };
+
+                if (viewBtn) viewBtn.addEventListener('click', () => proxyClick('btn_view'));
+                if (printBtn) printBtn.addEventListener('click', () => proxyClick('btn_print'));
+                if (exportExcelBtn) exportExcelBtn.addEventListener('click', () => proxyClick('btn_exportExcel'));
+                if (exportPdfBtn) exportPdfBtn.addEventListener('click', () => proxyClick('btn_exportPdf'));
+                if (reverseBtn) reverseBtn.addEventListener('click', () => proxyClick('btn_reverse'));
+                if (refreshBtn) refreshBtn.addEventListener('click', () => proxyClick('btn_refresh'));
+                return;
+            }
+
             // Handle Proxy Buttons (Legacy Support for Partial Views)
             // Finds buttons in the loaded submodule content and clicks them when sidebar buttons are clicked
             const container = document.getElementById('submodule-container');
@@ -1287,7 +1422,7 @@
 
         // ClientID blur handler - fetch client details when user tabs out
         if (clientIdInput) {
-            clientIdInput.addEventListener('blur', async function() {
+            clientIdInput.addEventListener('blur', async function () {
                 const clientId = this.value.trim();
                 if (!clientId) return;
 
@@ -1303,7 +1438,7 @@
 
         // ProductID blur handler - fetch product details when user tabs out
         if (productIdInput) {
-            productIdInput.addEventListener('blur', async function() {
+            productIdInput.addEventListener('blur', async function () {
                 const productId = this.value.trim();
                 if (!productId) return;
 
@@ -1313,7 +1448,7 @@
                 // Update state and trigger auto-populate
                 window.AccountMaintenanceState.ProductID = productId;
                 console.log('[AccountMaintenance] ProductID entered manually:', productId);
-                
+
                 // Fetch product details to get CurrencyID and MinimumBalance
                 try {
                     const response = await fetch(`/AccountsMaintenance/get-product-details?productId=${encodeURIComponent(productId)}`, {
@@ -1324,7 +1459,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         const product = result.data || result;
-                        
+
                         if (product) {
                             // Update Product Name if available
                             const productNameInput = document.getElementById('ProductName');
@@ -1343,11 +1478,11 @@
                             }
                             if (minBalanceSpan && product.MinimumBalance !== undefined) {
                                 const num = parseFloat(product.MinimumBalance);
-                                minBalanceSpan.textContent = !isNaN(num) 
+                                minBalanceSpan.textContent = !isNaN(num)
                                     ? num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                                     : product.MinimumBalance;
                             }
-                            
+
                             console.log('[AccountMaintenance] Product details loaded:', product);
                         }
                     }
@@ -1576,6 +1711,7 @@
         'ClientID': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
         'ProductID': { tableID: 'ProductID', keyField: 'ProductID', nameField: 'ProductName' },
         'AccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
+        'ChargeID': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
         'LiquidationAccountID': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'SalesOfficerID': { tableID: 'OfficerID', keyField: 'OfficerID', nameField: 'OfficerName' },
         'PassbookSerialID': { tableID: 'PassbookSerialID', keyField: 'SerialID', nameField: 'SerialName' },
@@ -2078,8 +2214,8 @@
                             } else {
                                 // Handle display spans (Account Snapshot, Audit Trail)
                                 // Format numeric balance fields with proper number formatting
-                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance', 
-                                                       'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
+                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
+                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
                                 const fieldId = el.id || '';
                                 if (numericFields.includes(fieldId) && !isNaN(parseFloat(account[key]))) {
                                     // Format as number with 2 decimal places and comma separators
@@ -2563,14 +2699,14 @@
         if (btns.cancel) {
             btns.cancel.addEventListener('click', async function () {
                 if (this.disabled) return;
-                
+
                 // Determine the context for the dialog
                 const isAfterCreate = window.AccountMaintenanceState.isAccountJustCreated || false;
                 const isViewingRecord = window.AccountMaintenanceState.isAccountLoaded && !isAfterCreate && currentMode === 'VIEW';
                 const isEditingRecord = currentMode === 'EDIT';
-                
+
                 let dialogTitle, dialogMessage;
-                
+
                 if (isAfterCreate) {
                     dialogTitle = 'Clear Form';
                     dialogMessage = 'Clear the form to add a new account?';
@@ -2584,7 +2720,7 @@
                     dialogTitle = 'Clear Form';
                     dialogMessage = 'Clear the form?';
                 }
-                
+
                 // Use showDialog for confirmation
                 const confirmed = await AppCore.showDialog({
                     type: 'confirmation',
