@@ -2349,68 +2349,109 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-account-card")]
-        public IActionResult GetAccountCard([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountCard([FromBody] GenericAccountRequest request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Return empty data with success - feature not yet implemented in backend
-            _logger.LogInformation("GetAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = true,
-                Message = "Card Maintenance feature is not yet available.",
-                Details = Array.Empty<object>(),
-                Data = Array.Empty<object>()
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT_CARD,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account cards");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/add-account-card")]
-        public IActionResult AddAccountCard([FromBody] JsonElement request)
+        public async Task<IActionResult> AddAccountCard([FromBody] JsonElement request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Feature not yet implemented in backend
-            _logger.LogInformation("AddAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_ACCOUNT_CARD,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding account card");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/update-account-card")]
-        public IActionResult UpdateAccountCard([FromBody] JsonElement request)
+        public async Task<IActionResult> UpdateAccountCard([FromBody] JsonElement request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Feature not yet implemented in backend
-            _logger.LogInformation("UpdateAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_CARD,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account card");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/delete-account-card")]
-        public IActionResult DeleteAccountCard([FromBody] JsonElement request)
+        public async Task<IActionResult> DeleteAccountCard([FromBody] JsonElement request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Feature not yet implemented in backend
-            _logger.LogInformation("DeleteAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.DELETE_ACCOUNT_CARD,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting account card");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         // ============================================================================
