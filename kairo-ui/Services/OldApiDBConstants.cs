@@ -136,16 +136,22 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_GLOAN_PEN_INT_WAIVE_OFF = "p_GetGLoanPenIntWaiveOff";
 
-            // ═══════════════════════════════════════════════════════════════════
-            // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
-            // ═══════════════════════════════════════════════════════════════════
-            public const string GETLOANSANCTION = "p_GetWFLoanSanction";
-            public const string SAVELOANSANCTION = "p_AddWFLoanSanction";
-            public const string DEVIATEAPPLICATION = "p_DeviateWFApplication";
+        // ═══════════════════════════════════════════════════════════════════
+        // LOANS - LOAN MAINTENANCE (Module 4300)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GETLOAN = "p_GetLoan";
+        public const string EDITLOAN = "p_EditLoans";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GETLOANSANCTION = "p_GetWFLoanSanction";
+        public const string SAVELOANSANCTION = "p_AddWFLoanSanction";
+        public const string DEVIATEAPPLICATION = "p_DeviateWFApplication";
             
-            // Loan Sanction - Disbursement Schedule (Data Entry Submodule)
-            public const string GETDISBURSEMENTSCHEDULES = "p_GetWFLoanDisbSchedules";
-            public const string SAVEDISBURSEMENTSCHEDULES = "p_AddEditWFLoanDisbSchedules";
+        // Loan Sanction - Disbursement Schedule (Data Entry Submodule)
+        public const string GETDISBURSEMENTSCHEDULES = "p_GetWFLoanDisbSchedules";
+        public const string SAVEDISBURSEMENTSCHEDULES = "p_AddEditWFLoanDisbSchedules";
             
         // ═══════════════════════════════════════════════════════════════════
         // WORKFLOW LOAN - LOAN DISBURSEMENT (Module 7097)
