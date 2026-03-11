@@ -272,6 +272,7 @@ const clientMaintenanceTabCatalog = [
     { key: 'Products', pane: 'dv_tabClientProducts', route: 'Products/Index', initFn: 'initClientMaintenanceProductsTab' },
     { key: 'PhotoSignature', pane: 'dv_tabClientPhotoSignature', route: 'PhotoSignature/Index', initFn: 'initClientMaintenancePhotoSignatureTab' },
     { key: 'Documents', pane: 'dv_tabClientDocuments', route: 'Documents/Index', initFn: 'initClientMaintenanceDocumentsTab' },
+    { key: 'IdentityTypes', pane: 'dv_tabClientIdentityTypes', route: 'IdentityTypes/Index', initFn: 'initClientMaintenanceIdentityTypesTab' },
     { key: 'Submit', pane: 'dv_tabClientSubmit', route: 'Submit/Index', initFn: 'initClientMaintenanceSubmitTab' }
 ];
 //{ key: 'Submit', pane: 'dv_tabClientSubmit', route: 'Submit/Index', initFn: 'initClientMaintenanceSubmitTab' }
@@ -292,6 +293,8 @@ const clientMaintenanceStageAliases = {
     'photo and signature': 'PhotoSignature',
     'photo signature': 'PhotoSignature',
     'documents': 'Documents',
+    'identity types': 'IdentityTypes',
+    'client identity types': 'IdentityTypes',
     'submit': 'Submit',
     'submission': 'Submit'
 };
@@ -312,6 +315,7 @@ const clientMaintenanceTabServiceMap = {
     Products: 'ClientMaintenanceProductsService',
     PhotoSignature: 'ClientMaintenancePhotoSignatureService',
     Documents: 'ClientMaintenanceDocumentsService',
+    IdentityTypes: 'ClientMaintenanceIdentityTypesService',
     Submit: 'ClientMaintenanceSubmitService'
 };
 
@@ -327,6 +331,7 @@ const clientMaintenanceTabScriptMap = {
     Products: '/js/modules/identities/client-maintenance/client-products.js',
     PhotoSignature: '/js/modules/identities/client-maintenance/client-photo-signature.js',
     Documents: '/js/modules/identities/client-maintenance/client-documents.js',
+    IdentityTypes: '/js/modules/identities/client-maintenance/client-identity-types.js',
     Submit: '/js/modules/identities/client-maintenance/client-submit.js'
 };
 
