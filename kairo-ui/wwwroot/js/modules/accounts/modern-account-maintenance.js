@@ -1731,14 +1731,16 @@
         'signatoryId': { tableID: 'ClientID', keyField: 'ClientID', nameField: 'ClientName' },
         'groupId': { tableID: 'GroupID', keyField: 'GroupID', nameField: 'GroupName' },
         'chargeId': { tableID: 'ChargeID', keyField: 'ChargeID', nameField: 'ChargeName' },
-        'requestRef': { tableID: 'StopPaymentID', keyField: 'RequestRef', nameField: 'Description' },
         'referenceId': { tableID: 'FreezeID', keyField: 'ReferenceID', nameField: 'Description' },
         'reminderId': { tableID: 'AccountReminderID', keyField: 'ReminderID', nameField: 'Description' },
         'transactionId': { tableID: 'TransactionID', keyField: 'TransactionID', nameField: 'Description' },
         'accountTransferId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'txnAccountId': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' },
         'payableAt': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
-        'documentId': { tableID: 'DocumentID', keyField: 'DocumentID', nameField: 'Description' }
+        'documentId': { tableID: 'DocumentID', keyField: 'DocumentID', nameField: 'Description' },
+        // Legacy/simple lookup tokens used by some migrated submodule views
+        'Branch': { tableID: 'BranchID', keyField: 'BranchID', nameField: 'BranchName' },
+        'Account': { tableID: 'AccountID', keyField: 'AccountID', nameField: 'AccountName' }
     };
 
     function wireLookups() {
@@ -1752,6 +1754,8 @@
         }
 
         lookupBtns.forEach(btn => {
+            if (btn.dataset.lookupOwner === 'module') return;
+
             // Avoid double wiring
             if (btn.dataset.wired) return;
             btn.dataset.wired = 'true';

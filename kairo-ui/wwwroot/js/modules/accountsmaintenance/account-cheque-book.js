@@ -32,6 +32,13 @@ window.AccountChequeBookModule = (function () {
         DISPATCH: 'dispatch-cheque-book'
     };
 
+    const DEFAULT_CHEQUE_ID_LENGTH = 8;
+    const CHEQUE_PREFIX_MAP = {
+        '25': 'TBT',
+        '50': 'TBF',
+        '100': 'TBH'
+    };
+
     /**
      * Get context from global state or storage
      */
@@ -53,7 +60,28 @@ window.AccountChequeBookModule = (function () {
 
     const el = (id) => document.getElementById(id);
     const val = (id) => el(id)?.value?.trim() || '';
-    const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
+    const setVal = (id, v) => {
+        const e = el(id);
+        if (!e) return;
+
+        const nextValue = (v == null) ? '' : String(v);
+        if ((id === 'chequeStart' || id === 'chequeEnd') && e.tagName === 'INPUT') {
+            if (e.type !== 'text') {
+                e.setAttribute('type', 'text');
+            }
+        }
+
+        e.value = nextValue;
+    };
+
+    function ensureChequeFieldTypes() {
+        ['chequeStart', 'chequeEnd'].forEach((id) => {
+            const input = el(id);
+            if (input && input.tagName === 'INPUT' && input.type !== 'text') {
+                input.setAttribute('type', 'text');
+            }
+        });
+    }
 
     function setCurrencyDisplay(value) {
         const currencyEl = el('currencyId');
@@ -151,6 +179,19 @@ window.AccountChequeBookModule = (function () {
         return `${yyyy}-${mm}-${dd}`;
     }
 
+    function formatDateTimeForApi(dateValue) {
+        if (!dateValue) return '';
+        const d = new Date(dateValue);
+        if (Number.isNaN(d.getTime())) return '';
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mi = String(d.getMinutes()).padStart(2, '0');
+        const ss = String(d.getSeconds()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+    }
+
     function showMsg(msg, type) {
         const t = window.showSystemToast || window.parent?.showSystemToast;
         if (t) t(msg, { variant: type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'success' });
@@ -159,17 +200,22 @@ window.AccountChequeBookModule = (function () {
     function setMode(mode) {
         state.currentMode = mode;
         const editing = (mode === 'ADD' || mode === 'EDIT');
-        ['bookType', 'chequeStart'].forEach(id => {
-            const e = el(id); if (e) e.readOnly = !editing;
-        });
+        // Book Type select should be disabled unless in Add/Edit mode
         const bt = el('bookType'); if (bt) bt.disabled = !editing;
-        if (mode === 'ADD') clearForm();
+        // Other fields: chequeStart should be readonly unless editing
+        const chequeStartEl = el('chequeStart'); if (chequeStartEl) chequeStartEl.readOnly = !editing;
+        // Cheque end is system-derived from start + leaves and must not be manually edited.
+        const chequeEndEl = el('chequeEnd'); if (chequeEndEl) chequeEndEl.readOnly = true;
+        // Add more fields as needed for readonly
+        if (mode === 'ADD') clearForm({ preserveIssueDate: true });
     }
 
     // Tracks whether View has returned data — used to restore correct state after Cancel
     let hasLoadedData = false;
 
     function setInitButtonState() {
+            // Always disable Book Type select on init
+            const bt = el('bookType'); if (bt) bt.disabled = true;
         const btnView = el('submoduleBtnView');
         const btnAdd = el('submoduleBtnAdd');
         const btnEdit = el('submoduleBtnEdit');
@@ -199,6 +245,8 @@ window.AccountChequeBookModule = (function () {
      * hasResults is stored so the Cancel handler can restore this same state.
      */
     function setButtonStatesAfterView(hasResults) {
+            // Always disable Book Type select after View
+            const bt = el('bookType'); if (bt) bt.disabled = true;
         hasLoadedData = !!hasResults;
 
         const btnView = el('submoduleBtnView');
@@ -218,9 +266,22 @@ window.AccountChequeBookModule = (function () {
         if (btnDelete) btnDelete.disabled = false;
         if (btnApprove) btnApprove.disabled = true; // enabled when a request row is selected
         if (btnDispatch) btnDispatch.disabled = true;
+
+        // Set Book Type dropdown value after disabling
+        if (state.chequeBooks && state.chequeBooks.length > 0) {
+            const latestBook = state.chequeBooks[state.chequeBooks.length - 1];
+            const bookTypeValue = latestBook && (latestBook.BookTypeID || latestBook.bookTypeID || latestBook.BookType || latestBook.bookType || '');
+            const bt = el('bookType');
+            if (bt && bookTypeValue) {
+                bt.disabled = true;
+                bt.value = bookTypeValue;
+            }
+        }
     }
 
     function setAddModeButtonState() {
+            // Enable Book Type select in Add mode
+            const bt = el('bookType'); if (bt) bt.disabled = false;
         const btnView = el('submoduleBtnView');
         const btnAdd = el('submoduleBtnAdd');
         const btnEdit = el('submoduleBtnEdit');
@@ -241,6 +302,8 @@ window.AccountChequeBookModule = (function () {
     }
 
     function setEditModeButtonState() {
+            // Enable Book Type select in Edit mode
+            const bt = el('bookType'); if (bt) bt.disabled = false;
         const btnView = el('submoduleBtnView');
         const btnAdd = el('submoduleBtnAdd');
         const btnEdit = el('submoduleBtnEdit');
@@ -260,11 +323,98 @@ window.AccountChequeBookModule = (function () {
         if (btnDispatch) btnDispatch.disabled = true;
     }
 
+    function getChequeIdLength() {
+        const domLength = parseInt(el('hdnChequeIDLength')?.value, 10);
+        if (Number.isFinite(domLength) && domLength > 0) return domLength;
+
+        const contextLength = parseInt(
+            window.AccountMaintenanceState?.ChequeIDLength || sessionStorage.getItem('currentChequeIDLength'),
+            10
+        );
+        if (Number.isFinite(contextLength) && contextLength > 0) return contextLength;
+
+        return DEFAULT_CHEQUE_ID_LENGTH;
+    }
+
+    function extractNumeric(value) {
+        const digits = String(value || '').match(/\d+/g);
+        if (!digits || digits.length === 0) return 0;
+        return parseInt(digits.join(''), 10) || 0;
+    }
+
+    function extractPrefix(value) {
+        const letters = String(value || '').match(/[A-Za-z]+/g);
+        return letters ? letters.join('') : '';
+    }
+
+    function resolveBookTypeValue(d) {
+        const explicitBookType = d?.BookTypeID || d?.bookTypeID || d?.BookType || d?.bookType;
+        if (explicitBookType != null && explicitBookType !== '') return String(explicitBookType);
+
+        const leaves = d?.NoOfLeaves ?? d?.noOfLeaves;
+        if (leaves != null && leaves !== '') return String(leaves);
+
+        return '';
+    }
+
+    function formatChequeNumber(prefix, numericValue) {
+        if (!numericValue) return '';
+        const normalizedPrefix = (prefix || '').toUpperCase();
+        return `${normalizedPrefix}${String(numericValue).padStart(getChequeIdLength(), '0')}`;
+    }
+
+    function getMappedPrefixForBookType() {
+        const bookType = val('bookType');
+        return CHEQUE_PREFIX_MAP[bookType] || '';
+    }
+
+    function getLeavesForCurrentBookType() {
+        const leavesFromField = parseInt(val('noOfLeaves'), 10);
+        if (Number.isFinite(leavesFromField) && leavesFromField > 0) return leavesFromField;
+
+        const leavesFromBookType = parseInt(val('bookType'), 10);
+        if (Number.isFinite(leavesFromBookType) && leavesFromBookType > 0) {
+            setVal('noOfLeaves', leavesFromBookType);
+            return leavesFromBookType;
+        }
+
+        return 0;
+    }
+
+    function seedChequeEndFromBookType() {
+        const leaves = getLeavesForCurrentBookType();
+        const prefix = getMappedPrefixForBookType() || extractPrefix(val('chequePrefix'));
+
+        if (prefix) {
+            setVal('chequePrefix', prefix);
+        }
+
+        if (leaves > 0 && !extractNumeric(val('chequeStart'))) {
+            setVal('chequeEnd', String(Math.max(leaves - 1, 0)));
+            return;
+        }
+
+        calculateChequeEnd();
+    }
+
     function calculateChequeEnd() {
-        const start = parseInt(val('chequeStart')) || 0;
-        const leaves = parseInt(val('noOfLeaves')) || 0;
-        if (start > 0 && leaves > 0) setVal('chequeEnd', start + leaves - 1);
-        else setVal('chequeEnd', '');
+        const start = extractNumeric(val('chequeStart'));
+        const leaves = getLeavesForCurrentBookType();
+        const prefix = getMappedPrefixForBookType() || extractPrefix(val('chequePrefix'));
+
+        if (prefix) {
+            setVal('chequePrefix', prefix);
+        }
+
+        if (start > 0 && leaves > 0) {
+            const end = start + leaves - 1;
+            setVal('chequeStart', formatChequeNumber(prefix, start));
+            setVal('chequeEnd', formatChequeNumber(prefix, end));
+        } else if (leaves > 0) {
+            setVal('chequeEnd', String(Math.max(leaves - 1, 0)));
+        } else {
+            setVal('chequeEnd', '');
+        }
     }
 
     function isSuccessfulResponse(res) {
@@ -366,7 +516,7 @@ window.AccountChequeBookModule = (function () {
             }
 
             if (booksData.ChequeRequestDetails) {
-                populateForm(booksData.ChequeRequestDetails);
+                populateOverviewFields(booksData.ChequeRequestDetails);
             }
 
             state.chequeBooks = asArray(
@@ -386,10 +536,13 @@ window.AccountChequeBookModule = (function () {
 
             const hasResults = state.chequeRequests.length > 0 || state.chequeBooks.length > 0;
 
-            if (state.chequeRequests.length > 0) {
-                window.AccountChequeBookModule.selectRequest(0);
-            } else if (state.chequeBooks.length > 0) {
-                window.AccountChequeBookModule.selectBook(0);
+            state.selectedBook = null;
+            state.selectedRequest = null;
+            document.querySelectorAll('#chequeBookGrid tr, #chequeRequestGrid tr').forEach(r => r.classList.remove('table-primary'));
+
+            const mirroredRecord = booksData.ChequeRequestDetails || state.chequeBooks[state.chequeBooks.length - 1] || null;
+            if (mirroredRecord) {
+                populateOverviewFields(mirroredRecord);
             }
 
             // Set button states based on whether View returned data.
@@ -476,12 +629,35 @@ window.AccountChequeBookModule = (function () {
     }
 
     function populateForm(d) {
+        const prefix = d.ChequePrefix || d.chequePrefix || '';
+        const startNumeric = extractNumeric(d.ChequeStart || d.chequeStart || '');
+        const endNumeric = extractNumeric(d.ChequeEnd || d.chequeEnd || '');
+
         setVal('issueDate', formatDateForInput(d.DateIssued || d.dateIssued || d.IssueDate));
-        setVal('bookType', d.BookTypeID || d.bookTypeID || d.BookType || d.bookType || '');
+        setVal('bookType', resolveBookTypeValue(d));
         setVal('noOfLeaves', d.NoOfLeaves || d.noOfLeaves || '');
-        setVal('chequePrefix', d.ChequePrefix || d.chequePrefix || '');
-        setVal('chequeStart', d.ChequeStart || d.chequeStart || '');
-        setVal('chequeEnd', d.ChequeEnd || d.chequeEnd || '');
+        setVal('chequePrefix', prefix);
+        setVal('chequeStart', startNumeric ? formatChequeNumber(prefix, startNumeric) : '');
+        setVal('chequeEnd', endNumeric ? formatChequeNumber(prefix, endNumeric) : '');
+        el('MakerID').textContent = d.MakerID || d.CreatedBy || '-';
+        el('MakerDT').textContent = formatDate(d.MakerDT || d.CreatedOn);
+        if (el('ModifierID')) el('ModifierID').textContent = d.ModifierID || d.ModifiedBy || '-';
+        if (el('ModifierDT')) el('ModifierDT').textContent = formatDate(d.ModifierDT || d.ModifiedOn);
+        el('approvedBy').textContent = d.ApprovedBy || '-';
+        el('approvedOn').textContent = formatDate(d.ApprovedOn);
+        el('dispatchedBy').textContent = d.DispatchedBy || '-';
+        el('dispatchedOn').textContent = formatDate(d.DispatchedOn);
+    }
+
+    function populateOverviewFields(d) {
+        const prefix = d.ChequePrefix || d.chequePrefix || '';
+
+        setVal('issueDate', formatDateForInput(d.DateIssued || d.dateIssued || d.IssueDate));
+        setVal('bookType', resolveBookTypeValue(d));
+        setVal('noOfLeaves', d.NoOfLeaves || d.noOfLeaves || '');
+        setVal('chequePrefix', prefix);
+        setVal('chequeStart', '');
+        setVal('chequeEnd', '');
         el('MakerID').textContent = d.MakerID || d.CreatedBy || '-';
         el('MakerDT').textContent = formatDate(d.MakerDT || d.CreatedOn);
         if (el('ModifierID')) el('ModifierID').textContent = d.ModifierID || d.ModifiedBy || '-';
@@ -495,9 +671,13 @@ window.AccountChequeBookModule = (function () {
     // Populates only the range fields on row selection — bookType is intentionally excluded
     // so it does not change unless the user enters Add/Edit mode.
     function populateSelectionFields(d) {
-        setVal('chequePrefix', d.ChequePrefix || d.chequePrefix || '');
-        setVal('chequeStart', d.ChequeStart || d.chequeStart || '');
-        setVal('chequeEnd', d.ChequeEnd || d.chequeEnd || '');
+        const prefix = d.ChequePrefix || d.chequePrefix || '';
+        const startNumeric = extractNumeric(d.ChequeStart || d.chequeStart || '');
+        const endNumeric = extractNumeric(d.ChequeEnd || d.chequeEnd || '');
+
+        setVal('chequePrefix', prefix);
+        setVal('chequeStart', startNumeric ? formatChequeNumber(prefix, startNumeric) : '');
+        setVal('chequeEnd', endNumeric ? formatChequeNumber(prefix, endNumeric) : '');
         el('MakerID').textContent = d.MakerID || d.CreatedBy || '-';
         el('MakerDT').textContent = formatDate(d.MakerDT || d.CreatedOn);
         if (el('ModifierID')) el('ModifierID').textContent = d.ModifierID || d.ModifiedBy || '-';
@@ -508,14 +688,39 @@ window.AccountChequeBookModule = (function () {
         el('dispatchedOn').textContent = formatDate(d.DispatchedOn);
     }
 
-    function clearForm() {
+    function clearForm(options = {}) {
+        const { preserveIssueDate = false } = options;
+
         ['issueDate', 'bookType', 'noOfLeaves', 'chequePrefix', 'chequeStart', 'chequeEnd'].forEach(id => setVal(id, ''));
         ['MakerID', 'MakerDT', 'approvedBy', 'approvedOn', 'dispatchedBy', 'dispatchedOn'].forEach(id => {
             if (el(id)) el(id).textContent = '-';
         });
         if (el('ModifierID')) el('ModifierID').textContent = '-';
         if (el('ModifierDT')) el('ModifierDT').textContent = '-';
-        setVal('issueDate', formatDateForInput(getContext().WorkingDate));
+        if (preserveIssueDate) {
+            setVal('issueDate', formatDateForInput(getContext().WorkingDate));
+        }
+    }
+
+    function resetToInitState() {
+        const ctx = getContext();
+
+        syncContext(ctx);
+        hydrateIdentificationFromContext(ctx);
+        clearForm();
+        clearAccountDetailsAndBehindScene();
+        state.activeTab = 'books';
+        hasLoadedData = false;
+
+        document.querySelectorAll('.de-tab').forEach(btn => {
+            btn.classList.toggle('is-active', btn.dataset.tab === 'books');
+        });
+        document.querySelectorAll('.de-tab-panel').forEach(panel => {
+            panel.classList.toggle('d-none', panel.dataset.panel !== 'books');
+        });
+
+        setMode('VIEW');
+        setInitButtonState();
     }
 
     function clearAccountDetailsAndBehindScene() {
@@ -546,7 +751,7 @@ window.AccountChequeBookModule = (function () {
         // Determine add vs edit: in EDIT mode a request row must be selected
         const isEdit = state.currentMode === 'EDIT' && !!state.selectedRequest;
         const req = state.selectedRequest;
-        const now = new Date().toISOString();
+        const now = formatDateTimeForApi(new Date());
         const chequeRequestsID = isEdit ? (req?.ChequeRequestsID || req?.ID || '0') : '0';
         try {
             const res = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.ADD}`, {
@@ -554,12 +759,12 @@ window.AccountChequeBookModule = (function () {
                 AccountID: ctx.AccountID,
                 AccountTypeID: 'C',
                 ChequeRequestsID: chequeRequestsID,
-                ChequeStart: parseInt(val('chequeStart')) || 0,
-                ChequeEnd: parseInt(val('chequeEnd')) || 0,
+                ChequeStart: extractNumeric(val('chequeStart')),
+                ChequeEnd: extractNumeric(val('chequeEnd')),
                 ChequePrefix: val('chequePrefix'),
                 BookTypeID: val('bookType'),
                 NoOfLeaves: parseInt(val('noOfLeaves')) || 0,
-                DateIssued: val('issueDate') || ctx.WorkingDate,
+                DateIssued: val('issueDate') || now,
                 CreatedBy: isEdit ? (req?.CreatedBy || ctx.OperatorID) : ctx.OperatorID,
                 CreatedOn: isEdit ? (req?.CreatedOn || now) : now,
                 ModifiedBy: ctx.OperatorID,
@@ -580,6 +785,11 @@ window.AccountChequeBookModule = (function () {
                 loadData();
                 return true;
             }
+            const responseCode = String(res?.ResponseCode || res?.responseCode || res?.data?.ResponseCode || '');
+            if (responseCode === '138013') {
+                showMsg('Few Cheques already exist in Stop Payment [No:138013]', 'error');
+                return false;
+            }
             showMsg(res?.ResponseMessage || res?.data?.ResponseMessage || res?.message || 'Save failed', 'error');
             return false;
         } catch (err) { showMsg('Error saving cheque request', 'error'); return false; }
@@ -590,6 +800,8 @@ window.AccountChequeBookModule = (function () {
 
         // On first load keep only View active until user explicitly loads/acts.
         setInitButtonState();
+
+        ensureChequeFieldTypes();
 
         // Show and store identification values immediately on screen init.
         syncContext(ctx);
@@ -606,7 +818,13 @@ window.AccountChequeBookModule = (function () {
         });
         el('chequeStart')?.addEventListener('input', calculateChequeEnd);
         el('bookType')?.addEventListener('change', () => {
-            const leaves = val('bookType') === '50' ? 50 : 25; setVal('noOfLeaves', leaves); setVal('chequePrefix', 'CB'); calculateChequeEnd();
+            const bookType = val('bookType');
+            const leaves = parseInt(bookType, 10);
+            setVal('noOfLeaves', Number.isFinite(leaves) ? leaves : '');
+            setVal('chequePrefix', CHEQUE_PREFIX_MAP[bookType] || '');
+            setVal('chequeStart', '');
+            setVal('chequeEnd', '');
+            seedChequeEndFromBookType();
         });
         document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
             hdr.addEventListener('click', function () {
@@ -631,6 +849,7 @@ window.AccountChequeBookModule = (function () {
     function handleAdd() {
         setMode('ADD');
         setAddModeButtonState();
+        seedChequeEndFromBookType();
     }
 
     async function handleUpdate() {
@@ -642,7 +861,7 @@ window.AccountChequeBookModule = (function () {
                 AccountID: ctx.AccountID,
                 BookType: val('bookType'),
                 NoOfLeaves: parseInt(val('noOfLeaves')),
-                ChequeStart: parseInt(val('chequeStart')),
+                ChequeStart: extractNumeric(val('chequeStart')),
                 IssueDate: ctx.WorkingDate,
                 OperatorID: ctx.OperatorID,
                 ChequeBookID: state.selectedBook.ChequeBookID || state.selectedBook.ID
@@ -680,8 +899,9 @@ window.AccountChequeBookModule = (function () {
             const selected = state.selectedRequest || state.selectedBook;
             if (selected) populateForm(selected);
             setMode('EDIT'); setEditModeButtonState();
+            seedChequeEndFromBookType();
         },
-        cancel: () => { setMode('VIEW'); setButtonStatesAfterView(hasLoadedData); loadData(); },
+        cancel: () => { resetToInitState(); },
         add: handleAdd,
         view: handleView,
         refresh: loadData,
