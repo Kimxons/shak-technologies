@@ -3,7 +3,6 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
-using kairo_ui.Services;
 
 namespace kairo_ui.Controllers.Identities.ClientApproval
 {

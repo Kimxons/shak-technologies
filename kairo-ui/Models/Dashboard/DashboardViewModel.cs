@@ -8,10 +8,10 @@ namespace kairo_ui.Models.Dashboard
     /// </summary>
     public class DashboardViewModel
     {
-        public string UserName { get; set; }
-        public string BankName { get; set; }
-        public string BranchName { get; set; }
-        public string BranchCode { get; set; }
+        public string? UserName { get; set; }
+        public string? BankName { get; set; }
+        public string? BranchName { get; set; }
+        public string? BranchCode { get; set; }
         public DateTime CurrentDate { get; set; } = DateTime.Now;
 
         // Dashboard Statistics
@@ -25,7 +25,7 @@ namespace kairo_ui.Models.Dashboard
 
         // Additional Data
         public string OperationalEfficiency { get; set; } = "98.7%";
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         // Start Menu and Resources
         public StartMenuViewModel StartMenu { get; set; } = new StartMenuViewModel();
@@ -41,9 +41,9 @@ namespace kairo_ui.Models.Dashboard
         public decimal TotalAssets { get; set; }
         public decimal AssetsChangePercent { get; set; }
         public int Transactions { get; set; }
-        public string PeakTime { get; set; }
+        public string? PeakTime { get; set; }
         public decimal TodaysVolume { get; set; }
-        public string VolumeTime { get; set; }
+        public string? VolumeTime { get; set; }
     }
 
     /// <summary>
@@ -101,12 +101,12 @@ namespace kairo_ui.Models.Dashboard
     public class TransactionRecord
     {
         public int Id { get; set; }
-        public string Reference { get; set; }
-        public string Description { get; set; }
+        public string? Reference { get; set; }
+        public string? Description { get; set; }
         public decimal Amount { get; set; }
-        public string Type { get; set; }
-        public string Status { get; set; }
+        public string? Type { get; set; }
+        public string? Status { get; set; }
         public DateTime Timestamp { get; set; }
-        public string Branch { get; set; }
+        public string? Branch { get; set; }
     }
 }

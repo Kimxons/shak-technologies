@@ -1,7 +1,120 @@
 const CM_RELATIONS_BASE = 'Identities/ClientMaintenance/Relations';
+const MODULEID_CLIENTRELATIONS = 1011;
+
+function getRelationsAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getRelationsClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getRelationsSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getRelationsParentContext() {
+    const maintenanceCore = getRelationsClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getRelationsSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toRelationsString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function firstNonEmptyRelationsString(...values) {
+    for (const value of values) {
+        const normalized = toRelationsString(value);
+        if (normalized) {
+            return normalized;
+        }
+    }
+
+    return '';
+}
+
+function resolveRelationsContext(requestData, fallbackModuleId) {
+    const viewState = getRelationsViewState();
+    const parentContext = getRelationsParentContext() || {};
+    const maintenanceCore = getRelationsClientMaintenanceCore();
+
+    const moduleId = firstNonEmptyRelationsString(
+        requestData?.ModuleID,
+        fallbackModuleId,
+        maintenanceCore?.moduleId,
+        parentContext.moduleId,
+        viewState.ModuleID
+    );
+
+    const clientId = firstNonEmptyRelationsString(
+        requestData?.ClientID,
+        maintenanceCore?.getClientId?.(),
+        maintenanceCore?.clientId,
+        parentContext.clientId,
+        viewState.ClientID
+    );
+
+    const requestId = firstNonEmptyRelationsString(
+        requestData?.RequestID,
+        maintenanceCore?.getRequestId?.(),
+        maintenanceCore?.requestId,
+        parentContext.requestId,
+        viewState.RequestID
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId,
+        ApplicationID: requestId || '',
+        AutoLoad: Boolean(viewState.AutoLoad),
+        IsStandalone: Boolean(viewState.IsStandalone)
+    };
+}
+
+function shouldAutoLoadStandaloneRelations(context) {
+    return Boolean(
+        context?.IsStandalone &&
+        (context?.ClientID || context?.RequestID)
+    );
+}
 
 function invokeClientMaintenanceRelations(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_RELATIONS_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getRelationsClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_RELATIONS_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getRelationsAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_RELATIONS_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Relations controller invocation is not available.'));
 }
 
 window.ClientMaintenanceRelationsService = {
@@ -9,187 +122,349 @@ window.ClientMaintenanceRelationsService = {
     create: (requestData) => invokeClientMaintenanceRelations('create', requestData),
     update: (requestData) => invokeClientMaintenanceRelations('update', requestData),
     delete: (requestData) => invokeClientMaintenanceRelations('delete', requestData)
-    // Note: Dropdown options are now rendered server-side in the Razor view
-    // getAllOptions() endpoint is deprecated - maintain for backward compatibility only
 };
 
-// Helper function to load dropdown options from controller
-// DEPRECATED: Dropdowns are now server-side rendered
-/*
-async function loadRelationsDropdownOptions(selectElementId, action) {
-    try {
-        const selectElement = document.getElementById(selectElementId);
-        if (!selectElement) return;
-        const result = await invokeClientMaintenanceRelations(action, {});
-        if (!result.success || !result.data) return;
+function showRelationsToast(message, type = 'info') {
+    const maintenanceCore = getRelationsClientMaintenanceCore();
+    if (maintenanceCore?.showToast) {
+        maintenanceCore.showToast(message, type);
+        return;
+    }
 
-        while (selectElement.options.length > 1) {
-            selectElement.remove(1);
+    if (window.NotificationService?.showToast) {
+        window.NotificationService.showToast(message, type, 4000);
+        return;
+    }
+
+    console.log(`[${type}] ${message}`);
+}
+
+async function requestRelationsConfirmation(title, message) {
+    const appCore = getRelationsAppCore();
+    if (appCore?.showConfirmation) {
+        return Boolean(await appCore.showConfirmation(title, message));
+    }
+
+    return window.confirm(message);
+}
+
+function getRelationsViewState() {
+    return window.ClientRelationsState || {};
+}
+
+function parseRelationsCandidate(candidate) {
+    if (candidate === null || candidate === undefined || candidate === '') {
+        return null;
+    }
+
+    if (typeof candidate === 'string') {
+        try {
+            return JSON.parse(candidate);
+        } catch (_error) {
+            return null;
         }
-
-        result.data.forEach((option) => {
-            const optEl = document.createElement('option');
-            optEl.value = option.value;
-            optEl.textContent = option.label;
-            selectElement.appendChild(optEl);
-        });
-    } catch (error) {
-        console.error(`Error loading dropdown options for ${selectElementId}:`, error);
     }
+
+    return candidate;
 }
-*/
 
-window.initClientMaintenanceRelationsTab = function (tabRoot, moduleId) {
-    initRelationsValidation();
-    bindRelationsCrud(tabRoot, moduleId);
-    initRelationsSearchModal(tabRoot, moduleId);
-};
+function extractRelationsList(response) {
+    if (!response) return [];
 
-// Helper function to populate a single dropdown from options array
-function populateRelationsDropdownOptions(selectElementId, optionsList) {
-    try {
-        const selectElement = document.getElementById(selectElementId);
-        if (!selectElement || !optionsList) return;
+    const candidates = [
+        response?.Details,
+        response?.data?.Details,
+        response?.data?.[0]?.Details,
+        response?.Details?.[0]?.Details,
+        response?.Data,
+        response?.data,
+        response
+    ];
 
-        // Clear existing options except the first one (placeholder)
-        while (selectElement.options.length > 1) {
-            selectElement.remove(1);
+    for (const candidate of candidates) {
+        const parsed = parseRelationsCandidate(candidate);
+        if (Array.isArray(parsed)) {
+            return parsed;
         }
+    }
 
-        // Add new options
-        optionsList.forEach((option) => {
-            const optEl = document.createElement('option');
-            optEl.value = option.value;
-            optEl.textContent = option.label;
-            selectElement.appendChild(optEl);
-        });
-    } catch (error) {
-        console.error(`Error populating dropdown ${selectElementId}:`, error);
+    return [];
+}
+
+function getRelationsResponseCode(response) {
+    return toRelationsString(response?.ResponseCode ?? response?.responseCode);
+}
+
+function getRelationsResponseMessage(response, fallbackMessage) {
+    return response?.ResponseMessage ??
+        response?.responseMessage ??
+        response?.Message ??
+        response?.message ??
+        response?.ErrorMessage ??
+        response?.errorMessage ??
+        fallbackMessage;
+}
+
+function isRelationsResponseSuccess(response) {
+    const successFlag = response?.Success ?? response?.success;
+    if (typeof successFlag === 'boolean') {
+        return successFlag;
+    }
+
+    const responseCode = getRelationsResponseCode(response).toUpperCase();
+    if (responseCode) {
+        return responseCode === '000' || responseCode === '00' || responseCode === 'SUCCESS';
+    }
+
+    return true;
+}
+
+function isRelationsNoDataResponse(response) {
+    const responseCode = getRelationsResponseCode(response).toUpperCase();
+    const responseMessage = toRelationsString(getRelationsResponseMessage(response, ''));
+    return responseCode === 'DBEX000020' || /do not exist/i.test(responseMessage);
+}
+
+function closeRelationsView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientRelations' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientRelations' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientRelations' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientRelations' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
     }
 }
 
-function initRelationsValidation() {
-    const utils = window.ValidationUtils;
-    if (!utils) return;
-
-    // Name fields - alphabetic only
-    const firstNameInput = document.getElementById('txt_relationFirstName');
-    const middleNameInput = document.getElementById('txt_relationMiddleName');
-    const lastNameInput = document.getElementById('txt_relationLastName');
-
-    [firstNameInput, middleNameInput, lastNameInput].forEach(input => {
-        if (input) utils.restrictAlphabetic(input);
-    });
-
-    // Share percentage - numeric, 0-100
-    const shareInput = document.getElementById('txt_relationShare');
-    if (shareInput) {
-        shareInput.addEventListener('input', (e) => {
-            const value = parseFloat(e.target.value);
-            if (value < 0) e.target.value = 0;
-            if (value > 100) e.target.value = 100;
-        });
-
-        shareInput.addEventListener('blur', () => {
-            if (shareInput.value && !utils.isWithinRange(shareInput.value, 0, 100)) {
-                utils.showError(shareInput, 'Share must be between 0 and 100');
-            } else {
-                utils.clearError(shareInput);
-            }
-        });
-    }
-
-    // Mobile - phone format
-    const mobileInput = document.getElementById('txt_relationMobile');
-    if (mobileInput) utils.restrictPhone(mobileInput, 15);
-
-    // Related Client ID - alphanumeric
-    const clientIdInput = document.getElementById('txt_relationClientId');
-    if (clientIdInput) utils.restrictAlphanumeric(clientIdInput);
-}
-
-function bindRelationsCrud(tabRoot, moduleId) {
+function bindRelationsActionPanel(tabRoot) {
     if (!tabRoot) return;
 
-    const state = {
-        enabled: false,
-        editing: null,
-        mode: 'view'
+    const actionScope =
+        tabRoot.closest('.window') ||
+        tabRoot.closest('[data-relations-host="standalone"]') ||
+        tabRoot.parentElement ||
+        tabRoot;
+
+    if (!actionScope || actionScope.dataset.cmRelationsActionDelegated === 'true') return;
+    actionScope.dataset.cmRelationsActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof tabRoot._cmRefreshData === 'function') {
+            await tabRoot._cmRefreshData();
+        }
     };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closeRelationsView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closeRelationsView();
+    });
+}
+
+window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations = function (tabRoot, moduleId, options = {}) {
+    if (!tabRoot || tabRoot.dataset.cmRelationsInitialized === 'true') return;
+    tabRoot.dataset.cmRelationsInitialized = 'true';
+
+    const configuredModuleId = toRelationsString(moduleId || options?.moduleId || getRelationsViewState().ModuleID || MODULEID_CLIENTRELATIONS);
+
+    bindRelationsCrudStandalone(tabRoot, configuredModuleId, options);
+    bindRelationsActionPanel(tabRoot);
+    initRelationsSearchModal(tabRoot, configuredModuleId);
+    bindStandaloneRelationsBootstrap(tabRoot, configuredModuleId, options);
+};
+
+function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
+    if (!tabRoot) return;
+
+    const configuredModuleId = toRelationsString(moduleId || options?.moduleId || getRelationsViewState().ModuleID);
+    const initialContext = resolveRelationsContext(null, configuredModuleId);
+    const standaloneHost = tabRoot.matches('[data-relations-host="standalone"]') || Boolean(tabRoot.closest('[data-relations-host="standalone"]'));
+    const state = {
+        mode: 'view',
+        selectedRecord: null,
+        rows: [],
+        isStandalone: Boolean(options?.isStandalone ?? initialContext.IsStandalone ?? standaloneHost),
+        lastContext: { ...initialContext },
+        initialLoadApplied: false,
+        autoLoadInFlight: false
+    };
+
+    state.lastContext.IsStandalone = state.isStandalone;
 
     const form = tabRoot.querySelector('[data-relations-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="relations"]');
-
-    const setMode = (mode) => {
-        state.mode = mode || 'view';
+    const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
+    const loadingOverlay = tabRoot.querySelector('#loadingOverlay') || document.getElementById('loadingOverlay');
+    const buttons = {
+        new: tabRoot.querySelector('[data-relation-action="new"]'),
+        alter: tabRoot.querySelector('[data-relation-action="alter"]'),
+        remove: tabRoot.querySelector('[data-relation-action="remove"]'),
+        update: tabRoot.querySelector('[data-relation-action="update"]'),
+        clear: tabRoot.querySelector('[data-relation-action="clear"]')
     };
 
-    const setEntryActionButtons = (enabled) => {
-        const updateBtn = tabRoot.querySelector('[data-relation-action="update"]');
-        const clearBtn = tabRoot.querySelector('[data-relation-action="clear"]');
-        if (updateBtn) updateBtn.disabled = !enabled;
-        if (clearBtn) clearBtn.disabled = !enabled;
+    const canEditRelations = () => state.isStandalone;
+
+    const setLoading = (show) => {
+        if (loadingOverlay) {
+            loadingOverlay.hidden = !show;
+        }
     };
 
     const setFieldsEnabled = (enabled) => {
-        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
-        const nextEnabled = allowEdit && enabled;
-
-        state.enabled = nextEnabled;
+        const nextEnabled = Boolean(enabled) && canEditRelations();
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             field.disabled = !nextEnabled;
+
+            if (field.matches('input:not([type="checkbox"]), textarea')) {
+                field.readOnly = !nextEnabled;
+            }
         });
+
         const lookupBtn = form.querySelector('[data-relation-action="lookup"]');
-        if (lookupBtn) lookupBtn.disabled = !nextEnabled;
-        setEntryActionButtons(nextEnabled);
+        if (lookupBtn) {
+            lookupBtn.disabled = !nextEnabled;
+        }
     };
 
-    const extractList = (response) => {
-        if (!response) return [];
-        const candidates = [
-            response?.Details,
-            response?.data?.Details,
-            response?.data?.[0]?.Details,
-            response?.Details?.[0]?.Details,
-            response?.data,
-            response
-        ];
-        const list = candidates.find((item) => Array.isArray(item)) || [];
-        return Array.isArray(list) ? list : [];
+    const clearTableSelection = () => {
+        table?.querySelectorAll('tr[data-index]').forEach((row) => {
+            row.classList.remove('is-selected');
+        });
     };
 
-    const normalizeRelationRows = (rows) => (rows || []).map((row) => ({
-        ID: row.ID ?? row.ClientToRelationID ?? null,
-        ClientToRelationID: row.ClientToRelationID ?? row.ID ?? null,
-        RelatedClientID: row.RelatedClientID ?? '',
-        RelationID: row.RelationID ?? '',
-        RelationTypeID: row.RelationTypeID ?? row.RelationType ?? '',
-        IdentificationTypeID: row.IdentificationTypeID ?? '',
-        IdentificationNo: row.IdentificationNo ?? row.IdentificationNumber ?? '',
-        RelationRefNo: row.RelationRefNo ?? 1,
-        SharePercent: row.SharePercent ?? '',
-        Name: row.Name ?? '',
-        TitleID: row.TitleID ?? '',
-        GenderID: row.GenderID ?? '',
-        FirstName: row.FirstName ?? '',
-        MiddleName: row.MiddleName ?? '',
-        LastName: row.LastName ?? '',
-        Mobile: row.Mobile ?? row.MobileNo ?? ''
-    }));
+    const resetFormFields = () => {
+        form.querySelectorAll('[data-relation-field]').forEach((field) => {
+            if (field.type === 'checkbox') {
+                field.checked = false;
+                return;
+            }
+
+            field.value = '';
+        });
+
+        const clientNameField = form.querySelector('#txt_relationClientName');
+        if (clientNameField) {
+            clientNameField.value = '';
+        }
+    };
+
+    const applyActionState = () => {
+        const editable = canEditRelations();
+        const hasSelection = Boolean(state.selectedRecord);
+        const isCreateMode = state.mode === 'create';
+        const isUpdateMode = state.mode === 'update';
+        const isEditing = isCreateMode || isUpdateMode;
+
+        if (buttons.new) {
+            buttons.new.disabled = !editable || hasSelection || isEditing;
+        }
+
+        if (buttons.alter) {
+            buttons.alter.disabled = !editable || !hasSelection || isEditing;
+        }
+
+        if (buttons.remove) {
+            buttons.remove.disabled = !editable || !hasSelection || isEditing;
+        }
+
+        if (buttons.update) {
+            buttons.update.disabled = !editable || !isEditing;
+        }
+
+        if (buttons.clear) {
+            buttons.clear.disabled = !editable || !isEditing;
+        }
+    };
+
+    const resetViewState = () => {
+        clearTableSelection();
+        resetFormFields();
+        state.selectedRecord = null;
+        state.mode = 'view';
+        setFieldsEnabled(false);
+        applyActionState();
+    };
 
     const getSelectLabel = (selector, value) => {
-        const el = form.querySelector(selector);
-        if (!el || value === undefined || value === null || value === '') return '';
-        const option = el.querySelector(`option[value="${value}"]`);
-        return option ? option.textContent.trim() : '';
+        const selectElement = form.querySelector(selector);
+        if (!selectElement || value === undefined || value === null || value === '') {
+            return '';
+        }
+
+        const matchingOption = Array.from(selectElement.options).find((option) => option.value === String(value));
+        return matchingOption ? matchingOption.textContent.trim() : '';
     };
 
+    const normalizeRelationRows = (rows) => (rows || []).map((row) => {
+        const recordId = row.ClientToRelationID ?? row.ID ?? null;
+        return {
+            ID: row.ID ?? recordId,
+            ClientToRelationID: recordId,
+            RelatedClientID: row.RelatedClientID ?? '',
+            RelationID: row.RelationID ?? '',
+            RelationTypeID: row.RelationTypeID ?? row.RelationType ?? '',
+            IdentificationTypeID: row.IdentificationTypeID ?? '',
+            IdentificationNo: row.IdentificationNo ?? row.IdentificationNumber ?? '',
+            RelationRefNo: row.RelationRefNo ?? 1,
+            SharePercent: row.SharePercent ?? '',
+            Name: row.Name ?? '',
+            TitleID: row.TitleID ?? '',
+            GenderID: row.GenderID ?? '',
+            FirstName: row.FirstName ?? '',
+            MiddleName: row.MiddleName ?? '',
+            LastName: row.LastName ?? '',
+            Mobile: row.Mobile ?? row.MobileNo ?? '',
+            UpdateCount: row.UpdateCount ?? null
+        };
+    });
+
     const renderRelationsTable = (rows) => {
-        const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
+        state.rows = Array.isArray(rows) ? rows : [];
         if (!tbody) return;
+
         tbody.innerHTML = '';
 
-        (rows || []).forEach((entry, index) => {
+        state.rows.forEach((entry, index) => {
             const tr = document.createElement('tr');
             tr.dataset.index = String(index);
             tr.dataset.payload = JSON.stringify(entry);
@@ -205,52 +480,16 @@ function bindRelationsCrud(tabRoot, moduleId) {
                 <td>${entry.SharePercent ?? ''}</td>
                 <td>${entry.Mobile ?? ''}</td>
             `;
+
             tbody.appendChild(tr);
         });
-    };
-
-    const refreshRelationsTable = async (requestData) => {
-        // Get client ID and request ID from parent context
-        const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
-        const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
-        
-        // Need at least one identifier (ClientID or RequestID) to fetch relations
-        if (!clientId && !requestId) {
-            renderRelationsTable([]);
-            return;
-        }
-        try {
-            const response = await window.ClientMaintenanceRelationsService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId,
-                RequestID: requestId
-            });
-            const rows = normalizeRelationRows(extractList(response));
-            renderRelationsTable(rows);
-            setMode(rows.length > 0 ? 'edit' : 'view');
-        } catch (error) {
-            window.ClientMaintenanceCore.showToast(`Relations load failed - ${error.message}`, 'error');
-        }
-    };
-
-    const resetForm = () => {
-        form.querySelectorAll('[data-relation-field]').forEach((field) => {
-            if (field.type === 'checkbox') {
-                field.checked = false;
-            } else {
-                field.value = '';
-            }
-        });
-        const clientNameField = form.querySelector('#txt_relationClientName');
-        if (clientNameField) clientNameField.value = '';
-        state.editing = null;
-        setMode('view');
     };
 
     const readFieldValue = (field) => {
         if (field.type === 'checkbox') {
             return field.checked;
         }
+
         return field.value ?? '';
     };
 
@@ -262,271 +501,400 @@ function bindRelationsCrud(tabRoot, moduleId) {
             payload[key] = readFieldValue(field);
         });
 
-        // Include ID fields from editing state for update/delete operations
-        if (state.editing) {
-            payload.ID = state.editing.ID || state.editing.ClientToRelationID || null;
-            payload.ClientToRelationID = state.editing.ClientToRelationID || state.editing.ID || null;
+        if (state.selectedRecord) {
+            const selectedId = state.selectedRecord.ID ?? state.selectedRecord.ClientToRelationID;
+            const relationId = state.selectedRecord.ClientToRelationID ?? state.selectedRecord.ID;
+
+            if (selectedId !== null && selectedId !== undefined && selectedId !== '') {
+                payload.ID = selectedId;
+            }
+
+            if (relationId !== null && relationId !== undefined && relationId !== '') {
+                payload.ClientToRelationID = relationId;
+            }
+
+            if (state.selectedRecord.UpdateCount !== null && state.selectedRecord.UpdateCount !== undefined && state.selectedRecord.UpdateCount !== '') {
+                payload.UpdateCount = state.selectedRecord.UpdateCount;
+            }
         }
 
+        const context = resolveRelationsContext(state.lastContext, configuredModuleId);
+        context.IsStandalone = state.isStandalone;
+        state.lastContext = { ...state.lastContext, ...context };
+
+        const recordId = state.selectedRecord?.ClientToRelationID ?? state.selectedRecord?.ID ?? null;
+
         return {
-            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            // Use actual ClientID and RequestID from parent context
-            ClientID: window.ClientMaintenanceCore?.clientId || '',
-            RequestID: window.ClientMaintenanceCore?.requestId || '',
+            ModuleID: context.ModuleID,
+            ClientID: context.ClientID,
+            RequestID: context.RequestID,
+            ApplicationID: context.ApplicationID || null,
+            RecordID: recordId,
             Payload: payload
         };
     };
 
     const applyRowPayload = (payload) => {
         if (!payload) return;
+
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             const key = field.dataset.relationField;
             if (!key) return;
             const value = payload[key];
+
             if (field.type === 'checkbox') {
                 field.checked = Boolean(value);
             } else {
                 field.value = value ?? '';
             }
         });
+
+        const clientNameField = form.querySelector('#txt_relationClientName');
+        if (clientNameField) {
+            clientNameField.value = payload.Name || [payload.FirstName, payload.MiddleName, payload.LastName].filter(Boolean).join(' ');
+        }
     };
 
-    // Validation: Check for duplicate RelatedClientID
     const isDuplicateRelation = (relatedClientId) => {
         if (!relatedClientId) return false;
-        const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
-        if (!tbody) return false;
-        
-        const rows = tbody.querySelectorAll('tr[data-payload]');
-        for (const row of rows) {
-            const existingPayload = JSON.parse(row.dataset.payload || '{}');
-            // Skip the row we're currently editing
-            if (state.editing && existingPayload.ID === state.editing.ID) continue;
-            if (existingPayload.RelatedClientID === relatedClientId) {
+
+        const candidate = toRelationsString(relatedClientId);
+        const currentId = state.selectedRecord?.ClientToRelationID ?? state.selectedRecord?.ID;
+
+        for (const row of state.rows) {
+            const rowId = row.ClientToRelationID ?? row.ID;
+            if (currentId !== null && currentId !== undefined && currentId !== '' && String(rowId) === String(currentId)) {
+                continue;
+            }
+
+            if (toRelationsString(row.RelatedClientID) === candidate) {
                 return true;
             }
         }
+
         return false;
     };
 
-    // Validation: Calculate total share percentage
     const calculateTotalShare = (excludeCurrentEdit = false) => {
-        const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
-        if (!tbody) return 0;
-        
-        const rows = tbody.querySelectorAll('tr[data-payload]');
-        let total = 0;
-        for (const row of rows) {
-            const existingPayload = JSON.parse(row.dataset.payload || '{}');
-            // Skip the row we're currently editing when checking for update
-            if (excludeCurrentEdit && state.editing && existingPayload.ID === state.editing.ID) continue;
-            const share = parseFloat(existingPayload.SharePercent) || 0;
-            total += share;
-        }
-        return total;
+        const currentId = state.selectedRecord?.ClientToRelationID ?? state.selectedRecord?.ID;
+        return state.rows.reduce((sum, row) => {
+            const rowId = row.ClientToRelationID ?? row.ID;
+            if (
+                excludeCurrentEdit &&
+                currentId !== null &&
+                currentId !== undefined &&
+                currentId !== '' &&
+                String(rowId) === String(currentId)
+            ) {
+                return sum;
+            }
+
+            const share = parseFloat(row.SharePercent) || 0;
+            return sum + share;
+        }, 0);
     };
 
-    setFieldsEnabled(false);
-    tabRoot._cmLoadData = (requestData) => refreshRelationsTable(requestData);
-    window.ClientMaintenanceCore.registerTabLoadFunction('Relations', (requestData) => refreshRelationsTable(requestData));
+    const refreshRelationsTable = async (requestData, refreshOptions = {}) => {
+        const context = resolveRelationsContext(requestData, configuredModuleId);
+        context.IsStandalone = state.isStandalone;
+        state.lastContext = { ...state.lastContext, ...context };
 
-    // Initialize all action buttons as disabled until edit mode
-    const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
-    if (newBtn) newBtn.disabled = true;
-    enableGridRowActions(tabRoot, false);
+        resetViewState();
 
-    // Edit mode handler - called from main client maintenance view
-    tabRoot._cmSetEditMode = (isEditMode) => {
-        if (isEditMode) {
-            // Enable New button to add relations in edit mode
-            const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
-            if (newBtn) newBtn.disabled = false;
-        } else {
-            // Disable action buttons when exiting edit mode
-            setFieldsEnabled(false);
-            const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
-            if (newBtn) newBtn.disabled = true;
-            enableGridRowActions(tabRoot, false);
+        if (!context.ClientID && !context.RequestID) {
+            renderRelationsTable([]);
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+            return [];
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await window.ClientMaintenanceRelationsService.get({
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID,
+                ApplicationID: context.ApplicationID || null
+            });
+
+            if (!isRelationsResponseSuccess(response) && !isRelationsNoDataResponse(response)) {
+                throw new Error(getRelationsResponseMessage(response, 'Unable to load relation details.'));
+            }
+
+            const rows = isRelationsNoDataResponse(response) ? [] : normalizeRelationRows(extractRelationsList(response));
+            renderRelationsTable(rows);
+
+            const isInitialNoData =
+                (isRelationsNoDataResponse(response) || rows.length === 0) &&
+                Boolean(refreshOptions.markInitialLoad) &&
+                !state.initialLoadApplied &&
+                !refreshOptions.suppressNoDataInfoToast;
+
+            if (isInitialNoData) {
+                showRelationsToast('No client relation details were found for the selected client.', 'info');
+            }
+
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+
+            return rows;
+        } catch (error) {
+            renderRelationsTable([]);
+            if (!refreshOptions.suppressErrorToast) {
+                showRelationsToast(`Relations load failed - ${error.message}`, 'error');
+            }
+            return [];
+        } finally {
+            setLoading(false);
+            applyActionState();
+        }
+    };
+
+    const selectRelationsRow = (rowElement, payload) => {
+        if (!rowElement || !payload) return;
+        if (state.mode === 'create' || state.mode === 'update') return;
+
+        clearTableSelection();
+        rowElement.classList.add('is-selected');
+        applyRowPayload(payload);
+
+        state.selectedRecord = payload;
+        state.mode = 'view';
+        setFieldsEnabled(false);
+        applyActionState();
+    };
+
+    const submitCurrentMode = async (mode) => {
+        if (!['create', 'update', 'delete'].includes(mode)) {
+            showRelationsToast('Choose New, Alter, or Remove before submitting.', 'warning');
+            return;
+        }
+
+        if ((mode === 'update' || mode === 'delete') && !state.selectedRecord) {
+            showRelationsToast('Select a relation first.', 'warning');
+            return;
+        }
+
+        const request = buildPayload();
+        if (!request.ClientID && !request.RequestID) {
+            showRelationsToast('No client context is available for this relation action.', 'warning');
+            return;
+        }
+
+        const relatedClientId = toRelationsString(request?.Payload?.RelatedClientID);
+        const sharePercent = parseFloat(request?.Payload?.SharePercent) || 0;
+
+        if ((mode === 'create' || mode === 'update') && relatedClientId && isDuplicateRelation(relatedClientId)) {
+            showRelationsToast(`Relation with Client ID "${relatedClientId}" already exists.`, 'warning');
+            return;
+        }
+
+        if (mode === 'create' || mode === 'update') {
+            const currentTotal = calculateTotalShare(mode === 'update');
+            const newTotal = currentTotal + sharePercent;
+            if (newTotal > 100) {
+                showRelationsToast(
+                    `Total share percentage cannot exceed 100%. Current total: ${currentTotal.toFixed(2)}%, Attempting to add: ${sharePercent.toFixed(2)}%`,
+                    'warning'
+                );
+                return;
+            }
+        }
+
+        const actionHandler = mode === 'create'
+            ? window.ClientMaintenanceRelationsService.create
+            : (mode === 'update'
+                ? window.ClientMaintenanceRelationsService.update
+                : window.ClientMaintenanceRelationsService.delete);
+
+        const actionLabel = mode === 'create' ? 'create' : (mode === 'update' ? 'update' : 'delete');
+
+        setLoading(true);
+        try {
+            const response = await actionHandler(request);
+            if (!isRelationsResponseSuccess(response)) {
+                throw new Error(getRelationsResponseMessage(response, `Relations ${actionLabel} failed.`));
+            }
+
+            showRelationsToast(`Relations ${actionLabel} completed`, 'success');
+            state.mode = 'view';
+            await refreshRelationsTable(state.lastContext, { markInitialLoad: state.initialLoadApplied });
+        } catch (error) {
+            showRelationsToast(`Relations ${actionLabel} failed - ${error.message}`, 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     table?.addEventListener('click', (event) => {
         const row = event.target.closest('tr[data-index]');
         if (!row) return;
-        table.querySelectorAll('tr[data-index]').forEach((tr) => {
-            tr.classList.toggle('is-selected', tr === row);
-        });
+
         const payload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
-        if (payload) {
-            applyRowPayload(payload);
-        }
-        state.editing = payload || { index: row.dataset.index };
-        setMode('edit');
-        setFieldsEnabled(false);
-        // Enable action buttons (update/alter, remove, clear) when row is selected
-        enableGridRowActions(tabRoot, true);
+        selectRelationsRow(row, payload);
     });
 
-    table?.addEventListener('dblclick', (event) => {
-        const row = event.target.closest('tr[data-index]');
-        if (!row) return;
-        table.querySelectorAll('tr[data-index]').forEach((tr) => {
-            tr.classList.toggle('is-selected', tr === row);
+    if (buttons.new) {
+        buttons.new.addEventListener('click', () => {
+            if (!canEditRelations()) return;
+
+            clearTableSelection();
+            resetFormFields();
+            state.selectedRecord = null;
+            state.mode = 'create';
+            setFieldsEnabled(true);
+            applyActionState();
         });
-        const payload = row.dataset.payload ? JSON.parse(row.dataset.payload) : null;
-        if (payload) {
-            applyRowPayload(payload);
-        }
-        state.editing = payload || { index: row.dataset.index };
-        setMode('edit');
-        setFieldsEnabled(true);
+    }
+
+    if (buttons.alter) {
+        buttons.alter.addEventListener('click', () => {
+            if (!state.selectedRecord) {
+                showRelationsToast('Select a relation first.', 'warning');
+                return;
+            }
+
+            state.mode = 'update';
+            setFieldsEnabled(true);
+            applyActionState();
+        });
+    }
+
+    if (buttons.clear) {
+        buttons.clear.addEventListener('click', () => {
+            resetViewState();
+        });
+    }
+
+    if (buttons.remove) {
+        buttons.remove.addEventListener('click', async () => {
+            if (!state.selectedRecord) {
+                showRelationsToast('Select a relation to remove.', 'warning');
+                return;
+            }
+
+            const confirmed = await requestRelationsConfirmation(
+                'Confirm Remove',
+                'Are you sure you want to remove this relation?'
+            );
+            if (!confirmed) return;
+
+            state.mode = 'delete';
+            await submitCurrentMode('delete');
+        });
+    }
+
+    if (buttons.update) {
+        buttons.update.addEventListener('click', async () => {
+            if (state.mode !== 'create' && state.mode !== 'update') {
+                showRelationsToast('Click New or Alter before updating a relation.', 'warning');
+                return;
+            }
+
+            await submitCurrentMode(state.mode);
+        });
+    }
+
+    tabRoot._cmLoadData = (requestData, refreshOptions = {}) => refreshRelationsTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
     });
+    tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshRelationsTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmMaybeAutoLoadRelations = (requestData) => {
+        const context = resolveRelationsContext(requestData, configuredModuleId);
+        context.IsStandalone = state.isStandalone;
 
-    tabRoot.querySelectorAll('[data-relation-action]').forEach((button) => {
-        button.addEventListener('click', async () => {
-            const action = button.dataset.relationAction;
-            if (!action) return;
-            if (!['new', 'alter', 'clear', 'remove', 'update'].includes(action)) {
-                return;
-            }
+        if (state.initialLoadApplied || state.autoLoadInFlight || !shouldAutoLoadStandaloneRelations(context)) {
+            return Promise.resolve([]);
+        }
 
-            if (action === 'new') {
-                resetForm();
-                setFieldsEnabled(true);
-                setMode('add');
-                // Disable New button after clicking
-                button.disabled = true;
-                return;
-            }
-
-            if (action === 'alter') {
-                if (!state.editing) {
-                    window.ClientMaintenanceCore.showToast('Select a relation first.', 'warning');
-                    return;
-                }
-                setFieldsEnabled(true);
-                setMode('edit');
-                return;
-            }
-
-            if (action === 'clear') {
-                resetForm();
-                setFieldsEnabled(false);
-                enableGridRowActions(tabRoot, false);
-                setMode('view');
-                // Re-enable New button
-                const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
-                if (newBtn) newBtn.disabled = false;
-                return;
-            }
-
-            // Validation: Remove requires selection
-            if (action === 'remove') {
-                if (!state.editing) {
-                    window.ClientMaintenanceCore.showToast('Select a relation to remove.', 'warning');
-                    return;
-                }
-                
-                // Confirm before removing
-                const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
-                let confirmed = false;
-                if (!appCore || !appCore.showConfirmation) {
-                    confirmed = window.confirm('Are you sure you want to remove this relation?');
-                } else {
-                    confirmed = await appCore.showConfirmation(
-                        'Confirm Remove',
-                        'Are you sure you want to remove this relation?'
-                    );
-                }
-                if (!confirmed) return;
-                setMode('delete');
-            }
-
-            const request = buildPayload();
-            const relatedClientId = request?.Payload?.RelatedClientID;
-            const sharePercent = parseFloat(request?.Payload?.SharePercent) || 0;
-
-            const mode = state.mode === 'view'
-                ? (state.editing ? 'edit' : 'add')
-                : state.mode;
-
-            if ((mode === 'edit' || mode === 'delete') && !state.editing) {
-                window.ClientMaintenanceCore.showToast('Select a relation first.', 'warning');
-                return;
-            }
-
-            // Validation: Duplicate check for create/update
-            if ((mode === 'add' || mode === 'edit') && relatedClientId) {
-                if (isDuplicateRelation(relatedClientId)) {
-                    window.ClientMaintenanceCore.showToast(
-                        `Relation with Client ID "${relatedClientId}" already exists.`,
-                        'warning'
-                    );
-                    return;
-                }
-            }
-
-            // Validation: Total share cannot exceed 100%
-            if (mode === 'add' || mode === 'edit') {
-                const currentTotal = calculateTotalShare(mode === 'edit');
-                const newTotal = currentTotal + sharePercent;
-                
-                if (newTotal > 100) {
-                    window.ClientMaintenanceCore.showToast(
-                        `Total share percentage cannot exceed 100%. Current total: ${currentTotal.toFixed(2)}%, Attempting to add: ${sharePercent.toFixed(2)}%`,
-                        'warning'
-                    );
-                    return;
-                }
-            }
-
-            const service = window.ClientMaintenanceRelationsService;
-            const handler = mode === 'delete'
-                ? service.delete
-                : (mode === 'edit' ? service.update : service.create);
-            const actionLabel = mode === 'delete' ? 'remove' : (mode === 'edit' ? 'update' : 'create');
-
-            try {
-                const response = await handler(request);
-                const success = response?.Success ?? response?.success ?? true;
-                if (!success) {
-                    const error = response?.ErrorMessage || response?.errorMessage || 'Relations request failed';
-                    window.ClientMaintenanceCore.showToast(error, 'error');
-                    return;
-                }
-
-                window.ClientMaintenanceCore.showToast(`Relations ${actionLabel} completed`, 'success');
-                resetForm();
-                setFieldsEnabled(false);
-                enableGridRowActions(tabRoot, false);
-                setMode('view');
-                // Re-enable New button after successful save
-                const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
-                if (newBtn) newBtn.disabled = false;
-                await refreshRelationsTable();
-            } catch (error) {
-                window.ClientMaintenanceCore.showToast(`Relations ${actionLabel} failed - ${error.message}`, 'error');
-            }
+        state.autoLoadInFlight = true;
+        return refreshRelationsTable(context, {
+            suppressErrorToast: true,
+            markInitialLoad: true
+        }).finally(() => {
+            state.autoLoadInFlight = false;
         });
+    };
+
+    tabRoot._cmSetEditMode = () => {
+        if (!canEditRelations() && (state.mode === 'create' || state.mode === 'update')) {
+            resetViewState();
+            return;
+        }
+
+        setFieldsEnabled(state.mode === 'create' || state.mode === 'update');
+        applyActionState();
+    };
+
+    const maintenanceCore = getRelationsClientMaintenanceCore();
+    if (!state.isStandalone && maintenanceCore?.registerTabLoadFunction) {
+        maintenanceCore.registerTabLoadFunction('Relations', (requestData) => refreshRelationsTable(requestData));
+    }
+
+    setFieldsEnabled(false);
+    applyActionState();
+}
+
+function bindStandaloneRelationsBootstrap(tabRoot, moduleId, options = {}) {
+    const standaloneRoot = Boolean(
+        options?.isStandalone ??
+        getRelationsViewState().IsStandalone ??
+        tabRoot.matches('[data-relations-host="standalone"]') ??
+        tabRoot.closest('[data-relations-host="standalone"]')
+    );
+
+    if (!standaloneRoot) return;
+
+    const initialContext = resolveRelationsContext(null, moduleId);
+    initialContext.IsStandalone = true;
+    if (typeof tabRoot._cmMaybeAutoLoadRelations === 'function') {
+        void tabRoot._cmMaybeAutoLoadRelations(initialContext);
+    }
+
+    if (tabRoot.dataset.cmRelationsParentContextBound === 'true') {
+        return;
+    }
+
+    tabRoot.dataset.cmRelationsParentContextBound = 'true';
+    window.addEventListener('message', (event) => {
+        const data = event?.data;
+        if (!data || typeof data !== 'object') return;
+        if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+        const parentData = data.data || {};
+        const nextContext = resolveRelationsContext({
+            ModuleID: parentData.moduleId,
+            ClientID: parentData.clientId,
+            RequestID: parentData.requestId
+        }, moduleId);
+
+        nextContext.IsStandalone = true;
+        if (typeof tabRoot._cmMaybeAutoLoadRelations === 'function') {
+            void tabRoot._cmMaybeAutoLoadRelations(nextContext);
+        }
     });
 }
 
-/**
- * Hydrate relation form fields from related client ID
- */
 async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) {
-    if (!relatedClientId || !window.ClientMaintenanceCore) return;
+    if (!relatedClientId) return;
     
     try {
-        // Use ClientMaintenance service to fetch individual client details
-        if (typeof window.ClientMaintenanceCore.invokeControllerMethod !== 'function') return;
+        const maintenanceCore = getRelationsClientMaintenanceCore();
+        if (typeof maintenanceCore?.invokeControllerMethod !== 'function') return;
 
-        const response = await window.ClientMaintenanceCore.invokeControllerMethod(
+        const response = await maintenanceCore.invokeControllerMethod(
             'Identities/ClientMaintenance/ClientIndividual',
             'get',
             'POST',
             {
-                ModuleID: window.ClientMaintenanceCore.moduleId || '',
+                ModuleID: maintenanceCore.moduleId || '',
                 ClientID: relatedClientId
             }
         );
@@ -535,7 +903,6 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         
         const clientData = response?.Data || response?.data || response?.Payload || {};
         
-        // Populate name fields
         const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
         const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
         const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
@@ -557,22 +924,18 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
     }
 }
 
-/**
- * Initialize SearchModal for finding related clients
- */
 function initRelationsSearchModal(tabRoot, moduleId) {
     if (!tabRoot) return;
     
     const searchBtn = tabRoot.querySelector('[data-relation-action="lookup"]');
     if (!searchBtn) return;
 
-    const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
+    const appCore = getRelationsAppCore();
     if (!appCore) {
         console.warn('[Relations] AppCore not available for SearchModal');
         return;
     }
     
-    // Get or create SearchModal instance
     let searchModal = window._relationsSearchModal;
     if (!searchModal && window.SearchModal) {
         searchModal = new window.SearchModal(appCore);
@@ -584,7 +947,6 @@ function initRelationsSearchModal(tabRoot, moduleId) {
         return;
     }
     
-    // Helper function to open the search modal
     const openSearchModal = () => {
         const currentValue = tabRoot.querySelector('[data-relation-field="RelatedClientID"]')?.value || '';
         
@@ -598,7 +960,6 @@ function initRelationsSearchModal(tabRoot, moduleId) {
             ],
             autoSearch: false,
             onSelect: async (record) => {
-                // Populate the related client ID
                 const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
                 if (clientIdField) {
                     clientIdField.value = record.ClientID || '';
@@ -609,7 +970,6 @@ function initRelationsSearchModal(tabRoot, moduleId) {
                     clientNameField.value = record.Name || '';
                 }
                 
-                // Populate name fields from the selected client if available
                 const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
                 const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
                 const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
@@ -628,13 +988,11 @@ function initRelationsSearchModal(tabRoot, moduleId) {
         });
     };
     
-    // Button click handler
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
         openSearchModal();
     });
     
-    // Add blur event handler for auto-hydration when RelatedClientID is manually entered
     const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
     if (clientIdField) {
         clientIdField.addEventListener('blur', async (e) => {
@@ -644,7 +1002,6 @@ function initRelationsSearchModal(tabRoot, moduleId) {
             }
         });
         
-        // F2 key handler to open search modal
         clientIdField.addEventListener('keydown', (e) => {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -652,4 +1009,18 @@ function initRelationsSearchModal(tabRoot, moduleId) {
             }
         });
     }
+}
+
+function autoInitializeStandaloneRelationsView() {
+    const standaloneRoot = document.querySelector('[data-relations-host="standalone"]');
+    if (!standaloneRoot) return;
+
+    const viewState = getRelationsViewState();
+    window.initClientMaintenanceRelations(standaloneRoot, viewState.ModuleID || '', { isStandalone: true });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandaloneRelationsView);
+} else {
+    autoInitializeStandaloneRelationsView();
 }
