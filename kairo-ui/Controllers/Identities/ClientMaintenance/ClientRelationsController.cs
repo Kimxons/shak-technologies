@@ -138,7 +138,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
                 _logger.LogInformation("client-maintenance.relations.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_RELATIONS, requestData);
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_RELATIONS, requestData!);
                 return Ok(response);
             }
             catch (Exception ex)

@@ -5,7 +5,7 @@ namespace kairo_ui.Models.Shared
     public class SideBarDto
     {
         public int ModuleID { get; set; }
-        public string OurBranchID { get; set; }
+        public string? OurBranchID { get; set; }
     }
     
     public class SideBarViewDModel
