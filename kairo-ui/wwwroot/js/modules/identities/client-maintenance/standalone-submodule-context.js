@@ -242,10 +242,18 @@
         root.dataset.cmContextBound = 'true';
         applyContextToStandalone(root);
 
+        let isUpdatingContext = false;
         const observer = new MutationObserver(() => {
-            applyContextToStandalone(root);
+            if (isUpdatingContext) return;
+            isUpdatingContext = true;
+            try {
+                applyContextToStandalone(root);
+            } finally {
+                // Use a small delay to ensure the DOM changes have settled before allowing next trigger
+                setTimeout(() => { isUpdatingContext = false; }, 50);
+            }
         });
-        observer.observe(root, { childList: true, subtree: true });
+        observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-title'] });
 
         win.addEventListener('message', (event) => {
             const data = event?.data;
