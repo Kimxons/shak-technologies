@@ -1,26 +1,34 @@
+using CBS.Entities.Common;
 using CBS.Entities.SystemCore;
 using kairo_ui.Models.Identities.ClientMaintenance;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.Json;
 
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
-    [Route("Identities/ClientMaintenance/Kyc")]
-    public class ClientKycController : Controller
+    [Route("Identities/ClientMaintenance/IdentityTypes")]
+    public class ClientIdentityTypesController : Controller
     {
         private readonly IAuthService _authService;
-        private readonly IApiService _apiService;
         private readonly ICommonUtilitiesService _commonUtilities;
         private readonly IApiCachedService _apiCachedService;
-        private readonly ILogger<ClientKycController> _logger;
+        private readonly IOldApiService _oldApiService;
+        private readonly ILogger<ClientIdentityTypesController> _logger;
+        private const string OldApiName = "OldApi";
 
-        public ClientKycController(IAuthService authService, IApiService apiService, ICommonUtilitiesService commonUtilities, IApiCachedService apiCachedService, ILogger<ClientKycController> logger)
+        public ClientIdentityTypesController(
+            IAuthService authService,
+            ICommonUtilitiesService commonUtilities,
+            IApiCachedService apiCachedService,
+            IOldApiService oldApiService,
+            ILogger<ClientIdentityTypesController> logger)
         {
             _authService = authService;
-            _apiService = apiService;
             _commonUtilities = commonUtilities;
             _apiCachedService = apiCachedService;
+            _oldApiService = oldApiService;
             _logger = logger;
         }
 
@@ -37,31 +45,21 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                // Use GetMultipleDropdownCodeOptionsAsync - now returns SelectListItem format
+                // Load dropdown options for identification type
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "ClientArea",
-                    "PersonalStatusID",
-                    "CloseLawSuitID",
-                    "CNFSO"
+                    "IdentificationTypeID"
                 });
 
-                dropdownOptions.TryGetValue("ClientArea", out var clientAreaOptions);
-                dropdownOptions.TryGetValue("PersonalStatusID", out var personalStatusOptions);
-                dropdownOptions.TryGetValue("CloseLawSuitID", out var closeLawSuitOptions);
-                dropdownOptions.TryGetValue("CNFSO", out var cnfsoOptions);
-
-                ViewData["KycClientAreaOptions"] = clientAreaOptions ?? Enumerable.Empty<SelectListItem>();
-                ViewData["KycPersonalStatusOptions"] = personalStatusOptions ?? Enumerable.Empty<SelectListItem>();
-                ViewData["KycCloseLawSuitOptions"] = closeLawSuitOptions ?? Enumerable.Empty<SelectListItem>();
-                ViewData["KycCnfsoOptions"] = cnfsoOptions ?? Enumerable.Empty<SelectListItem>();
+                dropdownOptions.TryGetValue("IdentificationTypeID", out var idTypeOptions);
+                ViewData["IdentificationTypeOptions"] = idTypeOptions ?? Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading KYC tab dropdown options");
+                _logger.LogError(ex, "Error loading Identity Types tab dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientKyc.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/_ClientIdentityTypes.cshtml");
         }
 
         [HttpPost, Route("get")]
@@ -74,13 +72,13 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                _logger.LogInformation("client-maintenance.kyc.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_KYC, requestData);
+                _logger.LogInformation("client-maintenance.identitytypes.get request: {Request}", JsonSerializer.Serialize(requestData));
+                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_IDENTITY_TYPE, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error on operation: client-maintenance.kyc.get");
+                _logger.LogError(ex, "Error on operation: client-maintenance.identitytypes.get");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -95,13 +93,13 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                _logger.LogInformation("client-maintenance.kyc.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData!));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_KYC, requestData);
+                _logger.LogInformation("client-maintenance.identitytypes.create request: {Request}", JsonSerializer.Serialize(requestData));
+                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.ADD_EDIT_CLIENT_IDENTITY_TYPES, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error on operation: client-maintenance.kyc.create");
+                _logger.LogError(ex, "Error on operation: client-maintenance.identitytypes.create");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -116,13 +114,13 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                _logger.LogInformation("client-maintenance.kyc.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_KYC, requestData);
+                _logger.LogInformation("client-maintenance.identitytypes.update request: {Request}", JsonSerializer.Serialize(requestData));
+                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.ADD_EDIT_CLIENT_IDENTITY_TYPES, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error on operation: client-maintenance.kyc.update");
+                _logger.LogError(ex, "Error on operation: client-maintenance.identitytypes.update");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -137,13 +135,13 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                _logger.LogInformation("client-maintenance.kyc.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_KYC, requestData);
+                _logger.LogInformation("client-maintenance.identitytypes.delete request: {Request}", JsonSerializer.Serialize(requestData));
+                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.DELETE_CLIENT_IDENTITY_TYPES, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error on operation: client-maintenance.kyc.delete");
+                _logger.LogError(ex, "Error on operation: client-maintenance.identitytypes.delete");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }

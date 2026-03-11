@@ -1,5 +1,5 @@
 const CM_ADDRESS_BASE = 'Identities/ClientMaintenance/Address';
-const MODULEID_CLIENTADDRESS = 1010;
+
 function getAddressAppCore() {
     const win = window;
     return win.AppCore ||
@@ -113,23 +113,23 @@ function resolveAddressContext(requestData, fallbackModuleId) {
     const moduleId = firstNonEmptyString(
         requestData?.ModuleID,
         fallbackModuleId,
+        viewState.ModuleID,
         maintenanceCore?.moduleId,
-        parentContext.moduleId,
-        viewState.ModuleID
+        parentContext.moduleId
     );
 
     const clientId = firstNonEmptyString(
         requestData?.ClientID,
+        viewState.ClientID,
         maintenanceCore?.clientId,
-        parentContext.clientId,
-        viewState.ClientID
+        parentContext.clientId
     );
 
     const requestId = firstNonEmptyString(
         requestData?.RequestID,
+        viewState.RequestID,
         maintenanceCore?.requestId,
-        parentContext.requestId,
-        viewState.RequestID
+        parentContext.requestId
     );
 
     return {
@@ -145,7 +145,9 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 function shouldAutoLoadStandaloneAddress(context) {
     return Boolean(
         context?.IsStandalone &&
-        (context?.ClientID || context?.RequestID)
+        context?.ClientID &&
+        context?.ModuleID &&
+        context.ModuleID !== '1000'
     );
 }
 
@@ -238,41 +240,25 @@ window.initClientMaintenanceAddressTab = function (tabRoot, moduleId, options = 
 function bindAddressActionPanel(tabRoot) {
     if (!tabRoot) return;
 
-    const actionScope = tabRoot.closest('.window') || tabRoot;
-    if (actionScope.dataset.addressActionDelegated === 'true') return;
-
-    actionScope.dataset.addressActionDelegated = 'true';
-
-    actionScope.addEventListener('click', async (event) => {
-        const actionButton = event.target.closest('[data-action]');
-        if (!actionButton || !actionScope.contains(actionButton)) return;
-
-        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
-        if (action === 'refresh') {
+    const refreshButton = tabRoot.querySelector('[data-action="refresh"]');
+    if (refreshButton && refreshButton.dataset.addressRefreshBound !== 'true') {
+        refreshButton.dataset.addressRefreshBound = 'true';
+        refreshButton.addEventListener('click', async (event) => {
             event.preventDefault();
             if (typeof tabRoot._cmRefreshData === 'function') {
                 await tabRoot._cmRefreshData();
             }
-            return;
-        }
+        });
+    }
 
-        if (action === 'close') {
+    const closeButton = tabRoot.querySelector('[data-action="close"]');
+    if (closeButton && closeButton.dataset.addressCloseBound !== 'true') {
+        closeButton.dataset.addressCloseBound = 'true';
+        closeButton.addEventListener('click', (event) => {
             event.preventDefault();
             closeAddressView();
-        }
-    });
-
-    actionScope.addEventListener('kairo:titlebar:refresh', async (event) => {
-        event.preventDefault();
-        if (typeof tabRoot._cmRefreshData === 'function') {
-            await tabRoot._cmRefreshData();
-        }
-    });
-
-    actionScope.addEventListener('kairo:titlebar:close', (event) => {
-        event.preventDefault();
-        closeAddressView();
-    });
+        });
+    }
 }
 
 function closeAddressView() {
@@ -345,12 +331,16 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
     const configuredModuleId = toTrimmedString(moduleId || options?.moduleId || getAddressViewState().ModuleID);
     const initialContext = resolveAddressContext(null, configuredModuleId);
-    const standaloneHost = tabRoot.matches('[data-address-host="standalone"]') || Boolean(tabRoot.closest('[data-address-host="standalone"]'));
     const state = {
         mode: 'view',
         selectedRecord: null,
         rows: [],
-        isStandalone: Boolean(options?.isStandalone ?? initialContext.IsStandalone ?? standaloneHost),
+        isStandalone: Boolean(
+            options?.isStandalone ??
+            initialContext.IsStandalone ??
+            tabRoot.matches('[data-address-host="standalone"]') ??
+            tabRoot.closest('[data-address-host="standalone"]')
+        ),
         lastContext: { ...initialContext },
         initialLoadApplied: false,
         autoLoadInFlight: false
@@ -370,7 +360,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         clear: tabRoot.querySelector('[data-address-action="clear"]')
     };
 
-    const canEditAddresses = () => state.isStandalone;
+    const canEditAddresses = () => state.isStandalone || Boolean(getAddressClientMaintenanceCore()?.isEditMode);
 
     const setLoading = (show) => {
         if (loadingOverlay) {
@@ -382,11 +372,6 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         const nextEnabled = Boolean(enabled) && canEditAddresses();
         form.querySelectorAll('[data-address-field]').forEach((field) => {
             field.disabled = !nextEnabled;
-
-            // Keep text-style inputs read-only while locked as an extra safeguard.
-            if (field.matches('input:not([type="checkbox"]), textarea')) {
-                field.readOnly = !nextEnabled;
-            }
         });
     };
 
@@ -615,16 +600,6 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
             const rows = isNoDataResponse(response) ? [] : normalizeAddressRows(extractList(response));
             renderAddressTable(rows);
 
-            const isInitialNoData =
-                (isNoDataResponse(response) || rows.length === 0) &&
-                Boolean(refreshOptions.markInitialLoad) &&
-                !state.initialLoadApplied &&
-                !refreshOptions.suppressNoDataInfoToast;
-
-            if (isInitialNoData) {
-                showAddressToast('No client address details were found for the selected client.', 'info');
-            }
-
             if (refreshOptions.markInitialLoad) {
                 state.initialLoadApplied = true;
             }
@@ -768,14 +743,8 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         });
     }
 
-    tabRoot._cmLoadData = (requestData, refreshOptions = {}) => refreshAddressTable(requestData, {
-        markInitialLoad: !state.initialLoadApplied,
-        ...refreshOptions
-    });
-    tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshAddressTable(requestData, {
-        markInitialLoad: !state.initialLoadApplied,
-        ...refreshOptions
-    });
+    tabRoot._cmLoadData = (requestData) => refreshAddressTable(requestData);
+    tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshAddressTable(requestData, refreshOptions);
     tabRoot._cmMaybeAutoLoadAddress = (requestData) => {
         const context = resolveAddressContext(requestData, configuredModuleId);
         context.IsStandalone = state.isStandalone;
@@ -817,7 +786,7 @@ function bindStandaloneAddressBootstrap(tabRoot, moduleId, options = {}) {
         options?.isStandalone ??
         getAddressViewState().IsStandalone ??
         tabRoot.matches('[data-address-host="standalone"]') ??
-        tabRoot.closest('[data-address-host="standalone"]')
+        Boolean(tabRoot.closest('[data-address-host="standalone"]'))
     );
 
     if (!standaloneRoot) return;
@@ -853,7 +822,6 @@ function bindStandaloneAddressBootstrap(tabRoot, moduleId, options = {}) {
 }
 
 function autoInitializeStandaloneAddressView() {
-    debugger;
     const standaloneRoot = document.querySelector('[data-address-host="standalone"]');
     if (!standaloneRoot) return;
 

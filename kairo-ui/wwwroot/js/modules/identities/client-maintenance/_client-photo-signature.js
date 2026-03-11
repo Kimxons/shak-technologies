@@ -76,17 +76,6 @@ function toPhotoSignatureString(value) {
     return value === undefined || value === null ? '' : String(value).trim();
 }
 
-function firstNonEmptyPhotoSignatureString(...values) {
-    for (const value of values) {
-        const normalized = toPhotoSignatureString(value);
-        if (normalized) {
-            return normalized;
-        }
-    }
-
-    return '';
-}
-
 function getPhotoSignatureViewState() {
     return window.ClientPhotoSignatureState || {};
 }
@@ -96,27 +85,27 @@ function resolvePhotoSignatureContext(requestData, fallbackModuleId) {
     const parentContext = getPhotoSignatureParentContext() || {};
     const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
 
-    const moduleId = firstNonEmptyPhotoSignatureString(
-        requestData?.ModuleID,
-        fallbackModuleId,
-        maintenanceCore?.moduleId,
-        parentContext.moduleId,
+    const moduleId = toPhotoSignatureString(
+        requestData?.ModuleID ??
+        fallbackModuleId ??
+        maintenanceCore?.moduleId ??
+        parentContext.moduleId ??
         viewState.ModuleID
     );
 
-    const clientId = firstNonEmptyPhotoSignatureString(
-        requestData?.ClientID,
-        maintenanceCore?.getClientId?.(),
-        maintenanceCore?.clientId,
-        parentContext.clientId,
+    const clientId = toPhotoSignatureString(
+        requestData?.ClientID ??
+        maintenanceCore?.getClientId?.() ??
+        maintenanceCore?.clientId ??
+        parentContext.clientId ??
         viewState.ClientID
     );
 
-    const requestId = firstNonEmptyPhotoSignatureString(
-        requestData?.RequestID,
-        maintenanceCore?.getRequestId?.(),
-        maintenanceCore?.requestId,
-        parentContext.requestId,
+    const requestId = toPhotoSignatureString(
+        requestData?.RequestID ??
+        maintenanceCore?.getRequestId?.() ??
+        maintenanceCore?.requestId ??
+        parentContext.requestId ??
         viewState.RequestID
     );
 
@@ -404,7 +393,6 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
         items: [],
         lastContext: { ...initialContext },
         initialLoadApplied: false,
-        autoLoadInFlight: false,
         isStandalone: Boolean(
             options?.isStandalone ??
             getPhotoSignatureViewState().IsStandalone ??
@@ -416,36 +404,10 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
     const table = tabRoot.querySelector('[data-table="photo-signature"]');
     const uploadBtn = form.querySelector('[data-photo-action="upload"]');
 
-    const canEditPhotoSignature = () => state.isStandalone;
-
     const setUploadEnabled = (enabled) => {
         if (uploadBtn) {
-            uploadBtn.disabled = !canEditPhotoSignature() || !enabled;
+            uploadBtn.disabled = !enabled;
         }
-    };
-
-    const applyWorkflowPhotoSignatureReadOnlyState = () => {
-        if (state.isStandalone) {
-            return;
-        }
-
-        const imageTypeField = form.querySelector('#imageType');
-        if (imageTypeField) {
-            imageTypeField.disabled = true;
-        }
-
-        const photoFileInput = form.querySelector('#photoFileInput');
-        if (photoFileInput) {
-            photoFileInput.disabled = true;
-        }
-
-        form.querySelectorAll('[data-photo-action]').forEach((button) => {
-            button.disabled = true;
-        });
-
-        table?.querySelectorAll('button[data-action]').forEach((button) => {
-            button.disabled = true;
-        });
     };
 
     const getValidationNodes = () => ({
@@ -672,13 +634,11 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientPhotoSignatureBody');
         if (!tbody) return;
         tbody.innerHTML = '';
-        const rowActionDisabled = state.isStandalone ? '' : ' disabled';
 
         if (!items.length) {
             const empty = document.createElement('tr');
             empty.innerHTML = '<td colspan="4" class="text-center text-muted">No images uploaded yet.</td>';
             tbody.appendChild(empty);
-            applyWorkflowPhotoSignatureReadOnlyState();
             return;
         }
 
@@ -701,16 +661,14 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
                 <td>${escapePhotoSignatureHtml(createdOnLabel)}</td>
                 <td class="text-center">
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-primary" data-action="view"${rowActionDisabled}><i class="bi bi-eye"></i></button>
-                        <button type="button" class="btn btn-success" data-action="download"${rowActionDisabled}><i class="bi bi-download"></i></button>
-                        <button type="button" class="btn btn-danger" data-action="delete"${rowActionDisabled}><i class="bi bi-trash"></i></button>
+                        <button type="button" class="btn btn-primary" data-action="view"><i class="bi bi-eye"></i></button>
+                        <button type="button" class="btn btn-success" data-action="download"><i class="bi bi-download"></i></button>
+                        <button type="button" class="btn btn-danger" data-action="delete"><i class="bi bi-trash"></i></button>
                     </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
-
-        applyWorkflowPhotoSignatureReadOnlyState();
     };
 
     const refreshTable = async (requestData = {}, refreshOptions = {}) => {
@@ -749,10 +707,6 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
     };
 
     const uploadImage = async () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         const imageTypeId = getImageTypeId();
         if (!imageTypeId) {
             showPhotoSignatureToast('Select an image type first.', 'warning');
@@ -865,13 +819,8 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
 
     setUploadEnabled(false);
     void ensureFileService();
-    applyWorkflowPhotoSignatureReadOnlyState();
 
     form.querySelector('[data-photo-action="file"]')?.addEventListener('click', () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         if (!getImageTypeId()) {
             showPhotoSignatureToast('Select an image type first.', 'warning');
             return;
@@ -925,10 +874,6 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
     });
 
     form.querySelector('[data-photo-action="capture"]')?.addEventListener('click', async () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         if (!getImageTypeId()) {
             showPhotoSignatureToast('Select an image type first.', 'warning');
             return;
@@ -959,10 +904,6 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
     });
 
     form.querySelector('[data-photo-action="snapshot"]')?.addEventListener('click', () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         const video = form.querySelector('#photoCameraVideo');
         const canvas = form.querySelector('#photoCameraCanvas');
         if (!video || !canvas) return;
@@ -983,26 +924,14 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
     });
 
     form.querySelector('[data-photo-action="cancel-snapshot"]')?.addEventListener('click', () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         stopCamera();
     });
 
     form.querySelector('[data-photo-action="upload"]')?.addEventListener('click', () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         void uploadImage();
     });
 
     form.querySelector('[data-photo-action="clear"]')?.addEventListener('click', () => {
-        if (!canEditPhotoSignature()) {
-            return;
-        }
-
         clearForm();
     });
 
@@ -1012,10 +941,6 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
         const index = Number(row.dataset.index);
         const item = state.items[index];
         if (!item) return;
-
-        if (!canEditPhotoSignature() && event.target.closest('button')) {
-            return;
-        }
 
         if (event.target.closest('[data-action="delete"]')) {
             const context = resolvePhotoSignatureContext(state.lastContext, configuredModuleId);
@@ -1091,18 +1016,14 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
     });
     tabRoot._cmMaybeAutoLoadPhotoSignature = (requestData) => {
         const context = resolvePhotoSignatureContext(requestData, configuredModuleId);
-        if (state.initialLoadApplied || state.autoLoadInFlight || !shouldAutoLoadStandalonePhotoSignature(context)) {
+        if (state.initialLoadApplied || !shouldAutoLoadStandalonePhotoSignature(context)) {
             return Promise.resolve([]);
         }
 
-        state.autoLoadInFlight = true;
-        return refreshTable(context, { markInitialLoad: true }).finally(() => {
-            state.autoLoadInFlight = false;
-        });
+        return refreshTable(context, { markInitialLoad: true });
     };
     tabRoot._cmSetEditMode = () => {
         setUploadEnabled(Boolean(state.isValidated));
-        applyWorkflowPhotoSignatureReadOnlyState();
     };
 
     const maintenanceCore = getPhotoSignatureClientMaintenanceCore();

@@ -3602,11 +3602,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public int? Direction { get; set; }
     }
 
     public class AddAccountReminderRequest
     {
         public string? AccountID { get; set; }
+        public string? ReminderID { get; set; }
         public string? Reminder { get; set; }
         public string? ColorID { get; set; }
         public string? Priority { get; set; }
@@ -3614,7 +3616,14 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderEndDate { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public string? SupervisedOn { get; set; }
         public int? NewRecord { get; set; }
+        public int? UpdateCount { get; set; }
     }
 
     public class UpdateAccountReminderRequest
@@ -3628,6 +3637,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderEndDate { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public string? SupervisedOn { get; set; }
+        public int? NewRecord { get; set; }
         public int? UpdateCount { get; set; }
     }
 
@@ -3637,6 +3653,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? ReminderID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public int? NewRecord { get; set; }
     }
 
     // ============================================================================
