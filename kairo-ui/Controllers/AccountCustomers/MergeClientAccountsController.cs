@@ -29,7 +29,7 @@ namespace kairo_ui.Controllers.AccountCustomers
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         [HttpGet("MergeClientAccounts")]
         [HttpGet("frmMergeClientAccounts.aspx")]
-        public IActionResult Index()
+        public IActionResult Index(string? moduleId = null)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -40,6 +40,10 @@ namespace kairo_ui.Controllers.AccountCustomers
             Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
             Response.Headers["Pragma"] = "no-cache";
             Response.Headers["Expires"] = "0";
+
+            ViewData["ModuleId"] = string.IsNullOrWhiteSpace(moduleId)
+                ? (Request.Query["ModuleID"].ToString() ?? string.Empty)
+                : moduleId;
 
             return View("~/Views/AccountCustomers/MergeClientAccounts/Index.cshtml");
         }
