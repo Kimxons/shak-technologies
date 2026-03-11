@@ -154,10 +154,12 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_DIRECT_DEBIT_MAINTENANCE = "p_GetDirectDebitMaintenance";
-        public const string ADD_EDIT_DIRECT_DEBIT_MAINTENANCE = "p_AddEditDirectDebitMaintenance";
+        public const string GET_DIRECT_DEBIT_MAINTENANCE = "p_GetDDTransfer";
+        public const string ADD_EDIT_DIRECT_DEBIT_MAINTENANCE = "p_AddEditDirectDebitTransfer";
         public const string DELETE_DIRECT_DEBIT_MAINTENANCE = "p_DeleteDirectDebitMaintenance";
-        public const string STOP_DIRECT_DEBIT_MAINTENANCE = "p_StopDirectDebitMaintenance";
+        public const string STOP_DIRECT_DEBIT_MAINTENANCE = "p_StopDirectDebitTransfer";
+        public const string ADD_RECORD_LOCK = "p_AddRecordLock";
+        public const string RELEASE_RECORD_LOCK = "p_ReleaseRecordLock";
 
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
