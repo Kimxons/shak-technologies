@@ -52,6 +52,9 @@ namespace kairo_ui.Services
         public const string ADD_EDIT_CLIENT_PROFILE_CHANGE = "p_AddEditClientProfileChange";
 
         public const string GET_CLIENT_PORTFOLIO = "p_GetClientPortfolio";
+        public const string GET_CLIENT_IDENTITY_TYPE = "dbo.p_GetClientIdentityType";
+        public const string ADD_EDIT_CLIENT_IDENTITY_TYPES = "dbo.p_AddEditClientIdentityTypes";
+        public const string DELETE_CLIENT_IDENTITY_TYPES = "dbo.p_DeleteClientIdentityTypes";
 
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION LOAN REPAYMENT
