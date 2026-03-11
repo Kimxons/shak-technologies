@@ -867,6 +867,8 @@
                 <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
                 <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <div class="action-separator p-1"></div>
+                <button class="btn-action" type="button" id="submoduleBtnActivate"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
         }
@@ -907,13 +909,22 @@
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
         }
-        else if (submoduleName === 'Blocking' || submoduleName === 'AccountTransfer') {
+        else if (submoduleName === 'Blocking') {
             newButtonsHtml = `
                 <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
                 <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
                 <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action btn-history" type="button" id="submoduleBtnHistory"><i class="bi bi-clock-history me-1"></i>History</button>
+                <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
+            `;
+        }
+        else if (submoduleName === 'AccountTransfer') {
+            newButtonsHtml = `
+                <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
         }
@@ -1169,11 +1180,13 @@
             // Activate Dormant module
             if (submoduleName === 'ActivateDormant' && window.ActivateDormantModule) {
                 const mod = window.ActivateDormantModule;
+                const activateBtn = document.getElementById('submoduleBtnActivate');
 
                 if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
+                if (activateBtn) activateBtn.addEventListener('click', () => mod.activateAccount());
                 return;
             }
 
@@ -1181,7 +1194,7 @@
             if (submoduleName === 'AccountTransfer' && window.AccountTransferModule) {
                 const mod = window.AccountTransferModule;
                 if (viewBtn) viewBtn.addEventListener('click', () => mod.view());
-                if (editBtn) editBtn.addEventListener('click', () => mod.edit());
+                if (addBtn) addBtn.addEventListener('click', () => mod.add());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.save());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.cancel());
                 return;
@@ -1775,6 +1788,10 @@
                     // Backend uses OurBranchID column
                     if (branchId) whereParts.push(`OurBranchID = '${branchId}'`);
                     if (clientId) whereParts.push(`ClientID = '${clientId}'`);
+                        if (activeSubmodule === 'ActivateDormant') {
+                            whereParts.push("AccountStatusID = 'AD'");
+                            whereParts.push('IsDormant = 1');
+                        }
 
                     if (whereParts.length > 0) {
                         config.whereStmt = whereParts.join(' AND ');
@@ -2130,11 +2147,13 @@
                 if (account) {
                     // Update Global State
                     window.AccountMaintenanceState.AccountID = account.AccountID || accountId;
-                    window.AccountMaintenanceState.AccountName = account.AccountName || '';
+                    window.AccountMaintenanceState.AccountName = account.AccountName || account.AccountTitle || '';
                     window.AccountMaintenanceState.ProductID = account.ProductID || '';
+                    window.AccountMaintenanceState.ProductName = account.ProductName || account.Product || '';
                     window.AccountMaintenanceState.ClientID = account.ClientID || '';
-                    // Handle fallback or explicit BranchID
-                    window.AccountMaintenanceState.OurBranchID = account.OurBranchID || window.AccountMaintenanceState.OurBranchID || '';
+                    // Handle fallback or explicit BranchID + description
+                    window.AccountMaintenanceState.OurBranchID = account.OurBranchID || account.BranchID || window.AccountMaintenanceState.OurBranchID || '';
+                    window.AccountMaintenanceState.BranchName = account.BranchName || account.BranchDescription || '';
                     window.AccountMaintenanceState.CurrencyID = account.CurrencyID || '';
                     window.AccountMaintenanceState.isAccountLoaded = true;
 

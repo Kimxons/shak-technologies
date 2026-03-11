@@ -158,6 +158,13 @@ namespace kairo_ui.Controllers.Shared
                     LanguageID = "en"
                 };
 
+                // Route InstructionID searches through AccountManagement API directly
+                // (OldApi p_GetSearchResult does not have a working config for this table)
+                if (string.Equals(request.TableID, "InstructionID", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await SearchSIViaAccountManagementApi(request);
+                }
+
                 if (string.Equals(request.TableID, "BranchID", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(request.TableID, "OurBranchID", StringComparison.OrdinalIgnoreCase))
                 {
@@ -250,6 +257,112 @@ namespace kairo_ui.Controllers.Shared
         }
 
         /// <summary>
+        /// Search Standing Instructions via AccountManagement API.
+        /// Used for TableID=InstructionID because OldApi p_GetSearchResult has no config for this table.
+        /// </summary>
+        private async Task<IActionResult> SearchSIViaAccountManagementApi(SearchResultRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation($"[SearchModal] Routing InstructionID search through AccountManagement API, Branch: {request.OurBranchID}");
+
+                // Extract any user-typed filter from the SearchKey filters dictionary
+                string siIdFilter = string.Empty;
+                string accountIdFilter = string.Empty;
+                if (request.SearchKey is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    if (je.TryGetProperty("SIID", out var siEl))
+                    {
+                        if (siEl.ValueKind == System.Text.Json.JsonValueKind.Object && siEl.TryGetProperty("value", out var valEl))
+                            siIdFilter = valEl.GetString() ?? string.Empty;
+                        else if (siEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                            siIdFilter = siEl.GetString() ?? string.Empty;
+                    }
+
+                    if (je.TryGetProperty("DebitAccountID", out var acEl))
+                    {
+                        if (acEl.ValueKind == System.Text.Json.JsonValueKind.Object && acEl.TryGetProperty("value", out var valEl))
+                            accountIdFilter = valEl.GetString() ?? string.Empty;
+                        else if (acEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                            accountIdFilter = acEl.GetString() ?? string.Empty;
+                    }
+                }
+
+                var siRequest = new
+                {
+                    OurBranchID    = request.OurBranchID ?? string.Empty,
+                    SIID           = siIdFilter,
+                    DebitAccountID = accountIdFilter
+                };
+
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.SEARCH_SI_DEMAND_DRAFT,
+                    siRequest
+                );
+
+                if (response.ValueKind == System.Text.Json.JsonValueKind.Undefined ||
+                    response.ValueKind == System.Text.Json.JsonValueKind.Null)
+                {
+                    return Ok(new { success = false, message = "No results found" });
+                }
+
+                string responseCode = "99";
+                if (response.TryGetProperty("ResponseCode", out var codeEl))
+                    responseCode = codeEl.GetString() ?? "99";
+
+                if (responseCode != "00")
+                {
+                    string msg = string.Empty;
+                    if (response.TryGetProperty("ResponseMessage", out var msgEl)) msg = msgEl.GetString() ?? string.Empty;
+                    return Ok(new { success = false, message = string.IsNullOrEmpty(msg) ? "No results found" : msg });
+                }
+
+                // Normalise the results into a list of objects the SearchModal JS can render
+                var results = new List<object>();
+                System.Text.Json.JsonElement? detailsEl = null;
+                if (response.TryGetProperty("Details", out var d1)) detailsEl = d1;
+                else if (response.TryGetProperty("details", out var d2)) detailsEl = d2;
+
+                if (detailsEl.HasValue)
+                {
+                    if (detailsEl.Value.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        foreach (var item in detailsEl.Value.EnumerateArray()) results.Add(item);
+                    }
+                    else if (detailsEl.Value.ValueKind == System.Text.Json.JsonValueKind.Object)
+                    {
+                        results.Add(detailsEl.Value);
+                    }
+                    else if (detailsEl.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                    {
+                        var parsed = System.Text.Json.JsonDocument.Parse(detailsEl.Value.GetString()!);
+                        if (parsed.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                            foreach (var item in parsed.RootElement.EnumerateArray()) results.Add(item);
+                        else
+                            results.Add(parsed.RootElement);
+                    }
+                }
+
+                if (results.Count == 0)
+                    return Ok(new { success = false, message = "No results found" });
+
+                // Return results as a direct array in data so searchModal.js Array.isArray() branch handles it
+                return Ok(new
+                {
+                    success = true,
+                    data = results,
+                    message = "Success"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SearchModal] AccountManagement SI search error");
+                return StatusCode(500, new { success = false, message = "Search failed: " + ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Hardcoded search configurations for table IDs not yet in SystemCoreApi.
         /// These mirror the legacy system's search metadata.
         /// </summary>
@@ -266,7 +379,8 @@ namespace kairo_ui.Controllers.Shared
                     {
                         new() { FieldName = "SIID", DisplayName = "SI ID", FieldOrder = 1 },
                         new() { FieldName = "DebitAccountID", DisplayName = "Debit Account", FieldOrder = 2 },
-                        new() { FieldName = "AccountName", DisplayName = "Account Name", FieldOrder = 3 }
+                        new() { FieldName = "AccountName", DisplayName = "Account Name", FieldOrder = 3 },
+                        new() { FieldName = "ReferenceNo", DisplayName = "Reference No", FieldOrder = 4 }
                     }
                 },
                 "ClientID" => new SearchConfigDto
