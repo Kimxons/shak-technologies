@@ -335,10 +335,10 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "FrequencyID"
+                    "NotificationFreqID"
                 });
 
-                dropdownOptions.TryGetValue("FrequencyID", out var frequencyOptions);
+                dropdownOptions.TryGetValue("NotificationFreqID", out var frequencyOptions);
 
                 ViewData["FrequencyOptions"] = frequencyOptions ?? Enumerable.Empty<SelectListItem>();
             }
@@ -453,45 +453,28 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "StopPaymentReasonID"
+                    "StopPayReasonID",
+                    "VoidReasonID",
+                    "ChequePrefix"
                 });
 
-                dropdownOptions.TryGetValue("StopPaymentReasonID", out var reasonOptions);
+                dropdownOptions.TryGetValue("StopPayReasonID", out var stopPayReasonOptions);
+                dropdownOptions.TryGetValue("VoidReasonID", out var voidReasonOptions);
+                dropdownOptions.TryGetValue("ChequePrefix", out var chequePrefixOptions);
 
-                ViewData["StopPaymentReasonOptions"] = reasonOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["StopPaymentReasonOptions"] = stopPayReasonOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["VoidReasonOptions"] = voidReasonOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["ChequePrefixOptions"] = chequePrefixOptions ?? Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading StopPaymentVoid dropdown options");
+                ViewData["StopPaymentReasonOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["VoidReasonOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["ChequePrefixOptions"] = Enumerable.Empty<SelectListItem>();
             }
 
             return PartialView("StopPaymentVoid");
-        }
-
-        [Route("CancelStopPayment")]
-        public async Task<IActionResult> CancelStopPayment()
-        {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized();
-
-            try
-            {
-                // Use same reason code as StopPaymentVoid since cancel uses same reasons
-                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
-                {
-                    "StopPaymentReasonID"
-                });
-
-                dropdownOptions.TryGetValue("StopPaymentReasonID", out var reasonOptions);
-
-                ViewData["CancelStopPaymentReasonOptions"] = reasonOptions ?? Enumerable.Empty<SelectListItem>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading CancelStopPayment dropdown options");
-            }
-
-            return PartialView("CancelStopPayment");
         }
 
         [Route("ActivateDormant")]
@@ -1162,6 +1145,34 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 _logger.LogError(ex, "Error adding cheque book");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/add-cheque-book-request")]
+        public async Task<IActionResult> AddChequeBookRequest([FromBody] JsonElement request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_CHEQUE_BOOK_REQUEST,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding cheque book request");
+                var errorMessage = ex.InnerException?.Message ?? ex.Message;
+                return Ok(new { Success = false, ResponseCode = "99", ResponseMessage = errorMessage, ErrorMessage = errorMessage });
             }
         }
 
@@ -2497,73 +2508,142 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         // ============================================================================
         // ACCOUNT NOTIFICATION
-        // NOTE: Backend stored procedures not yet implemented - returning stub response
         // ============================================================================
 
         [HttpPost]
         [Route("api/get-account-notification")]
-        public IActionResult GetAccountNotification([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountNotification([FromBody] GenericAccountRequest request)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-            // Return empty data with success - feature not yet implemented in backend
-            _logger.LogInformation("GetAccountNotification called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = true,
-                Message = "Account Notification feature is not yet available.",
-                Details = Array.Empty<object>(),
-                Data = Array.Empty<object>()
-            });
+                if (string.IsNullOrWhiteSpace(request.OperatorID))
+                    request.OperatorID = HttpContext.Session.GetString("user_name") ?? "SYSTEM";
+
+                // SP p_GetProductNotificationDetails accepts exactly 3 parameters
+                var payload = new
+                {
+                    AccountID = request.AccountID,
+                    ModuleID  = request.ModuleID ?? 2091,
+                    ProductID = request.RelevantID ?? request.AccountTypeID ?? "null"
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_PRODUCT_NOTIFICATION_DETAILS,
+                    payload);
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account notifications");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/add-account-notification")]
-        public IActionResult AddAccountNotification([FromBody] JsonElement request)
+        public async Task<IActionResult> AddAccountNotification([FromBody] AccountNotificationSaveRequest request)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-            // Feature not yet implemented in backend
-            _logger.LogInformation("AddAccountNotification called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Account Notification feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (string.IsNullOrWhiteSpace(request.OperatorID))
+                    request.OperatorID = HttpContext.Session.GetString("user_name") ?? "SYSTEM";
+                if (string.IsNullOrWhiteSpace(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code") ?? string.Empty;
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.EDIT_ACCOUNT_PRODUCT_NOTIFICATION,
+                    request);
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding account notification");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/update-account-notification")]
-        public IActionResult UpdateAccountNotification([FromBody] JsonElement request)
+        public async Task<IActionResult> UpdateAccountNotification([FromBody] AccountNotificationSaveRequest request)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-            // Feature not yet implemented in backend
-            _logger.LogInformation("UpdateAccountNotification called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Account Notification feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (string.IsNullOrWhiteSpace(request.OperatorID))
+                    request.OperatorID = HttpContext.Session.GetString("user_name") ?? "SYSTEM";
+                if (string.IsNullOrWhiteSpace(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code") ?? string.Empty;
+
+                // SP p_EditAccountProductNotification accepts exactly these 5 parameters
+                var payload = new
+                {
+                    XMLData    = request.XMLData    ?? string.Empty,
+                    OperatorID = request.OperatorID,
+                    ProductID  = request.ProductID  ?? "null",
+                    BranchID   = request.OurBranchID,
+                    AccountID  = request.AccountID  ?? string.Empty
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.EDIT_ACCOUNT_PRODUCT_NOTIFICATION,
+                    payload);
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account notification");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/delete-account-notification")]
-        public IActionResult DeleteAccountNotification([FromBody] JsonElement request)
+        public async Task<IActionResult> DeleteAccountNotification([FromBody] GenericAccountRequest request)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-            // Feature not yet implemented in backend
-            _logger.LogInformation("DeleteAccountNotification called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Account Notification feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (string.IsNullOrWhiteSpace(request.OperatorID))
+                    request.OperatorID = HttpContext.Session.GetString("user_name") ?? "SYSTEM";
+                if (string.IsNullOrWhiteSpace(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code") ?? string.Empty;
+
+                var payload = new
+                {
+                    request.AccountID,
+                    request.OurBranchID,
+                    request.OperatorID,
+                    NotificationID = request.SearchID ?? string.Empty
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.EDIT_ACCOUNT_PRODUCT_NOTIFICATION,
+                    payload);
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting account notification");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         // ============================================================================
@@ -2573,68 +2653,109 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-account-card")]
-        public IActionResult GetAccountCard([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountCard([FromBody] GenericAccountRequest request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Return empty data with success - feature not yet implemented in backend
-            _logger.LogInformation("GetAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = true,
-                Message = "Card Maintenance feature is not yet available.",
-                Details = Array.Empty<object>(),
-                Data = Array.Empty<object>()
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.GET_ACCOUNT_CARD,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account cards");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/add-account-card")]
-        public IActionResult AddAccountCard([FromBody] JsonElement request)
+        public async Task<IActionResult> AddAccountCard([FromBody] JsonElement request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Feature not yet implemented in backend
-            _logger.LogInformation("AddAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.ADD_ACCOUNT_CARD,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding account card");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/update-account-card")]
-        public IActionResult UpdateAccountCard([FromBody] JsonElement request)
+        public async Task<IActionResult> UpdateAccountCard([FromBody] JsonElement request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Feature not yet implemented in backend
-            _logger.LogInformation("UpdateAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_CARD,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account card");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         [HttpPost]
         [Route("api/delete-account-card")]
-        public IActionResult DeleteAccountCard([FromBody] JsonElement request)
+        public async Task<IActionResult> DeleteAccountCard([FromBody] JsonElement request)
         {
-            if (!_authService.IsAuthenticated())
-                return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-            // Feature not yet implemented in backend
-            _logger.LogInformation("DeleteAccountCard called - backend feature not yet implemented");
-            return Ok(new
+            try
             {
-                Success = false,
-                Message = "Card Maintenance feature is not yet available. This feature will be enabled in a future release."
-            });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.DELETE_ACCOUNT_CARD,
+                    requestDict
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting account card");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
 
         // ============================================================================
@@ -2744,90 +2865,6 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting stop payment");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
-        // ============================================================================
-        // CANCEL STOP PAYMENT
-        // ============================================================================
-
-        [HttpPost]
-        [Route("api/get-cancel-stop-payments")]
-        public async Task<IActionResult> GetCancelStopPayments([FromBody] GenericAccountRequest request)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                _commonUtilities.EnsureDefaults(request);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.GET_CANCEL_STOP_PAYMENTS,
-                    request
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting cancel stop payments");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [Route("api/add-cancel-stop-payment")]
-        public async Task<IActionResult> AddCancelStopPayment([FromBody] JsonElement request)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
-                _commonUtilities.EnsureDefaults(requestDict);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.ADD_CANCEL_STOP_PAYMENT,
-                    requestDict
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding cancel stop payment");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [Route("api/update-cancel-stop-payment")]
-        public async Task<IActionResult> UpdateCancelStopPayment([FromBody] JsonElement request)
-        {
-            try
-            {
-                if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
-
-                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
-                _commonUtilities.EnsureDefaults(requestDict);
-
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
-                    ApiEndpoints.UPDATE_CANCEL_STOP_PAYMENT,
-                    requestDict
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating cancel stop payment");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -3810,9 +3847,27 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? AccountID { get; set; }
         public string? AccountTypeID { get; set; }
         public string? BookType { get; set; }
+        public string? BookTypeID { get; set; }
         public string? NoOfLeaves { get; set; }
         public string? ChequeStart { get; set; }
+        public string? ChequeEnd { get; set; }
+        public string? ChequePrefix { get; set; }
         public string? IssueDate { get; set; }
+        public string? DateIssued { get; set; }
+        public string? RequestDate { get; set; }
+        public string? ChequeRequestsID { get; set; }
+        public string? ChequeRequestStatusID { get; set; }
+        public string? ApprovedBy { get; set; }
+        public string? ApprovedOn { get; set; }
+        public string? DispatchedBy { get; set; }
+        public string? DispatchedOn { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public int? UpdateCount { get; set; }
+        public int? NewRecord { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
     }
@@ -3938,6 +3993,23 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public int? UpdateCount { get; set; }
         public string? SysTrx { get; set; }
         public string? UserTrx { get; set; }
+    }
+
+    // ============================================================================
+    // ACCOUNT NOTIFICATION Save Request DTO
+    // ============================================================================
+    public class AccountNotificationSaveRequest
+    {
+        public string? AccountID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? ProductID { get; set; }
+        public string? NotificationID { get; set; }
+        public string? NotificationFrequency { get; set; }
+        public string? NoOfDays { get; set; }
+        public string? ExecutionDate { get; set; }
+        public string? XMLData { get; set; }
+        public string? SearchKey { get; set; }
     }
 
     // ============================================================================

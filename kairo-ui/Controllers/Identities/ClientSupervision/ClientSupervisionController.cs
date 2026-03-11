@@ -188,23 +188,22 @@ namespace kairo_ui.Controllers.Identities.ClientSupervision
 
                 EnsureDefaults(requestData);
 
-                if (string.IsNullOrWhiteSpace(requestData.MainModuleID))
-                    requestData.MainModuleID = "0";
+                requestData.MainModuleID ??= string.Empty;
 
-                // Use _oldApiService — p_getclientsupervisionpending is an old API SP
+                // Use _oldApiService — p_getclientsupervisionpending expects direct parameters
+                // like @OurBranchID, @OperatorID, @MainModuleID, @BranchList.
                 var response = await _oldApiService.CreateAsync<JsonElement>(
                     "OldApi",
                     OldApiDBConstants.GET_CLIENT_SUPERVISION_PENDING,
                     new
                     {
-                        OurBranchID   = requestData.OurBranchID,
-                        OperatorID    = requestData.OperatorID,
-                        MainModuleID  = requestData.MainModuleID,
-                        BranchList    = requestData.BranchList
-                        
+                        OurBranchID = requestData.OurBranchID,
+                        OperatorID = requestData.OperatorID,
+                        MainModuleID = requestData.MainModuleID,
+                        BranchList = requestData.BranchList
                     });
 
-                return Ok(response);
+                             return Ok(response);
             }
             catch (Exception ex)
             {
@@ -234,12 +233,24 @@ namespace kairo_ui.Controllers.Identities.ClientSupervision
                 if (string.IsNullOrWhiteSpace(requestData.ApprovedBy))
                     requestData.ApprovedBy = requestData.OperatorID;
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "ClientManagementApi",
-                    ApiEndpoints.APPROVE_CLIENT_SUPERVISION,
-                    requestData);
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.APPROVE_CLIENT_SUPERVISION,
+                    new
+                    {
+                        OurBranchID = requestData.OurBranchID,
+                        ClientID = requestData.ClientID,
+                        ApprovedBy = requestData.ApprovedBy,
+                        strSearchkey = requestData.strSearchKey
+                    });
 
-                return Ok(response);
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Supervision approved successfully!",
+                    ResponseCode = "00",
+                    Details = response
+                });
             }
             catch (Exception ex)
             {
@@ -262,10 +273,17 @@ namespace kairo_ui.Controllers.Identities.ClientSupervision
 
                 EnsureDefaults(requestData);
 
-                var response = await _apiService.CreateAsync<JsonElement>(
-                    "ClientManagementApi",
-                    ApiEndpoints.REJECT_CLIENT_SUPERVISION,
-                    requestData);
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.REJECT_CLIENT_SUPERVISION,
+                    new
+                    {
+                        OurBranchID = requestData.OurBranchID,
+                        ClientID = requestData.ClientID,
+                        OperatorID = requestData.OperatorID,
+                        strSearchkey = requestData.strSearchkey,
+                        RejectReson = requestData.RejectReson
+                    });
 
                 return Ok(response);
             }
