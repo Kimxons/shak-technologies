@@ -9,5 +9,6 @@ namespace AccountManagement.Modules.StandingInstructionDemandDraft
         Task<ResponseDetail<object>> UpdateSIDemandDraft(string requestJson, CancellationToken cancellationToken = default);
         Task<ResponseDetail<object>> DeleteSIDemandDraft(string requestJson, CancellationToken cancellationToken = default);
         Task<ResponseDetail<object>> StopSIDemandDraft(string requestJson, CancellationToken cancellationToken = default);
+        Task<ResponseDetail<object>> SearchSIDemandDraft(string requestJson, CancellationToken cancellationToken = default);
     }
 }

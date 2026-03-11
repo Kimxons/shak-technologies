@@ -13,7 +13,9 @@ window.ActivateDormantModule = (function () {
         operatorId: '',
         currentMode: 'VIEW', // VIEW, ADD, EDIT
         dormantData: null,
-        currentUpdateCount: 0
+        currentUpdateCount: 0,
+        currentReferenceId: 0,
+        currentTrxRowId: 0
     };
 
     // API Paths
@@ -22,12 +24,25 @@ window.ActivateDormantModule = (function () {
         UPDATE_DATA: 'AccountsMaintenance/api/edit-account-dormant'
     };
 
+    function extractDormantResponse(response) {
+        const root = response?.Details || response?.Data || response?.data || null;
+        if (!root || typeof root !== 'object') {
+            return { dormantDetails: null, supervision: null };
+        }
+
+        const dormantDetails = root.AccountDormantDetails || root.accountDormantDetails || null;
+        const supervision = root.SupervisionData || root.supervisionData || null;
+
+        return { dormantDetails, supervision };
+    }
+
     /**
      * Initialize the module
      */
     function init() {
         console.log('[ActivateDormant] Initializing module...');
         loadContext();
+        wireLookupSelection();
 
         // Initial data load
         if (state.accountId) {
@@ -63,10 +78,51 @@ window.ActivateDormantModule = (function () {
         }
     }
 
+    function refreshContextFromSelection() {
+        const globalState = window.AccountMaintenanceState || {};
+        state.accountId = document.getElementById('accountId')?.value || globalState.AccountID || sessionStorage.getItem('currentAccountID') || '';
+        state.branchId = document.getElementById('branchId')?.value || globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '';
+        state.operatorId = globalState.OperatorID || localStorage.getItem('OperatorID') || 'SYSTEM';
+    }
+
+    function handleLookupSelection(event) {
+        const targetInputId = String(event?.detail?.targetInputId || '').toLowerCase();
+        if (targetInputId !== 'accountid' && targetInputId !== 'branchid') {
+            return;
+        }
+
+        refreshContextFromSelection();
+
+        const selectedRow = event?.detail?.selectedRow;
+        if (targetInputId === 'accountid' && selectedRow) {
+            updateStatusDisplay(selectedRow);
+        }
+
+        if (!state.accountId) {
+            state.dormantData = null;
+            clearForm();
+            updateStatusDisplay(selectedRow || null);
+            setMode('VIEW');
+            return;
+        }
+
+        loadData();
+    }
+
+    function wireLookupSelection() {
+        if (window.__activateDormantLookupHandler) {
+            document.removeEventListener('kairo:lookup-selected', window.__activateDormantLookupHandler);
+        }
+
+        window.__activateDormantLookupHandler = handleLookupSelection;
+        document.addEventListener('kairo:lookup-selected', window.__activateDormantLookupHandler);
+    }
+
     /**
      * Load dormant data from the server
      */
     async function loadData() {
+        refreshContextFromSelection();
         if (!state.accountId) return;
 
         AppCore.showLoading(true);
@@ -77,12 +133,14 @@ window.ActivateDormantModule = (function () {
                 SearchID: searchKey,
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
-                OperatorID: state.operatorId
+                OperatorID: state.operatorId,
+                ModuleTypeID: 'A',
+                RelevantID: state.accountId
             });
 
             if (response && response.ResponseCode === '00') {
-                const data = response.Details || response.Data || response.data;
-                state.dormantData = Array.isArray(data) ? data[0] : data;
+                const { dormantDetails, supervision } = extractDormantResponse(response);
+                state.dormantData = dormantDetails ? { ...dormantDetails, ...(supervision || {}) } : null;
 
                 if (state.dormantData) {
                     populateForm(state.dormantData);
@@ -112,24 +170,24 @@ window.ActivateDormantModule = (function () {
      */
     function populateForm(data) {
         document.getElementById('dormantReason').value = data.DormantReason || data.ReasonID || '';
-        document.getElementById('dormantDate').value = AppCore.formatDate(data.DormantDate || data.DormancyDate);
+        document.getElementById('dormantDate').value = AppCore.formatDate(data.Dormantdate || data.DormantDate || data.DormancyDate);
         document.getElementById('reactivationDate').value = AppCore.formatDate(data.ReactivationDate || data.LastActiveDate);
         document.getElementById('instructedBy').value = data.InstructedBy || '';
-        document.getElementById('remarks').value = data.Remarks || data.Notes || '';
+        document.getElementById('remarks').value = data.Remarks || data.Comments || data.Notes || '';
 
         // Status Info
-        document.getElementById('lastActivityDate').value = AppCore.formatDate(data.LastActivityDate);
+        document.getElementById('lastActivityDate').value = AppCore.formatDate(data.LastActivityDate || data.LastDebitTrxDate || data.LastCreditTrxDate);
         document.getElementById('dormantDays').value = data.DormantDays || data.DaysSinceLastActivity || '0';
         document.getElementById('dormancyThreshold').value = data.DormancyThreshold || data.InactiveDaysThreshold || '';
 
         const btsFieldsAndValues = [
-            { id: 'dormantDateVal', value: AppCore.formatDate(data.DormantDate || data.DormancyDate) },
-            { id: 'originalProduct', value: data.OriginalProduct || '-' },
-            { id: 'dormantProduct', value: data.DormantProduct || '-' },
+            { id: 'dormantDateVal', value: AppCore.formatDate(data.Dormantdate || data.DormantDate || data.DormancyDate) },
+            { id: 'originalProduct', value: data.OriginalProductName || data.OriginalProduct || data.OriginalProductID || '-' },
+            { id: 'dormantProduct', value: data.DormantProductName || data.DormantProduct || data.DormantProductID || '-' },
             { id: 'balance', value: AppCore.formatCurrency(data.Balance || 0) },
-            { id: 'lastCreditDate', value: AppCore.formatDate(data.LastCreditDate) },
+            { id: 'lastCreditDate', value: AppCore.formatDate(data.LastCreditDate || data.LastCreditTrxDate) },
             { id: 'creditAmount', value: AppCore.formatCurrency(data.CreditAmount || 0) },
-            { id: 'lastDebitDate', value: AppCore.formatDate(data.LastDebitDate) },
+            { id: 'lastDebitDate', value: AppCore.formatDate(data.LastDebitDate || data.LastDebitTrxDate) },
             { id: 'debitAmount', value: AppCore.formatCurrency(data.DebitAmount || 0) },
             { id: 'fixedAmount', value: AppCore.formatCurrency(data.FixedAmount || 0) },
             { id: 'MakerID', value: data.MakerID || data.CreatedBy || '-' },
@@ -150,13 +208,50 @@ window.ActivateDormantModule = (function () {
         });
 
         state.currentUpdateCount = parseInt(data.UpdateCount || 0);
+        state.currentReferenceId = parseInt(data.ReferenceID || data.ReferenceId || data.ID || 0, 10) || 0;
+        state.currentTrxRowId = parseFloat(data.TrxRowID || data.TrxRowId || 0) || 0;
+    }
+
+    function buildDormantPayload(overrides = {}) {
+        const searchKey = `[${state.branchId}:${state.accountId}]`;
+        const now = new Date().toISOString().split('.')[0];
+        const remarks = document.getElementById('remarks').value;
+
+        return {
+            AccountID: state.accountId,
+            OurBranchID: state.branchId,
+            OperatorID: state.operatorId,
+            SearchKey: searchKey,
+            SearchID: searchKey,
+            RelevantID: state.accountId,
+            ModuleTypeID: 'A',
+            ReferenceID: state.currentReferenceId || 0,
+            TrxRowID: state.currentTrxRowId || 0,
+            DormantReason: document.getElementById('dormantReason').value,
+            InstructedBy: document.getElementById('instructedBy').value,
+            Remarks: remarks,
+            Comments: remarks,
+            UpdateCount: state.currentUpdateCount,
+            NewRecord: state.currentReferenceId ? 0 : 1,
+            CreatedBy: state.operatorId,
+            ModifiedBy: state.operatorId,
+            ModifiedOn: now,
+            SupervisedBy: state.operatorId,
+            ...overrides
+        };
     }
 
     /**
      * Update status display items
      */
     function updateStatusDisplay(data) {
-        const isDormant = data?.IsDormant || data?.DormantStatus === 'Y';
+        const isDormant = !!(data && (
+            data.IsDormant === true ||
+            data.IsDormant === 1 ||
+            String(data.IsDormant) === '1' ||
+            String(data.AccountStatusID || '').toUpperCase() === 'AD' ||
+            ((data.ReferenceID || data.ReferenceId) && !data?.ActivatedDate && !data?.ActivatedOn)
+        ));
         const statusBadge = document.getElementById('dormantStatus');
         const indicator = document.querySelector('.dormant-indicator');
 
@@ -177,11 +272,14 @@ window.ActivateDormantModule = (function () {
         state.currentMode = mode;
         const isEditing = mode === 'EDIT';
 
-        const fields = ['dormantReason', 'instructedBy', 'remarks'];
+        const fields = ['instructedBy', 'remarks'];
         fields.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = !isEditing;
         });
+
+        const dormantReason = document.getElementById('dormantReason');
+        if (dormantReason) dormantReason.disabled = true;
 
         console.log(`[ActivateDormant] Mode set to: ${mode}`);
 
@@ -224,6 +322,8 @@ window.ActivateDormantModule = (function () {
         });
 
         state.currentUpdateCount = 0;
+        state.currentReferenceId = 0;
+        state.currentTrxRowId = 0;
     }
 
     /**
@@ -251,19 +351,17 @@ window.ActivateDormantModule = (function () {
     async function saveData() {
         if (state.currentMode !== 'EDIT') return;
 
+        if (!state.currentReferenceId) {
+            AppCore.showMsg('No dormant record loaded. View an already dormant account first.', 'warning');
+            return;
+        }
+
         AppCore.showLoading(true);
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                SearchKey: searchKey,
-                DormantReason: document.getElementById('dormantReason').value,
-                InstructedBy: document.getElementById('instructedBy').value,
-                Remarks: document.getElementById('remarks').value,
-                UpdateCount: state.currentUpdateCount
-            };
+            const payload = buildDormantPayload({
+                Action: state.currentReferenceId ? 'EDIT' : 'MARK_DORMANT',
+                IsDormant: true
+            });
 
             const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
@@ -287,20 +385,24 @@ window.ActivateDormantModule = (function () {
      * UI Action: Activate Account
      */
     async function activateAccount() {
+        if (!state.currentReferenceId) {
+            AppCore.showMsg('This account is not currently dormant. Load an existing dormant record first.', 'warning');
+            return;
+        }
+
         const confirmed = await AppCore.showConfirmation('Reactivate Account', 'Are you sure you want to reactivate this dormant account?');
         if (!confirmed) return;
 
         AppCore.showLoading(true);
         try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                SearchKey: searchKey,
+            const now = new Date().toISOString().split('.')[0];
+            const payload = buildDormantPayload({
+                ActivatedDate: now,
+                ActivatedBy: state.operatorId,
                 Action: 'ACTIVATE',
-                IsDormant: false
-            };
+                IsDormant: false,
+                NewRecord: state.currentReferenceId ? 0 : 1
+            });
 
             const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
 
@@ -323,45 +425,7 @@ window.ActivateDormantModule = (function () {
      * UI Action: Mark Dormant
      */
     async function markDormant() {
-        const reason = document.getElementById('dormantReason').value;
-        if (!reason) {
-            AppCore.showMsg('Please select a dormancy reason first', 'warning');
-            return;
-        }
-
-        const confirmed = await AppCore.showConfirmation('Mark Dormant', 'Are you sure you want to mark this account as dormant?');
-        if (!confirmed) return;
-
-        AppCore.showLoading(true);
-        try {
-            const searchKey = `[${state.branchId}:${state.accountId}]`;
-            const payload = {
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                SearchKey: searchKey,
-                DormantReason: reason,
-                InstructedBy: document.getElementById('instructedBy').value,
-                Remarks: document.getElementById('remarks').value,
-                Action: 'MARK_DORMANT',
-                IsDormant: true
-            };
-
-            const response = await AppCore.invokeControllerAsync(API.UPDATE_DATA, payload);
-
-            const isOk = response && (response.ResponseCode === '00' || response.success || response.Success);
-            if (isOk) {
-                AppCore.showMsg(response.ResponseMessage || response.message || 'Account marked as dormant', 'success');
-                loadData();
-            } else {
-                AppCore.showMsg(response?.ResponseMessage || response?.message || 'Failed to mark as dormant', 'error');
-            }
-        } catch (error) {
-            console.error('[ActivateDormant] Error marking as dormant:', error);
-            AppCore.showMsg('An error occurred while marking as dormant', 'error');
-        } finally {
-            AppCore.showLoading(false);
-        }
+        AppCore.showMsg('Module 1410 only activates existing dormant records. No mark-dormant procedure is configured in this environment.', 'warning');
     }
 
     /**

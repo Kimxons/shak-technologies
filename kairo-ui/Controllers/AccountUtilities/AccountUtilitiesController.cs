@@ -196,8 +196,21 @@ namespace kairo_ui.Controllers.AccountUtilities
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                if (string.IsNullOrEmpty(request.SearchID) && !string.IsNullOrEmpty(request.SearchKey))
+                if (string.IsNullOrWhiteSpace(request.StandingInstructionID) &&
+                    !string.IsNullOrWhiteSpace(request.SearchID) &&
+                    !request.SearchID.StartsWith("[", StringComparison.Ordinal))
+                {
+                    request.StandingInstructionID = request.SearchID;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.StandingInstructionID) &&
+                    string.IsNullOrWhiteSpace(request.SearchID) &&
+                    !string.IsNullOrWhiteSpace(request.SearchKey) &&
+                    !request.SearchKey.StartsWith("[", StringComparison.Ordinal))
+                {
                     request.SearchID = request.SearchKey;
+                    request.StandingInstructionID = request.SearchKey;
+                }
 
                 request.OperatorID = HttpContext.Session.GetString("user_name");
                 if (string.IsNullOrEmpty(request.OurBranchID))
@@ -489,6 +502,7 @@ namespace kairo_ui.Controllers.AccountUtilities
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public string? StandingInstructionID { get; set; }
+        public string? ReferenceNo { get; set; }
         public int Direction { get; set; }
         public string? DirectionType { get; set; }
     }

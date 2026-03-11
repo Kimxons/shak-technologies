@@ -166,7 +166,8 @@ namespace kairo_ui.Services
 
         // Standing Instruction
         private const string BASESI = "api/v1/AccountMaintenance";
-        public const string GET_SI_DEMAND_DRAFT = BASESI + "/GetSIDemandDraft";
+        public const string GET_SI_DEMAND_DRAFT    = BASESI + "/GetSIDemandDraft";
+        public const string SEARCH_SI_DEMAND_DRAFT  = BASESI + "/SearchSIDemandDraft";
         public const string CREATE_SI_DEMAND_DRAFT = BASESI + "/CreateSIDemandDraft";
         public const string UPDATE_SI_DEMAND_DRAFT = BASESI + "/UpdateSIDemandDraft";
         public const string DELETE_SI_DEMAND_DRAFT = BASESI + "/DeleteSIDemandDraft";
