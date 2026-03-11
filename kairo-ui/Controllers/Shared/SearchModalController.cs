@@ -17,6 +17,7 @@ namespace kairo_ui.Controllers.Shared
         private readonly ILogger<SearchModalController> _logger;
 
         // Table IDs that are not configured in SystemCoreApi and need OldApi fallback
+        // NOTE: InstructionID is handled by SystemCoreApi (GetSystemSearch returns 00) - do not add here
         private static readonly HashSet<string> _fallbackTableIds = new(StringComparer.OrdinalIgnoreCase)
         {
             "InstructionID",

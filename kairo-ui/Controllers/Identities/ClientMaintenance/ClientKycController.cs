@@ -95,7 +95,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                _logger.LogInformation("client-maintenance.kyc.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                _logger.LogInformation("client-maintenance.kyc.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData!));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_KYC, requestData);
                 return Ok(response);
             }

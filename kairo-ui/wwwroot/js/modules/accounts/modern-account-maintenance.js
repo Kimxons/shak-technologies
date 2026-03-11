@@ -1112,8 +1112,8 @@
             // Reminders module
             if (submoduleName === 'Reminders' && window.AccountRemindersModule) {
                 const mod = window.AccountRemindersModule;
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.loadData());
-                if (addBtn) addBtn.addEventListener('click', () => mod.setMode('ADD'));
+                if (viewBtn) viewBtn.addEventListener('click', () => (mod.viewData ? mod.viewData() : mod.loadData()));
+                if (addBtn) addBtn.addEventListener('click', () => (mod.beginAdd ? mod.beginAdd() : mod.setMode('ADD')));
                 if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
                 if (deleteBtn) deleteBtn.addEventListener('click', () => mod.deleteData());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
@@ -1883,6 +1883,13 @@
                                 nameInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
                         }
+
+                        document.dispatchEvent(new CustomEvent('kairo:lookup-selected', {
+                            detail: {
+                                targetInputId,
+                                selectedRow
+                            }
+                        }));
 
                         // For Documents submodule: lookup just sets ID+description
                         // User uses VIEW button or Enter to navigate after selection

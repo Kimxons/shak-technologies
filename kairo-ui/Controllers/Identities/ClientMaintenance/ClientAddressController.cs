@@ -31,6 +31,28 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         {
             if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
 
+            await PrepareAddressViewDataAsync(moduleId, clientId, requestId);
+
+            // Workflow tab loading must continue to use the partial view.
+            return PartialView("~/Views/Identities/ClientMaintenance/_ClientAddress.cshtml");
+        }
+
+        [HttpGet]
+        [Route("ClientAddress")]
+        public async Task<IActionResult> ClientAddress(string? moduleId = null, string? clientId = null, string? requestId = null)  
+        {
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+
+            await PrepareAddressViewDataAsync(moduleId, clientId, requestId);
+
+            return View("~/Views/Identities/ClientMaintenance/ClientAddress.cshtml");
+        }
+
+        private async Task PrepareAddressViewDataAsync(string? moduleId, string? clientId, string? requestId)
+        {
+            ViewBag.ModuleID = moduleId ?? string.Empty;
+            ViewBag.ClientID = clientId ?? string.Empty;
+
             ViewData["ModuleId"] = moduleId ?? string.Empty;
             ViewData["ClientId"] = clientId ?? string.Empty;
             ViewData["RequestId"] = requestId ?? string.Empty;
@@ -56,8 +78,6 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             {
                 _logger.LogError(ex, "Error loading Address tab dropdown options");
             }
-
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientAddress.cshtml");
         }
 
         [HttpPost, Route("get")]

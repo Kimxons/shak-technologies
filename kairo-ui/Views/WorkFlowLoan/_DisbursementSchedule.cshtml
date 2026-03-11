@@ -1,0 +1,219 @@
+@{
+    var branchId = ViewData["BranchId"] as string ?? string.Empty;
+    var applicationId = ViewData["ApplicationId"] as string ?? string.Empty;
+    var accountId = ViewData["AccountId"] as string ?? string.Empty;
+    var loanSeries = ViewData["LoanSeries"] as string ?? string.Empty;
+    var operatorId = ViewData["OperatorId"] as string ?? string.Empty;
+}
+
+<div id="pageLoadingOverlay" class="page-loading-overlay" style="display:none;">
+    <div class="page-loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+</div>
+
+<div class="window">
+    <div class="main-container">
+        <!-- Toast Container for Notifications -->
+        <div id="messageContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 400px; max-width: 90vw;"></div>
+
+        <!-- Form Content -->
+        <div class="form-content">
+            <div class="form-card">
+                <form id="frm_disbursement_schedule" autocomplete="off" novalidate>
+                    <!-- Hidden Context Fields -->
+                    <input type="hidden" id="hdnBranchID" value="@branchId" />
+                    <input type="hidden" id="hdnApplicationID" value="@applicationId" />
+                    <input type="hidden" id="hdnAccountID" value="@accountId" />
+                    <input type="hidden" id="hdnLoanSeries" value="@loanSeries" />
+                    <input type="hidden" id="hdnOperatorID" value="@operatorId" />
+                    <input type="hidden" id="hdnModuleID" value="7065" />
+                    
+                    <!-- Additional Hidden Fields for State Management -->
+                    <input type="hidden" id="hdnBookingAmount" />
+                    <input type="hidden" id="hdnDisbursementNo" />
+                    <input type="hidden" id="hdnDisbursementMode" />
+                    <input type="hidden" id="hdnDisbursementDate" />
+                    <input type="hidden" id="hdnProductID" />
+                    <input type="hidden" id="hdnCurrencyID" />
+                    <input type="hidden" id="hdnTerm" />
+                    <input type="hidden" id="hdnApplicationStatus" />
+                    <input type="hidden" id="hdnUpdateCount" />
+                    <input type="hidden" id="hdnEditMode" />
+                    <input type="hidden" id="hdnAlterMode" />
+                    <input type="hidden" id="hdnSLNo" />
+
+                    <!-- Schedule Details Section -->
+                    <section class="form-section" data-section="schedule-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-calendar3"></i> Schedule Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Schedule Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txtDisbursementDate">Disbursement Date</label>
+                                    <input type="date" id="txtDisbursementDate" class="bs-input-text" disabled />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtDisbursementAmount">Disbursement Amount</label>
+                                    <input type="text" id="txtDisbursementAmount" class="bs-input-text" placeholder="0.00" disabled />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Row Actions Section -->
+                    <div class="form-row my-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnNew" disabled>New</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnAlter" disabled>Alter</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRemove" disabled>Remove</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnUpdate" disabled>Update</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnClear" disabled>Clear</button>
+                    </div>
+
+                    <!-- Disbursement Grid Section -->
+                    <div class="form-section" data-section="disbursement-grid">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-table"></i> Disbursement Schedule</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Disbursement Schedule" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>SL No</th>
+                                        <th>Disbursement Date</th>
+                                        <th class="text-end">Disbursement Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduleGridBody"></tbody>
+                            </table>
+                            <div class="p-3 text-center text-muted d-none" data-dse-empty>
+                                <i class="bi bi-inbox fs-5"></i>
+                                <p class="mb-0 mt-2">No schedule records to display.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Disbursement Amount Section -->
+                    <div class="form-section" data-section="total-amount">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-cash-stack"></i> Total Disbursement Amount</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Total Amount" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row one-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txtTotalDisbursedAmount">Total Disbursement Amount</label>
+                                    <input type="text" id="txtTotalDisbursedAmount" class="bs-input-text text-end" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-the-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content style="display:none;">
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txtBookedAmount">Loan Amount</label>
+                                    <input type="text" class="bs-input-text text-end" id="txtBookedAmount" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtFirstDisbursementDate">First Disb. Date</label>
+                                    <input type="text" class="bs-input-text" id="txtFirstDisbursementDate" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtNoOfDisbursement">No Of Disbursements</label>
+                                    <input type="text" class="bs-input-text" id="txtNoOfDisbursement" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtModeOfDisbursement">Disb. Method</label>
+                                    <input type="text" class="bs-input-text" id="txtModeOfDisbursement" readonly />
+                                </div>
+                            </div>
+                            <div class="form-row four-col mt-2">
+                                <div class="col">
+                                    <label class="label-blue" for="txtProductID">Product ID</label>
+                                    <input type="text" class="bs-input-text" id="txtProductID" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtCurrencyID">Currency ID</label>
+                                    <input type="text" class="bs-input-text" id="txtCurrencyID" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtTerm">Term</label>
+                                    <input type="text" class="bs-input-text" id="txtTerm" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtApplicationStatus">Application Status</label>
+                                    <input type="text" class="bs-input-text" id="txtApplicationStatus" readonly />
+                                </div>
+                            </div>
+                            <div class="form-row four-col mt-2">
+                                <div class="col">
+                                    <label class="label-blue" for="txtCreatedBy">Created By</label>
+                                    <input type="text" class="bs-input-text" id="txtCreatedBy" readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txtCreatedOn">Created On</label>
+                                    <input type="text" class="bs-input-text" id="txtCreatedOn" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Action Panel -->
+        <div class="action-panel" aria-label="Form actions">
+            <div class="nav-group">
+                <span>Actions</span>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn-action" id="btnEdit" disabled>
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Edit</span>
+                </button>
+                <button type="button" class="btn-action btn-save" id="btnAdd" disabled>
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Add</span>
+                </button>
+                <button type="button" class="btn-action btn-save" id="btnSave" disabled>
+                    <i class="bi bi-check-lg"></i>
+                    <span>Save</span>
+                </button>
+                <button type="button" class="btn-action btn-cancel" id="btnCancel" disabled>
+                    <i class="bi bi-x-circle"></i>
+                    <span>Cancel</span>
+                </button>
+                
+                <hr class="action-divider" />
+                
+                <button type="button" class="btn-action" id="btnBack">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Back</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/modules/workflowloan/disbursement-schedule.js"></script>
