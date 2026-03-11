@@ -63,7 +63,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Portfolio dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientPortfolio.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/ClientPortfolio.cshtml");
         }
 
         [HttpPost, Route("get")]

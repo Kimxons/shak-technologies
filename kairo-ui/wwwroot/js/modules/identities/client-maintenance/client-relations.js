@@ -636,10 +636,6 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
                 showRelationsToast('No client relation details were found for the selected client.', 'info');
             }
 
-            if (refreshOptions.markInitialLoad) {
-                state.initialLoadApplied = true;
-            }
-
             return rows;
         } catch (error) {
             renderRelationsTable([]);
@@ -650,6 +646,10 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
         } finally {
             setLoading(false);
             applyActionState();
+            // Mark initial load as applied regardless of success/failure to prevent retry loops
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
         }
     };
 

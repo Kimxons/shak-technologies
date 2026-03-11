@@ -22,6 +22,17 @@
         </button>
     </div>
     <div class="section-content" data-section-content>
+        <!-- Consolidated Error Panel -->
+        <div id="frm_personalValidationPanel" class="alert alert-warning border-left-4" style="display:none; margin-bottom: 1rem;">
+            <div class="d-flex align-items-start">
+                <i class="bi bi-exclamation-triangle me-2 mt-1"></i>
+                <div>
+                    <strong>Please fix the following errors:</strong>
+                    <ul id="frm_personalErrorsList" class="mb-0 mt-2" style="list-style: none; padding-left: 0;"></ul>
+                </div>
+            </div>
+        </div>
+        
         <form id="frm_clientPersonal" autocomplete="off" novalidate>
             <!-- Hidden fields for page context -->
             <input type="hidden" id="moduleIdPersonal" value="@ViewData["ModuleId"]" />
@@ -37,7 +48,7 @@
             <!-- ROW 2: Gender, DOB, Age, Age As On -->
             <div class="form-row four-col">
                 <div class="col"><label class="label-blue" for="ddl_personalGender" id="lbl_personalGender">Gender</label><select id="ddl_personalGender" name="GenderID" class="bs-select" asp-items="@(genderOptions.Skip(1))"><option value="">Select gender</option></select></div>
-                <div class="col"><label class="label-blue" for="dt_personalDob" id="lbl_personalDob">Date Of Birth</label><input id="dt_personalDob" name="DateOfBirth" class="bs-input-text" type="date"  required /></div>
+                <div class="col"><label class="label-blue" for="dt_personalDob" id="lbl_personalDob">Date Of Birth</label><input id="dt_personalDob" name="DateOfBirth" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" required /></div>
                 <div class="col"><label for="txt_personalAge" id="lbl_personalAge">Age</label><input id="txt_personalAge" name="Age" class="bs-input-text" placeholder="Auto" readonly /></div>
                 <div class="col"><label for="txt_personalAgeAsOn" id="lbl_personalAgeAsOn">Age As On</label><input id="txt_personalAgeAsOn" name="AgeAsOn" class="bs-input-text" placeholder="Derived" readonly /></div>
             </div>
@@ -49,15 +60,15 @@
                 <div class="col"><label class="label-blue" for="ddl_personalIdType" id="lbl_personalIdType">Identification Type</label><select id="ddl_personalIdType" name="IdentificationTypeID" class="bs-select" required asp-items="@(identificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col">
                     <label class="label-blue" for="txt_personalIdNumber" id="lbl_personalIdNumber">Identification No</label>
-                    <input id="txt_personalIdNumber" name="NationalId" class="bs-input-text" maxlength="50" required />
+                    <input id="txt_personalIdNumber" name="NationalId" class="bs-input-text" maxlength="50" required disabled />
                 </div>
             </div>
 
             <!-- ROW 4: Issue Date, Issued By, Expiry Date, Literacy Level -->
             <div class="form-row four-col">
-                <div class="col"><label for="dt_personalIssueDate" id="lbl_personalIssueDate">Issue Date</label><input id="dt_personalIssueDate" name="IDIssueDate" class="bs-input-text" type="date" /></div>
+                <div class="col"><label for="dt_personalIssueDate" id="lbl_personalIssueDate">Issue Date</label><input id="dt_personalIssueDate" name="IDIssueDate" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" /></div>
                 <div class="col"><label for="txt_personalIssuedBy" id="lbl_personalIssuedBy">Issued By</label><input id="txt_personalIssuedBy" name="IssuedBy" class="bs-input-text" /></div>
-                <div class="col"><label for="dt_personalExpiryDate" id="lbl_personalExpiryDate">Expiry Date</label><input id="dt_personalExpiryDate" name="IDExpiryDate" class="bs-input-text" type="date" /></div>
+                <div class="col"><label for="dt_personalExpiryDate" id="lbl_personalExpiryDate">Expiry Date</label><input id="dt_personalExpiryDate" name="IDExpiryDate" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" /></div>
                 <div class="col"><label for="ddl_personalLiteracyLevel" id="lbl_personalLiteracyLevel">Literacy Level</label><select id="ddl_personalLiteracyLevel" name="LiteracyLevel" class="bs-select" asp-items="@(literacyLevelOptions.Skip(1))"><option value="">Select...</option></select></div>
             </div>
 
@@ -91,7 +102,7 @@
                         <button type="button" class="btn-lookup kairo-user-control__lookup" data-personal-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
-                <div class="col"><label for="dt_personalOpenedOn" id="lbl_personalOpenedOn">Opened On</label><input id="dt_personalOpenedOn" name="OpenedOn" class="bs-input-text" type="date" readonly /></div>
+                <div class="col"><label for="dt_personalOpenedOn" id="lbl_personalOpenedOn">Opened On</label><input id="dt_personalOpenedOn" name="OpenedOn" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy hh:mm:ss" data-type="datetime" data-date-format="dd-MMM-yyyy HH:mm:ss" readonly /></div>
                 <div class="col"><label class="label-blue" for="ddl_personalRelationshipManager" id="lbl_personalRelationshipManager">Relationship Manager</label><select id="ddl_personalRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select an option</option></select></div>
             </div>
         </form>

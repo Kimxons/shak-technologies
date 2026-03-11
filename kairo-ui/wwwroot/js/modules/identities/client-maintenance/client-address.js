@@ -145,7 +145,9 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 function shouldAutoLoadStandaloneAddress(context) {
     return Boolean(
         context?.IsStandalone &&
-        (context?.ClientID || context?.RequestID)
+        context?.ClientID &&
+        context?.ModuleID &&
+        context.ModuleID !== '1000'
     );
 }
 
@@ -557,14 +559,20 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
         const recordId = state.selectedRecord?.RecordID ?? state.selectedRecord?.ID ?? state.selectedRecord?.AddressID ?? null;
 
-        return {
-            ModuleID: context.ModuleID,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            ApplicationID: context.ApplicationID || null,
-            RecordID: recordId,
-            Payload: payload
-        };
+        payload.ModuleID = context.ModuleID;
+        payload.ClientID = context.ClientID;
+        payload.RequestID = context.RequestID;
+        payload.ApplicationID = context.ApplicationID || null;
+        payload.RecordID = recordId;
+        return payload;
+        //return {
+        //    ModuleID: context.ModuleID,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    ApplicationID: context.ApplicationID || null,
+        //    RecordID: recordId,
+        //    Payload: payload
+        //};
     };
 
     const applyRowPayload = (payload) => {
@@ -625,10 +633,6 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
                 showAddressToast('No client address details were found for the selected client.', 'info');
             }
 
-            if (refreshOptions.markInitialLoad) {
-                state.initialLoadApplied = true;
-            }
-
             return rows;
         } catch (error) {
             renderAddressTable([]);
@@ -639,6 +643,10 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         } finally {
             setLoading(false);
             applyActionState();
+            // Mark initial load as applied regardless of success/failure to prevent retry loops
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
         }
     };
 
@@ -853,7 +861,7 @@ function bindStandaloneAddressBootstrap(tabRoot, moduleId, options = {}) {
 }
 
 function autoInitializeStandaloneAddressView() {
-    debugger;
+
     const standaloneRoot = document.querySelector('[data-address-host="standalone"]');
     if (!standaloneRoot) return;
 
