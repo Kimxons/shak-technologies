@@ -125,6 +125,12 @@ namespace AccountManagement.Helpers
         public const string ADD_ACCOUNT_SIGNATORIES = "p_V8_AddAccountOperatedBy";
         public const string EDIT_ACCOUNT_SIGNATORIES = "p_V8_UpdateAccountOperatedBy";
 
+        // Account Card Maintenance procedures
+        public const string ADD_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string UPDATE_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string GET_ACCOUNT_CARD = "p_GetAccountElectronicCards";
+        public const string DELETE_ACCOUNT_CARD = "p_DeleteElectronicCard";
+
 
         public const string GET_SYSTEMSEARCH = "p_GetSystemSearch_V0";
         public const string GET_SYSTEMSEARCH_RESULT = "p_GetSystemSearchResult_V0";

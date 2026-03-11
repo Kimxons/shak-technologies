@@ -592,6 +592,23 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> EditAccountSignatories([FromBody] InData reqDat, CancellationToken cancellationToken = default)
     => await HandleRequest(reqDat, _repo.EditAccountSignatories, "EditAccountSignatories", cancellationToken);
 
+        // Account Card Maintenance endpoints
+        [HttpPost("GetAccountCard")]
+        public async Task<IActionResult> GetAccountCard([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.GetAccountCard, "GetAccountCard", cancellationToken);
+
+        [HttpPost("AddAccountCard")]
+        public async Task<IActionResult> AddAccountCard([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.AddAccountCard, "AddAccountCard", cancellationToken);
+
+        [HttpPost("UpdateAccountCard")]
+        public async Task<IActionResult> UpdateAccountCard([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.UpdateAccountCard, "UpdateAccountCard", cancellationToken);
+
+        [HttpPost("DeleteAccountCard")]
+        public async Task<IActionResult> DeleteAccountCard([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+            => await HandleRequest(reqDat, _repo.DeleteAccountCard, "DeleteAccountCard", cancellationToken);
+
         private async Task<IActionResult> HandleRequest(InData reqDat, Func<string, CancellationToken, Task<ResponseDetail<object>>> operation, string methodName, CancellationToken cancellationToken)
         {
             LogLevel logLevel = LogLevel.None;

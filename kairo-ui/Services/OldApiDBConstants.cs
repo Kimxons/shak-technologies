@@ -132,5 +132,14 @@ namespace kairo_ui.Services
         // Validations use p_GetIDDescription with ControlTypeID:
         //   BranchID, GroupID, GroupLoanSchemeID
 
+        public const string ADD_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string UPDATE_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string GET_ACCOUNT_CARD = "p_GetAccountElectronicCards";
+        public const string DELETE_ACCOUNT_CARD = "p_DeleteElectronicCard";
+
+
     }
+
+
+
 }
