@@ -4,11 +4,13 @@
   const state = {
     cards: [],
     selectedIndex: null,
+    searchModal: null,
+    accountService: null,
     context: {
       operatorId: "",
       branchId: "",
       bankId: "00",
-      apiBase: "",
+      moduleId: "20",
       closeMode: "window"
     }
   };
@@ -33,11 +35,6 @@
     elements.messagePanelIcon = scope.querySelector("#messagePanelIcon");
     elements.messagePanelText = scope.querySelector("#messagePanelText");
     elements.messagePanelClose = scope.querySelector("#messagePanelClose");
-    elements.approveConfirmModal = scope.querySelector("#approveConfirmModal");
-    elements.approveConfirmTitle = scope.querySelector("#approveConfirmTitle");
-    elements.approveConfirmText = scope.querySelector("#approveConfirmText");
-    elements.approveConfirmOk = scope.querySelector("#approveConfirmOk");
-    elements.approveConfirmCancel = scope.querySelector("#approveConfirmCancel");
     elements.statusBar = scope.querySelector("#editCardStatusBar");
     elements.createdBy = scope.querySelector("#createdBy");
     elements.createdOn = scope.querySelector("#createdOn");
@@ -56,38 +53,184 @@
     elements.localCloseBtn = scope.querySelector('aside.action-panel [data-action="close"]');
   }
 
-  function getDefaultApiBase() {
-    const path = String(window.location.pathname || "").toLowerCase();
+  function readStorageValue() {
+    const keys = Array.prototype.slice.call(arguments);
+    const stores = [window.sessionStorage, window.localStorage];
 
-    if (path.indexOf("/moneasys/frmeditcardstatus.aspx") !== -1) {
-      return "/MoneaSys/frmEditCardStatus.aspx/api";
+    for (let storeIndex = 0; storeIndex < stores.length; storeIndex += 1) {
+      const store = stores[storeIndex];
+      if (!store) continue;
+
+      for (let keyIndex = 0; keyIndex < keys.length; keyIndex += 1) {
+        const key = keys[keyIndex];
+        if (!key) continue;
+
+        try {
+          const value = store.getItem(key);
+          if (value !== null && String(value).trim() !== "") {
+            return String(value).trim();
+          }
+        } catch (error) {
+          console.warn("[EditCardStatus] Unable to read storage key", key, error);
+        }
+      }
     }
 
-    if (path.indexOf("/moneasys/editcardstatus") !== -1) {
-      return "/MoneaSys/EditCardStatus/api";
+    return "";
+  }
+
+  function getEnvironmentValue() {
+    const keys = Array.prototype.slice.call(arguments);
+    const environment = window.Environment || {};
+
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      const value = environment[key];
+      if (value !== undefined && value !== null && String(value).trim() !== "") {
+        return String(value).trim();
+      }
     }
 
-    if (path.indexOf("/account/editcardstatus") !== -1) {
-      return "/Account/EditCardStatus/api";
+    return "";
+  }
+
+  function resolveOperatorId() {
+    return (
+      (elements.host && elements.host.dataset.operatorId) ||
+      (window.AppCore && typeof window.AppCore.getCurrentUserId === "function" ? window.AppCore.getCurrentUserId() : "") ||
+      readStorageValue("currentOperatorID", "UserId", "UserID", "OperatorID", "user_name", "user_id") ||
+      getEnvironmentValue("UserID") ||
+      "web_portal"
+    );
+  }
+
+  function resolveBranchId() {
+    return (
+      (elements.host && elements.host.dataset.branchId) ||
+      readStorageValue("currentBranchID", "OurBranchID", "branch_code", "branch_id", "BranchID") ||
+      getEnvironmentValue("OurBranchID", "defaultOurBranchId") ||
+      ""
+    );
+  }
+
+  function resolveBankId() {
+    return (
+      (elements.host && elements.host.dataset.bankId) ||
+      readStorageValue("BankId", "BankID", "bank_id", "bank_code") ||
+      getEnvironmentValue("defaultBankId") ||
+      "00"
+    );
+  }
+
+  function resolveModuleId() {
+    return (
+      (elements.host && elements.host.dataset.moduleId) ||
+      readStorageValue("ModuleID", "module_id") ||
+      "20"
+    );
+  }
+
+  function buildSharedSearchContext() {
+    return {
+      prefix: "editcardstatus",
+      moduleID: state.context.moduleId,
+      getOperatorId: resolveOperatorId,
+      getOurBranchId: resolveBranchId,
+      onError: function (error) {
+        console.error("[EditCardStatus] Search helper error:", error);
+      }
+    };
+  }
+
+  function ensureSearchModal() {
+    if (state.searchModal) {
+      return state.searchModal;
     }
 
-    return "/EditCardStatus/api";
+    if (typeof window.SearchModal !== "function") {
+      return null;
+    }
+
+    state.searchModal = new window.SearchModal(buildSharedSearchContext());
+    return state.searchModal;
   }
 
   function readContext() {
     if (!elements.host) return;
 
-    state.context.operatorId = elements.host.dataset.operatorId || "";
-    state.context.branchId = elements.host.dataset.branchId || "";
-    state.context.bankId = elements.host.dataset.bankId || "00";
-    state.context.apiBase = elements.host.dataset.apiBase || getDefaultApiBase();
+    state.context.operatorId = resolveOperatorId();
+    state.context.branchId = resolveBranchId();
+    state.context.bankId = resolveBankId();
+    state.context.moduleId = resolveModuleId();
     state.context.closeMode = elements.host.dataset.closeMode || "window";
+
+    ensureSearchModal();
   }
 
-  function buildApiUrl(path) {
-    const base = String(state.context.apiBase || getDefaultApiBase()).replace(/\/+$/, "");
-    const suffix = String(path || "").replace(/^\/+/, "");
-    return base + "/" + suffix;
+  function getAccountService() {
+    return state.accountService || window.accountservice || window.AccountService || window.parent?.accountservice || window.parent?.AccountService || null;
+  }
+
+  function resolveApiBasePath() {
+    const configuredBase = elements.host && elements.host.dataset ? String(elements.host.dataset.apiBase || "").trim() : "";
+    if (configuredBase) {
+      return configuredBase;
+    }
+
+    const path = String(window.location.pathname || "");
+    if (path.indexOf("/MoneaSys/EditCardStatus") === 0) {
+      return "/MoneaSys/EditCardStatus";
+    }
+
+    return "/EditCardStatus";
+  }
+
+  async function postControllerJson(endpoint, payload) {
+    const response = await fetch(resolveApiBasePath() + endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      credentials: "same-origin",
+      body: JSON.stringify(payload || {})
+    });
+
+    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+    const responseBody = contentType.indexOf("application/json") >= 0
+      ? await response.json()
+      : await response.text();
+
+    if (!response.ok) {
+      const message = typeof responseBody === "string"
+        ? responseBody
+        : getResponseMessage(responseBody, "Request failed.");
+      throw new Error(message || ("Request failed with status " + response.status));
+    }
+
+    return responseBody;
+  }
+
+  function createControllerBackedAccountService() {
+    return {
+      getElectronicCards: function (payload) {
+        return postControllerJson("/api/get-electronic-cards-stagewise", payload);
+      },
+      addEditElectronicCard: function (payload) {
+        return postControllerJson("/api/edit-card-status", payload);
+      }
+    };
+  }
+
+  async function ensureAccountService() {
+    const existingService = getAccountService();
+    if (existingService) {
+      state.accountService = existingService;
+      return existingService;
+    }
+
+    state.accountService = createControllerBackedAccountService();
+    return state.accountService;
   }
 
   function showLoading(show) {
@@ -140,70 +283,29 @@
   }
 
   function showConfirmDialog(title, message, confirmLabel, cancelLabel) {
-    if (!elements.approveConfirmModal || !elements.approveConfirmText || !elements.approveConfirmOk || !elements.approveConfirmCancel) {
-      return Promise.resolve(window.confirm(message));
+    if (window.AppCore && typeof window.AppCore.showDialog === "function") {
+      return window.AppCore.showDialog({
+        type: "custom",
+        title: title || "Confirm action",
+        message: message || "",
+        buttons: {
+          list: [
+            { label: cancelLabel || "Cancel", variant: "outline-secondary", value: false },
+            { label: confirmLabel || "OK", variant: "primary", value: true }
+          ]
+        }
+      }).then(function (result) {
+        return result === true;
+      });
     }
 
-    return new Promise((resolve) => {
-      const modal = elements.approveConfirmModal;
-
-      if (elements.approveConfirmTitle) {
-        elements.approveConfirmTitle.textContent = title || "Confirm action";
-      }
-
-      elements.approveConfirmText.textContent = message;
-      elements.approveConfirmOk.textContent = confirmLabel || "OK";
-      elements.approveConfirmCancel.textContent = cancelLabel || "Cancel";
-
-      modal.hidden = false;
-      window.requestAnimationFrame(function () {
-        modal.classList.add("show");
+    if (window.AppCore && typeof window.AppCore.showConfirmation === "function") {
+      return window.AppCore.showConfirmation(title || "Confirm action", message || "").then(function (result) {
+        return result === true;
       });
+    }
 
-      function teardown() {
-        elements.approveConfirmOk.removeEventListener("click", onConfirm);
-        elements.approveConfirmCancel.removeEventListener("click", onCancel);
-        modal.removeEventListener("click", onBackdrop);
-        document.removeEventListener("keydown", onKey);
-      }
-
-      function close(result) {
-        teardown();
-        modal.classList.remove("show");
-        window.setTimeout(function () {
-          modal.hidden = true;
-        }, 180);
-        resolve(result);
-      }
-
-      function onConfirm() { close(true); }
-      function onCancel() { close(false); }
-
-      function onBackdrop(event) {
-        if (event.target === modal || event.target.closest('[data-confirm-dismiss="backdrop"]')) {
-          close(false);
-        }
-      }
-
-      function onKey(event) {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          close(false);
-          return;
-        }
-
-        if (event.key === "Enter") {
-          event.preventDefault();
-          close(true);
-        }
-      }
-
-      elements.approveConfirmOk.addEventListener("click", onConfirm);
-      elements.approveConfirmCancel.addEventListener("click", onCancel);
-      modal.addEventListener("click", onBackdrop);
-      document.addEventListener("keydown", onKey);
-      elements.approveConfirmOk.focus();
-    });
+    return Promise.resolve(window.confirm(message));
   }
 
   function isTruthy(value) {
@@ -240,6 +342,10 @@
   function formatAuditValue(value) {
     if (!value) return "-";
 
+    if (window.GlobalUtils && typeof window.GlobalUtils.formatDateTime === "function") {
+      return window.GlobalUtils.formatDateTime(value);
+    }
+
     const date = new Date(value);
     if (!Number.isNaN(date.getTime())) {
       return date.toLocaleString("en-US", {
@@ -252,6 +358,14 @@
     }
 
     return String(value);
+  }
+
+  function getCurrentTimestamp() {
+    if (window.GlobalUtils && typeof window.GlobalUtils.getCurrentDateTime === "function") {
+      return window.GlobalUtils.getCurrentDateTime();
+    }
+
+    return new Date().toISOString();
   }
 
   function escapeHtml(value) {
@@ -579,30 +693,50 @@
     syncActionButtons();
   }
 
-  async function postJson(url, payload) {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body: JSON.stringify(payload || {})
-    });
+  function buildStageSearchPayload(stageId) {
+    return {
+      BankID: state.context.bankId,
+      OurBranchID: state.context.branchId,
+      StageID: stageId,
+      OperatorID: state.context.operatorId
+    };
+  }
 
-    const bodyText = await response.text();
-    let responseData = {};
+  function buildApprovedCardPayload(card) {
+    const raw = card.raw || {};
+    const timestamp = getCurrentTimestamp();
+    const operatorId = state.context.operatorId || "web_portal";
 
-    try {
-      responseData = bodyText ? JSON.parse(bodyText) : {};
-    } catch (error) {
-      responseData = { RawBody: bodyText };
-    }
-
-    if (!response.ok) {
-      throw new Error(getResponseMessage(responseData, "Server returned " + response.status + " " + response.statusText));
-    }
-
-    return responseData;
+    return {
+      TrackingCardID: normalizeNullable(pick(raw, "TrackingCardID", "TrackingID", "TrackingId"), "0"),
+      CardName: pick(raw, "CardName", "Name") || card.cardName || "",
+      CardID: pick(raw, "CardID", "CardId") || card.cardId || "",
+      CardProvider: pick(raw, "CardProvider", "Provider") || card.provider || "",
+      CardType: pick(raw, "CardType") || "",
+      BranchID: pick(raw, "BranchID", "OurBranchID") || card.branchId || state.context.branchId,
+      AccountID: pick(raw, "AccountID", "AccountId") || card.accountId || "",
+      Remarks: pick(raw, "Remarks", "CardRemarks") || "",
+      CreatedBy: pick(raw, "CreatedBy", "MakerID") || card.createdBy || operatorId,
+      CreatedOn: normalizeNullable(pick(raw, "CreatedOn", "MakerDT") || card.createdOn, ""),
+      ModifiedBy: operatorId,
+      ModifiedOn: timestamp,
+      IsNew: "EDIT",
+      IsActive: isTruthy(pick(raw, "IsActive", "Active")) || card.isActive ? 1 : 0,
+      ActvationDate: normalizeNullable(pick(raw, "ActvationDate", "ActivationDate", "ActivatedOn") || card.activatedOn, ""),
+      StartDate: normalizeNullable(pick(raw, "StartDate"), ""),
+      ExpiryDate: normalizeNullable(pick(raw, "ExpiryDate"), ""),
+      IsCollected: isTruthy(pick(raw, "IsCollected", "Collected")) || card.isCollected ? 1 : 0,
+      CollectionDate: normalizeNullable(pick(raw, "CollectionDate"), ""),
+      CardBlockDate: normalizeNullable(pick(raw, "CardBlockDate", "DeactivationDate"), ""),
+      CardBlockReasonID: normalizeNullable(pick(raw, "CardBlockReasonID"), "null"),
+      ReactivationDate: normalizeNullable(pick(raw, "ReactivationDate"), ""),
+      ReactivationRemarks: pick(raw, "ReactivationRemarks") || "",
+      IsApproved: 1,
+      ApprovalDate: timestamp,
+      ApprovedBy: operatorId,
+      CardStatus: "APPROVED",
+      UpdateCount: Number(card.updateCount) || 0
+    };
   }
 
   async function searchCardsByStage(stageId) {
@@ -620,12 +754,12 @@
     updateStatusBar("Loading card status...");
 
     try {
-      const response = await postJson(buildApiUrl("get-electronic-cards-stagewise"), {
-        BankID: state.context.bankId,
-        OurBranchID: state.context.branchId,
-        StageID: stageId,
-        OperatorID: state.context.operatorId
-      });
+      const accountService = await ensureAccountService();
+      if (typeof accountService.getElectronicCards !== "function") {
+        throw new Error("AccountService.getElectronicCards is not available.");
+      }
+
+      const response = await accountService.getElectronicCards(buildStageSearchPayload(stageId));
 
       const rawCards = findCardArray(response, 0) || [];
       state.cards = rawCards.filter(isCardLike).map(normalizeCard);
@@ -668,50 +802,6 @@
     } finally {
       showLoading(false);
     }
-  }
-
-  function buildApproveXml(card) {
-    const raw = card.raw || {};
-    const timestamp = new Date().toISOString();
-    const operatorId = state.context.operatorId || "web_portal";
-    const trackingCardId = normalizeNullable(pick(raw, "TrackingCardID", "TrackingID", "TrackingId"), "0");
-    const cardBlockReasonId = normalizeNullable(pick(raw, "CardBlockReasonID"), "null");
-    const modifiedOn = normalizeNullable(pick(raw, "ModifiedOn", "Modifiedon", "ModifierDT"), timestamp);
-
-    return (
-      "<dt_Cards>" +
-      "<TrackingCardID>" + escapeXml(trackingCardId) + "</TrackingCardID>" +
-      "<CardName>" + escapeXml(pick(raw, "CardName", "Name")) + "</CardName>" +
-      "<CardProvider>" + escapeXml(pick(raw, "CardProvider", "Provider")) + "</CardProvider>" +
-      "<CardType>" + escapeXml(pick(raw, "CardType")) + "</CardType>" +
-      "<BranchID>" + escapeXml(pick(raw, "BranchID", "OurBranchID") || card.branchId || state.context.branchId) + "</BranchID>" +
-      "<AccountID>" + escapeXml(pick(raw, "AccountID", "AccountId") || card.accountId) + "</AccountID>" +
-      "<CreatedBy>" + escapeXml(pick(raw, "CreatedBy") || card.createdBy) + "</CreatedBy>" +
-      "<CreatedOn>" + escapeXml(pick(raw, "CreatedOn") || card.createdOn || "1900-01-01T00:00:00") + "</CreatedOn>" +
-      "<ModifiedBy>" + escapeXml(operatorId) + "</ModifiedBy>" +
-      "<ModifiedOn>" + escapeXml(modifiedOn) + "</ModifiedOn>" +
-      "<CardBlockReasonID>" + escapeXml(cardBlockReasonId) + "</CardBlockReasonID>" +
-      "<IsApproved>true</IsApproved>" +
-      "<IsClientExported>" + (isTruthy(pick(raw, "IsClientExported")) ? "true" : "false") + "</IsClientExported>" +
-      "<IsAccountExported>" + (isTruthy(pick(raw, "IsAccountExported")) ? "true" : "false") + "</IsAccountExported>" +
-      "<IsCardExported>" + (isTruthy(pick(raw, "IsCardExported")) ? "true" : "false") + "</IsCardExported>" +
-      "<IsActive>" + (isTruthy(pick(raw, "IsActive")) || card.isActive ? "true" : "false") + "</IsActive>" +
-      "<IsCollected>" + (isTruthy(pick(raw, "IsCollected", "Collected")) || card.isCollected ? "true" : "false") + "</IsCollected>" +
-      "<ApprovalDate>" + escapeXml(timestamp) + "</ApprovalDate>" +
-      "<ClientExportedDate>" + escapeXml(pick(raw, "ClientExportedDate") || "1900-01-01T00:00:00") + "</ClientExportedDate>" +
-      "<AccountExportedDate>" + escapeXml(pick(raw, "AccountExportedDate") || "1900-01-01T00:00:00") + "</AccountExportedDate>" +
-      "<CardExportedDate>" + escapeXml(pick(raw, "CardExportedDate", "ExportedOn") || card.exportedOn || "1900-01-01T00:00:00") + "</CardExportedDate>" +
-      "<ActvationDate>" + escapeXml(pick(raw, "ActvationDate", "ActivationDate", "ActivatedOn") || card.activatedOn || "1900-01-01T00:00:00") + "</ActvationDate>" +
-      "<CollectionDate>" + escapeXml(pick(raw, "CollectionDate") || "1900-01-01T00:00:00") + "</CollectionDate>" +
-      "<StartDate>" + escapeXml(pick(raw, "StartDate") || "1900-01-01T00:00:00") + "</StartDate>" +
-      "<ExpiryDate>" + escapeXml(pick(raw, "ExpiryDate") || "1900-01-01T00:00:00") + "</ExpiryDate>" +
-      "<CardStatus>APPROVED</CardStatus>" +
-      "<UpdateCount>" + escapeXml(card.updateCount || 0) + "</UpdateCount>" +
-      "<ButtonMark>N</ButtonMark>" +
-      "<ApprovedBy>" + escapeXml(operatorId) + "</ApprovedBy>" +
-      "<ApprovedOn>" + escapeXml(timestamp) + "</ApprovedOn>" +
-      "</dt_Cards>"
-    );
   }
 
   function getSelectedCard() {
@@ -781,14 +871,12 @@
     updateStatusBar("Approving card status...");
 
     try {
-      const response = await postJson(buildApiUrl("edit-card-status"), {
-        BranchID: state.context.branchId,
-        OurBranchID: state.context.branchId,
-        BankID: state.context.bankId,
-        OperatorID: state.context.operatorId,
-        UpdateCount: Number(card.updateCount) || 0,
-        DetailRecords: buildApproveXml(card)
-      });
+      const accountService = await ensureAccountService();
+      if (typeof accountService.addEditElectronicCard !== "function") {
+        throw new Error("AccountService.addEditElectronicCard is not available.");
+      }
+
+      const response = await accountService.addEditElectronicCard(buildApprovedCardPayload(card));
 
       if (!isSuccessResponse(response)) {
         const message = getResponseMessage(response, "Approval failed.");
@@ -973,6 +1061,9 @@
     if (!elements.host) return;
 
     readContext();
+    ensureAccountService().catch(function (error) {
+      console.warn("[EditCardStatus] AccountService preload failed.", error);
+    });
     wireGridEvents();
     wireSectionToggles();
     wireWindowControls();
@@ -999,6 +1090,8 @@
     cancel: cancel,
     close: closeHost,
     refresh: refresh,
+    getSearchContext: buildSharedSearchContext,
+    getSearchModal: ensureSearchModal,
     syncActionButtons: syncActionButtons
   };
 

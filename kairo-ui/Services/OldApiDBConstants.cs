@@ -233,6 +233,7 @@ namespace kairo_ui.Services
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
         public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
         // ═══════════════════════════════════════════════════════════════════

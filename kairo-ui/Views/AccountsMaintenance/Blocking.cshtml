@@ -2,8 +2,10 @@
 @{
     // No layout - this is a partial view loaded dynamically
     // Migrated from: public/modules/account-maintenance/DataEntry/account-blocking-unblocking.html
-    var blockedReasonOptions = ViewData["BlockedReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var unBlockedReasonOptions = ViewData["UnBlockedReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var blockedReasonOptions = ViewData["BlockedReasonOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
+    var unBlockedReasonOptions = ViewData["UnBlockedReasonOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Blocking Submodule - Original HTML Preserved -->
@@ -13,7 +15,8 @@
         <div class="form-section" data-section="blocking-details">
             <div class="section-header" data-section-toggle>
                 <span class="section-header__title"><i class="bi bi-ban"></i> Blocking / Unblocking Details</span>
-                <button type="button" class="section-toggle-btn" aria-label="Toggle Blocking / Unblocking Details" aria-expanded="true">
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Blocking / Unblocking Details"
+                        aria-expanded="true">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
@@ -38,63 +41,69 @@
                 <div class="row g-2 mb-2">
                     <div class="col-md-12">
                         <label class="label-blue am-label" for="instructionGivenBy">Instruction Given By</label>
-                        <input id="instructionGivenBy" name="InstructionGivenBy" type="text" class="form-control am-input" />
+                        <input id="instructionGivenBy" name="InstructionGivenBy" type="text"
+                               class="form-control am-input" />
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Behind the Scene Section -->
-        <div class="form-section mt-3" data-section="behind-scene">
+        <div class="form-section form-section--bts mt-3" data-section="behind-scene">
             <div class="section-header" data-section-toggle>
                 <span class="section-header__title"><i class="bi bi-gear"></i> Behind The Scene (Current Status)</span>
-                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene"
+                        aria-expanded="true">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
             <div class="section-content" data-section-content>
-                <div class="row g-2 mb-2">
-                    <div class="col-md-6">
-                        <label class="label-blue am-label" for="previousStatus">Current Status</label>
-                        <input id="previousStatus" type="text" class="form-control am-input" disabled />
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label for="previousStatus">Current Status</label>
+                        <input id="previousStatus" type="text" class="bs-input-text" readonly />
                     </div>
-                    <div class="col-md-6">
-                        <label class="label-blue am-label" for="btsDate">Date Blocked</label>
-                        <input id="btsDate" type="text" class="form-control am-input" disabled />
-                    </div>
-                </div>
-                <div class="row g-2 mb-2">
-                    <div class="col-md-12">
-                        <label class="label-blue am-label" for="btsDescription">Prior Reason/Instruction</label>
-                        <input id="btsDescription" type="text" class="form-control am-input" disabled />
+                    <div class="col">
+                        <label for="btsDate">Date Blocked</label>
+                        <input id="btsDate" type="text" class="bs-input-text" readonly />
                     </div>
                 </div>
-                <!-- Audit Trail -->
-                <div class="audit-section audit-section--summary mt-3">
-                    <div class="audit-cell">
-                        <span class="audit-label">Created By</span>
-                        <span class="audit-value" id="MakerID">-</span>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label for="btsDescription">Prior Reason/Instruction</label>
+                        <input id="btsDescription" type="text" class="bs-input-text" readonly />
                     </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Created On</span>
-                        <span class="audit-value" id="MakerDT">-</span>
+                    <div class="col"></div>
+                </div>
+                <div class="form-row four-col">
+                    <div class="col">
+                        <label for="MakerID">Created By</label>
+                        <input id="MakerID" type="text" class="bs-input-text" value="-" readonly />
                     </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Checked By</span>
-                        <span class="audit-value" id="CheckerID">-</span>
+                    <div class="col">
+                        <label for="MakerDT">Created On</label>
+                        <input id="MakerDT" type="text" class="bs-input-text" value="-" readonly />
                     </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Checked On</span>
-                        <span class="audit-value" id="CheckerDT">-</span>
+                    <div class="col">
+                        <label for="CheckerID">Checked By</label>
+                        <input id="CheckerID" type="text" class="bs-input-text" value="-" readonly />
                     </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Modified By</span>
-                        <span class="audit-value" id="ModifierID">-</span>
+                    <div class="col">
+                        <label for="CheckerDT">Checked On</label>
+                        <input id="CheckerDT" type="text" class="bs-input-text" value="-" readonly />
                     </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Modified On</span>
-                        <span class="audit-value" id="ModifierDT">-</span>
+                </div>
+                <div class="form-row four-col">
+                    <div class="col">
+                        <label for="ModifierID">Modified By</label>
+                        <input id="ModifierID" type="text" class="bs-input-text" value="-" readonly />
                     </div>
+                    <div class="col">
+                        <label for="ModifierDT">Modified On</label>
+                        <input id="ModifierDT" type="text" class="bs-input-text" value="-" readonly />
+                    </div>
+                    <div class="col"></div>
+                    <div class="col"></div>
                 </div>
             </div>
         </div>
@@ -109,15 +118,14 @@
         <div class="loading-text">Processing...</div>
     </div>
 </div>
-  </div>
 
-  <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-blocking.js"></script>
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-blocking.js"></script>
 <script>
-  // Auto-initialize on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountBlockingModule?.init());
-  } else {
-    window.AccountBlockingModule?.init();
-  }
-  console.log('✅ Account Blocking view loaded');
+    // Auto-initialize on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => window.AccountBlockingModule?.init());
+    } else {
+        window.AccountBlockingModule?.init();
+    }
+    console.log('✅ Account Blocking view loaded');
 </script>
