@@ -23,8 +23,8 @@
         <form id="frm_clientRelations" data-relations-form autocomplete="off" novalidate>
             <h5 class="mb-4">Client Relations &amp; Beneficiaries</h5>
 
-            <div class="form-row two-col">
-                <div class="col">
+            <div class="form-row four-col">
+                <div class="col col-span-2">
                     <label class="label-blue" for="txt_relationClientId" id="lbl_relationClientId">Client Relation</label>
                     <div class="kairo-control" data-kairo-control>
                         <input id="txt_relationClientId" name="relationClientId" data-relation-field="RelatedClientID" class="bs-input-text" />
@@ -32,7 +32,7 @@
                         <button type="button" class="btn-lookup" data-relation-action="lookup" aria-label="Find client"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col col-span-2">
                     <label for="ddl_relationType" id="lbl_relationType">Relation Type</label>
                     <select id="ddl_relationType" name="relationType" data-relation-field="RelationTypeID" class="bs-select" asp-items="@(relationTypeOptions.Skip(1))"><option value="">Select type...</option></select>
                 </div>
@@ -55,10 +55,10 @@
 
         <div class="d-flex justify-content-center gap-2 my-4">
             <button id="btn_newClientRelations" type="button" class="btn btn-sm btn-outline-primary" data-relation-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-            <button id="btn_alterClientRelations" type="button" class="btn btn-sm btn-outline-primary" data-relation-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-            <button id="btn_deleteClientRelations" type="button" class="btn btn-sm btn-outline-danger" data-relation-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-            <button id="btn_updateClientRelations" type="button" class="btn btn-sm btn-primary" data-relation-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-            <button id="btn_clearClientRelations" type="button" class="btn btn-sm btn-outline-secondary" data-relation-action="clear">Clear</button>
+            <button id="btn_alterClientRelations" type="button" class="btn btn-sm btn-outline-primary" data-relation-action="alter" disabled><i class="bi bi-pencil-square me-1"></i>Alter</button>
+            <button id="btn_deleteClientRelations" type="button" class="btn btn-sm btn-outline-danger" data-relation-action="remove" disabled><i class="bi bi-trash me-1"></i>Remove</button>
+            <button id="btn_updateClientRelations" type="button" class="btn btn-sm btn-primary" data-relation-action="update" disabled><i class="bi bi-check2-circle me-1"></i>Update</button>
+            <button id="btn_clearClientRelations" type="button" class="btn btn-sm btn-outline-secondary" data-relation-action="clear" disabled>Clear</button>
         </div>
 
         <div class="section-header py-1 mb-2 bg-light border">
@@ -81,4 +81,4 @@
     </div>
 </div>
 
-<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-relations.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/_clientRelations.js"></script>
