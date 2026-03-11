@@ -34,6 +34,8 @@ namespace kairo_ui.Services
         public const string GET_CLIENT_IMAGES          = "p_V8_GetImages";
 
         public const string GET_CLIENT_SUPERVISION_PENDING = "p_getclientsupervisionpending";
+        public const string APPROVE_CLIENT_SUPERVISION = "p_ClientApproveSupervision";
+        public const string REJECT_CLIENT_SUPERVISION = "p_ClientRejectSupervision";
 
         // Client Maintenance Module Constants
         public const string GET_CLIENT_BANK_ACCOUNTS = "p_GetClientBankAccounts";
