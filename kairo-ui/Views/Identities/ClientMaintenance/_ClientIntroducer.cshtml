@@ -2,102 +2,116 @@
     ViewData["Title"] = "Client Introducer";
     Layout = "_ApplicationLayout";
     var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
-    var showActionPanel = moduleId != "1000";
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
 }
 
-<div class="form-card" data-section="client-introducer" data-cm-tab="introducer">
-    <div class="section-header" data-section-toggle>
-        <span class="section-header__title"><i class="bi bi-person-badge"></i>Introducer Details</span>
-        <button id="btn_toggleClientIntroducer" type="button" class="section-toggle-btn" aria-label="Toggle Introducer" aria-expanded="true">
-            <i class="bi bi-chevron-up"></i>
-        </button>
-    </div>
-    <div class="section-content" data-section-content>
-        <form id="frm_clientIntroducer" data-introducer-form autocomplete="off" novalidate>
-            <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdIntroducer" value="@moduleId" />
-            <input type="hidden" id="hdn_introducerId" name="introducerId" />
+<div class="window de-window" data-ktb-window data-introducer-host="standalone">
+    <div data-kairo-titlebar data-title="Client Introducer" data-icon="bi-person-badge"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
+            <div class="form-card" data-section="client-introducer" data-cm-tab="introducer">
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-person-badge"></i>Introducer Details</span>
+                    <button id="btn_toggleClientIntroducer" type="button" class="section-toggle-btn" aria-label="Toggle Introducer" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <form id="frm_clientIntroducer" data-introducer-form autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdIntroducer" value="@moduleId" />
+                        <input type="hidden" id="hdn_introducerId" name="introducerId" />
 
-            <h5 class="mb-4">Introducer Information</h5>
+                        <h5 class="mb-4">Introducer Information</h5>
 
-            <div class="form-row four-col">
-                <div class="col">
-                    <label class="label-blue" for="txt_introducerCode" id="lbl_introducerCode">Introducer Code</label>
-                    <div class="kairo-control" data-kairo-control>
-                        <input id="txt_introducerCode" name="introducerCode" data-introducer-field="IntroducerID" class="bs-input-text" readonly />
-                        <input id="txt_introducerName" name="introducerName" class="bs-input-text" placeholder="Search Introducer..." readonly />
-                        <button type="button" class="btn-lookup" data-introducer-action="lookup-introducer" aria-label="Find introducer"><i class="bi bi-search"></i></button>
+                        <div class="form-row four-col">
+                            <div class="col col-span-2">
+                                <label class="label-blue" for="txt_introducerCode" id="lbl_introducerCode">Introducer Code</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input id="txt_introducerCode" name="introducerCode" data-introducer-field="IntroducerID" class="bs-input-text" readonly />
+                                    <input id="txt_introducerName" name="introducerName" class="bs-input-text" placeholder="Search Introducer..." readonly />
+                                    <button type="button" class="btn-lookup" data-introducer-action="lookup-introducer" aria-label="Find introducer"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_introducerContact" id="lbl_introducerContact">Contact Number</label>
+                                <input id="txt_introducerContact" name="introducerContact" data-introducer-field="ContactNumber" class="bs-input-text" maxlength="20" />
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_introducerEmail" id="lbl_introducerEmail">Email Address</label>
+                                <input id="txt_introducerEmail" name="introducerEmail" data-introducer-field="EmailAddress" class="bs-input-text" type="email" maxlength="100" />
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_introducerRelation" id="lbl_introducerRelation">Relationship</label>
+                                <input id="txt_introducerRelation" name="introducerRelation" data-introducer-field="Relationship" class="bs-input-text" maxlength="50" />
+                            </div>
+                            <div class="col">
+                                <label for="txt_introducerAddress" id="lbl_introducerAddress">Address</label>
+                                <input id="txt_introducerAddress" name="introducerAddress" data-introducer-field="Address" class="bs-input-text" />
+                            </div>
+                            <div class="col col-span-2">
+                                <label for="txt_introducerRemarks" id="lbl_introducerRemarks">Remarks</label>
+                                <input id="txt_introducerRemarks" name="introducerRemarks" data-introducer-field="Remarks" class="bs-input-text" />
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="d-flex justify-content-center gap-2 my-4">
+                        <button id="btn_newIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                        <button id="btn_alterIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="alter" disabled><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                        <button id="btn_deleteIntroducer" type="button" class="btn btn-sm btn-outline-danger" data-introducer-action="remove" disabled><i class="bi bi-trash me-1"></i>Remove</button>
+                        <button id="btn_updateIntroducer" type="button" class="btn btn-sm btn-primary" data-introducer-action="update" disabled><i class="bi bi-check2-circle me-1"></i>Update</button>
+                        <button id="btn_clearIntroducer" type="button" class="btn btn-sm btn-outline-secondary" data-introducer-action="clear" disabled>Clear</button>
+                    </div>
+
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">REGISTERED INTRODUCERS</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white mb-4">
+                        <table class="table table-sm table-hover mb-0" data-table="introducers">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Introducer Code</th>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Email</th>
+                                    <th>Relationship</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientIntroducersBody" data-introducers-body></tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="col">
-                    <label class="label-blue" for="txt_introducerContact" id="lbl_introducerContact">Contact Number</label>
-                    <input id="txt_introducerContact" name="introducerContact" data-introducer-field="ContactNumber" class="bs-input-text" maxlength="20" />
-                </div>
-                <div class="col">
-                    <label class="label-blue" for="txt_introducerEmail" id="lbl_introducerEmail">Email Address</label>
-                    <input id="txt_introducerEmail" name="introducerEmail" data-introducer-field="EmailAddress" class="bs-input-text" type="email" maxlength="100" />
-                </div>
-                <div class="col">
-                    <label class="label-blue" for="txt_introducerRelation" id="lbl_introducerRelation">Relationship</label>
-                    <input id="txt_introducerRelation" name="introducerRelation" data-introducer-field="Relationship" class="bs-input-text" maxlength="50" />
-                </div>
             </div>
-
-            <div class="form-row four-col">
-                <div class="col-6">
-                    <label for="txt_introducerAddress" id="lbl_introducerAddress">Address</label>
-                    <input id="txt_introducerAddress" name="introducerAddress" data-introducer-field="Address" class="bs-input-text" />
-                </div>
-                <div class="col-6">
-                    <label for="txt_introducerRemarks" id="lbl_introducerRemarks">Remarks</label>
-                    <input id="txt_introducerRemarks" name="introducerRemarks" data-introducer-field="Remarks" class="bs-input-text" />
-                </div>
-            </div>
-        </form>
-
-        @if (!showActionPanel)
-        {
-            <div class="d-flex justify-content-center gap-2 my-4">
-                <button id="btn_newIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-                <button id="btn_alterIntroducer" type="button" class="btn btn-sm btn-outline-primary" data-introducer-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-                <button id="btn_deleteIntroducer" type="button" class="btn btn-sm btn-outline-danger" data-introducer-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-                <button id="btn_updateIntroducer" type="button" class="btn btn-sm btn-primary" data-introducer-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-                <button id="btn_clearIntroducer" type="button" class="btn btn-sm btn-outline-secondary" data-introducer-action="clear">Clear</button>
-            </div>
-        }
-
-        <div class="section-header py-1 mb-2 bg-light border">
-            <span class="small fw-bold px-2">REGISTERED INTRODUCERS</span>
         </div>
-        <div class="table-responsive border rounded bg-white mb-4">
-            <table class="table table-sm table-hover mb-0" data-table="introducers">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-2">Introducer Code</th>
-                        <th>Name</th>
-                        <th>Contact</th>
-                        <th>Email</th>
-                        <th>Relationship</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="tbl_clientIntroducersBody" data-introducers-body></tbody>
-            </table>
-        </div>
-    </div>
+        <aside class="action-panel" aria-label="Client introducer actions">
+           
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+                <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+            </div>
+        </aside>
+
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 </div>
 
-@if (showActionPanel)
-{
-    <aside class="action-panel" aria-label="Introducer actions">
-        <div class="d-flex flex-column gap-2 mt-auto">
-            <button id="btn_newIntroducer" type="button" class="btn-action" data-introducer-action="new"><i class="bi bi-plus-lg"></i><span>New</span></button>
-            <button id="btn_alterIntroducer" type="button" class="btn-action" data-introducer-action="alter"><i class="bi bi-pencil-square"></i><span>Alter</span></button>
-            <button id="btn_deleteIntroducer" type="button" class="btn-action btn-delete" data-introducer-action="remove"><i class="bi bi-trash"></i><span>Remove</span></button>
-            <button id="btn_updateIntroducer" type="button" class="btn-action btn-save" data-introducer-action="update"><i class="bi bi-check2-circle"></i><span>Update</span></button>
-            <button id="btn_clearIntroducer" type="button" class="btn-action btn-cancel" data-introducer-action="clear"><i class="bi bi-x-circle"></i><span>Clear</span></button>
-        </div>
-    </aside>
-}
+<script>
+    window.ClientIntroducerState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: true
+    };
+</script>
 
-<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-introducer.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-introducer.js" asp-append-version="true"></script>

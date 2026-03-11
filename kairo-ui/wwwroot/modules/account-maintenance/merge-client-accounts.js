@@ -9,6 +9,8 @@
     const state = {
         branchId: moduleRoot.dataset.branchId || '',
         branchName: moduleRoot.dataset.branchName || '',
+        operatorId: moduleRoot.dataset.operatorId || '',
+        bankId: moduleRoot.dataset.bankId || '00',
         fromClientId: '',
         fromClientName: '',
         toClientId: '',
@@ -20,10 +22,12 @@
         selectedClientRow: null,
         selectedBranchRow: null,
         isBusy: false,
+        closeMode: moduleRoot.dataset.closeMode || 'window',
         clientRows: [],
         branchRows: [],
         branchRowsRaw: [],
-        hasBranchSearchRun: false
+        hasBranchSearchRun: false,
+        searchModal: null
     };
 
     const elements = {
@@ -39,6 +43,8 @@
         fromAccountsGrid: document.getElementById('fromAccountsGrid'),
         toAccountsGrid: document.getElementById('toAccountsGrid'),
         selectAllFrom: document.getElementById('selectAllFrom'),
+        fromRecordCount: document.getElementById('fromRecordCount'),
+        toRecordCount: document.getElementById('toRecordCount'),
         selectedCountDisplay: document.getElementById('selectedCountDisplay'),
         summaryBalance: document.getElementById('summaryBalance'),
         mergeReadyBadge: document.getElementById('mergeReadyBadge'),
@@ -46,39 +52,20 @@
         btnMerge: document.getElementById('btnMerge'),
         btnClear: document.getElementById('btnClear'),
         btnCancel: document.getElementById('btnCancel'),
+        localViewBtn: moduleRoot.querySelector('aside.action-panel [data-action="view"]'),
+        localMergeBtn: moduleRoot.querySelector('aside.action-panel [data-action="merge"]'),
+        localClearBtn: moduleRoot.querySelector('aside.action-panel [data-action="clear"]'),
+        localCancelBtn: moduleRoot.querySelector('aside.action-panel [data-action="cancel"]'),
         loadingOverlay: document.getElementById('loadingOverlay'),
         statusBar: document.getElementById('mergeClientAccountsStatus'),
         messagePanel: document.getElementById('amMessagePanel'),
         messagePanelText: document.getElementById('messagePanelText'),
         messagePanelIcon: document.getElementById('messagePanelIcon'),
         messagePanelClose: document.getElementById('messagePanelClose'),
-        branchSearchModal: document.getElementById('branchSearchModal'),
-        filterBranchIDOperator: document.getElementById('filterBranchIDOperator'),
-        filterBranchID: document.getElementById('filterBranchID'),
-        filterBranchNameOperator: document.getElementById('filterBranchNameOperator'),
-        filterBranchName: document.getElementById('filterBranchName'),
-        btnSearchBranches: document.getElementById('btnSearchBranches'),
-        btnClearBranchFilters: document.getElementById('btnClearBranchFilters'),
-        branchSearchResultsBody: document.getElementById('branchSearchResultsBody'),
-        btnSelectBranch: document.getElementById('btnSelectBranch'),
-        clientSearchModal: document.getElementById('clientSearchModal'),
-        filterClientID: document.getElementById('filterClientID'),
-        filterName: document.getElementById('filterName'),
-        filterIDNumber: document.getElementById('filterIDNumber'),
-        filterMobileNo: document.getElementById('filterMobileNo'),
-        filterClientApplicationID: document.getElementById('filterClientApplicationID'),
-        filterAccountID: document.getElementById('filterAccountID'),
-        filterMotherName: document.getElementById('filterMotherName'),
-        btnSearchClients: document.getElementById('btnSearchClients'),
-        btnClearFilters: document.getElementById('btnClearFilters'),
-        clientSearchResultsBody: document.getElementById('clientSearchResultsBody'),
         btnSelectClient: document.getElementById('btnSelectClient')
     };
 
-    let branchModal = null;
-    let clientModal = null;
     let messageTimer = 0;
-    const branchSearchHintText = 'select branch, click search to load';
 
     function invokeController(endpoint, requestData) {
         if (!window.AppCore || typeof window.AppCore.invokeControllerAsync !== 'function') {
@@ -86,6 +73,64 @@
         }
 
         return window.AppCore.invokeControllerAsync(endpoint, requestData || {});
+    }
+
+    function extractSearchResults(response) {
+        if (!response?.success || !response?.data) {
+            return [];
+        }
+
+        const data = response.data;
+
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        if (Array.isArray(data.Details)) {
+            return data.Details;
+        }
+
+        if (data.Details && typeof data.Details === 'object') {
+            return [data.Details];
+        }
+
+        if (Array.isArray(data.details)) {
+            return data.details;
+        }
+
+        if (Array.isArray(data.details?.SearchResults)) {
+            return data.details.SearchResults;
+        }
+
+        if (data.details?.SearchResults && typeof data.details.SearchResults === 'object') {
+            return [data.details.SearchResults];
+        }
+
+        if (Array.isArray(data.Records)) {
+            return data.Records;
+        }
+
+        if (Array.isArray(data.records)) {
+            return data.records;
+        }
+
+        return [];
+    }
+
+    async function backgroundSearch(tableID, advFilterString, whereStmt, moduleID, searchKey, ourBranchID) {
+        const response = await invokeController('SearchModal/Search', {
+            TableID: tableID,
+            WhereStmt: whereStmt || '',
+            AdvFilterString: advFilterString || '',
+            SearchKey: searchKey || '',
+            ModuleID: String(moduleID || getModuleId()),
+            PageSize: 1000,
+            RefID: '',
+            PrevOrNext: 0,
+            OurBranchID: ourBranchID || null
+        });
+
+        return extractSearchResults(response);
     }
 
     function pickValue(row, keys) {
@@ -128,7 +173,21 @@
         if (elements.loadingOverlay) {
             elements.loadingOverlay.hidden = !show;
         }
-        updateMergeButton();
+        syncActionButtons();
+    }
+
+    function hasFormState() {
+        return !!(
+            getBranchId()
+            || String(elements.branchName?.value || state.branchName || '').trim()
+            || getFromClientId()
+            || String(elements.fromClientName?.value || state.fromClientName || '').trim()
+            || getToClientId()
+            || String(elements.toClientName?.value || state.toClientName || '').trim()
+            || state.fromAccounts.length
+            || state.toAccounts.length
+            || state.selectedAccounts.size
+        );
     }
 
     function showMessage(message, type, durationMs) {
@@ -163,8 +222,65 @@
         }, durationMs || 3000);
     }
 
+    function showAlertDialog(title, message) {
+        if (window.AppCore && typeof window.AppCore.showAlert === 'function') {
+            return window.AppCore.showAlert(title || 'Alert', message || '');
+        }
+
+        if (window.AppCore && typeof window.AppCore.showDialog === 'function') {
+            return window.AppCore.showDialog({
+                type: 'alert',
+                title: title || 'Alert',
+                message: message || ''
+            });
+        }
+
+        window.alert(message || title || 'Alert');
+        return Promise.resolve(true);
+    }
+
+    function notify(message, type, options) {
+        const settings = options || {};
+        const variant = String(type || 'info').toLowerCase();
+        showMessage(message, variant, settings.durationMs);
+
+        const shouldUseDialog = settings.useDialog === true
+            || variant === 'warning'
+            || variant === 'error';
+
+        if (!shouldUseDialog) {
+            return Promise.resolve(true);
+        }
+
+        const title = settings.title
+            || (variant === 'error' ? 'Error' : variant === 'warning' ? 'Warning' : 'Information');
+
+        return showAlertDialog(title, message);
+    }
+
     function getBranchId() {
         return (elements.branchId?.value || state.branchId || '').trim();
+    }
+
+    function getOperatorId() {
+        return String(state.operatorId || moduleRoot.dataset.operatorId || '').trim();
+    }
+
+    function getBankId() {
+        return String(state.bankId || moduleRoot.dataset.bankId || '00').trim() || '00';
+    }
+
+    function getModuleId() {
+        const datasetValue = String(moduleRoot.dataset.moduleId || '').trim();
+        if (datasetValue) {
+            return datasetValue;
+        }
+
+        const queryValue = new URLSearchParams(window.location.search).get('ModuleID')
+            || new URLSearchParams(window.location.search).get('moduleId')
+            || new URLSearchParams(window.location.search).get('moduleID');
+
+        return String(queryValue || '9900').trim() || '9900';
     }
 
     function getFromClientId() {
@@ -175,29 +291,73 @@
         return (elements.toClientId?.value || state.toClientId || '').trim();
     }
 
-    function resetClientFilters() {
-        if (elements.filterClientID) elements.filterClientID.value = '';
-        if (elements.filterName) elements.filterName.value = '';
-        if (elements.filterIDNumber) elements.filterIDNumber.value = '';
-        if (elements.filterMobileNo) elements.filterMobileNo.value = '';
-        if (elements.filterClientApplicationID) elements.filterClientApplicationID.value = '';
-        if (elements.filterAccountID) elements.filterAccountID.value = '';
-        if (elements.filterMotherName) elements.filterMotherName.value = '';
-    }
-
-    function resetBranchFilters() {
-        if (elements.filterBranchIDOperator) elements.filterBranchIDOperator.value = 'Like';
-        if (elements.filterBranchID) elements.filterBranchID.value = '';
-        if (elements.filterBranchNameOperator) elements.filterBranchNameOperator.value = 'Like';
-        if (elements.filterBranchName) elements.filterBranchName.value = '';
-        state.selectedBranchRow = null;
-        if (elements.btnSelectBranch) {
-            elements.btnSelectBranch.disabled = true;
-        }
-    }
-
     function normalizeText(value) {
         return String(value || '').trim().toLowerCase();
+    }
+
+    function escapeSql(value) {
+        return String(value || '').replace(/'/g, "''");
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function buildSharedSearchContext() {
+        return {
+            prefix: 'mergeclientaccounts',
+            moduleID: getModuleId(),
+            getOperatorId: getOperatorId,
+            getOurBranchId: getBranchId,
+            getBankId: getBankId,
+            onError: function (error) {
+                console.error('[MergeClientAccounts] Search helper error:', error);
+            }
+        };
+    }
+
+    function ensureSearchModal() {
+        if (state.searchModal) {
+            return state.searchModal;
+        }
+
+        if (typeof window.SearchModal !== 'function' || !window.AppCore) {
+            return null;
+        }
+
+        state.searchModal = new window.SearchModal(window.AppCore);
+        return state.searchModal;
+    }
+
+    function showConfirmDialog(title, message) {
+        if (window.AppCore && typeof window.AppCore.showDialog === 'function') {
+            return window.AppCore.showDialog({
+                title: title || 'Confirm action',
+                message: message || '',
+                type: 'custom',
+                buttons: {
+                    list: [
+                        { label: 'Cancel', variant: 'outline-secondary', value: false },
+                        { label: 'OK', variant: 'primary', value: true }
+                    ]
+                }
+            }).then(function (result) {
+                return result === true;
+            });
+        }
+
+        if (window.AppCore && typeof window.AppCore.showConfirmation === 'function') {
+            return window.AppCore.showConfirmation(title || 'Confirm action', message || '').then(function (result) {
+                return !!result;
+            });
+        }
+
+        return Promise.resolve(window.confirm(message || title || 'Are you sure?'));
     }
 
     function isBranchFilterMatch(source, needle, operator) {
@@ -242,8 +402,12 @@
             return;
         }
 
+        if (elements.fromRecordCount) {
+            elements.fromRecordCount.textContent = state.fromAccounts.length + ' record' + (state.fromAccounts.length === 1 ? '' : 's');
+        }
+
         if (!state.fromAccounts.length) {
-            elements.fromAccountsGrid.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No records to display.</td></tr>';
+            elements.fromAccountsGrid.innerHTML = '<tr class="table-empty"><td colspan="6"><i class="bi bi-inbox" aria-hidden="true"></i><span>No records to display. Select a branch and source client.</span></td></tr>';
             updateSummary();
             return;
         }
@@ -303,8 +467,12 @@
             return;
         }
 
+        if (elements.toRecordCount) {
+            elements.toRecordCount.textContent = state.toAccounts.length + ' record' + (state.toAccounts.length === 1 ? '' : 's');
+        }
+
         if (!state.toAccounts.length) {
-            elements.toAccountsGrid.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No records to display.</td></tr>';
+            elements.toAccountsGrid.innerHTML = '<tr class="table-empty"><td colspan="5"><i class="bi bi-inbox" aria-hidden="true"></i><span>No records to display. Select a branch and target client.</span></td></tr>';
             return;
         }
 
@@ -348,6 +516,10 @@
             elements.btnMerge.disabled = !canMerge;
         }
 
+        if (elements.localMergeBtn && elements.localMergeBtn !== elements.btnMerge) {
+            elements.localMergeBtn.disabled = !canMerge;
+        }
+
         if (elements.mergeReadyBadge) {
             if (sourceId && targetId && sourceId === targetId) {
                 elements.mergeReadyBadge.textContent = 'Source and target clients must be different';
@@ -359,11 +531,57 @@
         }
     }
 
+    function syncActionButtons() {
+        const hasSelection = state.selectedAccounts.size > 0;
+        const canClear = !state.isBusy && hasFormState();
+        const canView = !state.isBusy;
+        const canCancel = !state.isBusy && hasSelection;
+
+        if (elements.btnView) {
+            elements.btnView.disabled = !canView;
+        }
+
+        if (elements.localViewBtn && elements.localViewBtn !== elements.btnView) {
+            elements.localViewBtn.disabled = !canView;
+        }
+
+        if (elements.btnClear) {
+            elements.btnClear.disabled = !canClear;
+        }
+
+        if (elements.localClearBtn && elements.localClearBtn !== elements.btnClear) {
+            elements.localClearBtn.disabled = !canClear;
+        }
+
+        if (elements.btnCancel) {
+            elements.btnCancel.disabled = !canCancel;
+        }
+
+        if (elements.localCancelBtn && elements.localCancelBtn !== elements.btnCancel) {
+            elements.localCancelBtn.disabled = !canCancel;
+        }
+
+        if (elements.btnBranchLookup) {
+            elements.btnBranchLookup.disabled = state.isBusy;
+        }
+
+        if (elements.btnFromClientLookup) {
+            elements.btnFromClientLookup.disabled = state.isBusy;
+        }
+
+        if (elements.btnToClientLookup) {
+            elements.btnToClientLookup.disabled = state.isBusy;
+        }
+
+        updateMergeButton();
+    }
+
     function applyBranch(branchId, branchName) {
         state.branchId = String(branchId || '').trim();
         state.branchName = String(branchName || '').trim();
         if (elements.branchId) elements.branchId.value = state.branchId;
         if (elements.branchName) elements.branchName.value = state.branchName;
+        syncActionButtons();
     }
 
     function applyClient(target, clientId, clientName) {
@@ -374,12 +592,12 @@
         }
 
         if (target === 'from' && normalizedClientId === getToClientId()) {
-            showMessage('Target client cannot be same as source client.', 'warning');
+            notify('Target client cannot be same as source client.', 'warning');
             return false;
         }
 
         if (target === 'to' && normalizedClientId === getFromClientId()) {
-            showMessage('Target client cannot be same as source client.', 'warning');
+            notify('Target client cannot be same as source client.', 'warning');
             return false;
         }
 
@@ -401,8 +619,17 @@
         }
 
         updateSummary();
-        updateMergeButton();
+        syncActionButtons();
         return true;
+    }
+
+    function cancelSelection() {
+        const hadSelection = state.selectedAccounts.size > 0;
+        state.selectedAccounts.clear();
+        renderFromAccounts();
+        updateSummary();
+        syncActionButtons();
+        showMessage(hadSelection ? 'Selection cleared.' : 'No selected accounts to clear.', 'info');
     }
 
     async function resolveBranchById() {
@@ -413,20 +640,31 @@
 
         showLoading(true);
         try {
-            const response = await invokeController('AccountCustomers/MergeClientAccounts/resolve-branch', {
-                branchId: branchId
-            });
+            const rows = await backgroundSearch(
+                'BranchID',
+                "BankID='" + escapeSql(getBankId()) + "'",
+                '',
+                getModuleId(),
+                {
+                    OurBranchID: { value: branchId, mode: 'equals' }
+                },
+                getBranchId()
+            );
 
-            if (!response?.success || !response.data) {
-                showMessage(response?.message || 'Branch not found.', 'warning');
+            if (!rows.length) {
+                await notify('Branch not found.', 'warning');
                 return false;
             }
 
-            applyBranch(response.data.branchId, response.data.branchName);
-            showMessage(response.message || 'Branch resolved.', 'info');
+            const row = rows[0];
+            applyBranch(
+                pickValue(row, ['OurBranchID', 'BranchID', 'SubCodeID']),
+                pickValue(row, ['BranchName', 'Description', 'Name'])
+            );
+            showMessage('Branch resolved.', 'info');
             return true;
         } catch (error) {
-            showMessage(error.message || 'Error resolving branch.', 'error');
+            await notify(error.message || 'Error resolving branch.', 'error');
             return false;
         } finally {
             showLoading(false);
@@ -439,272 +677,127 @@
             return false;
         }
 
+        const branchId = getBranchId();
+        if (!branchId) {
+            await notify('Branch ID is required before searching for clients.', 'warning');
+            return false;
+        }
+
         showLoading(true);
         try {
-            const response = await invokeController('AccountCustomers/MergeClientAccounts/resolve-client', {
-                clientId: lookupId,
-                ourBranchID: getBranchId()
-            });
+            let rows = await backgroundSearch(
+                'ClientID',
+                '',
+                "OurBranchID = '" + escapeSql(branchId) + "'",
+                getModuleId(),
+                {
+                    ClientID: { value: lookupId, mode: 'equals' }
+                },
+                branchId
+            );
 
-            if (!response?.success || !response.data) {
-                showMessage(response?.message || 'Client/Account not found.', 'warning');
+            if (!rows.length) {
+                rows = await backgroundSearch(
+                    'ClientID',
+                    '',
+                    "OurBranchID = '" + escapeSql(branchId) + "'",
+                    getModuleId(),
+                    {
+                        AccountID: { value: lookupId, mode: 'equals' }
+                    },
+                    branchId
+                );
+            }
+
+            if (!rows.length) {
+                await notify('Client/Account not found.', 'warning');
                 return false;
             }
 
-            const applied = applyClient(target, response.data.clientId, response.data.clientName);
+            const row = rows[0];
+            const applied = applyClient(
+                target,
+                pickValue(row, ['ClientID', 'ID', 'CustomerID', 'CustomerCode']),
+                pickValue(row, ['ClientName', 'Name', 'FullName'])
+            );
             if (applied) {
-                showMessage(response.message || 'Client resolved.', 'info');
+                showMessage('Client resolved.', 'info');
             }
             return applied;
         } catch (error) {
-            showMessage(error.message || 'Error resolving client/account.', 'error');
+            await notify(error.message || 'Error resolving client/account.', 'error');
             return false;
         } finally {
             showLoading(false);
         }
     }
 
-    function renderBranchSearchResults(rows) {
-        if (!elements.branchSearchResultsBody) {
+    async function openBranchModal() {
+        const searchModal = ensureSearchModal();
+        if (!searchModal) {
+            notify('Search modal is not available.', 'error');
             return;
         }
 
-        state.selectedBranchRow = null;
-        if (elements.btnSelectBranch) {
-            elements.btnSelectBranch.disabled = true;
-        }
-
-        if (!rows.length) {
-            elements.branchSearchResultsBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No branches found.</td></tr>';
-            return;
-        }
-
-        elements.branchSearchResultsBody.innerHTML = rows.map((row, index) => {
-            const branchId = String(pickValue(row, ['BranchID', 'OurBranchID', 'SubCodeID']) || '-');
-            const branchName = String(pickValue(row, ['BranchName', 'Description', 'Name']) || '-');
-            return '<tr data-index="' + index + '"><td>' + (index + 1) + '</td><td>' + branchId + '</td><td>' + branchName + '</td></tr>';
-        }).join('');
-
-        elements.branchSearchResultsBody.querySelectorAll('tr[data-index]').forEach((row) => {
-            row.addEventListener('click', () => {
-                elements.branchSearchResultsBody.querySelectorAll('tr').forEach((item) => item.classList.remove('selected'));
-                row.classList.add('selected');
-                state.selectedBranchRow = rows[Number(row.dataset.index)];
-                if (elements.btnSelectBranch) elements.btnSelectBranch.disabled = false;
-            });
-
-            row.addEventListener('dblclick', () => {
-                state.selectedBranchRow = rows[Number(row.dataset.index)];
-                selectBranchFromModal();
-            });
-        });
-    }
-
-    function renderBranchSearchPrompt(message) {
-        if (!elements.branchSearchResultsBody) {
-            return;
-        }
-
-        state.selectedBranchRow = null;
-        if (elements.btnSelectBranch) {
-            elements.btnSelectBranch.disabled = true;
-        }
-
-        elements.branchSearchResultsBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">'
-            + (message || branchSearchHintText) + '</td></tr>';
-    }
-
-    function applyBranchFiltersToCurrentResults() {
-        const branchIdFilter = elements.filterBranchID?.value || '';
-        const branchNameFilter = elements.filterBranchName?.value || '';
-        const branchIdOperator = elements.filterBranchIDOperator?.value || 'Like';
-        const branchNameOperator = elements.filterBranchNameOperator?.value || 'Like';
-
-        if (!state.hasBranchSearchRun) {
-            renderBranchSearchPrompt(branchSearchHintText);
-            updateStatusBar(branchSearchHintText);
-            return;
-        }
-
-        const filteredRows = filterBranchRows(state.branchRowsRaw, branchIdFilter, branchNameFilter, branchIdOperator, branchNameOperator);
-
-        state.branchRows = filteredRows;
-
-        if (!state.branchRowsRaw.length && !branchIdFilter && !branchNameFilter) {
-            renderBranchSearchPrompt(branchSearchHintText);
-            updateStatusBar(branchSearchHintText);
-            return;
-        }
-
-        renderBranchSearchResults(filteredRows);
-        if (!filteredRows.length) {
-            updateStatusBar('No details Found [No:1011]');
-            return;
-        }
-
-        updateStatusBar('Found ' + filteredRows.length + ' branch(s)');
-    }
-
-    async function searchBranches() {
-        showLoading(true);
         try {
-            const branchIdFilter = elements.filterBranchID?.value || '';
-            const branchNameFilter = elements.filterBranchName?.value || '';
-            const branchIdOperator = elements.filterBranchIDOperator?.value || 'Like';
-            const branchNameOperator = elements.filterBranchNameOperator?.value || 'Like';
-
-            state.hasBranchSearchRun = true;
-            const response = await invokeController('AccountCustomers/MergeClientAccounts/search-branches', {
-                branchID: branchIdFilter,
-                branchName: branchNameFilter
+            await searchModal.open({
+                tableID: 'BranchID',
+                moduleID: getModuleId(),
+                pageSize: 1000,
+                advFilterString: "BankID='" + escapeSql(getBankId()) + "'",
+                whereStmt: '',
+                searchKey: '',
+                onSelect: function (row) {
+                    applyBranch(
+                        pickValue(row, ['BranchID', 'OurBranchID', 'SubCodeID']),
+                        pickValue(row, ['BranchName', 'Description', 'Name'])
+                    );
+                    showMessage('Branch selected.', 'info');
+                }
             });
-
-            const serverRows = response?.success && Array.isArray(response.data) ? response.data : [];
-            state.branchRowsRaw = serverRows;
-            state.branchRows = filterBranchRows(serverRows, branchIdFilter, branchNameFilter, branchIdOperator, branchNameOperator);
-            renderBranchSearchResults(state.branchRows);
-
-            if (!state.branchRows.length) {
-                updateStatusBar('No details Found [No:1011]');
-            } else {
-                updateStatusBar('Found ' + state.branchRows.length + ' branch(s)');
-            }
         } catch (error) {
-            updateStatusBar('Error searching branches');
-            showMessage(error.message || 'Error searching branches.', 'error');
-        } finally {
-            showLoading(false);
+            console.error('[MergeClientAccounts] Branch lookup error:', error);
+            notify(error.message || 'Error opening branch search.', 'error');
         }
     }
 
-    function selectBranchFromModal() {
-        if (!state.selectedBranchRow) {
+    async function openClientModal(target) {
+        const branchId = getBranchId();
+        if (!branchId) {
+            notify('Branch ID is required before searching for clients.', 'warning');
             return;
         }
 
-        applyBranch(
-            pickValue(state.selectedBranchRow, ['BranchID', 'OurBranchID', 'SubCodeID']),
-            pickValue(state.selectedBranchRow, ['BranchName', 'Description', 'Name'])
-        );
-
-        if (branchModal) {
-            branchModal.hide();
-        }
-    }
-
-    function renderClientSearchResults(rows) {
-        if (!elements.clientSearchResultsBody) {
+        const searchModal = ensureSearchModal();
+        if (!searchModal) {
+            notify('Search modal is not available.', 'error');
             return;
         }
 
-        if (!rows.length) {
-            elements.clientSearchResultsBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No clients found.</td></tr>';
-            if (elements.btnSelectClient) elements.btnSelectClient.disabled = true;
-            return;
-        }
-
-        elements.clientSearchResultsBody.innerHTML = rows.map((row, index) => {
-            const clientId = String(pickValue(row, ['ClientID', 'ID', 'CustomerID', 'CustomerCode']) || '-');
-            const name = String(pickValue(row, ['Name', 'ClientName', 'FullName']) || '-');
-            const idNo = String(pickValue(row, ['IDNumber', 'NationalID']) || '-');
-            const appId = String(pickValue(row, ['ApplicationID', 'ClientApplicationID']) || '-');
-            const clientType = String(pickValue(row, ['ClientTypeID', 'ClientType']) || '-');
-            return '<tr data-index="' + index + '"><td>' + clientId + '</td><td>' + name + '</td><td>' + idNo + '</td><td>' + appId + '</td><td>' + clientType + '</td></tr>';
-        }).join('');
-
-        elements.clientSearchResultsBody.querySelectorAll('tr[data-index]').forEach((row) => {
-            row.addEventListener('click', () => {
-                elements.clientSearchResultsBody.querySelectorAll('tr').forEach((item) => item.classList.remove('selected'));
-                row.classList.add('selected');
-                state.selectedClientRow = rows[Number(row.dataset.index)];
-                if (elements.btnSelectClient) elements.btnSelectClient.disabled = false;
-            });
-
-            row.addEventListener('dblclick', () => {
-                state.selectedClientRow = rows[Number(row.dataset.index)];
-                selectClientFromModal();
-            });
-        });
-    }
-
-    async function searchClients() {
-        showLoading(true);
         try {
-            const response = await invokeController('AccountCustomers/MergeClientAccounts/search-clients', {
-                ourBranchID: getBranchId(),
-                clientID: elements.filterClientID?.value || '',
-                name: elements.filterName?.value || '',
-                idNumber: elements.filterIDNumber?.value || '',
-                mobileNo: elements.filterMobileNo?.value || '',
-                clientApplicationID: elements.filterClientApplicationID?.value || '',
-                accountID: elements.filterAccountID?.value || '',
-                motherName: elements.filterMotherName?.value || ''
+            await searchModal.open({
+                tableID: 'ClientID',
+                moduleID: getModuleId(),
+                pageSize: 1000,
+                whereStmt: "OurBranchID = '" + escapeSql(branchId) + "'",
+                advFilterString: '',
+                searchKey: '',
+                ourbranchId: branchId,
+                onSelect: function (row) {
+                    const clientId = String(pickValue(row, ['ClientID', 'ID', 'CustomerID', 'CustomerCode']) || '').trim();
+                    const clientName = String(pickValue(row, ['ClientName', 'Name', 'FullName']) || '').trim();
+                    if (!clientId) {
+                        notify('Selected record does not contain Client ID.', 'warning');
+                        return;
+                    }
+
+                    applyClient(target, clientId, clientName);
+                    showMessage('Client selected.', 'info');
+                }
             });
-
-            state.clientRows = response?.success && Array.isArray(response.data) ? response.data : [];
-            renderClientSearchResults(state.clientRows);
-            updateStatusBar(response?.message || ('Found ' + state.clientRows.length + ' clients'));
         } catch (error) {
-            showMessage(error.message || 'Error searching clients.', 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    async function selectClientFromModal() {
-        if (!state.selectedClientRow) {
-            return;
-        }
-
-        const selectedClientId = String(pickValue(state.selectedClientRow, ['ClientID', 'ID', 'CustomerID', 'CustomerCode']) || '').trim();
-        const selectedClientName = String(pickValue(state.selectedClientRow, ['Name', 'ClientName', 'FullName']) || '').trim();
-
-        if (selectedClientId) {
-            const applied = applyClient(state.searchTarget, selectedClientId, selectedClientName);
-            if (!applied) {
-                return;
-            }
-            if (clientModal) {
-                clientModal.hide();
-            }
-            return;
-        }
-
-        const accountId = String(pickValue(state.selectedClientRow, ['AccountID', 'ID']) || '').trim();
-        if (accountId) {
-            const appliedFromResolve = await resolveClientByInput(state.searchTarget, accountId);
-            if (appliedFromResolve && clientModal) {
-                clientModal.hide();
-            }
-            return;
-        }
-
-        showMessage('Selected record does not contain Client/Account ID.', 'warning');
-    }
-
-    function openBranchModal() {
-        state.selectedBranchRow = null;
-        state.branchRows = [];
-        state.branchRowsRaw = [];
-        state.hasBranchSearchRun = false;
-        resetBranchFilters();
-        renderBranchSearchPrompt(branchSearchHintText);
-        updateStatusBar(branchSearchHintText);
-        if (branchModal) {
-            branchModal.show();
-        }
-    }
-
-    function openClientModal(target) {
-        state.searchTarget = target;
-        state.selectedClientRow = null;
-        resetClientFilters();
-        renderClientSearchResults([]);
-        if (clientModal) {
-            clientModal.show();
-            window.setTimeout(() => {
-                searchClients();
-            }, 100);
+            console.error('[MergeClientAccounts] Client lookup error:', error);
+            notify(error.message || 'Error opening client search.', 'error');
         }
     }
 
@@ -714,17 +807,17 @@
         const toClientId = getToClientId();
 
         if (!branchId) {
-            showMessage('Branch ID is required.', 'warning');
+            notify('Branch ID is required.', 'warning');
             return;
         }
 
         if (!fromClientId || !toClientId) {
-            showMessage('Source and target Client/Account IDs are required.', 'warning');
+            notify('Source and target Client/Account IDs are required.', 'warning');
             return;
         }
 
         if (fromClientId === toClientId) {
-            showMessage('Source and target clients must be different.', 'warning');
+            notify('Source and target clients must be different.', 'warning');
             return;
         }
 
@@ -739,7 +832,7 @@
             });
 
             if (!response?.success || !response.data) {
-                showMessage(response?.message || 'Unable to load accounts.', 'warning');
+                await notify(response?.message || 'Unable to load accounts.', 'warning');
                 return;
             }
 
@@ -755,10 +848,13 @@
             renderFromAccounts();
             renderToAccounts();
             updateSummary();
-            updateMergeButton();
-            showMessage(response.message || 'Accounts loaded.', 'info');
+            syncActionButtons();
+            showMessage(
+                'Loaded ' + state.fromAccounts.length + ' source account(s) and ' + state.toAccounts.length + ' target account(s).',
+                'info'
+            );
         } catch (error) {
-            showMessage(error.message || 'Error loading accounts.', 'error');
+            await notify(error.message || 'Error loading accounts.', 'error');
         } finally {
             showLoading(false);
         }
@@ -766,14 +862,14 @@
 
     async function mergeAccounts() {
         if (state.selectedAccounts.size === 0) {
-            showMessage('Select at least one source account.', 'warning');
+            await notify('Select at least one source account.', 'warning');
             return;
         }
 
         const fromClientId = getFromClientId();
         const toClientId = getToClientId();
         if (!fromClientId || !toClientId || fromClientId === toClientId) {
-            showMessage('Source and target clients must be different.', 'warning');
+            await notify('Source and target clients must be different.', 'warning');
             return;
         }
 
@@ -782,7 +878,7 @@
             selectedAccountIds.push(String(pickValue(state.fromAccounts[index], ['AccountID', 'ID']) || ''));
         });
 
-        const confirmed = window.confirm('Are you sure you want to merge the selected accounts? This action cannot be undone.');
+        const confirmed = await showConfirmDialog('Confirm merge', 'Are you sure you want to merge the selected accounts? This action cannot be undone.');
         if (!confirmed) {
             return;
         }
@@ -800,14 +896,14 @@
             });
 
             if (!response?.success) {
-                showMessage(response?.message || 'Merge failed.', 'error');
+                await notify(response?.message || 'Merge failed.', 'error');
                 return;
             }
 
             showMessage(response.message || 'Merge completed successfully.', 'success');
             await handleView();
         } catch (error) {
-            showMessage(error.message || 'Error merging accounts.', 'error');
+            await notify(error.message || 'Error merging accounts.', 'error');
         } finally {
             showLoading(false);
         }
@@ -830,7 +926,7 @@
         renderFromAccounts();
         renderToAccounts();
         updateSummary();
-        updateMergeButton();
+        syncActionButtons();
         showMessage('Form cleared.', 'info');
     }
 
@@ -839,34 +935,24 @@
         elements.btnFromClientLookup?.addEventListener('click', () => openClientModal('from'));
         elements.btnToClientLookup?.addEventListener('click', () => openClientModal('to'));
 
-        elements.btnSearchBranches?.addEventListener('click', searchBranches);
-        elements.btnClearBranchFilters?.addEventListener('click', () => {
-            resetBranchFilters();
-            if (state.branchRowsRaw.length) {
-                state.hasBranchSearchRun = true;
-                state.branchRows = state.branchRowsRaw.slice();
-                renderBranchSearchResults(state.branchRows);
-                updateStatusBar('Found ' + state.branchRows.length + ' branch(s)');
-            } else {
-                state.hasBranchSearchRun = false;
-                renderBranchSearchPrompt(branchSearchHintText);
-                updateStatusBar(branchSearchHintText);
-            }
+        elements.localViewBtn?.addEventListener('click', handleView);
+        elements.localMergeBtn?.addEventListener('click', mergeAccounts);
+        elements.localClearBtn?.addEventListener('click', clearForm);
+        elements.localCancelBtn?.addEventListener('click', cancelSelection);
+
+        elements.branchId?.addEventListener('input', () => {
+            state.branchId = String(elements.branchId?.value || '').trim();
+            syncActionButtons();
         });
-        elements.btnSelectBranch?.addEventListener('click', selectBranchFromModal);
 
-        elements.btnSearchClients?.addEventListener('click', searchClients);
-        elements.btnClearFilters?.addEventListener('click', resetClientFilters);
-        elements.btnSelectClient?.addEventListener('click', selectClientFromModal);
+        elements.fromClientId?.addEventListener('input', () => {
+            state.fromClientId = String(elements.fromClientId?.value || '').trim();
+            syncActionButtons();
+        });
 
-        elements.btnView?.addEventListener('click', handleView);
-        elements.btnMerge?.addEventListener('click', mergeAccounts);
-        elements.btnClear?.addEventListener('click', clearForm);
-        elements.btnCancel?.addEventListener('click', () => {
-            state.selectedAccounts.clear();
-            renderFromAccounts();
-            updateSummary();
-            updateMergeButton();
+        elements.toClientId?.addEventListener('input', () => {
+            state.toClientId = String(elements.toClientId?.value || '').trim();
+            syncActionButtons();
         });
 
         elements.branchId?.addEventListener('keydown', (event) => {
@@ -899,54 +985,7 @@
             }
             renderFromAccounts();
             updateSummary();
-            updateMergeButton();
-        });
-
-        elements.filterBranchID?.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                searchBranches();
-            }
-        });
-
-        elements.filterBranchName?.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                searchBranches();
-            }
-        });
-
-        elements.filterBranchIDOperator?.addEventListener('change', () => {
-            applyBranchFiltersToCurrentResults();
-        });
-
-        elements.filterBranchNameOperator?.addEventListener('change', () => {
-            applyBranchFiltersToCurrentResults();
-        });
-
-        elements.filterBranchID?.addEventListener('input', () => {
-            applyBranchFiltersToCurrentResults();
-        });
-
-        elements.filterBranchName?.addEventListener('input', () => {
-            applyBranchFiltersToCurrentResults();
-        });
-
-        [
-            elements.filterClientID,
-            elements.filterName,
-            elements.filterIDNumber,
-            elements.filterMobileNo,
-            elements.filterClientApplicationID,
-            elements.filterAccountID,
-            elements.filterMotherName
-        ].forEach((input) => {
-            input?.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    searchClients();
-                }
-            });
+            syncActionButtons();
         });
 
         elements.messagePanelClose?.addEventListener('click', () => {
@@ -969,25 +1008,40 @@
         document.querySelectorAll('.am-header [data-action="refresh"]').forEach((button) => {
             button.addEventListener('click', () => window.location.reload());
         });
-    }
 
-    function initModals() {
-        if (window.bootstrap && elements.branchSearchModal) {
-            branchModal = new window.bootstrap.Modal(elements.branchSearchModal);
-        }
+        document.querySelectorAll('#mergeClientAccountsModule [data-section-toggle]').forEach((toggle) => {
+            toggle.addEventListener('click', (event) => {
+                const trigger = event.currentTarget;
+                const section = trigger.closest('.form-section');
+                const content = section ? section.querySelector('[data-section-content]') || section.querySelector('.section-content') : null;
+                const icon = trigger.querySelector('.section-toggle-btn i') || trigger.querySelector('i.bi-chevron-up, i.bi-chevron-down');
+                const button = trigger.classList.contains('section-toggle-btn') ? trigger : trigger.querySelector('.section-toggle-btn');
 
-        if (window.bootstrap && elements.clientSearchModal) {
-            clientModal = new window.bootstrap.Modal(elements.clientSearchModal);
-        }
+                if (!content) {
+                    return;
+                }
+
+                const willExpand = content.style.display === 'none';
+                content.style.display = willExpand ? 'block' : 'none';
+
+                if (icon) {
+                    icon.className = willExpand ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+                }
+
+                if (button) {
+                    button.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+                }
+            });
+        });
     }
 
     function init() {
-        initModals();
+        ensureSearchModal();
         wireEvents();
         renderFromAccounts();
         renderToAccounts();
         updateSummary();
-        updateMergeButton();
+        syncActionButtons();
         updateStatusBar('Ready');
     }
 

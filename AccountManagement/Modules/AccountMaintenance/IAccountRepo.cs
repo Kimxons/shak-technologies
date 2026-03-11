@@ -115,6 +115,12 @@ namespace AccountManagement.Modules.AccountMaintenance
         public Task<ResponseDetail<object>> GetAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
         public Task<ResponseDetail<object>> AddAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
         public Task<ResponseDetail<object>> EditAccountSignatories(string requestJson, CancellationToken cancellationToken = default);
+        
+        // Account card maintenance operations
+        public Task<ResponseDetail<object>> GetAccountCard(string requestJson, CancellationToken cancellationToken = default);
+        public Task<ResponseDetail<object>> AddAccountCard(string requestJson, CancellationToken cancellationToken = default);
+        public Task<ResponseDetail<object>> UpdateAccountCard(string requestJson, CancellationToken cancellationToken = default);
+        public Task<ResponseDetail<object>> DeleteAccountCard(string requestJson, CancellationToken cancellationToken = default);
 
 
         // Generic routed execution (whitelisted procedures only)

@@ -70,7 +70,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
                 _logger.LogInformation("client-maintenance.submit.create request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_SUBMISSION, requestData);
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_SUBMISSION, requestData!);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -108,7 +108,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
                 _logger.LogInformation("client-maintenance.submit.delete request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_SUBMISSION, requestData);
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_SUBMISSION, requestData!);
                 return Ok(response);
             }
             catch (Exception ex)

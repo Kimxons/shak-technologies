@@ -1,7 +1,119 @@
 const CM_BANK_ACCOUNTS_BASE = 'Identities/ClientMaintenance/BankAccounts';
 
+function getBankAccountsAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getBankAccountsClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getBankAccountsSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getBankAccountsParentContext() {
+    const maintenanceCore = getBankAccountsClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getBankAccountsSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toBankAccountsString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function firstNonEmptyBankAccountsString(...values) {
+    for (const value of values) {
+        const normalized = toBankAccountsString(value);
+        if (normalized) {
+            return normalized;
+        }
+    }
+
+    return '';
+}
+
+function getBankAccountsViewState() {
+    return window.ClientBankAccountsState || {};
+}
+
+function resolveBankAccountsContext(requestData, fallbackModuleId) {
+    const viewState = getBankAccountsViewState();
+    const parentContext = getBankAccountsParentContext() || {};
+    const maintenanceCore = getBankAccountsClientMaintenanceCore();
+
+    const moduleId = firstNonEmptyBankAccountsString(
+        requestData?.ModuleID,
+        fallbackModuleId,
+        maintenanceCore?.moduleId,
+        parentContext.moduleId,
+        viewState.ModuleID
+    );
+
+    const clientId = firstNonEmptyBankAccountsString(
+        requestData?.ClientID,
+        maintenanceCore?.getClientId?.(),
+        maintenanceCore?.clientId,
+        parentContext.clientId,
+        viewState.ClientID
+    );
+
+    const requestId = firstNonEmptyBankAccountsString(
+        requestData?.RequestID,
+        maintenanceCore?.getRequestId?.(),
+        maintenanceCore?.requestId,
+        parentContext.requestId,
+        viewState.RequestID
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId,
+        AutoLoad: Boolean(viewState.AutoLoad),
+        IsStandalone: Boolean(viewState.IsStandalone)
+    };
+}
+
+function shouldAutoLoadStandaloneBankAccounts(context) {
+    return Boolean(context?.IsStandalone && (context?.ClientID || context?.RequestID));
+}
+
 function invokeClientMaintenanceBankAccounts(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_BANK_ACCOUNTS_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getBankAccountsClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_BANK_ACCOUNTS_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getBankAccountsAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_BANK_ACCOUNTS_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Bank accounts controller invocation is not available.'));
 }
 
 window.ClientMaintenanceBankAccountsService = {
@@ -11,13 +123,153 @@ window.ClientMaintenanceBankAccountsService = {
     delete: (requestData) => invokeClientMaintenanceBankAccounts('delete', requestData)
 };
 
-window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
+function showBankAccountsToast(message, type = 'info') {
+    const maintenanceCore = getBankAccountsClientMaintenanceCore();
+    if (maintenanceCore?.showToast) {
+        maintenanceCore.showToast(message, type);
+        return;
+    }
+
+    if (window.NotificationService?.showToast) {
+        window.NotificationService.showToast(message, type, 4000);
+        return;
+    }
+
+    console.log(`[${type}] ${message}`);
+}
+
+async function requestBankAccountsConfirmation(title, message) {
+    const appCore = getBankAccountsAppCore();
+    if (appCore?.showConfirmation) {
+        return Boolean(await appCore.showConfirmation(title, message));
+    }
+
+    return window.confirm(message);
+}
+
+function getBankAccountsResponseCode(response) {
+    return toBankAccountsString(response?.ResponseCode ?? response?.responseCode);
+}
+
+function getBankAccountsResponseMessage(response, fallbackMessage) {
+    return response?.ResponseMessage ??
+        response?.responseMessage ??
+        response?.Message ??
+        response?.message ??
+        response?.ErrorMessage ??
+        response?.errorMessage ??
+        fallbackMessage;
+}
+
+function isBankAccountsResponseSuccess(response) {
+    const successFlag = response?.Success ?? response?.success;
+    if (typeof successFlag === 'boolean') {
+        return successFlag;
+    }
+
+    const responseCode = getBankAccountsResponseCode(response).toUpperCase();
+    if (responseCode) {
+        return responseCode === '000' || responseCode === '00' || responseCode === 'SUCCESS';
+    }
+
+    return true;
+}
+
+function isBankAccountsNoDataResponse(response) {
+    const responseCode = getBankAccountsResponseCode(response).toUpperCase();
+    const responseMessage = toBankAccountsString(getBankAccountsResponseMessage(response, ''));
+    return responseCode === 'DBEX000020' || /do not exist/i.test(responseMessage);
+}
+
+function closeBankAccountsView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientBankAccounts' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientBankAccounts' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientBankAccounts' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientBankAccounts' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    }
+}
+
+function bindBankAccountsActionPanel(tabRoot) {
     if (!tabRoot) return;
+
+    const actionScope =
+        tabRoot.closest('.window') ||
+        tabRoot.closest('[data-cm-layout="client-bank-accounts"]') ||
+        tabRoot.parentElement ||
+        tabRoot;
+
+    if (!actionScope || actionScope.dataset.cmBankAccountsActionDelegated === 'true') return;
+    actionScope.dataset.cmBankAccountsActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof tabRoot._cmRefreshData === 'function') {
+            await tabRoot._cmRefreshData();
+        }
+    };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closeBankAccountsView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closeBankAccountsView();
+    });
+}
+
+window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
+    if (!tabRoot || tabRoot.dataset.cmBankAccountsInitialized === 'true') return;
+    tabRoot.dataset.cmBankAccountsInitialized = 'true';
+
+    const configuredModuleId = toBankAccountsString(moduleId || getBankAccountsViewState().ModuleID);
+    const initialContext = resolveBankAccountsContext(null, configuredModuleId);
 
     const state = {
         accounts: [],
         selectedAccount: null,
-        mode: 'view'
+        mode: 'view',
+        lastContext: { ...initialContext },
+        initialLoadApplied: false,
+        autoLoadInFlight: false
     };
 
     const form = tabRoot.querySelector('[data-bankaccounts-form]');
@@ -188,52 +440,74 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
         const clearBtn = tabRoot.querySelector('[data-bankaccount-action="clear"]');
 
         const fields = form?.querySelectorAll('input:not([type="hidden"]), select, textarea');
-        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+        const isEditing = mode === 'add' || mode === 'edit';
+        const hasSelection = Boolean(state.selectedAccount);
 
-        if (!allowEdit) {
-            fields?.forEach(f => f.disabled = true);
-            if (newBtn) newBtn.disabled = true;
-            if (alterBtn) alterBtn.disabled = true;
-            if (removeBtn) removeBtn.disabled = true;
-            if (updateBtn) updateBtn.disabled = true;
-            if (clearBtn) clearBtn.disabled = true;
-            return;
-        }
+        fields?.forEach((field) => {
+            field.disabled = !isEditing;
+            if (field.matches('input:not([type="checkbox"]), textarea')) {
+                field.readOnly = !isEditing;
+            }
+        });
 
-        if (mode === 'view') {
-            fields?.forEach(f => f.disabled = true);
-            if (newBtn) newBtn.disabled = false;
-            if (alterBtn) alterBtn.disabled = !state.selectedAccount;
-            if (removeBtn) removeBtn.disabled = !state.selectedAccount;
-            if (updateBtn) updateBtn.disabled = true;
-            if (clearBtn) clearBtn.disabled = false;
-        } else if (mode === 'add' || mode === 'edit') {
-            fields?.forEach(f => f.disabled = false);
-            if (newBtn) newBtn.disabled = true;
-            if (alterBtn) alterBtn.disabled = true;
-            if (removeBtn) removeBtn.disabled = true;
-            if (updateBtn) updateBtn.disabled = false;
-            if (clearBtn) clearBtn.disabled = false;
-        }
+        ['#txt_bankCode', '#txt_bankName', '#txt_branchCode', '#txt_branchName'].forEach((selector) => {
+            const field = form?.querySelector(selector);
+            if (field) {
+                field.readOnly = true;
+            }
+        });
+
+        tabRoot.querySelectorAll('[data-bankaccount-action="lookup-bank"], [data-bankaccount-action="lookup-branch"]').forEach((button) => {
+            button.disabled = !isEditing;
+        });
+
+        if (newBtn) newBtn.disabled = hasSelection || isEditing;
+        if (alterBtn) alterBtn.disabled = !hasSelection || isEditing;
+        if (removeBtn) removeBtn.disabled = !hasSelection || isEditing;
+        if (updateBtn) updateBtn.disabled = !isEditing;
+        if (clearBtn) clearBtn.disabled = !isEditing;
     };
 
-    const refreshTable = async (requestData) => {
-        try {
-            const response = await window.ClientMaintenanceBankAccountsService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                ClientID: requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '',
-                RequestID: requestData?.RequestID || window.ClientMaintenanceCore?.requestId || ''
-            });
+    const refreshTable = async (requestData = {}, refreshOptions = {}) => {
+        const context = resolveBankAccountsContext(requestData, configuredModuleId);
+        state.lastContext = { ...state.lastContext, ...context };
 
-            const accounts = extractAccounts(response);
-            state.accounts = accounts;
-            renderTable(accounts);
-            setFormState('view');
-        } catch (error) {
-            console.error('Bank Accounts load failed:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Failed to load bank accounts - ${error.message}`, 'error');
+        clearForm();
+        setFormState('view');
+
+        if (!context.ClientID && !context.RequestID) {
             state.accounts = [];
             renderTable([]);
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+            return [];
+        }
+
+        try {
+            const response = await window.ClientMaintenanceBankAccountsService.get({
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID
+            });
+
+            if (!isBankAccountsResponseSuccess(response) && !isBankAccountsNoDataResponse(response)) {
+                throw new Error(getBankAccountsResponseMessage(response, 'Unable to load bank account details.'));
+            }
+
+            const accounts = isBankAccountsNoDataResponse(response) ? [] : extractAccounts(response);
+            state.accounts = accounts;
+            renderTable(accounts);
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+            return accounts;
+        } catch (error) {
+            console.error('Bank Accounts load failed:', error);
+            showBankAccountsToast(`Failed to load bank accounts - ${error.message}`, 'error');
+            state.accounts = [];
+            renderTable([]);
+            return [];
         }
     };
 
@@ -257,12 +531,12 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
     const handleNew = () => {
         clearForm();
         setFormState('add');
-        window.ClientMaintenanceCore?.showToast('Enter new bank account details', 'info');
+        showBankAccountsToast('Enter new bank account details', 'info');
     };
 
     const handleAlter = () => {
         if (!state.selectedAccount) {
-            window.ClientMaintenanceCore?.showToast('Please select a bank account to edit', 'warning');
+            showBankAccountsToast('Please select a bank account to edit', 'warning');
             return;
         }
         setFormState('edit');
@@ -270,36 +544,37 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
 
     const handleRemove = async () => {
         if (!state.selectedAccount) {
-            window.ClientMaintenanceCore?.showToast('Please select a bank account to remove', 'warning');
+            showBankAccountsToast('Please select a bank account to remove', 'warning');
             return;
         }
 
-        const confirmed = await window.ClientMaintenanceCore?.showDialog(
+        const confirmed = await requestBankAccountsConfirmation(
             'Delete Bank Account',
-            'Are you sure you want to delete this bank account?',
-            'YesNo'
+            'Are you sure you want to delete this bank account?'
         );
 
         if (!confirmed) return;
 
+        const context = resolveBankAccountsContext(state.lastContext, configuredModuleId);
+
         try {
             const response = await window.ClientMaintenanceBankAccountsService.delete({
-                ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                ClientID: window.ClientMaintenanceCore?.clientId || '',
-                RequestID: window.ClientMaintenanceCore?.requestId || '',
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID,
                 ID: state.selectedAccount.ID || state.selectedAccount.BankAccountID
             });
 
-            if (response?.ResponseCode === '00' || response?.responseCode === '00') {
-                window.ClientMaintenanceCore?.showToast('Bank account deleted successfully', 'success');
+            if (isBankAccountsResponseSuccess(response)) {
+                showBankAccountsToast('Bank account deleted successfully', 'success');
                 clearForm();
                 await refreshTable({});
             } else {
-                window.ClientMaintenanceCore?.showToast(response?.ResponseMessage || response?.message || 'Delete failed', 'error');
+                showBankAccountsToast(getBankAccountsResponseMessage(response, 'Delete failed'), 'error');
             }
         } catch (error) {
             console.error('Delete bank account error:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Delete failed - ${error.message}`, 'error');
+            showBankAccountsToast(`Delete failed - ${error.message}`, 'error');
         }
     };
 
@@ -307,42 +582,43 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
         if (!validateForm()) return;
 
         const formData = getFormData();
+        const context = resolveBankAccountsContext(state.lastContext, configuredModuleId);
 
         try {
             let response;
 
             if (state.mode === 'add') {
                 response = await window.ClientMaintenanceBankAccountsService.create({
-                    ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                    ClientID: window.ClientMaintenanceCore?.clientId || '',
-                    RequestID: window.ClientMaintenanceCore?.requestId || '',
+                    ModuleID: context.ModuleID,
+                    ClientID: context.ClientID,
+                    RequestID: context.RequestID,
                     ...formData
                 });
             } else if (state.mode === 'edit') {
                 response = await window.ClientMaintenanceBankAccountsService.update({
-                    ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                    ClientID: window.ClientMaintenanceCore?.clientId || '',
-                    RequestID: window.ClientMaintenanceCore?.requestId || '',
+                    ModuleID: context.ModuleID,
+                    ClientID: context.ClientID,
+                    RequestID: context.RequestID,
                     ...formData
                 });
             }
 
-            if (response?.ResponseCode === '00' || response?.responseCode === '00') {
-                window.ClientMaintenanceCore?.showToast(
+            if (isBankAccountsResponseSuccess(response)) {
+                showBankAccountsToast(
                     `Bank account ${state.mode === 'add' ? 'created' : 'updated'} successfully`,
                     'success'
                 );
                 clearForm();
                 await refreshTable({});
             } else {
-                window.ClientMaintenanceCore?.showToast(
-                    response?.ResponseMessage || response?.message || 'Update failed',
+                showBankAccountsToast(
+                    getBankAccountsResponseMessage(response, 'Update failed'),
                     'error'
                 );
             }
         } catch (error) {
             console.error('Update bank account error:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Update failed - ${error.message}`, 'error');
+            showBankAccountsToast(`Update failed - ${error.message}`, 'error');
         }
     };
 
@@ -353,11 +629,16 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
 
     const handleLookupBank = () => {
         if (state.mode === 'view') {
-            window.ClientMaintenanceCore?.showToast('Click "New" or "Alter" to search for banks', 'info');
+            showBankAccountsToast('Click "New" or "Alter" to search for banks', 'info');
             return;
         }
 
-        window.ClientMaintenanceCore?.openSearchModal({
+        const maintenanceCore = getBankAccountsClientMaintenanceCore();
+        if (typeof maintenanceCore?.openSearchModal !== 'function') {
+            return;
+        }
+
+        maintenanceCore.openSearchModal({
             searchType: 'Bank',
             title: 'Search Bank',
             onSelect: (selected) => {
@@ -371,17 +652,22 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
 
     const handleLookupBranch = () => {
         if (state.mode === 'view') {
-            window.ClientMaintenanceCore?.showToast('Click "New" or "Alter" to search for branches', 'info');
+            showBankAccountsToast('Click "New" or "Alter" to search for branches', 'info');
             return;
         }
 
         const bankCode = getFieldValue('txt_bankCode');
         if (!bankCode) {
-            window.ClientMaintenanceCore?.showToast('Please select a bank first', 'warning');
+            showBankAccountsToast('Please select a bank first', 'warning');
             return;
         }
 
-        window.ClientMaintenanceCore?.openSearchModal({
+        const maintenanceCore = getBankAccountsClientMaintenanceCore();
+        if (typeof maintenanceCore?.openSearchModal !== 'function') {
+            return;
+        }
+
+        maintenanceCore.openSearchModal({
             searchType: 'Branch',
             title: 'Search Branch',
             filter: { BankCode: bankCode },
@@ -390,6 +676,39 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
                     setFieldValue('txt_branchCode', selected.BranchCode || selected.Code || selected.ID);
                     setFieldValue('txt_branchName', selected.BranchName || selected.Name);
                 }
+            }
+        });
+    };
+
+    const bindStandaloneBootstrap = () => {
+        if (typeof tabRoot._cmMaybeAutoLoadBankAccounts === 'function') {
+            void tabRoot._cmMaybeAutoLoadBankAccounts(initialContext);
+        }
+
+        if (tabRoot.dataset.cmBankAccountsParentContextBound === 'true') {
+            return;
+        }
+
+        tabRoot.dataset.cmBankAccountsParentContextBound = 'true';
+        window.addEventListener('message', (event) => {
+            const data = event?.data;
+            if (!data || typeof data !== 'object') return;
+            if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+            const parentData = data.data || {};
+            const nextContext = resolveBankAccountsContext({
+                ModuleID: parentData.moduleId,
+                ClientID: parentData.clientId,
+                RequestID: parentData.requestId
+            }, configuredModuleId);
+
+            if (typeof tabRoot._cmMaybeAutoLoadBankAccounts === 'function') {
+                void tabRoot._cmMaybeAutoLoadBankAccounts(nextContext);
+                return;
+            }
+
+            if (typeof tabRoot._cmLoadData === 'function') {
+                void tabRoot._cmLoadData(nextContext);
             }
         });
     };
@@ -415,11 +734,33 @@ window.initClientMaintenanceBankAccounts = function (tabRoot, moduleId) {
     });
 
     // Register load function for external calls
-    tabRoot._cmLoadData = (requestData) => refreshTable(requestData);
+    tabRoot._cmLoadData = (requestData, refreshOptions = {}) => refreshTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmMaybeAutoLoadBankAccounts = (requestData) => {
+        const context = resolveBankAccountsContext(requestData, configuredModuleId);
+        if (state.initialLoadApplied || state.autoLoadInFlight || !shouldAutoLoadStandaloneBankAccounts(context)) {
+            return Promise.resolve([]);
+        }
 
-    // Initial state
+        state.autoLoadInFlight = true;
+        return refreshTable(context, { markInitialLoad: true }).finally(() => {
+            state.autoLoadInFlight = false;
+        });
+    };
+
+    tabRoot._cmSetEditMode = () => {
+        setFormState(state.mode);
+    };
+
+    bindBankAccountsActionPanel(tabRoot);
     setFormState('view');
-    refreshTable({});
+    bindStandaloneBootstrap();
 };
 
 function escapeHtml(value) {
@@ -430,4 +771,18 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function autoInitializeStandaloneBankAccountsView() {
+    const moduleRoot = document.querySelector('[data-section="client-bank-accounts"]');
+    if (!moduleRoot || typeof window.initClientMaintenanceBankAccounts !== 'function') return;
+
+    const moduleId = document.getElementById('moduleIdBankAccounts')?.value || '';
+    window.initClientMaintenanceBankAccounts(moduleRoot, moduleId);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandaloneBankAccountsView);
+} else {
+    autoInitializeStandaloneBankAccountsView();
 }
