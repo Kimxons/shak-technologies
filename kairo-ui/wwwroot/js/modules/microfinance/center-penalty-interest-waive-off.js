@@ -1,12 +1,13 @@
 /**
  * Center Penalty Interest Waive Off Module
  * Handles branch, center, scheme lookups with penalty waive-off CRUD operations
- * Converted from legacy HTML/JS to KAIRO MVC pattern
+ * Migrated from legacy HTML/JS to KAIRO MVC pattern
  */
 
 (function () {
     'use strict';
 
+    const CONTROLLER_BASE = 'MicroFinance/CenterPenaltyInterestWaiveOff';
     const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || window.Environment?.microfinanceModuleId || '4560');
 
     function getAppCore() {
@@ -17,13 +18,13 @@
     // =========================================================================
     // Service Invoker - ALL API calls use POST via AppCore.invokeControllerAsync
     // =========================================================================
-    async function invokeCenterPenaltyController(action, requestData) {
+    async function invokeController(action, requestData) {
         const appCore = getAppCore();
         if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
             throw new Error('AppCore is not available (AppCore.invokeControllerAsync not found)');
         }
 
-        const endpoint = `MicroFinance/CenterPenaltyInterestWaiveOff/${action}`;
+        const endpoint = `${CONTROLLER_BASE}/${action}`;
         return appCore.invokeControllerAsync(endpoint, requestData || {});
     }
 
@@ -33,6 +34,12 @@
     let editMode = false;
     let penaltyAccountsData = [];
     let penaltySummaryData = null;
+
+    const parentContext = {
+        branchId: '',
+        centerId: '',
+        schemeId: ''
+    };
 
     // =========================================================================
     // Environment Helper
@@ -153,8 +160,8 @@
             tableID: 'GroupID',
             moduleIDOverride: 4560,
             getAdvFilterString: () => {
-                const { ourBranchID } = getEnv();
-                const safeBranchId = String(ourBranchID || '').replace(/'/g, "''");
+                const branchId = coerceString($('BranchId')?.value).trim();
+                const safeBranchId = String(branchId || '').replace(/'/g, "''");
                 return safeBranchId ? `OurBranchID='${safeBranchId}'` : '';
             },
             searchFields: [
@@ -219,6 +226,7 @@
             const branchName = data.BranchName || data.Description || data.Name || '';
             if (idField) idField.value = branchId;
             if (nameField) nameField.value = branchName;
+            parentContext.branchId = branchId;
             clearCenterFields();
             clearSchemeFields();
             clearPenaltyData();
@@ -229,17 +237,18 @@
             const centerName = data.GroupName || data.CenterName || data.Description || data.Name || '';
             if (idField) idField.value = centerId;
             if (nameField) nameField.value = centerName;
+            parentContext.centerId = centerId;
             clearSchemeFields();
             clearPenaltyData();
             clearBehindTheScene();
-            showSuccess(`Center '${centerName}' selected`);
-            // Auto-populate scheme via default advance type
             fetchDefaultAdvanceType(centerId);
+            showSuccess(`Center '${centerName}' selected`);
         } else if (lookupType === 'scheme') {
             const schemeId = data.LoanSchemeID || data.SchemeID || data.ID || '';
             const schemeName = data.Description || data.SchemeName || data.Name || '';
             if (idField) idField.value = schemeId;
             if (nameField) nameField.value = schemeName;
+            parentContext.schemeId = schemeId;
             clearPenaltyData();
             clearBehindTheScene();
             showSuccess(`Scheme '${schemeName}' selected`);
@@ -305,13 +314,14 @@
     }
 
     function clearBehindTheScene() {
-        if ($('WaiveOffStatus')) $('WaiveOffStatus').value = '';
-        if ($('CreatedBy')) $('CreatedBy').value = '';
-        if ($('CreatedOn')) $('CreatedOn').value = '';
-        if ($('ModifiedBy')) $('ModifiedBy').value = '';
-        if ($('ModifiedOn')) $('ModifiedOn').value = '';
-        if ($('SupervisedBy')) $('SupervisedBy').value = '';
-        if ($('SupervisedOn')) $('SupervisedOn').value = '';
+        const reset = (id) => { const el = $(id); if (el) el.textContent = '-'; };
+        reset('spn_waiveOffStatus');
+        reset('spn_createdBy');
+        reset('spn_createdOn');
+        reset('spn_modifiedBy');
+        reset('spn_modifiedOn');
+        reset('spn_supervisedBy');
+        reset('spn_supervisedOn');
     }
 
     // =========================================================================
@@ -345,13 +355,10 @@
         const { operatorID } = getEnv();
 
         try {
-            const resp = await invokeCenterPenaltyController('old-api', {
-                FormId: 'p_GetDefaultAdvType',
-                RequestData: {
-                    OurBranchID: branchId,
-                    GroupID: centerId,
-                    OperatorID: operatorID
-                }
+            const resp = await invokeController('get-default-adv-type', {
+                OurBranchID: branchId,
+                GroupID: centerId,
+                OperatorID: operatorID
             });
 
             const apiError = extractOldApiError(resp);
@@ -383,14 +390,11 @@
         const { ourBranchID, operatorID } = getEnv();
 
         try {
-            const resp = await invokeCenterPenaltyController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    ControlTypeID: controlTypeID,
-                    ControlID: value,
-                    OurBranchID: ourBranchID,
-                    OperatorID: operatorID
-                }
+            const resp = await invokeController('validate', {
+                ControlTypeID: controlTypeID,
+                ControlID: value,
+                OurBranchID: ourBranchID,
+                OperatorID: operatorID
             });
 
             const apiError = extractOldApiError(resp);
@@ -612,13 +616,14 @@
     function populateBehindTheScene(summary) {
         if (!summary) return;
 
-        if ($('WaiveOffStatus')) $('WaiveOffStatus').value = coerceString(summary.WaiveOffStatus || summary.Status);
-        if ($('CreatedBy')) $('CreatedBy').value = coerceString(summary.CreatedBy);
-        if ($('CreatedOn')) $('CreatedOn').value = coerceString(summary.CreatedOn);
-        if ($('ModifiedBy')) $('ModifiedBy').value = coerceString(summary.ModifiedBy);
-        if ($('ModifiedOn')) $('ModifiedOn').value = coerceString(summary.ModifiedOn);
-        if ($('SupervisedBy')) $('SupervisedBy').value = coerceString(summary.SupervisedBy);
-        if ($('SupervisedOn')) $('SupervisedOn').value = coerceString(summary.SupervisedOn);
+        const set = (id, val) => { const el = $(id); if (el) el.textContent = val || '-'; };
+        set('spn_waiveOffStatus', coerceString(summary.WaiveOffStatus || summary.Status));
+        set('spn_createdBy', coerceString(summary.CreatedBy));
+        set('spn_createdOn', coerceString(summary.CreatedOn));
+        set('spn_modifiedBy', coerceString(summary.ModifiedBy));
+        set('spn_modifiedOn', coerceString(summary.ModifiedOn));
+        set('spn_supervisedBy', coerceString(summary.SupervisedBy));
+        set('spn_supervisedOn', coerceString(summary.SupervisedOn));
     }
 
     // =========================================================================
@@ -675,14 +680,11 @@
         const { operatorID } = getEnv();
 
         try {
-            const resp = await invokeCenterPenaltyController('old-api', {
-                FormId: 'p_GetGLoanPenIntWaiveOff',
-                RequestData: {
-                    OurBranchID: branchId,
-                    GroupID: centerId,
-                    LoanSchemeID: schemeId,
-                    OperatorID: operatorID
-                }
+            const resp = await invokeController('get', {
+                OurBranchID: branchId,
+                GroupID: centerId,
+                LoanSchemeID: schemeId,
+                OperatorID: operatorID
             });
 
             const apiError = extractOldApiError(resp);
@@ -755,14 +757,11 @@
         const { operatorID } = getEnv();
 
         try {
-            const resp = await invokeCenterPenaltyController('old-api', {
-                FormId: 'p_DeleteGLoanPenIntWaiveOff',
-                RequestData: {
-                    OurBranchID: branchId,
-                    GroupID: centerId,
-                    LoanSchemeID: schemeId,
-                    OperatorID: operatorID
-                }
+            const resp = await invokeController('delete', {
+                OurBranchID: branchId,
+                GroupID: centerId,
+                LoanSchemeID: schemeId,
+                OperatorID: operatorID
             });
 
             const apiError = extractOldApiError(resp);
@@ -815,17 +814,14 @@
         const { operatorID } = getEnv();
 
         try {
-            const resp = await invokeCenterPenaltyController('old-api', {
-                FormId: 'p_AddGLoanPenIntWaiveOff',
-                RequestData: {
-                    OurBranchID: branchId,
-                    GroupID: centerId,
-                    LoanSchemeID: schemeId,
-                    Reason: reason,
-                    PenaltyWaivedOff: totalWaivedOff,
-                    OperatorID: operatorID,
-                    Accounts: selectedAccounts
-                }
+            const resp = await invokeController('add', {
+                OurBranchID: branchId,
+                GroupID: centerId,
+                LoanSchemeID: schemeId,
+                Reason: reason,
+                PenaltyWaivedOff: totalWaivedOff,
+                OperatorID: operatorID,
+                Accounts: selectedAccounts
             });
 
             const apiError = extractOldApiError(resp);
@@ -876,6 +872,9 @@
         penaltyAccountsData = [];
         penaltySummaryData = null;
         editMode = false;
+        parentContext.branchId = '';
+        parentContext.centerId = '';
+        parentContext.schemeId = '';
 
         // Clear grid
         renderPenaltyTable([]);
@@ -903,53 +902,152 @@
     }
 
     // =========================================================================
-    // Field Change Listeners (Validate on blur)
+    // Background Search — fetch details by ID via SearchModal/Search
+    // =========================================================================
+    async function backgroundSearch(tableID, advFilterString, whereStmt, moduleID) {
+        const appCore = getAppCore();
+        if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
+            throw new Error('AppCore is not available');
+        }
+
+        const { ourBranchID } = getEnv();
+        const response = await appCore.invokeControllerAsync('SearchModal/Search', {
+            TableID: tableID,
+            WhereStmt: whereStmt || '',
+            AdvFilterString: advFilterString || '',
+            SearchKey: '',
+            ModuleID: String(moduleID || DEFAULT_SEARCH_MODULE_ID),
+            PageSize: 20,
+            RefID: '',
+            PrevOrNext: 1,
+            OurBranchID: ourBranchID
+        });
+
+        let results = [];
+        if (response?.success && response?.data) {
+            const d = response.data;
+            if (Array.isArray(d)) {
+                results = d;
+            } else if (d.Details) {
+                results = Array.isArray(d.Details) ? d.Details : [d.Details];
+            } else if (d.details?.SearchResults) {
+                results = Array.isArray(d.details.SearchResults) ? d.details.SearchResults : [];
+            } else if (d.Records) {
+                results = Array.isArray(d.Records) ? d.Records : [];
+            }
+        }
+        return results;
+    }
+
+    async function handleViewBranch() {
+        const branchId = coerceString($('BranchId')?.value).trim();
+        if (!branchId) { showWarning('Please enter a Branch ID'); return; }
+
+        try {
+            const config = searchDialogConfig['branch'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(branchId).replace(/'/g, "''");
+            const whereStmt = `OurBranchID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('branch', results[0]);
+            } else {
+                if ($('BranchName')) $('BranchName').value = '';
+                showWarning('Branch not found');
+            }
+        } catch (error) {
+            console.error('[CenterPenaltyWaiveOff] Error loading branch:', error);
+            showError('Error loading branch details');
+        }
+    }
+
+    async function handleViewCenter() {
+        const centerId = coerceString($('CenterId')?.value).trim();
+        if (!centerId) { showWarning('Please enter a Center ID'); return; }
+
+        const branchId = parentContext.branchId || coerceString($('BranchId')?.value).trim();
+        if (!branchId) { showWarning('Please select a Branch first'); return; }
+
+        try {
+            const config = searchDialogConfig['center'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(centerId).replace(/'/g, "''");
+            const whereStmt = `GroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('center', results[0]);
+            } else {
+                if ($('CenterName')) $('CenterName').value = '';
+                showWarning('Center not found');
+            }
+        } catch (error) {
+            console.error('[CenterPenaltyWaiveOff] Error loading center:', error);
+            showError('Error loading center details');
+        }
+    }
+
+    async function handleViewScheme() {
+        const schemeId = coerceString($('SchemeId')?.value).trim();
+        if (!schemeId) { showWarning('Please enter a Scheme ID'); return; }
+
+        try {
+            const config = searchDialogConfig['scheme'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(schemeId).replace(/'/g, "''");
+            const whereStmt = `LoanSchemeID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('scheme', results[0]);
+            } else {
+                if ($('SchemeName')) $('SchemeName').value = '';
+                showWarning('Scheme not found');
+            }
+        } catch (error) {
+            console.error('[CenterPenaltyWaiveOff] Error loading scheme:', error);
+            showError('Error loading scheme details');
+        }
+    }
+
+    // =========================================================================
+    // Field Blur & Enter Key Listeners (autofill on blur)
     // =========================================================================
     function setupFieldListeners() {
-        const branchId = $('BranchId');
-        if (branchId) {
-            branchId.addEventListener('change', () => {
-                const val = coerceString(branchId.value).trim();
-                if (!val) return;
-                validateField('BranchId', 'BranchID', (row) => {
-                    if ($('BranchName')) $('BranchName').value = coerceString(row.Description || row.BranchName);
-                }, () => {
-                    if ($('BranchName')) $('BranchName').value = '';
-                });
-            });
-        }
+        // Enter key handlers
+        $('BranchId')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); handleViewBranch(); }
+        });
+        $('CenterId')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); handleViewCenter(); }
+        });
+        $('SchemeId')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); handleViewScheme(); }
+        });
 
-        const centerId = $('CenterId');
-        if (centerId) {
-            centerId.addEventListener('change', () => {
-                const val = coerceString(centerId.value).trim();
-                if (!val) return;
-                validateField('CenterId', 'GroupID', (row) => {
-                    if ($('CenterName')) $('CenterName').value = coerceString(row.Description || row.GroupName);
-                    clearSchemeFields();
-                    clearPenaltyData();
-                    clearBehindTheScene();
-                    fetchDefaultAdvanceType(val);
-                }, () => {
-                    if ($('CenterName')) $('CenterName').value = '';
-                });
-            });
-        }
-
-        const schemeId = $('SchemeId');
-        if (schemeId) {
-            schemeId.addEventListener('change', () => {
-                const val = coerceString(schemeId.value).trim();
-                if (!val) return;
-                validateField('SchemeId', 'GroupLoanSchemeID', (row) => {
-                    if ($('SchemeName')) $('SchemeName').value = coerceString(row.Description || row.SchemeName);
-                    clearPenaltyData();
-                    clearBehindTheScene();
-                }, () => {
-                    if ($('SchemeName')) $('SchemeName').value = '';
-                });
-            });
-        }
+        // Blur handlers - fetch details when tabbing away
+        $('BranchId')?.addEventListener('blur', (e) => {
+            const branchId = e.target.value.trim();
+            if (branchId && branchId !== parentContext.branchId) {
+                handleViewBranch();
+            }
+        });
+        $('CenterId')?.addEventListener('blur', (e) => {
+            const centerId = e.target.value.trim();
+            if (centerId && centerId !== parentContext.centerId) {
+                handleViewCenter();
+            }
+        });
+        $('SchemeId')?.addEventListener('blur', (e) => {
+            const schemeId = e.target.value.trim();
+            if (schemeId && schemeId !== parentContext.schemeId) {
+                handleViewScheme();
+            }
+        });
     }
 
     // =========================================================================

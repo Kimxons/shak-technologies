@@ -478,6 +478,42 @@ namespace kairo_ui.Controllers.AccountUtilities
         }
 
         #endregion
+
+        #region Shared Helpers
+
+        /// <summary>
+        /// Generic dropdown loader using the legacy lookup service (SystemCodeOptions).
+        /// Used by client-side JS to populate selects for TrfFrequencyID, ChargingCurrencyID, etc.
+        /// </summary>
+        [HttpGet]
+        [Route("get-dropdown-options")]
+        public async Task<IActionResult> GetDropdownOptions([FromQuery] string codeId, [FromQuery] string? valueField = null)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codeId))
+                    return BadRequest(new { success = false, message = "codeId is required" });
+
+                var options = await _apiCachedService.GetSystemCodeOptionsAsync(codeId);
+
+                var result = options.Select(o => new
+                {
+                    value = string.Equals(valueField, "ChargingCurrencyID", StringComparison.OrdinalIgnoreCase)
+                        ? (o.ChargingCurrencyID ?? o.SubCodeID)
+                        : o.SubCodeID,
+                    label = o.CodeDescription ?? o.SubCodeID
+                });
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading dropdown options for {CodeId}", codeId);
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
     }
 
     // Request DTOs
