@@ -51,7 +51,13 @@ window.AccountBlockingModule = (function () {
     const el = (id) => document.getElementById(id);
     const val = (id) => el(id)?.value?.trim() || '';
     const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
-    const setTxt = (id, v) => { const e = el(id); if (e) e.textContent = (v == null) ? '-' : v; };
+    const setTxt = (id, v) => {
+        const e = el(id);
+        if (!e) return;
+        const nextValue = (v == null || v === '') ? '-' : v;
+        if ('value' in e) e.value = nextValue;
+        else e.textContent = nextValue;
+    };
 
     function showMsg(msg, type) {
         const t = window.showSystemToast || window.parent?.showSystemToast;
@@ -339,11 +345,13 @@ window.AccountBlockingModule = (function () {
         setTxt('MakerDT', formatDate(d.CreatedOn || d.MakerDT));
         setTxt('CheckerID', d.SupervisedBy || d.CheckerID);
         setTxt('CheckerDT', formatDate(d.SupervisedOn || d.CheckerDT));
+        setTxt('ModifierID', d.ModifiedBy || d.ModifierID);
+        setTxt('ModifierDT', formatDate(d.ModifiedOn || d.ModifierDT));
     }
 
     function clearForm() {
         ['reason', 'description', 'instructionGivenBy', 'previousStatus', 'btsDate', 'reasonId', 'btsDescription', 'btsInstructionGivenBy'].forEach(id => setVal(id, ''));
-        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT'].forEach(id => setTxt(id, '-'));
+        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach(id => setTxt(id, '-'));
     }
 
     function formatDate(dateStr) {
