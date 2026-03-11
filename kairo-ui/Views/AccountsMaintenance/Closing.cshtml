@@ -105,35 +105,6 @@ Enumerable.Empty<SelectListItem>();
                         </div>
                     </div>
 
-                    <!-- Components Section -->
-                    <div class="form-section mt-3" data-section="components">
-                        <div class="section-header" data-section-toggle>
-                            <span class="section-header__title"><i class="bi bi-puzzle"></i> Components</span>
-                            <button type="button" class="section-toggle-btn" aria-label="Toggle Components"
-                                    aria-expanded="true">
-                                <i class="bi bi-chevron-up"></i>
-                            </button>
-                        </div>
-                        <div class="section-content" data-section-content>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover am-table" id="componentsGrid">
-                                    <thead>
-                                        <tr>
-                                            <th>Component ID</th>
-                                            <th>Branch ID</th>
-                                            <th>Account Type</th>
-                                            <th>Account ID</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="componentsGridBody">
-                                        <tr>
-                                            <td colspan="4" class="text-center text-muted">No components found</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Transaction Details Tab -->
@@ -150,8 +121,9 @@ Enumerable.Empty<SelectListItem>();
                             <!-- Row 1: Types -->
                             <div class="row g-2 mb-2">
                                 <div class="col-md-3">
-                                    <label class="label-blue am-label" for="transactionType">Trx Type</label>
+                                    <label class="label-blue am-label" for="transactionType">Transaction Type</label>
                                     <select id="transactionType" name="TrxType" class="form-select am-input">
+                                        <option value="">Select Transaction Type</option>
                                         <option value="D">Debit</option>
                                         <option value="C">Credit</option>
                                     </select>
@@ -163,7 +135,7 @@ Enumerable.Empty<SelectListItem>();
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="label-blue am-label" for="typeOfService">Service Type</label>
+                                    <label class="label-blue am-label" for="typeOfService">Type Of Service</label>
                                     <select id="typeOfService" name="TypeOfServiceID" class="form-select am-input">
                                         <option value="">Select Service</option>
                                     </select>
@@ -176,7 +148,7 @@ Enumerable.Empty<SelectListItem>();
                                 </div>
                             </div>
 
-                            <!-- Row 2: Account -->
+                            <!-- Row 2: Account / Summary Amounts -->
                             <div class="row g-2 mb-2">
                                 <div class="col-md-6">
                                     <label class="label-blue am-label">Account ID</label>
@@ -193,13 +165,26 @@ Enumerable.Empty<SelectListItem>();
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="label-blue am-label" for="productId">Product ID</label>
-                                        <input id="productId" name="ProductID" type="text" class="form-control am-input"
+                                        <label class="label-blue am-label" for="unpostedAmount">Unposted Amount</label>
+                                        <input id="unpostedAmount" name="UnpostedAmount" type="text"
+                                               class="form-control am-input text-end" readonly />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="balanceAmount">Balance Amount</label>
+                                        <input id="balanceAmount" name="BalanceAmount" type="text"
+                                               class="form-control am-input text-end" readonly />
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-3 offset-md-6">
+                                        <label class="label-blue am-label" for="currencyId">Currency ID</label>
+                                        <input id="currencyId" name="CurrencyID" type="text" class="form-control am-input"
                                                readonly disabled />
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="label-blue am-label" for="currencyId">Currency ID</label>
-                                        <input id="currencyId" name="CurrencyID" type="text" class="form-control am-input"
+                                        <label class="label-blue am-label" for="productId">Product ID</label>
+                                        <input id="productId" name="ProductID" type="text" class="form-control am-input"
                                                readonly disabled />
                                     </div>
                                 </div>
@@ -258,17 +243,7 @@ Enumerable.Empty<SelectListItem>();
                                     <!-- Row 5: Amounts -->
                                     <div class="row g-2 mb-2">
                                         <div class="col-md-3">
-                                            <label class="label-blue am-label" for="unpostedAmount">Unposted Amt</label>
-                                            <input id="unpostedAmount" name="UnpostedAmount" type="text"
-                                                   class="form-control am-input text-end" readonly />
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="label-blue am-label" for="exchangeRate">Exchange Rate</label>
-                                            <input id="exchangeRate" name="ExchangeRate" type="text"
-                                                   class="form-control am-input text-end" value="1" />
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="label-blue am-label" for="transactionAmount">Trx Amount</label>
+                                            <label class="label-blue am-label" for="transactionAmount">Transaction Amount</label>
                                             <input id="transactionAmount" name="TransactionAmount" type="text"
                                                    class="form-control am-input text-end" />
                                         </div>
@@ -277,117 +252,139 @@ Enumerable.Empty<SelectListItem>();
                                             <input id="localAmount" name="LocalAmount" type="text"
                                                    class="form-control am-input text-end" readonly />
                                         </div>
+                                        <div class="col-md-3">
+                                            <label class="label-blue am-label" for="exchangeRate">Exchange Rate</label>
+                                            <input id="exchangeRate" name="ExchangeRate" type="text"
+                                                   class="form-control am-input text-end" value="1" readonly />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="label-blue am-label" for="forexGainLoss">Forex Gain/Loss</label>
+                                            <input id="forexGainLoss" name="ForexGainLoss" type="text"
+                                                   class="form-control am-input text-end" readonly />
+                                        </div>
                                     </div>
 
                                     <!-- Transaction Grid Actions -->
-                                    <div class="d-flex gap-2 mt-3">
+                                    <div class="d-flex gap-2 mt-3 flex-wrap">
                                         <button class="btn btn-sm btn-outline-primary" type="button" data-action="txnNew"><i
                                             class="bi bi-plus"></i> New</button>
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="txnUpdate"><i
-                                                class="bi bi-check-lg"></i> Update</button>
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="txnAlter"><i
+                                                class="bi bi-pencil"></i> Alter</button>
                                                 <button class="btn btn-sm btn-outline-danger" type="button" data-action="txnRemove"><i
                                                     class="bi bi-trash"></i> Remove</button>
-                                                    <button class="btn btn-sm btn-outline-info" type="button" data-action="txnClear"><i
-                                                        class="bi bi-eraser"></i> Clear</button>
+                                                    <button class="btn btn-sm btn-outline-success" type="button" data-action="txnUpdate"><i
+                                                        class="bi bi-check-lg"></i> Update</button>
+                                                        <button class="btn btn-sm btn-outline-info" type="button" data-action="txnClear"><i
+                                                            class="bi bi-eraser"></i> Clear</button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- Transaction Details Grid -->
-                                            <div class="form-section mt-3" data-section="txn-details">
-                                                <div class="section-header" data-section-toggle>
-                                                    <span class="section-header__title"><i class="bi bi-table"></i> Transaction Details</span>
-                                                    <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Details"
-                                                            aria-expanded="true">
-                                                        <i class="bi bi-chevron-up"></i>
-                                                    </button>
-                                                </div>
-                                                <div class="section-content" data-section-content>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-hover am-table" id="transactionGrid">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Acc. Type</th>
-                                                                    <th>Account ID</th>
-                                                                    <th>Type</th>
-                                                                    <th>Currency</th>
-                                                                    <th class="text-end">Amount</th>
-                                                                    <th>Narration</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="transactionGridBody">
-                                                                <tr>
-                                                                    <td colspan="6" class="text-center text-muted">No transactions added</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
+                                                <!-- Transaction Details Grid -->
+                                                <div class="form-section mt-3" data-section="txn-details">
+                                                    <div class="section-header" data-section-toggle>
+                                                        <span class="section-header__title"><i class="bi bi-table"></i> Transaction Details</span>
+                                                        <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Details"
+                                                                aria-expanded="true">
+                                                            <i class="bi bi-chevron-up"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="section-content" data-section-content>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-hover am-table" id="transactionGrid">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Account Type</th>
+                                                                        <th>Account ID</th>
+                                                                        <th>Till ID</th>
+                                                                        <th>Trx Type</th>
+                                                                        <th>Product ID</th>
+                                                                        <th>Currency ID</th>
+                                                                        <th class="text-end">Credit Amount</th>
+                                                                        <th class="text-end">Debit Amount</th>
+                                                                        <th class="text-end">Amount</th>
+                                                                        <th class="text-end">Local Amount</th>
+                                                                        <th class="text-end">Exchange Rate</th>
+                                                                        <th>Reference Number</th>
+                                                                        <th>Beneficiary Name</th>
+                                                                        <th>Trx Description</th>
+                                                                        <th class="text-end">Profit</th>
+                                                                        <th>Remarks</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="transactionGridBody">
+                                                                    <tr>
+                                                                        <td colspan="16" class="text-center text-muted">No records to display.</td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Behind the Scene Section -->
-                                    <div class="form-section form-section--bts mt-3" data-section="behind-scene">
-                                        <div class="section-header" data-section-toggle>
-                                            <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
-                                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene"
-                                                    aria-expanded="true">
-                                                <i class="bi bi-chevron-up"></i>
-                                            </button>
-                                        </div>
-                                        <div class="section-content" data-section-content>
-                                            <div class="form-row four-col">
-                                                <div class="col">
-                                                    <label for="MakerID">Created By</label>
-                                                    <input id="MakerID" type="text" class="bs-input-text" value="-" readonly />
-                                                </div>
-                                                <div class="col">
-                                                    <label for="MakerDT">Created On</label>
-                                                    <input id="MakerDT" type="text" class="bs-input-text" value="-" readonly />
-                                                </div>
-                                                <div class="col">
-                                                    <label for="CheckerID">Checked By</label>
-                                                    <input id="CheckerID" type="text" class="bs-input-text" value="-" readonly />
-                                                </div>
-                                                <div class="col">
-                                                    <label for="CheckerDT">Checked On</label>
-                                                    <input id="CheckerDT" type="text" class="bs-input-text" value="-" readonly />
-                                                </div>
+                                        <!-- Behind the Scene Section -->
+                                        <div class="form-section form-section--bts mt-3" data-section="behind-scene">
+                                            <div class="section-header" data-section-toggle>
+                                                <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
+                                                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene"
+                                                        aria-expanded="true">
+                                                    <i class="bi bi-chevron-up"></i>
+                                                </button>
                                             </div>
-                                            <div class="form-row four-col">
-                                                <div class="col">
-                                                    <label for="ModifierID">Modified By</label>
-                                                    <input id="ModifierID" type="text" class="bs-input-text" value="-" readonly />
+                                            <div class="section-content" data-section-content>
+                                                <div class="form-row four-col">
+                                                    <div class="col">
+                                                        <label for="MakerID">Created By</label>
+                                                        <input id="MakerID" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="MakerDT">Created On</label>
+                                                        <input id="MakerDT" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="CheckerID">Checked By</label>
+                                                        <input id="CheckerID" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="CheckerDT">Checked On</label>
+                                                        <input id="CheckerDT" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
                                                 </div>
-                                                <div class="col">
-                                                    <label for="ModifierDT">Modified On</label>
-                                                    <input id="ModifierDT" type="text" class="bs-input-text" value="-" readonly />
+                                                <div class="form-row four-col">
+                                                    <div class="col">
+                                                        <label for="ModifierID">Modified By</label>
+                                                        <input id="ModifierID" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="ModifierDT">Modified On</label>
+                                                        <input id="ModifierDT" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col"></div>
+                                                    <div class="col"></div>
                                                 </div>
-                                                <div class="col"></div>
-                                                <div class="col"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="loading-overlay" id="loadingOverlay" hidden>
-                                <div class="loading-spinner">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
+                                <div class="loading-overlay" id="loadingOverlay" hidden>
+                                    <div class="loading-spinner">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <div class="loading-text">Loading account closing...</div>
                                     </div>
-                                    <div class="loading-text">Loading account closing...</div>
                                 </div>
-                            </div>
 
-                            <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-closing.js"></script>
-                            <script>
-                                // Auto-initialize on load
-                                if (document.readyState === 'loading') {
-                                    document.addEventListener('DOMContentLoaded', () => window.AccountClosingModule?.init());
-                                } else {
-                                    window.AccountClosingModule?.init();
-                                }
-                                console.log('✅ Account Closing view loaded');
-                            </script>
+                                <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-closing.js"></script>
+                                <script>
+                                    // Auto-initialize on load
+                                    if (document.readyState === 'loading') {
+                                        document.addEventListener('DOMContentLoaded', () => window.AccountClosingModule?.init());
+                                    } else {
+                                        window.AccountClosingModule?.init();
+                                    }
+                                    console.log('✅ Account Closing view loaded');
+                                </script>

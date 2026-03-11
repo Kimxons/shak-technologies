@@ -6,10 +6,12 @@
 window.AccountClosingModule = (function () {
     'use strict';
 
+    const moduleScript = document.currentScript;
+
     const state = {
+        root: moduleScript?.closest('.form-content') || null,
         currentMode: 'VIEW',
         closingDetails: null,
-        components: [],
         transactions: [], // Array of transaction objects
         selectedTxnIndex: -1,
         updateCount: 0,
@@ -19,7 +21,8 @@ window.AccountClosingModule = (function () {
 
     const API = {
         GET_CLOSING: 'AccountsMaintenance/api/get-account-closing',
-        CLOSE: 'AccountsMaintenance/api/close-account'
+        CLOSE: 'AccountsMaintenance/api/close-account',
+        GET_ACCOUNT: 'AccountsMaintenance/get-account'
     };
 
     /**
@@ -37,7 +40,11 @@ window.AccountClosingModule = (function () {
     }
 
     // ── UI Helpers ─────────────────────────────────────────────
-    const el = (id) => document.getElementById(id);
+    function getRoot() {
+        return state.root || moduleScript?.closest('.form-content') || document;
+    }
+
+    const el = (id) => getRoot().querySelector(`[id="${id}"]`);
     const val = (id) => el(id)?.value?.trim() || '';
     const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
     const setTxt = (id, v) => {
@@ -59,8 +66,239 @@ window.AccountClosingModule = (function () {
         return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function getValue(source) {
+        return source === null || source === undefined ? '' : String(source).trim();
+    }
+
+    function formatAuditDate(value) {
+        if (!value) {
+            return '';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return getValue(value);
+        }
+
+        return date.toLocaleString();
+    }
+
+    function pickField(source, keys) {
+        if (!source || typeof source !== 'object') {
+            return undefined;
+        }
+
+        const names = Object.keys(source);
+        for (let index = 0; index < keys.length; index += 1) {
+            const key = keys[index];
+            const match = names.find((name) => name.toLowerCase() === key.toLowerCase());
+            if (match) {
+                return source[match];
+            }
+        }
+
+        return undefined;
+    }
+
+    function pickObject(source, keys) {
+        const value = pickField(source, keys);
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+    }
+
+    function pickArray(source, keys) {
+        const value = pickField(source, keys);
+        return Array.isArray(value) ? value : null;
+    }
+
+    function getResponseCode(source) {
+        const direct = pickField(source, ['ResponseCode', 'responseCode', 'Status', 'status']);
+        if (getValue(direct)) {
+            return getValue(direct);
+        }
+
+        const nested = pickField(source, ['data', 'Data']);
+        return nested && typeof nested === 'object' ? getResponseCode(nested) : '';
+    }
+
+    function getResponseMessage(source, fallback) {
+        const direct = pickField(source, ['ResponseMessage', 'responseMessage', 'Message', 'message', 'ErrorMessage', 'errorMessage']);
+        if (getValue(direct)) {
+            return getValue(direct);
+        }
+
+        const nested = pickField(source, ['data', 'Data']);
+        return nested && typeof nested === 'object' ? getResponseMessage(nested, fallback) : fallback;
+    }
+
+    function isSuccessResponse(source) {
+        const code = getResponseCode(source);
+        if (code) {
+            return code === '00' || code === '0' || code === '000' || code.toLowerCase() === 'success' || code.toLowerCase() === 'ok';
+        }
+
+        return !!(source?.success || source?.Success);
+    }
+
+    function collectDetailSets(source) {
+        const sets = [];
+        const visited = new Set();
+        const keys = ['Details', 'Details01', 'Details1', 'Details02', 'details', 'details01', 'details1', 'details02'];
+
+        function addSet(value) {
+            if (!Array.isArray(value) || visited.has(value)) {
+                return;
+            }
+
+            visited.add(value);
+            sets.push(value);
+        }
+
+        function inspect(value) {
+            if (!value || typeof value !== 'object') {
+                return;
+            }
+
+            keys.forEach((key) => {
+                const child = value[key];
+                if (Array.isArray(child)) {
+                    addSet(child);
+                }
+            });
+        }
+
+        inspect(source);
+        inspect(source?.data);
+        inspect(source?.Data);
+
+        return sets;
+    }
+
+    function isSummaryRow(row) {
+        return !!pickField(row, ['Balance', 'ClearBalance', 'InterestPayable', 'CreditInterestPayable', 'InterestReceivable', 'DebitInterestReceivable', 'PenaltyReceivable', 'PenalInterestReceivable', 'ClosingCharge', 'ClosingCharges', 'CHRG_AMT', 'CurrencyID', 'TaxAmount', 'CHRG_TAX_AMT']);
+    }
+
+    function extractClosingSummary(source) {
+        const detailObject = pickObject(source, ['Details', 'details'])
+            || pickObject(source?.data, ['Details', 'details'])
+            || pickObject(source?.Data, ['Details', 'details']);
+
+        if (detailObject && isSummaryRow(detailObject)) {
+            return detailObject;
+        }
+
+        if (source && typeof source === 'object' && !Array.isArray(source) && isSummaryRow(source)) {
+            return source;
+        }
+
+        const detailSets = collectDetailSets(source);
+        for (let setIndex = 0; setIndex < detailSets.length; setIndex += 1) {
+            const detailSet = detailSets[setIndex];
+            for (let rowIndex = 0; rowIndex < detailSet.length; rowIndex += 1) {
+                const row = detailSet[rowIndex];
+                if (row && typeof row === 'object' && isSummaryRow(row)) {
+                    return row;
+                }
+            }
+        }
+
+        return null;
+    }
+
     function escXml(s) {
         return !s ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+
+    function clearBehindScene() {
+        ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach((id) => setTxt(id, ''));
+    }
+
+    function hasBehindSceneData(source) {
+        return !!getValue(pickField(source, [
+            'MakerID',
+            'CreatedBy',
+            'MakerDT',
+            'CreatedOn',
+            'CheckerID',
+            'SupervisedBy',
+            'SupervisorID',
+            'CheckerDT',
+            'SupervisedOn',
+            'SupervisorDT',
+            'ModifierID',
+            'ModifiedBy',
+            'ModifierDT',
+            'ModifiedOn'
+        ]));
+    }
+
+    function populateBehindScene(source) {
+        if (!source) {
+            clearBehindScene();
+            return;
+        }
+
+        setTxt('MakerID', pickField(source, ['MakerID', 'CreatedBy']));
+        setTxt('MakerDT', formatAuditDate(pickField(source, ['MakerDT', 'CreatedOn'])));
+        setTxt('CheckerID', pickField(source, ['CheckerID', 'SupervisedBy', 'SupervisorID']));
+        setTxt('CheckerDT', formatAuditDate(pickField(source, ['CheckerDT', 'SupervisedOn', 'SupervisorDT'])));
+        setTxt('ModifierID', pickField(source, ['ModifierID', 'ModifiedBy']));
+        setTxt('ModifierDT', formatAuditDate(pickField(source, ['ModifierDT', 'ModifiedOn'])));
+    }
+
+    function unwrapAccountDetails(result) {
+        const data = result?.data || result;
+        let account = pickObject(data, ['Details']) || data;
+
+        if (account?.AccountDetails) {
+            account = {
+                ...account,
+                ...account.AccountDetails,
+                ...(account.FinancialSummary || {}),
+                ...(account.Supervision || {})
+            };
+        }
+
+        return account && typeof account === 'object' ? account : null;
+    }
+
+    async function loadBehindSceneFromAccount(ctx) {
+        if (!ctx?.AccountID) {
+            clearBehindScene();
+            return false;
+        }
+
+        try {
+            const response = await fetch(`/${API.GET_ACCOUNT}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    AccountID: ctx.AccountID,
+                    OurBranchID: ctx.OurBranchID || ''
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server returned error ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            const data = result?.data || result;
+            const success = result?.success || (data && (data.ResponseCode === '000' || data.ResponseCode === '00'));
+            const account = success ? unwrapAccountDetails(result) : null;
+
+            if (account && hasBehindSceneData(account)) {
+                populateBehindScene(account);
+                return true;
+            }
+        } catch (error) {
+            console.warn('[AccountClosing] Failed to load account audit fallback', error);
+        }
+
+        clearBehindScene();
+        return false;
     }
 
     // ── Mode Management ────────────────────────────────────────
@@ -77,7 +315,7 @@ window.AccountClosingModule = (function () {
         });
 
         // Loop lookups
-        document.querySelectorAll('.btn-lookup').forEach(btn => btn.disabled = !editing);
+        getRoot().querySelectorAll('.btn-lookup').forEach(btn => btn.disabled = !editing);
 
         // Update Global Buttons
         const btnView = document.getElementById('submoduleBtnView');
@@ -114,6 +352,12 @@ window.AccountClosingModule = (function () {
         const txnAmt = parseFloat(val('transactionAmount').replace(/,/g, '')) || 0;
         const rate = parseFloat(val('exchangeRate')) || 1;
         setVal('localAmount', fmtAmt(txnAmt * rate));
+        setVal('forexGainLoss', fmtAmt(0));
+    }
+
+    function updateBalanceAndUnpostedFields() {
+        setVal('balanceAmount', fmtAmt(state.originalNetPayable));
+        setVal('unpostedAmount', fmtAmt(state.unpostedAmount));
     }
 
     function updateUnpostedBalance() {
@@ -126,13 +370,14 @@ window.AccountClosingModule = (function () {
             }
         });
         state.unpostedAmount = state.originalNetPayable - totalPosted;
-        setVal('unpostedAmount', fmtAmt(state.unpostedAmount));
+        updateBalanceAndUnpostedFields();
     }
 
     // ── Data Operations ────────────────────────────────────────
     async function loadData() {
         const ctx = getContext();
         if (!ctx.AccountID) {
+            clearBehindScene();
             showMsg('Please select an account first', 'warning');
             return;
         }
@@ -147,23 +392,33 @@ window.AccountClosingModule = (function () {
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
-                const d = result.Details || result.data?.Details || result.data;
-                const details = d?.Details01?.[0] || (Array.isArray(d) ? d[0] : d);
+            if (isSuccessResponse(result)) {
+                const details = extractClosingSummary(result?.data || result);
                 state.closingDetails = details;
-                state.updateCount = details?.UpdateCount || 0;
+                state.updateCount = pickField(details || {}, ['UpdateCount']) || 0;
 
-                populateForm(details);
+                if (details) {
+                    populateForm(details);
+                }
 
-                state.components = d?.Details02 || [];
-                renderComponentsGrid();
+                if (!hasBehindSceneData(details)) {
+                    await loadBehindSceneFromAccount(ctx);
+                }
 
-                showMsg('Closing details loaded', 'success');
+                const responseMessage = getResponseMessage(result, '');
+                showMsg(
+                    details
+                        ? 'Closing details loaded successfully.'
+                        : (responseMessage || 'No closing details found.'),
+                    'success'
+                );
             } else {
-                showMsg(result?.message || 'Failed to load closing details', 'error');
+                clearBehindScene();
+                showMsg(getResponseMessage(result, 'Failed to load closing details'), 'error');
             }
         } catch (err) {
-            showMsg('Error loading closing details: ' + err.message, 'error');
+            clearBehindScene();
+            showMsg(getResponseMessage(err?.response || err, 'Error loading closing details: ' + err.message), 'error');
         } finally {
             if (loader) loader.hidden = true;
         }
@@ -171,45 +426,21 @@ window.AccountClosingModule = (function () {
 
     function populateForm(d) {
         if (!d) return;
-        setVal('reason', d.ReasonID || d.ReasonCode || '');
-        setVal('remarks', d.Remarks || '');
-        setVal('balance', fmtAmt(d.Balance || 0));
-        setVal('penalInterestReceivable', d.PenalInterestReceivable || '0.00');
-        setVal('creditInterestPayable', d.CreditInterestPayable || '0.00');
-        setVal('taxAmount', d.TaxAmount || '0.00');
-        setVal('debitInterestReceivable', d.DebitInterestReceivable || '0.00');
-        setVal('closingCharges', d.ClosingCharges || '0.00');
+        setVal('reason', pickField(d, ['CloseReasonID', 'ReasonID', 'ReasonCode']) || '');
+        setVal('remarks', pickField(d, ['Remarks', 'CloseReason']) || '');
+        setVal('balance', fmtAmt(pickField(d, ['Balance', 'ClearBalance']) || 0));
+        setVal('penalInterestReceivable', fmtAmt(pickField(d, ['PenaltyReceivable', 'PenalInterestReceivable']) || 0));
+        setVal('creditInterestPayable', fmtAmt(pickField(d, ['InterestPayable', 'CreditInterestPayable']) || 0));
+        setVal('taxAmount', fmtAmt(pickField(d, ['TaxAmount', 'CHRG_TAX_AMT']) || 0));
+        setVal('debitInterestReceivable', fmtAmt(pickField(d, ['InterestReceivable', 'DebitInterestReceivable']) || 0));
+        setVal('closingCharges', fmtAmt(pickField(d, ['ClosingCharge', 'ClosingCharges', 'CHRG_AMT']) || 0));
         computeNetPayable();
+        updateBalanceAndUnpostedFields();
 
-        setVal('productId', d.ProductID || '');
-        setVal('currencyId', d.CurrencyID || '');
+        setVal('productId', pickField(d, ['ProductID']) || '');
+        setVal('currencyId', pickField(d, ['CurrencyID', 'CHRG_CURR']) || '');
 
-        // Audit
-        setTxt('MakerID', d.MakerID || d.CreatedBy);
-        setTxt('MakerDT', d.MakerDT || d.CreatedOn);
-        setTxt('CheckerID', d.CheckerID || d.SupervisedBy);
-        setTxt('CheckerDT', d.CheckerDT || d.SupervisedOn);
-        setTxt('ModifierID', d.ModifierID || d.ModifiedBy);
-        setTxt('ModifierDT', d.ModifierDT || d.ModifiedOn);
-    }
-
-    function renderComponentsGrid() {
-        const tbody = el('componentsGridBody');
-        if (!tbody) return;
-
-        if (!state.components || state.components.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No components found</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = state.components.map(c => `
-            <tr>
-                <td>${c.ComponentID || ''}</td>
-                <td>${c.TrxBranchID || c.OurBranchID || ''}</td>
-                <td>${c.AccountTypeID || ''}</td>
-                <td>${c.AccountID || ''}</td>
-            </tr>
-        `).join('');
+        populateBehindScene(d);
     }
 
     // ── Transaction Management ─────────────────────────────────
@@ -218,7 +449,7 @@ window.AccountClosingModule = (function () {
         if (!tbody) return;
 
         if (state.transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No transactions added</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="16" class="text-center text-muted">No records to display.</td></tr>';
             updateUnpostedBalance();
             return;
         }
@@ -227,14 +458,54 @@ window.AccountClosingModule = (function () {
             <tr onclick="AccountClosingModule.selectTxn(${i})" class="${state.selectedTxnIndex === i ? 'table-primary' : ''}" style="cursor:pointer">
                 <td>${t.AccountTypeID || ''}</td>
                 <td>${t.AccountID || ''}</td>
-                <td>${t.TrxType}</td>
+                <td>${t.TillID || ''}</td>
+                <td>${t.TrxType || ''}</td>
+                <td>${t.ProductID || ''}</td>
                 <td>${t.CurrencyID || ''}</td>
+                <td class="text-end">${t.TrxType === 'TC' ? fmtAmt(t.Amount) : fmtAmt(0)}</td>
+                <td class="text-end">${t.TrxType === 'TD' ? fmtAmt(t.Amount) : fmtAmt(0)}</td>
                 <td class="text-end">${fmtAmt(t.Amount)}</td>
+                <td class="text-end">${fmtAmt(t.LocalAmount)}</td>
+                <td class="text-end">${fmtAmt(t.ExchangeRate)}</td>
+                <td>${t.ReferenceNo || ''}</td>
+                <td>${t.BeneficiaryName || ''}</td>
+                <td>${t.TrxDescription || ''}</td>
+                <td class="text-end">${fmtAmt(t.Profit || 0)}</td>
                 <td>${t.Narration || ''}</td>
             </tr>
         `).join('');
 
         updateUnpostedBalance();
+    }
+
+    function loadSelectedTransaction() {
+        if (state.selectedTxnIndex < 0 || state.selectedTxnIndex >= state.transactions.length) {
+            showMsg('Please select a transaction row', 'warning');
+            return;
+        }
+
+        const selected = state.transactions[state.selectedTxnIndex];
+        if (!selected) {
+            return;
+        }
+
+        setVal('transactionType', selected.TrxType === 'TC' ? 'C' : 'D');
+        setVal('till', selected.TillID || '');
+        setVal('typeOfService', selected.TypeOfServiceID || '');
+        setVal('accountType', selected.AccountTypeID || '');
+        setVal('txnAccountId', selected.AccountID || '');
+        setVal('productId', selected.ProductID || '');
+        setVal('currencyId', selected.CurrencyID || '');
+        setVal('chequeId', selected.ChequeID || '');
+        setVal('payableAt', selected.PayableAtBranchID || '');
+        setVal('beneficiaryName', selected.BeneficiaryName || '');
+        setVal('referenceNo', selected.ReferenceNo || '');
+        setVal('transactionId', selected.TrxDescriptionID || '');
+        setVal('transactionIdName', selected.TrxDescription || '');
+        setVal('narration', selected.Narration || '');
+        setVal('transactionAmount', fmtAmt(selected.Amount || 0));
+        setVal('exchangeRate', selected.ExchangeRate || '1');
+        computeLocalAmount();
     }
 
     /**
@@ -297,9 +568,10 @@ window.AccountClosingModule = (function () {
     }
 
     function clearTxnForm() {
-        ['transactionType', 'till', 'typeOfService', 'accountType', 'txnAccountId', 'txnAccountName', 'productId', 'currencyId', 'chequeId', 'payableAt', 'payableAtName', 'beneficiaryName', 'referenceNo', 'transactionId', 'transactionIdName', 'narration', 'transactionAmount'].forEach(id => setVal(id, ''));
+        ['transactionType', 'till', 'typeOfService', 'accountType', 'txnAccountId', 'txnAccountName', 'productId', 'currencyId', 'chequeId', 'payableAt', 'payableAtName', 'beneficiaryName', 'referenceNo', 'transactionId', 'transactionIdName', 'narration', 'transactionAmount', 'forexGainLoss'].forEach(id => setVal(id, ''));
         setVal('exchangeRate', '1');
         setVal('localAmount', '0.00');
+        updateBalanceAndUnpostedFields();
     }
 
     function buildTxnXml() {
@@ -404,18 +676,18 @@ window.AccountClosingModule = (function () {
         el('txnAccountId')?.addEventListener('blur', (e) => lookupAccount(e.target.value));
 
         // Tab wiring
-        document.querySelectorAll('#closingTabs button').forEach(btn => {
+        getRoot().querySelectorAll('#closingTabs button').forEach(btn => {
             btn.addEventListener('click', function () {
                 const target = this.getAttribute('data-bs-target');
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
-                document.querySelector(target)?.classList.add('show', 'active');
-                document.querySelectorAll('#closingTabs button').forEach(b => b.classList.remove('active'));
+                getRoot().querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
+                getRoot().querySelector(target)?.classList.add('show', 'active');
+                getRoot().querySelectorAll('#closingTabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
             });
         });
 
         // Section toggles
-        document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
+        getRoot().querySelectorAll('[data-section-toggle]').forEach(hdr => {
             hdr.addEventListener('click', function () {
                 const sec = this.closest('.form-section');
                 const content = sec?.querySelector('.section-content, [data-section-content]');
@@ -429,7 +701,7 @@ window.AccountClosingModule = (function () {
         });
 
         // Search Lookups
-        document.querySelectorAll('.btn-lookup').forEach(btn => {
+        getRoot().querySelectorAll('.btn-lookup').forEach(btn => {
             btn.addEventListener('click', () => {
                 const type = btn.getAttribute('data-lookup');
                 if (window.SearchModal) {
@@ -452,12 +724,13 @@ window.AccountClosingModule = (function () {
         });
 
         // Txn Buttons
-        document.querySelector('[data-action="txnNew"]')?.addEventListener('click', () => {
+        getRoot().querySelector('[data-action="txnNew"]')?.addEventListener('click', () => {
             state.selectedTxnIndex = -1;
             clearTxnForm();
         });
-        document.querySelector('[data-action="txnUpdate"]')?.addEventListener('click', addTransactionPair);
-        document.querySelector('[data-action="txnRemove"]')?.addEventListener('click', async () => {
+        getRoot().querySelector('[data-action="txnAlter"]')?.addEventListener('click', loadSelectedTransaction);
+        getRoot().querySelector('[data-action="txnUpdate"]')?.addEventListener('click', addTransactionPair);
+        getRoot().querySelector('[data-action="txnRemove"]')?.addEventListener('click', async () => {
             if (state.selectedTxnIndex < 0) { showMsg('Please select a transaction row', 'warning'); return; }
             const ok = await AppCore.showConfirmation('Remove Transaction', 'Are you sure you want to remove this transaction pair?');
             if (!ok) return;
@@ -467,7 +740,7 @@ window.AccountClosingModule = (function () {
             state.selectedTxnIndex = -1;
             renderTransactionsGrid();
         });
-        document.querySelector('[data-action="txnClear"]')?.addEventListener('click', clearTxnForm);
+        getRoot().querySelector('[data-action="txnClear"]')?.addEventListener('click', clearTxnForm);
 
         const ctx = getContext();
         if (ctx.AccountID) loadData();
