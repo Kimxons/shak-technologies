@@ -96,7 +96,7 @@ Enumerable.Empty<SelectListItem>();
     </div>
   </div>
 
-  <div class="form-section" data-section="behind-scene">
+  <div class="form-section form-section--bts" data-section="behind-scene">
     <div class="section-header" data-section-toggle>
       <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind the Scene</span>
       <button type="button" class="section-toggle-btn" aria-label="Toggle BTS" aria-expanded="true">
@@ -104,20 +104,27 @@ Enumerable.Empty<SelectListItem>();
       </button>
     </div>
     <div class="section-content" data-section-content>
-      <div class="audit-section audit-section--summary">
-        <div class="audit-item"><label>Created By</label><span class="audit-value" id="MakerID">-</span></div>
-        <div class="audit-item"><label>Created On</label><span class="audit-value" id="MakerDT">-</span></div>
-        <div class="audit-item"><label>Checked By</label><span class="audit-value" id="CheckerID">-</span></div>
-        <div class="audit-item"><label>Checked On</label><span class="audit-value" id="CheckerDT">-</span></div>
-        <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifierID">-</span></div>
-        <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifierDT">-</span></div>
-      </div>
-    </div>
-  </div>
-</div>
+      <div class="form-row four-col">
+        <div class="col"><label for="MakerID">Created By</label><input id="MakerID" type="text" class="bs-input-text"
+                                                                         value="-" readonly /></div>
+          <div class="col"><label for="MakerDT">Created On</label><input id="MakerDT" type="text" class="bs-input-text"
+                                                                           value="-" readonly /></div>
+            <div class="col"><label for="CheckerID">Checked By</label><input id="CheckerID" type="text"
+                                                                               class="bs-input-text" value="-" readonly /></div>
+              <div class="col"><label for="CheckerDT">Checked On</label><input id="CheckerDT" type="text"
+                                                                                 class="bs-input-text" value="-" readonly /></div>
+              </div>
+              <div class="form-row four-col">
+                <div class="col"><label for="ModifierID">Modified By</label><input id="ModifierID" type="text"
+                                                                                     class="bs-input-text" value="-" readonly /></div>
+                  <div class="col"><label for="ModifierDT">Modified On</label><input id="ModifierDT" type="text"
+                                                                                       class="bs-input-text" value="-" readonly /></div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-<<<<<<< HEAD
-<script src="~/js/modules/accountsmaintenance/account-classification.js" asp-append-version="true"></script>
-=======
-<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-classification.js" asp-append-version="true"></script>
->>>>>>> main
+            <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-classification.js"
+                    asp-append-version="true"></script>

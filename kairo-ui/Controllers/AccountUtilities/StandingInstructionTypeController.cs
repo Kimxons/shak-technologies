@@ -44,7 +44,7 @@ namespace kairo_ui.Controllers.AccountUtilities
                 };
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
+                    "OldApi",
                     OldApiDBConstants.GET_SI_TYPES,
                     payload
                 );
@@ -70,12 +70,39 @@ namespace kairo_ui.Controllers.AccountUtilities
                 if (string.IsNullOrEmpty(request.OurBranchID))
                     request.OurBranchID = HttpContext.Session.GetString("branch_code");
 
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
+                    ?? "00";
+
                 request.Direction = 0; // Add/Edit direction
 
+                var payload = new
+                {
+                    BankID = bankId,
+                    CreatedBy = request.CreatedBy ?? request.OperatorID,
+                    CreatedOn = request.CreatedOn,
+                    ModifiedBy = request.ModifiedBy ?? request.OperatorID,
+                    ModifiedOn = request.ModifiedOn,
+                    SupervisedBy = request.SupervisedBy,
+                    SITypeID = request.SITypeID ?? request.InstructionTypeID,
+                    Description = request.Description,
+                    SITrfTypeID = request.SITransferType,
+                    NoOfRetries = request.NoOfRetries,
+                    RetryAfterDays = request.RetryAfterDays,
+                    FailedChargeTypeID = request.FailedChargeType,
+                    IsFailureFreezeAmount = request.FreezeAmountOnFailure == "1"
+                        || string.Equals(request.FreezeAmountOnFailure, "true", StringComparison.OrdinalIgnoreCase),
+                    SuccessfulTrxID = request.SuccessfulTrxId,
+                    SuccessfulNarration = request.SuccessfulNarration,
+                    FailureTrxID = request.FailureTrxId,
+                    FailureNarration = request.FailureNarration,
+                    NewRecord = request.NewRecord ?? 1
+                };
+
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
+                    "OldApi",
                     OldApiDBConstants.ADD_EDIT_SI_TYPES,
-                    request
+                    payload
                 );
 
                 return Ok(new { Success = true, Data = result });
@@ -99,12 +126,39 @@ namespace kairo_ui.Controllers.AccountUtilities
                 if (string.IsNullOrEmpty(request.OurBranchID))
                     request.OurBranchID = HttpContext.Session.GetString("branch_code");
 
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
+                    ?? "00";
+
                 request.Direction = 0;
 
+                var payload = new
+                {
+                    BankID = bankId,
+                    CreatedBy = request.CreatedBy ?? request.OperatorID,
+                    CreatedOn = request.CreatedOn,
+                    ModifiedBy = request.ModifiedBy ?? request.OperatorID,
+                    ModifiedOn = request.ModifiedOn,
+                    SupervisedBy = request.SupervisedBy,
+                    SITypeID = request.SITypeID ?? request.InstructionTypeID,
+                    Description = request.Description,
+                    SITrfTypeID = request.SITransferType,
+                    NoOfRetries = request.NoOfRetries,
+                    RetryAfterDays = request.RetryAfterDays,
+                    FailedChargeTypeID = request.FailedChargeType,
+                    IsFailureFreezeAmount = request.FreezeAmountOnFailure == "1"
+                        || string.Equals(request.FreezeAmountOnFailure, "true", StringComparison.OrdinalIgnoreCase),
+                    SuccessfulTrxID = request.SuccessfulTrxId,
+                    SuccessfulNarration = request.SuccessfulNarration,
+                    FailureTrxID = request.FailureTrxId,
+                    FailureNarration = request.FailureNarration,
+                    NewRecord = request.NewRecord ?? request.UpdateCount ?? 0
+                };
+
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
+                    "OldApi",
                     OldApiDBConstants.ADD_EDIT_SI_TYPES,
-                    request
+                    payload
                 );
 
                 return Ok(new { Success = true, Data = result });
@@ -128,16 +182,19 @@ namespace kairo_ui.Controllers.AccountUtilities
                 if (string.IsNullOrEmpty(request.OurBranchID))
                     request.OurBranchID = HttpContext.Session.GetString("branch_code");
 
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
+                    ?? "00";
+
                 var payload = new 
                 {
-                    BankID = "00",
-                    OurBranchID = request.OurBranchID,
-                    OperatorID = request.OperatorID,
-                    SITypeID = request.SITypeID
+                    BankID = bankId,
+                    SITypeID = request.SITypeID,
+                    NewRecord = request.NewRecord ?? request.UpdateCount ?? 0
                 };
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    "AccountManagementApi",
+                    "OldApi",
                     OldApiDBConstants.DELETE_SI_TYPES,
                     payload
                 );
@@ -154,11 +211,19 @@ namespace kairo_ui.Controllers.AccountUtilities
 
     public class SITypeRequest
     {
+        public string? BankID { get; set; }
         public string? SITypeID { get; set; }
         public string? InstructionTypeID { get; set; }
 
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public DateTime? CreatedOn { get; set; }
+        public string? ModifiedBy { get; set; }
+        public DateTime? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public int? NewRecord { get; set; }
+        public int? UpdateCount { get; set; }
         public int Direction { get; set; }
 
         // Form Fields

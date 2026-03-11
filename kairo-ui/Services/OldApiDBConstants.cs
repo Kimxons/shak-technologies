@@ -25,15 +25,17 @@ namespace kairo_ui.Services
         public const string GET_WF_DATA_CHECK_FIELDS = "p_GetWFDataCheckFields";
         public const string ADD_CLIENT_SUPERVISION_DATA = "dbo.p_AddClientSupervisionData";
 
-        public const string GET_CLIENT                 = "p_V8_GetClientBasicDetails";
-        public const string GET_CLIENT_INDIVIDUAL      = "p_V8_GetClientIndividual";
-        public const string GET_CLIENT_CORPORATE       = "p_V8_GetClientCorporate";
-        public const string GET_CLIENT_ADDRESS         = "p_V8_GetClientAddress";
-        public const string GET_CLIENT_EMPLOYMENT      = "p_V8_GetClientEmployment";
+        public const string GET_CLIENT = "p_V8_GetClientBasicDetails";
+        public const string GET_CLIENT_INDIVIDUAL = "p_V8_GetClientIndividual";
+        public const string GET_CLIENT_CORPORATE = "p_V8_GetClientCorporate";
+        public const string GET_CLIENT_ADDRESS = "p_V8_GetClientAddress";
+        public const string GET_CLIENT_EMPLOYMENT = "p_V8_GetClientEmployment";
         public const string GET_CLIENT_INDIVIDUAL_IMAGE = "p_GetClientPhotoIDSignIDBioID";
-        public const string GET_CLIENT_IMAGES          = "p_V8_GetImages";
+        public const string GET_CLIENT_IMAGES = "p_V8_GetImages";
 
         public const string GET_CLIENT_SUPERVISION_PENDING = "p_getclientsupervisionpending";
+        public const string APPROVE_CLIENT_SUPERVISION = "p_ClientApproveSupervision";
+        public const string REJECT_CLIENT_SUPERVISION = "p_ClientRejectSupervision";
 
         // Client Maintenance Module Constants
         public const string GET_CLIENT_BANK_ACCOUNTS = "p_GetClientBankAccounts";
@@ -52,6 +54,9 @@ namespace kairo_ui.Services
         public const string ADD_EDIT_CLIENT_PROFILE_CHANGE = "p_AddEditClientProfileChange";
 
         public const string GET_CLIENT_PORTFOLIO = "p_GetClientPortfolio";
+        public const string GET_CLIENT_IDENTITY_TYPE = "dbo.p_GetClientIdentityType";
+        public const string ADD_EDIT_CLIENT_IDENTITY_TYPES = "dbo.p_AddEditClientIdentityTypes";
+        public const string DELETE_CLIENT_IDENTITY_TYPES = "dbo.p_DeleteClientIdentityTypes";
 
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION LOAN REPAYMENT
@@ -136,17 +141,17 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_GLOAN_PEN_INT_WAIVE_OFF = "p_GetGLoanPenIntWaiveOff";
 
-            // ═══════════════════════════════════════════════════════════════════
-            // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
-            // ═══════════════════════════════════════════════════════════════════
-            public const string GETLOANSANCTION = "p_GetWFLoanSanction";
-            public const string SAVELOANSANCTION = "p_AddWFLoanSanction";
-            public const string DEVIATEAPPLICATION = "p_DeviateWFApplication";
-            
-            // Loan Sanction - Disbursement Schedule (Data Entry Submodule)
-            public const string GETDISBURSEMENTSCHEDULES = "p_GetWFLoanDisbSchedules";
-            public const string SAVEDISBURSEMENTSCHEDULES = "p_AddEditWFLoanDisbSchedules";
-            
+        // ═══════════════════════════════════════════════════════════════════
+        // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GETLOANSANCTION = "p_GetWFLoanSanction";
+        public const string SAVELOANSANCTION = "p_AddWFLoanSanction";
+        public const string DEVIATEAPPLICATION = "p_DeviateWFApplication";
+
+        // Loan Sanction - Disbursement Schedule (Data Entry Submodule)
+        public const string GETDISBURSEMENTSCHEDULES = "p_GetWFLoanDisbSchedules";
+        public const string SAVEDISBURSEMENTSCHEDULES = "p_AddEditWFLoanDisbSchedules";
+
         // ═══════════════════════════════════════════════════════════════════
         // WORKFLOW LOAN - LOAN DISBURSEMENT (Module 7097)
         // ═══════════════════════════════════════════════════════════════════
@@ -155,7 +160,7 @@ namespace kairo_ui.Services
         public const string GETLOANINSTALLMENTS = "p_GetLoanInstallments";
         public const string GETWFCHARGES = "p_GetWFCharges";
         public const string GETTILLDETAILS = "pc_GetTillDetailPerTill";
-            
+
         public const string ADD_GLOAN_PEN_INT_WAIVE_OFF = "p_AddGLoanPenIntWaiveOff";
         public const string DELETE_GLOAN_PEN_INT_WAIVE_OFF = "p_DeleteGLoanPenIntWaiveOff";
         public const string GET_DEFAULT_ADV_TYPE = "p_GetDefaultAdvType";
@@ -217,13 +222,19 @@ namespace kairo_ui.Services
         public const string USER_RIGHTS = "p_UserRights";
 
         // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
+        public const string EDIT_ACCOUNT_PRODUCT_NOTIFICATION = "p_EditAccountProductNotification";
+
+        // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE VIEW SUBMODULES
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
-        // GET_SIGNATORY_IMAGE is already defined above in Standing Instruction Transfer
+        // public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
 
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
@@ -236,9 +247,9 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_SI_TYPES = "p_GetSITypes";
-        public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
-        public const string DELETE_SI_TYPES = "p_DeleteSITypes";
+        public const string GET_SI_TYPES = "dbo.p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "dbo.p_AddEditSITypes";
+        public const string DELETE_SI_TYPES = "dbo.p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
 
@@ -246,5 +257,14 @@ namespace kairo_ui.Services
         public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
         public const string SEARCH_SYSTEM_BRANCHES = "pc_SearchSystemBranches";
         public const string MERGE_ACCOUNTS = "p_MergeAccounts";
+        public const string ADD_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string UPDATE_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string GET_ACCOUNT_CARD = "p_GetAccountElectronicCards";
+        public const string DELETE_ACCOUNT_CARD = "p_DeleteElectronicCard";
+
+
     }
+
+
+
 }

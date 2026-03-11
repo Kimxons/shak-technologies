@@ -1,0 +1,113 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Client Relations";
+    Layout = "_ApplicationLayout";
+    var relationTypeOptions = ViewData["RelationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationTitleOptions = ViewData["RelationTitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationGenderOptions = ViewData["RelationGenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationOptions = ViewData["RelationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
+}
+
+<!-- ClientRelations Submodule -->
+<div class="window de-window" data-ktb-window data-relations-host="standalone">
+    <div data-kairo-titlebar data-title="Client Relations" data-icon="bi-people"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
+            <div class="form-card" data-section="client-relations" data-main-form>
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-people"></i>Relations</span>
+                    <button id="btn_toggleClientRelations" type="button" class="section-toggle-btn" aria-label="Toggle Relations" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <form id="frm_clientRelations" data-relations-form autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdRelations" value="@moduleId" />
+
+                        <h5 class="mb-4">Client Relations &amp; Beneficiaries</h5>
+
+                        <div class="form-row four-col">
+                            <div class="col col-span-2">
+                                <label class="label-blue" for="txt_relationClientId" id="lbl_relationClientId">Client Relation</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input id="txt_relationClientId" name="relationClientId" data-relation-field="RelatedClientID" class="bs-input-text" />
+                                    <input id="txt_relationClientName" class="bs-input-text" placeholder="Search Client..." readonly />
+                                    <button type="button" class="btn-lookup" data-relation-action="lookup" aria-label="Find client"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col col-span-2">
+                                <label for="ddl_relationType" id="lbl_relationType">Relation Type</label>
+                                <select id="ddl_relationType" name="relationType" data-relation-field="RelationTypeID" class="bs-select" asp-items="@(relationTypeOptions.Skip(1))"><option value="">Select type...</option></select>
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col"><label for="ddl_relationTitle" id="lbl_relationTitle">Title</label><select id="ddl_relationTitle" name="relationTitle" data-relation-field="TitleID" class="bs-select" asp-items="@(relationTitleOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label for="txt_relationFirstName" id="lbl_relationFirstName">First Name</label><input id="txt_relationFirstName" name="relationFirstName" data-relation-field="FirstName" class="bs-input-text" /></div>
+                            <div class="col"><label for="txt_relationMiddleName" id="lbl_relationMiddleName">Middle Name</label><input id="txt_relationMiddleName" name="relationMiddleName" data-relation-field="MiddleName" class="bs-input-text" /></div>
+                            <div class="col"><label for="txt_relationLastName" id="lbl_relationLastName">Last Name</label><input id="txt_relationLastName" name="relationLastName" data-relation-field="LastName" class="bs-input-text" /></div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col"><label for="ddl_relationGender" id="lbl_relationGender">Gender</label><select id="ddl_relationGender" name="relationGender" data-relation-field="GenderID" class="bs-select" asp-items="@(relationGenderOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label class="label-blue" for="ddl_relation" id="lbl_relation">Relation</label><select id="ddl_relation" name="relation" data-relation-field="RelationID" class="bs-select" asp-items="@(relationOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label for="txt_relationShare" id="lbl_relationShare">Share %</label><input id="txt_relationShare" name="relationShare" data-relation-field="SharePercent" class="bs-input-text" type="number" min="0" max="100" step="0.01" /></div>
+                            <div class="col"><label for="txt_relationMobile" id="lbl_relationMobile">Mobile</label><input id="txt_relationMobile" name="relationMobile" data-relation-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+                        </div>
+                    </form>
+
+                    <div class="d-flex justify-content-center gap-2 my-4">
+                        <button id="btn_newClientRelations" type="button" class="btn btn-sm btn-outline-primary" data-relation-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                        <button id="btn_alterClientRelations" type="button" class="btn btn-sm btn-outline-primary" data-relation-action="alter" disabled><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                        <button id="btn_deleteClientRelations" type="button" class="btn btn-sm btn-outline-danger" data-relation-action="remove" disabled><i class="bi bi-trash me-1"></i>Remove</button>
+                        <button id="btn_updateClientRelations" type="button" class="btn btn-sm btn-primary" data-relation-action="update" disabled><i class="bi bi-check2-circle me-1"></i>Update</button>
+                        <button id="btn_clearClientRelations" type="button" class="btn btn-sm btn-outline-secondary" data-relation-action="clear" disabled>Clear</button>
+                    </div>
+
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">RELATED PARTIES</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white mb-4">
+                        <table class="table table-sm table-hover mb-0" data-table="relations">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Name</th>
+                                    <th>Relation</th>
+                                    <th>ID Type/No</th>
+                                    <th>Share (%)</th>
+                                    <th>Mobile</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientRelationsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <aside class="action-panel">
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+                <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+            </div>
+        </aside>
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+</div>
+<script>
+    window.ClientRelationsState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: true
+    };
+</script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-relations.js?v=20260311"></script>

@@ -866,10 +866,7 @@
                 <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>
                 <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
                 <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>
-                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle : bi-x-circle me-1"></i>Cancel</button>
-                <div class="action-separator p-1"></div>
-                <button class="btn-action" type="button" id="submoduleBtnActivate"><i class="bi bi-lightning-charge me-1"></i>Activate</button>
-                <button class="btn-action" type="button" id="submoduleBtnMarkDormant"><i class="bi bi-moon-stars me-1"></i>Mark Dormant</button>
+                <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             `;
         }
@@ -1017,6 +1014,7 @@
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
+                mod.init();
                 return;
             }
 
@@ -1112,8 +1110,8 @@
             // Reminders module
             if (submoduleName === 'Reminders' && window.AccountRemindersModule) {
                 const mod = window.AccountRemindersModule;
-                if (viewBtn) viewBtn.addEventListener('click', () => mod.loadData());
-                if (addBtn) addBtn.addEventListener('click', () => mod.setMode('ADD'));
+                if (viewBtn) viewBtn.addEventListener('click', () => (mod.viewData ? mod.viewData() : mod.loadData()));
+                if (addBtn) addBtn.addEventListener('click', () => (mod.beginAdd ? mod.beginAdd() : mod.setMode('ADD')));
                 if (editBtn) editBtn.addEventListener('click', () => mod.setMode('EDIT'));
                 if (deleteBtn) deleteBtn.addEventListener('click', () => mod.deleteData());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
@@ -1171,15 +1169,11 @@
             // Activate Dormant module
             if (submoduleName === 'ActivateDormant' && window.ActivateDormantModule) {
                 const mod = window.ActivateDormantModule;
-                const activateBtn = document.getElementById('submoduleBtnActivate');
-                const markDormantBtn = document.getElementById('submoduleBtnMarkDormant');
 
                 if (viewBtn) viewBtn.addEventListener('click', () => mod.navigate());
                 if (editBtn) editBtn.addEventListener('click', () => mod.confirmEdit());
                 if (saveBtn) saveBtn.addEventListener('click', () => mod.saveData());
                 if (cancelBtn) cancelBtn.addEventListener('click', () => mod.confirmCancel());
-                if (activateBtn) activateBtn.addEventListener('click', () => mod.activateAccount());
-                if (markDormantBtn) markDormantBtn.addEventListener('click', () => mod.markDormant());
                 return;
             }
 
@@ -1883,6 +1877,13 @@
                                 nameInput.dispatchEvent(new Event('change', { bubbles: true }));
                             }
                         }
+
+                        document.dispatchEvent(new CustomEvent('kairo:lookup-selected', {
+                            detail: {
+                                targetInputId,
+                                selectedRow
+                            }
+                        }));
 
                         // For Documents submodule: lookup just sets ID+description
                         // User uses VIEW button or Enter to navigate after selection

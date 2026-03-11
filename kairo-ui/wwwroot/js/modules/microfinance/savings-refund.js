@@ -40,11 +40,15 @@
         const e = window.Environment || {};
         const bankID = e.defaultBankId || e.defaultBankID || e.bankID || e.bankId ||
             sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
-        const ourBranchID = e.branchID || e.branchId || e.OurBranchID || e.defaultOurBranchId ||
-            sessionStorage.getItem('BranchID') || sessionStorage.getItem('OurBranchID') || localStorage.getItem('BranchID') || '0101';
+        // Branch code logic: fetch from session/environment, fallback to '0603'
+        let branchCode = e.branch_code || e.branchID || e.branchId || e.OurBranchID || e.defaultOurBranchId ||
+            sessionStorage.getItem('BranchID') || sessionStorage.getItem('OurBranchID') || localStorage.getItem('BranchID');
+        if (!branchCode || branchCode === '' || branchCode === 'null' || branchCode === 'undefined') {
+            branchCode = '0603';
+        }
         const operatorID = e.operatorID || e.operatorId ||
             sessionStorage.getItem('OperatorID') || sessionStorage.getItem('operatorId') || localStorage.getItem('OperatorID') || 'CSADM';
-        return { bankID, ourBranchID, operatorID };
+        return { bankID, ourBranchID: branchCode, operatorID };
     }
 
     // =========================================================================
@@ -655,6 +659,7 @@
                     GroupID: centerId,
                     SubGroupID: groupId,
                     ClientID: clientId,
+                    RefID: '',
                     OperatorID: operatorID
                 }
             });

@@ -35,6 +35,7 @@ window.SIEFTModule = (function () {
         wireSectionToggles();
         wireLookupButtons();
         initSearchModals();
+        loadDropdowns();
         setMode('VIEW');
     }
 
@@ -104,6 +105,52 @@ window.SIEFTModule = (function () {
                 openSearchModal(type);
             });
         });
+    }
+
+    /* ====================================================================
+       DROPDOWN LOADING
+       ==================================================================== */
+    async function loadDropdowns() {
+        try {
+            const [freqOpts, amountInOpts] = await Promise.all([
+                fetchDropdownOptions('TrfFrequencyID').catch(() => []),
+                fetchDropdownOptions('ChargingCurrencyID', 'ChargingCurrencyID').catch(() => [])
+            ]);
+
+            populateSelect('ddl_transferFrequency', freqOpts, '--Select--');
+            populateSelect('ddl_amountIn', amountInOpts, '--Select--');
+
+            console.log('[SI-EFT] Dropdowns loaded:', {
+                transferFrequency: freqOpts.length,
+                amountIn: amountInOpts.length
+            });
+        } catch (err) {
+            console.error('[SI-EFT] Failed to load dropdowns:', err);
+        }
+    }
+
+    async function fetchDropdownOptions(codeId, valueField) {
+        let url = `/AccountUtilities/get-dropdown-options?codeId=${encodeURIComponent(codeId)}`;
+        if (valueField) url += `&valueField=${encodeURIComponent(valueField)}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Failed to load options');
+        return result.data || [];
+    }
+
+    function populateSelect(selectId, options, placeholder) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        const currentVal = select.value;
+        select.innerHTML = `<option value="">${placeholder || '--Select--'}</option>`;
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            select.appendChild(option);
+        });
+        if (currentVal) select.value = currentVal;
     }
 
     /* ====================================================================
@@ -545,10 +592,14 @@ window.SIEFTModule = (function () {
                 }
             },
             beneficiaryBranch: {
-                tableID: 'BranchID',
+                tableID: 'ClearingBranchID',
+                advFilterString: (() => {
+                    const bankId = document.getElementById('txt_bankId')?.value?.trim();
+                    return bankId ? `BankID='${bankId}'` : '';
+                })(),
                 onSelect: (rec) => {
-                    document.getElementById('txt_beneficiaryBranchId').value   = rec.OurBranchID || rec.BranchID || '';
-                    document.getElementById('txt_beneficiaryBranchName').value = rec.BranchName  || rec.Name    || '';
+                    document.getElementById('txt_beneficiaryBranchId').value   = rec.ClearingBranchID || rec.BranchID || rec.OurBranchID || '';
+                    document.getElementById('txt_beneficiaryBranchName').value = rec.ClearingBranchName || rec.BranchName || rec.Name || '';
                 }
             },
             standingInstruction: {
