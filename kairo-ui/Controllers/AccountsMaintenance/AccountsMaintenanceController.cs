@@ -1304,6 +1304,32 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         }
 
         [HttpPost]
+        [Route("api/check-account-nominee-opening")]
+        public async Task<IActionResult> CheckAccountNomineeOpening([FromBody] GenericAccountRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.CHECK_ACCOUNT_NOMINEE_OPENING,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking account nominee opening");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/add-account-nominee")]
         public async Task<IActionResult> AddAccountNominee([FromBody] JsonElement request)
         {
@@ -3605,10 +3631,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? AccountID { get; set; }
         public string? AccountTypeID { get; set; }
         public string? AccountNumber { get; set; }
+        public string? NomineeClientID { get; set; }
+        public string? NomineeID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public string? SearchKey { get; set; }
         public string? SearchID { get; set; }
+        public int? Direction { get; set; }
         public int? ModuleID { get; set; }
         public string? ModuleTypeID { get; set; }
         public string? RelevantID { get; set; }
