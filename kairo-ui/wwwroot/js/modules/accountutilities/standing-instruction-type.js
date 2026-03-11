@@ -412,6 +412,24 @@ window.StandingInstructionTypeModule = (function () {
         };
     }
 
+    function getSuccessMessage(response, fallbackMessage) {
+        const result = getOperationResult(response);
+        return result.message || fallbackMessage;
+    }
+
+    function formatAuditDate(value) {
+        if (!value) {
+            return '-';
+        }
+
+        if (window.GlobalUtils && typeof window.GlobalUtils.formatDateTime === 'function') {
+            return window.GlobalUtils.formatDateTime(value);
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    }
+
     // ─────────────────────────────────────────────────────────────
     // API Operations
     // ─────────────────────────────────────────────────────────────
@@ -460,7 +478,7 @@ window.StandingInstructionTypeModule = (function () {
             const result = getOperationResult(res);
 
             if (result.isSuccess) {
-                showMsg('Saved successfully.', 'success');
+                showMsg(getSuccessMessage(res, 'Saved successfully.'), 'success');
                 state.isDirty = false;
                 setMode('VIEW');
                 if (data.instructionTypeId) {
@@ -495,7 +513,7 @@ window.StandingInstructionTypeModule = (function () {
             const result = getOperationResult(res);
 
             if (result.isSuccess) {
-                showMsg('Deleted successfully.', 'success');
+                showMsg(getSuccessMessage(res, 'Deleted successfully.'), 'success');
                 clearForm();
                 setMode('VIEW');
             } else {
@@ -553,11 +571,11 @@ window.StandingInstructionTypeModule = (function () {
 
         // Audit Fields
         document.getElementById('spn_createdBy').textContent = row.CreatedBy || '-';
-        document.getElementById('spn_createdOn').textContent = row.CreatedOn ? new Date(row.CreatedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_createdOn').textContent = formatAuditDate(row.CreatedOn);
         document.getElementById('spn_modifiedBy').textContent = row.ModifiedBy || '-';
-        document.getElementById('spn_modifiedOn').textContent = row.ModifiedOn ? new Date(row.ModifiedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_modifiedOn').textContent = formatAuditDate(row.ModifiedOn);
         document.getElementById('spn_supervisedBy').textContent = row.SupervisedBy || '-';
-        document.getElementById('spn_supervisedOn').textContent = row.SupervisedOn ? new Date(row.SupervisedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_supervisedOn').textContent = formatAuditDate(row.SupervisedOn);
     }
 
     // ─────────────────────────────────────────────────────────────
