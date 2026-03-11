@@ -149,14 +149,14 @@ namespace kairo_ui.Controllers.AccountUtilities
 
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "DirectDebitTypeID",
-                    "TransferFrequencyID",
-                    "ChargeRecoveryID"
+                    "DIDebitMain",
+                    "TrfFrequencyID",
+                    "SIChargeTypeID"
                 });
 
-                dropdownOptions.TryGetValue("DirectDebitTypeID", out var directDebitTypeOptions);
-                dropdownOptions.TryGetValue("TransferFrequencyID", out var transferFrequencyOptions);
-                dropdownOptions.TryGetValue("ChargeRecoveryID", out var chargeRecoveryOptions);
+                dropdownOptions.TryGetValue("DIDebitMain", out var directDebitTypeOptions);
+                dropdownOptions.TryGetValue("TrfFrequencyID", out var transferFrequencyOptions);
+                dropdownOptions.TryGetValue("SIChargeTypeID", out var chargeRecoveryOptions);
 
                 ViewData["DirectDebitTypeOptions"] = directDebitTypeOptions ?? Enumerable.Empty<SelectListItem>();
                 ViewData["TransferFrequencyOptions"] = transferFrequencyOptions ?? Enumerable.Empty<SelectListItem>();

@@ -8,11 +8,13 @@ window.DirectDebitMaintenanceModule = (function () {
     // Module State
     const state = {
         submoduleName: 'DirectDebitMaintenance',
-        moduleId: '1000',
+        moduleId: '3079',
         currentMode: 'VIEW', // VIEW, ADD, EDIT
         isDirty: false,
         selectedIndex: -1,
-        searchKey: null
+        searchKey: null,
+        lastViewedKey: null,
+        amountTypeId: 'T'
     };
 
     let searchModal = null;
@@ -20,6 +22,7 @@ window.DirectDebitMaintenanceModule = (function () {
     // Elements
     const elements = {
         form: document.getElementById('frm_directDebitMaintenance'),
+        mainForm: document.querySelector('[data-main-form]'),
         loadingOverlay: document.getElementById('dv_loadingOverlay'),
         msgPanel: document.querySelector('.am-message-panel'),
         msgText: document.querySelector('.message-text')
@@ -51,7 +54,9 @@ window.DirectDebitMaintenanceModule = (function () {
         CREATE: 'AccountUtilities/api/create-direct-debit-maintenance',
         UPDATE: 'AccountUtilities/api/update-direct-debit-maintenance',
         DELETE: 'AccountUtilities/api/delete-direct-debit-maintenance',
-        STOP: 'AccountUtilities/api/stop-direct-debit-maintenance'
+        STOP: 'AccountUtilities/api/stop-direct-debit-maintenance',
+        ADD_LOCK: 'AccountUtilities/api/add-direct-debit-lock',
+        RELEASE_LOCK: 'AccountUtilities/api/release-direct-debit-lock'
     };
 
     // ─────────────────────────────────────────────────────────────
@@ -71,8 +76,11 @@ window.DirectDebitMaintenanceModule = (function () {
         setMode('VIEW');
         
         // Formulate window controls
-        document.querySelector('[data-action="close"]')?.addEventListener('click', () => {
-            if (state.isDirty && !confirm('You have unsaved changes. Are you sure you want to close?')) return;
+        document.querySelector('[data-action="close"]')?.addEventListener('click', async () => {
+            if (state.isDirty) {
+                const confirmed = await showConfirmationDialog('Close Window', 'You have unsaved changes. Are you sure you want to close?');
+                if (!confirmed) return;
+            }
             window.close(); // Or navigate back
             window.location.href = '/Dashboard/Index';
         });
@@ -91,9 +99,12 @@ window.DirectDebitMaintenanceModule = (function () {
     function setMode(mode) {
         state.currentMode = mode;
         const isEditing = mode === 'ADD' || mode === 'EDIT';
+        const hasLoadedRecord = Boolean(state.searchKey);
 
         // Enable/Disable form fields
-        const inputs = elements.form.querySelectorAll('input:not([readonly]):not([type="hidden"]), select:not([readonly]), textarea:not([readonly])');
+        const inputs = elements.mainForm
+            ? elements.mainForm.querySelectorAll('input:not([readonly]):not([type="hidden"]), select:not([readonly]), textarea:not([readonly])')
+            : [];
         inputs.forEach(el => el.disabled = !isEditing);
         
         // Special lookup buttons
@@ -106,14 +117,25 @@ window.DirectDebitMaintenanceModule = (function () {
         }
 
         // Action Buttons
-        if (buttons.view) buttons.view.disabled = isEditing;
-        if (buttons.add) buttons.add.disabled = isEditing;
-        if (buttons.edit) buttons.edit.disabled = isEditing || !state.searchKey;
-        if (buttons.delete) buttons.delete.disabled = isEditing || !state.searchKey;
-        if (buttons.stop) buttons.stop.disabled = isEditing || !state.searchKey;
-        if (buttons.print) buttons.print.disabled = isEditing || !state.searchKey;
-        if (buttons.save) buttons.save.disabled = !isEditing;
-        if (buttons.cancel) buttons.cancel.disabled = !isEditing;
+        if (mode === 'VIEW') {
+            if (buttons.view) buttons.view.disabled = hasLoadedRecord;
+            if (buttons.add) buttons.add.disabled = hasLoadedRecord;
+            if (buttons.edit) buttons.edit.disabled = !hasLoadedRecord;
+            if (buttons.delete) buttons.delete.disabled = !hasLoadedRecord;
+            if (buttons.stop) buttons.stop.disabled = !hasLoadedRecord;
+            if (buttons.print) buttons.print.disabled = !hasLoadedRecord;
+            if (buttons.save) buttons.save.disabled = true;
+            if (buttons.cancel) buttons.cancel.disabled = !hasLoadedRecord;
+        } else {
+            if (buttons.view) buttons.view.disabled = true;
+            if (buttons.add) buttons.add.disabled = true;
+            if (buttons.edit) buttons.edit.disabled = true;
+            if (buttons.delete) buttons.delete.disabled = true;
+            if (buttons.stop) buttons.stop.disabled = true;
+            if (buttons.print) buttons.print.disabled = true;
+            if (buttons.save) buttons.save.disabled = false;
+            if (buttons.cancel) buttons.cancel.disabled = false;
+        }
 
         if (!isEditing) {
             state.isDirty = false;
@@ -123,15 +145,38 @@ window.DirectDebitMaintenanceModule = (function () {
     }
 
     function clearForm() {
-        elements.form.reset();
+        if (elements.form) {
+            elements.form.reset();
+        }
+
+        if (elements.mainForm) {
+            const fields = elements.mainForm.querySelectorAll('input, select, textarea');
+            fields.forEach(field => {
+                if (field.matches('button, [type="button"], [type="submit"], [type="reset"], [type="hidden"]')) {
+                    return;
+                }
+
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    field.checked = false;
+                    return;
+                }
+
+                field.value = '';
+            });
+        }
         
         // Clear pseudo-readonly lookup descriptions
         document.getElementById('txt_branchName').value = '';
         document.getElementById('txt_accountName').value = '';
+        document.getElementById('txt_directDebitInstructionName').value = '';
+        document.getElementById('txt_transactionCurrencyName').value = '';
+        document.getElementById('txt_bankName').value = '';
+        document.getElementById('txt_contraBranchName').value = '';
         document.getElementById('txt_standingInstructionStatus').value = '';
         document.getElementById('txt_originatorRef').value = '';
         document.getElementById('txt_policyNumber1').value = '';
         document.getElementById('txt_policyNumber2').value = '';
+        document.getElementById('txt_returnCode').value = '00';
         
         // Clear audit
         document.getElementById('spn_nextExecutionDate').textContent = '-';
@@ -149,20 +194,18 @@ window.DirectDebitMaintenanceModule = (function () {
         document.getElementById('spn_supervisedOn').textContent = '-';
 
         state.searchKey = null;
+        state.amountTypeId = 'T';
         state.isDirty = false;
     }
 
     function wireFormChanges() {
-        if (!elements.form) return;
-        elements.form.addEventListener('change', () => {
-            if (state.currentMode !== 'VIEW') {
-                state.isDirty = true;
-            }
-        });
-        elements.form.addEventListener('input', () => {
-            if (state.currentMode !== 'VIEW') {
-                state.isDirty = true;
-            }
+        if (!elements.mainForm) return;
+        ['change', 'input'].forEach(evt => {
+            elements.mainForm.addEventListener(evt, () => {
+                if (state.currentMode !== 'VIEW') {
+                    state.isDirty = true;
+                }
+            });
         });
     }
 
@@ -198,9 +241,24 @@ window.DirectDebitMaintenanceModule = (function () {
         }
     }
 
+    function hasAppCoreDialogs() {
+        return Boolean(window.AppCore && typeof window.AppCore.showDialog === 'function');
+    }
+
+    async function showAlertDialog(title, message) {
+        if (window.AppCore && typeof window.AppCore.showAlert === 'function') {
+            await window.AppCore.showAlert(title, message);
+            return;
+        }
+
+        alert(message);
+    }
+
     function showMsg(msg, type = 'info') {
-        if (AppCore && AppCore.showNotification) {
-            AppCore.showNotification(msg, type);
+        if ((type === 'error' || type === 'warning') && hasAppCoreDialogs()) {
+            showAlertDialog(type === 'error' ? 'Error' : 'Warning', msg);
+        } else if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+            window.AppCore.showNotification(msg, type);
         } else if (elements.msgPanel && elements.msgText) {
             elements.msgPanel.className = `am-message-panel am-message-panel--${type}`;
             elements.msgText.textContent = msg;
@@ -210,10 +268,159 @@ window.DirectDebitMaintenanceModule = (function () {
         }
     }
 
+    async function showConfirmationDialog(title, message) {
+        if (window.AppCore && typeof window.AppCore.showConfirmation === 'function') {
+            return await window.AppCore.showConfirmation(title, message);
+        }
+
+        return confirm(message);
+    }
+
     function clearMessages() {
         if (elements.msgPanel) {
             elements.msgPanel.style.display = 'none';
         }
+    }
+
+    function getResponseValue(response, pascalKey, camelKey) {
+        if (!response || typeof response !== 'object') {
+            return undefined;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(response, pascalKey)) {
+            return response[pascalKey];
+        }
+
+        if (Object.prototype.hasOwnProperty.call(response, camelKey)) {
+            return response[camelKey];
+        }
+
+        return undefined;
+    }
+
+    function getOperationResult(response) {
+        const payload = getResponseValue(response, 'Data', 'data') || {};
+        const status = getResponseValue(payload, 'Status', 'status');
+        const message = getResponseValue(payload, 'Message', 'message')
+            || getResponseValue(response, 'ErrorMessage', 'errorMessage')
+            || getResponseValue(response, 'Message', 'message');
+        const transportSuccess = Boolean(getResponseValue(response, 'Success', 'success'));
+        const businessSuccess = status === undefined
+            || status === null
+            || status === ''
+            || status === 0
+            || status === '0'
+            || status === '00'
+            || status === '000';
+
+        return {
+            status,
+            message,
+            isSuccess: transportSuccess && businessSuccess
+        };
+    }
+
+    function getSuccessMessage(response, fallbackMessage) {
+        const result = getOperationResult(response);
+        return result.message || fallbackMessage;
+    }
+
+    function formatAuditDate(value) {
+        if (!value) {
+            return '-';
+        }
+
+        if (window.GlobalUtils && typeof window.GlobalUtils.formatDateTime === 'function') {
+            return window.GlobalUtils.formatDateTime(value);
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    }
+
+    function normalizeInputDate(value) {
+        if (!value) {
+            return '';
+        }
+
+        if (window.GlobalUtils && typeof window.GlobalUtils.parseDateInput === 'function') {
+            return window.GlobalUtils.parseDateInput(value);
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+    }
+
+    function getDirectDebitRecord(response) {
+        const payload = getResponseValue(response, 'Data', 'data');
+        if (!payload || typeof payload !== 'object') {
+            return null;
+        }
+
+        const details = getResponseValue(payload, 'Details', 'details');
+        const details01 = getResponseValue(payload, 'Details01', 'details01');
+        const details02 = getResponseValue(payload, 'Details02', 'details02');
+
+        const meta = Array.isArray(details) && details.length > 0 ? details[0] : {};
+        const status = Array.isArray(details01) && details01.length > 0 ? details01[0] : {};
+        const row = Array.isArray(details02) && details02.length > 0 ? details02[0] : null;
+
+        if (!row || typeof row !== 'object') {
+            return null;
+        }
+
+        return {
+            ...meta,
+            ...status,
+            ...row
+        };
+    }
+
+    function getFormData() {
+        if (!elements.mainForm) return {};
+
+        const data = {};
+        const fields = elements.mainForm.querySelectorAll('input[name], select[name], textarea[name]');
+
+        fields.forEach(field => {
+            if (field.disabled) {
+                return;
+            }
+
+            if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) {
+                return;
+            }
+
+            data[field.name] = field.value;
+        });
+
+        data.amountTypeId = state.amountTypeId || 'T';
+
+        return data;
+    }
+
+    function validateMainForm() {
+        if (!elements.mainForm) {
+            return true;
+        }
+
+        const fields = elements.mainForm.querySelectorAll('input, select, textarea');
+
+        for (const field of fields) {
+            if (field.disabled || typeof field.checkValidity !== 'function') {
+                continue;
+            }
+
+            if (!field.checkValidity()) {
+                if (typeof field.reportValidity === 'function') {
+                    field.reportValidity();
+                }
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -227,14 +434,17 @@ window.DirectDebitMaintenanceModule = (function () {
         try {
             const req = { SearchKey: searchKey, StandingInstructionID: searchKey };
             const res = await AppCore.invokeControllerAsync(API.GET, req);
-            
-            if (res && res.Success && res.Data) {
-                populateForm(res.Data);
+            const result = getOperationResult(res);
+            const record = getDirectDebitRecord(res);
+
+            if (result.isSuccess && record) {
+                populateForm(record);
                 state.searchKey = searchKey;
+                state.lastViewedKey = searchKey;
                 setMode('VIEW');
                 showMsg('Data loaded successfully', 'success');
             } else {
-                showMsg(res?.ErrorMessage || 'Failed to load record.', 'error');
+                showMsg(result.message || 'Failed to load record.', 'error');
             }
         } catch (err) {
             console.error(err);
@@ -245,21 +455,20 @@ window.DirectDebitMaintenanceModule = (function () {
     }
 
     async function saveData() {
-        if (!elements.form.checkValidity()) {
-            elements.form.reportValidity();
+        if (!validateMainForm()) {
             return;
         }
 
-        const formData = new FormData(elements.form);
-        const data = Object.fromEntries(formData.entries());
+        const data = getFormData();
 
         showLoading(true);
         try {
             const endpoint = state.currentMode === 'ADD' ? API.CREATE : API.UPDATE;
             const res = await AppCore.invokeControllerAsync(endpoint, data);
+            const result = getOperationResult(res);
 
-            if (res && res.Success) {
-                showMsg('Saved successfully.', 'success');
+            if (result.isSuccess) {
+                showMsg(getSuccessMessage(res, 'Saved successfully.'), 'success');
                 state.isDirty = false;
                 setMode('VIEW');
                 if (data.directDebitInstructionId) {
@@ -267,7 +476,7 @@ window.DirectDebitMaintenanceModule = (function () {
                     loadData(state.searchKey);
                 }
             } else {
-                showMsg(res?.ErrorMessage || 'Failed to save record.', 'error');
+                showMsg(result.message || res?.ErrorMessage || 'Failed to save record.', 'error');
             }
         } catch (err) {
             console.error(err);
@@ -280,60 +489,111 @@ window.DirectDebitMaintenanceModule = (function () {
     async function deleteData() {
         if (!state.searchKey) return;
 
-        AppCore.showConfirmation({
-            title: 'Confirm Delete',
-            message: 'Are you sure you want to delete this Direct Debit Instruction?',
-            confirmButtonText: 'Delete',
-            confirmButtonClass: 'btn-danger',
-            onConfirm: async () => {
-                showLoading(true);
-                try {
-                    const req = { StandingInstructionID: state.searchKey };
-                    const res = await AppCore.invokeControllerAsync(API.DELETE, req);
-                    if (res && res.Success) {
-                        showMsg('Deleted successfully.', 'success');
-                        clearForm();
-                        setMode('VIEW');
-                    } else {
-                        showMsg(res?.ErrorMessage || 'Delete failed.', 'error');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showMsg('Error deleting.', 'error');
-                } finally {
-                    showLoading(false);
-                }
+        const confirmed = await showConfirmationDialog('Confirm Delete', 'Are you sure you want to delete this Direct Debit Instruction?');
+        if (!confirmed) return;
+
+        showLoading(true);
+        try {
+            const req = { StandingInstructionID: state.searchKey };
+            const res = await AppCore.invokeControllerAsync(API.DELETE, req);
+            const result = getOperationResult(res);
+            if (result.isSuccess) {
+                showMsg(getSuccessMessage(res, 'Deleted successfully.'), 'success');
+                clearForm();
+                setMode('VIEW');
+            } else {
+                showMsg(result.message || res?.ErrorMessage || 'Delete failed.', 'error');
             }
-        });
+        } catch (err) {
+            console.error(err);
+            showMsg('Error deleting.', 'error');
+        } finally {
+            showLoading(false);
+        }
     }
 
     async function stopData() {
         if (!state.searchKey) return;
         
-        AppCore.showConfirmation({
-            title: 'Confirm Stop',
-            message: 'Are you sure you want to stop this Standing Instruction?',
-            confirmButtonText: 'Stop',
-            confirmButtonClass: 'btn-warning',
-            onConfirm: async () => {
-                showLoading(true);
-                try {
-                    const req = { StandingInstructionID: state.searchKey };
-                    const res = await AppCore.invokeControllerAsync(API.STOP, req);
-                    if (res && res.Success) {
-                        showMsg('Stopped successfully.', 'success');
-                        loadData(state.searchKey);
-                    } else {
-                        showMsg(res?.ErrorMessage || 'Stop failed.', 'error');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showMsg('Error stopping.', 'error');
-                } finally {
-                    showLoading(false);
-                }
+        const confirmed = await showConfirmationDialog('Confirm Stop', 'Are you sure you want to stop this Standing Instruction?');
+        if (!confirmed) return;
+
+        showLoading(true);
+        try {
+            const locked = await addRecordLock();
+            if (!locked) {
+                return;
             }
-        });
+
+            const req = { StandingInstructionID: state.searchKey };
+            const res = await AppCore.invokeControllerAsync(API.STOP, req);
+            const result = getOperationResult(res);
+            if (result.isSuccess) {
+                showMsg(getSuccessMessage(res, 'Stopped successfully.'), 'success');
+                loadData(state.searchKey);
+            } else {
+                showMsg(result.message || res?.ErrorMessage || 'Stop failed.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showMsg('Error stopping.', 'error');
+        } finally {
+            await releaseRecordLock();
+            showLoading(false);
+        }
+    }
+
+    async function releaseRecordLock() {
+        const branchId = document.getElementById('txt_branchId')?.value.trim();
+        const siId = state.searchKey || document.getElementById('txt_directDebitInstructionId')?.value.trim();
+
+        if (!branchId || !siId) {
+            return true;
+        }
+
+        const req = {
+            OurBranchID: branchId,
+            StandingInstructionID: siId,
+            ModuleID: Number(state.moduleId),
+            LockModuleID: Number(state.moduleId),
+            PKKey: `[OurBranchID:${branchId}][SIID:${siId}]`
+        };
+
+        try {
+            const res = await AppCore.invokeControllerAsync(API.RELEASE_LOCK, req);
+            return Boolean(res && (res.Success || res.success));
+        } catch (err) {
+            console.error(err);
+            showMsg('Failed to release record lock.', 'warning');
+            return false;
+        }
+    }
+
+    async function addRecordLock() {
+        const branchId = document.getElementById('txt_branchId')?.value.trim();
+        const siId = state.searchKey || document.getElementById('txt_directDebitInstructionId')?.value.trim();
+
+        if (!branchId || !siId) {
+            showMsg('Branch ID and Direct Debit Instruction ID are required before editing.', 'warning');
+            return false;
+        }
+
+        const req = {
+            OurBranchID: branchId,
+            StandingInstructionID: siId,
+            ModuleID: Number(state.moduleId),
+            LockModuleID: Number(state.moduleId),
+            PKKey: `[OurBranchID:${branchId}][SIID:${siId}]`
+        };
+
+        try {
+            const res = await AppCore.invokeControllerAsync(API.ADD_LOCK, req);
+            return Boolean(res && (res.Success || res.success));
+        } catch (err) {
+            console.error(err);
+            showMsg('Failed to add record lock.', 'warning');
+            return false;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -346,23 +606,81 @@ window.DirectDebitMaintenanceModule = (function () {
         
         // We handle mapping generic DTOs array or object
         const row = Array.isArray(data) ? data[0] : data;
+        state.amountTypeId = row.AmountTypeID || row.AmountTypeId || 'T';
         
         const setVal = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.value = val || '';
         };
 
+        const setSelectValue = (id, ...candidates) => {
+            const el = document.getElementById(id);
+            if (!el) {
+                return;
+            }
+
+            const normalizedCandidates = candidates
+                .filter(value => value !== undefined && value !== null && String(value).trim() !== '')
+                .map(value => String(value).trim().toLowerCase());
+
+            if (normalizedCandidates.length === 0) {
+                el.value = '';
+                return;
+            }
+
+            const matchedOption = Array.from(el.options || []).find(option => {
+                const optionValue = String(option.value || '').trim().toLowerCase();
+                const optionText = String(option.text || '').trim().toLowerCase();
+
+                return normalizedCandidates.includes(optionValue) || normalizedCandidates.includes(optionText);
+            });
+
+            el.value = matchedOption ? matchedOption.value : candidates.find(value => value !== undefined && value !== null) || '';
+        };
+
+        const getStatusDisplay = () => {
+            const rawStatus = row.StandingInstructionStatus
+                || row.StatusDescription
+                || row.SIStatus
+                || row.Status
+                || row.SIStatusID
+                || row.StatusID;
+
+            if (rawStatus === undefined || rawStatus === null || String(rawStatus).trim() === '') {
+                return '';
+            }
+
+            const normalizedStatus = String(rawStatus).trim().toUpperCase();
+            const statusMap = {
+                A: 'Active',
+                I: 'Inactive',
+                S: 'Stopped',
+                P: 'Pending',
+                C: 'Cancelled'
+            };
+
+            return statusMap[normalizedStatus] || rawStatus;
+        };
+
         const setDate = (id, val) => {
             const el = document.getElementById(id);
             if (el && val) {
-                try {
-                     const d = new Date(val);
-                     if(!isNaN(d)) el.value = d.toISOString().split('T')[0];
-                } catch(e){}
+                const parsed = normalizeInputDate(val);
+                if (parsed) {
+                    el.value = parsed;
+                }
             }
         };
 
-        setVal('ddl_directDebitType', row.DirectDebitType);
+        setSelectValue(
+            'ddl_directDebitType',
+            row.DirectDebitTypeID,
+            row.DirectDebitType,
+            row.SITypeID,
+            row.SIType,
+            row.SITypeName,
+            row.DirectDebitTypeName
+        );
         
         setVal('txt_branchId', row.OurBranchID || row.BranchID);
         setVal('txt_branchName', row.BranchName);
@@ -370,48 +688,67 @@ window.DirectDebitMaintenanceModule = (function () {
         setVal('txt_accountId', row.AccountID);
         setVal('txt_accountName', row.AccountName || row.Description);
         
-        setVal('txt_directDebitInstructionId', row.DirectDebitInstructionID || row.StandingInstructionID);
+        setVal('txt_directDebitInstructionId', row.DirectDebitInstructionID || row.SIID || row.StandingInstructionID);
+        setVal('txt_directDebitInstructionName', row.Reference || row.ReferenceNo || row.Description || row.AccountName);
         setVal('txt_referenceNo', row.ReferenceNo);
         
-        setVal('txt_transactionCurrencyId', row.CurrencyID || row.TransactionCurrencyID);
-        setVal('txt_fixedAmount', row.FixedAmount);
+        setVal('txt_transactionCurrencyId', row.CurrencyID || row.TrfCurrencyID || row.TransactionCurrencyID);
+        setVal('txt_transactionCurrencyName', row.CurrencyName || row.CurrencyDescription || row.TransactionCurrencyName || row.TrfCurrency);
+        setVal('txt_fixedAmount', row.FixedAmount || row.Amount);
         
         setDate('txt_effectiveDate', row.EffectiveDate);
-        setVal('ddl_transferFrequency', row.TransferFrequency);
+        setSelectValue(
+            'ddl_transferFrequency',
+            row.TrfFrequencyID,
+            row.TransferFrequencyID,
+            row.TransferFrequency,
+            row.TrfFrequency,
+            row.TrfFrequencyDescription
+        );
         
-        setVal('txt_noOfExecution', row.NoOfExecution);
+        setVal('txt_noOfExecution', row.NoOfExecution || row.NoOfExecutions);
         setDate('txt_firstExecutionDate', row.FirstExecutionDate);
         setDate('txt_lastExecutionDate', row.LastExecutionDate);
         setDate('txt_valueDate', row.ValueDate);
         
-        setVal('txt_standingInstructionStatus', row.StatusDescription || row.Status);
-        setVal('ddl_chargeRecovery', row.ChargeRecovery);
+        setVal('txt_standingInstructionStatus', getStatusDisplay());
+        setSelectValue(
+            'ddl_chargeRecovery',
+            row.ChargeRecoveryID,
+            row.ChargeRecovery,
+            row.ChargeTypeID,
+            row.ChargeType,
+            row.ChargeRecoveryDescription,
+            row.ChargeTypeDescription
+        );
         
-        setVal('txt_bankId', row.ContraBankID || row.BankID);
-        setVal('txt_contraBranchId', row.ContraBranchID);
-        setVal('txt_contraAccountId', row.ContraAccountID);
-        setVal('txt_originatorCode', row.OriginatorCode);
+        setVal('txt_bankId', row.ContraBankID || row.BBankID || row.BankID);
+        setVal('txt_bankName', row.BankName || row.ContraBankName || row.BBankName);
+        setVal('txt_contraBranchId', row.ContraBranchID || row.BBranchID || row.CreditAccountBranchID);
+        setVal('txt_contraBranchName', row.ContraBranchName || row.BBranchName || row.CreditAccountBranch || row.BranchName);
+        setVal('txt_contraAccountId', row.ContraAccountID || row.CreditAccountID);
+        setVal('txt_originatorCode', row.OriginatorCode || row.OrigCode);
         
-        setVal('txt_originatorRef', row.OriginatorRef);
-        setVal('txt_policyNumber1', row.PolicyNumber1);
-        setVal('txt_policyNumber2', row.PolicyNumber2);
+        setVal('txt_originatorRef', row.OriginatorRef || row.OrigRef);
+        setVal('txt_policyNumber1', row.PolicyNumber1 || row.Policy1);
+        setVal('txt_policyNumber2', row.PolicyNumber2 || row.Policy2);
         setVal('txt_returnCode', row.ReturnCode || '00');
-        setVal('txt_remarks', row.Remarks);
+        setVal('txt_remarks', row.Remarks || row.Reference);
 
         // Audit Fields
-        document.getElementById('spn_nextExecutionDate').textContent = row.NextExecutionDate ? new Date(row.NextExecutionDate).toLocaleDateString() : '-';
-        document.getElementById('spn_lastRunDate').textContent = row.LastRunDate ? new Date(row.LastRunDate).toLocaleDateString() : '-';
-        document.getElementById('spn_lastRunStatus').textContent = row.LastRunStatus || '-';
-        document.getElementById('spn_noOfTimesFailed').textContent = row.NoOfTimesFailed || '-';
+        document.getElementById('spn_nextExecutionDate').textContent = formatAuditDate(row.NextExecutionDate);
+        document.getElementById('spn_lastRunDate').textContent = formatAuditDate(row.LastRunDate);
+        document.getElementById('spn_lastRunStatus').textContent = row.LastRunStatus || row.LastProcessedStatus || '-';
+        document.getElementById('spn_noOfTimesFailed').textContent = row.NoOfTimesFailed || row.NoOfFailedExecutions || '-';
         document.getElementById('spn_stoppedReason').textContent = row.StoppedReason || '-';
         document.getElementById('spn_createdBy').textContent = row.CreatedBy || '-';
-        document.getElementById('spn_createdOn').textContent = row.CreatedOn ? new Date(row.CreatedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_createdOn').textContent = formatAuditDate(row.CreatedOn);
         document.getElementById('spn_modifiedBy').textContent = row.ModifiedBy || '-';
-        document.getElementById('spn_modifiedOn').textContent = row.ModifiedOn ? new Date(row.ModifiedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_modifiedOn').textContent = formatAuditDate(row.ModifiedOn);
         document.getElementById('spn_stoppedBy').textContent = row.StoppedBy || '-';
-        document.getElementById('spn_stoppedOn').textContent = row.StoppedOn ? new Date(row.StoppedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_stoppedOn').textContent = formatAuditDate(row.StoppedOn);
         document.getElementById('spn_supervisedBy').textContent = row.SupervisedBy || '-';
-        document.getElementById('spn_supervisedOn').textContent = row.SupervisedOn ? new Date(row.SupervisedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_supervisedOn').textContent = formatAuditDate(row.SupervisedOn);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -420,35 +757,68 @@ window.DirectDebitMaintenanceModule = (function () {
 
     function wireButtons() {
         if (buttons.view) buttons.view.addEventListener('click', () => {
-            if (state.searchKey) loadData(state.searchKey);
-            else { clearForm(); setMode('VIEW'); }
+            const instructionId = document.getElementById('txt_directDebitInstructionId')?.value.trim();
+            if (instructionId) loadData(instructionId);
+            else if (state.searchKey) loadData(state.searchKey);
+            else {
+                clearForm();
+                setMode('VIEW');
+                showMsg('Enter Direct Debit Instruction ID to view a record.', 'warning');
+            }
         });
 
         if (buttons.add) buttons.add.addEventListener('click', () => {
             clearForm();
             setMode('ADD');
+            if (buttons.save) buttons.save.disabled = false;
         });
 
-        if (buttons.edit) buttons.edit.addEventListener('click', () => setMode('EDIT'));
+        if (buttons.edit) buttons.edit.addEventListener('click', async () => {
+            if (!state.searchKey) {
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const locked = await addRecordLock();
+                if (!locked) {
+                    return;
+                }
+
+                setMode('EDIT');
+                if (buttons.save) buttons.save.disabled = false;
+            } finally {
+                showLoading(false);
+            }
+        });
 
         if (buttons.save) buttons.save.addEventListener('click', () => {
             if (state.currentMode === 'VIEW') return;
             saveData();
         });
 
-        if (buttons.cancel) buttons.cancel.addEventListener('click', () => {
+        if (buttons.cancel) buttons.cancel.addEventListener('click', async () => {
             if (state.isDirty) {
-                AppCore.showConfirmation({
-                    title: 'Cancel Changes',
-                    message: 'You have unsaved changes. Are you sure you want to cancel?',
-                    onConfirm: () => {
-                        if (state.searchKey) loadData(state.searchKey);
-                        else { clearForm(); setMode('VIEW'); }
-                    }
-                });
+                const confirmed = await showConfirmationDialog('Cancel Changes', 'You have unsaved changes. Are you sure you want to cancel?');
+                if (!confirmed) return;
+            }
+
+            if (state.currentMode === 'EDIT' && state.searchKey) {
+                const released = await releaseRecordLock();
+                if (!released) {
+                    return;
+                }
+            }
+
+            const restoreKey = state.searchKey
+                || state.lastViewedKey
+                || document.getElementById('txt_directDebitInstructionId')?.value.trim();
+
+            if (restoreKey) {
+                loadData(restoreKey);
             } else {
-                if (state.searchKey) loadData(state.searchKey);
-                else { clearForm(); setMode('VIEW'); }
+                clearForm();
+                setMode('VIEW');
             }
         });
 
@@ -510,28 +880,32 @@ window.DirectDebitMaintenanceModule = (function () {
         if (buttons.searchDDInstruction) {
             buttons.searchDDInstruction.addEventListener('click', () => {
                 const branch = document.getElementById('txt_branchId').value;
-                const acct = document.getElementById('txt_accountId').value;
-                let where = '';
-                if (branch) where += `OurBranchID = '${branch}'`;
-                if (acct) where += (where ? ' AND ' : '') + `AccountID = '${acct}'`;
 
                 searchModal.open({
-                    title: 'Find Direct Debit Instruction',
-                    tableID: 'DirectDebitInstructionID',
-                    whereStmt: where,
+                    title: 'DDInstruction',
+                    tableID: 'DDInstructionID',
+                    whereStmt: branch ? `OurBranchID = '${branch}'` : '',
                     searchFields: [
-                        { name: 'instructionId', label: 'Instruction ID', column: 'DirectDebitInstructionID' },
-                        { name: 'referenceNo', label: 'Reference No.', column: 'ReferenceNo' }
+                        { name: 'instructionId', label: 'Instruction ID', column: 'DDID' },
+                        { name: 'accountId', label: 'Account ID', column: 'AccountID' },
+                        { name: 'accountName', label: 'Account Name', column: 'AccountName' },
+                        { name: 'originatorCode', label: 'Originator Code', column: 'OrigCode' },
+                        { name: 'originatorRef', label: 'Originator Ref', column: 'OrigRef' }
                     ],
                     displayFields: [
-                        { key: 'DirectDebitInstructionID', label: 'Instruction ID' },
+                        { key: 'DDID', label: 'DDID' },
+                        { key: 'OrigCode', label: 'OrigCode' },
+                        { key: 'OrigRef', label: 'OrigRef' },
+                        { key: 'Policy1', label: 'Policy1' },
+                        { key: 'Policy2', label: 'Policy2' },
                         { key: 'AccountID', label: 'Account ID' },
-                        { key: 'ReferenceNo', label: 'Reference No.' },
-                        { key: 'FixedAmount', label: 'Amount' },
-                        { key: 'StatusDescription', label: 'Status' }
+                        { key: 'AccountName', label: 'Account Name' },
+                        { key: 'ReferenceNo', label: 'Reference No.' }
                     ],
                     onSelect: (r) => {
-                        const id = r.DirectDebitInstructionID || r.StandingInstructionID;
+                        const id = r.DDID || r.DirectDebitInstructionID || r.StandingInstructionID;
+                        document.getElementById('txt_directDebitInstructionId').value = id || '';
+                        document.getElementById('txt_directDebitInstructionName').value = r.AccountName || r.ReferenceNo || r.Description || '';
                         if (id) {
                             loadData(id);
                         }
@@ -554,6 +928,7 @@ window.DirectDebitMaintenanceModule = (function () {
                     ],
                     onSelect: (r) => {
                         document.getElementById('txt_transactionCurrencyId').value = r.CurrencyID || '';
+                        document.getElementById('txt_transactionCurrencyName').value = r.Description || '';
                     }
                 });
             });
@@ -573,7 +948,9 @@ window.DirectDebitMaintenanceModule = (function () {
                     ],
                     onSelect: (r) => {
                         document.getElementById('txt_bankId').value = r.BankID || r.ClrBankID || '';
+                        document.getElementById('txt_bankName').value = r.BankName || r.Description || '';
                         document.getElementById('txt_contraBranchId').value = ''; // Reset branch
+                        document.getElementById('txt_contraBranchName').value = '';
                     }
                 });
             });
@@ -595,6 +972,7 @@ window.DirectDebitMaintenanceModule = (function () {
                     ],
                     onSelect: (r) => {
                         document.getElementById('txt_contraBranchId').value = r.OurBranchID || r.BranchID || '';
+                        document.getElementById('txt_contraBranchName').value = r.BranchName || r.Description || '';
                     }
                 });
             });
