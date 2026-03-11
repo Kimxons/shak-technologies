@@ -71,7 +71,8 @@
         'ClientBankAccountsState',
         'ClientIntroducerState',
         'ClientPortfolioState',
-        'ClientProfileChangeState'
+        'ClientProfileChangeState',
+        'ClientIdentityTypesState'
     ];
 
     function mergeKnownStateObjects(target, currentWindow) {

@@ -5,115 +5,199 @@
     Layout = "_ApplicationLayout";
     var identificationTypeOptions = ViewData["IdentificationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
-    var showActionPanel = moduleId != "1000";
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
 }
 
-<div class="form-card" data-section="client-identityTypes" data-cm-tab="identitytypes">
-    <div class="section-header" data-section-toggle>
-        <span class="section-header__title"><i class="bi bi-person-badge me-1"></i>Identity Types</span>
-        <button id="btn_toggleClientIdentityTypes" type="button" class="section-toggle-btn" aria-label="Toggle Identity Types" aria-expanded="true">
-            <i class="bi bi-chevron-up"></i>
-        </button>
-    </div>
-    <div class="section-content" data-section-content>
-        <form id="frm_clientIdentityTypes" data-identitytypes-form autocomplete="off" novalidate>
-            <input type="hidden" id="moduleIdIdentityTypes" value="@moduleId" />
-            <input type="hidden" id="hdn_identityTypeId" name="ClientIdentityTypeID" />
+<div class="window de-window" data-ktb-window data-identitytypes-host="standalone">
+    <div data-kairo-titlebar data-title="Client Identity Types" data-icon="bi-person-badge"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
 
-            <h5 class="mb-4">Identity Type Details</h5>
+            <!-- Main Form Card -->
+            <div class="form-card" data-section="client-identityTypes" data-cm-tab="identitytypes" data-main-form>
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-person-badge me-1"></i>Client Identity Types</span>
+                    <button id="btn_toggleClientIdentityTypes" type="button" class="section-toggle-btn" aria-label="Toggle Identity Types" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <form id="frm_clientIdentityTypes" data-identitytypes-form autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdIdentityTypes" value="@moduleId" />
+                        <input type="hidden" id="hdn_identityTypeId" name="ClientIdentityTypeID" />
 
-            <!-- ROW 1: Identification Type, Format, Identification Number, Serial No -->
-            <div class="form-row four-col">
-                <div class="col">
-                    <label class="label-blue" for="ddl_identityType" id="lbl_identityType">Identification Type</label>
-                    <select id="ddl_identityType" name="IdentityTypeID" data-identitytype-field="IdentityTypeID" class="bs-select" asp-items="@identificationTypeOptions">
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <label for="txt_identityFormat" id="lbl_identityFormat">Format</label>
-                    <input id="txt_identityFormat" name="Format" data-identitytype-field="Format" class="bs-input-text" maxlength="50" placeholder="e.g. A00000" />
-                </div>
-                <div class="col">
-                    <label class="label-blue" for="txt_identityNumber" id="lbl_identityNumber">Identification Number</label>
-                    <input id="txt_identityNumber" name="IdentificationNo" data-identitytype-field="IdentificationNo" class="bs-input-text" maxlength="50" placeholder="Enter Number" required />
-                </div>
-                <div class="col">
-                    <label for="txt_identitySerialNo" id="lbl_identitySerialNo">Serial No</label>
-                    <input id="txt_identitySerialNo" name="SerialNo" data-identitytype-field="SerialNo" class="bs-input-text" maxlength="50" placeholder="Serial No" />
-                </div>
-            </div>
+                        <!-- ROW 1: Identification Type (lookup), Format, Identification Number, Serial No -->
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_identityType" id="lbl_identityType">
+                                    Identification Type <span style="color:#dc2626;">*</span>
+                                </label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input id="txt_identityType" name="IdentityTypeID" data-identitytype-field="IdentityTypeID"
+                                           class="bs-input-text" placeholder="Select Type" readonly />
+                                    <input id="txt_identityTypeName" name="IdentityTypeName" data-identitytype-field="IdentityTypeName"
+                                           class="bs-input-text" placeholder="Type description..." readonly />
+                                    <button type="button" class="btn-lookup" data-identitytype-action="lookup-type" aria-label="Search identity type">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label for="txt_identityFormat" id="lbl_identityFormat">Identification Format</label>
+                                <input id="txt_identityFormat" name="Format" data-identitytype-field="Format"
+                                       class="bs-input-text" maxlength="50" placeholder="Format" />
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_identityNumber" id="lbl_identityNumber">
+                                    Identification Number <span style="color:#dc2626;">*</span>
+                                </label>
+                                <input id="txt_identityNumber" name="IdentificationNo" data-identitytype-field="IdentificationNo"
+                                       class="bs-input-text" maxlength="50" placeholder="Enter Number" />
+                            </div>
+                            <div class="col">
+                                <label for="txt_identitySerialNo" id="lbl_identitySerialNo">Identification Serial No</label>
+                                <input id="txt_identitySerialNo" name="SerialNo" data-identitytype-field="SerialNo"
+                                       class="bs-input-text" maxlength="50" placeholder="Serial No" />
+                            </div>
+                        </div>
 
-            <!-- ROW 2: Place of Issue, Issue Date, Location, Document Image -->
-            <div class="form-row four-col">
-                <div class="col">
-                    <label for="txt_identityPlaceOfIssue" id="lbl_identityPlaceOfIssue">Place of Issue</label>
-                    <input id="txt_identityPlaceOfIssue" name="PlaceOfIssue" data-identitytype-field="PlaceOfIssue" class="bs-input-text" maxlength="100" placeholder="Place of Issue" />
-                </div>
-                <div class="col">
-                    <label for="dt_identityIssueDate" id="lbl_identityIssueDate">Issue Date</label>
-                    <input id="dt_identityIssueDate" name="IssueDate" data-identitytype-field="IssueDate" class="bs-input-text" type="date" />
-                </div>
-                <div class="col">
-                    <label for="txt_identityLocation" id="lbl_identityLocation">Location</label>
-                    <input id="txt_identityLocation" name="Location" data-identitytype-field="Location" class="bs-input-text" maxlength="100" placeholder="Location" />
-                </div>
-                <div class="col">
-                    <label for="txt_identityDocumentImage" id="lbl_identityDocumentImage">Document Image</label>
-                    <div class="kairo-control" data-kairo-control>
-                        <input id="txt_identityDocumentImage" name="DocumentImage" data-identitytype-field="DocumentImage" class="bs-input-text" placeholder="No file selected" readonly />
-                        <button type="button" class="btn-lookup" data-identitytype-action="browse-image" aria-label="Browse image">
-                            <i class="bi bi-folder2-open"></i>
+                        <!-- ROW 2: Place of Issue, Issue Date, Location, Document Image -->
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label for="txt_identityPlaceOfIssue" id="lbl_identityPlaceOfIssue">Place of Issue</label>
+                                <input id="txt_identityPlaceOfIssue" name="PlaceOfIssue" data-identitytype-field="PlaceOfIssue"
+                                       class="bs-input-text" maxlength="100" placeholder="Place of Issue" />
+                            </div>
+                            <div class="col">
+                                <label for="dt_identityIssueDate" id="lbl_identityIssueDate">Issue Date</label>
+                                <input id="dt_identityIssueDate" name="IssueDate" data-identitytype-field="IssueDate"
+                                       class="bs-input-text" type="date" />
+                            </div>
+                            <div class="col">
+                                <label for="txt_identityLocation" id="lbl_identityLocation">Location</label>
+                                <input id="txt_identityLocation" name="Location" data-identitytype-field="Location"
+                                       class="bs-input-text" maxlength="100" placeholder="Location" />
+                            </div>
+                            <div class="col">
+                                <label for="txt_identityDocumentImage" id="lbl_identityDocumentImage">Document Image</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input id="txt_identityDocumentImage" name="DocumentImage" data-identitytype-field="DocumentImage"
+                                           class="bs-input-text" placeholder="No file selected" readonly />
+                                    <button type="button" class="btn-lookup" data-identitytype-action="browse-image" aria-label="Browse image">
+                                        <i class="bi bi-folder2-open"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Inline CRUD action buttons -->
+                    <div class="d-flex justify-content-center gap-2 my-4">
+                        <button id="btn_newIdentityType" type="button" class="btn btn-sm btn-outline-primary" data-identitytype-action="new">
+                            <i class="bi bi-plus-lg me-1"></i>New
                         </button>
+                        <button id="btn_alterIdentityType" type="button" class="btn btn-sm btn-outline-primary" data-identitytype-action="alter" disabled>
+                            <i class="bi bi-pencil-square me-1"></i>Alter
+                        </button>
+                        <button id="btn_removeIdentityType" type="button" class="btn btn-sm btn-outline-danger" data-identitytype-action="remove" disabled>
+                            <i class="bi bi-trash me-1"></i>Remove
+                        </button>
+                        <button id="btn_updateIdentityType" type="button" class="btn btn-sm btn-primary" data-identitytype-action="update" disabled>
+                            <i class="bi bi-check2-circle me-1"></i>Update
+                        </button>
+                        <button id="btn_clearIdentityType" type="button" class="btn btn-sm btn-outline-secondary" data-identitytype-action="clear" disabled>
+                            Clear
+                        </button>
+                    </div>
+
+                    <!-- Registered Identity Types grid -->
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">REGISTERED IDENTITY TYPES</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white mb-4">
+                        <table class="table table-sm table-hover mb-0" data-table="identity-types">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Identification Type</th>
+                                    <th>Identification No</th>
+                                    <th>Format</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientIdentityTypesBody" data-identitytypes-body></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </form>
 
-        @if (!showActionPanel)
-        {
-            <div class="d-flex justify-content-center gap-2 my-4">
-                <button id="btn_newIdentityType_inline" type="button" class="btn btn-sm btn-outline-primary" data-identitytype-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
-                <button id="btn_alterIdentityType_inline" type="button" class="btn btn-sm btn-outline-primary" data-identitytype-action="alter"><i class="bi bi-pencil-square me-1"></i>Alter</button>
-                <button id="btn_removeIdentityType_inline" type="button" class="btn btn-sm btn-outline-danger" data-identitytype-action="remove"><i class="bi bi-trash me-1"></i>Remove</button>
-                <button id="btn_updateIdentityType_inline" type="button" class="btn btn-sm btn-primary" data-identitytype-action="update"><i class="bi bi-check2-circle me-1"></i>Update</button>
-                <button id="btn_clearIdentityType_inline" type="button" class="btn btn-sm btn-outline-secondary" data-identitytype-action="clear">Clear</button>
+            <!-- BEHIND THE SCENE Section -->
+            <div class="form-card mt-3" data-section="behind-scene-identitytypes">
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind The Scene</span>
+                    <button type="button" class="section-toggle-btn" aria-label="Toggle Audit Details" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <div class="audit-section">
+                        <div class="audit-item">
+                            <label>Created By</label>
+                            <span class="audit-value" id="idt_auditCreatedBy" data-field="CreatedBy">-</span>
+                        </div>
+                        <div class="audit-item">
+                            <label>Created On</label>
+                            <span class="audit-value" id="idt_auditCreatedOn" data-field="CreatedOn">-</span>
+                        </div>
+                        <div class="audit-item">
+                            <label>Modified By</label>
+                            <span class="audit-value" id="idt_auditModifiedBy" data-field="ModifiedBy">-</span>
+                        </div>
+                        <div class="audit-item">
+                            <label>Modified On</label>
+                            <span class="audit-value" id="idt_auditModifiedOn" data-field="ModifiedOn">-</span>
+                        </div>
+                        <div class="audit-item">
+                            <label>Supervised By</label>
+                            <span class="audit-value" id="idt_auditSupervisedBy" data-field="SupervisedBy">-</span>
+                        </div>
+                        <div class="audit-item">
+                            <label>Supervised On</label>
+                            <span class="audit-value" id="idt_auditSupervisedOn" data-field="SupervisedOn">-</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-        }
 
-        <div class="section-header py-1 mb-2 bg-light border">
-            <span class="small fw-bold px-2">REGISTERED IDENTITY TYPES</span>
         </div>
-        <div class="table-responsive border rounded bg-white mb-4">
-            <table class="table table-sm table-hover mb-0" data-table="identity-types">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-2">Identification Type</th>
-                        <th>Identification No</th>
-                        <th>Format</th>
-                        <th>Issue Date</th>
-                        <th>Place of Issue</th>
-                        <th>Serial No</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="tbl_clientIdentityTypesBody" data-identitytypes-body></tbody>
-            </table>
-        </div>
+
+        <!-- Right Action Panel -->
+        <aside class="action-panel" aria-label="Client identity type actions">
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-identitytype-action="refresh">
+                    <i class="bi bi-arrow-clockwise"></i><span>Refresh</span>
+                </button>
+                <button class="btn-action btn-cancel" type="button" data-identitytype-action="close">
+                    <i class="bi bi-x-lg"></i><span>Close</span>
+                </button>
+            </div>
+        </aside>
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="identityTypesLoadingOverlay" hidden>
+        <div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div>
     </div>
 </div>
 
-@if (showActionPanel)
-{
-    <aside class="action-panel" aria-label="Client identity type actions">
-        <div class="d-flex flex-column gap-2 mt-auto">
-            <button id="btn_newIdentityType" type="button" class="btn-action" data-identitytype-action="new"><i class="bi bi-plus-lg"></i><span>New</span></button>
-            <button id="btn_alterIdentityType" type="button" class="btn-action" data-identitytype-action="alter"><i class="bi bi-pencil-square"></i><span>Alter</span></button>
-            <button id="btn_removeIdentityType" type="button" class="btn-action btn-delete" data-identitytype-action="remove"><i class="bi bi-trash"></i><span>Remove</span></button>
-            <button id="btn_updateIdentityType" type="button" class="btn-action btn-save" data-identitytype-action="update"><i class="bi bi-check2-circle"></i><span>Update</span></button>
-            <button id="btn_clearIdentityType" type="button" class="btn-action btn-cancel" data-identitytype-action="clear"><i class="bi bi-x-circle"></i><span>Clear</span></button>
-        </div>
-    </aside>
-}
-
-<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-identity-types.js"></script>
+<script>
+    window.ClientIdentityTypesState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: true
+    };
+</script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-identity-types.js" asp-append-version="true"></script>
