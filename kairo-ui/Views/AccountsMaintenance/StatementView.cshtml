@@ -1,6 +1,7 @@
 ﻿@{
     // No layout - this is a partial view loaded dynamically as a submodule
     // Migrated from: public/modules/account-maintenance/View/statement-view.html
+    // Uses shared statement-view.js for consistent functionality with _StatementView.cshtml
 }
 
 <!-- StatementView Submodule -->
@@ -11,9 +12,9 @@
             <span class="am-header__title">Statement View</span>
         </div>
         <div class="am-header__right" role="toolbar" aria-label="Window controls">
-            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
-            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
+            <button id="btn_headerRefresh" class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+            <button id="btn_headerMaximize" class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-square"></i></button>
+            <button id="btn_headerClose" class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
         </div>
     </div>
     
@@ -21,10 +22,10 @@
       <div class="form-content" role="region" aria-label="Statement View">
         <div class="form-card" data-main-form>
           <!-- Filters Section -->
-          <div class="form-section" data-section="filters">
+          <div id="dv_filtersSection" class="form-section" data-section="filters">
             <div class="section-header" data-section-toggle>
               <span class="section-header__title"><i class="bi bi-funnel"></i>Filters</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Filters" aria-expanded="true">
+              <button id="btn_toggleFilters" type="button" class="section-toggle-btn" aria-label="Toggle Filters" aria-expanded="true">
                 <i class="bi bi-chevron-up"></i>
               </button>
             </div>
@@ -33,7 +34,7 @@
                 <!-- Row 1: Statement For, From Date, To Date -->
                 <div class="row g-3 mb-3">
                   <div class="col-4">
-                    <label class="label-blue" for="ddl_statementFor">Statement For</label>
+                    <label class="label-blue" for="ddl_statementFor" id="lbl_statementFor">Statement For</label>
                     <select id="ddl_statementFor" name="statementFor" class="bs-select">
                       <option value="0">Select Period</option>
                       <option value="1">Current Month</option>
@@ -42,17 +43,17 @@
                     </select>
                   </div>
                   <div class="col-4">
-                    <label class="label-blue" for="txt_fromDate">From Date</label>
+                    <label class="label-blue" for="txt_fromDate" id="lbl_fromDate">From Date</label>
                     <div class="input-group">
                       <input id="txt_fromDate" name="fromDate" type="text" class="bs-input-text form-control" placeholder="dd-mmm-yyyy" autocomplete="off" />
-                      <button id="btn_fromDatePicker" type="button" class="btn btn-outline-secondary" title="Pick Date"><i class="bi bi-calendar"></i></button>
+                      <button id="btn_fromDatePicker" type="button" class="btn btn-outline-secondary" title="Pick Date" aria-label="Pick From Date"><i class="bi bi-calendar"></i></button>
                     </div>
                   </div>
                   <div class="col-4">
-                    <label class="label-blue" for="txt_toDate">To Date</label>
+                    <label class="label-blue" for="txt_toDate" id="lbl_toDate">To Date</label>
                     <div class="input-group">
                       <input id="txt_toDate" name="toDate" type="text" class="bs-input-text form-control" placeholder="dd-mmm-yyyy" autocomplete="off" />
-                      <button id="btn_toDatePicker" type="button" class="btn btn-outline-secondary" title="Pick Date"><i class="bi bi-calendar"></i></button>
+                      <button id="btn_toDatePicker" type="button" class="btn btn-outline-secondary" title="Pick Date" aria-label="Pick To Date"><i class="bi bi-calendar"></i></button>
                     </div>
                   </div>
                 </div>
@@ -60,20 +61,22 @@
             </div>
           </div>
 
+          <div id="dv_statementResponseMessage" class="alert d-none mt-2 mb-3" role="alert" aria-live="polite"></div>
+
           <!-- Statement Grid Section -->
-          <div class="form-section" data-section="statement-grid">
+          <div id="dv_statementGridSection" class="form-section" data-section="statement-grid">
             <div class="section-header" data-section-toggle>
               <span class="section-header__title"><i class="bi bi-table"></i>Statement Grid</span>
               <span class="de-record-count" id="spn_recordCount">(0 records)</span>
-              <button type="button" class="section-toggle-btn" aria-label="Toggle Statement Grid" aria-expanded="true">
+              <button id="btn_toggleStatementGrid" type="button" class="section-toggle-btn" aria-label="Toggle Statement Grid" aria-expanded="true">
                 <i class="bi bi-chevron-up"></i>
               </button>
             </div>
-            <div class="section-content table-responsive" data-section-content>
-              <table class="table table-sm table-hover mb-0" id="tbl_statementGrid">
+            <div class="section-content" data-section-content style="overflow-x: auto;">
+              <table class="table table-sm table-hover" id="tbl_statementGrid" style="margin-bottom: 0;">
                 <thead class="table-light">
                   <tr>
-                    <th style="width:40px;"><input type="checkbox" id="chk_selectAll" /></th>
+                    <th style="width:40px;"><input type="checkbox" id="chk_selectAll" aria-label="Select all rows" /></th>
                     <th>Date</th>
                     <th>Value Date</th>
                     <th>Particulars</th>
@@ -90,6 +93,37 @@
                   </tr>
                 </tbody>
               </table>
+              <!-- Pagination Controls -->
+              <div id="dv_statementPagination" class="sv-pagination-container" style="display: none;">
+                <div class="sv-pagination-info">
+                    <span id="spn_paginationInfo">Showing 0 - 0 of 0</span>
+                </div>
+                <div class="sv-pagination-controls">
+                    <button id="btn_firstPage" class="sv-page-btn" title="First Page" aria-label="First Page">
+                        <i class="bi bi-chevron-bar-left"></i>
+                    </button>
+                    <button id="btn_prevPage" class="sv-page-btn" title="Previous Page" aria-label="Previous Page">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <div class="sv-page-numbers" id="dv_pageNumbers"></div>
+                    <button id="btn_nextPage" class="sv-page-btn" title="Next Page" aria-label="Next Page">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button id="btn_lastPage" class="sv-page-btn" title="Last Page" aria-label="Last Page">
+                        <i class="bi bi-chevron-bar-right"></i>
+                    </button>
+                </div>
+                <div class="sv-pagination-size">
+                    <label for="ddl_pageSize">Show:</label>
+                    <select id="ddl_pageSize" class="sv-page-size-select">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -98,439 +132,251 @@
       <!-- Action Panel -->
       <aside class="action-panel">
         <div class="d-flex flex-column gap-2 mt-auto">
-          <button class="btn-action" type="button" data-action="view" title="View"><i class="bi bi-eye"></i><span>View</span></button>
-          <button class="btn-action" type="button" data-action="print" title="Print"><i class="bi bi-printer"></i><span>Print</span></button>
-          <button class="btn-action" type="button" data-action="reverse" title="Reverse"><i class="bi bi-arrow-counterclockwise"></i><span>Reverse</span></button>
-          <button class="btn-action" type="button" data-action="fetch" title="Fetch"><i class="bi bi-download"></i><span>Fetch</span></button>
-          <button class="btn-action btn-cancel" type="button" data-action="close" title="Close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+          <button id="btn_view" class="btn-action" type="button" data-action="view" title="View" aria-label="View selected statement"><i class="bi bi-eye"></i><span>View</span></button>
+          <div id="dv_printExport" class="sv-print-export">
+            <button id="btn_print" class="btn-action" type="button" data-action="print" title="Print" aria-label="Print statement"><i class="bi bi-printer"></i><span>Print</span></button>
+          </div>
+          <div id="dv_exportPopover" aria-label="Export options">
+            <button id="btn_exportExcel" class="sv-export-btn sv-excel-btn" type="button" data-action="exportExcel" title="Export to Excel" aria-label="Export to Excel"><i class="bi bi-file-earmark-excel"></i><span>Excel</span></button>
+            <button id="btn_exportPdf" class="sv-export-btn sv-pdf-btn" type="button" data-action="exportPdf" title="Export to PDF" aria-label="Export to PDF"><i class="bi bi-file-earmark-pdf"></i><span>PDF</span></button>
+          </div>
+          <button id="btn_reverse" class="btn-action" type="button" data-action="reverse" title="Reverse" aria-label="Reverse transaction"><i class="bi bi-arrow-counterclockwise"></i><span>Reverse</span></button>
+          <button id="btn_refresh" class="btn-action" type="button" data-action="refresh" title="Refresh" aria-label="Refresh statement data"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+          <button id="btn_close" class="btn-action btn-cancel" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i><span>Close</span></button>
         </div>
       </aside>
     </main>
   </div>
 
-<!-- Statement View JavaScript - Inline for dynamic loading -->
-<script type="text/javascript">
-(function() {
-    'use strict';
-
-    console.log('[StatementView] Initializing submodule...');
-
-    // DATE UTILITIES
-    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    function formatDateDisplay(date) {
-        if (!date || isNaN(date.getTime())) return '';
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = MONTHS[date.getMonth()];
-        const year = date.getFullYear();
-        return day + '-' + month + '-' + year;
+<style>
+    .sv-print-export {
+        position: relative;
     }
 
-    function formatDateApi(date) {
-        if (!date || isNaN(date.getTime())) return '';
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return year + '-' + month + '-' + day;
+    #dv_exportPopover {
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px;
+        min-width: 140px;
+        background: var(--am-bg-card, #fff);
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        z-index: 99999;
+        transform: translateY(4px) scale(0.96);
+        transform-origin: right center;
+        transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    function parseDateDisplay(str) {
-        if (!str) return null;
-        const parts = str.split('-');
-        if (parts.length !== 3) return null;
-        const day = parseInt(parts[0], 10);
-        const monthIdx = MONTHS.findIndex(m => m.toLowerCase() === parts[1].toLowerCase());
-        const year = parseInt(parts[2], 10);
-        if (isNaN(day) || monthIdx === -1 || isNaN(year)) return null;
-        return new Date(year, monthIdx, day);
-    }
-
-    function getToday() {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    }
-
-    function getFirstOfMonth() {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), 1);
-    }
-
-    function getFirstOfPreviousMonth() {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    }
-
-    // CURRENCY FORMATTERS
-    function formatDebitDisplay(value, isHTML) {
-        const num = parseFloat(value);
-        if (isNaN(num) || num === 0) return isHTML ? '<span style="color: #666;">-</span>' : '-';
-        const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (isHTML) {
-            return '<span style="color: #dc2626; font-weight: 600;">(' + formatted + ')</span>';
-        }
-        return '(' + formatted + ')';
-    }
-
-    function formatCreditDisplay(value, isHTML) {
-        const num = parseFloat(value);
-        if (isNaN(num) || num === 0) return isHTML ? '<span style="color: #666;">-</span>' : '-';
-        const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (isHTML) {
-            return '<span style="color: #2563eb; font-weight: 600;">' + formatted + '</span>';
-        }
-        return formatted;
-    }
-
-    function formatBalanceDisplay(value, isHTML) {
-        const num = parseFloat(value);
-        if (isNaN(num) || num === 0) return isHTML ? '<span style="color: #666;">-</span>' : '-';
-        const formatted = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const display = num < 0 ? '(' + formatted.replace('-', '') + ')' : formatted;
-        if (isHTML) {
-            return '<span style="color: #000; font-weight: 600;">' + display + '</span>';
-        }
-        return display;
-    }
-
-    function formatDateValue(dateVal) {
-        if (!dateVal) return '';
-        if (typeof dateVal === 'string' && dateVal.match(/^\d{1,2}-[A-Za-z]{3}-\d{4}$/)) {
-            return dateVal;
-        }
-        try {
-            var d = new Date(dateVal);
-            if (!isNaN(d.getTime())) {
-                return formatDateDisplay(d);
-            }
-        } catch (e) {
-            console.warn('[StatementView] Could not parse date:', dateVal);
-        }
-        return String(dateVal);
-    }
-
-    // PARENT STATE ACCESS - Get account info from parent AccountMaintenanceState
-    function getParentState() {
-        let state = {
-            OurBranchID: '',
-            AccountID: '',
-            OperatorID: '',
-            ClientID: ''
-        };
-
-        // Try window.AccountMaintenanceState (parent context)
-        if (window.AccountMaintenanceState) {
-            state.OurBranchID = window.AccountMaintenanceState.OurBranchID || '';
-            state.AccountID = window.AccountMaintenanceState.AccountID || '';
-            state.OperatorID = window.AccountMaintenanceState.OperatorID || '';
-            state.ClientID = window.AccountMaintenanceState.ClientID || '';
+        #dv_exportPopover.is-visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
         }
 
-        // Fallback to sessionStorage
-        if (!state.AccountID) {
-            state.AccountID = sessionStorage.getItem('currentAccountID') || '';
-            state.OurBranchID = sessionStorage.getItem('currentBranchID') || sessionStorage.getItem('branch_code') || '';
-            state.OperatorID = sessionStorage.getItem('currentOperatorID') || sessionStorage.getItem('UserId') || '';
-            state.ClientID = sessionStorage.getItem('currentClientID') || '';
+        #dv_exportPopover::before {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 12px;
+            height: 12px;
+            background: var(--am-bg-card, #fff);
+            border-right: 1px solid var(--am-border-light, #e2e8f0);
+            border-top: 1px solid var(--am-border-light, #e2e8f0);
         }
 
-        return state;
-    }
-
-    // PERIOD CHANGE HANDLER
-    function handlePeriodChange() {
-        const ddlStatementFor = document.getElementById('ddl_statementFor');
-        const txtFromDate = document.getElementById('txt_fromDate');
-        const txtToDate = document.getElementById('txt_toDate');
-        const btnFromDatePicker = document.getElementById('btn_fromDatePicker');
-        const btnToDatePicker = document.getElementById('btn_toDatePicker');
-
-        if (!ddlStatementFor || !txtFromDate || !txtToDate) return;
-
-        const period = ddlStatementFor.value;
-        const today = getToday();
-
-        switch (period) {
-            case '0':
-                txtFromDate.value = '';
-                txtToDate.value = '';
-                txtFromDate.disabled = true;
-                txtToDate.disabled = true;
-                if (btnFromDatePicker) btnFromDatePicker.disabled = true;
-                if (btnToDatePicker) btnToDatePicker.disabled = true;
-                break;
-            case '1': // Current Month
-                txtFromDate.value = formatDateDisplay(getFirstOfMonth());
-                txtToDate.value = formatDateDisplay(today);
-                txtFromDate.disabled = true;
-                txtToDate.disabled = true;
-                if (btnFromDatePicker) btnFromDatePicker.disabled = true;
-                if (btnToDatePicker) btnToDatePicker.disabled = true;
-                fetchTransactions();
-                break;
-            case '2': // Current and Previous Month
-                txtFromDate.value = formatDateDisplay(getFirstOfPreviousMonth());
-                txtToDate.value = formatDateDisplay(today);
-                txtFromDate.disabled = true;
-                txtToDate.disabled = true;
-                if (btnFromDatePicker) btnFromDatePicker.disabled = true;
-                if (btnToDatePicker) btnToDatePicker.disabled = true;
-                fetchTransactions();
-                break;
-            case '3': // Date Range
-                txtFromDate.disabled = false;
-                txtToDate.disabled = false;
-                if (btnFromDatePicker) btnFromDatePicker.disabled = false;
-                if (btnToDatePicker) btnToDatePicker.disabled = false;
-                break;
-        }
-    }
-
-    // FETCH TRANSACTIONS
-    async function fetchTransactions() {
-        const state = getParentState();
-        const txtFromDate = document.getElementById('txt_fromDate');
-        const txtToDate = document.getElementById('txt_toDate');
-        const spnRecordCount = document.getElementById('spn_recordCount');
-
-        if (!state.AccountID) {
-            alert('No account loaded. Please load an account first.');
-            return;
+        #dv_exportPopover .sv-export-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--am-text-primary, #1e293b);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            text-align: left;
         }
 
-        const fromDateObj = parseDateDisplay(txtFromDate?.value || '');
-        const toDateObj = parseDateDisplay(txtToDate?.value || '');
-
-        if (!fromDateObj || !toDateObj) {
-            alert('Please select a valid date range.');
-            return;
-        }
-
-        const requestData = {
-            OurBranchID: state.OurBranchID,
-            AccountID: state.AccountID,
-            FromDate: formatDateApi(fromDateObj),
-            ToDate: formatDateApi(toDateObj),
-            OperatorID: state.OperatorID
-        };
-
-        console.log('[StatementView] Fetching transactions:', requestData);
-
-        try {
-            const response = await fetch('/Statement/get-transactions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(requestData)
-            });
-
-            const result = await response.json();
-            console.log('[StatementView] Response:', result);
-
-            // Extract transaction rows
-            let rows = [];
-            if (result.Details && Array.isArray(result.Details)) {
-                rows = result.Details;
-            } else if (result.data?.Details && Array.isArray(result.data.Details)) {
-                rows = result.data.Details;
-            } else if (Array.isArray(result)) {
-                rows = result;
+            #dv_exportPopover .sv-export-btn i {
+                font-size: 18px;
+                flex-shrink: 0;
             }
 
-            populateGrid(rows);
-        } catch (error) {
-            console.error('[StatementView] Error fetching transactions:', error);
-            alert('Error fetching transactions: ' + error.message);
-        }
-    }
-
-    // POPULATE GRID
-    function populateGrid(rows) {
-        const tbody = document.querySelector('#tbl_statementGrid tbody');
-        const spnRecordCount = document.getElementById('spn_recordCount');
-
-        if (!tbody) {
-            console.error('[StatementView] tbody not found');
-            return;
-        }
-
-        tbody.innerHTML = '';
-
-        if (!rows || rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No transactions found for the selected period.</td></tr>';
-            if (spnRecordCount) spnRecordCount.textContent = '(0 records)';
-            return;
-        }
-
-        console.log('[StatementView] Populating', rows.length, 'rows');
-
-        rows.forEach((row) => {
-            const tr = document.createElement('tr');
-
-            const dateVal = formatDateValue(row.TrxDate || row.Date || row.TransDate || row.TransactionDate || '');
-            const valueDate = formatDateValue(row.ValueDate || row.ValDate || '');
-            const particulars = row.Particulars || row.Description || row.Narration || '';
-            const debit = parseFloat(String(row.Debit || row.DebitAmount || 0).replace(/,/g, '')) || 0;
-            const credit = parseFloat(String(row.Credit || row.CreditAmount || 0).replace(/,/g, '')) || 0;
-            const balance = parseFloat(String(row.RunningBalance || row.AccBalance || row.Balance || row.Closing || row.ClosingBalance || 0).replace(/,/g, '')) || 0;
-            const batchID = row.trxBatchID || row.BatchID || '';
-            const rowID = row.RowID || row.TrxRowID || row.TransRowID || '';
-
-            tr.innerHTML = `
-                <td><input type="checkbox" /></td>
-                <td>${dateVal || '-'}</td>
-                <td>${valueDate || '-'}</td>
-                <td>${particulars || '-'}</td>
-                <td class="text-end">${formatDebitDisplay(debit, true)}</td>
-                <td class="text-end">${formatCreditDisplay(credit, true)}</td>
-                <td class="text-end">${formatBalanceDisplay(balance, true)}</td>
-                <td style="display:none;">${batchID}</td>
-                <td style="display:none;">${rowID}</td>
-            `;
-
-            tr.style.cursor = 'pointer';
-            tbody.appendChild(tr);
-        });
-
-        if (spnRecordCount) spnRecordCount.textContent = `(${rows.length} records)`;
-        console.log('[StatementView] Grid populated with', rows.length, 'rows');
-    }
-
-    // WINDOW CONTROLS
-    function notifyParentFormOpened() {
-        try {
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ 
-                    action: 'submoduleOpened',
-                    source: 'StatementView'
-                }, '*');
+            #dv_exportPopover .sv-export-btn:hover {
+                background: rgba(74, 124, 149, 0.08);
             }
-        } catch (error) {
-            console.error('[StatementView] Error notifying parent:', error);
-        }
-    }
 
-    function closeChildForm() {
-        try {
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ 
-                    action: 'submoduleClosed',
-                    source: 'StatementView'
-                }, '*');
+            #dv_exportPopover .sv-export-btn.sv-excel-btn {
+                color: #217346;
             }
-        } catch (error) {
-            console.error('[StatementView] Error closing form:', error);
-        }
+
+                #dv_exportPopover .sv-export-btn.sv-excel-btn:hover {
+                    background: rgba(33, 115, 70, 0.12);
+                    color: #1a5c38;
+                }
+
+            #dv_exportPopover .sv-export-btn.sv-pdf-btn {
+                color: #dc2626;
+            }
+
+                #dv_exportPopover .sv-export-btn.sv-pdf-btn:hover {
+                    background: rgba(220, 38, 38, 0.12);
+                    color: #b91c1c;
+                }
+
+    /* Pagination Styles */
+    .sv-pagination-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-top: 1px solid var(--am-border-light, #e2e8f0);
+        background: var(--am-bg-subtle, #f8fafc);
+        gap: 16px;
+        flex-wrap: wrap;
     }
 
-    function handleWindowAction(action, btn) {
-        const windowEl = document.querySelector('.window');
+    .sv-pagination-info {
+        color: var(--am-text-secondary, #64748b);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .sv-pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .sv-page-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 6px;
+        background: white;
+        color: var(--am-text-primary, #1e293b);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+        .sv-page-btn:hover:not(:disabled) {
+            background: var(--am-primary-50, #eff6ff);
+            border-color: var(--am-primary-200, #bfdbfe);
+            color: var(--am-primary-600, #2563eb);
+        }
+
+        .sv-page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+    .sv-page-numbers {
+        display: flex;
+        gap: 4px;
+        margin: 0 8px;
+    }
+
+    .sv-page-number {
+        min-width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 6px;
+        background: white;
+        color: var(--am-text-primary, #1e293b);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        padding: 0 8px;
+    }
+
+        .sv-page-number:hover:not(.active) {
+            background: var(--am-primary-50, #eff6ff);
+            border-color: var(--am-primary-200, #bfdbfe);
+            color: var(--am-primary-600, #2563eb);
+        }
+
+        .sv-page-number.active {
+            background: var(--am-primary-600, #2563eb);
+            border-color: var(--am-primary-600, #2563eb);
+            color: white;
+            cursor: default;
+        }
+
+        .sv-page-number.ellipsis {
+            border: none;
+            background: transparent;
+            cursor: default;
+            pointer-events: none;
+        }
+
+    .sv-pagination-size {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--am-text-secondary, #64748b);
+    }
+
+    .sv-page-size-select {
+        padding: 6px 24px 6px 10px;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 6px;
+        background: white;
+        color: var(--am-text-primary, #1e293b);
+        font-size: 13px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+    }
+
+        .sv-page-size-select:hover {
+            border-color: var(--am-primary-300, #93c5fd);
+        }
+
+        .sv-page-size-select:focus {
+            outline: 2px solid var(--am-primary-200, #bfdbfe);
+            border-color: var(--am-primary-500, #3b82f6);
+        }
+</style>
+
+<!-- Set up state for statement-view.js to access from parent AccountMaintenanceState -->
+<script>
+    // Ensure StatementViewState exists for statement-view.js compatibility
+    // It will read from AccountMaintenanceState which is set by the parent Account Maintenance page
+    (function() {
+        'use strict';
+        console.log('[StatementView-Submodule] Setting up state bridge...');
         
-        switch (action) {
-            case 'refresh':
-                fetchTransactions();
-                break;
-            case 'maximize':
-                if (windowEl) {
-                    const isMaximized = windowEl.classList.toggle('maximized');
-                    const icon = btn.querySelector('i');
-                    if (icon) {
-                        icon.className = isMaximized ? 'bi bi-fullscreen-exit' : 'bi bi-square';
-                    }
-                    if (window.parent && window.parent !== window) {
-                        window.parent.postMessage({ 
-                            action: 'toggleSidebarForMaximize',
-                            maximize: isMaximized
-                        }, '*');
-                    }
-                }
-                break;
-            case 'close':
-                closeChildForm();
-                break;
+        // Create StatementViewState from AccountMaintenanceState if available
+        if (window.AccountMaintenanceState && !window.StatementViewState) {
+            window.StatementViewState = {
+                ModuleID: window.AccountMaintenanceState.ModuleID || '1500',
+                BranchID: window.AccountMaintenanceState.OurBranchID || '',
+                AccountID: window.AccountMaintenanceState.AccountID || ''
+            };
+            console.log('[StatementView-Submodule] State bridged from AccountMaintenanceState:', window.StatementViewState);
         }
-    }
-
-    // ACTION PANEL HANDLERS
-    function handleActionClick(action) {
-        switch (action) {
-            case 'view':
-                // View selected transaction details
-                const selectedRow = document.querySelector('#tbl_statementGrid tbody tr.selected');
-                if (selectedRow) {
-                    alert('View transaction details - To be implemented');
-                } else {
-                    alert('Please select a transaction to view');
-                }
-                break;
-            case 'print':
-                window.print();
-                break;
-            case 'reverse':
-                alert('Reverse transaction - To be implemented');
-                break;
-            case 'fetch':
-                fetchTransactions();
-                break;
-            case 'close':
-                closeChildForm();
-                break;
-        }
-    }
-
-    // INITIALIZATION
-    function init() {
-        console.log('[StatementView] Initializing...');
-
-        // Wire up period dropdown
-        const ddlStatementFor = document.getElementById('ddl_statementFor');
-        if (ddlStatementFor) {
-            ddlStatementFor.addEventListener('change', handlePeriodChange);
-        }
-
-        // Wire window controls
-        document.querySelectorAll('.am-btn[data-action]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const action = btn.getAttribute('data-action');
-                handleWindowAction(action, btn);
-            });
-        });
-
-        // Wire action panel buttons
-        document.querySelectorAll('.action-panel .btn-action[data-action]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const action = btn.getAttribute('data-action');
-                handleActionClick(action);
-            });
-        });
-
-        // Wire row selection
-        document.querySelector('#tbl_statementGrid tbody')?.addEventListener('click', (e) => {
-            const tr = e.target.closest('tr');
-            if (tr && !e.target.matches('input[type="checkbox"]')) {
-                document.querySelectorAll('#tbl_statementGrid tbody tr').forEach(r => r.classList.remove('selected', 'table-active'));
-                tr.classList.add('selected', 'table-active');
-            }
-        });
-
-        // Set default period to Current Month and fetch
-        if (ddlStatementFor) {
-            ddlStatementFor.value = '1';
-            handlePeriodChange();
-        }
-
-        notifyParentFormOpened();
-        console.log('[StatementView] Initialized successfully');
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-})();
+    })();
 </script>
+
+<!-- Use shared statement-view.js for consistent functionality -->
+<script src="/js/modules/shared/statement-view.js"></script>

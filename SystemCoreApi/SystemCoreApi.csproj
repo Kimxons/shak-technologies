@@ -31,7 +31,7 @@
 
 	<ItemGroup>
 	  <Reference Include="BRNetSecurityCore">
-	    <HintPath>..\Libraries\BRNetSecurityCore.dll</HintPath>
+	    <HintPath>$(MSBuildThisFileDirectory)..\Libraries\BRNetSecurityCore.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 

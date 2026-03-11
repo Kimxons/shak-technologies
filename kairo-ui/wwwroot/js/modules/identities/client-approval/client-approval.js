@@ -75,14 +75,13 @@ const ClientApprovalService = {
     },
     rejectClients(requestData) {
         return invokeClientApprovalController('reject-clients', requestData);
+    },
+    addClientSupervisionData(requestData) {
+        return invokeClientApprovalController('add-client-supervision-data', requestData);
     }
 };
 
 window.ClientApprovalService = ClientApprovalService;
-
-// ============================================================================
-// CLIENT APPROVAL CONTROLLER
-// ============================================================================
 
 class ClientApprovalController {
     constructor() {
@@ -137,15 +136,11 @@ class ClientApprovalController {
      * Initialize controller
      */
     initialize() {
-        console.log('[ClientApproval] Initializing...');
-
         this.initializeEventListeners();
         this.initializeLookups();
         this.initializeSearchModal();
         this.initializeSectionToggles();
         this.initializeRejectionModal();
-
-        console.log('[ClientApproval] Initialization complete');
     }
 
     /**
@@ -221,11 +216,8 @@ class ClientApprovalController {
     async initializeLookups() {
         try {
             const hasServerOptions = this.elements.filterClientType?.options?.length > 1;
-            if (!hasServerOptions) {
-                console.warn('[ClientApproval] Client Type options were not preloaded from Index action');
-            }
         } catch (error) {
-            console.error('[ClientApproval] Error initializing lookups:', error);
+            // Silent fail for initialization
         }
     }
 
@@ -235,15 +227,11 @@ class ClientApprovalController {
     async initializeSearchModal() {
         try {
             const appCore = getAppCore();
-            if (!appCore) {
-                console.warn('[ClientApproval] AppCore not available for SearchModal');
-                return;
-            }
+            if (!appCore) return;
 
             this.searchModal = new SearchModal(appCore);
-            console.log('[ClientApproval] SearchModal initialized');
         } catch (error) {
-            console.error('[ClientApproval] Error initializing SearchModal:', error);
+            // Silent fail for SearchModal initialization
         }
     }
 
@@ -275,7 +263,6 @@ class ClientApprovalController {
                 }
             });
         } catch (error) {
-            console.error('[ClientApproval] Error opening branch search:', error);
             this.showMessage('Error opening search modal', 'danger');
         }
     }
@@ -337,7 +324,6 @@ class ClientApprovalController {
                 }
             });
         } catch (error) {
-            console.error('[ClientApproval] Error opening application search:', error);
             this.showMessage('Error opening search modal', 'danger');
         }
     }
@@ -358,45 +344,49 @@ class ClientApprovalController {
                 ClientID: clientId
             });
 
-            if (result.Success && result.Details) {
-                const clients = Array.isArray(result.Details) ? result.Details : [result.Details];
+            // Handle both camelCase and PascalCase
+            const success = result.Success ?? result.success;
+            const details = result.data ?? result.Details ?? result.details;
+
+            if (success && details) {
+                const clients = Array.isArray(details) ? details : [details];
                 this.populateApprovalTable(clients);
                 this.pendingClients = clients;
             } else {
                 this.populateApprovalTable([]);
             }
         } catch (error) {
-            console.error('[ClientApproval] Error loading client details:', error);
             this.showMessage('Error loading client details', 'danger');
         }
     }
 
     /**
      * Load pending approvals
+     * @param {boolean} silent 
      */
-    async loadApprovals() {
+    async loadApprovals(silent = false) {
         // Validate filters
         const branchId = this.elements.filterBranchIdValue.value?.trim();
         const clientType = this.elements.filterClientType.value?.trim();
         const applicationId = this.elements.filterApplicationIdValue.value?.trim();
 
         if (!branchId) {
-            this.showMessage('Please select a Branch ID', 'warning');
+            if (!silent) this.showMessage('Please select a Branch ID', 'warning');
             return;
         }
 
         if (!clientType) {
-            this.showMessage('Please select a Client Type', 'warning');
+            if (!silent) this.showMessage('Please select a Client Type', 'warning');
             return;
         }
 
         if (!applicationId) {
-            this.showMessage('Please select an Application ID', 'warning');
+            if (!silent) this.showMessage('Please select an Application ID', 'warning');
             return;
         }
 
         try {
-            this.showMessage('Loading pending approvals...', 'info');
+            if (!silent) this.showMessage('Loading pending approvals...', 'info');
 
             const result = await ClientApprovalService.getPendingApprovals({
                 OurBranchID: branchId,
@@ -406,18 +396,22 @@ class ClientApprovalController {
                 ClientID: applicationId
             });
 
-            if (result.Success && result.Details) {
-                const clients = Array.isArray(result.Details) ? result.Details : [result.Details];
+            // Handle both camelCase and PascalCase response properties
+            const success = result.Success ?? result.success;
+            const details = result.data ?? result.Details ?? result.details;
+            const message = result.Message ?? result.message;
+
+            if (success && details) {
+                const clients = Array.isArray(details) ? details : [details];
                 this.populateApprovalTable(clients);
                 this.pendingClients = clients;
-                this.showMessage(`Found ${clients.length} pending approval(s)`, 'success');
+                if (!silent) this.showMessage(`Found ${clients.length} pending approval(s)`, 'success');
             } else {
                 this.populateApprovalTable([]);
-                this.showMessage(result.Message || 'No pending approvals found', 'warning');
+                if (!silent) this.showMessage(message || 'No pending approvals found', 'warning');
             }
         } catch (error) {
-            console.error('[ClientApproval] Error loading approvals:', error);
-            this.showMessage('Error loading pending approvals', 'danger');
+            if (!silent) this.showMessage('Error loading pending approvals', 'danger');
         }
     }
 
@@ -501,7 +495,8 @@ class ClientApprovalController {
                 OurBranchID: branchId
             });
 
-            const reasons = result.Details01 || result.Details || [];
+            // Handle both camelCase, PascalCase, and new 'data' response properties
+            const reasons = result.data01 || result.Details01 || result.details01 || result.data || result.Details || result.details || [];
             this.renderStatusReasons(reasons);
             this.statusReasons = reasons;
 
@@ -509,8 +504,7 @@ class ClientApprovalController {
                 this.elements.statusReasonsSection.style.display = 'block';
             }
         } catch (error) {
-            console.error('[ClientApproval] Error loading status reasons:', error);
-            // Don't show error message for this optional section
+            // Silent fail for optional status reasons section
         }
     }
 
@@ -625,21 +619,112 @@ class ClientApprovalController {
                 DetailRecords: xml
             });
 
-            if (response.Success) {
-                this.showMessage(response.Message || 'Clients approved successfully!', 'success');
-                await this.loadApprovals();
-                this.selectedClients = [];
-                this.elements.selectAllCheckbox.checked = false;
-                this.updateActionButtons();
-            } else {
-                this.showMessage(response.Message || 'Failed to approve clients', 'danger');
+            // Handle both camelCase and PascalCase
+            const success = response.Success ?? response.success;
+            const message = response.Message ?? response.message;
+
+            if (success) {
+                // Extract ClientIDs from approval response
+                let approvedClientIds = [];
+                try {
+                    const approvalData = response.data?.Details || response.data || response.Data || response.details;
+                    if (approvalData) {
+                        const dataArray = Array.isArray(approvalData) ? approvalData : [approvalData];
+                        approvedClientIds = dataArray.map(item => item.ClientID || item.NewClientID || item.GeneratedClientID).filter(Boolean);
+                        console.log('[ClientApproval] Approved ClientIDs from response:', approvedClientIds);
+                    }
+                } catch (e) {
+                    console.warn('[ClientApproval] Could not extract ClientIDs from approval response:', e);
+                }
+
+            // Add approved clients to supervision queue
+                        try {
+                            const branchId = this.elements.filterBranchIdValue.value;
+                            const appCore = getAppCore();
+                            const operatorId = appCore?.user?.OperatorID 
+                                || appCore?.user?.operatorId 
+                                || appCore?.session?.OperatorID 
+                                || appCore?.getUser?.()?.OperatorID
+                                || appCore?.currentUser?.OperatorID
+                                || 'web_portal';
+
+                            const supervisionPromises = this.selectedClients.map(async (selected) => {
+                                // Get full client data from pendingClients using stored index
+                                const fullClient = this.pendingClients[selected.index] || {};
+                                const clientId = selected.ClientID 
+                                    || fullClient.ClientID 
+                                    || fullClient.WFClientID 
+                                    || fullClient.AppClientID;
+
+                                console.log('[ClientApproval] Using ClientID for supervision:', clientId);
+
+                                if (!clientId) {
+                                    console.warn('[ClientApproval] No ClientID found for supervision insert');
+                                    return;
+                                }
+
+                                const searchKey = `[OperatorID:${operatorId}][ClientID:${clientId}]`;
+
+                                // Match expected NewData format: {"Details":[{...client fields...}]}
+                                const newData = JSON.stringify({
+                                    Details: [{
+                                        Name:          fullClient.Name          || fullClient.ClientName   || '',
+                                        TitleID:       fullClient.TitleID        || '',
+                                        Address:       fullClient.Address        || '',
+                                        GenderID:      fullClient.GenderID       || fullClient.Gender      || '',
+                                        NationalityID: fullClient.NationalityID  || fullClient.Nationality || '',
+                                        CityID:        fullClient.CityID         || '',
+                                        CountryID:     fullClient.CountryID      || '',
+                                        Mobile:        fullClient.Mobile         || fullClient.MobileNo    || '',
+                                        DateOfBirth:   fullClient.DateOfBirth    || fullClient.DOB         || '',
+                                        Phone1:        fullClient.Phone1         || '',
+                                        Email:         fullClient.Email          || '',
+                                        ID1:           fullClient.ID1            || fullClient.PassportNo  || '',
+                                        ID2:           fullClient.ID2            || '',
+                                        UpdateCount:   fullClient.UpdateCount    || 0
+                                    }]
+                                });
+
+                                return ClientApprovalService.addClientSupervisionData({
+                                    OurBranchID:  branchId,
+                                    ClientID:     clientId,
+                                    ModuleID:     6961,
+                                    LockModuleID: 6961,
+                                    OperatorID:   operatorId,
+                                    Searchkey:    searchKey,
+                                    LockKey:      searchKey,
+                                    EventID:      1,
+                                    NewData:      newData,
+                                    OldData:      '',
+                                    Remarks:      'Client approved',
+                                    NewRecord:    0,
+                                    IPAddress:    ''
+                                });
+                            });
+
+                            await Promise.all(supervisionPromises);
+                            console.log('[ClientApproval] Supervision records inserted successfully');
+                        } catch (supervisionError) {
+                            console.error('[ClientApproval] Error adding to supervision queue:', supervisionError);
+                            this.showMessage('Client approved but supervision record failed — contact support', 'warning');
+                        }
+
+                        this.showMessage(message || 'Clients approved successfully!', 'success');
+                        // Clear the table - approved client no longer pending
+                        this.populateApprovalTable([]);
+                        this.pendingClients = [];
+                        this.selectedClients = [];
+                        this.elements.selectAllCheckbox.checked = false;
+                        this.elements.filterApplicationId.value = '';
+                        this.elements.filterApplicationIdValue.value = '';
+                        this.updateActionButtons();
+                      } else {
+                this.showMessage(message || 'Failed to approve clients', 'danger');
             }
         } catch (error) {
-            console.error('[ClientApproval] Error approving clients:', error);
             this.showMessage('Error approving clients', 'danger');
         }
-    }
-
+    }  
     /**
      * Show rejection modal
      */
@@ -677,17 +762,24 @@ class ClientApprovalController {
                 DetailRecords: xml
             });
 
-            if (response.Success) {
-                this.showMessage(response.Message || 'Clients rejected successfully!', 'success');
-                await this.loadApprovals();
+            // Handle both camelCase and PascalCase
+            const success = response.Success ?? response.success;
+            const message = response.Message ?? response.message;
+
+            if (success) {
+                this.showMessage(message || 'Clients rejected successfully!', 'success');
+                // Clear the table - rejected client no longer pending
+                this.populateApprovalTable([]);
+                this.pendingClients = [];
+                this.elements.filterApplicationId.value = '';
+                this.elements.filterApplicationIdValue.value = '';
                 this.selectedClients = [];
                 this.elements.selectAllCheckbox.checked = false;
                 this.updateActionButtons();
             } else {
-                this.showMessage(response.Message || 'Failed to reject clients', 'danger');
+                this.showMessage(message || 'Failed to reject clients', 'danger');
             }
         } catch (error) {
-            console.error('[ClientApproval] Error rejecting clients:', error);
             this.showMessage('Error rejecting clients', 'danger');
         }
     }
@@ -715,16 +807,15 @@ class ClientApprovalController {
                     source: 'ClientApproval'
                 }, '*');
             }
-            // Try to close the window
             setTimeout(() => {
                 try {
                     window.close();
                 } catch (e) {
-                    console.log('[ClientApproval] Could not close window:', e.message);
+                    // Silent fail
                 }
             }, 100);
         } catch (error) {
-            console.error('[ClientApproval] Error closing window:', error);
+            // Silent fail
         }
     }
 
@@ -765,11 +856,6 @@ class ClientApprovalController {
     }
 }
 
-// ============================================================================
-// INITIALIZE ON DOM READY
-// ============================================================================
-
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[ClientApproval] DOM loaded, initializing...');
     new ClientApprovalController();
 });
