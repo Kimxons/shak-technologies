@@ -1,0 +1,186 @@
+Test Case ID,Test Case Description,Category,Priority,Preconditions,Test Steps,Expected Result,Actual Result,Status,Tested By,Test Date,Remarks
+TC_WFL_LAS_001,Verify module loads successfully,Functional,P1,User is logged in and has access to WorkFlowLoan module,"1. Navigate to Start > WorkFlowLoan > Loan Application Syndicate
+2. Wait for page to load completely,
+3. Verify all UI elements are visible",,Not Executed,,,,
+TC_WFL_LAS_002,Verify initial form state on load,UI,P1,Module is loaded,"1. Observe initial state of form fields
+2. Check which fields are enabled/disabled,
+3. Verify button states",,Not Executed,,,,
+TC_WFL_LAS_003,Verify Branch ID lookup functionality,Functional,P1,Module is loaded,"1. Click on Branch ID lookup button (magnifying glass icon)
+2. Search modal should open,
+3. Search for a valid branch,
+4. Select a branch from results",,Not Executed,,,,
+TC_WFL_LAS_004,Verify Application ID lookup with branch filter,Functional,P1,Branch ID is selected,"1. Enter or select a valid Branch ID
+2. Click Application ID lookup button,
+3. Verify search results are filtered by selected branch,
+4. Select an application",,Not Executed,,,,
+TC_WFL_LAS_005,View existing loan application record,Functional,P1,Branch ID and Application ID are valid existing records,"1. Enter valid Branch ID
+2. Enter valid Application ID,
+3. Click View button,
+4. Verify all data loads correctly",,,,,,
+TC_WFL_LAS_006,Verify Add mode preserves Branch context,Functional,P1,Branch ID is selected,"1. Enter and select a valid Branch ID
+2. Click Add button,
+3. Observe Branch ID field",,,,,,
+TC_WFL_LAS_007,Create new loan application (positive scenario),Functional,P1,User is in Add mode with valid branch selected,"1. Click Add button
+2. Fill in all required fields:,
+   - Client Branch ID,
+   - Client ID,
+   - Product ID,
+   - Main Repayment Account,
+   - Loan Purpose,
+   - Line of Business,
+   - Officer ID,
+   - Loan Amount,
+   - Term,
+   - Interest Rate,
+3. Click Save button",,,,,,
+TC_WFL_LAS_008,Verify Client ID lookup and auto-load client details,Functional,P2,In Add/Edit mode,"1. Click Client ID lookup button
+2. Search and select a valid client,
+3. Verify Client Name populates,
+4. Click More Info button", address," and contact information.""",,,,
+TC_WFL_LAS_009,Verify Product ID selection triggers product details load,Functional,P2,In Add/Edit mode with Client selected,"1. Click Product ID lookup
+2. Search and select a loan product,
+3. Verify auto-population of product-related fields", Commission Rate," Tax Rate may auto-populate based on product configuration.""",,,,
+TC_WFL_LAS_010,Verify Main Repayment Account filtered by Client ID,Validation,P2,Client ID is selected,"1. Select a valid Client ID first
+2. Click Main Repayment Account lookup,
+3. Verify search results are filtered", blocked," or closed accounts (AC status).""",,,,
+TC_WFL_LAS_011,Verify Officer ID filtered by Branch,Validation,P2,Branch ID is selected,"1. Click Officer ID lookup button
+2. Verify search filter criteria,
+3. Select an officer",,,,,,
+TC_WFL_LAS_012,Verify rate calculations (Effective Rate),Functional,P2,In Add/Edit mode,"1. Enter Interest Rate (e.g., 10)
+2. Enter Commission Rate (e.g.,
+3. Enter Tax Rate (e.g.,
+4. Verify Effective Rate calculation",,,,,,
+TC_WFL_LAS_013,Add bank to syndicate details,Functional,P2,In Add/Edit mode,"1. Scroll to Bank Syndicate Details section
+2. Enter/select Bank ID,
+3. Enter Percentage,
+4. Click Update button", Bank Name," and Percentage. Bank fields clear after adding.""",,,,
+TC_WFL_LAS_014,Alter existing bank in syndicate table,Functional,P2,Bank syndicate table has at least one record,"1. Click on a bank row in the table
+2. Row highlights and bank details populate in input fields,
+3. Click Alter button,
+4. Modify Percentage value,
+5. Click Update button"," table reflects the modified percentage.""",,,,,
+TC_WFL_LAS_015,Remove bank from syndicate table,Functional,P2,Bank syndicate table has at least one record,"1. Click on a bank row to select it
+2. Click Remove button,
+3. Confirm deletion in confirmation dialog"," selected bank is removed from the table. Success message displays.""",,,,,
+TC_WFL_LAS_016,Clear bank syndicate input fields,UI,P3,Bank fields have data,"1. Enter or select bank details
+2. Click Clear button", Bank Name," and Percentage fields are cleared. No row is selected in the table.""",,,,
+TC_WFL_LAS_017,Verify New button in bank syndicate,UI,P3,In Add/Edit mode,"1. Select a bank from the table
+2. Click New button",,,,,,
+TC_WFL_LAS_018,Edit existing loan application,Functional,P1,Valid record is loaded in View mode,"1. Load a valid loan application using View
+2. Click Edit button,
+3. Modify any field (e.g.,
+4. Click Save button"," changes persist and success message shows.""",,,,,
+TC_WFL_LAS_019,Cancel changes during Add mode,Functional,P2,In Add mode with data partially entered,"1. Click Add button
+2. Enter data in several fields,
+3. Click Cancel button,
+4. Confirm in the confirmation dialog"," all fields clear. Form returns to initial state. Unsaved data is lost.""",,,,,
+TC_WFL_LAS_020,Cancel changes during Edit mode,Functional,P2,In Edit mode with modified data,"1. Load a record and click Edit
+2. Modify some fields,
+3. Click Cancel button,
+4. Confirm in confirmation dialog"," form returns to initial state. Changes are discarded. Original data is not modified.""",,,,,
+TC_WFL_LAS_021,Delete loan application record,Functional,P1,Valid record is loaded in View mode,"1. View a valid loan application
+2. Click Delete button,
+3. Confirm deletion in dialog", record is deleted from database. Success message displays. Form clears and returns to initial state.,,Not Executed,,,
+TC_WFL_LAS_022,Verify date field default values,UI,P3,Module is loaded in Add mode,"1. Click Add button
+2. Observe Date and Disbursement Date fields",,,,,,
+TC_WFL_LAS_023,Verify dropdown population on load,UI,P2,Module is loaded,"1. Load the module
+2. Check all dropdown fields,
+3. Verify they contain options", Line of Business, Business Location, Business Status, StartUp Capital-Collateral," and Loan Limit Type dropdowns all contain valid options with '--Select--' as first option.""",
+TC_WFL_LAS_024,Verify money field formatting,UI,P3,In Add/Edit mode,"1. Enter a number in any money field (e.g., Loan Amount)
+2. Enter value like '1234567.89',
+3. Tab out of the field",1,234,"567.89). Placeholder shows '0.00' when empty.""",,,
+TC_WFL_LAS_025,Verify required field validation on Save,Validation,P1,In Add mode,"1. Click Add button
+2. Leave required fields empty,
+3. Click Save button",,,,,,
+TC_WFL_LAS_026,Test without Branch ID selection,Validation,P2,Module is loaded,"1. Leave Branch ID empty
+2. Try to enter Application ID,
+3. Try to click Add button",,,,,,
+TC_WFL_LAS_027,Verify lookup auto-fill on blur (manual entry),Functional,P3,In Add/Edit mode,"1. Manually type a valid Branch ID
+2. Press Tab or click outside the field"," name field clears.""",,,,,
+TC_WFL_LAS_028,Test Client ID auto-lookup on blur,Functional,P3,In Add/Edit mode,"1. Manually type a valid Client ID
+2. Tab out of the field",,,,,,
+TC_WFL_LAS_029,Verify section collapse/expand functionality,UI,P3,Module is loaded,"1. Click on any section header toggle button
+2. Observe section content,
+3. Click again to expand",,,,,,
+TC_WFL_LAS_030,Test invalid Branch ID entry,Validation,P2,Module is loaded,"1. Enter an invalid/non-existent Branch ID
+2. Tab out or click lookup,
+3. Try to proceed with View or Add",,,,,,
+TC_WFL_LAS_031,Test invalid Application ID entry,Validation,P2,Valid Branch ID is entered,"1. Enter valid Branch ID
+2. Enter invalid Application ID,
+3. Click View button",,,,,,
+TC_WFL_LAS_032,Verify Product selection triggers Term validation,Functional,P3,Product is selected,"1. Select a Product ID
+2. Enter Term value,
+3. Enter Loan Amount,
+4. Verify product slab validation",,,,,,
+TC_WFL_LAS_033,Test reading Client Limit from More Info,Functional,P3,Client is selected and has details,"1. Select a valid Client ID
+2. Click More Info button,
+3. Verify Client Limit displays in modal",,,,,,
+TC_WFL_LAS_034,Verify Bank Syndicate percentage total validation,Validation,P2,Multiple banks added in syndicate table,"1. Add multiple banks with percentages
+2. Verify if percentage total should equal 100%,
+3. Try to save"," system should validate total equals 100%. Shows appropriate error if validation fails.""",,,,,
+TC_WFL_LAS_035,Test duplicate bank addition in syndicate,Validation,P3,One bank already added in syndicate table,"1. Add a bank to syndicate table
+2. Try to add the same Bank ID again,
+3. Click Update button",,,,,,
+TC_WFL_LAS_036,Verify Date cannot be future date,Validation,P3,In Add/Edit mode,"1. Enter a future date in Date field
+2. Try to save or continue",,,,,,
+TC_WFL_LAS_037,Test Client without Main Repayment Account,Validation,P3,Client is selected,"1. Select a Client ID
+2. Try to lookup Main Repayment Account,
+3. Verify if client has no accounts"," search returns empty results or shows message. Form allows proceeding or enforces account selection based on business rules.""",,,,,
+TC_WFL_LAS_038,Verify Sales Officer lookup and selection,Functional,P3,In Add/Edit mode,"1. Click Sales Officer lookup button
+2. Search and select an officer,
+3. Verify fields populate",,,,,,
+TC_WFL_LAS_039,Test loading overlay during API calls,UI,P2,Performing any action that calls API,"1. Click View with valid IDs
+2. Observe loading overlay during fetch,
+3. Wait for data to load",,,,,,
+TC_WFL_LAS_040,Verify toast/message panel for success operations,UI,P2,Performing save/delete operations,"1. Complete a valid save operation
+2. Observe message panel/toast,
+3. Verify message content"," 'Record saved successfully').""",,,,,
+TC_WFL_LAS_041,Verify error handling for API failures,Error Handling,P1,API is unavailable or returns error,"1. Simulate API error (e.g., network issue)
+2. Try to load or save data,
+3. Observe error handling",,,,,,
+TC_WFL_LAS_042,Test readonly fields remain readonly in all modes,UI,P3,Testing in Add/Edit/View modes,"1. Observe fields marked as readonly (data-always-readonly)
+2. Try to edit them in Add/Edit modes,
+3. Verify they remain disabled", Client Name, Product Name, Application Status," etc. remain readonly in all modes. Cannot be directly edited.""",,
+TC_WFL_LAS_043,Verify action button states in different modes,UI,P2,Testing all form modes,"1. Check button states in Initial mode
+2. Check in Add mode,
+3. Check in Edit mode,
+4. Check in View mode"," others disabled. Add mode: Save/Cancel enabled. Edit mode: Save/Cancel enabled. View mode: View/Add/Edit/Delete enabled.""",,,,,
+TC_WFL_LAS_044,Test Donor ID lookup functionality,Functional,P3,In Add/Edit mode,"1. Click Donor ID lookup button
+2. Search should filter BankID='00',
+3. Select a donor",,,,,,
+TC_WFL_LAS_045,Verify Application Status field auto-population,Functional,P3,In Add mode - new application,"1. Enter all required fields
+2. Observe Application Status field,
+3. Save the record", 'Pending'," 'Draft'). Field is readonly.""",,,,
+TC_WFL_LAS_046,Test concurrent user editing,Integration,P3,Two users load same application,"1. User A loads and edits Application X
+2. User B loads same Application X,
+3. User A saves,
+4. User B tries to save,
+5. Verify conflict handling",,,,,,
+TC_WFL_LAS_047,Verify legacy ASPX route redirect,Integration,P2,Old menu/link still points to legacy URL,"1. Navigate to /Workflow/Loans/frmWFLoanApplicationSyndicate.aspx?ModuleID=7039
+2. Verify redirect occurs",,,,,,
+TC_WFL_LAS_048,Test special characters in text fields,Validation,P3,In Add/Edit mode,"1. Enter special characters in text fields (File Number, etc.)
+2. Try to save,
+3. Verify handling", sanitized," or rejected with validation message based on business rules.""",,,,
+TC_WFL_LAS_049,Verify numeric field accepts only numbers,Validation,P3,In Add/Edit mode,"1. Try to enter letters in Term field
+2. Try to enter special chars in numeric fields  ,
+3. Verify validation",,,,,,
+TC_WFL_LAS_050,Test form accessibility features,Accessibility,P4,Using keyboard navigation,"1. Use Tab key to navigate through form
+2. Use Enter to trigger lookups,
+3. Test screen reader labels",,,,,,
+TC_WFL_LAS_051,Verify sidebar Recent Activities update,UI,P3,Creating/viewing multiple records,"1. View several different loan applications
+2. Check Recent Activities section in sidebar,
+3. Verify history tracking",,,,,,
+TC_WFL_LAS_052,Test browser back button behavior,UI,P3,After saving or viewing records,"1. Perform operations (view, add, edit)
+2. Click browser back button,
+3. Verify application state",,,,,,
+TC_WFL_LAS_053,Verify responsive design on different screen sizes,UI,P4,Testing on various screen resolutions,"1. Load module on desktop (1920x1080)
+2. Load on tablet resolution (768x1024),
+3. Load on mobile (375x667),
+4. Verify layout adapts",,,,,,
+TC_WFL_LAS_054,Test print functionality (if available),UI,P4,Record is loaded in View mode,"1. Load a complete loan application record
+2. Use browser print (Ctrl+P),
+3. Verify print preview",,,,,,
+TC_WFL_LAS_055,Verify session expiry handling,Security,P2,Session timeout occurs during work,"1. Start adding/editing a record
+2. Wait for session to expire (or simulate),
+3. Try to save,
+4. Verify session handling",,,,,,
