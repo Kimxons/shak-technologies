@@ -42,6 +42,8 @@ namespace kairo_ui.Controllers.Identities.ClientApproval
             ViewData["EntityId"] = entityId ?? string.Empty;
             ViewData["RequestId"] = requestId ?? string.Empty;
             ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(entityId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
+            ViewData["DefaultBranchId"] = ResolveSessionValue("branch_code", "branch_id", "OurBranchID", "BranchID") ?? string.Empty;
+            ViewData["DefaultBranchName"] = ResolveSessionValue("branch_name", "BranchName", "OurBranchName", "Branch") ?? string.Empty;
 
             try
             {
@@ -250,11 +252,15 @@ namespace kairo_ui.Controllers.Identities.ClientApproval
                 if (!isSuccess && string.IsNullOrEmpty(responseCode))
                     isSuccess = true;
 
+                var successMessage = string.IsNullOrWhiteSpace(msg)
+                    ? "Client(s) approved successfully"
+                    : msg;
+
                 return Ok(new
                 {
                     success = isSuccess,
                     responseCode,
-                    message = isSuccess ? (msg ?? "Client(s) approved successfully") : msg,
+                    message = isSuccess ? successMessage : msg,
                     data = details
                 });
             }

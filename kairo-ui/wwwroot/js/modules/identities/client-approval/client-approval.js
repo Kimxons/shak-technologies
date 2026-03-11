@@ -84,12 +84,29 @@ const ClientApprovalService = {
 window.ClientApprovalService = ClientApprovalService;
 
 class ClientApprovalController {
+        /**
+         * Filter Application IDs based on selected Branch and Client Type
+         */
+        async filterApplicationIds() {
+            const branchId = this.elements.filterBranchIdValue.value;
+            const clientType = this.elements.filterClientType.value;
+            if (!branchId || !clientType) {
+                this.clearApplicationSelection();
+                return;
+            }
+            // You may need to implement a backend endpoint for this if not present
+            // For now, use the search modal logic to fetch filtered Application IDs
+            // Simulate by clearing selection and requiring user to search
+            this.clearApplicationSelection();
+            // Optionally, you could auto-populate a dropdown if you have the data
+        }
     constructor() {
         this.pendingClients = [];
         this.selectedClients = [];
         this.statusReasons = [];
         this.searchModal = null;
         this.rejectionModalInstance = null;
+        this.sessionContext = this.resolveSessionContext();
     this.moduleId = (document.getElementById('moduleId')?.value || '6961').toString();
 
         // DOM Elements
@@ -97,15 +114,19 @@ class ClientApprovalController {
             // Filters
             filterBranchId: document.getElementById('txt_branchId'),
             filterBranchIdValue: document.getElementById('txt_branchIdValue'),
+            branchName: document.getElementById('spn_branchName'),
             filterClientType: document.getElementById('ddl_clientType'),
             filterApplicationId: document.getElementById('txt_applicationId'),
             filterApplicationIdValue: document.getElementById('txt_applicationIdValue'),
+            applicationName: document.getElementById('spn_applicationName'),
             searchBranchBtn: document.getElementById('btn_searchBranch'),
             searchApplicationBtn: document.getElementById('btn_searchApplication'),
             loadApprovalsBtn: document.getElementById('btn_loadApprovals'),
 
             // Main content
             messageDiv: document.getElementById('dv_messagePanel'),
+            messageText: document.getElementById('spn_messageText'),
+            messageIcon: document.getElementById('icn_messageIcon'),
             recordCount: document.getElementById('spn_recordCount'),
             approvalTableBody: document.getElementById('tbl_approvalBody'),
             selectAllCheckbox: document.getElementById('chk_selectAll'),
@@ -137,10 +158,96 @@ class ClientApprovalController {
      */
     initialize() {
         this.initializeEventListeners();
+        this.applyDefaultBranch();
         this.initializeLookups();
         this.initializeSearchModal();
         this.initializeSectionToggles();
         this.initializeRejectionModal();
+        this.loadStatusReasons(this.elements.filterClientType?.value || 'C');
+        if (this.elements.searchApplicationBtn) {
+            this.elements.searchApplicationBtn.disabled = !this.elements.filterClientType?.value;
+        }
+    }
+
+    resolveSessionContext() {
+        const appCore = getAppCore();
+        const authSession = typeof window.getAuthSession === 'function' ? (window.getAuthSession() || {}) : {};
+
+        const firstOf = (...values) => values.find(v => typeof v === 'string' ? v.trim() !== '' : v !== undefined && v !== null && `${v}`.trim() !== '');
+
+        const serverBranchId = document.getElementById('hdn_defaultBranchId')?.value;
+        const serverBranchName = document.getElementById('hdn_defaultBranchName')?.value;
+
+        const branchId = firstOf(
+            serverBranchId,
+            authSession.OurBranchID,
+            authSession.branchId,
+            authSession.BranchID,
+            authSession.branch_code,
+            authSession.branch_id,
+            appCore?.user?.OurBranchID,
+            appCore?.user?.branchId,
+            appCore?.session?.OurBranchID,
+            appCore?.session?.branch_code,
+            appCore?.session?.branch_id,
+            appCore?.getUser?.()?.OurBranchID,
+            sessionStorage.getItem('currentBranchID'),
+            sessionStorage.getItem('OurBranchID'),
+            sessionStorage.getItem('BranchID'),
+            sessionStorage.getItem('branch_code'),
+            sessionStorage.getItem('branch_id'),
+            localStorage.getItem('OurBranchID'),
+            localStorage.getItem('BranchID'),
+            localStorage.getItem('branch_code'),
+            localStorage.getItem('branch_id')
+        );
+
+        const branchName = firstOf(
+            serverBranchName,
+            authSession.BranchName,
+            authSession.branchName,
+            appCore?.user?.BranchName,
+            appCore?.user?.branchName,
+            appCore?.session?.BranchName,
+            appCore?.getUser?.()?.BranchName,
+            sessionStorage.getItem('currentBranchName'),
+            sessionStorage.getItem('BranchName'),
+            localStorage.getItem('BranchName')
+        );
+
+        return {
+            branchId: branchId ? String(branchId) : '',
+            branchName: branchName ? String(branchName) : ''
+        };
+    }
+
+    applyDefaultBranch() {
+        const branchId = this.sessionContext.branchId;
+        if (!branchId) return;
+
+        this.elements.filterBranchId.value = branchId;
+        this.elements.filterBranchIdValue.value = branchId;
+        if (this.elements.branchName) {
+            this.elements.branchName.textContent = this.sessionContext.branchName || '';
+        }
+    }
+
+    clearApplicationSelection() {
+        this.elements.filterApplicationId.value = '';
+        this.elements.filterApplicationIdValue.value = '';
+        if (this.elements.applicationName) {
+            this.elements.applicationName.textContent = '';
+        }
+    }
+
+    async autoLoadSelectedApplication() {
+        const branchId = this.elements.filterBranchIdValue.value?.trim();
+        const clientType = this.elements.filterClientType.value?.trim();
+        const applicationId = this.elements.filterApplicationIdValue.value?.trim();
+
+        if (branchId && clientType && applicationId) {
+            await this.loadApprovals(true);
+        }
     }
 
     /**
@@ -157,10 +264,11 @@ class ClientApprovalController {
         this.elements.filterClientType.addEventListener('change', () => {
             const hasType = this.elements.filterClientType.value !== '';
             this.elements.searchApplicationBtn.disabled = !hasType;
+            this.loadStatusReasons(this.elements.filterClientType.value || 'C');
             if (!hasType) {
-                this.elements.filterApplicationId.value = '';
-                this.elements.filterApplicationIdValue.value = '';
+                this.clearApplicationSelection();
             }
+            this.filterApplicationIds();
         });
 
         // Select all checkbox
@@ -183,20 +291,37 @@ class ClientApprovalController {
 
         // Rejection confirmation
         this.elements.confirmRejectBtn.addEventListener('click', () => this.handleReject());
+
+        // Branch change should also filter Application IDs
+        this.elements.filterBranchId.addEventListener('change', () => {
+            this.filterApplicationIds();
+        });
+
+        // Auto-load supervisions when Application ID is selected (if all filters are set)
+        this.elements.filterApplicationId.addEventListener('change', () => {
+            this.autoLoadSelectedApplication();
+        });
     }
 
     /**
      * Initialize section toggle functionality
      */
     initializeSectionToggles() {
-        document.querySelectorAll('.ca-section-toggle').forEach(btn => {
+        document.querySelectorAll('[data-section-toggle]').forEach(toggle => {
+            const btn = toggle.querySelector('.section-toggle-btn') || toggle;
             btn.addEventListener('click', () => {
-                const section = btn.closest('.ca-section');
+                const section = btn.closest('.form-section');
                 if (section) {
-                    section.classList.toggle('collapsed');
+                    const content = section.querySelector('[data-section-content]');
+                    const isCollapsed = section.classList.toggle('collapsed');
+                    if (content) {
+                        content.style.display = isCollapsed ? 'none' : '';
+                    }
+                    btn.setAttribute('aria-expanded', (!isCollapsed).toString());
                     const icon = btn.querySelector('i');
                     if (icon) {
-                        icon.style.transform = section.classList.contains('collapsed') ? 'rotate(180deg)' : 'none';
+                        icon.classList.toggle('bi-chevron-up', !isCollapsed);
+                        icon.classList.toggle('bi-chevron-down', isCollapsed);
                     }
                 }
             });
@@ -259,6 +384,10 @@ class ClientApprovalController {
                 onSelect: (record) => {
                     this.elements.filterBranchId.value = record.OurBranchID || '';
                     this.elements.filterBranchIdValue.value = record.OurBranchID || '';
+                    if (this.elements.branchName) {
+                        this.elements.branchName.textContent = record.BranchName || '';
+                    }
+                    this.clearApplicationSelection();
                     this.showMessage('Branch selected successfully', 'success');
                 }
             });
@@ -313,11 +442,16 @@ class ClientApprovalController {
                 onSelect: async (record) => {
                     this.elements.filterApplicationId.value = record.ClientID || '';
                     this.elements.filterApplicationIdValue.value = record.ClientID || '';
+                    if (this.elements.applicationName) {
+                        this.elements.applicationName.textContent = record.Name || '';
+                    }
 
-                    // Load full client details
-                    await this.loadClientDetails(record.ClientID);
+                    await this.autoLoadSelectedApplication();
 
-                    // Load status reasons
+                    if (!this.pendingClients?.length) {
+                        await this.loadClientDetails(record.ClientID);
+                    }
+
                     await this.loadStatusReasons(clientType);
 
                     this.showMessage('Application selected successfully', 'success');
@@ -499,12 +633,11 @@ class ClientApprovalController {
             const reasons = result.data01 || result.Details01 || result.details01 || result.data || result.Details || result.details || [];
             this.renderStatusReasons(reasons);
             this.statusReasons = reasons;
-
-            if (reasons.length > 0) {
-                this.elements.statusReasonsSection.style.display = 'block';
-            }
+            this.elements.statusReasonsSection.classList.remove('d-none');
         } catch (error) {
             // Silent fail for optional status reasons section
+            this.elements.statusReasonsSection.classList.remove('d-none');
+            this.renderStatusReasons([]);
         }
     }
 
@@ -709,14 +842,13 @@ class ClientApprovalController {
                             this.showMessage('Client approved but supervision record failed — contact support', 'warning');
                         }
 
-                        this.showMessage(message || 'Clients approved successfully!', 'success');
+                        this.showMessage((message && message.trim() !== '' ? message : 'Clients approved successfully!'), 'success');
                         // Clear the table - approved client no longer pending
                         this.populateApprovalTable([]);
                         this.pendingClients = [];
                         this.selectedClients = [];
                         this.elements.selectAllCheckbox.checked = false;
-                        this.elements.filterApplicationId.value = '';
-                        this.elements.filterApplicationIdValue.value = '';
+                                                this.clearApplicationSelection();
                         this.updateActionButtons();
                       } else {
                 this.showMessage(message || 'Failed to approve clients', 'danger');
@@ -771,8 +903,7 @@ class ClientApprovalController {
                 // Clear the table - rejected client no longer pending
                 this.populateApprovalTable([]);
                 this.pendingClients = [];
-                this.elements.filterApplicationId.value = '';
-                this.elements.filterApplicationIdValue.value = '';
+                this.clearApplicationSelection();
                 this.selectedClients = [];
                 this.elements.selectAllCheckbox.checked = false;
                 this.updateActionButtons();
@@ -824,12 +955,28 @@ class ClientApprovalController {
      */
     showMessage(message, type = 'info') {
         const div = this.elements.messageDiv;
-        div.textContent = message;
-        div.className = `ca-message ca-message-${type}`;
-        div.style.display = 'block';
+        const textElement = this.elements.messageText;
+        const iconElement = this.elements.messageIcon;
+
+        const mappedType = type === 'danger' ? 'error' : type;
+        div.className = `am-message-panel am-message-panel--${mappedType}`;
+        if (textElement) {
+            textElement.textContent = message;
+        } else {
+            div.textContent = message;
+        }
+
+        if (iconElement) {
+            iconElement.className = 'bi bi-info-circle';
+            if (mappedType === 'success') iconElement.className = 'bi bi-check-circle';
+            if (mappedType === 'warning') iconElement.className = 'bi bi-exclamation-triangle';
+            if (mappedType === 'error') iconElement.className = 'bi bi-x-circle';
+        }
+
+        div.classList.remove('d-none');
 
         setTimeout(() => {
-            div.style.display = 'none';
+            div.classList.add('d-none');
         }, 5000);
     }
 
