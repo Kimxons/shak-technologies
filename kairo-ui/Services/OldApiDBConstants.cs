@@ -74,9 +74,8 @@ namespace kairo_ui.Services
         public const string DELETE_STANDING_INSTRUCTION_TRANSFER = "p_DeleteStandingInstructionTransfer";
         public const string STOP_STANDING_INSTRUCTION_TRANSFER = "p_StopStandingInstructionTransfer";
         public const string GET_ACCOUNT_SIGNATORIES = "p_GetAccountSignatories";
-        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+        public const string GET_SIGNATORY_IMAGE = "dbo.p_GetSignatoryImage";
 
-        
         // ═══════════════════════════════════════════════════════════════════
         // CHANGE INSTALLMENT DATE (Module 5095)
         // ═══════════════════════════════════════════════════════════════════
@@ -235,11 +234,7 @@ namespace kairo_ui.Services
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
-<<<<<<< bii
         // public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
-=======
-        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
->>>>>>> main
 
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
