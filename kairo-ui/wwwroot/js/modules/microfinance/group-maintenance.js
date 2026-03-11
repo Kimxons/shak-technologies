@@ -123,8 +123,6 @@ function unwrapOldApiRows(response) {
 }
 
 let sharedSearchModal = null;
-let resolvedBranchSearchTableId = null;
-let isBranchSearchModalUnavailable = false;
 
 function getFieldValue(source, ...keys) {
     if (!source || typeof source !== 'object') return '';
@@ -633,24 +631,18 @@ async function initializeCenterMaintenance() {
         await window.ServiceLoader.loadCore();
     }
 
-    if (!window.LookupService) {
-        console.warn('[GroupMaintenance] LookupService not available');
-    }
-
-    if (!window.GroupService) {
-        console.warn('[GroupMaintenance] GroupService not available');
-    }
-
     await loadGroupClassOptions();
 
     const branchInput = document.getElementById('branchId');
+    const branchNameInput = document.getElementById('branchName');
     const existingBranchId = branchInput?.value?.trim() || '';
+    const existingBranchName = branchNameInput?.value?.trim() || '';
     const branchId = existingBranchId || window.Environment?.OurBranchID || window.Environment?.defaultOurBranchId;
     if (branchId && branchInput && !existingBranchId) {
         branchInput.value = branchId;
-        await fetchBranchDetails(branchId);
-    } else if (existingBranchId) {
-        await fetchBranchDetails(existingBranchId);
+        await fetchBranchDetails(branchId, { silent: true });
+    } else if (existingBranchId && !existingBranchName) {
+        await fetchBranchDetails(existingBranchId, { silent: true });
     }
 
     setupEventListeners();
@@ -685,12 +677,7 @@ async function loadGroupClassOptions() {
 
         console.log('[GroupMaintenance] Loading Group Class options...');
 
-        let response = null;
-        if (window.GroupService?.getSpConditionClassCombo) {
-            response = await window.GroupService.getSpConditionClassCombo(requestData);
-        } else {
-            response = await callMicroFinanceOldApi('dbo.p_GetSpConditionCalssCombo', requestData);
-        }
+        const response = await callMicroFinanceOldApi('dbo.p_GetSpConditionCalssCombo', requestData);
 
         const rows = unwrapOldApiRows(response?.data ?? response);
         if (rows.length > 0) {
@@ -776,28 +763,28 @@ function setupEventListeners() {
 
     document.getElementById('primarySchemeId').addEventListener('blur', async (e) => {
         const schemeId = e.target.value.trim();
-        if (schemeId && window.LookupService) {
+        if (schemeId) {
             await fetchSchemeDetails(schemeId);
         }
     });
 
     document.getElementById('creditOfficer').addEventListener('blur', async (e) => {
         const officerId = e.target.value.trim();
-        if (officerId && window.LookupService) {
+        if (officerId) {
             await fetchOfficerDetails(officerId, 'creditOfficer');
         }
     });
 
     document.getElementById('groupFormedBy').addEventListener('blur', async (e) => {
         const officerId = e.target.value.trim();
-        if (officerId && window.LookupService) {
+        if (officerId) {
             await fetchOfficerDetails(officerId, 'groupFormedBy');
         }
     });
 
     document.getElementById('ngoId').addEventListener('blur', async (e) => {
         const ngoId = e.target.value.trim();
-        if (ngoId && window.LookupService) {
+        if (ngoId) {
             await fetchNgoDetails(ngoId);
         }
     });
@@ -836,7 +823,7 @@ function setupEventListeners() {
     if (groupLeader1) {
         groupLeader1.addEventListener('blur', async (e) => {
             const clientId = e.target.value.trim();
-            if (clientId && window.LookupService) {
+            if (clientId) {
                 await fetchGroupLeaderDetails(clientId, 1);
             }
         });
@@ -845,7 +832,7 @@ function setupEventListeners() {
     if (groupLeader2) {
         groupLeader2.addEventListener('blur', async (e) => {
             const clientId = e.target.value.trim();
-            if (clientId && window.LookupService) {
+            if (clientId) {
                 await fetchGroupLeaderDetails(clientId, 2);
             }
         });
@@ -854,7 +841,7 @@ function setupEventListeners() {
     if (groupLeader3) {
         groupLeader3.addEventListener('blur', async (e) => {
             const clientId = e.target.value.trim();
-            if (clientId && window.LookupService) {
+            if (clientId) {
                 await fetchGroupLeaderDetails(clientId, 3);
             }
         });
@@ -1158,25 +1145,15 @@ function calculateMeetingDates() {
  */
 async function fetchGroupProductDetails(productId) {
     try {
-        if (!window.LookupService) {
-            console.warn('[GroupMaintenance] LookupService not available');
-            return;
-        }
-
         console.log('[GroupMaintenance] Fetching product details for:', productId);
         
-        // Call the lookup service to get product details
+        // Fetch product details via old-api/controller flow
         const requestData = {
             BankID: '00',
             GroupProductID: productId
         };
 
-        let response = null;
-        if (window.LookupService.getGroupProductDetails) {
-            response = await window.LookupService.getGroupProductDetails(requestData);
-        } else {
-            response = await callMicroFinanceOldApi('dbo.p_GetGroupProductDetails', requestData);
-        }
+        const response = await callMicroFinanceOldApi('dbo.p_GetGroupProductDetails', requestData);
 
         const rows = unwrapOldApiRows(response?.data ?? response);
         
@@ -1210,11 +1187,6 @@ async function fetchGroupProductDetails(productId) {
  */
 async function fetchSchemeDetails(schemeId) {
     try {
-        if (!window.LookupService) {
-            console.warn('[GroupMaintenance] LookupService not available');
-            return;
-        }
-
         console.log('[GroupMaintenance] Fetching scheme details for:', schemeId);
         
         const requestData = {
@@ -1222,12 +1194,7 @@ async function fetchSchemeDetails(schemeId) {
             LoanSchemeID: schemeId
         };
 
-        let response = null;
-        if (window.LookupService.getSchemeDetails) {
-            response = await window.LookupService.getSchemeDetails(requestData);
-        } else {
-            response = await callMicroFinanceOldApi('dbo.p_GetSchemeDetails', requestData);
-        }
+        const response = await callMicroFinanceOldApi('dbo.p_GetSchemeDetails', requestData);
 
         const rows = unwrapOldApiRows(response?.data ?? response);
         
@@ -1253,11 +1220,6 @@ async function fetchSchemeDetails(schemeId) {
  */
 async function fetchOfficerDetails(officerId, fieldType) {
     try {
-        if (!window.LookupService) {
-            console.warn('[GroupMaintenance] LookupService not available');
-            return;
-        }
-
         console.log('[GroupMaintenance] Fetching officer details for:', officerId, fieldType);
         
         const branchId = document.getElementById('branchId')?.value?.trim() || '';
@@ -1267,12 +1229,7 @@ async function fetchOfficerDetails(officerId, fieldType) {
             BranchID: branchId
         };
 
-        let response = null;
-        if (window.LookupService.getOfficerDetails) {
-            response = await window.LookupService.getOfficerDetails(requestData);
-        } else {
-            response = await callMicroFinanceOldApi('dbo.p_GetOfficerDetails', requestData);
-        }
+        const response = await callMicroFinanceOldApi('dbo.p_GetOfficerDetails', requestData);
 
         const rows = unwrapOldApiRows(response?.data ?? response);
         
@@ -1309,11 +1266,6 @@ async function fetchOfficerDetails(officerId, fieldType) {
  */
 async function fetchNgoDetails(ngoId) {
     try {
-        if (!window.LookupService) {
-            console.warn('[GroupMaintenance] LookupService not available');
-            return;
-        }
-
         console.log('[GroupMaintenance] Fetching NGO details for:', ngoId);
         
         const branchId = document.getElementById('branchId')?.value?.trim() || '';
@@ -1323,12 +1275,7 @@ async function fetchNgoDetails(ngoId) {
             BranchID: branchId
         };
 
-        let response = null;
-        if (window.LookupService.getNgoDetails) {
-            response = await window.LookupService.getNgoDetails(requestData);
-        } else {
-            response = await callMicroFinanceOldApi('dbo.p_GetNGODetails', requestData);
-        }
+        const response = await callMicroFinanceOldApi('dbo.p_GetNGODetails', requestData);
 
         const rows = unwrapOldApiRows(response?.data ?? response);
         
@@ -1657,11 +1604,6 @@ async function fetchGroupLeaderDetails(clientId, leaderNumber) {
             return;
         }
 
-        if (!window.LookupService) {
-            console.warn('[GroupMaintenance] LookupService not available');
-            return;
-        }
-
         console.log('[GroupMaintenance] Fetching group leader details for:', clientId);
         
         const requestData = {
@@ -1671,12 +1613,7 @@ async function fetchGroupLeaderDetails(clientId, leaderNumber) {
             OurBranchID: branchId
         };
 
-        let response = null;
-        if (window.LookupService.getGroupClientDetails) {
-            response = await window.LookupService.getGroupClientDetails(requestData);
-        } else {
-            response = await callMicroFinanceOldApi('dbo.p_GetGroupClientDetails', requestData);
-        }
+        const response = await callMicroFinanceOldApi('dbo.p_GetGroupClientDetails', requestData);
 
         const rows = unwrapOldApiRows(response?.data ?? response);
         
@@ -1739,86 +1676,50 @@ function validateGroupLeaders() {
 }
 
 async function handleBranchSearch() {
-    const applyBranchSelection = async (rowLike) => {
-        const branchId = String(getFieldValue(rowLike, 'OurBranchID', 'BranchID', 'ID', 'branchId')).trim();
-        const branchName = String(getFieldValue(rowLike, 'BranchName', 'Name', 'Description', 'branchName')).trim();
-        if (!branchId) return;
-
-        document.getElementById('branchId').value = branchId;
-        document.getElementById('branchName').value = branchName;
-
-        const wasInAddMode = isAddMode;
-        clearCenterFields();
-        if (wasInAddMode) {
-            isAddMode = true;
-            setEditMode(true);
-        }
-
-        if (!branchName) {
-            await fetchBranchDetails(branchId);
-        }
-    };
-
-    const fallbackBranchSearch = () => {
-        if (window.BranchSearchService && typeof window.BranchSearchService.openSearchModal === 'function') {
-            window.BranchSearchService.openSearchModal((branchId, branchName) => {
-                applyBranchSelection({ branchId, branchName });
-            });
-            return true;
-        }
-        return false;
-    };
-
     const appCore = getAppCore();
     if (!window.SearchModal || !appCore) {
-        if (!fallbackBranchSearch()) {
-            showSnackbar('Search modal is not available.', 'error');
-        }
+        showSnackbar('Search modal is not available.', 'error');
         return;
     }
 
-    const currentBranchId = document.getElementById('branchId')?.value?.trim() || '';
-    const currentBranchName = document.getElementById('branchName')?.value?.trim() || '';
+    const idInput = document.getElementById('branchId');
+    const nameInput = document.getElementById('branchName');
 
-    let initialSearchKey = '';
-    if (currentBranchId) {
-        initialSearchKey += `OurBranchID LIKE '%${currentBranchId}%'`;
-    }
-    if (currentBranchName) {
-        if (initialSearchKey) initialSearchKey += ' AND ';
-        initialSearchKey += `BranchName LIKE '%${currentBranchName}%'`;
-    }
+    const searchModal = new window.SearchModal(appCore);
+    searchModal.open({
+        tableID: 'BranchID',
+        onSelect: async (row) => {
+            if (!row) return;
 
-    const candidateTableIds = resolvedBranchSearchTableId
-        ? [resolvedBranchSearchTableId]
-        : ['t_SystemBranchSetting', 'OurBranchID', 'BranchID'];
+            const selectedBranchId = String(getFieldValue(row, 'BranchID', 'OurBranchID', 'ID', 'branchId')).trim();
+            const selectedBranchName = String(getFieldValue(row, 'BranchName', 'Name', 'Description', 'branchName')).trim();
+            if (!selectedBranchId) return;
 
-    for (const tableID of candidateTableIds) {
-        try {
-            const searchModal = new window.SearchModal(appCore);
-            await searchModal.open({
-                tableID,
-                moduleID: 5060,
-                whereStmt: '',
-                advFilterString: "BankID='00'",
-                searchKey: initialSearchKey,
-                onSelect: (row) => applyBranchSelection(row)
-            });
+            if (idInput) {
+                idInput.value = selectedBranchId;
+                idInput.dispatchEvent(new Event('change', { bubbles: true }));
+                idInput.dispatchEvent(new Event('blur', { bubbles: true }));
+            }
 
-            resolvedBranchSearchTableId = tableID;
-            return;
-        } catch (err) {
-            const msg = String(err?.message || '').toLowerCase();
-            if (!msg.includes('not found')) {
-                console.error('[GroupMaintenance] Branch search modal error:', err);
-                break;
+            if (nameInput) {
+                nameInput.value = selectedBranchName;
+            }
+
+            const wasInAddMode = isAddMode;
+            clearCenterFields();
+            if (wasInAddMode) {
+                isAddMode = true;
+                setEditMode(true);
+            }
+
+            if (!selectedBranchName) {
+                await fetchBranchDetails(selectedBranchId);
             }
         }
-    }
-
-    if (!fallbackBranchSearch()) {
-        showSnackbar('Branch search configuration was not found.', 'error');
-    }
+    }).catch((err) => {
+        console.error('[GroupMaintenance] Branch search modal error:', err);
+        showSnackbar('Unable to open branch search dialog.', 'error');
+    });
 }
 
 function runLookupSearch(options) {
@@ -1970,49 +1871,42 @@ function handleNgoSearch() {
     });
 }
 
-async function fetchBranchDetails(branchId) {
+async function fetchBranchDetails(branchId, options = {}) {
     try {
+        const silent = Boolean(options.silent);
         const requestData = {
-            BankID: '00'
+            BankID: '00',
+            OurBranchID: branchId || ''
         };
 
-        if (!window.LookupService || typeof window.LookupService.getBranches !== 'function') {
-            document.getElementById('branchName').value = '';
-            showSnackbar('Lookup service is not available', 'error');
-            return;
-        }
+        const result = await callMicroFinanceOldApi('dbo.pc_SearchSystemBranches', requestData);
 
-        const result = await window.LookupService.getBranches(requestData);
-
-        let branches = [];
-        if (Array.isArray(result?.data)) {
-            branches = result.data;
-        } else if (Array.isArray(result?.Details)) {
-            branches = result.Details;
-        } else if (Array.isArray(result?.data?.Details)) {
-            branches = result.data.Details;
-        } else if (Array.isArray(result?.data?.Details01)) {
-            branches = result.data.Details01;
-        }
+        const branches = unwrapOldApiRows(result?.data ?? result);
 
         const lowerBranchId = String(branchId || '').toLowerCase();
-        const filteredBranches = branches.filter(b =>
-            String(b?.OurBranchID || b?.BranchID || '').toLowerCase().includes(lowerBranchId)
-        );
+        const normalize = (value) => String(value || '').trim().toLowerCase();
+        const stripLeadingZeros = (value) => normalize(value).replace(/^0+/, '');
+
+        const filteredBranches = branches.filter(b => {
+            const rowBranchId = getFieldValue(b, 'OurBranchID', 'BranchID', 'branchId', 'ourBranchID');
+            const rowNormalized = normalize(rowBranchId);
+            const targetNormalized = normalize(lowerBranchId);
+            return rowNormalized === targetNormalized || stripLeadingZeros(rowNormalized) === stripLeadingZeros(targetNormalized);
+        });
 
         if (filteredBranches.length === 1) {
             const branch = filteredBranches[0];
-            document.getElementById('branchName').value = branch.BranchName || branch.Name || '';
+            document.getElementById('branchName').value = String(getFieldValue(branch, 'BranchName', 'Name', 'Description', 'branchName')).trim();
         } else if (filteredBranches.length === 0) {
             document.getElementById('branchName').value = '';
-            showSnackbar('Branch not found', 'warning');
+            if (!silent) showSnackbar('Branch not found', 'warning');
         } else {
             document.getElementById('branchName').value = '';
-            showSnackbar('Multiple branches match, please use search dialog', 'warning');
+            if (!silent) showSnackbar('Multiple branches match, please use search dialog', 'warning');
         }
     } catch (error) {
         document.getElementById('branchName').value = '';
-        showSnackbar('Error fetching branch details', 'error');
+        if (!options?.silent) showSnackbar('Error fetching branch details', 'error');
     }
 }
 
@@ -2399,12 +2293,6 @@ async function handleSave() {
     const branchId = document.getElementById('branchId')?.value?.trim();
     const centerName = document.getElementById('centerName')?.value?.trim();
 
-    if (!window.GroupService) {
-        showSnackbar('GroupService not available. Please refresh the page.', 'error');
-        console.error('[GroupMaintenance] GroupService is not available');
-        return;
-    }
-
     try {
         const groupClass = document.getElementById('groupClass')?.value || '';
         const formationDate = document.getElementById('formationDate')?.value || '';
@@ -2475,7 +2363,7 @@ async function handleSave() {
         };
 
         console.log('[GroupMaintenance] Saving group with data:', requestData);
-        const result = await window.GroupService.addEditGroup(requestData);
+        const result = await callMicroFinanceOldApi('dbo.p_AddEditGroupDetails', requestData);
 
         const dbErrorMessage = result?.ResponseMessage
             || result?.data?.ResponseMessage
@@ -2590,12 +2478,6 @@ function handleDelete() {
         return;
     }
 
-    if (!window.GroupService) {
-        showSnackbar('GroupService not available. Please refresh the page.', 'error');
-        console.error('[GroupMaintenance] GroupService is not available');
-        return;
-    }
-
     showConfirmationDialog(
         'Delete Center',
         `Are you sure you want to delete center ${centerId}? This action cannot be undone.`,
@@ -2612,7 +2494,7 @@ function handleDelete() {
             };
 
             console.log('[GroupMaintenance] Deleting group with data:', requestData);
-            const result = await window.GroupService.deleteGroupDetails(requestData);
+            const result = await callMicroFinanceOldApi('dbo.p_DeleteGroupDetails', requestData);
 
             if (result?.success || result?.data?.success || !result?.error) {
                 showSnackbar('Center deleted successfully', 'success');
@@ -2638,11 +2520,6 @@ async function handleView(direction = 0) {
         return;
     }
 
-    if (!window.GroupService?.getGroupDetails) {
-        showSnackbar('GroupService not loaded', 'error');
-        return;
-    }
-
     try {
         const requestData = {
             OurBranchID: branchId,
@@ -2651,9 +2528,9 @@ async function handleView(direction = 0) {
             Direction: direction
         };
 
-        console.log('[GroupMaintenance] Calling GroupService.getGroupDetails with:', requestData);
-        const result = await window.GroupService.getGroupDetails(requestData);
-        console.log('[GroupMaintenance] GroupService.getGroupDetails result:', result);
+        console.log('[GroupMaintenance] Calling old-api get group details with:', requestData);
+        const result = await callMicroFinanceOldApi('dbo.p_GetGroupDetails', requestData);
+        console.log('[GroupMaintenance] old-api get group details result:', result);
         const details01 = result?.data?.Details01?.[0]
             || result?.Details01?.[0]
             || null;

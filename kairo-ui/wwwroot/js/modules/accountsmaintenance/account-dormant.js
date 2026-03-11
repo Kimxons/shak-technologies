@@ -1,36 +1,31 @@
 /**
  * Account Activate Dormant Module
- * Standardized for KAIRO MVC project.
- * Uses AppCore.invokeControllerAsync for all API calls.
- * Reads account context from parent AccountMaintenanceState.
+ * Uses AccountsMaintenance controller endpoints and reads account context from AccountMaintenanceState.
  */
 window.ActivateDormantModule = (function () {
     'use strict';
 
-    // Module State
     const state = {
         accountId: '',
         branchId: '',
         operatorId: '',
         currentMode: 'VIEW',
         currentData: null,
-        currentUpdateCount: 0
+        currentUpdateCount: 0,
+        currentReferenceId: 0
     };
 
-    // API Paths
     const API = {
         GET: 'AccountsMaintenance/api/get-account-dormant',
         SAVE: 'AccountsMaintenance/api/edit-account-dormant'
     };
 
-    /**
-     * Initialize the module
-     */
     function init() {
         console.log('[ActivateDormant] Initializing module...');
         wireSectionToggles();
-        const ctx = loadContext();
+        wireLookupSelection();
 
+        const ctx = loadContext();
         if (ctx.accountId) {
             loadData();
         } else {
@@ -63,13 +58,35 @@ window.ActivateDormantModule = (function () {
         });
     }
 
-    // =========================================================================
-    // Context from parent AccountMaintenanceState
-    // =========================================================================
+    function wireLookupSelection() {
+        if (window.__activateDormantLookupHandler) {
+            document.removeEventListener('kairo:lookup-selected', window.__activateDormantLookupHandler);
+        }
+
+        window.__activateDormantLookupHandler = function (event) {
+            const targetInputId = String(event?.detail?.targetInputId || '').toLowerCase();
+            if (targetInputId !== 'accountid' && targetInputId !== 'branchid') {
+                return;
+            }
+
+            const ctx = loadContext();
+            if (ctx.accountId) {
+                loadData();
+            } else {
+                clearForm();
+                state.currentData = null;
+                state.currentMode = 'VIEW';
+                updateButtonStates();
+            }
+        };
+
+        document.addEventListener('kairo:lookup-selected', window.__activateDormantLookupHandler);
+    }
+
     function getContext() {
         const globalState = window.AccountMaintenanceState || {};
-        // BranchName is not always set on AccountMaintenanceState, fall back to parent DOM
         const parentBranchName = document.getElementById('BranchName');
+
         return {
             accountId: globalState.AccountID || sessionStorage.getItem('currentAccountID') || '',
             branchId: globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
@@ -79,35 +96,25 @@ window.ActivateDormantModule = (function () {
         };
     }
 
-    function applyContextToIdentification(ctx) {
-        const branchInput = document.getElementById('branchId');
-        const accountInput = document.getElementById('accountId');
-        const branchNameInput = document.getElementById('branchName');
-        const accountNameInput = document.getElementById('accountName');
-
-        if (branchInput) branchInput.value = ctx.branchId;
-        if (accountInput) accountInput.value = ctx.accountId;
-        if (branchNameInput) branchNameInput.value = ctx.branchName;
-        if (accountNameInput) accountNameInput.value = ctx.accountName;
-    }
-
     function loadContext() {
         const ctx = getContext();
         state.accountId = ctx.accountId;
         state.branchId = ctx.branchId;
         state.operatorId = ctx.operatorId;
-        applyContextToIdentification(ctx);
+
+        setValue('branchId', ctx.branchId);
+        setValue('branchName', ctx.branchName);
+        setValue('accountId', ctx.accountId);
+        setValue('accountName', ctx.accountName);
+
         return ctx;
     }
 
-    // =========================================================================
-    // Notification & Loading Helpers (matching parent pattern)
-    // =========================================================================
     function notify(message, type) {
         if (window.showSystemToast) {
             window.showSystemToast(message, { variant: type });
-        } else if (AppCore && AppCore.showNotification) {
-            AppCore.showNotification(message, type);
+        } else if (window.AppCore?.showNotification) {
+            window.AppCore.showNotification(message, type);
         } else {
             console.log(`[${type}] ${message}`);
         }
@@ -118,40 +125,49 @@ window.ActivateDormantModule = (function () {
         if (overlay) overlay.hidden = !show;
     }
 
-    // =========================================================================
-    // DOM Helpers
-    // =========================================================================
-    function $(id) { return document.getElementById(id); }
+    function $(id) {
+        return document.getElementById(id);
+    }
 
-    // =========================================================================
-    // Form Operations
-    // =========================================================================
+    function setValue(id, value) {
+        const el = $(id);
+        if (!el) return;
+
+        if (el.tagName === 'SPAN' || el.classList.contains('audit-value')) {
+            el.textContent = value || '-';
+            return;
+        }
+
+        el.value = value || '';
+    }
+
     function clearForm() {
-        if ($('instructedBy')) $('instructedBy').value = '';
-        if ($('comments')) $('comments').value = '';
+        setValue('instructedBy', '');
+        setValue('comments', '');
 
-        const auditFields = ['dormantDate', 'originalProduct', 'dormantProduct', 'balance',
-            'lastCreditDate', 'creditFixedAmount', 'lastDebitDate', 'debitFixedAmount'];
-        auditFields.forEach(id => {
-            const el = $(id);
-            if (el) el.textContent = '-';
-        });
+        ['dormantDate', 'originalProduct', 'dormantProduct', 'balance', 'lastCreditDate', 'creditFixedAmount', 'lastDebitDate', 'debitFixedAmount']
+            .forEach(id => setValue(id, '-'));
+
+        state.currentUpdateCount = 0;
+        state.currentReferenceId = 0;
     }
 
     function populateForm(data) {
         if (!data) return;
 
-        if ($('instructedBy')) $('instructedBy').value = data.InstructedBy || '';
-        if ($('comments')) $('comments').value = data.Comments || '';
+        setValue('instructedBy', data.InstructedBy || '');
+        setValue('comments', data.Comments || data.Remarks || '');
+        setValue('dormantDate', data.DormantDate || data.Dormantdate || '-');
+        setValue('originalProduct', data.OriginalProductID || data.OriginalProduct || '-');
+        setValue('dormantProduct', data.DormantProductID || data.DormantProduct || '-');
+        setValue('balance', data.Balance != null ? String(data.Balance) : '-');
+        setValue('lastCreditDate', data.LastCreditDate || '-');
+        setValue('creditFixedAmount', data.CreditFixedAmount != null ? String(data.CreditFixedAmount) : '-');
+        setValue('lastDebitDate', data.LastDebitDate || '-');
+        setValue('debitFixedAmount', data.DebitFixedAmount != null ? String(data.DebitFixedAmount) : '-');
 
-        if ($('dormantDate')) $('dormantDate').textContent = data.DormantDate || '-';
-        if ($('originalProduct')) $('originalProduct').textContent = data.OriginalProductID || '-';
-        if ($('dormantProduct')) $('dormantProduct').textContent = data.DormantProductID || '-';
-        if ($('balance')) $('balance').textContent = data.Balance != null ? String(data.Balance) : '-';
-        if ($('lastCreditDate')) $('lastCreditDate').textContent = data.LastCreditDate || '-';
-        if ($('creditFixedAmount')) $('creditFixedAmount').textContent = data.CreditFixedAmount != null ? String(data.CreditFixedAmount) : '-';
-        if ($('lastDebitDate')) $('lastDebitDate').textContent = data.LastDebitDate || '-';
-        if ($('debitFixedAmount')) $('debitFixedAmount').textContent = data.DebitFixedAmount != null ? String(data.DebitFixedAmount) : '-';
+        state.currentReferenceId = parseInt(data.ReferenceID || data.ReferenceId || 0, 10) || 0;
+        state.currentUpdateCount = parseInt(data.UpdateCount || 0, 10) || 0;
     }
 
     function getFormData() {
@@ -164,34 +180,29 @@ window.ActivateDormantModule = (function () {
     }
 
     function setFieldsEditable(enabled) {
-        const fields = ['instructedBy', 'comments'];
-        fields.forEach(id => {
+        ['instructedBy', 'comments'].forEach(id => {
             const el = $(id);
             if (el) el.disabled = !enabled;
         });
     }
 
-    /**
-     * Update parent action panel button states based on current mode
-     */
     function updateButtonStates() {
         const isEditing = state.currentMode === 'EDIT';
         const hasData = !!state.currentData;
 
-        const btnView = document.getElementById('submoduleBtnView');
-        const btnEdit = document.getElementById('submoduleBtnEdit');
-        const btnSave = document.getElementById('submoduleBtnSave');
-        const btnCancel = document.getElementById('submoduleBtnCancel');
+        const btnView = $('submoduleBtnView');
+        const btnEdit = $('submoduleBtnEdit');
+        const btnSave = $('submoduleBtnSave');
+        const btnCancel = $('submoduleBtnCancel');
+        const btnActivate = $('submoduleBtnActivate');
 
         if (btnView) btnView.disabled = isEditing;
         if (btnEdit) btnEdit.disabled = isEditing || !hasData;
         if (btnSave) btnSave.disabled = !isEditing;
         if (btnCancel) btnCancel.disabled = !isEditing;
+        if (btnActivate) btnActivate.disabled = isEditing || !hasData;
     }
 
-    // =========================================================================
-    // Data Loading
-    // =========================================================================
     async function loadData() {
         const ctx = loadContext();
         if (!ctx.accountId || !ctx.branchId) return;
@@ -206,15 +217,12 @@ window.ActivateDormantModule = (function () {
 
             if (result && result.ResponseCode === '00') {
                 const details = result.Details || {};
-                // API returns Details.AccountDormantDetails for this endpoint
                 const dormantData = details.AccountDormantDetails || details.Details01?.[0] || null;
-
                 const isEmpty = !dormantData || (typeof dormantData === 'object' && Object.keys(dormantData).length === 0);
 
                 if (!isEmpty) {
                     populateForm(dormantData);
                     state.currentData = dormantData;
-                    state.currentUpdateCount = dormantData.UpdateCount || 0;
                     setFieldsEditable(false);
                     notify('Dormant account details loaded.', 'success');
                 } else {
@@ -238,9 +246,6 @@ window.ActivateDormantModule = (function () {
         }
     }
 
-    // =========================================================================
-    // Action Handlers (called by parent action panel)
-    // =========================================================================
     function navigate() {
         state.currentMode = 'VIEW';
         setFieldsEditable(false);
@@ -253,6 +258,7 @@ window.ActivateDormantModule = (function () {
             notify('Please view an account first', 'warning');
             return;
         }
+
         state.currentMode = 'EDIT';
         setFieldsEditable(true);
         updateButtonStates();
@@ -263,9 +269,7 @@ window.ActivateDormantModule = (function () {
         if (state.currentMode !== 'EDIT') return;
 
         const formData = getFormData();
-        const referenceId = parseInt(state.currentData?.ReferenceID || state.currentData?.ReferenceId || 0) || 0;
-
-        if (!formData.branchId || !formData.accountId || !referenceId) {
+        if (!formData.branchId || !formData.accountId || !state.currentReferenceId) {
             notify('OurBranchID, AccountID, and ReferenceID are required', 'warning');
             return;
         }
@@ -275,7 +279,7 @@ window.ActivateDormantModule = (function () {
             const result = await AppCore.invokeControllerAsync(API.SAVE, {
                 OurBranchID: formData.branchId,
                 AccountID: formData.accountId,
-                ReferenceID: referenceId,
+                ReferenceID: state.currentReferenceId,
                 InstructedBy: formData.instructedBy,
                 Comments: formData.comments,
                 OperatorID: state.operatorId,
@@ -286,8 +290,6 @@ window.ActivateDormantModule = (function () {
                 notify(result.ResponseMessage || 'Dormant account activation saved successfully', 'success');
                 state.currentMode = 'VIEW';
                 setFieldsEditable(false);
-
-                // Reload data
                 await loadData();
             } else {
                 notify(result?.ResponseMessage || 'Save failed', 'error');
@@ -297,6 +299,47 @@ window.ActivateDormantModule = (function () {
             notify('Failed to save dormant account activation', 'error');
         } finally {
             showLoading(false);
+            updateButtonStates();
+        }
+    }
+
+    async function activateAccount() {
+        if (!state.currentData || !state.currentReferenceId) {
+            notify('No dormant record loaded.', 'warning');
+            return;
+        }
+
+        showLoading(true);
+        try {
+            const formData = getFormData();
+            const result = await AppCore.invokeControllerAsync(API.SAVE, {
+                OurBranchID: formData.branchId,
+                AccountID: formData.accountId,
+                ReferenceID: state.currentReferenceId,
+                InstructedBy: formData.instructedBy,
+                Comments: formData.comments,
+                OperatorID: state.operatorId,
+                UpdateCount: state.currentUpdateCount,
+                Action: 'ACTIVATE',
+                IsDormant: false,
+                ActivatedBy: state.operatorId,
+                ActivatedDate: new Date().toISOString()
+            });
+
+            if (result && result.ResponseCode === '00') {
+                notify(result.ResponseMessage || 'Account activated successfully', 'success');
+                state.currentMode = 'VIEW';
+                setFieldsEditable(false);
+                await loadData();
+            } else {
+                notify(result?.ResponseMessage || 'Activation failed', 'error');
+            }
+        } catch (error) {
+            console.error('[ActivateDormant] Activation failed:', error);
+            notify('Failed to activate dormant account', 'error');
+        } finally {
+            showLoading(false);
+            updateButtonStates();
         }
     }
 
@@ -315,14 +358,12 @@ window.ActivateDormantModule = (function () {
         notify('Changes cancelled', 'info');
     }
 
-    // =========================================================================
-    // Public API
-    // =========================================================================
     return {
         init,
         navigate,
         confirmEdit,
         saveData,
+        activateAccount,
         confirmCancel
     };
 })();

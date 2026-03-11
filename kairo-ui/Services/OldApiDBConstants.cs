@@ -141,6 +141,12 @@ namespace kairo_ui.Services
         public const string GET_GLOAN_PEN_INT_WAIVE_OFF = "p_GetGLoanPenIntWaiveOff";
 
         // ═══════════════════════════════════════════════════════════════════
+        // LOANS - LOAN MAINTENANCE (Module 4300)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GETLOAN = "p_GetLoan";
+        public const string EDITLOAN = "p_EditLoans";
+
+        // ═══════════════════════════════════════════════════════════════════
         // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
         // ═══════════════════════════════════════════════════════════════════
         public const string GETLOANSANCTION = "p_GetWFLoanSanction";
