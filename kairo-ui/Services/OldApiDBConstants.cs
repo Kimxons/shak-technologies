@@ -69,6 +69,7 @@ namespace kairo_ui.Services
         public const string DELETE_STANDING_INSTRUCTION_TRANSFER = "p_DeleteStandingInstructionTransfer";
         public const string STOP_STANDING_INSTRUCTION_TRANSFER = "p_StopStandingInstructionTransfer";
         public const string GET_ACCOUNT_SIGNATORIES = "p_GetAccountSignatories";
+        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
 
         // ═══════════════════════════════════════════════════════════════════
         // CHANGE INSTALLMENT DATE (Module 5095)
@@ -214,6 +215,12 @@ namespace kairo_ui.Services
         public const string GET_GROUP_LOAN_INST_DATE_CHANGE = "p_GetGroupLoanInstDateChange";
         public const string GET_SP_CONDITION_CLASS_COMBO = "p_GetSpConditionCalssCombo"; // Note: Typo in DB
         public const string USER_RIGHTS = "p_UserRights";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
+        public const string EDIT_ACCOUNT_PRODUCT_NOTIFICATION = "p_EditAccountProductNotification";
 
         // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE VIEW SUBMODULES
