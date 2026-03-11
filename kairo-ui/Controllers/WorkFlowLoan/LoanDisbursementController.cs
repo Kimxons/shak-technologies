@@ -113,7 +113,7 @@ namespace kairo_ui.Controllers.WorkFlowLoan
                     request
                 );
 
-                if (result?.ResponseCode == "00" && IsOldApiSuccess(result))
+                if ((result?.ResponseCode == "00" && IsOldApiSuccess(result)) || HasDisbursementRows(result))
                 {
                     return Ok(new { success = true, data = result });
                 }
@@ -324,6 +324,17 @@ namespace kairo_ui.Controllers.WorkFlowLoan
             }
 
             return true;
+        }
+
+        private static bool HasDisbursementRows(ResponseDetail<object>? result)
+        {
+            var details = SerializeDetails(result?.Details);
+            if (details is not JsonElement detailsEl || detailsEl.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+
+            return detailsEl.GetArrayLength() > 0;
         }
 
         /// <summary>

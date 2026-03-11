@@ -37,6 +37,11 @@
         return data?.Details || data?.details || [];
     }
 
+    function getDetails01Array(response) {
+        const data = getResponseData(response);
+        return data?.Details01 || data?.details01 || [];
+    }
+
     /**
      * Initialize module
      */
@@ -267,8 +272,10 @@
 
             if (isSuccess(response)) {
                 const data = getDetailsArray(response)[0];
+                const detail01 = getDetails01Array(response)[0] || null;
                 if (data) {
-                    populateForm(data);
+                    console.log('[LoanDisbursement] Parsed payload rows:', { detail: data, detail01: detail01 });
+                    populateForm(data, detail01, branchId, accountId);
                     state.currentLoanData = data;
                     setMode('VIEW');
                     notify('Loan data loaded successfully', 'success');
@@ -291,14 +298,23 @@
     /**
      * Populate form with data
      */
-    function populateForm(data) {
+    function populateForm(data, detail01 = null, branchId = '', accountId = '') {
+        const disbursementAmount = parseFloat(detail01?.DisbursementAmount ?? data.DisbursementAmount ?? 0) || 0;
+        const deduction = parseFloat(detail01?.Deduction ?? data.Deduction ?? 0) || 0;
+        const exchangeRate = parseFloat(detail01?.MeanRate ?? data.ExchangeRate ?? 1) || 1;
+        const netDisbAmount = parseFloat(data.NetDisbAmount ?? (disbursementAmount - deduction)) || 0;
+        const localAmount = parseFloat(data.LocalAmount ?? (netDisbAmount * exchangeRate)) || 0;
+
         // Account Identification (already populated from search)
+        setFieldValue('clientId', data.ClientID);
+        setFieldValue('clientName', data.Name || data.ClientName);
+        setFieldValue('accountName', data.AccountName || data.Name);
         setFieldValue('loanSeries', data.LoanSeries);
         
         // Disbursement
-        setFieldValue('disbursementAmount', data.DisbursementAmount);
-        setFieldValue('deduction', data.Deduction);
-        setFieldValue('netDisbAmount', data.NetDisbAmount);
+        setFieldValue('disbursementAmount', disbursementAmount);
+        setFieldValue('deduction', deduction);
+        setFieldValue('netDisbAmount', netDisbAmount);
         setCheckboxValue('contractPrinted', data.IsContractPrinted);
         
         // Disbursement Details
@@ -312,8 +328,8 @@
         setFieldValue('chequeId', data.ChequeID);
         setFieldValue('referenceNo', data.ReferenceNo);
         setFieldValue('beneficiary', data.BeneficiaryName);
-        setFieldValue('exchangeRate', data.ExchangeRate);
-        setFieldValue('localAmount', data.LocalAmount);
+        setFieldValue('exchangeRate', exchangeRate);
+        setFieldValue('localAmount', localAmount);
         setFieldValue('forexGainLoss', data.ForexGainLoss);
         setFieldValue('narration', data.Narration);
         
@@ -323,14 +339,17 @@
         setFieldValue('productId', data.ProductID);
         setFieldValue('currencyId', data.CurrencyID);
         setFieldValue('loanAmount', data.LoanAmount);
-        setFieldValue('modeDisbursementType', data.DisbursementType);
-        setFieldValue('officerName', data.OfficerName);
+        setFieldValue('modeDisbursementType', data.DisbursementMode || data.DisbursementType);
+        setFieldValue('officerName', data.CreditOfficer || data.OfficerName);
         setFieldValue('loanType', data.LoanType);
         
         // Hidden fields for iframe context
-        setFieldValue('BranchID', data.OurBranchID);
-        setFieldValue('AccountID', data.AccountID);
+        setFieldValue('BranchID', data.OurBranchID || branchId);
+        setFieldValue('AccountID', data.AccountID || accountId);
         setFieldValue('LoanSeries', data.LoanSeries);
+
+        // Keep derived amounts consistent after mapping.
+        calculateLocalAmount();
     }
 
     /**
