@@ -6,81 +6,84 @@
     var reportTypeOptions = ViewData["ReportTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var productTypeOptions = ViewData["ProductTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
-    var showActionPanel = moduleId != "1000";
 }
 
-<div class="form-card" data-section="client-portfolio" data-cm-module="portfolio">
-    <div class="section-header" data-section-toggle>
-        <span class="section-header__title"><i class="bi bi-pie-chart"></i> Graphical Client Portfolio</span>
-        <button id="btn_toggleClientPortfolio" type="button" class="section-toggle-btn" aria-label="Toggle Portfolio" aria-expanded="true">
-            <i class="bi bi-chevron-up"></i>
-        </button>
-    </div>
-    <div class="section-content" data-section-content>
-        <!-- Hidden fields for page context -->
-        <input type="hidden" id="moduleIdPortfolio" value="@moduleId" />
+<div class="window de-window" data-ktb-window data-portfolio-host="standalone">
+    <div data-kairo-titlebar data-title="Client Portfolio" data-icon="bi-pie-chart"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
+            <div class="form-card" data-section="client-portfolio" data-cm-module="portfolio">
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-pie-chart"></i> Graphical Client Portfolio</span>
+                    <button id="btn_toggleClientPortfolio" type="button" class="section-toggle-btn" aria-label="Toggle Portfolio" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <!-- Hidden fields for page context -->
+                    <input type="hidden" id="moduleIdPortfolio" value="@moduleId" />
 
-        <h5 class="mb-4">Portfolio Filters</h5>
+                    <h5 class="mb-4">Portfolio Filters</h5>
 
-        <form id="frm_clientPortfolio" data-portfolio-form autocomplete="off" novalidate>
-            <div class="form-row four-col">
-                <div class="col">
-                    <label class="label-blue" for="ddl_portfolioReportType" id="lbl_portfolioReportType">Report Type <span class="text-danger">*</span></label>
-                    <select id="ddl_portfolioReportType" name="portfolioReportType" data-portfolio-field="PortfolioReportTypeID" class="bs-select" asp-items="@reportTypeOptions" required>
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <label for="ddl_productType" id="lbl_productType">Product Type</label>
-                    <select id="ddl_productType" name="productType" data-portfolio-field="ProductTypeID" class="bs-select" asp-items="@productTypeOptions">
-                        <option value="">Select...</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <label for="txt_fromDate" id="lbl_fromDate">From Date</label>
-                    <input type="date" id="txt_fromDate" name="fromDate" data-portfolio-field="FromDate" class="bs-input-text" />
-                </div>
-                <div class="col">
-                    <label for="txt_toDate" id="lbl_toDate">To Date</label>
-                    <input type="date" id="txt_toDate" name="toDate" data-portfolio-field="ToDate" class="bs-input-text" />
+                    <form id="frm_clientPortfolio" data-portfolio-form autocomplete="off" novalidate>
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="ddl_portfolioReportType" id="lbl_portfolioReportType">Report Type <span class="text-danger">*</span></label>
+                                <select id="ddl_portfolioReportType" name="portfolioReportType" data-portfolio-field="PortfolioReportTypeID" class="bs-select" asp-items="@reportTypeOptions" required>
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="ddl_productType" id="lbl_productType">Product Type</label>
+                                <select id="ddl_productType" name="productType" data-portfolio-field="ProductTypeID" class="bs-select" asp-items="@productTypeOptions">
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="txt_fromDate" id="lbl_fromDate">From Date</label>
+                                <input type="date" id="txt_fromDate" name="fromDate" data-portfolio-field="FromDate" class="bs-input-text" />
+                            </div>
+                            <div class="col">
+                                <label for="txt_toDate" id="lbl_toDate">To Date</label>
+                                <input type="date" id="txt_toDate" name="toDate" data-portfolio-field="ToDate" class="bs-input-text" />
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="d-flex justify-content-center gap-2 my-4">
+                        <button id="btn_viewPortfolio" type="button" class="btn btn-sm btn-primary" data-portfolio-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                        <button id="btn_clearPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear</button>
+                        <button id="btn_printPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="print"><i class="bi bi-printer me-1"></i>Print</button>
+                    </div>
+
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">PORTFOLIO ANALYSIS</span>
+                    </div>
+                    <div class="border rounded bg-white mb-4 p-3" style="min-height: 400px;">
+                        <div id="portfolioChartContainer" style="width: 100%; height: 400px;"></div>
+                    </div>
                 </div>
             </div>
-        </form>
+        </div>
+        <aside class="action-panel" aria-label="Client portfolio actions">
 
-        <!-- @if (!showActionPanel)
-         {
-                 <div class="d-flex justify-content-center gap-2 my-4">
-                     <button id="btn_viewPortfolio" type="button" class="btn btn-sm btn-primary" data-portfolio-action="view"><i class="bi bi-eye me-1"></i>View</button>
-                     <button id="btn_clearPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear</button>
-                     <button id="btn_printPortfolio" type="button" class="btn btn-sm btn-outline-secondary" data-portfolio-action="print"><i class="bi bi-printer me-1"></i>Print</button>
-                 </div>
-         }
-         -->
-        <div class="section-header py-1 mb-2 bg-light border">
-            <span class="small fw-bold px-2">PORTFOLIO ANALYSIS</span>
-        </div>
-        <div class="border rounded bg-white mb-4 p-3" style="min-height: 400px;">
-            <div id="portfolioChartContainer" style="width: 100%; height: 400px;"></div>
-        </div>
-    </div>
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+                <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+            </div>
+        </aside>
+
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 </div>
-
-@if (showActionPanel)
-{
-    <aside class="action-panel" aria-label="Client portfolio actions">
-        <div class="d-flex flex-column gap-2 mt-auto">
-            <button id="btn_viewPortfolio" type="button" class="btn-action btn-view" data-portfolio-action="view"><i class="bi bi-eye"></i><span>View</span></button>
-            <button id="btn_clearPortfolio" type="button" class="btn-action btn-cancel" data-portfolio-action="clear"><i class="bi bi-arrow-counterclockwise"></i><span>Clear</span></button>
-            <button id="btn_printPortfolio" type="button" class="btn-action" data-portfolio-action="print"><i class="bi bi-printer"></i><span>Print</span></button>
-        </div>
-    </aside>
-}
 
 <!-- Include Highcharts for charting -->
 <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
 <script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
 <script type="text/javascript" src="https://code.highcharts.com/modules/export-data.js"></script>
 
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
 <script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-portfolio.js" asp-append-version="true"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

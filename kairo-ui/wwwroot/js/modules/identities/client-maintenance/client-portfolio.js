@@ -1,15 +1,178 @@
 const CM_PORTFOLIO_BASE = 'Identities/ClientMaintenance/Portfolio';
 
+function getPortfolioAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getPortfolioClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getPortfolioSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getPortfolioParentContext() {
+    const maintenanceCore = getPortfolioClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getPortfolioSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toPortfolioString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function resolvePortfolioContext(requestData, fallbackModuleId) {
+    const parentContext = getPortfolioParentContext() || {};
+    const maintenanceCore = getPortfolioClientMaintenanceCore();
+
+    const moduleId = toPortfolioString(
+        requestData?.ModuleID ??
+        fallbackModuleId ??
+        maintenanceCore?.moduleId ??
+        parentContext.moduleId
+    );
+
+    const clientId = toPortfolioString(
+        requestData?.ClientID ??
+        maintenanceCore?.getClientId?.() ??
+        maintenanceCore?.clientId ??
+        parentContext.clientId
+    );
+
+    const requestId = toPortfolioString(
+        requestData?.RequestID ??
+        maintenanceCore?.getRequestId?.() ??
+        maintenanceCore?.requestId ??
+        parentContext.requestId
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId
+    };
+}
+
 function invokeClientMaintenancePortfolio(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_PORTFOLIO_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getPortfolioClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_PORTFOLIO_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getPortfolioAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_PORTFOLIO_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Portfolio controller invocation is not available.'));
 }
 
 window.ClientMaintenancePortfolioService = {
     get: (requestData) => invokeClientMaintenancePortfolio('get', requestData)
 };
 
-window.initClientMaintenancePortfolio = function (moduleRoot, moduleId) {
+function closePortfolioView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientPortfolio' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientPortfolio' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientPortfolio' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientPortfolio' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    }
+}
+
+function bindPortfolioActionPanel(moduleRoot) {
     if (!moduleRoot) return;
+
+    const actionScope =
+        moduleRoot.closest('.window') ||
+        moduleRoot.closest('[data-cm-layout="client-portfolio"]') ||
+        moduleRoot.parentElement ||
+        moduleRoot;
+
+    if (!actionScope || actionScope.dataset.cmPortfolioActionDelegated === 'true') return;
+    actionScope.dataset.cmPortfolioActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof moduleRoot._cmRefreshData === 'function') {
+            await moduleRoot._cmRefreshData();
+        }
+    };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closePortfolioView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closePortfolioView();
+    });
+}
+
+window.initClientMaintenancePortfolio = function (moduleRoot, moduleId) {
+    if (!moduleRoot || moduleRoot.dataset.cmPortfolioInitialized === 'true') return;
+    moduleRoot.dataset.cmPortfolioInitialized = 'true';
 
     const state = {
         portfolioData: null,
@@ -158,19 +321,20 @@ window.initClientMaintenancePortfolio = function (moduleRoot, moduleId) {
         return [];
     };
 
-    const handleView = async () => {
+    const handleView = async (requestData = {}) => {
         const formData = getFormData();
         if (!validateForm(formData)) return;
 
-        const clientId = window.ClientMaintenanceCore?.getClientId?.();
-        if (!clientId) {
-            window.ToastManager?.showError('Client ID is required');
+        const context = resolvePortfolioContext(requestData, moduleId);
+        if (!context.ClientID && !context.RequestID) {
+            window.ToastManager?.showError('Client or request context is required');
             return;
         }
 
         const payload = {
-            ClientID: clientId,
-            ModuleID: moduleId,
+            ModuleID: context.ModuleID,
+            ClientID: context.ClientID,
+            RequestID: context.RequestID,
             PortfolioReportTypeID: formData.portfolioReportType,
             ProductTypeID: formData.productType || null,
             FromDate: formData.fromDate || null,
@@ -208,15 +372,51 @@ window.initClientMaintenancePortfolio = function (moduleRoot, moduleId) {
     };
 
     const refreshData = async (requestData = {}) => {
-        // Auto-load portfolio if client ID is available
-        const clientId = window.ClientMaintenanceCore?.getClientId?.() || requestData?.ClientID;
-        if (clientId) {
-            // Set default report type if available
-            const reportTypeDropdown = form?.querySelector('#ddl_portfolioReportType');
-            if (reportTypeDropdown && reportTypeDropdown.options.length > 1) {
-                reportTypeDropdown.selectedIndex = 1; // Select first non-empty option
+        const context = resolvePortfolioContext(requestData, moduleId);
+        if (!context.ClientID && !context.RequestID) {
+            clearChart();
+            return;
+        }
+
+        const reportTypeDropdown = form?.querySelector('#ddl_portfolioReportType');
+        if (reportTypeDropdown && !reportTypeDropdown.value) {
+            const firstValidOption = Array.from(reportTypeDropdown.options || []).find((option) => {
+                return Boolean(String(option?.value || '').trim());
+            });
+
+            if (firstValidOption) {
+                reportTypeDropdown.value = firstValidOption.value;
             }
         }
+
+        if (!reportTypeDropdown?.value) {
+            clearChart();
+            return;
+        }
+
+        await handleView(context);
+    };
+
+    const bindStandaloneBootstrap = () => {
+        if (moduleRoot.dataset.cmPortfolioParentContextBound === 'true') {
+            return;
+        }
+
+        moduleRoot.dataset.cmPortfolioParentContextBound = 'true';
+        window.addEventListener('message', (event) => {
+            const data = event?.data;
+            if (!data || typeof data !== 'object') return;
+            if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+            const parentData = data.data || {};
+            if (typeof moduleRoot._cmLoadData === 'function') {
+                void moduleRoot._cmLoadData({
+                    ModuleID: parentData.moduleId,
+                    ClientID: parentData.clientId,
+                    RequestID: parentData.requestId
+                });
+            }
+        });
     };
 
     // Event delegation for action buttons
@@ -227,7 +427,7 @@ window.initClientMaintenancePortfolio = function (moduleRoot, moduleId) {
 
             switch (action) {
                 case 'view':
-                    handleView();
+                    handleView({});
                     break;
                 case 'clear':
                     handleClear();
@@ -241,8 +441,25 @@ window.initClientMaintenancePortfolio = function (moduleRoot, moduleId) {
 
     // Register load function for external calls
     moduleRoot._cmLoadData = (requestData) => refreshData(requestData);
+    moduleRoot._cmRefreshData = (requestData) => refreshData(requestData);
 
     // Initial state
     clearChart();
+    bindPortfolioActionPanel(moduleRoot);
+    bindStandaloneBootstrap();
     refreshData({});
 };
+
+function autoInitializeStandalonePortfolioView() {
+    const moduleRoot = document.querySelector('[data-section="client-portfolio"]');
+    if (!moduleRoot || typeof window.initClientMaintenancePortfolio !== 'function') return;
+
+    const moduleId = document.getElementById('moduleIdPortfolio')?.value || '';
+    window.initClientMaintenancePortfolio(moduleRoot, moduleId);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandalonePortfolioView);
+} else {
+    autoInitializeStandalonePortfolioView();
+}

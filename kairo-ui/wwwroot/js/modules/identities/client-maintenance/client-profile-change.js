@@ -1,7 +1,94 @@
 const CM_PROFILE_CHANGE_BASE = 'Identities/ClientMaintenance/ProfileChange';
 
+function getProfileChangeAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getProfileChangeClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getProfileChangeSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getProfileChangeParentContext() {
+    const maintenanceCore = getProfileChangeClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getProfileChangeSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toProfileChangeString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function resolveProfileChangeContext(requestData, fallbackModuleId) {
+    const parentContext = getProfileChangeParentContext() || {};
+    const maintenanceCore = getProfileChangeClientMaintenanceCore();
+
+    const moduleId = toProfileChangeString(
+        requestData?.ModuleID ??
+        fallbackModuleId ??
+        maintenanceCore?.moduleId ??
+        parentContext.moduleId
+    );
+
+    const clientId = toProfileChangeString(
+        requestData?.ClientID ??
+        maintenanceCore?.getClientId?.() ??
+        maintenanceCore?.clientId ??
+        parentContext.clientId
+    );
+
+    const requestId = toProfileChangeString(
+        requestData?.RequestID ??
+        maintenanceCore?.getRequestId?.() ??
+        maintenanceCore?.requestId ??
+        parentContext.requestId
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId
+    };
+}
+
 function invokeClientMaintenanceProfileChange(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_PROFILE_CHANGE_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getProfileChangeClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_PROFILE_CHANGE_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getProfileChangeAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_PROFILE_CHANGE_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Profile change controller invocation is not available.'));
 }
 
 window.ClientMaintenanceProfileChangeService = {
@@ -9,8 +96,84 @@ window.ClientMaintenanceProfileChangeService = {
     create: (requestData) => invokeClientMaintenanceProfileChange('create', requestData)
 };
 
-window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
+function closeProfileChangeView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientProfileChange' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientProfileChange' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientProfileChange' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientProfileChange' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    }
+}
+
+function bindProfileChangeActionPanel(moduleRoot) {
     if (!moduleRoot) return;
+
+    const actionScope =
+        moduleRoot.closest('.window') ||
+        moduleRoot.closest('[data-cm-layout="client-profile-change"]') ||
+        moduleRoot.parentElement ||
+        moduleRoot;
+
+    if (!actionScope || actionScope.dataset.cmProfileChangeActionDelegated === 'true') return;
+    actionScope.dataset.cmProfileChangeActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof moduleRoot._cmRefreshData === 'function') {
+            await moduleRoot._cmRefreshData();
+        }
+    };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closeProfileChangeView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closeProfileChangeView();
+    });
+}
+
+window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
+    if (!moduleRoot || moduleRoot.dataset.cmProfileChangeInitialized === 'true') return;
+    moduleRoot.dataset.cmProfileChangeInitialized = 'true';
 
     const state = {
         profileData: null,
@@ -89,7 +252,7 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
     const setFormState = (mode) => {
         state.mode = mode;
         const isView = mode === 'view';
-        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
+        const allowEdit = Boolean(getProfileChangeClientMaintenanceCore()?.isEditMode);
 
         // Form fields (except readonly fields and clientName which is always readonly)
         const fields = form?.querySelectorAll('input:not([type="hidden"]):not([readonly]), select, textarea');
@@ -127,16 +290,16 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     const refreshData = async (requestData = {}) => {
         try {
-            const clientId = window.ClientMaintenanceCore?.getClientId?.() || requestData?.ClientID;
-            if (!clientId) {
-                console.warn('No ClientID available for profile change');
+            const context = resolveProfileChangeContext(requestData, moduleId);
+            if (!context.ClientID && !context.RequestID) {
+                console.warn('No ClientID/RequestID available for profile change');
                 return;
             }
 
             const payload = {
-                ClientID: clientId,
-                ModuleID: moduleId,
-                ...requestData
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID
             };
 
             const result = await window.ClientMaintenanceProfileChangeService.get(payload);
@@ -166,15 +329,16 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
         const formData = getFormData();
         if (!validateForm(formData)) return;
 
-        const clientId = window.ClientMaintenanceCore?.getClientId?.();
-        if (!clientId) {
-            window.ToastManager?.showError('Client ID is required');
+        const context = resolveProfileChangeContext({}, moduleId);
+        if (!context.ClientID && !context.RequestID) {
+            window.ToastManager?.showError('Client or request context is required');
             return;
         }
 
         const payload = {
-            ClientID: clientId,
-            ModuleID: moduleId,
+            ModuleID: context.ModuleID,
+            ClientID: context.ClientID,
+            RequestID: context.RequestID,
             ProfileChangeID: formData.profileChangeId || null,
             TitleID: formData.titleId,
             FirstName: formData.firstName,
@@ -320,6 +484,28 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
         ageAsOnInput.addEventListener('change', calculateAge);
     }
 
+    const bindStandaloneBootstrap = () => {
+        if (moduleRoot.dataset.cmProfileChangeParentContextBound === 'true') {
+            return;
+        }
+
+        moduleRoot.dataset.cmProfileChangeParentContextBound = 'true';
+        window.addEventListener('message', (event) => {
+            const data = event?.data;
+            if (!data || typeof data !== 'object') return;
+            if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+            const parentData = data.data || {};
+            if (typeof moduleRoot._cmLoadData === 'function') {
+                void moduleRoot._cmLoadData({
+                    ModuleID: parentData.moduleId,
+                    ClientID: parentData.clientId,
+                    RequestID: parentData.requestId
+                });
+            }
+        });
+    };
+
     // Event delegation for action buttons
     moduleRoot.addEventListener('click', (e) => {
         const actionBtn = e.target.closest('[data-profilechange-action]');
@@ -342,9 +528,12 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     // Register load function for external calls
     moduleRoot._cmLoadData = (requestData) => refreshData(requestData);
+    moduleRoot._cmRefreshData = (requestData) => refreshData(requestData);
 
     // Initial state
+    bindProfileChangeActionPanel(moduleRoot);
     setFormState('view');
+    bindStandaloneBootstrap();
     refreshData({});
 };
 
@@ -356,4 +545,18 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+function autoInitializeStandaloneProfileChangeView() {
+    const moduleRoot = document.querySelector('[data-section="client-profile-change"]');
+    if (!moduleRoot || typeof window.initClientMaintenanceProfileChange !== 'function') return;
+
+    const moduleId = document.getElementById('moduleIdProfileChange')?.value || '';
+    window.initClientMaintenanceProfileChange(moduleRoot, moduleId);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandaloneProfileChangeView);
+} else {
+    autoInitializeStandaloneProfileChangeView();
 }

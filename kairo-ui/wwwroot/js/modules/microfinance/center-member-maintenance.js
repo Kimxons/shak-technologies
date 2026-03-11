@@ -529,23 +529,56 @@
     currentFormState = mode;
     stopJoinOnGuard();
 
-    if (mode === 'edit') {
+    if (mode === 'view') {
+      // After loading data — all detail fields disabled, edit/delete available
       setDisabled(document.querySelector('[data-cmm-action="view"]'), true);
       setDisabled(document.querySelector('[data-cmm-action="add"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="edit"]'), false);
+      setDisabled(document.querySelector('[data-cmm-action="delete"]'), false);
+      setDisabled(document.querySelector('[data-cmm-action="save"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
+
       setDisabled(clientIdInput, true);
       setDisabled(referenceNoInput, true);
       setDisabled(seriesInput, true);
+      disableLookupButton('client');
+      setDisabled(centerIdInput, true);
+      disableLookupButton('center');
+      setDisabled(groupIdInput, true);
+      disableLookupButton('group');
+      setDisabled(joinOnInput, true);
+      setDisabled(maxGroupLoansInput, true);
+      setDisabled(maxGroupLoanLimitInput, true);
+      setDisabled(maxOtherLoansInput, true);
+      setDisabled(maxOtherLoanLimitInput, true);
+      setDisabled(centerLeaderInput, true);
+    } else if (mode === 'edit') {
+      // Edit mode — detail fields enabled for editing
+      setDisabled(document.querySelector('[data-cmm-action="view"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="add"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="edit"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="delete"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="save"]'), false);
+      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
+
+      setDisabled(clientIdInput, true);
+      setDisabled(referenceNoInput, true);
+      setDisabled(seriesInput, true);
+      disableLookupButton('client');
+      setDisabled(centerIdInput, true);
+      disableLookupButton('center');
+      setDisabled(groupIdInput, true);
+      disableLookupButton('group');
+
       setDisabled(joinOnInput, false);
       forceEnableJoinOn();
       requestAnimationFrame(forceEnableJoinOn);
       setTimeout(forceEnableJoinOn, 0);
       startJoinOnGuard();
-      disableLookupButton('client');
-
-      setDisabled(document.querySelector('[data-cmm-action="edit"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="delete"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="save"]'), true);
+      setDisabled(maxGroupLoansInput, false);
+      setDisabled(maxGroupLoanLimitInput, false);
+      setDisabled(maxOtherLoansInput, false);
+      setDisabled(maxOtherLoanLimitInput, false);
     } else if (mode === 'add') {
       clearMemberDetails();
 
@@ -569,6 +602,10 @@
       requestAnimationFrame(forceEnableJoinOn);
       setTimeout(forceEnableJoinOn, 0);
       startJoinOnGuard();
+      setDisabled(maxGroupLoansInput, false);
+      setDisabled(maxGroupLoanLimitInput, false);
+      setDisabled(maxOtherLoansInput, false);
+      setDisabled(maxOtherLoanLimitInput, false);
     } else {
       // browse
       setDisabled(document.querySelector('[data-cmm-action="view"]'), false);
@@ -588,6 +625,10 @@
       setDisabled(groupIdInput, true);
       disableLookupButton('group');
       setDisabled(joinOnInput, true);
+      setDisabled(maxGroupLoansInput, true);
+      setDisabled(maxGroupLoanLimitInput, true);
+      setDisabled(maxOtherLoansInput, true);
+      setDisabled(maxOtherLoanLimitInput, true);
     }
   }
 
@@ -768,7 +809,7 @@
       bindMemberDetails(first);
       currentUpdateCount = first.UpdateCount || 0;
       setDisabled(viewBtn, true);
-      setFormState('edit');
+      setFormState('view');
 
       var previousBtn = document.querySelector('[data-cmm-nav="previous"]');
       var nextBtn = document.querySelector('[data-cmm-nav="next"]');
@@ -935,33 +976,9 @@
 
     document.querySelector('[data-cmm-action="edit"]')?.addEventListener('click', function (e) {
       e.preventDefault();
-
-      setDisabled(document.querySelector('[data-cmm-action="view"]'), true);
-      setDisabled(document.querySelector('[data-cmm-action="add"]'), true);
-      setDisabled(document.querySelector('[data-cmm-action="edit"]'), true);
-      setDisabled(document.querySelector('[data-cmm-action="delete"]'), true);
-
-      setDisabled(clientIdInput, true);
-      disableLookupButton('client');
-      setDisabled(centerIdInput, true);
-      disableLookupButton('center');
-      setDisabled(groupIdInput, true);
-      disableLookupButton('group');
-
-      setDisabled(joinOnInput, false);
-      forceEnableJoinOn();
-      requestAnimationFrame(forceEnableJoinOn);
-      setTimeout(forceEnableJoinOn, 0);
-      startJoinOnGuard();
-
-      setDisabled(maxGroupLoansInput, true);
-      setDisabled(maxGroupLoanLimitInput, true);
-      setDisabled(maxOtherLoansInput, true);
-      setDisabled(maxOtherLoanLimitInput, true);
-      setDisabled(centerLeaderInput, true);
+      setFormState('edit');
 
       setDisabled(document.querySelector('[data-cmm-action="save"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
 
       joinOnInput?.focus();
     });
@@ -1212,7 +1229,7 @@
   }
 
   function loadSubmoduleView(submoduleName) {
-    if (currentFormState !== 'edit') {
+    if (currentFormState !== 'view' && currentFormState !== 'edit') {
       showToast('Please load a record in View Mode before accessing this module.', 'warning');
       return;
     }

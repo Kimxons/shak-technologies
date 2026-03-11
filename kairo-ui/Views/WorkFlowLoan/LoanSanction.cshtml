@@ -1,0 +1,404 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Loan Sanction";
+    Layout = "_ApplicationLayout";
+
+    var modeOfDisbursementOptions = ViewData["ModeOfDisbursementOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var templateScheduleOptions = ViewData["TemplateScheduleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var interestRateTypeOptions = ViewData["InterestRateTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+@section Styles {
+<style>
+    .form-content {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .child-inline {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: none;
+    }
+
+    .child-inline.active {
+        display: block;
+    }
+
+    .child-iframe-inline {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        background: transparent;
+    }
+</style>
+}
+
+<form id="loanSanctionForm" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="am-message-panel" id="amMessagePanel">
+    <i class="bi bi-info-circle"></i>
+    <span id="messagePanelText"></span>
+    <button type="button" class="am-message-panel__close" onclick="this.parentElement.classList.remove('show')" aria-label="Close">
+        <i class="bi bi-x"></i>
+    </button>
+</div>
+
+<div id="pageLoadingOverlay" class="page-loading-overlay">
+    <div class="page-loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div id="pageLoadingText" class="page-loading-text">Loading...</div>
+    </div>
+</div>
+
+<div class="window" data-loan-sanction data-module-id="@ViewData["ModuleId"]">
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar collapsed" id="main-sidebar">
+            <!-- SECTIONS Header -->
+            <div class="sidebar-header">
+                <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i><span>SECTIONS</span></span>
+                <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="false">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="sidebar-search">
+                <input type="text" class="sidebar-search__input" id="sectionSearch" placeholder="Search sections..." aria-label="Search sections">
+                <i class="bi bi-search sidebar-search__icon"></i>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="sidebar-content">
+                <!-- Data Entry Navigation (2 submodules) -->
+                <div class="nav-section nav-section--card expanded" data-nav-section data-section-name="Data Entry">
+                    <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+                        <div class="nav-header__content">
+                            <i class="bi bi-layers nav-header__icon"></i>
+                            <span class="nav-label nav-label--card">Data Entry</span>
+                        </div>
+                        <div class="nav-header__badge">
+                            <span class="nav-badge">2</span>
+                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="nav-dataentry">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="nav-items nav-items--card is-visible" id="nav-dataentry">
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="disbursement-schedule" data-tooltip="Disbursement Schedule">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-calendar3 sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Disbursement Schedule</div>
+                                    <div class="sidebar-item__description">Manage disbursement schedule</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="repayment-accounts" data-tooltip="Repayment Accounts">
+                            <div class="sidebar-item__content">
+                                <i class="bi bi-bank sidebar-item__icon"></i>
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">Repayment Accounts</div>
+                                    <div class="sidebar-item__description">Manage repayment accounts</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- End sidebar-content -->
+        </div>
+
+        <!-- Form Content -->
+        <div class="form-content">
+            <!-- Inline Child Form (visible for submodules) -->
+            <div class="child-inline" data-child-inline>
+                <iframe class="child-iframe-inline" data-child-iframe title="Data Entry Submodule"></iframe>
+            </div>
+            
+            <div class="form-card" data-main-form>
+                <form id="frm_ls" autocomplete="off" novalidate>
+                    <input type="hidden" id="moduleId_ls" value="@ViewData["ModuleId"]" />
+                    <input type="hidden" id="entityId_ls" value="@ViewData["EntityId"]" />
+                    <input type="hidden" id="requestId_ls" value="@ViewData["RequestId"]" />
+                    <input type="hidden" id="sessionBranchCode_ls" value="@ViewData["BranchCode"]" />
+                    <input type="hidden" id="sessionBranchName_ls" value="@ViewData["BranchName"]" />
+                    <input type="hidden" id="sessionOperatorId_ls" value="@ViewData["OperatorId"]" />
+
+                    <!-- Application Search Section -->
+                    <div class="form-section" data-section="application-search">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-search"></i> Application Search</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Application Search" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue" for="branchId">Branch ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="branchId" class="kairo-control__id" aria-label="Branch ID" />
+                                        <input type="text" id="branchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly data-always-readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Branch" aria-label="Search Branch">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="workflowTypeId">WorkFlow Type ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="workflowTypeId" class="kairo-control__id" aria-label="Workflow Type ID" />
+                                        <input type="text" id="workflowTypeName" class="kairo-control__name" aria-label="Workflow Type Name" placeholder="Workflow Type" readonly data-always-readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="WorkflowType" aria-label="Search Workflow Type">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="applicationId">Application ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="applicationId" class="kairo-control__id" aria-label="Application ID" />
+                                        <input type="text" id="applicationName" class="kairo-control__name" aria-label="Application Name" placeholder="Application Name" readonly data-always-readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Application" aria-label="Search Application">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="applicationDate">Application Date</label>
+                                    <input type="date" id="applicationDate" class="bs-input-text" aria-label="Application Date" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sanction Details Section -->
+                    <div class="form-section" data-section="sanction-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-file-earmark-check"></i> Sanction Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Sanction Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue" for="approvedAmount">Approved Amount</label>
+                                    <input type="text" id="approvedAmount" class="bs-input-text" data-format="money" aria-label="Approved Amount" placeholder="0.00" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="modeOfDisbursement">Mode Of Disbursement</label>
+                                    <select id="modeOfDisbursement" class="bs-select" asp-items="@(modeOfDisbursementOptions.Skip(1))" aria-label="Mode Of Disbursement">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="noOfDisbursements">No. Of Disbursements</label>
+                                    <input type="number" id="noOfDisbursements" class="bs-input-text" aria-label="No. Of Disbursements" placeholder="0" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="firstDisbursementDate">First Disbursement Date</label>
+                                    <input type="date" id="firstDisbursementDate" class="bs-input-text" aria-label="First Disbursement Date" />
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue" for="collectInterestDuringGrace">Collect Interest During Grace Period</label>
+                                    <input type="checkbox" id="collectInterestDuringGrace" class="form-check-input" aria-label="Collect Interest During Grace Period" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="repaymentTerm">Repayment Term</label>
+                                    <input type="text" id="repaymentTerm" class="bs-input-text" aria-label="Repayment Term" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="gracePeriod">Grace Period</label>
+                                    <input type="number" id="gracePeriod" class="bs-input-text" aria-label="Grace Period" placeholder="0" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="installmentStartDate">Installment Start Date</label>
+                                    <input type="date" id="installmentStartDate" class="bs-input-text" aria-label="Installment Start Date" />
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue" for="templateSchedule">Template Schedule</label>
+                                    <select id="templateSchedule" class="bs-select" asp-items="@(templateScheduleOptions.Skip(1))" aria-label="Template Schedule">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="markingRate">Marking Rate</label>
+                                    <input type="text" id="markingRate" class="bs-input-text" data-format="money" aria-label="Marking Rate" placeholder="0.00" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="interestRateType">Interest Rate Type</label>
+                                    <input type="text" id="interestRateType" class="bs-input-text" aria-label="Interest Rate Type" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="interestRate">Interest Rate</label>
+                                    <input type="text" id="interestRate" class="bs-input-text" data-format="money" aria-label="Interest Rate" placeholder="0.00" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="label-blue" for="baseRate">Base Rate</label>
+                                    <input type="text" id="baseRate" class="bs-input-text" data-format="money" aria-label="Base Rate" placeholder="0.00" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="mainRepaymentAccountId">Main Repayment Account</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="mainRepaymentAccountId" class="kairo-control__id" aria-label="Account ID" />
+                                        <input type="text" id="mainRepaymentAccountName" class="kairo-control__name" aria-label="Account Name" placeholder="Account Name" readonly data-always-readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="RepaymentAccount" aria-label="Search Account">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="approvedBy">Approved By</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="approvedBy" class="kairo-control__id" aria-label="Officer ID" />
+                                        <input type="text" id="approvedByName" class="kairo-control__name" aria-label="Officer Name" placeholder="Approver Name" readonly data-always-readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Officer" aria-label="Search Approver">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="approvedDate">Approved Date</label>
+                                    <input type="date" id="approvedDate" class="bs-input-text" aria-label="Approved Date" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Application Details Section -->
+                    <div class="form-section" data-section="application-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-file-earmark-text"></i> Application Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Application Details" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content style="display:none;">
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="audit-item">Client ID</label>
+                                    <input type="text" id="clientId" class="bs-input-text" aria-label="Client ID" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Client Name</label>
+                                    <input type="text" id="clientName" class="bs-input-text" aria-label="Client Name" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">City</label>
+                                    <input type="text" id="city" class="bs-input-text" aria-label="City" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Phone</label>
+                                    <input type="text" id="phone" class="bs-input-text" aria-label="Phone" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="audit-item">Mailing Address</label>
+                                    <input type="text" id="mailingAddress" class="bs-input-text" aria-label="Mailing Address" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Loan Series</label>
+                                    <input type="text" id="loanSeries" class="bs-input-text" aria-label="Loan Series" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Loan Type</label>
+                                    <input type="text" id="loanType" class="bs-input-text" aria-label="Loan Type" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Product ID</label>
+                                    <input type="text" id="productId" class="bs-input-text" aria-label="Product ID" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="audit-item">Currency ID</label>
+                                    <input type="text" id="currencyId" class="bs-input-text" aria-label="Currency ID" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Sanction Amount</label>
+                                    <input type="text" id="sanctionAmount" class="bs-input-text" data-format="money" aria-label="Sanction Amount" placeholder="0.00" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Applied Amount</label>
+                                    <input type="text" id="appliedAmount" class="bs-input-text" data-format="money" aria-label="Applied Amount" placeholder="0.00" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Term</label>
+                                    <input type="text" id="term" class="bs-input-text" aria-label="Term" readonly data-always-readonly />
+                                </div>
+                            </div>
+                            <div class="form-row four-col">
+                                <div class="col">
+                                    <label class="audit-item">Interest Rate</label>
+                                    <input type="text" id="interestRateDetails" class="bs-input-text" data-format="money" aria-label="Interest Rate" placeholder="0.00" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Installment Amount</label>
+                                    <input type="text" id="installmentAmount" class="bs-input-text" data-format="money" aria-label="Installment Amount" placeholder="0.00" readonly data-always-readonly />
+                                </div>
+                                <div class="col">
+                                    <label class="audit-item">Application Status</label>
+                                    <input type="text" id="applicationStatus" class="bs-input-text" aria-label="Application Status" readonly data-always-readonly />
+                                </div>
+                                <div class="col"></div>
+                            </div>
+
+                            <!-- Hidden fields for API data storage -->
+                            <input type="hidden" id="accountId" />
+                            <input type="hidden" id="customerID" />
+                            <input type="hidden" id="loanAmount" />
+                            <input type="hidden" id="effectiveRate" />
+                            <input type="hidden" id="monthlyInstallment" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="action-panel" aria-label="Form actions">
+            <div class="nav-group">
+                <span>Actions</span>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn-action btn-view" id="viewBtn">
+                    <i class="bi bi-eye-fill"></i>
+                    <span>View</span>
+                </button>
+                <button type="button" class="btn-action" id="deviateBtn" disabled>
+                    <i class="bi bi-shuffle"></i>
+                    <span>Deviate</span>
+                </button>
+                <button type="button" class="btn-action btn-save" id="sanctionBtn" disabled>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Sanction</span>
+                </button>
+
+                <hr class="action-divider" />
+
+                <button type="button" class="btn-action btn-cancel" id="cancelBtn" disabled>
+                    <i class="bi bi-x-lg"></i>
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/modules/workflowloan/loan-sanction.js" asp-append-version="true"></script>
+}

@@ -21,6 +21,10 @@ namespace kairo_ui.Services
         public const string ADD_THEME = BASESYSTEMCORE + "/add-theme";
         public const string GET_EFFECTIVETHEME = BASESYSTEMCORE + "/effective-theme";
 
+        // SYSTEM BRANCH STATUS ENDPOINTS:
+        private const string BASESYSTEMBRANCHSTATUS = "api/v1/SystemBranchStatus";
+        public const string GET_SYSTEM_BRANCH_STATUS = BASESYSTEMBRANCHSTATUS + "/GetSystemBranchStatus";
+
         public const string GET_DASHBOARDMETRICS = "api/v1/dashboard/metrics";
 
         // IMAGE RECOGNITION ENDPOINTS:

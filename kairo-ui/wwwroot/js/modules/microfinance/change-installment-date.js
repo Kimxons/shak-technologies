@@ -572,12 +572,27 @@
             const result = await invokeChangeInstDateController('generate-installments', requestData);
 
             const root = result?.data ?? result;
-            const data = root?.Details || root?.Details01 || root?.details || [];
+
+            // Check for API error status
+            const status = String(root?.Status ?? '').trim();
+            if (status && status !== '0' && status !== '200') {
+                const message = String(root?.Message ?? '').trim();
+                showError(message || `Request failed (Status ${status})`);
+                setSaveButtonState(false);
+                return;
+            }
+
+            const data = root?.Details01;
             installmentsData = Array.isArray(data) ? data : [];
 
             renderInstallmentsTable(installmentsData);
             setSaveButtonState(installmentsData.length > 0);
-            showSuccess(`Generated ${installmentsData.length} installment(s)`);
+
+            if (installmentsData.length > 0) {
+                showSuccess(`Generated ${installmentsData.length} installment(s)`);
+            } else {
+                showWarning('No installments generated');
+            }
         } catch (error) {
             console.error('[ChangeInstallmentDate] Error generating installments:', error);
             showError('Error generating installments');

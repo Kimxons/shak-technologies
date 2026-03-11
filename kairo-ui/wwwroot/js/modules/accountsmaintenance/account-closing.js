@@ -40,7 +40,13 @@ window.AccountClosingModule = (function () {
     const el = (id) => document.getElementById(id);
     const val = (id) => el(id)?.value?.trim() || '';
     const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
-    const setTxt = (id, v) => { const e = el(id); if (e) e.textContent = (v == null) ? '-' : v; };
+    const setTxt = (id, v) => {
+        const e = el(id);
+        if (!e) return;
+        const nextValue = (v == null || v === '') ? '-' : v;
+        if ('value' in e) e.value = nextValue;
+        else e.textContent = nextValue;
+    };
 
     function showMsg(msg, type) {
         const t = window.showSystemToast || window.parent?.showSystemToast;

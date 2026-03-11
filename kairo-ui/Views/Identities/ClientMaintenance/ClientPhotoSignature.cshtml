@@ -1,0 +1,136 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Client Photo & Signature";
+    Layout = "_ApplicationLayout";
+    var imageTypeOptions = ViewData["ImageTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
+}
+
+<div class="window de-window" data-ktb-window data-photosignature-host="standalone">
+    <div data-kairo-titlebar data-title="Client Photo &amp; Signature" data-icon="bi-image"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
+            <div class="form-card" data-section="client-photo-signature" data-cm-tab="photo-signature">
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-image"></i>Photo &amp; Signature</span>
+                    <button id="btn_toggleClientPhotoSignature" type="button" class="section-toggle-btn" aria-label="Toggle Photo and Signature" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <form id="frm_clientPhotoSignature" data-photo-signature-form autocomplete="off" novalidate>
+                        <input type="hidden" id="moduleIdPhotoSignature" value="@moduleId" />
+
+                        <h5 class="mb-3">Photo &amp; Signature Management</h5>
+
+                        <div class="form-row four-col mb-3">
+                            <div class="col col-span-2">
+                                <label class="label-blue" for="imageType" id="lbl_photoType">Image Type</label>
+                                <select id="imageType" name="photoType" data-photo-field="ImageTypeID" class="bs-select" asp-items="@(imageTypeOptions.Skip(1))">
+                                    <option value="">Select Type...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap mb-4">
+                            <button id="btn_browsePhotoSignature" type="button" class="btn btn-outline-primary" data-photo-action="file"><i class="bi bi-folder2-open me-1"></i>Browse File...</button>
+                            <button id="btn_capturePhotoSignature" type="button" class="btn btn-outline-primary" data-photo-action="capture"><i class="bi bi-camera me-1"></i>Capture from Camera</button>
+                            <button id="btn_uploadPhotoSignature" type="button" class="btn btn-primary ms-auto" data-photo-action="upload"><i class="bi bi-cloud-upload me-1"></i>Upload Current Image</button>
+                            <button id="btn_clearPhotoSignature" type="button" class="btn btn-outline-secondary" data-photo-action="clear"><i class="bi bi-trash me-1"></i>Clear Selection</button>
+                        </div>
+
+                        <div class="form-row mb-4">
+                            <div class="preview-box border rounded bg-light d-flex align-items-center justify-content-center position-relative">
+                                <img id="photoPreview" class="img-fluid" alt="Preview" style="display:none;" />
+                                <video id="photoCameraVideo" autoplay style="display:none;"></video>
+                                <canvas id="photoCameraCanvas" style="display:none;"></canvas>
+                                <div class="text-center p-4" data-photo-placeholder>
+                                    <i class="bi bi-image text-muted fs-1"></i>
+                                    <p class="text-muted small mt-2">No image selected or captured.</p>
+                                </div>
+
+                                <div id="validationOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="display:none; background: rgba(0, 0, 0, 0.7); z-index: 10; border-radius: 0.375rem;">
+                                    <div id="validationSpinner" class="text-center" style="display:none;">
+                                        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                                            <span class="visually-hidden">Processing...</span>
+                                        </div>
+                                        <p class="text-white mt-3 fw-semibold">Processing...</p>
+                                    </div>
+                                    <div id="validationSuccess" class="text-center" style="display:none;">
+                                        <div class="validation-tick-circle">
+                                            <i class="bi bi-check-lg text-white" style="font-size: 3rem;"></i>
+                                        </div>
+                                        <p class="text-white mt-3 fw-semibold" id="validationSuccessMessage">Validated!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <button id="btn_snapshotPhotoSignature" type="button" class="btn btn-sm btn-success" data-photo-action="snapshot" disabled><i class="bi bi-camera-fill me-1"></i>Take Snapshot</button>
+                            <button id="btn_cancelCameraPhotoSignature" type="button" class="btn btn-sm btn-outline-danger" data-photo-action="cancel-snapshot" disabled><i class="bi bi-x-circle me-1"></i>Cancel Camera</button>
+                        </div>
+
+                        <input id="photoFileInput" name="photoFile" data-photo-field="File" class="d-none" type="file" accept="image/*" />
+                    </form>
+
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">RECENTLY UPLOADED</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white mb-4">
+                        <table class="table table-sm table-hover mb-0" data-table="photo-signature">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Type</th>
+                                    <th>Description</th>
+                                    <th>Uploaded On</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientPhotoSignatureBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <aside class="action-panel" aria-label="Client photo and signature actions">
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+                <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+            </div>
+        </aside>
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+</div>
+
+<style>
+    .validation-tick-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #28a745;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: cmValidationScaleIn 0.5s ease-out;
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+    }
+</style>
+
+<script>
+    window.ClientPhotoSignatureState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: true
+    };
+</script>
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-photo-signature.js" asp-append-version="true"></script>
