@@ -1,15 +1,13 @@
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
 
 namespace kairo_ui.Controllers.AccountUtilities
 {
-    [Route("AccountUtilities")]
-    public class DirectDebitMaintenanceController : Controller
+    [Route("AccountUtilities/api")]
+    [ApiController] 
+    public class DirectDebitMaintenanceController : ControllerBase
     {
-        private const string OldApiName = "OldApi";
-
         private readonly IAuthService _authService;
         private readonly IOldApiService _oldApiService;
         private readonly ILogger<DirectDebitMaintenanceController> _logger;
@@ -24,72 +22,197 @@ namespace kairo_ui.Controllers.AccountUtilities
             _logger = logger;
         }
 
-        // =====================================================================
-        // DIRECT DEBIT MAINTENANCE - Load Partial View with Static Dropdowns
-        // =====================================================================
-
-        [HttpGet]
-        [Route("DirectDebitMaintenance")]
-        public IActionResult DirectDebitMaintenance()
-        {
-            if (!_authService.IsAuthenticated())
-                return RedirectToAction("Index", "Login");
-
-            // Direct Debit Type - static options matching legacy HTML
-            ViewData["DirectDebitTypeOptions"] = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "OUTGOING", Text = "Outgoing Direct Debit" },
-                new SelectListItem { Value = "INCOMING", Text = "Incoming Direct Debit" }
-            };
-
-            // Transfer Frequency - static options matching legacy HTML
-            ViewData["TransferFrequencyOptions"] = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "DAILY",     Text = "Daily"     },
-                new SelectListItem { Value = "WEEKLY",    Text = "Weekly"    },
-                new SelectListItem { Value = "MONTHLY",   Text = "Monthly"   },
-                new SelectListItem { Value = "QUARTERLY", Text = "Quarterly" },
-                new SelectListItem { Value = "ANNUAL",    Text = "Annual"    }
-            };
-
-            // Charge Recovery - static options matching legacy HTML
-            ViewData["ChargeRecoveryOptions"] = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "NONE",      Text = "None"      },
-                new SelectListItem { Value = "IMMEDIATE", Text = "Immediate" },
-                new SelectListItem { Value = "DEFERRED",  Text = "Deferred"  }
-            };
-
-            return PartialView("~/Views/AccountUtilities/_DirectDebitMaintenance.cshtml");
-        }
-
-        // =====================================================================
-        // SAVE DIRECT DEBIT - Add or Edit a Direct Debit Instruction
-        // Proxies to dbo.p_AddEditDirectDebitTransfer via OldApiService
-        // =====================================================================
-
-        [HttpPost]
-        [Route("api/save-direct-debit")]
-        public async Task<IActionResult> SaveDirectDebit([FromBody] JsonElement requestData)
+        [HttpPost("get-direct-debit-maintenance")]
+        public async Task<IActionResult> Get([FromBody] DirectDebitRequest request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { success = false, message = "Not authenticated" });
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                // Note: p_GetDirectDebitMaintenance takes DirectDebitInstructionID
+                var payload = new 
+                {
+                    OurBranchID = request.OurBranchID,
+                    OperatorID = request.OperatorID,
+                    DirectDebitInstructionID = request.StandingInstructionID ?? request.SearchKey
+                };
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    OldApiName,
-                    OldApiDBConstants.ADD_EDIT_DIRECT_DEBIT_TRANSFER,
-                    requestData
+                    "AccountManagementApi",
+                    OldApiDBConstants.GET_DIRECT_DEBIT_MAINTENANCE,
+                    payload
                 );
 
-                return Ok(result);
+                return Ok(new { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving Direct Debit instruction");
-                return StatusCode(500, new { success = false, message = ex.Message });
+                _logger.LogError(ex, "Error getting direct debit maintenance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
+
+        [HttpPost("create-direct-debit-maintenance")]
+        public async Task<IActionResult> Create([FromBody] DirectDebitRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                request.Direction = 0; // Add/Edit direction
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.ADD_EDIT_DIRECT_DEBIT_MAINTENANCE,
+                    request
+                );
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating direct debit maintenance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost("update-direct-debit-maintenance")]
+        public async Task<IActionResult> Update([FromBody] DirectDebitRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                request.Direction = 0;
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.ADD_EDIT_DIRECT_DEBIT_MAINTENANCE,
+                    request
+                );
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating direct debit maintenance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost("delete-direct-debit-maintenance")]
+        public async Task<IActionResult> Delete([FromBody] DirectDebitRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                var payload = new 
+                {
+                    OurBranchID = request.OurBranchID,
+                    OperatorID = request.OperatorID,
+                    DirectDebitInstructionID = request.StandingInstructionID ?? request.SearchKey
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.DELETE_DIRECT_DEBIT_MAINTENANCE,
+                    payload
+                );
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting direct debit maintenance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost("stop-direct-debit-maintenance")]
+        public async Task<IActionResult> Stop([FromBody] DirectDebitRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                var payload = new 
+                {
+                    OurBranchID = request.OurBranchID,
+                    OperatorID = request.OperatorID,
+                    DirectDebitInstructionID = request.StandingInstructionID ?? request.SearchKey
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.STOP_DIRECT_DEBIT_MAINTENANCE,
+                    payload
+                );
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error stopping direct debit maintenance");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+    }
+
+    public class DirectDebitRequest
+    {
+        public string? SearchKey { get; set; }
+        public string? StandingInstructionID { get; set; }
+        public string? Oper { get; set; }
+
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? DirectDebitInstructionID { get; set; }
+        public int Direction { get; set; }
+
+        // Form Fields
+        public string? DirectDebitType { get; set; }
+        public string? AccountID { get; set; }
+        public string? ReferenceNo { get; set; }
+        public string? TransactionCurrencyID { get; set; }
+        public string? FixedAmount { get; set; }
+        public string? EffectiveDate { get; set; }
+        public string? TransferFrequency { get; set; }
+        public string? NoOfExecution { get; set; }
+        public string? FirstExecutionDate { get; set; }
+        public string? LastExecutionDate { get; set; }
+        public string? ValueDate { get; set; }
+        public string? StandingInstructionStatus { get; set; }
+        public string? ChargeRecovery { get; set; }
+        public string? BankID { get; set; }
+        public string? ContraBranchID { get; set; }
+        public string? ContraAccountID { get; set; }
+        public string? OriginatorCode { get; set; }
+        public string? Remarks { get; set; }
     }
 }

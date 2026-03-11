@@ -1,15 +1,13 @@
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
 
 namespace kairo_ui.Controllers.AccountUtilities
 {
-    [Route("AccountUtilities")]
-    public class StandingInstructionTypeController : Controller
+    [Route("AccountUtilities/api")]
+    [ApiController] 
+    public class StandingInstructionTypeController : ControllerBase
     {
-        private const string OldApiName = "OldApi";
-
         private readonly IAuthService _authService;
         private readonly IOldApiService _oldApiService;
         private readonly ILogger<StandingInstructionTypeController> _logger;
@@ -24,104 +22,155 @@ namespace kairo_ui.Controllers.AccountUtilities
             _logger = logger;
         }
 
-        // =====================================================================
-        // INDEX - Landing page for Account Utilities module
-        // =====================================================================
-
-        [HttpGet]
-        [Route("Index")]
-        public IActionResult Index()
-        {
-            if (!_authService.IsAuthenticated())
-                return RedirectToAction("Index", "Login");
-            return View();
-        }
-
-        // =====================================================================
-        // STANDING INSTRUCTION TYPE - Load Partial View with Static Dropdown Options
-        // =====================================================================
-
-        [HttpGet]
-        [Route("StandingInstructionType")]
-        public IActionResult StandingInstructionType()
-        {
-            if (!_authService.IsAuthenticated())
-                return RedirectToAction("Index", "Login");
-
-            // SI Transfer Type - static options matching legacy HTML values
-            ViewData["SITransferTypeOptions"] = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "internal", Text = "Internal Transfer" },
-                new SelectListItem { Value = "external", Text = "External Transfer" }
-            };
-
-            // Failed Charge Type - static options matching legacy HTML values
-            ViewData["FailedChargeTypeOptions"] = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "none",       Text = "None"       },
-                new SelectListItem { Value = "fixed",      Text = "Fixed"      },
-                new SelectListItem { Value = "percentage", Text = "Percentage" }
-            };
-
-            return PartialView("~/Views/AccountUtilities/StandingInstructionType.cshtml");
-        }
-
-        // =====================================================================
-        // GET SI TYPE - Returns full record for the given SITypeID
-        // Proxies to dbo.p_GetSITypes via OldApiService
-        // =====================================================================
-
-        [HttpPost]
-        [Route("api/get-si-type")]
-        public async Task<IActionResult> GetSIType([FromBody] JsonElement requestData)
+        [HttpPost("get-si-type")]
+        public async Task<IActionResult> Get([FromBody] SITypeRequest request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { success = false, message = "Not authenticated" });
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                var payload = new 
+                {
+                    BankID = "00", // Default as per original JS
+                    OurBranchID = request.OurBranchID,
+                    OperatorID = request.OperatorID,
+                    SITypeID = request.SITypeID,
+                    Direction = 0
+                };
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    OldApiName,
+                    "AccountManagementApi",
                     OldApiDBConstants.GET_SI_TYPES,
-                    requestData
+                    payload
                 );
 
-                return Ok(result);
+                return Ok(new { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching SI Type record");
-                return StatusCode(500, new { success = false, message = ex.Message });
+                _logger.LogError(ex, "Error getting SI Type");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
-        // =====================================================================
-        // SAVE SI TYPE - Add (NewRecord=1) or Edit (NewRecord=0) an SI Type
-        // Proxies to dbo.p_AddEditSITypes via OldApiService
-        // =====================================================================
-
-        [HttpPost]
-        [Route("api/save-si-type")]
-        public async Task<IActionResult> SaveSIType([FromBody] JsonElement requestData)
+        [HttpPost("create-si-type")]
+        public async Task<IActionResult> Create([FromBody] SITypeRequest request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
-                    return Unauthorized(new { success = false, message = "Not authenticated" });
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                request.Direction = 0; // Add/Edit direction
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
-                    OldApiName,
+                    "AccountManagementApi",
                     OldApiDBConstants.ADD_EDIT_SI_TYPES,
-                    requestData
+                    request
                 );
 
-                return Ok(result);
+                return Ok(new { Success = true, Data = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving SI Type record");
-                return StatusCode(500, new { success = false, message = ex.Message });
+                _logger.LogError(ex, "Error creating SI Type");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
+
+        [HttpPost("update-si-type")]
+        public async Task<IActionResult> Update([FromBody] SITypeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                request.Direction = 0;
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.ADD_EDIT_SI_TYPES,
+                    request
+                );
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating SI Type");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost("delete-si-type")]
+        public async Task<IActionResult> Delete([FromBody] SITypeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                request.OperatorID = HttpContext.Session.GetString("user_name");
+                if (string.IsNullOrEmpty(request.OurBranchID))
+                    request.OurBranchID = HttpContext.Session.GetString("branch_code");
+
+                var payload = new 
+                {
+                    BankID = "00",
+                    OurBranchID = request.OurBranchID,
+                    OperatorID = request.OperatorID,
+                    SITypeID = request.SITypeID
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.DELETE_SI_TYPES,
+                    payload
+                );
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting SI Type");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+    }
+
+    public class SITypeRequest
+    {
+        public string? SITypeID { get; set; }
+        public string? InstructionTypeID { get; set; }
+
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public int Direction { get; set; }
+
+        // Form Fields
+        public string? Description { get; set; }
+        public string? SITransferType { get; set; }
+        public string? NoOfRetries { get; set; }
+        public string? RetryAfterDays { get; set; }
+        public string? FailedChargeType { get; set; }
+        public string? FreezeAmountOnFailure { get; set; }
+        public string? SuccessfulTrxId { get; set; }
+        public string? SuccessfulNarration { get; set; }
+        public string? FailureTrxId { get; set; }
+        public string? FailureNarration { get; set; }
     }
 }

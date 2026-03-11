@@ -288,7 +288,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return await HandleRequest(reqDat, _repo.DeleteAccountSweeping, "DeleteAccountSweeping", cancellationToken);
         }
 
-    //    // Account Nominee endpoints
+        //    // Account Nominee endpoints
         [HttpPost("AddAccountNominee")]
         public async Task<IActionResult> AddAccountNominee([FromBody] InData reqDat, CancellationToken cancellationToken = default)
         {
@@ -319,7 +319,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return await HandleRequest(reqDat, _repo.DeleteAccountNominee, "DeleteAccountNominee", cancellationToken);
         }
 
-    //    // Account Closure endpoints
+        //    // Account Closure endpoints
         [HttpPost("GetAccountClosingDetails")]
         public async Task<IActionResult> GetAccountClosingDetails([FromBody] InData reqDat, CancellationToken cancellationToken = default)
         {
@@ -338,7 +338,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return await HandleRequest(reqDat, _repo.TransferAccount, "TransferAccount", cancellationToken);
         }
 
-    //    // Account Charge Rate endpoints
+        //    // Account Charge Rate endpoints
         [HttpPost("AddAccountChargeRate")]
         public async Task<IActionResult> AddAccountChargeRate([FromBody] InData reqDat, CancellationToken cancellationToken = default)
         {
@@ -363,7 +363,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return await HandleRequest(reqDat, _repo.DeleteAccountChargeRate, "DeleteAccountChargeRate", cancellationToken);
         }
 
-    //    // Account Blocking/Unblocking endpoints
+        //    // Account Blocking/Unblocking endpoints
         [HttpPost("BlockEntity")]
         public async Task<IActionResult> BlockEntity([FromBody] InData reqDat, CancellationToken cancellationToken = default)
         {
@@ -388,7 +388,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return await HandleRequest(reqDat, _repo.GetBlockedDetails, "GetBlockedDetails", cancellationToken);
         }
 
-    //    // Account Classification endpoints
+        //    // Account Classification endpoints
         [HttpPost("AddAccountClassification")]
         public async Task<IActionResult> AddAccountClassification([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddAccountClassification, "AddAccountClassification", cancellationToken);
@@ -405,7 +405,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> DeleteAccountClassification([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.DeleteAccountClassification, "DeleteAccountClassification", cancellationToken);
 
-    //    // Account Special Conditions endpoints
+        //    // Account Special Conditions endpoints
         [HttpPost("AddAccountSpecialCondition")]
         public async Task<IActionResult> AddAccountSpecialCondition([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddAccountSpecialCondition, "AddAccountSpecialCondition", cancellationToken);
@@ -426,7 +426,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> GetSpecialConditionClasses([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetSpecialConditionClasses, "GetSpecialConditionClasses", cancellationToken);
 
-    //    // Account Interest Rate endpoints
+        //    // Account Interest Rate endpoints
         [HttpPost("AddAccountInterestRate")]
         public async Task<IActionResult> AddAccountInterestRate([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddAccountInterestRate, "AddAccountInterestRate", cancellationToken);
@@ -443,7 +443,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> DeleteAccountInterestRate([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.DeleteAccountInterestRate, "DeleteAccountInterestRate", cancellationToken);
 
-    //    // Notes endpoints
+        //    // Notes endpoints
         [HttpPost("UpdateNotes")]
         public async Task<IActionResult> UpdateNotes([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.UpdateNotes, "UpdateNotes", cancellationToken);
@@ -452,7 +452,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> GetNotes([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetNotes, "GetNotes", cancellationToken);
 
-    //    // Account Freeze endpoints
+        //    // Account Freeze endpoints
         [HttpPost("AddAccountFreeze")]
         public async Task<IActionResult> AddAccountFreeze([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddAccountFreeze, "AddAccountFreeze", cancellationToken);
@@ -469,7 +469,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> ReleaseAccountFreeze([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.ReleaseAccountFreeze, "ReleaseAccountFreeze", cancellationToken);
 
-    //    // Cheque Book endpoints
+        //    // Cheque Book endpoints
         [HttpPost("AddChequeBook")]
         public async Task<IActionResult> AddChequeBook([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddChequeBook, "AddChequeBook", cancellationToken);
@@ -510,7 +510,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> DeleteChequeBooks([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.DeleteChequeBooks, "DeleteChequeBooks", cancellationToken);
 
-    //    // Stop Payment endpoints
+        //    // Stop Payment endpoints
         [HttpPost("AddStopPayment")]
         public async Task<IActionResult> AddStopPayment([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddStopPayment, "AddStopPayment", cancellationToken);
@@ -535,7 +535,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> GetCancelStopPayments([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetCancelStopPayments, "GetCancelStopPayments", cancellationToken);
 
-    //    // Account Dormant endpoints
+        //    // Account Dormant endpoints
         [HttpPost("GetAccountDormant")]
         public async Task<IActionResult> GetAccountDormant([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetAccountDormant, "GetAccountDormant", cancellationToken);
@@ -544,7 +544,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> EditAccountDormant([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.EditAccountDormant, "EditAccountDormant", cancellationToken);
 
-    //    // Account Reminder (Notifications) endpoints
+        //    // Account Reminder (Notifications) endpoints
         [HttpPost("AddAccountReminder")]
         public async Task<IActionResult> AddAccountReminder([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddAccountReminder, "AddAccountReminder", cancellationToken);
@@ -561,7 +561,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> DeleteAccountReminder([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.DeleteAccountReminder, "DeleteAccountReminder", cancellationToken);
 
-    //    // Account Activation endpoints
+        //    // Account Activation endpoints
         [HttpPost("GetAccountActivation")]
         public async Task<IActionResult> GetAccountActivation([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.GetAccountActivation, "GetAccountActivation", cancellationToken);
@@ -570,7 +570,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         public async Task<IActionResult> UpdateAccountActivation([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.UpdateAccountActivation, "UpdateAccountActivation", cancellationToken);
 
-    //    // Account Transfer endpoints
+        //    // Account Transfer endpoints
         [HttpPost("AddAccountTransferDetails")]
         public async Task<IActionResult> AddAccountTransferDetails([FromBody] InData reqDat, CancellationToken cancellationToken = default)
             => await HandleRequest(reqDat, _repo.AddAccountTransferDetails, "AddAccountTransferDetails", cancellationToken);

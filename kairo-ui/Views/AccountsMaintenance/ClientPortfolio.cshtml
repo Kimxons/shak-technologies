@@ -1,98 +1,122 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@* Client Portfolio Submodule - Loaded as Partial View *@
+@* Migrated from: client-portfolio.html *@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // Migrated from: client-portfolio.html
     var portfolioTypeOptions = ViewData["PortfolioTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
-<!-- ClientPortfolio Submodule -->
-<div class="window de-window" data-ktb-window>
-    <div data-kairo-titlebar data-title="Client Portfolio" data-icon="bi-briefcase"></div>
-    <main class="main-container main-container--with-panel">
-      <div class="form-content" role="region">
-        <div class="form-card" data-main-form>
-        <!-- Portfolio Type Section -->
-        <div class="form-section cp-type-section">
-          <div class="section-header"><span class="section-header__title">Portfolio Type</span></div>
-          <div class="section-content cp-type-body">
-            <div class="cp-type-field">
-              <label class="label" for="portfolioType">Client Portfolio Type</label>
-              <select id="portfolioType" name="portfolioType" class="bs-select form-control">
-                <option value="">--Select--</option>
-                @foreach (var option in portfolioTypeOptions)
-                {
-                    <option value="@option.Value">@option.Text</option>
-                }
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Portfolio Grid -->
-        <div class="form-section form-section form-section--grid">
-          <div class="section-header"><span class="section-header__title">Portfolio Grid</span><span class="de-record-count" id="recordCount">0 records</span></div>
-          <div class="section-content section-content section-content--grid">
-            <div class="table table-sm table-hover-wrap">
-              <table class="table table-sm table-hover" id="portfolioGrid">
-                <thead><tr><th>Branch ID</th><th>Account ID</th><th>Deposit</th><th>Advance</th><th>Non Fund Advance</th><th>Interest Receivable</th><th>Interest Payable</th></tr></thead>
-                <tbody><tr class="table table-sm table-hover__empty"><td colspan="7">No records to display.</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Consolidated Values - Four columns, right-aligned amounts -->
-        <div class="form-section">
-          <div class="section-header"><span class="section-header__title">Consolidated Values</span></div>
-          <div class="section-content">
-            <div class="form-row four-col cp-consolidated-row">
-              <div class="col">
-                <label class="label-blue" for="totalInterestReceivable">Interest</label>
-                <input type="text" id="totalInterestReceivable" class="bs-input-text form-control text-end" value="0.00" readonly aria-readonly="true" />
-              </div>
-              <div class="col">
-                <label class="label-blue" for="totalInterestPayable">Payable</label>
-                <input type="text" id="totalInterestPayable" class="bs-input-text form-control text-end" value="0.00" readonly aria-readonly="true" />
-              </div>
-              <div class="col">
-                <label class="label-blue" for="totalAdvances">Advances</label>
-                <input type="text" id="totalAdvances" class="bs-input-text form-control text-end" value="0.00" readonly aria-readonly="true" />
-              </div>
-              <div class="col">
-                <label class="label-blue" for="totalDeposits">Total Deposits</label>
-                <input type="text" id="totalDeposits" class="bs-input-text form-control text-end" value="0.00" readonly aria-readonly="true" />
-              </div>
-            </div>
-            <input type="hidden" id="totalNonFund" value="0.00" />
-            <input type="hidden" id="netFundsUsed" value="0.00" />
-          </div>
-        </div>
-        </div>
-      </div>
-      <aside class="action-panel">
-        <div class="d-flex flex-column gap-2 mt-auto">
-          <button class="btn-action" type="button" data-action="print"><i class="bi bi-printer"></i><span>Print</span></button>
-          <button class="btn-action" type="button" data-action="export"><i class="bi bi-download"></i><span>Export</span></button>
-          <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
-          <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
-        </div>
-      </aside>
-    </main>
-    <footer class="de-status-bar" role="status">Ready</footer>
-    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
-  </div>
-  <script src="../../../assets/js/config.js"></script>
-  <script src="../../../assets/js/environment.js"></script>
-  <script src="../../../assets/js/services/shared/coreApi.js"></script>
-  <script src="../../../assets/js/services/shared/lookupService.js"></script>
-  <script src="../../../assets/js/services/account/AccountService.js"></script>
-  <script src="../../../assets/js/components/TitleBar.js"></script>
-  <script src="view-base.js?v=20250129"></script>
-  <script src="client-portfolio.js?v=20250129b"></script>
+<form id="clientPortfolioForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
 
-<script>
-document.addEventListener('submodule:loaded', function(e) {
-    if (e.detail.submoduleName === 'ClientPortfolio') {
-        console.log('[ClientPortfolio] Submodule loaded');
-    }
-});
-</script>
+<!-- Form Content -->
+<div class="form-content" role="region" aria-label="Client Portfolio" data-submodule-content>
+    <div class="form-card" data-submodule-form>
+        <!-- Portfolio Type Section -->
+        <div class="form-section" data-section="portfolio-type">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-briefcase"></i> PORTFOLIO TYPE</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Portfolio Type" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="ddl_portfolioType">Client Portfolio Type</label>
+                        <select id="ddl_portfolioType" name="portfolioType" class="bs-select">
+                            <option value="">--Select--</option>
+                            @foreach (var option in portfolioTypeOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Portfolio Grid Section -->
+        <div class="form-section" data-section="portfolio-grid">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-table"></i> PORTFOLIO GRID</span>
+                <span class="de-record-count" id="spn_portfolioRecordCount">(0 records)</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Portfolio Grid" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="tbl_portfolioGrid">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Branch ID</th>
+                                <th>Account ID</th>
+                                <th class="text-end">Deposit</th>
+                                <th class="text-end">Advance</th>
+                                <th class="text-end">Non Fund Advance</th>
+                                <th class="text-end">Interest Receivable</th>
+                                <th class="text-end">Interest Payable</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No records to display.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Consolidated Values Section -->
+        <div class="form-section" data-section="consolidated-values">
+            <div class="section-header" data-section-toggle>
+                <span class="section-header__title"><i class="bi bi-calculator"></i> CONSOLIDATED VALUES</span>
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Consolidated Values" aria-expanded="true">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+            </div>
+            <div class="section-content" data-section-content>
+                <div class="form-row four-col">
+                    <div class="col">
+                        <label class="label-blue" for="txt_totalInterestReceivable">Interest Receivable</label>
+                        <input type="text" id="txt_totalInterestReceivable" class="bs-input-text text-end" value="0.00" readonly />
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="txt_totalInterestPayable">Interest Payable</label>
+                        <input type="text" id="txt_totalInterestPayable" class="bs-input-text text-end" value="0.00" readonly />
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="txt_totalAdvances">Advances</label>
+                        <input type="text" id="txt_totalAdvances" class="bs-input-text text-end" value="0.00" readonly />
+                    </div>
+                    <div class="col">
+                        <label class="label-blue" for="txt_totalDeposits">Total Deposits</label>
+                        <input type="text" id="txt_totalDeposits" class="bs-input-text text-end" value="0.00" readonly />
+                    </div>
+                </div>
+                <input type="hidden" id="hdn_totalNonFund" value="0.00" />
+                <input type="hidden" id="hdn_netFundsUsed" value="0.00" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="portfolioLoadingOverlay" hidden>
+    <div class="loading-spinner">
+        <i class="bi bi-arrow-repeat"></i>
+        <span>Loading portfolio...</span>
+    </div>
+</div>
+
+<!-- Message Panel -->
+<div class="submodule-message-panel" id="portfolioMessagePanel" role="alert" aria-live="polite" hidden>
+    <i class="bi bi-info-circle"></i>
+    <span></span>
+</div>
+
+<!-- Initialize Client Portfolio Module -->
+<script src="/js/modules/accountsmaintenance/client-portfolio.js"></script>

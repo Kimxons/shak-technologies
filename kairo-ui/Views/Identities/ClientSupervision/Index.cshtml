@@ -23,6 +23,44 @@
 
 @section Styles {
     <style>
+        .am-message-panel {
+            display: none;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+        }
+
+        .am-message-panel__content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .am-message-panel--info {
+            background-color: #cff4fc;
+            border-color: #b6effb;
+            color: #055160;
+        }
+
+        .am-message-panel--warning {
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #664d03;
+        }
+
+        .am-message-panel--danger {
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+            color: #842029;
+        }
+
+        .am-message-panel--success {
+            background-color: #d1e7dd;
+            border-color: #badbcc;
+            color: #0f5132;
+        }
+
         .multi-select-dropdown {
             position: relative;
             width: 100%;
@@ -112,15 +150,14 @@
 <div class="window">
     <div class="main-container main-container--with-panel">
         <main id="dv_clientSupervisionMain" class="form-content" role="region" aria-label="Client Supervision">
+            <!-- Hidden fields for page context -->
+            <input type="hidden" id="moduleId" value="@ViewData["ModuleId"]" />
+
             <div class="am-message-panel" id="dv_messagePanel">
                 <div class="am-message-panel__content">
-                    <i class="bi bi-info-circle"></i>
+                    <i class="bi bi-info-circle" id="icn_messageIcon"></i>
                     <span id="spn_messageText"></span>
                 </div>
-
-                        <!-- Hidden fields for page context -->
-                        <input type="hidden" id="moduleId" value="@ViewData["ModuleId"]" />
-
             </div>
 
             <div class="form-card" id="dv_centralKycCard">
@@ -471,5 +508,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/modules/identities/client-supervision/client-supervision.js"></script>
+    <script type="text/javascript" src="~/js/modules/identities/client-supervision/client-supervision.js"></script>
 }

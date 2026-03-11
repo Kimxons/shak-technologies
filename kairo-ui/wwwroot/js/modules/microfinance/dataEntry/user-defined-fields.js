@@ -157,6 +157,40 @@
         populateUserFields(userFieldsData);
     }
 
+    function closeSubmodule() {
+        try {
+            const parent = window.parent;
+            
+            // Primary method: Parent has closeChildForm function (MVC standard)
+            if (typeof parent.closeChildForm === 'function') {
+                console.log('[UserDefinedFields] Calling parent.closeChildForm()');
+                parent.closeChildForm();
+                return;
+            }
+            
+            // Fallback 1: Parent has closeFrame function
+            if (typeof parent.closeFrame === 'function') {
+                console.log('[UserDefinedFields] Calling parent.closeFrame()');
+                parent.closeFrame();
+                return;
+            }
+            
+            // Fallback 2: Set iframe src to about:blank
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe], iframe[src*="UserDefinedFields"]');
+                if (iframe) {
+                    console.log('[UserDefinedFields] Setting iframe src to about:blank');
+                    iframe.src = 'about:blank';
+                    return;
+                }
+            }
+            
+            console.warn('[UserDefinedFields] No close method found in parent');
+        } catch (error) {
+            console.error('[UserDefinedFields] Error closing submodule:', error);
+        }
+    }
+
     function handleCancel() {
         if (isEditMode) {
             isEditMode = false;
@@ -165,7 +199,7 @@
             return;
         }
 
-        window.parent?.postMessage?.({ action: 'submoduleClosed', source: 'User Defined Fields' }, '*');
+        closeSubmodule();
     }
 
     async function fetchUserFieldsData() {

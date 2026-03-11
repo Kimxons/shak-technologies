@@ -1,0 +1,143 @@
+@{
+    ViewData["Title"] = "Group Loan Scheme Products";
+    Layout = "_ApplicationLayout";
+    var schemeId = ViewData["SchemeId"]?.ToString() ?? string.Empty;
+}
+
+@section Styles {
+    <style>
+        .product-row--selected {
+            background: linear-gradient(135deg, rgba(25,135,84,.08) 0%, rgba(25,135,84,.04) 100%) !important;
+            border-left: 3px solid #198754;
+        }
+        .product-row--selected td { font-weight: 500; }
+        .product-row--default {
+            background: linear-gradient(135deg, rgba(13,110,253,.08) 0%, rgba(13,110,253,.04) 100%) !important;
+        }
+        .product-row--selected.product-row--default {
+            background: linear-gradient(135deg, rgba(25,135,84,.12) 0%, rgba(13,110,253,.06) 100%) !important;
+        }
+        .products-edit-mode .product-row--editable:hover {
+            background-color: rgba(0,0,0,.05) !important;
+            cursor: pointer;
+        }
+        .products-edit-mode .product-row--locked { opacity: .7; }
+        .products-edit-mode .product-row--locked td { color: #6c757d; }
+    </style>
+}
+
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<input type="hidden" id="parentSchemeId" value="@schemeId" />
+
+<div class="window">
+    <div class="am-header" role="banner">
+        <div class="am-header__left">
+            <i class="bi bi-box-seam am-header__icon" aria-hidden="true"></i>
+            <span class="am-header__title">Group Loan Scheme Products</span>
+        </div>
+        <div class="am-header__right">
+            <button class="am-btn" type="button" data-window-action="refresh" title="Refresh" aria-label="Refresh">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="am-btn am-btn--close" type="button" data-window-action="close" title="Close" aria-label="Close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <main class="main-container" aria-label="Group Loan Scheme Products">
+        <div class="form-content">
+            <div class="form-card" data-main-form>
+
+                <!-- Products Grid Section -->
+                <div class="form-section" data-section="products">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-box-seam"></i>Products</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Products" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-striped align-middle mb-0 w-100" id="productsTable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="text-center col-1"></th>
+                                        <th scope="col">Product Type</th>
+                                        <th scope="col">Product ID</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Is Default</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="bi bi-hourglass-split fs-2 d-block mb-2"></i>
+                                            Loading products...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind the Scene Section -->
+                <div class="form-section" data-section="audit">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-clock-history"></i>Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="label-blue">Created By</label>
+                                <input type="text" class="bs-input-text form-control" id="ClpCreatedBy" readonly />
+                            </div>
+                            <div class="col-6">
+                                <label class="label-blue">Supervised By</label>
+                                <input type="text" class="bs-input-text form-control" id="ClpSupervisedBy" readonly />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="label-blue">Created On</label>
+                                <input type="text" class="bs-input-text form-control" id="ClpCreatedOn" readonly />
+                            </div>
+                            <div class="col-6">
+                                <label class="label-blue">Supervised On</label>
+                                <input type="text" class="bs-input-text form-control" id="ClpSupervisedOn" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="action-panel" aria-label="Form actions">
+            <div class="action-buttons">
+                <button type="button" class="btn-action" id="btnEdit" data-clp-action="edit" title="Edit">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </button>
+                <button type="button" class="btn-action" id="btnSave" data-clp-action="save" title="Save" disabled>
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+                <button type="button" class="btn-action btn-cancel" id="btnCancel" data-clp-action="cancel" title="Cancel">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script src="/js/environment.js"></script>
+    <script src="/js/services/shared/coreApi.js"></script>
+    <script src="/js/services/shared/serviceLoader.js"></script>
+    <script src="/js/modules/microfinance/group-loan-scheme-products.js"></script>
+}

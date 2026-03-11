@@ -11,6 +11,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         private readonly IAuthService _authService;
         private readonly IApiService _apiService;
         private readonly IApiCachedService _apiCachedService;
+        private readonly IOldApiService _oldApiService;
         private readonly IConfiguration _config;
         private readonly ILogger<AccountsMaintenanceController> _logger;
         private readonly ICommonUtilitiesService _commonUtilities;
@@ -19,6 +20,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             IAuthService authService,
             IApiService apiService,
             IApiCachedService apiCachedService,
+            IOldApiService oldApiService,
             IConfiguration configuration,
             ILogger<AccountsMaintenanceController> logger,
             ICommonUtilitiesService commonUtilities)
@@ -26,6 +28,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             _authService = authService;
             _apiService = apiService;
             _apiCachedService = apiCachedService;
+            _oldApiService = oldApiService;
             _config = configuration;
             _logger = logger;
             _commonUtilities = commonUtilities;
@@ -750,6 +753,143 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 _logger.LogError(ex, "Error editing account signatories");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get signature image for a signatory
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-signature-image")]
+        public async Task<IActionResult> GetSignatureImage([FromBody] SignatoryImageRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, errorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var payload = new
+                {
+                    OurBranchID = request.OurBranchID,
+                    SignatoryID = request.SignatoryID,
+                    ImageType = "S", // S for Signature
+                    OperatorID = request.OperatorID
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_SIGNATORY_IMAGE,
+                    payload
+                );
+
+                // Extract image data from response
+                if (response.TryGetProperty("Data", out var data) && 
+                    data.ValueKind == JsonValueKind.Array && 
+                    data.GetArrayLength() > 0)
+                {
+                    var firstItem = data[0];
+                    if (firstItem.TryGetProperty("ImageData", out var imageData) ||
+                        firstItem.TryGetProperty("SignatureImage", out imageData) ||
+                        firstItem.TryGetProperty("Image", out imageData))
+                    {
+                        return Ok(new { success = true, imageData = imageData.GetString() });
+                    }
+                }
+
+                return Ok(new { success = false, imageData = (string?)null });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting signature image");
+                return Ok(new { success = false, imageData = (string?)null, errorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get photo image for a signatory
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-photo-image")]
+        public async Task<IActionResult> GetPhotoImage([FromBody] SignatoryImageRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, errorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var payload = new
+                {
+                    OurBranchID = request.OurBranchID,
+                    SignatoryID = request.SignatoryID,
+                    ImageType = "P", // P for Photo
+                    OperatorID = request.OperatorID
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_SIGNATORY_IMAGE,
+                    payload
+                );
+
+                // Extract image data from response
+                if (response.TryGetProperty("Data", out var data) && 
+                    data.ValueKind == JsonValueKind.Array && 
+                    data.GetArrayLength() > 0)
+                {
+                    var firstItem = data[0];
+                    if (firstItem.TryGetProperty("ImageData", out var imageData) ||
+                        firstItem.TryGetProperty("PhotoImage", out imageData) ||
+                        firstItem.TryGetProperty("Image", out imageData))
+                    {
+                        return Ok(new { success = true, imageData = imageData.GetString() });
+                    }
+                }
+
+                return Ok(new { success = false, imageData = (string?)null });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting photo image");
+                return Ok(new { success = false, imageData = (string?)null, errorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get client images (signature/photo) from ClientDocumentApi
+        /// </summary>
+        [HttpGet]
+        [Route("api/get-client-images/{clientId}")]
+        public async Task<IActionResult> GetClientImages(string clientId)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, errorMessage = "Not authenticated" });
+
+                if (string.IsNullOrWhiteSpace(clientId))
+                    return BadRequest(new { success = false, errorMessage = "ClientID is required" });
+
+                // Build the endpoint URL using the constant
+                var endpoint = string.Format(ApiEndpoints.GET_IMAGE_ACCOUNTS_BY_CLIENT, clientId);
+
+                _logger.LogInformation("Fetching client images from ClientDocumentApi: {Endpoint}", endpoint);
+
+                var response = await _apiService.GetAsync<JsonElement>(
+                    "ClientDocumentApi",
+                    endpoint,
+                    []
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting client images for ClientID: {ClientID}", clientId);
+                return Ok(new { success = false, errorMessage = ex.Message });
             }
         }
 
@@ -2896,6 +3036,161 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
+
+        // ============================================================================
+        // VIEW SUBMODULES - READ-ONLY DATA RETRIEVAL
+        // ============================================================================
+
+        /// <summary>
+        /// API endpoint - Get client portfolio for account maintenance
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-client-portfolio")]
+        public async Task<IActionResult> GetClientPortfolio([FromBody] GenericAccountRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var payload = new
+                {
+                    OurBranchID = request.OurBranchID,
+                    ClientID = request.SearchID ?? request.SearchKey,
+                    OperatorID = request.OperatorID,
+                    Base = request.ModuleTypeID ?? "A"
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_CLIENT_PORTFOLIO,
+                    payload
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting client portfolio");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get loan repayment details/schedule
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-loan-repayment-schedule")]
+        public async Task<IActionResult> GetLoanRepaymentSchedule([FromBody] GenericAccountRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var payload = new
+                {
+                    OurBranchID = request.OurBranchID,
+                    AccountID = request.AccountID,
+                    OperatorID = request.OperatorID
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_LOAN_REPAYMENT_DETAILS,
+                    payload
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting loan repayment schedule");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get debit interest worksheet
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-debit-interest-worksheet")]
+        public async Task<IActionResult> GetDebitInterestWorksheet([FromBody] InterestWorksheetRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                // Pass only the expected parameters to the stored procedure
+                var apiRequest = new
+                {
+                    FromDate = request.FromDate,
+                    ToDate = request.ToDate,
+                    OurBranchID = request.OurBranchID,
+                    AccountID = request.AccountID,
+                    ClientID = request.ClientID
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_DEBIT_INTEREST_WORKSHEET,
+                    apiRequest
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting debit interest worksheet");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint - Get credit interest worksheet
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-credit-interest-worksheet")]
+        public async Task<IActionResult> GetCreditInterestWorksheet([FromBody] InterestWorksheetRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                // Pass only the expected parameters to the stored procedure
+                var apiRequest = new
+                {
+                    FromDate = request.FromDate,
+                    ToDate = request.ToDate,
+                    OurBranchID = request.OurBranchID,
+                    AccountID = request.AccountID,
+                    ClientID = request.ClientID
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_CREDIT_INTEREST_WORKSHEET,
+                    apiRequest
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting credit interest worksheet");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
     }
 
     // Request DTOs
@@ -3300,5 +3595,31 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public int? ModuleID { get; set; }
         public string? ModuleTypeID { get; set; }
         public string? RelevantID { get; set; }
+    }
+
+    // ============================================================================
+    // INTEREST WORKSHEET Request DTO (for debit/credit interest worksheets)
+    // ============================================================================
+    public class InterestWorksheetRequest
+    {
+        public string? AccountID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? ClientID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? FromDate { get; set; }
+        public string? ToDate { get; set; }
+        public string? InterestType { get; set; }  // "D" for Debit, "C" for Credit
+        public string? Period { get; set; }        // Period selection (0=Select, 1=This Month, 2=Last Month, 3=Custom)
+        public int? PeriodType { get; set; }       // Alias for Period
+    }
+
+    // ============================================================================
+    // SIGNATORY IMAGE Request DTO (for signature/photo images)
+    // ============================================================================
+    public class SignatoryImageRequest
+    {
+        public string? OurBranchID { get; set; }
+        public string? SignatoryID { get; set; }
+        public string? OperatorID { get; set; }
     }
 }

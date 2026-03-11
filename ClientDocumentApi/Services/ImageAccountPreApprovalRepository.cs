@@ -1,3 +1,4 @@
+using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Data;
 using ClientDocumentApi.Models;
 using Microsoft.AspNetCore.Http;
@@ -9,11 +10,13 @@ namespace ClientDocumentApi.Services
     {
         private readonly TempImageDbContext _context;
         private readonly IFileStorageService _fileStorage;
+        private readonly ICommonRepository _commonRepository;
 
-        public ImageAccountPreApprovalRepository(TempImageDbContext context, IFileStorageService fileStorage)
+        public ImageAccountPreApprovalRepository(TempImageDbContext context, IFileStorageService fileStorage, ICommonRepository commonRepository)
         {
             _context = context;
             _fileStorage = fileStorage;
+            _commonRepository = commonRepository;
         }
 
         public async Task<ImageAccountPreApproval> SaveAsync(IFormFile file, string imageTypeID, string clientID,
@@ -71,7 +74,7 @@ namespace ClientDocumentApi.Services
                     IsModified = false
                 };
 
-                _context.ImageAccountPreApprovels.Add(entity);
+                _context.ImageAccountPreApprovals.Add(entity);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 shouldKeepFile = true;
@@ -97,12 +100,12 @@ namespace ClientDocumentApi.Services
 
         public async Task<ImageAccountPreApproval?> GetByIdAsync(long imageID, CancellationToken cancellationToken = default)
         {
-            return await _context.ImageAccountPreApprovels.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
+            return await _context.ImageAccountPreApprovals.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
         }
 
         public async Task<(byte[]? Data, string? MimeType, string? FileName)?> GetImageDataAsync(long imageID, CancellationToken cancellationToken = default)
         {
-            var entity = await _context.ImageAccountPreApprovels
+            var entity = await _context.ImageAccountPreApprovals
                 .Select(i => new { i.ImageID, i.Image, FileName = i.Description })
                 .FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
 
@@ -114,7 +117,7 @@ namespace ClientDocumentApi.Services
 
         public async Task<byte[]?> GetThumbnailAsync(long imageID, CancellationToken cancellationToken = default)
         {
-            var entity = await _context.ImageAccountPreApprovels
+            var entity = await _context.ImageAccountPreApprovals
                 .Select(i => new { i.ImageID, i.ThumbNailImage })
                 .FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
 
@@ -123,7 +126,7 @@ namespace ClientDocumentApi.Services
 
         public async Task<IEnumerable<ImageAccountPreApproval>> GetByClientIdAsync(string clientID, CancellationToken cancellationToken = default)
         {
-            return await _context.ImageAccountPreApprovels
+            return await _context.ImageAccountPreApprovals
                 .Where(i => i.ClientID == clientID)
                 .ToListAsync(cancellationToken);
         }
@@ -133,7 +136,7 @@ namespace ClientDocumentApi.Services
             if (imageIds == null || imageIds.Count == 0)
                 return new List<ImageAccountPreApproval>();
 
-            return await _context.ImageAccountPreApprovels
+            return await _context.ImageAccountPreApprovals
                 .Where(i => imageIds.Contains(i.ImageID))
                 .ToListAsync(cancellationToken);
         }
@@ -141,7 +144,7 @@ namespace ClientDocumentApi.Services
         public async Task<ImageAccountPreApproval> UpdateMetadataAsync(long imageID, string? description, string? supervisedBy,
             DateTime? supervisedOn, bool? isClosed, string? modifiedBy, CancellationToken cancellationToken = default)
         {
-            var entity = await _context.ImageAccountPreApprovels.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
+            var entity = await _context.ImageAccountPreApprovals.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
             if (entity == null)
                 throw new KeyNotFoundException($"Image Account Pre-Approval with ID {imageID} not found.");
 
@@ -168,7 +171,7 @@ namespace ClientDocumentApi.Services
             if (file == null || file.Length == 0)
                 throw new InvalidOperationException("A non-empty file is required.");
 
-            var entity = await _context.ImageAccountPreApprovels.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
+            var entity = await _context.ImageAccountPreApprovals.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
             if (entity == null)
                 throw new KeyNotFoundException($"Image Account Pre-Approval with ID {imageID} not found.");
 
@@ -223,12 +226,83 @@ namespace ClientDocumentApi.Services
 
         public async Task DeleteAsync(long imageID, CancellationToken cancellationToken = default)
         {
-            var entity = await _context.ImageAccountPreApprovels.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
+            var entity = await _context.ImageAccountPreApprovals.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
             if (entity == null)
                 throw new KeyNotFoundException($"Image Account Pre-Approval with ID {imageID} not found.");
 
-            _context.ImageAccountPreApprovels.Remove(entity);
+            _context.ImageAccountPreApprovals.Remove(entity);
             await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<List<ImageAccountPreApproval>> GetByRequestIdAsync(string requestID, CancellationToken cancellationToken = default)
+        {
+
+            if (string.IsNullOrWhiteSpace(requestID))
+                throw new ArgumentException("RequestID cannot be null or empty.", nameof(requestID));
+
+            return await _context.ImageAccountPreApprovals
+                .Where(i => i.ClientID == requestID)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<object>> GetByRequestIdEnrichedAsync(string requestID, CancellationToken cancellationToken = default)
+        {
+
+            if (string.IsNullOrEmpty(requestID))
+                return [];
+            IEnumerable<ImageAccountPreApproval>? lsTempImages = await GetByRequestIdAsync(requestID, cancellationToken);
+            SystemCodeResponse sresp = await _commonRepository.GetSystemCodesAsync(["ImageTypeID"], cancellationToken);
+            return lsTempImages.Select(ti => new
+            {
+                ti.ImageID,
+                ti.ImageTypeID,
+                ImageTypeDescription = sresp.Details?.FirstOrDefault(d => d.CodeID == nameof(ti.ImageTypeID) && d.SubCodeID == ti.ImageTypeID)?.CodeDescription,
+                ti.ClientID,
+                ti.Image,
+                ti.ThumbNailImage,
+                ti.Description,
+                ti.IsClosed,
+                ti.CreatedBy,
+                ti.CreatedOn,
+                ti.SupervisedBy,
+                ti.SupervisedOn,
+                ti.sImage,
+                ti.Digit,
+                ti.IsModified,
+                ti.MimeType,
+                ti.OurBranchID,
+                ti.FilePath
+            }).ToList<object>();
+        }
+
+        public async Task<List<object>> GetByClientIdEnrichedAsync(string clientID, CancellationToken cancellationToken = default)
+        {
+
+            if (string.IsNullOrEmpty(clientID))
+                return [];
+            IEnumerable<ImageAccountPreApproval>? lsTempImages = await GetByClientIdAsync(clientID, cancellationToken);
+            SystemCodeResponse sresp = await _commonRepository.GetSystemCodesAsync(["ImageTypeID"], cancellationToken);
+            return lsTempImages.Select(ti => new
+            {
+                ti.ImageID,
+                ti.ImageTypeID,
+                ImageTypeDescription = sresp.Details?.FirstOrDefault(d => d.CodeID == nameof(ti.ImageTypeID) && d.SubCodeID == ti.ImageTypeID)?.CodeDescription,
+                ti.ClientID,
+                ti.Image,
+                ti.ThumbNailImage,
+                ti.Description,
+                ti.IsClosed,
+                ti.CreatedBy,
+                ti.CreatedOn,
+                ti.SupervisedBy,
+                ti.SupervisedOn,
+                ti.sImage,
+                ti.Digit,
+                ti.IsModified,
+                ti.MimeType,
+                ti.OurBranchID,
+                ti.FilePath
+            }).ToList<object>();
         }
     }
 }

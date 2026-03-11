@@ -8,8 +8,30 @@
 (function (global) {
     const Environment = global.Environment || {};
 
+    const createDisabledService = () => ({
+        async ask() {
+            return {
+                success: false,
+                answer: "",
+                error: "AI service is disabled: MCP base URL is not configured"
+            };
+        },
+        getCurrentContext() {
+            return {
+                ClientID: sessionStorage.getItem('currentClientId') || Environment.defaultClientId || "",
+                BankID: sessionStorage.getItem('currentBankId') || Environment.defaultBankId || "00",
+                UserID: sessionStorage.getItem('currentUserId') || Environment.UserID || "GUEST",
+                OurBranchID: sessionStorage.getItem('currentBranchId') || Environment.OurBranchID || ""
+            };
+        },
+        async sendMessage(message) {
+            return this.ask(message);
+        }
+    });
+
     if (!Environment.baseUrlMcp) {
-        console.error("❌ [AiService] baseUrlMcp is not configured in Environment");
+        global.AiService = createDisabledService();
+        console.warn("[AiService] MCP base URL is not configured. AI features are disabled for this environment.");
         return;
     }
 

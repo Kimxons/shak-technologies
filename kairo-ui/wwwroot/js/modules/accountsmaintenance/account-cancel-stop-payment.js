@@ -30,10 +30,11 @@ window.CancelStopPaymentModule = (function () {
      */
     function init() {
         console.log('[CancelStopPayment] Initializing module...');
-        loadContext();
+        wireSectionToggles();
+        const ctx = loadContext();
 
         // Initial data load
-        if (state.accountId) {
+        if (ctx.accountId) {
             loadData();
         } else {
             AppCore.showMsg('No account context found. Please select an account.', 'warning');
@@ -44,48 +45,78 @@ window.CancelStopPaymentModule = (function () {
         wireInternalLookups();
     }
 
+    function wireSectionToggles() {
+        document.querySelectorAll('[data-section-toggle]').forEach(header => {
+            if (header._wiredSectionToggle) return;
+            header._wiredSectionToggle = true;
+
+            header.addEventListener('click', function () {
+                const section = this.closest('.form-section');
+                const content = section?.querySelector('[data-section-content], .section-content');
+                const btn = section?.querySelector('.section-toggle-btn');
+                const icon = btn?.querySelector('i');
+                if (!content) return;
+
+                const expanded = (btn?.getAttribute('aria-expanded') ?? 'true') === 'true';
+                content.style.display = expanded ? 'none' : '';
+                btn?.setAttribute('aria-expanded', String(!expanded));
+
+                if (icon) {
+                    icon.classList.toggle('bi-chevron-up', !expanded);
+                    icon.classList.toggle('bi-chevron-down', expanded);
+                }
+            });
+        });
+    }
+
     /**
      * Load account and branch context from global state or session
      */
-    function loadContext() {
+    function getContext() {
         const globalState = window.AccountMaintenanceState || {};
-        state.accountId = globalState.AccountID || sessionStorage.getItem('currentAccountID') || '';
-        state.branchId = globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '';
-        state.operatorId = globalState.OperatorID || localStorage.getItem('OperatorID') || 'SYSTEM';
+        return {
+            accountId: globalState.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            branchId: globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            operatorId: globalState.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM',
+            accountName: globalState.AccountName || sessionStorage.getItem('currentAccountName') || '',
+            branchName: globalState.BranchName || sessionStorage.getItem('currentBranchName') || ''
+        };
+    }
 
-        // Update UI with IDs
+    function applyContextToIdentification(ctx) {
         const branchInput = document.getElementById('branchId');
         const accountInput = document.getElementById('accountId');
-        if (branchInput) branchInput.value = state.branchId;
-        if (accountInput) accountInput.value = state.accountId;
+        const branchNameInput = document.getElementById('branchName');
+        const accountNameInput = document.getElementById('accountName');
 
-        if (globalState.BranchName) {
-            const branchNameInput = document.getElementById('branchName');
-            if (branchNameInput) branchNameInput.value = globalState.BranchName;
-        }
-        if (globalState.AccountName) {
-            const accountNameInput = document.getElementById('accountName');
-            if (accountNameInput) accountNameInput.value = globalState.AccountName;
-        }
+        if (branchInput) branchInput.value = ctx.branchId;
+        if (accountInput) accountInput.value = ctx.accountId;
+        if (branchNameInput) branchNameInput.value = ctx.branchName;
+        if (accountNameInput) accountNameInput.value = ctx.accountName;
+    }
+
+    function loadContext() {
+        const ctx = getContext();
+        state.accountId = ctx.accountId;
+        state.branchId = ctx.branchId;
+        state.operatorId = ctx.operatorId;
+        applyContextToIdentification(ctx);
+        return ctx;
     }
 
     /**
      * Load data from the server
      */
     async function loadData() {
-        if (!state.accountId) return;
+        const ctx = loadContext();
+        if (!ctx.accountId || !ctx.branchId) return;
 
         AppCore.showLoading(true);
         try {
-            const ctx = {
-                OurBranchID: state.branchId,
-                AccountID: state.accountId,
-                OperatorID: state.operatorId
-            };
             const result = await AppCore.invokeControllerAsync(API.GET, {
-                OurBranchID: ctx.OurBranchID,
-                AccountID: ctx.AccountID,
-                OperatorID: ctx.OperatorID
+                OurBranchID: ctx.branchId,
+                AccountID: ctx.accountId,
+                OperatorID: ctx.operatorId
             });
 
             if (result && result.ResponseCode === '00') {
@@ -184,11 +215,11 @@ window.CancelStopPaymentModule = (function () {
         document.getElementById('requestRef').value = rec.RequestReferenceNo || rec.RequestRef || '';
         document.getElementById('chequeNoStart').value = rec.StartChequeID || rec.ChequeNoStart || '';
         document.getElementById('chequeNoEnd').value = rec.EndChequeID || rec.ChequeNoEnd || '';
-        document.getElementById('chequeDate').value = rec.ChequeDate ? rec.ChequeDate.split('T')[0] : '';
+        document.getElementById('chequeDate').value = formatDateForInput(rec.ChequeDate);
         document.getElementById('chequeAmount').value = rec.ChequeAmount || '0.00';
         document.getElementById('reasonId').value = rec.CancelReasonID || rec.ReasonId || '';
         document.getElementById('reasonText').value = rec.CancelReason || rec.ReasonText || '';
-        document.getElementById('cancellationDate').value = (rec.CancelledDate || rec.CancellationDate) ? (rec.CancelledDate || rec.CancellationDate).split('T')[0] : '';
+        document.getElementById('cancellationDate').value = formatDateForInput(rec.CancelledDate || rec.CancellationDate);
         document.getElementById('instructionGivenBy').value = rec.CancelledBy || rec.InstructionGivenBy || '';
 
         state.currentUpdateCount = parseInt(rec.UpdateCount || 0);
@@ -199,6 +230,21 @@ window.CancelStopPaymentModule = (function () {
         document.getElementById('MakerDT').textContent = AppCore.formatDate(rec.MakerDT || rec.CreatedOn, true);
         document.getElementById('SupervisorID').textContent = rec.SupervisorID || rec.SupervisedBy || '-';
         document.getElementById('SupervisorDT').textContent = AppCore.formatDate(rec.SupervisorDT || rec.SupervisedOn, true);
+    }
+
+    function formatDateForInput(dateStr) {
+        if (!dateStr) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateStr);
+            if (parsed) return parsed;
+        }
+        try {
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            return d.toISOString().split('T')[0];
+        } catch {
+            return '';
+        }
     }
 
     /**
@@ -319,6 +365,7 @@ window.CancelStopPaymentModule = (function () {
      */
     async function saveData() {
         if (state.currentMode === 'VIEW') return;
+        const ctx = loadContext();
 
         // Validation
         const startCh = document.getElementById('chequeNoStart').value.trim();
@@ -336,10 +383,10 @@ window.CancelStopPaymentModule = (function () {
         try {
             const isAdd = state.currentMode === 'ADD';
             const payload = {
-                OurBranchID: state.branchId,
+                OurBranchID: ctx.branchId,
                 AccountTypeID: 'C',
-                AccountID: state.accountId,
-                OperatorID: state.operatorId,
+                AccountID: ctx.accountId,
+                OperatorID: ctx.operatorId,
                 RequestReferenceNo: document.getElementById('requestRef').value.trim(),
                 StartChequeID: startCh,
                 EndChequeID: endCh,
@@ -381,6 +428,8 @@ window.CancelStopPaymentModule = (function () {
             return;
         }
 
+        const ctx = loadContext();
+
         const confirmed = await AppCore.showConfirmation('Confirm Delete', 'Are you sure you want to delete this cancel stop payment record?');
         if (!confirmed) return;
 
@@ -388,10 +437,10 @@ window.CancelStopPaymentModule = (function () {
         try {
             const rec = state.records[state.selectedIndex];
             const payload = {
-                OurBranchID: state.branchId,
+                OurBranchID: ctx.branchId,
                 AccountTypeID: 'C',
-                AccountID: state.accountId,
-                OperatorID: state.operatorId,
+                AccountID: ctx.accountId,
+                OperatorID: ctx.operatorId,
                 RequestReferenceNo: rec.RequestReferenceNo || rec.RequestRef || '',
                 NewRecord: -1 // Signal for delete
             };

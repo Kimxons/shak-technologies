@@ -21,6 +21,36 @@
                     <input type="hidden" id="sessionOperatorId_sit" value="@ViewData["OperatorId"]" />
 
                     <!-- ═══════════════════════════════════════════════════════ -->
+                    <!-- SECTION: Standing Instruction Lookup                    -->
+                    <!-- ═══════════════════════════════════════════════════════ -->
+                    <div class="form-section" data-section="si-lookup">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-arrow-left-right"></i> Standing Instruction</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle SI Lookup" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_standingInstructionId">Standing Instruction ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input id="txt_standingInstructionId" name="StandingInstructionID" type="text" class="kairo-control__id" placeholder="ID" data-si-field />
+                                        <input id="txt_standingInstructionName" type="text" class="kairo-control__name" placeholder="Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="StandingInstructionID" data-si-field aria-label="Search SI">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_referenceNo">Reference No.</label>
+                                    <input id="txt_referenceNo" name="ReferenceNo" type="text" class="bs-input-text" maxlength="50" data-si-field />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════ -->
                     <!-- SECTION: Account Details                                -->
                     <!-- ═══════════════════════════════════════════════════════ -->
                     <div class="form-section" data-section="account-details">
@@ -36,7 +66,7 @@
                                     <label class="label-blue" for="txt_branchId">Branch</label>
                                     <div class="kairo-control" data-kairo-control>
                                         <input id="txt_branchId" name="BranchID" type="text" class="kairo-control__id" readonly data-always-readonly />
-                                        <input id="txt_branchName" type="text" class="kairo-control__name" readonly data-always-readonly />
+                                        <input id="txt_branchName" type="text" class="kairo-control__name" readonly data-always-readonly style="border-right: 1px solid var(--color-border, #e2e8f0); border-top-right-radius: 4px; border-bottom-right-radius: 4px;" />
                                     </div>
                                 </div>
                                 <div class="col">
@@ -54,32 +84,16 @@
                     </div>
 
                     <!-- ═══════════════════════════════════════════════════════ -->
-                    <!-- SECTION: Standing Instruction Details                   -->
+                    <!-- SECTION: SI Details                                     -->
                     <!-- ═══════════════════════════════════════════════════════ -->
                     <div class="form-section" data-section="si-details">
                         <div class="section-header" data-section-toggle>
-                            <span class="section-header__title"><i class="bi bi-arrow-left-right"></i> Standing Instruction Details</span>
+                            <span class="section-header__title"><i class="bi bi-gear"></i> SI Details</span>
                             <button type="button" class="section-toggle-btn" aria-label="Toggle SI Details" aria-expanded="true">
                                 <i class="bi bi-chevron-up"></i>
                             </button>
                         </div>
                         <div class="section-content" data-section-content>
-                            <div class="form-row two-col">
-                                <div class="col">
-                                    <label class="label-blue" for="txt_standingInstructionId">Standing Instruction ID <span class="text-danger">*</span></label>
-                                    <div class="kairo-control" data-kairo-control>
-                                        <input id="txt_standingInstructionId" name="StandingInstructionID" type="text" class="kairo-control__id" placeholder="ID" />
-                                        <input id="txt_standingInstructionName" type="text" class="kairo-control__name" placeholder="Name" readonly />
-                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="StandingInstructionID" aria-label="Search SI">
-                                            <i class="bi bi-search"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <label class="label-blue" for="txt_referenceNo">Reference No.</label>
-                                    <input id="txt_referenceNo" name="ReferenceNo" type="text" class="bs-input-text" maxlength="50" />
-                                </div>
-                            </div>
                             <div class="form-row two-col">
                                 <div class="col">
                                     <label class="label-blue" for="ddl_siType">SI Type <span class="text-danger">*</span></label>
@@ -121,6 +135,8 @@
                                     <label class="label-blue" for="ddl_amountIn">Amount In</label>
                                     <select id="ddl_amountIn" name="AmountIn" class="bs-select">
                                         <option value="">--Select--</option>
+                                        <option value="transaction">Transaction CurrencyID</option>
+                                        <option value="transfer">Transfer CurrencyID</option>
                                     </select>
                                 </div>
                             </div>
@@ -341,6 +357,85 @@
     </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- SIGNATURE / PHOTO POPUP MODAL                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="signatoryModal" tabindex="-1" aria-labelledby="signatoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2" style="background: linear-gradient(135deg, #0078d4, #005a9e); color: #fff;">
+                <h6 class="modal-title mb-0" id="signatoryModalLabel">Signature / Photo</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <!-- Status message -->
+                <div id="signatoryStatus" class="alert alert-info py-1 px-2 mb-3 small" style="display:none;"></div>
+
+                <div class="row g-3">
+                    <!-- Signature Panel -->
+                    <div class="col-md-6">
+                        <div class="border rounded">
+                            <div class="px-3 py-2 fw-bold text-white" style="background:#0078d4;">Signature</div>
+                            <div id="signatureImageContainer" class="d-flex align-items-center justify-content-center" style="height:220px; background:#f8f9fa;">
+                                <span class="text-muted">No signature available</span>
+                            </div>
+                            <div class="px-3 py-2 small">
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned By</div>
+                                    <div class="col-8"><span id="sigScannedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned On</div>
+                                    <div class="col-8"><span id="sigScannedOn">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised By</div>
+                                    <div class="col-8"><span id="sigSupervisedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised On</div>
+                                    <div class="col-8"><span id="sigSupervisedOn">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Photo Panel -->
+                    <div class="col-md-6">
+                        <div class="border rounded">
+                            <div class="px-3 py-2 fw-bold text-white" style="background:#0078d4;">Photo</div>
+                            <div id="photoImageContainer" class="d-flex align-items-center justify-content-center" style="height:220px; background:#f8f9fa;">
+                                <span class="text-muted">No photo available</span>
+                            </div>
+                            <div class="px-3 py-2 small">
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned By</div>
+                                    <div class="col-8"><span id="photoScannedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Scanned On</div>
+                                    <div class="col-8"><span id="photoScannedOn">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised By</div>
+                                    <div class="col-8"><span id="photoSupervisedBy">-</span></div>
+                                </div>
+                                <div class="row g-1">
+                                    <div class="col-4 text-end text-muted">Supervised On</div>
+                                    <div class="col-8"><span id="photoSupervisedOn">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSignatoryPrint"><i class="bi bi-printer me-1"></i>Print</button>
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"><i class="bi bi-arrow-left me-1"></i>Back</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
-    <script src="~/js/modules/accountutilities/standing-instruction-transfer.js"></script>
+    <script type="text/javascript" src="~/js/modules/accountutilities/standing-instruction-transfer.js"></script>
 }

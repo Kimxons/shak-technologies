@@ -1,563 +1,617 @@
 /**
  * Direct Debit Maintenance Module
- * Migrated from: public/modules/AccountUtilities/direct-debit-maintenance.js
- *
- * Handles CRUD for Direct Debit Instruction records via:
- *   POST /AccountUtilities/api/save-direct-debit → dbo.p_AddEditDirectDebitTransfer
+ * Standardized for KAIRO MVC using AppCore.invokeControllerAsync
  */
-
 window.DirectDebitMaintenanceModule = (function () {
     'use strict';
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // State
-    // ─────────────────────────────────────────────────────────────────────────
+    // Module State
     const state = {
-        branchId: '',
-        operatorId: '',
-        currentMode: 'VIEW',   // VIEW | ADD | EDIT
-        originalData: null,
-        searchModal: null
+        submoduleName: 'DirectDebitMaintenance',
+        moduleId: '1000',
+        currentMode: 'VIEW', // VIEW, ADD, EDIT
+        isDirty: false,
+        selectedIndex: -1,
+        searchKey: null
     };
 
+    let searchModal = null;
+
+    // Elements
+    const elements = {
+        form: document.getElementById('frm_directDebitMaintenance'),
+        loadingOverlay: document.getElementById('dv_loadingOverlay'),
+        msgPanel: document.querySelector('.am-message-panel'),
+        msgText: document.querySelector('.message-text')
+    };
+
+    // Action Buttons
+    const buttons = {
+        view: document.getElementById('btn_view'),
+        add: document.getElementById('btn_add'),
+        edit: document.getElementById('btn_edit'),
+        save: document.getElementById('btn_save'),
+        cancel: document.getElementById('btn_cancel'),
+        delete: document.getElementById('btn_delete'),
+        stop: document.getElementById('btn_stop'),
+        print: document.getElementById('btn_print'),
+
+        searchBranch: document.getElementById('btn_searchBranch'),
+        searchAccount: document.getElementById('btn_searchAccount'),
+        searchDDInstruction: document.getElementById('btn_searchDDInstruction'),
+        searchCurrency: document.getElementById('btn_searchCurrency'),
+        searchContraBank: document.getElementById('btn_searchContraBank'),
+        searchContraBranch: document.getElementById('btn_searchContraBranch'),
+        sectionToggles: document.querySelectorAll('.section-toggle-btn')
+    };
+
+    // API Endpoints (mapped to AccountUtilitiesController)
     const API = {
-        SAVE: '/AccountUtilities/api/save-direct-debit'
+        GET: 'AccountUtilities/api/get-direct-debit-maintenance',
+        CREATE: 'AccountUtilities/api/create-direct-debit-maintenance',
+        UPDATE: 'AccountUtilities/api/update-direct-debit-maintenance',
+        DELETE: 'AccountUtilities/api/delete-direct-debit-maintenance',
+        STOP: 'AccountUtilities/api/stop-direct-debit-maintenance'
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────
-    const getEl  = (id) => document.getElementById(id);
-    const val    = (id) => (getEl(id)?.value ?? '').trim();
-    const setVal = (id, v) => { const el = getEl(id); if (el) el.value = v ?? ''; };
-    const setText = (id, v) => { const el = getEl(id); if (el) el.textContent = v || '-'; };
+    // ─────────────────────────────────────────────────────────────
+    // Initialization
+    // ─────────────────────────────────────────────────────────────
 
-    function isSuccess(result) {
-        if (!result) return false;
-        const code = result.ResponseCode ?? result.responseCode ?? result.StatusCode ?? '';
-        return String(code) === '00' || String(code) === '0' || result.success === true;
+    function init() {
+        console.log('🚀 Initializing Direct Debit Maintenance module...');
+        
+        searchModal = new SearchModal(window.AppCore);
+
+        wireButtons();
+        wireLookups();
+        wireFormChanges();
+        wireSectionToggles();
+
+        setMode('VIEW');
+        
+        // Formulate window controls
+        document.querySelector('[data-action="close"]')?.addEventListener('click', () => {
+            if (state.isDirty && !confirm('You have unsaved changes. Are you sure you want to close?')) return;
+            window.close(); // Or navigate back
+            window.location.href = '/Dashboard/Index';
+        });
+        document.querySelector('[data-action="refresh"]')?.addEventListener('click', () => {
+            if (state.searchKey) loadData(state.searchKey);
+            else clearForm();
+        });
+
+        console.log('✅ DirectDebitMaintenanceModule initialized');
     }
 
-    function pad2(n) { return String(n).padStart(2, '0'); }
+    // ─────────────────────────────────────────────────────────────
+    // Form & UI State Management
+    // ─────────────────────────────────────────────────────────────
 
-    function formatRequestTime(date = new Date()) {
-        return `${pad2(date.getMonth() + 1)}/${pad2(date.getDate())}/${date.getFullYear()} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
-    }
-
-    /** Convert HTML date input (YYYY-MM-DD) to smalldatetime (MM/DD/YYYY) */
-    function toApiDate(htmlDate) {
-        if (!htmlDate) return '';
-        const parts = htmlDate.split('-');
-        if (parts.length !== 3) return htmlDate;
-        return `${parts[1]}/${parts[2]}/${parts[0]}`;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Session context
-    // ─────────────────────────────────────────────────────────────────────────
-    function loadContext() {
-        state.branchId = sessionStorage.getItem('currentBranchID')
-            || sessionStorage.getItem('OurBranchID')
-            || sessionStorage.getItem('branch_code')
-            || '';
-
-        state.operatorId = sessionStorage.getItem('currentOperatorID')
-            || sessionStorage.getItem('OperatorID')
-            || sessionStorage.getItem('user_name')
-            || 'SYSTEM';
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Form field IDs (editable controls)
-    // ─────────────────────────────────────────────────────────────────────────
-    const FIELD_IDS = [
-        'txt_branchId',
-        'txt_accountId',
-        'txt_directDebitInstructionId',
-        'txt_referenceNo',
-        'txt_transactionCurrencyId',
-        'txt_fixedAmount',
-        'txt_effectiveDate',
-        'ddl_transferFrequency',
-        'txt_noOfExecution',
-        'txt_firstExecutionDate',
-        'txt_lastExecutionDate',
-        'txt_valueDate',
-        'ddl_chargeRecovery',
-        'ddl_directDebitType',
-        'txt_bankId',
-        'txt_contraBranchId',
-        'txt_contraAccountId',
-        'txt_originatorCode',
-        'txa_remarks'
-    ];
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Mode management
-    // ─────────────────────────────────────────────────────────────────────────
     function setMode(mode) {
-        console.log('[DDM] Setting mode:', mode);
         state.currentMode = mode;
-
         const isEditing = mode === 'ADD' || mode === 'EDIT';
 
-        // Enable / disable form fields
-        FIELD_IDS.forEach(id => {
-            const el = getEl(id);
-            if (!el) return;
-            el.disabled = !isEditing;
-        });
+        // Enable/Disable form fields
+        const inputs = elements.form.querySelectorAll('input:not([readonly]):not([type="hidden"]), select:not([readonly]), textarea:not([readonly])');
+        inputs.forEach(el => el.disabled = !isEditing);
+        
+        // Special lookup buttons
+        const lookups = [buttons.searchBranch, buttons.searchAccount, buttons.searchDDInstruction, buttons.searchCurrency, buttons.searchContraBank, buttons.searchContraBranch];
+        lookups.forEach(btn => { if (btn) btn.disabled = !isEditing; });
 
-        // Search buttons follow edit mode
-        ['btn_searchBranch', 'btn_searchAccount', 'btn_searchDDInstruction',
-         'btn_searchCurrency', 'btn_searchContraBank', 'btn_searchContraBranch'].forEach(id => {
-            const el = getEl(id);
-            if (el) el.disabled = !isEditing;
-        });
+        // In View Mode, DD Instruction search is used to load data
+        if (mode === 'VIEW') {
+            if (buttons.searchDDInstruction) buttons.searchDDInstruction.disabled = false;
+        }
 
-        // DD Instruction search always available for lookup/view
-        const searchDD = getEl('btn_searchDDInstruction');
-        if (searchDD) searchDD.disabled = false;
+        // Action Buttons
+        if (buttons.view) buttons.view.disabled = isEditing;
+        if (buttons.add) buttons.add.disabled = isEditing;
+        if (buttons.edit) buttons.edit.disabled = isEditing || !state.searchKey;
+        if (buttons.delete) buttons.delete.disabled = isEditing || !state.searchKey;
+        if (buttons.stop) buttons.stop.disabled = isEditing || !state.searchKey;
+        if (buttons.print) buttons.print.disabled = isEditing || !state.searchKey;
+        if (buttons.save) buttons.save.disabled = !isEditing;
+        if (buttons.cancel) buttons.cancel.disabled = !isEditing;
 
-        // Action buttons
-        const btnStates = {
-            view:   { active: mode === 'VIEW', disabled: mode === 'VIEW' },
-            add:    { active: mode === 'ADD',  disabled: isEditing       },
-            edit:   { active: mode === 'EDIT', disabled: isEditing       },
-            delete: { active: false,           disabled: isEditing       },
-            save:   { active: false,           disabled: !isEditing      },
-            cancel: { active: false,           disabled: !isEditing      },
-            stop:   { active: false,           disabled: isEditing       },
-            print:  { active: false,           disabled: isEditing       }
-        };
+        if (!isEditing) {
+            state.isDirty = false;
+        }
 
-        Object.entries(btnStates).forEach(([action, cfg]) => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (!btn) return;
-            btn.classList.toggle('active', cfg.active);
-            btn.disabled = cfg.disabled;
-        });
-
-        if (mode === 'ADD') clearForm();
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Form population & clearing
-    // ─────────────────────────────────────────────────────────────────────────
-    function populateForm(r) {
-        if (!r) return;
-
-        setVal('txt_branchId',                  r.OurBranchID || r.BranchID || '');
-        setVal('txt_branchName',                r.BranchName || '');
-        setVal('txt_accountId',                 r.AccoutID || r.AccountID || r.DebitAccountID || '');
-        setVal('txt_accountName',               r.AccountName || '');
-        setVal('txt_directDebitInstructionId',   r.DDID || r.DirectDebitInstructionID || r.SIID || '');
-        setVal('txt_referenceNo',               r.ReferenceNo || '');
-        setVal('txt_transactionCurrencyId',     r.CurrencyID || r.TransactionCurrencyID || r.TrfCurrencyID || '');
-        setVal('txt_fixedAmount',               r.FixedAmount || r.Amount || '');
-        setVal('txt_effectiveDate',             r.EffectiveDate || '');
-        setVal('ddl_transferFrequency',         r.TransferFrequency || r.TrfFrequencyID || '');
-        setVal('txt_noOfExecution',             r.NoOfExecution || r.NoOfExecutions || '');
-        setVal('txt_firstExecutionDate',        r.FirstExecutionDate || '');
-        setVal('txt_lastExecutionDate',         r.LastExecutionDate || '');
-        setVal('txt_valueDate',                 r.ValueDate || '');
-        setVal('txt_standingInstructionStatus', r.StatusDescription || r.Status || r.SIStatusID || '');
-        setVal('ddl_chargeRecovery',            r.ChargeRecovery || r.ChargeTypeID || '');
-        setVal('ddl_directDebitType',           r.DirectDebitType || r.SITypeID || '');
-        setVal('txt_bankId',                    r.ContraBankID || r.BankID || r.CreditAccountBankID || '');
-        setVal('txt_contraBranchId',            r.ContraBranchID || r.CreditAccountBranchID || '');
-        setVal('txt_contraAccountId',           r.ContraAccountID || r.CreditAccountID || '');
-        setVal('txt_originatorCode',            r.OrigCode || r.OriginatorCode || '');
-        setVal('txt_originatorRef',             r.OrigRef || r.OriginatorRef || '');
-        setVal('txt_policyNumber1',             r.Policy1 || r.PolicyNumber1 || '');
-        setVal('txt_policyNumber2',             r.Policy2 || r.PolicyNumber2 || '');
-        setVal('txt_returnCode',                r.ReturnCode || '00');
-        setVal('txa_remarks',                   r.Remarks || r.Reference || '');
-
-        // Audit (Behind The Scene)
-        setText('ddm_nextExecutionDate', r.NextExecutionDate || '-');
-        setText('ddm_lastRunDate',       r.LastRunDate || '-');
-        setText('ddm_lastRunStatus',     r.LastRunStatus || '-');
-        setText('ddm_noOfTimesFailed',   r.NoOfTimesFailed || '-');
-        setText('ddm_stoppedReason',     r.StoppedReason || '-');
-        setText('ddm_createdBy',         r.CreatedBy || '-');
-        setText('ddm_createdOn',         r.CreatedOn || '-');
-        setText('ddm_modifiedBy',        r.ModifiedBy || '-');
-        setText('ddm_modifiedOn',        r.ModifiedOn || '-');
-        setText('ddm_stoppedBy',         r.StoppedBy || '-');
-        setText('ddm_stoppedOn',         r.StoppedOn || '-');
-        setText('ddm_supervisedBy',      r.SupervisedBy || '-');
-        setText('ddm_supervisedOn',      r.SupervisedOn || '-');
-
-        state.originalData = { ...r };
+        clearMessages();
     }
 
     function clearForm() {
-        FIELD_IDS.forEach(id => {
-            const el = getEl(id);
-            if (!el) return;
-            el.value = '';
+        elements.form.reset();
+        
+        // Clear pseudo-readonly lookup descriptions
+        document.getElementById('txt_branchName').value = '';
+        document.getElementById('txt_accountName').value = '';
+        document.getElementById('txt_standingInstructionStatus').value = '';
+        document.getElementById('txt_originatorRef').value = '';
+        document.getElementById('txt_policyNumber1').value = '';
+        document.getElementById('txt_policyNumber2').value = '';
+        
+        // Clear audit
+        document.getElementById('spn_nextExecutionDate').textContent = '-';
+        document.getElementById('spn_lastRunDate').textContent = '-';
+        document.getElementById('spn_lastRunStatus').textContent = '-';
+        document.getElementById('spn_noOfTimesFailed').textContent = '-';
+        document.getElementById('spn_stoppedReason').textContent = '-';
+        document.getElementById('spn_createdBy').textContent = '-';
+        document.getElementById('spn_createdOn').textContent = '-';
+        document.getElementById('spn_modifiedBy').textContent = '-';
+        document.getElementById('spn_modifiedOn').textContent = '-';
+        document.getElementById('spn_stoppedBy').textContent = '-';
+        document.getElementById('spn_stoppedOn').textContent = '-';
+        document.getElementById('spn_supervisedBy').textContent = '-';
+        document.getElementById('spn_supervisedOn').textContent = '-';
+
+        state.searchKey = null;
+        state.isDirty = false;
+    }
+
+    function wireFormChanges() {
+        if (!elements.form) return;
+        elements.form.addEventListener('change', () => {
+            if (state.currentMode !== 'VIEW') {
+                state.isDirty = true;
+            }
         });
-
-        // Clear readonly fields
-        ['txt_branchName', 'txt_accountName', 'txt_standingInstructionStatus',
-         'txt_originatorRef', 'txt_policyNumber1', 'txt_policyNumber2'].forEach(id => setVal(id, ''));
-        setVal('txt_returnCode', '00');
-        setVal('txa_remarks', '');
-
-        // Clear audit fields
-        ['ddm_nextExecutionDate', 'ddm_lastRunDate', 'ddm_lastRunStatus', 'ddm_noOfTimesFailed',
-         'ddm_stoppedReason', 'ddm_createdBy', 'ddm_createdOn', 'ddm_modifiedBy', 'ddm_modifiedOn',
-         'ddm_stoppedBy', 'ddm_stoppedOn', 'ddm_supervisedBy', 'ddm_supervisedOn'].forEach(id => setText(id, '-'));
-
-        state.originalData = null;
+        elements.form.addEventListener('input', () => {
+            if (state.currentMode !== 'VIEW') {
+                state.isDirty = true;
+            }
+        });
     }
 
-    function restoreForm() {
-        if (state.originalData) {
-            populateForm(state.originalData);
+    function wireSectionToggles() {
+        buttons.sectionToggles.forEach(btn => {
+            const header = btn.closest('.section-header');
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                if (!content) return;
+                
+                const isHidden = content.hasAttribute('hidden');
+                if (isHidden) {
+                    content.removeAttribute('hidden');
+                    btn.innerHTML = '<i class="bi bi-chevron-up"></i>';
+                    btn.setAttribute('aria-expanded', 'true');
+                } else {
+                    content.setAttribute('hidden', '');
+                    btn.innerHTML = '<i class="bi bi-chevron-down"></i>';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Alerts & UI Feedback
+    // ─────────────────────────────────────────────────────────────
+
+    function showLoading(show) {
+        if (elements.loadingOverlay) {
+            if (show) elements.loadingOverlay.removeAttribute('hidden');
+            else elements.loadingOverlay.setAttribute('hidden', '');
+        }
+    }
+
+    function showMsg(msg, type = 'info') {
+        if (AppCore && AppCore.showNotification) {
+            AppCore.showNotification(msg, type);
+        } else if (elements.msgPanel && elements.msgText) {
+            elements.msgPanel.className = `am-message-panel am-message-panel--${type}`;
+            elements.msgText.textContent = msg;
+            elements.msgPanel.style.display = 'flex';
         } else {
-            clearForm();
+            alert(msg);
         }
     }
 
-    function collectFormData() {
-        return {
-            OurBranchID:            val('txt_branchId'),
-            SIID:                   val('txt_directDebitInstructionId'),
-            ReferenceNo:            val('txt_referenceNo') || '0',
-            SITypeID:               val('ddl_directDebitType'),
-            EffectiveDate:          toApiDate(val('txt_effectiveDate')),
-            DebitAccountID:         val('txt_accountId'),
-            TrfCurrencyID:          val('txt_transactionCurrencyId'),
-            AmountTypeID:           '',
-            Amount:                 val('txt_fixedAmount') || '0',
-            TrfFrequencyID:         val('ddl_transferFrequency'),
-            NoOfExecutions:         val('txt_noOfExecution') || '1',
-            FirstExecutionDate:     toApiDate(val('txt_firstExecutionDate')),
-            LastExecutionDate:      toApiDate(val('txt_lastExecutionDate')),
-            ChargeTypeID:           val('ddl_chargeRecovery'),
-            CreditAccountBranchID:  val('txt_contraBranchId'),
-            CreditAccountBankID:    val('txt_bankId'),
-            CreditAccountID:        val('txt_contraAccountId'),
-            SIStatusID:             val('txt_standingInstructionStatus'),
-            OrigCode:               val('txt_originatorCode'),
-            OrigRef:                val('txt_originatorRef'),
-            Policy1:                val('txt_policyNumber1'),
-            Policy2:                val('txt_policyNumber2'),
-            CreatedBy:              state.operatorId,
-            VoucherNo:              '0',
-            Reference:              val('txa_remarks'),
-            ReturnCode:             val('txt_returnCode') || '00',
-            CreatedOn:              formatRequestTime(),
-            SupervisedBy:           '',
-            BBankID:                '00',
-            BBranchID:              val('txt_branchId'),
-            ValueDate:              toApiDate(val('txt_valueDate')),
-            OperatorID:             state.operatorId
-        };
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Validation
-    // ─────────────────────────────────────────────────────────────────────────
-    function validateForm() {
-        const errors = [];
-        if (!val('txt_branchId'))              errors.push('Branch ID is required.');
-        if (!val('txt_accountId'))             errors.push('Account ID is required.');
-        if (!val('txt_transactionCurrencyId')) errors.push('Transaction Currency is required.');
-        if (!val('ddl_directDebitType'))       errors.push('Direct Debit Type is required.');
-        if (!val('txt_effectiveDate'))         errors.push('Effective Date is required.');
-        if (!val('ddl_transferFrequency'))     errors.push('Transfer Frequency is required.');
-
-        if (errors.length > 0) {
-            showMessage(errors.join(' '), 'error');
-            return false;
+    function clearMessages() {
+        if (elements.msgPanel) {
+            elements.msgPanel.style.display = 'none';
         }
-        return true;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // API Calls
-    // ─────────────────────────────────────────────────────────────────────────
-    async function saveData() {
-        if (!validateForm()) return;
+    // ─────────────────────────────────────────────────────────────
+    // API Operations
+    // ─────────────────────────────────────────────────────────────
+
+    async function loadData(searchKey) {
+        if (!searchKey) return;
+        showLoading(true);
 
         try {
-            showLoading(true);
-            const payload = collectFormData();
-
-            const response = await fetch(API.SAVE, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            console.log('[DDM] Save response:', result);
-
-            if (isSuccess(result)) {
-                const action = state.currentMode === 'ADD' ? 'added' : 'updated';
-                showMessage(`Direct Debit Instruction ${action} successfully.`, 'success');
-
-                // If we got back an ID on add, populate it
-                if (state.currentMode === 'ADD') {
-                    const newId = result.data?.SIID || result.data?.DirectDebitInstructionID
-                               || result.Details?.SIID || '';
-                    if (newId) setVal('txt_directDebitInstructionId', newId);
-                }
-
-                state.originalData = { ...collectFormData() };
+            const req = { SearchKey: searchKey, StandingInstructionID: searchKey };
+            const res = await AppCore.invokeControllerAsync(API.GET, req);
+            
+            if (res && res.Success && res.Data) {
+                populateForm(res.Data);
+                state.searchKey = searchKey;
                 setMode('VIEW');
+                showMsg('Data loaded successfully', 'success');
             } else {
-                showMessage(result?.ResponseMessage || result?.message || 'Save failed.', 'error');
+                showMsg(res?.ErrorMessage || 'Failed to load record.', 'error');
             }
         } catch (err) {
-            console.error('[DDM] Save error:', err);
-            showMessage('Error saving record: ' + err.message, 'error');
+            console.error(err);
+            showMsg('Error loading record. See console.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function saveData() {
+        if (!elements.form.checkValidity()) {
+            elements.form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(elements.form);
+        const data = Object.fromEntries(formData.entries());
+
+        showLoading(true);
+        try {
+            const endpoint = state.currentMode === 'ADD' ? API.CREATE : API.UPDATE;
+            const res = await AppCore.invokeControllerAsync(endpoint, data);
+
+            if (res && res.Success) {
+                showMsg('Saved successfully.', 'success');
+                state.isDirty = false;
+                setMode('VIEW');
+                if (data.directDebitInstructionId) {
+                    state.searchKey = data.directDebitInstructionId;
+                    loadData(state.searchKey);
+                }
+            } else {
+                showMsg(res?.ErrorMessage || 'Failed to save record.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showMsg('Error saving record.', 'error');
         } finally {
             showLoading(false);
         }
     }
 
     async function deleteData() {
-        const ddId = val('txt_directDebitInstructionId');
-        if (!ddId) {
-            showMessage('No record selected to delete.', 'warning');
-            return;
-        }
+        if (!state.searchKey) return;
 
-        if (!confirm('Delete this Direct Debit Instruction?')) return;
-
-        try {
-            showLoading(true);
-            const payload = {
-                SIID:        ddId,
-                OurBranchID: state.branchId,
-                OperatorID:  state.operatorId,
-                NewRecord:   '2'   // convention: 2 = delete
-            };
-
-            const response = await fetch(API.SAVE, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-
-            if (isSuccess(result)) {
-                showMessage('Record deleted.', 'success');
-                clearForm();
-                setMode('VIEW');
-            } else {
-                showMessage(result?.ResponseMessage || 'Delete failed.', 'error');
-            }
-        } catch (err) {
-            console.error('[DDM] Delete error:', err);
-            showMessage('Error deleting record: ' + err.message, 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // UI helpers
-    // ─────────────────────────────────────────────────────────────────────────
-    function showLoading(visible) {
-        const overlay = getEl('ddm_loadingOverlay');
-        if (overlay) overlay.hidden = !visible;
-    }
-
-    function showMessage(text, type) {
-        const panel = getEl('ddm_messagePanel');
-        const span  = getEl('ddm_messageText');
-        if (!panel || !span) return;
-
-        span.textContent = text;
-        panel.className  = `am-message-panel am-message-panel--${type || 'info'}`;
-        panel.hidden = false;
-
-        if (type !== 'error') {
-            setTimeout(() => { panel.hidden = true; }, 4000);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Section toggle wiring
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const section = this.closest('.form-section');
-                const content = section?.querySelector('[data-section-content]');
-                const icon    = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', String(!isExpanded));
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up',   !isExpanded);
-                    icon.classList.toggle('bi-chevron-down',  isExpanded);
+        AppCore.showConfirmation({
+            title: 'Confirm Delete',
+            message: 'Are you sure you want to delete this Direct Debit Instruction?',
+            confirmButtonText: 'Delete',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async () => {
+                showLoading(true);
+                try {
+                    const req = { StandingInstructionID: state.searchKey };
+                    const res = await AppCore.invokeControllerAsync(API.DELETE, req);
+                    if (res && res.Success) {
+                        showMsg('Deleted successfully.', 'success');
+                        clearForm();
+                        setMode('VIEW');
+                    } else {
+                        showMsg(res?.ErrorMessage || 'Delete failed.', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showMsg('Error deleting.', 'error');
+                } finally {
+                    showLoading(false);
                 }
-            });
+            }
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Action button wiring (View / Add / Edit / Delete / Save / Cancel / Stop / Print)
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireActionButtons() {
-        const actions = {
-            view:   () => { restoreForm(); setMode('VIEW'); },
-            add:    () => { setMode('ADD'); getEl('txt_branchId')?.focus(); },
-            edit:   () => {
-                if (!val('txt_directDebitInstructionId')) {
-                    showMessage('Please load a Direct Debit Instruction first before editing.', 'warning');
-                    return;
+    async function stopData() {
+        if (!state.searchKey) return;
+        
+        AppCore.showConfirmation({
+            title: 'Confirm Stop',
+            message: 'Are you sure you want to stop this Standing Instruction?',
+            confirmButtonText: 'Stop',
+            confirmButtonClass: 'btn-warning',
+            onConfirm: async () => {
+                showLoading(true);
+                try {
+                    const req = { StandingInstructionID: state.searchKey };
+                    const res = await AppCore.invokeControllerAsync(API.STOP, req);
+                    if (res && res.Success) {
+                        showMsg('Stopped successfully.', 'success');
+                        loadData(state.searchKey);
+                    } else {
+                        showMsg(res?.ErrorMessage || 'Stop failed.', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showMsg('Error stopping.', 'error');
+                } finally {
+                    showLoading(false);
                 }
-                setMode('EDIT');
-                getEl('txt_referenceNo')?.focus();
-            },
-            delete: () => deleteData(),
-            save:   () => saveData(),
-            cancel: () => { restoreForm(); setMode('VIEW'); },
-            stop:   () => {
-                setVal('txt_standingInstructionStatus', 'Stopped');
-                showMessage('Status set to Stopped. Save to persist.', 'info');
-            },
-            print:  () => window.print()
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Form Population
+    // ─────────────────────────────────────────────────────────────
+
+    function populateForm(data) {
+        clearForm();
+        if (!data) return;
+        
+        // We handle mapping generic DTOs array or object
+        const row = Array.isArray(data) ? data[0] : data;
+        
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
         };
 
-        Object.entries(actions).forEach(([action, handler]) => {
-            document.querySelector(`[data-action="${action}"]`)
-                ?.addEventListener('click', handler);
-        });
+        const setDate = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val) {
+                try {
+                     const d = new Date(val);
+                     if(!isNaN(d)) el.value = d.toISOString().split('T')[0];
+                } catch(e){}
+            }
+        };
+
+        setVal('ddl_directDebitType', row.DirectDebitType);
+        
+        setVal('txt_branchId', row.OurBranchID || row.BranchID);
+        setVal('txt_branchName', row.BranchName);
+        
+        setVal('txt_accountId', row.AccountID);
+        setVal('txt_accountName', row.AccountName || row.Description);
+        
+        setVal('txt_directDebitInstructionId', row.DirectDebitInstructionID || row.StandingInstructionID);
+        setVal('txt_referenceNo', row.ReferenceNo);
+        
+        setVal('txt_transactionCurrencyId', row.CurrencyID || row.TransactionCurrencyID);
+        setVal('txt_fixedAmount', row.FixedAmount);
+        
+        setDate('txt_effectiveDate', row.EffectiveDate);
+        setVal('ddl_transferFrequency', row.TransferFrequency);
+        
+        setVal('txt_noOfExecution', row.NoOfExecution);
+        setDate('txt_firstExecutionDate', row.FirstExecutionDate);
+        setDate('txt_lastExecutionDate', row.LastExecutionDate);
+        setDate('txt_valueDate', row.ValueDate);
+        
+        setVal('txt_standingInstructionStatus', row.StatusDescription || row.Status);
+        setVal('ddl_chargeRecovery', row.ChargeRecovery);
+        
+        setVal('txt_bankId', row.ContraBankID || row.BankID);
+        setVal('txt_contraBranchId', row.ContraBranchID);
+        setVal('txt_contraAccountId', row.ContraAccountID);
+        setVal('txt_originatorCode', row.OriginatorCode);
+        
+        setVal('txt_originatorRef', row.OriginatorRef);
+        setVal('txt_policyNumber1', row.PolicyNumber1);
+        setVal('txt_policyNumber2', row.PolicyNumber2);
+        setVal('txt_returnCode', row.ReturnCode || '00');
+        setVal('txt_remarks', row.Remarks);
+
+        // Audit Fields
+        document.getElementById('spn_nextExecutionDate').textContent = row.NextExecutionDate ? new Date(row.NextExecutionDate).toLocaleDateString() : '-';
+        document.getElementById('spn_lastRunDate').textContent = row.LastRunDate ? new Date(row.LastRunDate).toLocaleDateString() : '-';
+        document.getElementById('spn_lastRunStatus').textContent = row.LastRunStatus || '-';
+        document.getElementById('spn_noOfTimesFailed').textContent = row.NoOfTimesFailed || '-';
+        document.getElementById('spn_stoppedReason').textContent = row.StoppedReason || '-';
+        document.getElementById('spn_createdBy').textContent = row.CreatedBy || '-';
+        document.getElementById('spn_createdOn').textContent = row.CreatedOn ? new Date(row.CreatedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_modifiedBy').textContent = row.ModifiedBy || '-';
+        document.getElementById('spn_modifiedOn').textContent = row.ModifiedOn ? new Date(row.ModifiedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_stoppedBy').textContent = row.StoppedBy || '-';
+        document.getElementById('spn_stoppedOn').textContent = row.StoppedOn ? new Date(row.StoppedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_supervisedBy').textContent = row.SupervisedBy || '-';
+        document.getElementById('spn_supervisedOn').textContent = row.SupervisedOn ? new Date(row.SupervisedOn).toLocaleDateString() : '-';
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SearchModal wiring
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireSearchButtons() {
-        const appCore = window.AppCore;
-        if (!window.SearchModal) {
-            console.warn('[DDM] SearchModal not available - search buttons will be disabled');
-            return;
+    // ─────────────────────────────────────────────────────────────
+    // Action Wiring
+    // ─────────────────────────────────────────────────────────────
+
+    function wireButtons() {
+        if (buttons.view) buttons.view.addEventListener('click', () => {
+            if (state.searchKey) loadData(state.searchKey);
+            else { clearForm(); setMode('VIEW'); }
+        });
+
+        if (buttons.add) buttons.add.addEventListener('click', () => {
+            clearForm();
+            setMode('ADD');
+        });
+
+        if (buttons.edit) buttons.edit.addEventListener('click', () => setMode('EDIT'));
+
+        if (buttons.save) buttons.save.addEventListener('click', () => {
+            if (state.currentMode === 'VIEW') return;
+            saveData();
+        });
+
+        if (buttons.cancel) buttons.cancel.addEventListener('click', () => {
+            if (state.isDirty) {
+                AppCore.showConfirmation({
+                    title: 'Cancel Changes',
+                    message: 'You have unsaved changes. Are you sure you want to cancel?',
+                    onConfirm: () => {
+                        if (state.searchKey) loadData(state.searchKey);
+                        else { clearForm(); setMode('VIEW'); }
+                    }
+                });
+            } else {
+                if (state.searchKey) loadData(state.searchKey);
+                else { clearForm(); setMode('VIEW'); }
+            }
+        });
+
+        if (buttons.delete) buttons.delete.addEventListener('click', deleteData);
+        if (buttons.stop) buttons.stop.addEventListener('click', stopData);
+        if (buttons.print) buttons.print.addEventListener('click', () => window.print());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Lookups (SearchModal)
+    // ─────────────────────────────────────────────────────────────
+
+    function wireLookups() {
+        if (buttons.searchBranch) {
+            buttons.searchBranch.addEventListener('click', () => {
+                searchModal.open({
+                    title: 'Find Branch',
+                    tableID: 'BranchID',
+                    searchFields: [
+                        { name: 'branchId', label: 'Branch ID', column: 'OurBranchID' },
+                        { name: 'branchName', label: 'Branch Name', column: 'BranchName' }
+                    ],
+                    displayFields: [
+                        { key: 'OurBranchID', label: 'Branch ID' },
+                        { key: 'BranchName', label: 'Branch Name' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_branchId').value = r.OurBranchID || r.BranchID || '';
+                        document.getElementById('txt_branchName').value = r.BranchName || r.Description || '';
+                    }
+                });
+            });
         }
 
-        const searchModal = new window.SearchModal(appCore);
-        state.searchModal = searchModal;
-
-        // 1. Branch Search
-        getEl('btn_searchBranch')?.addEventListener('click', () => {
-            searchModal.open({
-                tableID:  'BranchID',
-                moduleID: '1000',
-                onSelect: (record) => {
-                    setVal('txt_branchId',   record.OurBranchID || record.BranchID || '');
-                    setVal('txt_branchName', record.BranchName || record.Description || '');
-                }
+        if (buttons.searchAccount) {
+            buttons.searchAccount.addEventListener('click', () => {
+                const branch = document.getElementById('txt_branchId').value;
+                searchModal.open({
+                    title: 'Find Account',
+                    tableID: 'AccountID',
+                    whereStmt: branch ? `OurBranchID = '${branch}'` : '',
+                    searchFields: [
+                        { name: 'accountId', label: 'Account ID', column: 'AccountID' },
+                        { name: 'accountName', label: 'Account Name', column: 'Name' }
+                    ],
+                    displayFields: [
+                        { key: 'AccountID', label: 'Account ID' },
+                        { key: 'Name', label: 'Name' },
+                        { key: 'ProductID', label: 'Product' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_accountId').value = r.AccountID || '';
+                        document.getElementById('txt_accountName').value = r.Name || r.Description || '';
+                    }
+                });
             });
-        });
+        }
 
-        // 2. Account Search
-        getEl('btn_searchAccount')?.addEventListener('click', () => {
-            const branch = val('txt_branchId');
-            searchModal.open({
-                tableID:  'AccountID',
-                moduleID: '1000',
-                whereStmt: branch ? "OurBranchID = '" + branch + "'" : '',
-                onSelect: (record) => {
-                    setVal('txt_accountId',   record.AccountID || '');
-                    setVal('txt_accountName', record.Name || record.Description || record.AccountName || '');
-                }
+        if (buttons.searchDDInstruction) {
+            buttons.searchDDInstruction.addEventListener('click', () => {
+                const branch = document.getElementById('txt_branchId').value;
+                const acct = document.getElementById('txt_accountId').value;
+                let where = '';
+                if (branch) where += `OurBranchID = '${branch}'`;
+                if (acct) where += (where ? ' AND ' : '') + `AccountID = '${acct}'`;
+
+                searchModal.open({
+                    title: 'Find Direct Debit Instruction',
+                    tableID: 'DirectDebitInstructionID',
+                    whereStmt: where,
+                    searchFields: [
+                        { name: 'instructionId', label: 'Instruction ID', column: 'DirectDebitInstructionID' },
+                        { name: 'referenceNo', label: 'Reference No.', column: 'ReferenceNo' }
+                    ],
+                    displayFields: [
+                        { key: 'DirectDebitInstructionID', label: 'Instruction ID' },
+                        { key: 'AccountID', label: 'Account ID' },
+                        { key: 'ReferenceNo', label: 'Reference No.' },
+                        { key: 'FixedAmount', label: 'Amount' },
+                        { key: 'StatusDescription', label: 'Status' }
+                    ],
+                    onSelect: (r) => {
+                        const id = r.DirectDebitInstructionID || r.StandingInstructionID;
+                        if (id) {
+                            loadData(id);
+                        }
+                    }
+                });
             });
-        });
+        }
 
-        // 3. Direct Debit Instruction Search
-        getEl('btn_searchDDInstruction')?.addEventListener('click', () => {
-            const branch  = val('txt_branchId');
-            const account = val('txt_accountId');
-            let advFilter = '';
-            if (branch)  advFilter += "OurBranchID='" + branch + "'";
-            if (account) advFilter += (advFilter ? ' AND ' : '') + "AccountID='" + account + "'";
-
-            searchModal.open({
-                tableID:         'DDInstruction',
-                moduleID:        '1000',
-                advFilterString: advFilter,
-                onSelect: (record) => {
-                    populateForm(record);
-                    state.originalData = { ...record };
-                    showMessage('Instruction loaded.', 'success');
-                }
+        if (buttons.searchCurrency) {
+            buttons.searchCurrency.addEventListener('click', () => {
+                searchModal.open({
+                    title: 'Find Currency',
+                    tableID: 'MastCurrencyID',
+                    searchFields: [
+                        { name: 'currencyId', label: 'Currency ID', column: 'CurrencyID' }
+                    ],
+                    displayFields: [
+                        { key: 'CurrencyID', label: 'Currency ID' },
+                        { key: 'Description', label: 'Description' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_transactionCurrencyId').value = r.CurrencyID || '';
+                    }
+                });
             });
-        });
+        }
 
-        // 4. Currency Search
-        getEl('btn_searchCurrency')?.addEventListener('click', () => {
-            searchModal.open({
-                tableID:  'MastCurrencyID',
-                moduleID: '1000',
-                onSelect: (record) => {
-                    setVal('txt_transactionCurrencyId', record.CurrencyID || '');
-                }
+        if (buttons.searchContraBank) {
+            buttons.searchContraBank.addEventListener('click', () => {
+                searchModal.open({
+                    title: 'Find Bank',
+                    tableID: 'MastClrBankID',
+                    searchFields: [
+                        { name: 'bankId', label: 'Bank ID', column: 'BankID' }
+                    ],
+                    displayFields: [
+                        { key: 'BankID', label: 'Bank ID' },
+                        { key: 'BankName', label: 'Bank Name' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_bankId').value = r.BankID || r.ClrBankID || '';
+                        document.getElementById('txt_contraBranchId').value = ''; // Reset branch
+                    }
+                });
             });
-        });
+        }
 
-        // 5. Contra Bank Search
-        getEl('btn_searchContraBank')?.addEventListener('click', () => {
-            searchModal.open({
-                tableID:  'MastClrBankID',
-                moduleID: '1000',
-                onSelect: (record) => {
-                    setVal('txt_bankId', record.BankID || record.ClrBankID || '');
-                }
+        if (buttons.searchContraBranch) {
+            buttons.searchContraBranch.addEventListener('click', () => {
+                const bankId = document.getElementById('txt_bankId').value;
+                searchModal.open({
+                    title: 'Find Contra Branch',
+                    tableID: 'BranchID',
+                    whereStmt: bankId ? `BankID = '${bankId}'` : '',
+                    searchFields: [
+                        { name: 'branchId', label: 'Branch ID', column: 'OurBranchID' }
+                    ],
+                    displayFields: [
+                        { key: 'OurBranchID', label: 'Branch ID' },
+                        { key: 'BranchName', label: 'Branch Name' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_contraBranchId').value = r.OurBranchID || r.BranchID || '';
+                    }
+                });
             });
-        });
-
-        // 6. Contra Branch Search
-        getEl('btn_searchContraBranch')?.addEventListener('click', () => {
-            const bankId = val('txt_bankId');
-            searchModal.open({
-                tableID:   'BranchID',
-                moduleID:  '1000',
-                whereStmt: bankId ? "BankID = '" + bankId + "'" : '',
-                onSelect: (record) => {
-                    setVal('txt_contraBranchId', record.OurBranchID || record.BranchID || '');
-                }
-            });
-        });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Message panel close button
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireMessagePanel() {
-        const panel = getEl('ddm_messagePanel');
-        const closeBtn = panel?.querySelector('.am-message-panel__close');
-        closeBtn?.addEventListener('click', () => { panel.hidden = true; });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Public init
-    // ─────────────────────────────────────────────────────────────────────────
-    function init() {
-        console.log('[DDM] Initializing Direct Debit Maintenance module...');
-
-        loadContext();
-        wireActionButtons();
-        wireSectionToggles();
-        wireSearchButtons();
-        wireMessagePanel();
-        setMode('VIEW');
-
-        console.log('[DDM] Module ready | branch:', state.branchId, '| operator:', state.operatorId);
+        }
     }
 
     // Public API
-    return { init };
+    return {
+        init,
+        loadData
+    };
 
 })();
+
+// Auto-initialize when loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.DirectDebitMaintenanceModule) {
+        window.DirectDebitMaintenanceModule.init();
+    }
+});

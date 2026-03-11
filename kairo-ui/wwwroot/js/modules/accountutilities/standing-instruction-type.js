@@ -1,494 +1,469 @@
 /**
  * Standing Instruction Type Module
- * Migrated from: public/modules/AccountUtilities/standing-instruction-type.js
- *
- * Handles CRUD for Standing Instruction Type records via:
- *   GET  /AccountUtilities/api/get-si-type   → dbo.p_GetSITypes
- *   POST /AccountUtilities/api/save-si-type  → dbo.p_AddEditSITypes
+ * Standardized for KAIRO MVC using AppCore.invokeControllerAsync
  */
-
 window.StandingInstructionTypeModule = (function () {
     'use strict';
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // State
-    // ─────────────────────────────────────────────────────────────────────────
+    // Module State
     const state = {
-        branchId: '',
-        operatorId: '',
-        currentMode: 'VIEW',   // VIEW | ADD | EDIT
-        originalData: null,
-        searchModal: null
+        submoduleName: 'StandingInstructionType',
+        moduleId: '1000',
+        currentMode: 'VIEW', // VIEW, ADD, EDIT
+        isDirty: false,
+        searchKey: null
     };
 
+    let searchModal = null;
+
+    // Elements
+    const elements = {
+        form: document.getElementById('frm_standingInstructionType'),
+        loadingOverlay: document.getElementById('dv_loadingOverlay'),
+        msgPanel: document.querySelector('.am-message-panel'),
+        msgText: document.querySelector('.message-text')
+    };
+
+    // Action Buttons
+    const buttons = {
+        view: document.getElementById('btn_view'),
+        add: document.getElementById('btn_add'),
+        edit: document.getElementById('btn_edit'),
+        save: document.getElementById('btn_save'),
+        cancel: document.getElementById('btn_cancel'),
+        delete: document.getElementById('btn_delete'),
+
+        searchSIType: document.getElementById('btn_searchSIType'),
+        searchSuccessfulTrx: document.getElementById('btn_searchSuccessfulTrx'),
+        searchFailureTrx: document.getElementById('btn_searchFailureTrx'),
+        sectionToggles: document.querySelectorAll('.section-toggle-btn')
+    };
+
+    // API Endpoints (mapped to AccountUtilitiesController)
     const API = {
-        GET:  '/AccountUtilities/api/get-si-type',
-        SAVE: '/AccountUtilities/api/save-si-type'
+        GET: 'AccountUtilities/api/get-si-type',
+        CREATE: 'AccountUtilities/api/create-si-type',
+        UPDATE: 'AccountUtilities/api/update-si-type',
+        DELETE: 'AccountUtilities/api/delete-si-type'
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────────────────
-    const getEl  = (id) => document.getElementById(id);
-    const val    = (id) => (getEl(id)?.value ?? '').trim();
-    const setVal = (id, v) => { const el = getEl(id); if (el) el.value = v ?? ''; };
-    const setText = (id, v) => { const el = getEl(id); if (el) el.textContent = v || '-'; };
+    // ─────────────────────────────────────────────────────────────
+    // Initialization
+    // ─────────────────────────────────────────────────────────────
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = String(text ?? '');
-        return div.innerHTML;
+    function init() {
+        console.log('🚀 Initializing Standing Instruction Type module...');
+        
+        searchModal = new SearchModal(window.AppCore);
+
+        wireButtons();
+        wireLookups();
+        wireFormChanges();
+        wireSectionToggles();
+
+        setMode('VIEW');
+        
+        // Window controls
+        document.querySelector('[data-action="close"]')?.addEventListener('click', () => {
+            if (state.isDirty && !confirm('You have unsaved changes. Are you sure you want to close?')) return;
+            window.close(); // Or navigate back
+            window.location.href = '/Dashboard/Index';
+        });
+        document.querySelector('[data-action="refresh"]')?.addEventListener('click', () => {
+            if (state.searchKey) loadData(state.searchKey);
+            else clearForm();
+        });
+
+        console.log('✅ StandingInstructionTypeModule initialized');
     }
 
-    function isSuccess(result) {
-        if (!result) return false;
-        const code = result.ResponseCode ?? result.responseCode ?? result.StatusCode ?? '';
-        return String(code) === '00' || String(code) === '0' || result.success === true;
-    }
+    // ─────────────────────────────────────────────────────────────
+    // Form & UI State Management
+    // ─────────────────────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Session context
-    // ─────────────────────────────────────────────────────────────────────────
-    function loadContext() {
-        state.branchId = sessionStorage.getItem('currentBranchID')
-            || sessionStorage.getItem('OurBranchID')
-            || sessionStorage.getItem('branch_code')
-            || '';
-
-        state.operatorId = sessionStorage.getItem('currentOperatorID')
-            || sessionStorage.getItem('OperatorID')
-            || sessionStorage.getItem('user_name')
-            || 'SYSTEM';
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Form field selectors (all editable non-readonly controls inside the form card)
-    // ─────────────────────────────────────────────────────────────────────────
-    const FIELD_IDS = [
-        'txt_instructionTypeId',
-        'txt_description',
-        'ddl_siTransferType',
-        'txt_noOfRetries',
-        'txt_retryAfterDays',
-        'ddl_failedChargeType',
-        'chk_freezeAmountOnFailure',
-        'txt_successfulTrxId',
-        'txt_successfulTrxName',
-        'txt_successfulNarration',
-        'txt_failureTrxId',
-        'txt_failureTrxName',
-        'txt_failureNarration'
-    ];
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Mode management
-    // ─────────────────────────────────────────────────────────────────────────
     function setMode(mode) {
-        console.log('[SIT] Setting mode:', mode);
         state.currentMode = mode;
-
         const isEditing = mode === 'ADD' || mode === 'EDIT';
 
-        // Enable / disable form fields
-        FIELD_IDS.forEach(id => {
-            const el = getEl(id);
-            if (!el || el.readOnly) return;
-            // Instruction Type ID is only editable in ADD mode
-            if (id === 'txt_instructionTypeId') {
-                el.disabled = mode !== 'ADD';
-            } else {
-                el.disabled = !isEditing;
-            }
-        });
+        // Enable/Disable form fields
+        const inputs = elements.form.querySelectorAll('input:not([readonly]):not([type="hidden"]), select:not([readonly]), textarea:not([readonly])');
+        inputs.forEach(el => el.disabled = !isEditing);
+        
+        // Checkboxes specifically need handling if grouped improperly
+        const chk = document.getElementById('chk_freezeAmountOnFailure');
+        if (chk) chk.disabled = !isEditing;
+        
+        // Search buttons
+        const lookups = [buttons.searchSuccessfulTrx, buttons.searchFailureTrx];
+        lookups.forEach(btn => { if (btn) btn.disabled = !isEditing; });
 
-        // Search buttons follow edit mode (except SI Type button → always available)
-        const searchSI = getEl('btn_searchSIType');
-        if (searchSI) searchSI.disabled = false;  // always available for lookup
-
-        const searchSuccess = getEl('btn_searchSuccessfulTrx');
-        if (searchSuccess) searchSuccess.disabled = !isEditing;
-
-        const searchFailure = getEl('btn_searchFailureTrx');
-        if (searchFailure) searchFailure.disabled = !isEditing;
-
-        // Action buttons
-        const btnStates = {
-            view:   { active: mode === 'VIEW', disabled: mode === 'VIEW'    },
-            add:    { active: mode === 'ADD',  disabled: isEditing           },
-            edit:   { active: mode === 'EDIT', disabled: isEditing           },
-            delete: { active: false,           disabled: isEditing           },
-            save:   { active: false,           disabled: !isEditing          },
-            cancel: { active: false,           disabled: !isEditing          }
-        };
-
-        Object.entries(btnStates).forEach(([action, cfg]) => {
-            const btn = document.querySelector(`[data-action="${action}"]`);
-            if (!btn) return;
-            btn.classList.toggle('active', cfg.active);
-            btn.disabled = cfg.disabled;
-        });
-
-        if (mode === 'ADD') clearForm();
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Form population & clearing
-    // ─────────────────────────────────────────────────────────────────────────
-    function populateForm(r) {
-        if (!r) return;
-
-        setVal('txt_instructionTypeId',   r.SITypeID          || '');
-        setVal('txt_description',         r.Description       || '');
-        setVal('ddl_siTransferType',      r.SITransferType    || r.TransferType || '');
-        setVal('txt_noOfRetries',         r.NoOfRetries       || '');
-        setVal('txt_retryAfterDays',      r.RetryAfterDays    || '');
-        setVal('ddl_failedChargeType',    r.FailedChargeType  || '');
-
-        const freezeEl = getEl('chk_freezeAmountOnFailure');
-        if (freezeEl) {
-            const raw = r.FreezeAmountOnFailure;
-            freezeEl.checked = raw === '1' || raw === true || raw === 'true';
+        // Instruction Type search is used to load data in VIEW Mode
+        if (mode === 'VIEW') {
+            if (buttons.searchSIType) buttons.searchSIType.disabled = false;
+        } else if (mode === 'ADD') {
+            if (buttons.searchSIType) buttons.searchSIType.disabled = true;
+            document.getElementById('txt_instructionTypeId').disabled = false;
+        } else if (mode === 'EDIT') {
+            if (buttons.searchSIType) buttons.searchSIType.disabled = true;
+            document.getElementById('txt_instructionTypeId').disabled = true;
         }
 
-        setVal('txt_successfulTrxId',      r.SuccessfulTrxID   || r.SuccessfulTransactionID   || '');
-        setVal('txt_successfulTrxName',    r.SuccessfulTrxName  || r.SuccessfulTransactionName || '');
-        setVal('txt_successfulNarration',  r.SuccessfulNarration || '');
-        setVal('txt_failureTrxId',         r.FailureTrxID       || r.FailureTransactionID      || '');
-        setVal('txt_failureTrxName',       r.FailureTrxName     || r.FailureTransactionName    || '');
-        setVal('txt_failureNarration',     r.FailureNarration   || '');
+        // Action Buttons
+        if (buttons.view) buttons.view.disabled = isEditing;
+        if (buttons.add) buttons.add.disabled = isEditing;
+        if (buttons.edit) buttons.edit.disabled = isEditing || !state.searchKey;
+        if (buttons.delete) buttons.delete.disabled = isEditing || !state.searchKey;
+        if (buttons.save) buttons.save.disabled = !isEditing;
+        if (buttons.cancel) buttons.cancel.disabled = !isEditing;
 
-        // Audit (Behind The Scene) - read-only display spans
-        setText('sit_createdBy',   r.CreatedBy   || '-');
-        setText('sit_createdOn',   r.CreatedOn   || '-');
-        setText('sit_modifiedBy',  r.ModifiedBy  || '-');
-        setText('sit_modifiedOn',  r.ModifiedOn  || '-');
-        setText('sit_supervisedBy', r.SupervisedBy || '-');
-        setText('sit_supervisedOn', r.SupervisedOn || '-');
+        if (!isEditing) {
+            state.isDirty = false;
+        }
 
-        state.originalData = { ...r };
+        clearMessages();
     }
 
     function clearForm() {
-        FIELD_IDS.forEach(id => {
-            const el = getEl(id);
-            if (!el) return;
-            if (el.type === 'checkbox') {
-                el.checked = false;
-            } else {
-                el.value = '';
-            }
-        });
+        elements.form.reset();
+        
+        // Clear descriptive readonly fields
+        document.getElementById('txt_successfulTrxName').value = '';
+        document.getElementById('txt_failureTrxName').value = '';
+        
+        const chk = document.getElementById('chk_freezeAmountOnFailure');
+        if (chk) chk.checked = false;
+        
+        // Clear audit
+        document.getElementById('spn_createdBy').textContent = '-';
+        document.getElementById('spn_createdOn').textContent = '-';
+        document.getElementById('spn_modifiedBy').textContent = '-';
+        document.getElementById('spn_modifiedOn').textContent = '-';
+        document.getElementById('spn_supervisedBy').textContent = '-';
+        document.getElementById('spn_supervisedOn').textContent = '-';
 
-        ['sit_createdBy','sit_createdOn','sit_modifiedBy',
-         'sit_modifiedOn','sit_supervisedBy','sit_supervisedOn'].forEach(id => setText(id, '-'));
-
-        state.originalData = null;
+        state.searchKey = null;
+        state.isDirty = false;
     }
 
-    function restoreForm() {
-        if (state.originalData) {
-            populateForm(state.originalData);
-        } else {
-            clearForm();
+    function wireFormChanges() {
+        if (!elements.form) return;
+        ['change', 'input'].forEach(evt => {
+            elements.form.addEventListener(evt, () => {
+                if (state.currentMode !== 'VIEW') {
+                    state.isDirty = true;
+                }
+            });
+        });
+    }
+
+    function wireSectionToggles() {
+        buttons.sectionToggles.forEach(btn => {
+            const header = btn.closest('.section-header');
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                if (!content) return;
+                
+                const isHidden = content.hasAttribute('hidden');
+                if (isHidden) {
+                    content.removeAttribute('hidden');
+                    btn.innerHTML = '<i class="bi bi-chevron-up"></i>';
+                    btn.setAttribute('aria-expanded', 'true');
+                } else {
+                    content.setAttribute('hidden', '');
+                    btn.innerHTML = '<i class="bi bi-chevron-down"></i>';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Alerts & UI Feedback
+    // ─────────────────────────────────────────────────────────────
+
+    function showLoading(show) {
+        if (elements.loadingOverlay) {
+            if (show) elements.loadingOverlay.removeAttribute('hidden');
+            else elements.loadingOverlay.setAttribute('hidden', '');
         }
     }
 
-    function collectFormData() {
-        const freezeEl = getEl('chk_freezeAmountOnFailure');
-        return {
-            SITypeID:              val('txt_instructionTypeId'),
-            Description:           val('txt_description'),
-            SITransferType:        val('ddl_siTransferType'),
-            NoOfRetries:           val('txt_noOfRetries'),
-            RetryAfterDays:        val('txt_retryAfterDays'),
-            FailedChargeType:      val('ddl_failedChargeType'),
-            FreezeAmountOnFailure: freezeEl?.checked ? '1' : '0',
-            SuccessfulTrxID:       val('txt_successfulTrxId'),
-            SuccessfulNarration:   val('txt_successfulNarration'),
-            FailureTrxID:          val('txt_failureTrxId'),
-            FailureNarration:      val('txt_failureNarration'),
-            OurBranchID:           state.branchId,
-            OperatorID:            state.operatorId,
-            NewRecord:             state.currentMode === 'ADD' ? '1' : '0'
-        };
+    function showMsg(msg, type = 'info') {
+        if (AppCore && AppCore.showNotification) {
+            AppCore.showNotification(msg, type);
+        } else if (elements.msgPanel && elements.msgText) {
+            elements.msgPanel.className = `am-message-panel am-message-panel--${type}`;
+            elements.msgText.textContent = msg;
+            elements.msgPanel.style.display = 'flex';
+        } else {
+            alert(msg);
+        }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // API Calls
-    // ─────────────────────────────────────────────────────────────────────────
-    async function fetchSITypeDetails(siTypeId) {
+    function clearMessages() {
+        if (elements.msgPanel) {
+            elements.msgPanel.style.display = 'none';
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // API Operations
+    // ─────────────────────────────────────────────────────────────
+
+    async function loadData(searchKey) {
+        if (!searchKey) return;
+        showLoading(true);
+
         try {
-            showLoading(true);
-            const payload = {
-                BankID:      '00',
-                OurBranchID: state.branchId,
-                SITypeID:    siTypeId,
-                OperatorID:  state.operatorId,
-                Direction:   0
-            };
-
-            const response = await fetch(API.GET, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            console.log('[SIT] GetSIType response:', result);
-
-            const details = result?.Details ?? result?.data ?? result?.Data ?? null;
-            const row = Array.isArray(details) ? details[0] : details;
-
-            if (row) {
-                populateForm(row);
-                showMessage('Record loaded.', 'success');
+            const req = { SITypeID: searchKey };
+            const res = await AppCore.invokeControllerAsync(API.GET, req);
+            
+            if (res && res.Success && (res.Data || res.Details)) {
+                const d = res.Data || res.Details;
+                populateForm(d);
+                state.searchKey = searchKey;
+                setMode('VIEW');
+                showMsg('Data loaded successfully', 'success');
             } else {
-                showMessage(result?.ResponseMessage || 'No record found.', 'warning');
+                showMsg(res?.ErrorMessage || 'Failed to load record.', 'error');
             }
         } catch (err) {
-            console.error('[SIT] Error fetching SI Type:', err);
-            showMessage('Error loading record: ' + err.message, 'error');
+            console.error(err);
+            showMsg('Error loading record. See console.', 'error');
         } finally {
             showLoading(false);
         }
     }
 
     async function saveData() {
-        const siTypeId = val('txt_instructionTypeId');
-        if (!siTypeId) {
-            showMessage('Instruction Type ID is required.', 'warning');
+        if (!elements.form.checkValidity()) {
+            elements.form.reportValidity();
             return;
         }
 
+        const formData = new FormData(elements.form);
+        const data = Object.fromEntries(formData.entries());
+        data.freezeAmountOnFailure = document.getElementById('chk_freezeAmountOnFailure')?.checked ? "1" : "0";
+
+        showLoading(true);
         try {
-            showLoading(true);
-            const payload = collectFormData();
+            const endpoint = state.currentMode === 'ADD' ? API.CREATE : API.UPDATE;
+            const res = await AppCore.invokeControllerAsync(endpoint, data);
 
-            const response = await fetch(API.SAVE, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-            console.log('[SIT] SaveSIType response:', result);
-
-            if (isSuccess(result)) {
-                showMessage('Record saved successfully.', 'success');
-                state.originalData = { ...collectFormData() };
+            if (res && res.Success) {
+                showMsg('Saved successfully.', 'success');
+                state.isDirty = false;
                 setMode('VIEW');
+                if (data.instructionTypeId) {
+                    state.searchKey = data.instructionTypeId;
+                    loadData(state.searchKey);
+                }
             } else {
-                showMessage(result?.ResponseMessage || result?.message || 'Save failed.', 'error');
+                showMsg(res?.ErrorMessage || 'Failed to save record.', 'error');
             }
         } catch (err) {
-            console.error('[SIT] Error saving SI Type:', err);
-            showMessage('Error saving record: ' + err.message, 'error');
+            console.error(err);
+            showMsg('Error saving record.', 'error');
         } finally {
             showLoading(false);
         }
     }
 
     async function deleteData() {
-        const siTypeId = val('txt_instructionTypeId');
-        if (!siTypeId) {
-            showMessage('No record selected to delete.', 'warning');
-            return;
-        }
+        if (!state.searchKey) return;
 
-        if (!confirm(`Delete SI Type "${siTypeId}"?`)) return;
-
-        try {
-            showLoading(true);
-            const payload = {
-                SITypeID:    siTypeId,
-                OurBranchID: state.branchId,
-                OperatorID:  state.operatorId,
-                NewRecord:   '2'   // convention: 2 = delete
-            };
-
-            const response = await fetch(API.SAVE, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-
-            if (isSuccess(result)) {
-                showMessage('Record deleted.', 'success');
-                clearForm();
-                setMode('VIEW');
-            } else {
-                showMessage(result?.ResponseMessage || 'Delete failed.', 'error');
-            }
-        } catch (err) {
-            console.error('[SIT] Error deleting SI Type:', err);
-            showMessage('Error deleting record: ' + err.message, 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // UI helpers
-    // ─────────────────────────────────────────────────────────────────────────
-    function showLoading(visible) {
-        const overlay = getEl('sit_loadingOverlay');
-        if (overlay) overlay.hidden = !visible;
-    }
-
-    function showMessage(text, type) {
-        const panel = getEl('sit_messagePanel');
-        const span  = getEl('sit_messageText');
-        if (!panel || !span) return;
-
-        span.textContent = text;
-        panel.className  = `am-message-panel am-message-panel--${type || 'info'}`;
-        panel.hidden = false;
-
-        if (type !== 'error') {
-            setTimeout(() => { panel.hidden = true; }, 4000);
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Section toggle wiring
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireSectionToggles() {
-        document.querySelectorAll('.section-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const section = this.closest('.form-section');
-                const content = section?.querySelector('[data-section-content]');
-                const icon    = this.querySelector('i');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                if (content) content.hidden = isExpanded;
-                this.setAttribute('aria-expanded', String(!isExpanded));
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-up',   !isExpanded);
-                    icon.classList.toggle('bi-chevron-down',  isExpanded);
+        AppCore.showConfirmation({
+            title: 'Confirm Delete',
+            message: 'Are you sure you want to delete this Standing Instruction Type?',
+            confirmButtonText: 'Delete',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async () => {
+                showLoading(true);
+                try {
+                    const req = { SITypeID: state.searchKey };
+                    const res = await AppCore.invokeControllerAsync(API.DELETE, req);
+                    if (res && res.Success) {
+                        showMsg('Deleted successfully.', 'success');
+                        clearForm();
+                        setMode('VIEW');
+                    } else {
+                        showMsg(res?.ErrorMessage || 'Delete failed.', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showMsg('Error deleting.', 'error');
+                } finally {
+                    showLoading(false);
                 }
-            });
-        });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Header control wiring (Refresh / Maximize / Close)
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireHeaderControls() {
-        document.querySelector('[data-action="refresh"]')?.addEventListener('click', () => {
-            const siTypeId = val('txt_instructionTypeId');
-            if (siTypeId) {
-                fetchSITypeDetails(siTypeId);
-            } else {
-                clearForm();
-                showMessage('Enter or search for an SI Type ID first.', 'info');
             }
         });
-
-        document.querySelector('[data-action="maximize"]')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('main-sidebar');
-            if (sidebar) sidebar.classList.toggle('collapsed');
-        });
-
-        document.querySelector('[data-action="close"]')?.addEventListener('click', () => {
-            if (window.closeSubmodule) window.closeSubmodule();
-        });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Action button wiring (View / Add / Edit / Delete / Save / Cancel)
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireActionButtons() {
-        const actions = {
-            view:   () => { restoreForm(); setMode('VIEW'); },
-            add:    () => setMode('ADD'),
-            edit:   () => setMode('EDIT'),
-            delete: () => deleteData(),
-            save:   () => saveData(),
-            cancel: () => { restoreForm(); setMode('VIEW'); }
+    // ─────────────────────────────────────────────────────────────
+    // Form Population
+    // ─────────────────────────────────────────────────────────────
+
+    function populateForm(data) {
+        clearForm();
+        if (!data) return;
+        
+        const row = Array.isArray(data) ? data[0] : data;
+        
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
         };
 
-        Object.entries(actions).forEach(([action, handler]) => {
-            document.querySelector(`[data-action="${action}"]`)
-                ?.addEventListener('click', handler);
-        });
+        setVal('txt_instructionTypeId', row.SITypeID);
+        setVal('txt_description', row.Description);
+        setVal('ddl_siTransferType', row.SITransferType || row.TransferType || '');
+        setVal('txt_noOfRetries', row.NoOfRetries);
+        setVal('txt_retryAfterDays', row.RetryAfterDays);
+        setVal('ddl_failedChargeType', row.FailedChargeType);
+        
+        const chk = document.getElementById('chk_freezeAmountOnFailure');
+        if (chk) chk.checked = row.FreezeAmountOnFailure === '1' || row.FreezeAmountOnFailure === 'true';
+
+        setVal('txt_successfulTrxId', row.SuccessfulTrxID || row.SuccessfulTransactionID);
+        setVal('txt_successfulTrxName', row.SuccessfulTrxName || row.SuccessfulTransactionName);
+        setVal('txt_successfulNarration', row.SuccessfulNarration);
+        
+        setVal('txt_failureTrxId', row.FailureTrxID || row.FailureTransactionID);
+        setVal('txt_failureTrxName', row.FailureTrxName || row.FailureTransactionName);
+        setVal('txt_failureNarration', row.FailureNarration);
+
+        // Audit Fields
+        document.getElementById('spn_createdBy').textContent = row.CreatedBy || '-';
+        document.getElementById('spn_createdOn').textContent = row.CreatedOn ? new Date(row.CreatedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_modifiedBy').textContent = row.ModifiedBy || '-';
+        document.getElementById('spn_modifiedOn').textContent = row.ModifiedOn ? new Date(row.ModifiedOn).toLocaleDateString() : '-';
+        document.getElementById('spn_supervisedBy').textContent = row.SupervisedBy || '-';
+        document.getElementById('spn_supervisedOn').textContent = row.SupervisedOn ? new Date(row.SupervisedOn).toLocaleDateString() : '-';
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SearchModal wiring
-    // ─────────────────────────────────────────────────────────────────────────
-    function wireSearchButtons() {
-        const appCore = window.AppCore;
-        if (!window.SearchModal) {
-            console.warn('[SIT] SearchModal not available - search buttons will be disabled');
-            return;
+    // ─────────────────────────────────────────────────────────────
+    // Action Wiring
+    // ─────────────────────────────────────────────────────────────
+
+    function wireButtons() {
+        if (buttons.view) buttons.view.addEventListener('click', () => {
+            if (state.searchKey) loadData(state.searchKey);
+            else { clearForm(); setMode('VIEW'); }
+        });
+
+        if (buttons.add) buttons.add.addEventListener('click', () => {
+            clearForm();
+            setMode('ADD');
+        });
+
+        if (buttons.edit) buttons.edit.addEventListener('click', () => setMode('EDIT'));
+
+        if (buttons.save) buttons.save.addEventListener('click', () => {
+            if (state.currentMode === 'VIEW') return;
+            saveData();
+        });
+
+        if (buttons.cancel) buttons.cancel.addEventListener('click', () => {
+            if (state.isDirty) {
+                AppCore.showConfirmation({
+                    title: 'Cancel Changes',
+                    message: 'You have unsaved changes. Are you sure you want to cancel?',
+                    onConfirm: () => {
+                        if (state.searchKey) loadData(state.searchKey);
+                        else { clearForm(); setMode('VIEW'); }
+                    }
+                });
+            } else {
+                if (state.searchKey) loadData(state.searchKey);
+                else { clearForm(); setMode('VIEW'); }
+            }
+        });
+
+        if (buttons.delete) buttons.delete.addEventListener('click', deleteData);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Lookups (SearchModal)
+    // ─────────────────────────────────────────────────────────────
+
+    function wireLookups() {
+        if (buttons.searchSIType) {
+            buttons.searchSIType.addEventListener('click', () => {
+                searchModal.open({
+                    title: 'SI Type',
+                    tableID: 'SITypeID',
+                    searchFields: [
+                        { name: 'siTypeId', label: 'SIType ID', column: 'SITypeID' },
+                        { name: 'description', label: 'Description', column: 'Description' }
+                    ],
+                    displayFields: [
+                        { key: 'SITypeID', label: 'SITypeID' },
+                        { key: 'Description', label: 'Description' }
+                    ],
+                    onSelect: (r) => {
+                        const id = r.SITypeID;
+                        if (id) {
+                            loadData(id);
+                        }
+                    }
+                });
+            });
         }
 
-        const searchModal = new window.SearchModal(appCore);
-        state.searchModal = searchModal;
-
-        // 1. SI Type lookup
-        getEl('btn_searchSIType')?.addEventListener('click', () => {
-            searchModal.open({
-                tableID:    'SITypeID',
-                moduleID:   '1000',
-                autoSearch: true,
-                onSelect: (record) => {
-                    setVal('txt_instructionTypeId', record.SITypeID    || '');
-                    setVal('txt_description',       record.Description || '');
-                    // Fetch full record to populate all remaining fields
-                    const siTypeId = record.SITypeID || '';
-                    if (siTypeId) fetchSITypeDetails(siTypeId);
-                }
+        if (buttons.searchSuccessfulTrx) {
+            buttons.searchSuccessfulTrx.addEventListener('click', () => {
+                searchModal.open({
+                    title: 'Trx Description',
+                    tableID: 'TrxDescriptionID',
+                    searchFields: [
+                        { name: 'trxDescriptionId', label: 'TrxDescriptionID', column: 'TrxDescriptionID' },
+                        { name: 'description', label: 'Description', column: 'Description' }
+                    ],
+                    displayFields: [
+                        { key: 'TrxDescriptionID', label: 'TrxDescriptionID' },
+                        { key: 'Description', label: 'Description' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_successfulTrxId').value = r.TrxDescriptionID || '';
+                        document.getElementById('txt_successfulTrxName').value = r.Description || '';
+                    }
+                });
             });
-        });
+        }
 
-        // 2. Successful Transaction lookup
-        getEl('btn_searchSuccessfulTrx')?.addEventListener('click', () => {
-            searchModal.open({
-                tableID:  'TrxDescriptionID',
-                moduleID: '1000',
-                onSelect: (record) => {
-                    setVal('txt_successfulTrxId',   record.TrxDescriptionID || '');
-                    setVal('txt_successfulTrxName', record.Description      || '');
-                }
+        if (buttons.searchFailureTrx) {
+            buttons.searchFailureTrx.addEventListener('click', () => {
+                searchModal.open({
+                    title: 'Trx Description',
+                    tableID: 'TrxDescriptionID',
+                    searchFields: [
+                        { name: 'trxDescriptionId', label: 'TrxDescriptionID', column: 'TrxDescriptionID' },
+                        { name: 'description', label: 'Description', column: 'Description' }
+                    ],
+                    displayFields: [
+                        { key: 'TrxDescriptionID', label: 'TrxDescriptionID' },
+                        { key: 'Description', label: 'Description' }
+                    ],
+                    onSelect: (r) => {
+                        document.getElementById('txt_failureTrxId').value = r.TrxDescriptionID || '';
+                        document.getElementById('txt_failureTrxName').value = r.Description || '';
+                    }
+                });
             });
-        });
-
-        // 3. Failure Transaction lookup
-        getEl('btn_searchFailureTrx')?.addEventListener('click', () => {
-            searchModal.open({
-                tableID:  'TrxDescriptionID',
-                moduleID: '1000',
-                onSelect: (record) => {
-                    setVal('txt_failureTrxId',   record.TrxDescriptionID || '');
-                    setVal('txt_failureTrxName', record.Description      || '');
-                }
-            });
-        });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Public init
-    // ─────────────────────────────────────────────────────────────────────────
-    function init() {
-        console.log('[SIT] Initializing Standing Instruction Type module...');
-
-        loadContext();
-        wireHeaderControls();
-        wireActionButtons();
-        wireSectionToggles();
-        wireSearchButtons();
-        setMode('VIEW');
-
-        console.log('[SIT] Module ready | branch:', state.branchId, '| operator:', state.operatorId);
+        }
     }
 
     // Public API
-    return { init };
+    return {
+        init,
+        loadData
+    };
 
 })();
+
+// Auto-initialize when loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.StandingInstructionTypeModule) {
+        window.StandingInstructionTypeModule.init();
+    }
+});
