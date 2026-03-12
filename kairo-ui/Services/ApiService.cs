@@ -72,6 +72,7 @@ namespace kairo_ui.Services
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNamingPolicy = null
+            
         };
 
         public ApiService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<ApiService> logger)
@@ -335,10 +336,15 @@ namespace kairo_ui.Services
 
                 _logger.LogInformation("API POST Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
                     endpoint, (int)response.StatusCode, duration.TotalMilliseconds);
-
-                response.EnsureSuccessStatusCode();
-
                 var responseJson = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("API POST Error: {Endpoint} | Status: {StatusCode} | Body: {ResponseBody}",
+                        endpoint, (int)response.StatusCode, responseJson);
+                    throw new HttpRequestException($"API returned {(int)response.StatusCode}: {responseJson}");
+                }
+
                 var result = JsonSerializer.Deserialize<T>(responseJson, _jsonSerializerOptions);
 
                 _logger.LogInformation("API POST Success: {Endpoint} | Response Size: {ResponseSize} bytes | Response: {ResponseData}",

@@ -7603,6 +7603,24 @@ body {
     display: inline;
 }
 
+/* Disabled Tab State (for workflow step blocking) */
+.nav-tabs .nav-link.disabled-tab {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+.nav-tabs .nav-link.disabled-tab:hover {
+    background-color: transparent;
+    color: #9ca3af;
+}
+
+.nav-tabs .nav-link.disabled-tab .cm-tab-indicator {
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+}
+
 /* Horizontal Scrolling Tabs Container */
 .cm-tabs-wrapper {
     display: flex;

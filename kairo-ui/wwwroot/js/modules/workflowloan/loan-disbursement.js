@@ -42,6 +42,10 @@
         return data?.Details01 || data?.details01 || [];
     }
 
+    function hasDetailsRows(response) {
+        return getDetailsArray(response).length > 0;
+    }
+
     /**
      * Initialize module
      */
@@ -306,8 +310,10 @@
         const localAmount = parseFloat(data.LocalAmount ?? (netDisbAmount * exchangeRate)) || 0;
 
         // Account Identification (already populated from search)
+        setFieldValue('branchId', data.OurBranchID || branchId);
         setFieldValue('clientId', data.ClientID);
         setFieldValue('clientName', data.Name || data.ClientName);
+        setFieldValue('accountId', data.AccountID || accountId);
         setFieldValue('accountName', data.AccountName || data.Name);
         setFieldValue('loanSeries', data.LoanSeries);
         
@@ -520,7 +526,7 @@
 
             console.log('[LoanDisbursement] DB response (GetInstallments):', response);
 
-            if (!isSuccess(response)) {
+            if (!isSuccess(response) && !hasDetailsRows(response)) {
                 const errorMsg = extractResponseMessage(response, 'Failed to load installments');
                 notify(errorMsg, 'error');
                 return;
@@ -554,7 +560,8 @@
         const modal = new bootstrap.Modal(document.getElementById('disbscheduleModal'));
         const iframe = document.getElementById('disbscheduleIframe');
         
-        iframe.src = `/WorkFlowLoan/LoanSanction/DisbursementSchedule?applicationId=${applicationId}`;
+        const loanSeries = getFieldValue('loanSeries');
+        iframe.src = `/WorkFlowLoan/LoanSanction/DisbursementSchedule?branchId=${encodeURIComponent(branchId)}&applicationId=${encodeURIComponent(applicationId)}&accountId=${encodeURIComponent(accountId)}&loanSeries=${encodeURIComponent(loanSeries)}`;
         
         modal.show();
     }
@@ -581,7 +588,7 @@
 
             console.log('[LoanDisbursement] DB response (GetCharges):', response);
             
-            if (isSuccess(response)) {
+            if (isSuccess(response) || hasDetailsRows(response)) {
                 const charges = getDetailsArray(response);
                 displayCharges(charges);
                 showModal('chargesModal');

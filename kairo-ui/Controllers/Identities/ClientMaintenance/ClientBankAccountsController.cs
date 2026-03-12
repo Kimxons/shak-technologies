@@ -64,7 +64,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Bank Accounts tab dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientBankAccounts.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/ClientBankAccounts.cshtml");
         }
 
         [HttpPost, Route("get")]

@@ -427,8 +427,18 @@ window.AccountFreezeReleaseModule = (function () {
     }
 
     /* ── Load / Navigate ─────────────────────────────────────── */
-    async function navigate(direction) {
+    async function navigate(direction, options) {
+        if (direction && typeof direction === 'object') {
+            options = direction;
+            direction = 0;
+        }
+
         direction = (typeof direction === 'number') ? direction : 0;
+        const cfg = {
+            notifyNoFreeze: true,
+            ...(options || {})
+        };
+
         const ctx = getContext();
         if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
@@ -490,6 +500,10 @@ window.AccountFreezeReleaseModule = (function () {
                 clearEditable();
                 populateBts(acct, {});
                 populateAudit(acct);
+
+                if (cfg.notifyNoFreeze) {
+                    showMsg("The account doesn't have a freeze release.", 'warning');
+                }
             } else {
                 clearAll();
                 state.currentReferenceId = null;
@@ -556,7 +570,7 @@ window.AccountFreezeReleaseModule = (function () {
             if (isSuccess(result)) {
                 showMsg(isEdit ? 'Account Freeze updated.' : 'Account Freeze added.', 'success');
                 setMode('NONE');
-                navigate();
+                navigate({ notifyNoFreeze: false });
             } else {
                 showMsg(result.ResponseMessage || (isEdit ? 'Update Freeze failed.' : 'Add Freeze failed.'), 'error');
             }
@@ -600,7 +614,7 @@ window.AccountFreezeReleaseModule = (function () {
             showLoading(false);
             if (isSuccess(result)) {
                 showMsg('Freeze released successfully', 'success');
-                navigate();
+                navigate({ notifyNoFreeze: false });
             } else {
                 showMsg(result.ResponseMessage || 'Failed to release Freeze', 'error');
             }

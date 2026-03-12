@@ -10,12 +10,18 @@ window.AccountNominationModule = (function () {
         currentMode: 'VIEW',
         nominees: [],
         selectedIndex: -1,
-        updateCount: 0
+        updateCount: 0,
+        selectedNomineeClientID: '',
+        hasLoadedRecord: false,
+        createdBy: '',
+        createdOn: ''
     };
 
     const API = {
         GET: 'get-account-nominee',
-        SAVE: 'add-edit-account-nominee',
+        OPENING: 'check-account-nominee-opening',
+        CREATE: 'add-account-nominee',
+        UPDATE: 'update-account-nominee',
         DELETE: 'delete-account-nominee'
     };
 
@@ -45,10 +51,60 @@ window.AccountNominationModule = (function () {
         console.log(`[AccountNomination] ${type}: ${msg}`);
     }
 
+    function normalizeNomineeClientID(data) {
+        return data?.NomineeClientID
+            || data?.NomineeID
+            || data?.nomineeClientID
+            || data?.nomineeID
+            || data?.ClientID
+            || data?.CustomerID
+            || '';
+    }
+
+    function isSuccessResult(result) {
+        const responseCode = String(result?.ResponseCode ?? result?.responseCode ?? '').trim();
+        return Boolean(
+            result?.success
+            || result?.Success
+            || responseCode === '00'
+            || responseCode === '0'
+            || responseCode === '000'
+        );
+    }
+
+    function getResultDetails(result) {
+        return result?.Details ?? result?.data?.Details ?? result?.data ?? null;
+    }
+
+    function getResultMessage(result, fallbackMessage = '') {
+        return result?.message || result?.Message || result?.ResponseMessage || fallbackMessage;
+    }
+
+    function buildNomineeSearchKey(ctx) {
+        return `[OurBranchID:${ctx.OurBranchID}][AccountID:${ctx.AccountID}]`;
+    }
+
+    function buildNomineeAdvFilter(ctx) {
+        return `OurBranchID = '${ctx.OurBranchID}' AND AccountID = '${ctx.AccountID}'`;
+    }
+
+    function formatSqlDateAtMidnight(value) {
+        if (!value) {
+            return null;
+        }
+
+        const parsed = window.GlobalUtils?.parseDateInput
+            ? window.GlobalUtils.parseDateInput(value)
+            : String(value).slice(0, 10);
+
+        return parsed ? `${parsed} 00:00:00` : null;
+    }
+
     // ── Mode Management ────────────────────────────────────────
     function setMode(mode) {
         state.currentMode = mode;
         const editing = mode === 'ADD' || mode === 'EDIT';
+        const hasRecord = state.hasLoadedRecord;
 
         const fields = ['nominationPercentage', 'isDependent', 'isNominationRollover', 'remarks'];
         fields.forEach(id => {
@@ -60,8 +116,10 @@ window.AccountNominationModule = (function () {
         const idField = el('nomineeId');
         if (idField) idField.disabled = mode !== 'ADD';
 
-        const lookups = document.querySelectorAll('.btn-lookup');
-        lookups.forEach(btn => btn.disabled = !editing);
+        const nomineeLookup = el('btn_searchNominee');
+        if (nomineeLookup) {
+            nomineeLookup.disabled = false;
+        }
 
         // Update Global Buttons
         const btnView = document.getElementById('submoduleBtnView');
@@ -73,14 +131,14 @@ window.AccountNominationModule = (function () {
 
         if (btnView) btnView.disabled = editing;
         if (btnAdd) btnAdd.disabled = editing;
-        if (btnEdit) btnEdit.disabled = editing;
+        if (btnEdit) btnEdit.disabled = editing || !hasRecord;
         if (btnSave) btnSave.disabled = !editing;
         if (btnCancel) btnCancel.disabled = !editing;
-        if (btnDelete) btnDelete.disabled = editing;
+        if (btnDelete) btnDelete.disabled = editing || !hasRecord;
     }
 
     // ── Data Operations ────────────────────────────────────────
-    async function loadData() {
+    async function loadData(nomineeClientID = '') {
         const ctx = getContext();
         if (!ctx.AccountID) {
             showMsg('Please select an account first', 'warning');
@@ -94,16 +152,29 @@ window.AccountNominationModule = (function () {
             const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.GET}`, {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
-                OperatorID: ctx.OperatorID
+                NomineeClientID: nomineeClientID || state.selectedNomineeClientID || '',
+                OperatorID: ctx.OperatorID,
+                Direction: 0
             });
 
-            if (result && result.success) {
-                const d = result.Details || result.data?.Details || result.data || [];
-                state.nominees = Array.isArray(d) ? d : [d];
+            if (isSuccessResult(result)) {
+                const d = getResultDetails(result) || [];
+                const nominees = Array.isArray(d) ? d : (d ? [d] : []);
+
+                state.nominees = nominees.filter(Boolean);
+
+                if (nomineeClientID) {
+                    state.selectedNomineeClientID = nomineeClientID;
+                }
 
                 if (state.nominees.length > 0) {
-                    state.selectedIndex = 0;
-                    populateForm(state.nominees[0]);
+                    const matchIndex = nomineeClientID
+                        ? state.nominees.findIndex(item => normalizeNomineeClientID(item) === nomineeClientID)
+                        : 0;
+
+                    state.selectedIndex = matchIndex >= 0 ? matchIndex : 0;
+                    state.hasLoadedRecord = true;
+                    populateForm(state.nominees[state.selectedIndex]);
                     setMode('VIEW');
                     renderNomineeSummary();
                 } else {
@@ -112,10 +183,54 @@ window.AccountNominationModule = (function () {
                     setMode('VIEW');
                 }
             } else {
-                showMsg(result?.message || 'Failed to load nomination details', 'error');
+                state.hasLoadedRecord = false;
+                showMsg(getResultMessage(result, 'Failed to load nomination details'), 'error');
             }
         } catch (err) {
+            state.hasLoadedRecord = false;
             showMsg('Error loading nomination details: ' + err.message, 'error');
+        } finally {
+            if (loader) loader.hidden = true;
+        }
+    }
+
+    async function loadNomineeOpening(nomineeClientID) {
+        const ctx = getContext();
+        if (!ctx.AccountID || !ctx.OurBranchID || !nomineeClientID) {
+            showMsg('Please select an account and nominee first', 'warning');
+            return;
+        }
+
+        const loader = el('loadingOverlay');
+        if (loader) loader.hidden = false;
+
+        try {
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.OPENING}`, {
+                OurBranchID: ctx.OurBranchID,
+                AccountID: ctx.AccountID,
+                NomineeClientID: nomineeClientID,
+                OperatorID: ctx.OperatorID
+            });
+
+            if (isSuccessResult(result)) {
+                const details = getResultDetails(result);
+                if (details && typeof details === 'object') {
+                    populateForm(details);
+                    state.currentMode = 'ADD';
+                    setMode('ADD');
+                    showMsg(getResultMessage(result, 'Nominee loaded successfully'), 'success');
+                } else {
+                    setVal('nomineeId', nomineeClientID);
+                    state.selectedNomineeClientID = nomineeClientID;
+                    state.currentMode = 'ADD';
+                    setMode('ADD');
+                    showMsg('Nominee selected. Complete the remaining details.', 'info');
+                }
+            } else {
+                showMsg(getResultMessage(result, 'Failed to load nominee opening details'), 'error');
+            }
+        } catch (err) {
+            showMsg('Error loading nominee opening details: ' + err.message, 'error');
         } finally {
             if (loader) loader.hidden = true;
         }
@@ -123,9 +238,13 @@ window.AccountNominationModule = (function () {
 
     function populateForm(data) {
         if (!data) return;
+        state.hasLoadedRecord = true;
         state.updateCount = data.UpdateCount || 0;
-        setVal('nomineeId', data.NomineeID || '');
-        setVal('nomineeName', data.NomineeName || '');
+        state.selectedNomineeClientID = normalizeNomineeClientID(data);
+        state.createdBy = data.CreatedBy || data.MakerID || state.createdBy || '';
+        state.createdOn = data.CreatedOn || data.MakerDT || state.createdOn || '';
+        setVal('nomineeId', state.selectedNomineeClientID);
+        setVal('nomineeName', data.NomineeName || data.CustomerName || data.ClientName || '');
         setVal('nominationPercentage', data.NominationPercentage || '0');
         setChecked('isDependent', data.IsDependent === 1 || data.IsDependent === true);
         setChecked('isNominationRollover', data.IsNominationRollover === 1 || data.IsNominationRollover === true);
@@ -144,8 +263,13 @@ window.AccountNominationModule = (function () {
         ['nomineeId', 'nomineeName', 'nominationPercentage', 'remarks'].forEach(id => setVal(id, ''));
         ['isDependent', 'isNominationRollover'].forEach(id => setChecked(id, false));
         ['MakerID', 'MakerDT', 'CheckerID', 'CheckerDT', 'ModifierID', 'ModifierDT'].forEach(id => setTxt(id, '-'));
+        state.nominees = [];
         state.selectedIndex = -1;
         state.updateCount = 0;
+        state.selectedNomineeClientID = '';
+        state.hasLoadedRecord = false;
+        state.createdBy = '';
+        state.createdOn = '';
     }
 
     function renderNomineeSummary() {
@@ -166,29 +290,34 @@ window.AccountNominationModule = (function () {
         if (!ok) return false;
 
         const ctx = getContext();
+        const createdBy = state.createdBy || 'web_portal';
+        const createdOn = formatSqlDateAtMidnight(state.createdOn || window.GlobalUtils?.getCurrentDate?.() || new Date().toISOString().slice(0, 10));
         const payload = {
             OurBranchID: ctx.OurBranchID,
             AccountID: ctx.AccountID,
-            NomineeID: val('nomineeId'),
-            NomineeName: val('nomineeName'),
+            NomineeClientID: val('nomineeId'),
             NominationPercentage: pct,
             IsDependent: isChecked('isDependent') ? 1 : 0,
             IsNominationRollover: isChecked('isNominationRollover') ? 1 : 0,
             Remarks: val('remarks'),
-            OperatorID: ctx.OperatorID,
-            UpdateCount: state.updateCount,
-            NewRecord: state.currentMode === 'ADD' ? 1 : 0
+            CreatedBy: createdBy,
+            CreatedOn: createdOn,
+            ModifiedBy: ctx.OperatorID || null,
+            ModifiedOn: null,
+            SupervisedBy: null,
+            NewRecord: 2
         };
 
         try {
-            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${API.SAVE}`, payload);
-            if (result && result.success) {
-                showMsg(result.message || 'Nomination details saved successfully', 'success');
+            const endpoint = state.currentMode === 'ADD' ? API.CREATE : API.UPDATE;
+            const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/api/${endpoint}`, payload);
+            if (isSuccessResult(result)) {
+                showMsg(getResultMessage(result, 'Nomination details saved successfully'), 'success');
                 loadData();
                 setMode('VIEW');
                 return true;
             } else {
-                showMsg(result?.message || 'Failed to save nomination details', 'error');
+                showMsg(getResultMessage(result, 'Failed to save nomination details'), 'error');
                 return false;
             }
         } catch (err) {
@@ -209,14 +338,15 @@ window.AccountNominationModule = (function () {
                 OurBranchID: ctx.OurBranchID,
                 AccountID: ctx.AccountID,
                 NomineeID: val('nomineeId'),
+                NomineeClientID: val('nomineeId'),
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
-                showMsg(result.message || 'Nominee deleted successfully', 'success');
+            if (isSuccessResult(result)) {
+                showMsg(getResultMessage(result, 'Nominee deleted successfully'), 'success');
                 loadData();
             } else {
-                showMsg(result?.message || 'Delete failed', 'error');
+                showMsg(getResultMessage(result, 'Delete failed'), 'error');
             }
         } catch (err) {
             showMsg('Delete error: ' + err.message, 'error');
@@ -225,37 +355,52 @@ window.AccountNominationModule = (function () {
 
     // ── Lookups ────────────────────────────────────────────────
     function wireLookups() {
-        /**
-         * Search Clients: To pick a NEW nominee from the bank's clients.
-         */
-        document.querySelector('[data-lookup="Nominee"]')?.addEventListener('click', () => {
-            if (window.SearchModal) {
-                const modal = new window.SearchModal(window.AppCore);
-                modal.open({
-                    tableID: 'CustomerID', // Search global client database
-                    onSelect: (r) => {
-                        setVal('nomineeId', r.CustomerID || r.ID);
-                        setVal('nomineeName', r.CustomerName || r.Description || r.CustomerTitle);
-                        showMsg('Client selected as nominee candidate', 'info');
-                    }
-                });
-            }
-        });
-
-        /**
-         * Search Existing: To pick from nominees ALREADY attached to this account.
-         */
-        document.querySelector('[data-lookup="ExistingNominee"]')?.addEventListener('click', () => {
+        el('btn_searchNominee')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             const ctx = getContext();
+            if (!window.SearchModal) {
+                return;
+            }
+
             if (window.SearchModal) {
                 const modal = new window.SearchModal(window.AppCore);
+
+                if (state.currentMode === 'ADD') {
+                    modal.open({
+                        tableID: 'CustomerID',
+                        onSelect: (r) => {
+                            const nomineeClientID = normalizeNomineeClientID(r);
+                            if (!nomineeClientID) {
+                                showMsg('Selected client is missing a nominee client ID', 'warning');
+                                return;
+                            }
+
+                            loadNomineeOpening(nomineeClientID);
+                        }
+                    });
+                    return;
+                }
+
+                if (!ctx.AccountID || !ctx.OurBranchID) {
+                    showMsg('Please select an account first', 'warning');
+                    return;
+                }
+
                 modal.open({
-                    tableID: 'AccountNominee', // Search specifically account nominees
-                    params: { AccountID: ctx.AccountID, OurBranchID: ctx.OurBranchID },
+                    tableID: 'AccountNomineeID',
+                    moduleID: 1390,
+                    advFilterString: buildNomineeAdvFilter(ctx),
+                    searchKey: buildNomineeSearchKey(ctx),
+                    ourbranchId: ctx.OurBranchID,
                     onSelect: (r) => {
-                        populateForm(r);
-                        state.currentMode = 'VIEW';
-                        setMode('VIEW');
+                        const nomineeClientID = normalizeNomineeClientID(r);
+                        if (!nomineeClientID) {
+                            showMsg('Selected nominee is missing a client ID', 'warning');
+                            return;
+                        }
+
+                        loadData(nomineeClientID);
                     }
                 });
             }
@@ -265,13 +410,9 @@ window.AccountNominationModule = (function () {
     // ── Init ───────────────────────────────────────────────────
     function init() {
         console.log('[AccountNomination] Initializing (Thorough Migration)');
+        clearForm();
         setMode('VIEW');
         wireLookups();
-
-        const ctx = getContext();
-        if (ctx.AccountID) {
-            loadData();
-        }
 
         // Section Toggles
         document.querySelectorAll('[data-section-toggle]').forEach(hdr => {
@@ -291,12 +432,26 @@ window.AccountNominationModule = (function () {
     return {
         init: init,
         save: handleSave,
-        edit: () => setMode('EDIT'),
+        edit: () => {
+            if (!state.hasLoadedRecord) {
+                showMsg('Please load a nominee first', 'warning');
+                return;
+            }
+
+            setMode('EDIT');
+        },
         add: () => { clearForm(); state.currentMode = 'ADD'; setMode('ADD'); },
         delete: handleDelete,
         cancel: async () => {
             const ok = await AppCore.showConfirmation('Cancel', 'Are you sure you want to cancel your changes?');
-            if (ok) { loadData(); setMode('VIEW'); }
+            if (ok) {
+                if (state.hasLoadedRecord || val('nomineeId')) {
+                    loadData();
+                } else {
+                    clearForm();
+                    setMode('VIEW');
+                }
+            }
         },
         view: loadData,
         refresh: loadData

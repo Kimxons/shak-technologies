@@ -1,0 +1,184 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Linq
+@{
+    ViewData["Title"] = "Center Loan / Disbursement - Reversal";
+    Layout = "_ApplicationLayout";
+
+    var loanReversalReasonOptions = ViewData["LoanReversalReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<!-- Toast Container -->
+<div class="toast-container kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <div class="main-container">
+        <div class="form-content">
+            <form id="frm_centerLoanDisbursementReversal" autocomplete="off" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="moduleId_centerLoanDisbursementReversal" value="@ViewData["ModuleId"]" />
+
+                <div class="form-card" data-main-form>
+                    <!-- On-top Feedback (Account Maintenance style) -->
+                    <div id="cldrValidationSummary" class="validation-summary" role="alert" aria-live="polite" aria-atomic="true">
+                        <i id="cldrValidationIcon" class="bi bi-exclamation-circle validation-summary__icon" aria-hidden="true"></i>
+                        <span id="cldrValidationText" class="validation-summary__text"></span>
+                        <button id="cldrValidationClose" class="validation-summary__close" type="button" aria-label="Close notification">
+                            <i class="bi bi-x" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <!-- Search Details Section -->
+                    <div class="form-section" data-section="search-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-search"></i>Search Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Search Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="row g-2">
+                                <div class="col-12 col-lg-6">
+                                    <label class="label-blue" for="txt_branchId">Branch ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_branchId" class="kairo-control__id" aria-label="Branch ID" placeholder="ID" maxlength="10" />
+                                        <input type="text" id="txt_branchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <label class="label-blue" for="txt_centerId">Center ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_centerId" class="kairo-control__id" aria-label="Center ID" placeholder="ID" maxlength="50" />
+                                        <input type="text" id="txt_centerName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="center" aria-label="Search Center"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <label class="label-blue" for="txt_groupId">Group ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_groupId" class="kairo-control__id" aria-label="Group ID" placeholder="ID" maxlength="50" />
+                                        <input type="text" id="txt_groupName" class="kairo-control__name" aria-label="Group Name" placeholder="Group Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="group" aria-label="Search Group"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <label class="label-blue" for="txt_schemeId">Scheme ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_schemeId" class="kairo-control__id" aria-label="Scheme ID" placeholder="ID" maxlength="50" />
+                                        <input type="text" id="txt_schemeName" class="kairo-control__name" aria-label="Scheme Name" placeholder="Scheme Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="scheme" aria-label="Search Scheme"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Group Loan Accounts Section -->
+                    <div class="form-section" data-section="loan-accounts">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-table"></i>Group Loan Accounts</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Group Loan Accounts" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="table-responsive">
+                                <table id="cldrLoanAccountsTable" class="table table-sm table-hover data-table" aria-label="Group Loan Accounts">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;"><input class="form-check-input" type="checkbox" id="cldrSelectAll" aria-label="Select all" disabled></th>
+                                            <th>Client ID</th>
+                                            <th>Client Name</th>
+                                            <th>Application ID</th>
+                                            <th>Loan Account ID</th>
+                                            <th class="text-end">Loan Amount</th>
+                                            <th class="text-end">Disbursed Amount</th>
+                                            <th>Disbursed By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="empty-row">
+                                            <td colspan="8" class="text-center text-muted">No records to display</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancellation Reason Section -->
+                    <div class="form-section" data-section="cancellation-reason">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-x-circle"></i>Cancellation Reason</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Cancellation Reason" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="label-blue" for="ddl_loanReversalReason">Reason <span class="text-danger">*</span></label>
+                                    <select id="ddl_loanReversalReason" class="bs-select" aria-label="Cancellation Reason" asp-items="@(loanReversalReasonOptions.Skip(1))">
+                                        <option value="">~Select~</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_remarks">Remarks</label>
+                                    <input type="text" id="txt_remarks" class="bs-input-text" placeholder="Enter remarks" aria-label="Remarks" maxlength="200" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section behind-scene" data-section="behind-the-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-gear"></i>Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_productId">Product ID</label>
+                                    <input type="text" id="txt_productId" class="bs-input-text" placeholder="Product ID" readonly aria-label="Product ID" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_currencyId">Currency ID</label>
+                                    <input type="text" id="txt_currencyId" class="bs-input-text" placeholder="Currency ID" readonly aria-label="Currency ID" />
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_reversalType">Reversal Type</label>
+                                    <input type="text" id="txt_reversalType" class="bs-input-text" placeholder="Reversal Type" readonly aria-label="Reversal Type" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_disbursementType">Disbursement Type</label>
+                                    <input type="text" id="txt_disbursementType" class="bs-input-text" placeholder="Disbursement Type" readonly aria-label="Disbursement Type" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Action Panel -->
+        <aside class="action-panel" aria-label="Actions">
+            <div class="action-buttons">
+                <button type="button" class="btn-action action-button view underline" data-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action action-button edit" data-action="edit" title="Edit"><i class="bi bi-pencil me-1"></i>Edit</button>
+                <button type="button" class="btn-action action-button save" data-action="save" title="Save"><i class="bi bi-floppy me-1"></i>Save</button>
+                <button type="button" class="btn-action action-button cancel" data-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/modules/microfinance/center-loan-disbursement-reversal.js"></script>
+}

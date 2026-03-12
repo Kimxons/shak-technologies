@@ -1,7 +1,45 @@
 const CM_IDENTITY_TYPES_BASE = 'Identities/ClientMaintenance/IdentityTypes';
+const MODULEID_IDENTITYTYPES = 1010; // Standard module ID for identities/client maintenance
+
+function getIdentityAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getIdentityClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getIdentitySidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
 
 function invokeClientMaintenanceIdentityTypes(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_IDENTITY_TYPES_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getIdentityClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_IDENTITY_TYPES_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getIdentityAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_IDENTITY_TYPES_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Identity Types controller invocation is not available.'));
 }
 
 window.ClientMaintenanceIdentityTypesService = {
@@ -11,383 +49,393 @@ window.ClientMaintenanceIdentityTypesService = {
     delete: (requestData) => invokeClientMaintenanceIdentityTypes('delete', requestData)
 };
 
+function showIdentityToast(message, type = 'info') {
+    const maintenanceCore = getIdentityClientMaintenanceCore();
+    if (maintenanceCore?.showToast) {
+        maintenanceCore.showToast(message, type);
+        return;
+    }
+
+    if (window.NotificationService?.showToast) {
+        window.NotificationService.showToast(message, type, 4000);
+        return;
+    }
+
+    console.log(`[${type}] ${message}`);
+}
+
+async function requestIdentityConfirmation(title, message) {
+    const appCore = getIdentityAppCore();
+    if (appCore?.showConfirmation) {
+        return Boolean(await appCore.showConfirmation(title, message));
+    }
+
+    return window.confirm(message);
+}
+
+function getIdentityViewState() {
+    return window.ClientIdentityTypesState || {};
+}
+
+function getParentIdentityContext() {
+    const maintenanceCore = getIdentityClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getIdentitySidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toTrimmedString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function firstNonEmptyString(...values) {
+    for (const value of values) {
+        const normalized = toTrimmedString(value);
+        if (normalized) {
+            return normalized;
+        }
+    }
+    return '';
+}
+
+function resolveIdentityContext(requestData, fallbackModuleId) {
+    const viewState = getIdentityViewState();
+    const parentContext = getParentIdentityContext() || {};
+    const maintenanceCore = getIdentityClientMaintenanceCore();
+
+    const moduleId = firstNonEmptyString(
+        requestData?.ModuleID,
+        fallbackModuleId,
+        maintenanceCore?.moduleId,
+        parentContext.moduleId,
+        viewState.ModuleID
+    );
+
+    const clientId = firstNonEmptyString(
+        requestData?.ClientID,
+        maintenanceCore?.clientId,
+        parentContext.clientId,
+        viewState.ClientID
+    );
+
+    const requestId = firstNonEmptyString(
+        requestData?.RequestID,
+        maintenanceCore?.requestId,
+        parentContext.requestId,
+        viewState.RequestID
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId,
+        ApplicationID: requestId || '',
+        IsStandalone: Boolean(viewState.IsStandalone)
+    };
+}
+
+function escapeHtmlIT(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
-    if (!tabRoot) return;
+    if (!tabRoot || tabRoot.dataset.cmIdentityTypesInitialized === 'true') return;
+    tabRoot.dataset.cmIdentityTypesInitialized = 'true';
 
     const state = {
-        records: [],
-        selectedRecord: null,
-        mode: 'view'
+        mode: 'view', // 'view', 'add', 'edit'
+        selectedRecordId: null,
+        records: []
     };
 
     const form = tabRoot.querySelector('[data-identitytypes-form]');
-    const tbody = tabRoot.querySelector('[data-identitytypes-body]');
+    const tableBody = tabRoot.querySelector('[data-identitytypes-body]');
+    const loadingOverlay = tabRoot.querySelector('#identityTypesLoadingOverlay');
 
-    // ──────────────────────────────────────────────────────────
-    // TABLE RENDERING
-    // ──────────────────────────────────────────────────────────
-    const renderTable = (records) => {
-        if (!tbody) return;
-        tbody.innerHTML = '';
+    const fields = {
+        ClientIdentityTypeID: form.querySelector('#hdn_identityTypeId'),
+        IdentityTypeID: form.querySelector('#txt_identityType'),
+        IdentityTypeName: form.querySelector('#txt_identityTypeName'),
+        Format: form.querySelector('#txt_identityFormat'),
+        IdentificationNo: form.querySelector('#txt_identityNumber'),
+        SerialNo: form.querySelector('#txt_identitySerialNo'),
+        PlaceOfIssue: form.querySelector('#txt_identityPlaceOfIssue'),
+        IssueDate: form.querySelector('#dt_identityIssueDate'),
+        Location: form.querySelector('#txt_identityLocation'),
+        DocumentImage: form.querySelector('#txt_identityDocumentImage')
+    };
 
-        if (!Array.isArray(records) || records.length === 0) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = '<td colspan="7" class="text-center text-muted py-3">No identity types registered</td>';
-            tbody.appendChild(tr);
-            return;
-        }
+    const auditFields = {
+        CreatedBy: tabRoot.querySelector('#idt_auditCreatedBy'),
+        CreatedOn: tabRoot.querySelector('#idt_auditCreatedOn'),
+        ModifiedBy: tabRoot.querySelector('#idt_auditModifiedBy'),
+        ModifiedOn: tabRoot.querySelector('#idt_auditModifiedOn'),
+        SupervisedBy: tabRoot.querySelector('#idt_auditSupervisedBy'),
+        SupervisedOn: tabRoot.querySelector('#idt_auditSupervisedOn')
+    };
 
-        records.forEach((record, index) => {
-            const tr = document.createElement('tr');
-            tr.dataset.recordIndex = index;
-            tr.style.cursor = 'pointer';
+    const actionButtons = {
+        new: tabRoot.querySelector('[data-identitytype-action="new"]'),
+        alter: tabRoot.querySelector('[data-identitytype-action="alter"]'),
+        remove: tabRoot.querySelector('[data-identitytype-action="remove"]'),
+        update: tabRoot.querySelector('[data-identitytype-action="update"]'),
+        clear: tabRoot.querySelector('[data-identitytype-action="clear"]')
+    };
 
-            const idTypeName = record?.Description || record?.IdentityType || record?.IdentityTypeID || '-';
-            const idNo = record?.IdentificationNo || record?.IDNumber || '-';
-            const format = record?.Format || record?.IDFormat || '-';
-            const issueDate = record?.IssueDate
-                ? formatDate(record.IssueDate)
-                : '-';
-            const placeOfIssue = record?.PlaceOfIssue || '-';
-            const serialNo = record?.SerialNo || '-';
+    const setLoading = (isLoading) => {
+        if (loadingOverlay) loadingOverlay.hidden = !isLoading;
+    };
 
-            tr.innerHTML = `
-                <td class="ps-2">${escapeHtml(idTypeName)}</td>
-                <td>${escapeHtml(idNo)}</td>
-                <td>${escapeHtml(format)}</td>
-                <td>${escapeHtml(issueDate)}</td>
-                <td>${escapeHtml(placeOfIssue)}</td>
-                <td>${escapeHtml(serialNo)}</td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-identitytype-action="select" data-record-index="${index}" title="Select">
-                        <i class="bi bi-check2"></i>
-                    </button>
-                </td>
-            `;
+    const setFormState = (mode) => {
+        state.mode = mode;
+        const isReadonly = mode === 'view';
 
-            tr.addEventListener('click', (e) => {
-                if (e.target.closest('[data-identitytype-action="select"]')) return;
-                selectRecord(records[index], tr);
-            });
-
-            tbody.appendChild(tr);
+        Object.values(fields).forEach(field => {
+            if (!field) return;
+            if (field.id === 'txt_identityType' || field.id === 'txt_identityTypeName' || field.id === 'txt_identityDocumentImage') {
+                field.readOnly = true;
+            } else {
+                field.readOnly = isReadonly;
+                field.disabled = isReadonly;
+            }
         });
-    };
 
-    // ──────────────────────────────────────────────────────────
-    // SELECTION
-    // ──────────────────────────────────────────────────────────
-    const selectRecord = (record, rowEl) => {
-        tbody?.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
-        rowEl?.classList.add('table-active');
-        state.selectedRecord = record;
-        populateForm(record);
-        setFormState('view');
-    };
+        const lookupBtn = form.querySelector('[data-identitytype-action="lookup-type"]');
+        if (lookupBtn) lookupBtn.disabled = isReadonly;
+        
+        const browseBtn = form.querySelector('[data-identitytype-action="browse-image"]');
+        if (browseBtn) browseBtn.disabled = isReadonly;
 
-    // ──────────────────────────────────────────────────────────
-    // FORM HELPERS
-    // ──────────────────────────────────────────────────────────
-    const setFieldValue = (id, value) => {
-        const field = form?.querySelector(`#${id}`);
-        if (!field) return;
-        if (field.tagName === 'SELECT') {
-            field.value = value || '';
-        } else if (field.type === 'checkbox') {
-            field.checked = Boolean(value);
-        } else if (field.type === 'date' && value) {
-            field.value = value.split('T')[0];
-        } else {
-            field.value = value || '';
-        }
-    };
-
-    const getFieldValue = (id) => {
-        const field = form?.querySelector(`#${id}`);
-        if (!field) return '';
-        if (field.type === 'checkbox') return field.checked;
-        return field.value || '';
-    };
-
-    const populateForm = (record) => {
-        if (!record) return;
-        setFieldValue('hdn_identityTypeId', record.ClientIdentityTypeID || record.ID || '');
-        setFieldValue('ddl_identityType', record.IdentityTypeID);
-        setFieldValue('txt_identityFormat', record.Format);
-        setFieldValue('txt_identityNumber', record.IdentificationNo || record.IDNumber);
-        setFieldValue('txt_identitySerialNo', record.SerialNo);
-        setFieldValue('txt_identityPlaceOfIssue', record.PlaceOfIssue);
-        setFieldValue('dt_identityIssueDate', record.IssueDate);
-        setFieldValue('txt_identityLocation', record.Location);
-        setFieldValue('txt_identityDocumentImage', record.DocumentImage || '');
+        actionButtons.new.disabled = mode !== 'view';
+        actionButtons.alter.disabled = mode !== 'view' || !state.selectedRecordId;
+        actionButtons.remove.disabled = mode !== 'view' || !state.selectedRecordId;
+        actionButtons.update.disabled = mode === 'view';
+        actionButtons.clear.disabled = mode === 'view';
     };
 
     const clearForm = () => {
-        form?.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(f => {
-            if (f.type === 'checkbox') f.checked = false;
-            else f.value = '';
-        });
-        setFieldValue('hdn_identityTypeId', '');
-        state.selectedRecord = null;
-        tbody?.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+        Object.values(fields).forEach(field => { if (field) field.value = ''; });
+        Object.values(auditFields).forEach(field => { if (field) field.textContent = '-'; });
+        state.selectedRecordId = null;
+        tableBody.querySelectorAll('tr').forEach(tr => tr.classList.remove('is-selected'));
     };
 
-    const getFormData = () => ({
-        ClientIdentityTypeID: getFieldValue('hdn_identityTypeId'),
-        IdentityTypeID: getFieldValue('ddl_identityType'),
-        Format: getFieldValue('txt_identityFormat'),
-        IdentificationNo: getFieldValue('txt_identityNumber'),
-        SerialNo: getFieldValue('txt_identitySerialNo'),
-        PlaceOfIssue: getFieldValue('txt_identityPlaceOfIssue'),
-        IssueDate: getFieldValue('dt_identityIssueDate'),
-        Location: getFieldValue('txt_identityLocation'),
-        DocumentImage: getFieldValue('txt_identityDocumentImage')
-    });
-
-    // ──────────────────────────────────────────────────────────
-    // VALIDATION
-    // ──────────────────────────────────────────────────────────
-    const validateForm = () => {
-        const errors = [];
-        if (!getFieldValue('ddl_identityType')) errors.push('Identification Type is required');
-        if (!getFieldValue('txt_identityNumber')) errors.push('Identification Number is required');
-        if (errors.length > 0) {
-            window.ClientMaintenanceCore?.showToast(errors.join(', '), 'error');
-            return false;
-        }
-        return true;
-    };
-
-    // ──────────────────────────────────────────────────────────
-    // FORM STATE (view / add / edit)
-    // ──────────────────────────────────────────────────────────
-    const setFormState = (mode) => {
-        state.mode = mode;
-
-        const newBtn = tabRoot.querySelector('[data-identitytype-action="new"]');
-        const alterBtn = tabRoot.querySelector('[data-identitytype-action="alter"]');
-        const removeBtn = tabRoot.querySelector('[data-identitytype-action="remove"]');
-        const updateBtn = tabRoot.querySelector('[data-identitytype-action="update"]');
-        const clearBtn = tabRoot.querySelector('[data-identitytype-action="clear"]');
-
-        const fields = form?.querySelectorAll('input:not([type="hidden"]), select, textarea');
-        const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
-
-        if (!allowEdit) {
-            fields?.forEach(f => f.disabled = true);
-            [newBtn, alterBtn, removeBtn, updateBtn, clearBtn].forEach(b => { if (b) b.disabled = true; });
-            return;
-        }
-
-        if (mode === 'view') {
-            fields?.forEach(f => f.disabled = true);
-            if (newBtn) newBtn.disabled = false;
-            if (alterBtn) alterBtn.disabled = !state.selectedRecord;
-            if (removeBtn) removeBtn.disabled = !state.selectedRecord;
-            if (updateBtn) updateBtn.disabled = true;
-            if (clearBtn) clearBtn.disabled = false;
-        } else if (mode === 'add' || mode === 'edit') {
-            fields?.forEach(f => f.disabled = false);
-            if (newBtn) newBtn.disabled = true;
-            if (alterBtn) alterBtn.disabled = true;
-            if (removeBtn) removeBtn.disabled = true;
-            if (updateBtn) updateBtn.disabled = false;
-            if (clearBtn) clearBtn.disabled = false;
-        }
-    };
-
-    // ──────────────────────────────────────────────────────────
-    // DATA LOADING
-    // ──────────────────────────────────────────────────────────
-    const extractRecords = (response) => {
-        const candidates = [
-            response?.Details,
-            response?.details,
-            response?.data?.Details,
-            response?.data?.details,
-            response?.Data,
-            response?.data
-        ];
-        for (const c of candidates) {
-            if (Array.isArray(c)) return c;
-        }
-        // Handle single-object response
-        const obj = response?.Details01 || response?.data?.Details01;
-        if (obj) return Array.isArray(obj) ? obj : [obj];
-        return [];
+    const populateAuditFields = (data) => {
+        if (auditFields.CreatedBy) auditFields.CreatedBy.textContent = data.CreatedBy || '-';
+        if (auditFields.CreatedOn) auditFields.CreatedOn.textContent = data.CreatedOn || '-';
+        if (auditFields.ModifiedBy) auditFields.ModifiedBy.textContent = data.ModifiedBy || '-';
+        if (auditFields.ModifiedOn) auditFields.ModifiedOn.textContent = data.ModifiedOn || '-';
+        if (auditFields.SupervisedBy) auditFields.SupervisedBy.textContent = data.SupervisedBy || '-';
+        if (auditFields.SupervisedOn) auditFields.SupervisedOn.textContent = data.SupervisedOn || '-';
     };
 
     const refreshTable = async (requestData) => {
+        const context = resolveIdentityContext(requestData, moduleId);
+        if (!context.ClientID && !context.RequestID) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No client selected</td></tr>';
+            return;
+        }
+
+        setLoading(true);
         try {
-            const response = await window.ClientMaintenanceIdentityTypesService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                ClientID: requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '',
-                RequestID: requestData?.RequestID || window.ClientMaintenanceCore?.requestId || ''
-            });
-            const records = extractRecords(response);
-            state.records = records;
-            renderTable(records);
+            const response = await window.ClientMaintenanceIdentityTypesService.get(context);
+            
+            // Handle different response structures
+            let details = response?.Details || response?.data?.Details || response?.Data || response?.data || [];
+            if (typeof details === 'string') {
+                try { details = JSON.parse(details); } catch(e) { details = []; }
+            }
+            if (!Array.isArray(details)) details = [];
+
+            state.records = details;
+            
+            if (details.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No identity types found</td></tr>';
+            } else {
+                tableBody.innerHTML = details.map((rec, index) => `
+                    <tr data-index="${index}" style="cursor:pointer;">
+                        <td class="ps-2">${escapeHtmlIT(rec.IdentityTypeName || rec.IdentityTypeID)}</td>
+                        <td>${escapeHtmlIT(rec.IdentificationNo)}</td>
+                        <td>${escapeHtmlIT(rec.Format)}</td>
+                    </tr>
+                `).join('');
+
+                tableBody.querySelectorAll('tr').forEach(tr => {
+                    tr.addEventListener('click', () => {
+                        const idx = tr.dataset.index;
+                        const record = state.records[idx];
+                        
+                        tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('is-selected'));
+                        tr.classList.add('is-selected');
+
+                        state.selectedRecordId = record.ClientIdentityTypeID || record.RecordID;
+                        
+                        fields.ClientIdentityTypeID.value = state.selectedRecordId;
+                        fields.IdentityTypeID.value = record.IdentityTypeID || '';
+                        fields.IdentityTypeName.value = record.IdentityTypeName || '';
+                        fields.Format.value = record.Format || '';
+                        fields.IdentificationNo.value = record.IdentificationNo || '';
+                        fields.SerialNo.value = record.SerialNo || '';
+                        fields.PlaceOfIssue.value = record.PlaceOfIssue || '';
+                        fields.IssueDate.value = record.IssueDate ? record.IssueDate.split('T')[0] : '';
+                        fields.Location.value = record.Location || '';
+                        fields.DocumentImage.value = record.DocumentImage || '';
+
+                        populateAuditFields(record);
+                        setFormState('view');
+                    });
+                });
+            }
+        } catch (err) {
+            showIdentityToast('Failed to load identity types: ' + err.message, 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openIdentityTypeLookup = () => {
+        if (!window.SearchModal) {
+            showIdentityToast('Search modal is not available', 'error');
+            return;
+        }
+
+        window.SearchModal.open({
+            title: 'Select Identification Type',
+            endpoint: 'Common/GetIdentificationTypes',
+            columns: [
+                { title: 'ID', field: 'IdentityTypeID' },
+                { title: 'Description', field: 'Description' },
+                { title: 'Format', field: 'Format' }
+            ],
+            onSelect: (item) => {
+                fields.IdentityTypeID.value = item.IdentityTypeID;
+                fields.IdentityTypeName.value = item.Description;
+                fields.Format.value = item.Format || '';
+            }
+        });
+    };
+
+    // Event Listeners
+    tabRoot.addEventListener('click', async (e) => {
+        const actionBtn = e.target.closest('[data-identitytype-action]');
+        if (!actionBtn) return;
+
+        const action = actionBtn.dataset.identitytypeAction;
+
+        if (action === 'new') {
+            clearForm();
+            setFormState('add');
+        } else if (action === 'alter') {
+            setFormState('edit');
+        } else if (action === 'clear') {
+            clearForm();
             setFormState('view');
-        } catch (error) {
-            console.error('[IdentityTypes] Load failed:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Failed to load identity types - ${error.message}`, 'error');
-            state.records = [];
-            renderTable([]);
-        }
-    };
-
-    // ──────────────────────────────────────────────────────────
-    // ACTION HANDLERS
-    // ──────────────────────────────────────────────────────────
-    const handleNew = () => {
-        clearForm();
-        setFormState('add');
-        window.ClientMaintenanceCore?.showToast('Enter new identity type details', 'info');
-    };
-
-    const handleAlter = () => {
-        if (!state.selectedRecord) {
-            window.ClientMaintenanceCore?.showToast('Please select an identity type to edit', 'warning');
-            return;
-        }
-        setFormState('edit');
-    };
-
-    const handleRemove = async () => {
-        if (!state.selectedRecord) {
-            window.ClientMaintenanceCore?.showToast('Please select an identity type to remove', 'warning');
-            return;
-        }
-
-        const confirmed = await window.ClientMaintenanceCore?.showDialog?.(
-            'Delete Identity Type',
-            'Are you sure you want to delete this identity type record?',
-            'YesNo'
-        ) ?? confirm('Are you sure you want to delete this identity type record?');
-
-        if (!confirmed) return;
-
-        try {
-            const response = await window.ClientMaintenanceIdentityTypesService.delete({
-                ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                ClientID: window.ClientMaintenanceCore?.clientId || '',
-                RequestID: window.ClientMaintenanceCore?.requestId || '',
-                ClientIdentityTypeID: state.selectedRecord.ClientIdentityTypeID || state.selectedRecord.ID
-            });
-
-            if (response?.ResponseCode === '00' || response?.responseCode === '00' || response?.Success || response?.success) {
-                window.ClientMaintenanceCore?.showToast('Identity type deleted successfully', 'success');
-                clearForm();
-                await refreshTable({});
+        } else if (action === 'lookup-type') {
+            openIdentityTypeLookup();
+        } else if (action === 'refresh') {
+            await refreshTable({});
+        } else if (action === 'close') {
+            const maintenanceCore = getIdentityClientMaintenanceCore();
+            if (maintenanceCore?.closeSubmodule) {
+                maintenanceCore.closeSubmodule();
             } else {
-                window.ClientMaintenanceCore?.showToast(response?.ResponseMessage || response?.ErrorMessage || response?.message || 'Delete failed', 'error');
+                window.parent.postMessage({ type: 'submoduleClose', source: 'ClientIdentityTypes' }, '*');
             }
-        } catch (error) {
-            console.error('[IdentityTypes] Delete error:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Delete failed - ${error.message}`, 'error');
-        }
-    };
+        } else if (action === 'remove') {
+            const confirmed = await requestIdentityConfirmation('Confirm Removal', 'Are you sure you want to remove this identity record?');
+            if (!confirmed) return;
 
-    const handleUpdate = async () => {
-        if (!validateForm()) return;
-        const formData = getFormData();
-
-        try {
-            let response;
-            if (state.mode === 'add') {
-                response = await window.ClientMaintenanceIdentityTypesService.create({
-                    ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                    ClientID: window.ClientMaintenanceCore?.clientId || '',
-                    RequestID: window.ClientMaintenanceCore?.requestId || '',
-                    ...formData
+            setLoading(true);
+            try {
+                const context = resolveIdentityContext({}, moduleId);
+                const response = await window.ClientMaintenanceIdentityTypesService.delete({
+                    ...context,
+                    RecordID: state.selectedRecordId
                 });
-            } else if (state.mode === 'edit') {
-                response = await window.ClientMaintenanceIdentityTypesService.update({
-                    ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                    ClientID: window.ClientMaintenanceCore?.clientId || '',
-                    RequestID: window.ClientMaintenanceCore?.requestId || '',
-                    ...formData
-                });
+                if (response.Success || response.responseCode === '00' || response.ResponseCode === '000') {
+                    showIdentityToast('Identity record removed successfully', 'success');
+                    clearForm();
+                    await refreshTable({});
+                } else {
+                    showIdentityToast(response.ResponseMessage || 'Failed to remove record', 'error');
+                }
+            } catch (err) {
+                showIdentityToast('Error removing record: ' + err.message, 'error');
+            } finally {
+                setLoading(false);
             }
+        } else if (action === 'update') {
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData.entries());
+            
+            // ClientIdentityTypeID is in the form as a hidden field
+            const context = resolveIdentityContext({}, moduleId);
+            const requestData = {
+                ...context,
+                RecordID: state.mode === 'edit' ? state.selectedRecordId : null,
+                Payload: payload
+            };
 
-            if (response?.ResponseCode === '00' || response?.responseCode === '00' || response?.Success || response?.success) {
-                window.ClientMaintenanceCore?.showToast(
-                    `Identity type ${state.mode === 'add' ? 'created' : 'updated'} successfully`,
-                    'success'
-                );
-                clearForm();
-                await refreshTable({});
-            } else {
-                window.ClientMaintenanceCore?.showToast(
-                    response?.ResponseMessage || response?.ErrorMessage || response?.message || 'Update failed',
-                    'error'
-                );
-            }
-        } catch (error) {
-            console.error('[IdentityTypes] Update error:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Update failed - ${error.message}`, 'error');
-        }
-    };
-
-    const handleClear = () => {
-        clearForm();
-        setFormState('view');
-    };
-
-    // ──────────────────────────────────────────────────────────
-    // EVENT LISTENERS
-    // ──────────────────────────────────────────────────────────
-    tabRoot.querySelectorAll('[data-identitytype-action="new"]').forEach(btn => btn.addEventListener('click', handleNew));
-    tabRoot.querySelectorAll('[data-identitytype-action="alter"]').forEach(btn => btn.addEventListener('click', handleAlter));
-    tabRoot.querySelectorAll('[data-identitytype-action="remove"]').forEach(btn => btn.addEventListener('click', handleRemove));
-    tabRoot.querySelectorAll('[data-identitytype-action="update"]').forEach(btn => btn.addEventListener('click', handleUpdate));
-    tabRoot.querySelectorAll('[data-identitytype-action="clear"]').forEach(btn => btn.addEventListener('click', handleClear));
-
-    tbody?.addEventListener('click', (e) => {
-        const selectBtn = e.target.closest('[data-identitytype-action="select"]');
-        if (selectBtn) {
-            const index = parseInt(selectBtn.dataset.recordIndex);
-            if (!isNaN(index) && state.records[index]) {
-                const row = selectBtn.closest('tr');
-                selectRecord(state.records[index], row);
+            setLoading(true);
+            try {
+                const serviceAction = state.mode === 'add' ? 'create' : 'update';
+                const response = await window.ClientMaintenanceIdentityTypesService[serviceAction](requestData);
+                
+                if (response.Success || response.responseCode === '00' || response.ResponseCode === '000') {
+                    showIdentityToast(`Identity record ${state.mode === 'add' ? 'created' : 'updated'} successfully`, 'success');
+                    setFormState('view');
+                    await refreshTable({});
+                } else {
+                    showIdentityToast(response.ResponseMessage || 'Failed to save record', 'error');
+                }
+            } catch (err) {
+                showIdentityToast('Error saving record: ' + err.message, 'error');
+            } finally {
+                setLoading(false);
             }
         }
     });
 
-    // ──────────────────────────────────────────────────────────
-    // EXTERNAL HOOKS (called by client-maintenance.js)
-    // ──────────────────────────────────────────────────────────
-    tabRoot._cmLoadData = (requestData) => refreshTable(requestData || {});
+    // Listen for context updates from parent
+    if (window.parent && window.parent !== window) {
+        window.addEventListener('message', (event) => {
+            if (event.data && (event.data.type === 'parentContext' || event.data.action === 'parentContextLoaded')) {
+                refreshTable(event.data.context || event.data.payload);
+            }
+        });
+    }
 
-    // Initial state
+    // Initial load
     setFormState('view');
     refreshTable({});
+    
+    // External exposure for manual refresh
+    tabRoot._cmRefreshData = () => refreshTable({});
 };
 
-// ──────────────────────────────────────────────────────────
-// UTILITIES
-// ──────────────────────────────────────────────────────────
-function escapeHtmlIdentityTypes(value) {
-    const text = String(value ?? '');
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-// Locally scoped alias so we don't clash with any global escapeHtml
-const escapeHtml = (typeof window.escapeHtml === 'function')
-    ? window.escapeHtml
-    : escapeHtmlIdentityTypes;
-
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    if (String(dateString).startsWith('1900') || String(dateString).startsWith('0001')) return '-';
-    try {
-        return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch {
-        return dateString;
+// Standalone initialization
+(function() {
+    function tryInit() {
+        const root = document.querySelector('[data-ktb-window]');
+        if (root && root.dataset.identitytypesHost === 'standalone') {
+            const viewState = window.ClientIdentityTypesState || {};
+            window.initClientMaintenanceIdentityTypesTab(root, viewState.ModuleID || 1010);
+        }
     }
-}
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInit);
+    } else {
+        tryInit();
+    }
+})();

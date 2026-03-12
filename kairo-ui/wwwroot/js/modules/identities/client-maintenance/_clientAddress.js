@@ -542,14 +542,22 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
         const recordId = state.selectedRecord?.RecordID ?? state.selectedRecord?.ID ?? state.selectedRecord?.AddressID ?? null;
 
-        return {
-            ModuleID: context.ModuleID,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            ApplicationID: context.ApplicationID || null,
-            RecordID: recordId,
-            Payload: payload
-        };
+
+        payload.ModuleID = context.ModuleID;
+        payload.ClientID = context.ClientID;
+        payload.RequestID = context.RequestID;
+        payload.ApplicationID = context.ApplicationID || null;
+        payload.RecordID = recordId;
+        //payload["Payload"] = payload
+        return payload;
+        //return {
+        //    ModuleID: context.ModuleID,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    ApplicationID: context.ApplicationID || null,
+        //    RecordID: recordId,
+        //    Payload: payload
+        //};
     };
 
     const applyRowPayload = (payload) => {
@@ -600,10 +608,6 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
             const rows = isNoDataResponse(response) ? [] : normalizeAddressRows(extractList(response));
             renderAddressTable(rows);
 
-            if (refreshOptions.markInitialLoad) {
-                state.initialLoadApplied = true;
-            }
-
             return rows;
         } catch (error) {
             renderAddressTable([]);
@@ -614,6 +618,10 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         } finally {
             setLoading(false);
             applyActionState();
+            // Mark initial load as applied regardless of success/failure to prevent retry loops
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
         }
     };
 

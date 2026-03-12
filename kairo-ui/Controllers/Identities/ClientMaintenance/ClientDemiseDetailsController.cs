@@ -63,7 +63,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Demise Details dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientDemiseDetails.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/ClientDemiseDetails.cshtml");
         }
 
         [HttpPost, Route("get")]

@@ -50,6 +50,12 @@ namespace AccountManagement.Modules.StandingInstructionDemandDraft
             return await Execute(reqDat, _repo.StopSIDemandDraft, nameof(StopSIDemandDraft), cancellationToken);
         }
 
+        [HttpPost("SearchSIDemandDraft")]
+        public async Task<IActionResult> SearchSIDemandDraft([FromBody] InData reqDat, CancellationToken cancellationToken = default)
+        {
+            return await Execute(reqDat, _repo.SearchSIDemandDraft, nameof(SearchSIDemandDraft), cancellationToken);
+        }
+
         private async Task<IActionResult> Execute(
             InData reqDat,
             Func<string, CancellationToken, Task<ResponseDetail<object>>> action,
