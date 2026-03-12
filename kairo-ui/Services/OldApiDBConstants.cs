@@ -235,11 +235,14 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE VIEW SUBMODULES
         // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate";
+        public const string ADD_EDIT_ACCOUNT_INTEREST_RATE = "p_AddEditAccountInterestRate";
+        public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate";
         public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
-        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+        // public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
 
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE

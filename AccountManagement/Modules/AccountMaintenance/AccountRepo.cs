@@ -520,43 +520,345 @@ namespace AccountManagement.Modules.AccountMaintenance
         // Account Interest Rate operations
         public async Task<ResponseDetail<object>> AddAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteInterestRateSP(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> UpdateAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.UPDATE_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteInterestRateSP(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> GetAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteGetInterestRateSP(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> DeleteAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
+            return await ExecuteDeleteInterestRateSP(requestJson, cancellationToken);
+        }
+
+        private static JsonElement ResolveRequestPayload(string requestJson)
+        {
+            using JsonDocument doc = JsonDocument.Parse(requestJson);
+            JsonElement root = doc.RootElement;
+
+            if (root.ValueKind != JsonValueKind.Object)
+                return root.Clone();
+
+            foreach (var property in root.EnumerateObject())
             {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+                if (!string.Equals(property.Name, "RequestData", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (property.Value.ValueKind == JsonValueKind.Object)
+                    return property.Value.Clone();
+
+                if (property.Value.ValueKind == JsonValueKind.String)
+                {
+                    var nestedJson = property.Value.GetString();
+                    if (!string.IsNullOrWhiteSpace(nestedJson))
+                    {
+                        using JsonDocument nestedDoc = JsonDocument.Parse(nestedJson);
+                        return nestedDoc.RootElement.Clone();
+                    }
+                }
+            }
+
+            return root.Clone();
+        }
+
+        private static bool TryGetPropertyIgnoreCase(JsonElement element, string key, out JsonElement value)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        value = property.Value;
+                        return true;
+                    }
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
+        private static string? GetStringValue(JsonElement payload, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (TryGetPropertyIgnoreCase(payload, key, out var value) && value.ValueKind != JsonValueKind.Null)
+                    return value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString();
+            }
+
+            return null;
+        }
+
+        private static int GetIntValue(JsonElement payload, params string[] keys)
+        {
+            var raw = GetStringValue(payload, keys);
+            return int.TryParse(raw, out var parsed) ? parsed : 0;
+        }
+
+        private static decimal? GetDecimalValue(JsonElement payload, params string[] keys)
+        {
+            var raw = GetStringValue(payload, keys);
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            return decimal.TryParse(raw, out var parsed) ? parsed : null;
+        }
+
+        private static DateTime? GetDateValue(JsonElement payload, params string[] keys)
+        {
+            var raw = GetStringValue(payload, keys);
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            // Try unambiguous formats first with InvariantCulture to avoid locale misparse
+            string[] formats = { "yyyy-MM-dd", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH:mm:ss.fff", "MM/dd/yyyy", "MM/dd/yyyy HH:mm:ss" };
+            if (DateTime.TryParseExact(raw, formats, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var exactParsed))
+                return exactParsed;
+            return DateTime.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var parsed) ? parsed : null;
+        }
+
+        private static object DbValue<T>(T? value) where T : struct
+            => value.HasValue ? value.Value : DBNull.Value;
+
+        private static object DbString(string? value)
+            => string.IsNullOrWhiteSpace(value) ? DBNull.Value : value;
+
+        private async Task<ResponseDetail<object>> ExecuteInterestRateSP(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID") ?? string.Empty;
+                string trxTypeId = GetStringValue(payload, "TrxTypeID", "RateType", "InterestRateTypeID") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId))
+                {
+                    return new ResponseDetail<object> { ResponseCode = "APIEX96", ResponseMessage = "OurBranchID is required" };
+                }
+
+                if (string.IsNullOrWhiteSpace(accountId))
+                {
+                    return new ResponseDetail<object> { ResponseCode = "APIEX96", ResponseMessage = "AccountID is required" };
+                }
+
+                if (string.IsNullOrWhiteSpace(trxTypeId))
+                {
+                    return new ResponseDetail<object> { ResponseCode = "APIEX96", ResponseMessage = "TrxTypeID is required" };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.ADD_ACCOUNT_INTEREST_RATE} " +
+                    "@OurBranchID=@OurBranchID, @AccountID=@AccountID, @TrxTypeID=@TrxTypeID, @EffectiveDate=@EffectiveDate, @RefNo=@RefNo, " +
+                    "@CeilingAmount1=@CeilingAmount1, @MarkingRate1=@MarkingRate1, @SpreadSign1=@SpreadSign1, @EffectiveRate1=@EffectiveRate1, @MinVariance1=@MinVariance1, @MaxVariance1=@MaxVariance1, " +
+                    "@CeilingAmount2=@CeilingAmount2, @MarkingRate2=@MarkingRate2, @SpreadSign2=@SpreadSign2, @EffectiveRate2=@EffectiveRate2, @MinVariance2=@MinVariance2, @MaxVariance2=@MaxVariance2, " +
+                    "@CeilingAmount3=@CeilingAmount3, @MarkingRate3=@MarkingRate3, @SpreadSign3=@SpreadSign3, @EffectiveRate3=@EffectiveRate3, @MinVariance3=@MinVariance3, @MaxVariance3=@MaxVariance3, " +
+                    "@CeilingAmount4=@CeilingAmount4, @MarkingRate4=@MarkingRate4, @SpreadSign4=@SpreadSign4, @EffectiveRate4=@EffectiveRate4, @MinVariance4=@MinVariance4, @MaxVariance4=@MaxVariance4, " +
+                    "@CeilingAmount5=@CeilingAmount5, @MarkingRate5=@MarkingRate5, @SpreadSign5=@SpreadSign5, @EffectiveRate5=@EffectiveRate5, @MinVariance5=@MinVariance5, @MaxVariance5=@MaxVariance5, " +
+                    "@PenaltyMarkingRate=@PenaltyMarkingRate, @PenaltySpreadSign=@PenaltySpreadSign, @PenaltyRate=@PenaltyRate, @CreatedBy=@CreatedBy, @CreatedOn=@CreatedOn, @ModifiedBy=@ModifiedBy, @ModifiedOn=@ModifiedOn, @SupervisedBy=@SupervisedBy, @UpdateCount=@UpdateCount, @ExpiryDate=@ExpiryDate";
+
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+                cmd.Parameters.Add(new SqlParameter("@TrxTypeID", trxTypeId));
+                cmd.Parameters.Add(new SqlParameter("@EffectiveDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "EffectiveDate")) });
+                cmd.Parameters.Add(new SqlParameter("@RefNo", System.Data.SqlDbType.SmallInt) { Value = GetIntValue(payload, "RefNo", "RefID") });
+
+                for (var i = 1; i <= 5; i++)
+                {
+                    cmd.Parameters.Add(new SqlParameter($"@CeilingAmount{i}", DbValue(GetDecimalValue(payload, $"CeilingAmount{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@MarkingRate{i}", DbValue(GetDecimalValue(payload, $"MarkingRate{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@SpreadSign{i}", System.Data.SqlDbType.Char, 1) { Value = DbString(GetStringValue(payload, $"SpreadSign{i}")) });
+                    cmd.Parameters.Add(new SqlParameter($"@EffectiveRate{i}", DbValue(GetDecimalValue(payload, $"EffectiveRate{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@MinVariance{i}", DbValue(GetDecimalValue(payload, $"MinVariance{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@MaxVariance{i}", DbValue(GetDecimalValue(payload, $"MaxVariance{i}"))));
+                }
+
+                cmd.Parameters.Add(new SqlParameter("@PenaltyMarkingRate", DbValue(GetDecimalValue(payload, "PenaltyMarkingRate"))));
+                cmd.Parameters.Add(new SqlParameter("@PenaltySpreadSign", System.Data.SqlDbType.Char, 1) { Value = DbString(GetStringValue(payload, "PenaltySpreadSign")) });
+                cmd.Parameters.Add(new SqlParameter("@PenaltyRate", DbValue(GetDecimalValue(payload, "PenaltyRate"))));
+                cmd.Parameters.Add(new SqlParameter("@CreatedBy", DbString(GetStringValue(payload, "CreatedBy", "OperatorID"))));
+                cmd.Parameters.Add(new SqlParameter("@CreatedOn", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "CreatedOn")) });
+                cmd.Parameters.Add(new SqlParameter("@ModifiedBy", DbString(GetStringValue(payload, "ModifiedBy"))));
+                cmd.Parameters.Add(new SqlParameter("@ModifiedOn", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "ModifiedOn")) });
+                cmd.Parameters.Add(new SqlParameter("@SupervisedBy", DbString(GetStringValue(payload, "SupervisedBy"))));
+                cmd.Parameters.Add(new SqlParameter("@UpdateCount", System.Data.SqlDbType.TinyInt) { Value = GetIntValue(payload, "UpdateCount") });
+                cmd.Parameters.Add(new SqlParameter("@ExpiryDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "ExpiryDate")) });
+
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                // After add/edit, fetch the updated interest rate details and return them
+                // so the UI can read Details04 (slab data) immediately.
+                return await ExecuteGetInterestRateSP(requestJson, cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error executing interest rate operation: " + ex.Message
+                };
+            }
+        }
+
+        private async Task<ResponseDetail<object>> ExecuteDeleteInterestRateSP(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID") ?? string.Empty;
+                string trxTypeId = GetStringValue(payload, "TrxTypeID", "RateType", "InterestRateTypeID") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(accountId) || string.IsNullOrWhiteSpace(trxTypeId))
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "OurBranchID, AccountID and TrxTypeID are required"
+                    };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_INTEREST_RATE} @OurBranchID=@OurBranchID, @AccountID=@AccountID, @TrxTypeID=@TrxTypeID, @EffectiveDate=@EffectiveDate, @RefNo=@RefNo, @UpdateCount=@UpdateCount";
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+                cmd.Parameters.Add(new SqlParameter("@TrxTypeID", trxTypeId));
+                cmd.Parameters.Add(new SqlParameter("@EffectiveDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "EffectiveDate")) });
+                cmd.Parameters.Add(new SqlParameter("@RefNo", System.Data.SqlDbType.SmallInt) { Value = GetIntValue(payload, "RefNo", "RefID") });
+                cmd.Parameters.Add(new SqlParameter("@UpdateCount", System.Data.SqlDbType.TinyInt) { Value = GetIntValue(payload, "UpdateCount") });
+
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "00",
+                    ResponseMessage = "Interest rate deleted successfully."
+                };
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error deleting interest rate: " + ex.Message
+                };
+            }
+        }
+
+        private async Task<ResponseDetail<object>> ExecuteGetInterestRateSP(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID") ?? string.Empty;
+                string trxTypeId = GetStringValue(payload, "TrxTypeID", "RateType", "InterestRateTypeID") ?? string.Empty;
+                string operatorId = GetStringValue(payload, "OperatorID", "CreatedBy", "ModifiedBy") ?? string.Empty;
+                int direction = GetIntValue(payload, "Direction");
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(accountId) || string.IsNullOrWhiteSpace(trxTypeId) || string.IsNullOrWhiteSpace(operatorId))
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "OurBranchID, AccountID, TrxTypeID and OperatorID are required"
+                    };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.GET_ACCOUNT_INTEREST_RATE} " +
+                    "@OurBranchID=@OurBranchID, @AccountID=@AccountID, @TrxTypeID=@TrxTypeID, @EffectiveDate=@EffectiveDate, @OperatorID=@OperatorID, @Direction=@Direction";
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+                cmd.Parameters.Add(new SqlParameter("@TrxTypeID", trxTypeId));
+                cmd.Parameters.Add(new SqlParameter("@EffectiveDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "EffectiveDate")) });
+                cmd.Parameters.Add(new SqlParameter("@OperatorID", operatorId));
+                cmd.Parameters.Add(new SqlParameter("@Direction", System.Data.SqlDbType.SmallInt) { Value = direction });
+
+                using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                var detailSets = new JsonObject();
+                int detailIndex = 1;
+                int totalRows = 0;
+
+                do
+                {
+                    var rows = new JsonArray();
+
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        var row = new JsonObject();
+                        for (int index = 0; index < reader.FieldCount; index++)
+                        {
+                            var value = reader.IsDBNull(index) ? null : reader.GetValue(index);
+                            row[reader.GetName(index)] = value == null ? null : JsonValue.Create(value);
+                        }
+                        rows.Add(row);
+                        totalRows++;
+                    }
+
+                    detailSets[$"Details{detailIndex:00}"] = rows;
+                    detailIndex++;
+                }
+                while (await reader.NextResultAsync(cancellationToken));
+
+                return new ResponseDetail<object>
+                {
+                    Details = JsonDocument.Parse(detailSets.ToJsonString()),
+                    ResponseCode = "00",
+                    ResponseMessage = totalRows > 0 ? "Success" : "No record found."
+                };
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error getting interest rate: " + ex.Message
+                };
+            }
         }
 
         // Notes operations
