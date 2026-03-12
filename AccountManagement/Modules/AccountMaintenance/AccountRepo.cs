@@ -844,7 +844,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
+                ResponseCode = respStr.ResponseCgode,
                 ResponseMessage = respStr.ResponseMessage
             };
         }
