@@ -245,6 +245,7 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
+        public const string GET_SI_TYPE_COMBO = "p_GetSITypeCombo";
         public const string GET_SI_TYPES = "p_GetSITypes";
         public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
         public const string DELETE_SI_TYPES = "p_DeleteSITypes";
