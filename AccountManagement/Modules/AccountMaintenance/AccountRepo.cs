@@ -611,7 +611,13 @@ namespace AccountManagement.Modules.AccountMaintenance
         {
             var raw = GetStringValue(payload, keys);
             if (string.IsNullOrWhiteSpace(raw)) return null;
-            return DateTime.TryParse(raw, out var parsed) ? parsed : null;
+            // Try unambiguous formats first with InvariantCulture to avoid locale misparse
+            string[] formats = { "yyyy-MM-dd", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH:mm:ss.fff", "MM/dd/yyyy", "MM/dd/yyyy HH:mm:ss" };
+            if (DateTime.TryParseExact(raw, formats, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var exactParsed))
+                return exactParsed;
+            return DateTime.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var parsed) ? parsed : null;
         }
 
         private static object DbValue<T>(T? value) where T : struct
@@ -688,11 +694,9 @@ namespace AccountManagement.Modules.AccountMaintenance
 
                 await cmd.ExecuteNonQueryAsync(cancellationToken);
 
-                return new ResponseDetail<object>
-                {
-                    ResponseCode = "00",
-                    ResponseMessage = GetIntValue(payload, "UpdateCount") == 1 ? "Interest rate added successfully." : "Interest rate updated successfully."
-                };
+                // After add/edit, fetch the updated interest rate details and return them
+                // so the UI can read Details04 (slab data) immediately.
+                return await ExecuteGetInterestRateSP(requestJson, cancellationToken);
             }
             catch (SqlException ex)
             {
@@ -1144,7 +1148,7 @@ namespace AccountManagement.Modules.AccountMaintenance
             return new ResponseDetail<object>
             {
                 Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCgode,
+                ResponseCode = respStr.ResponseCode,
                 ResponseMessage = respStr.ResponseMessage
             };
         }

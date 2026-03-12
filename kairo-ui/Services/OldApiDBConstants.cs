@@ -223,6 +223,12 @@ namespace kairo_ui.Services
         public const string USER_RIGHTS = "p_UserRights";
 
         // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
+        public const string EDIT_ACCOUNT_PRODUCT_NOTIFICATION = "p_EditAccountProductNotification";
+
+        // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE VIEW SUBMODULES
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate";
@@ -232,6 +238,8 @@ namespace kairo_ui.Services
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
+        // public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
         // ═══════════════════════════════════════════════════════════════════

@@ -20,6 +20,10 @@ namespace kairo_ui.Controllers.Shared
         // NOTE: InstructionID is handled by SystemCoreApi (GetSystemSearch returns 00) - do not add here
         private static readonly HashSet<string> _fallbackTableIds = new(StringComparer.OrdinalIgnoreCase)
         {
+            "InstructionID",
+            "BranchID",
+            "OurBranchID",
+            "ClientID"
         };
 
         public SearchModalController(
@@ -154,6 +158,17 @@ namespace kairo_ui.Controllers.Shared
                     LanguageID = "en"
                 };
 
+                if (string.Equals(request.TableID, "BranchID", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(request.TableID, "OurBranchID", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await SearchBranchesViaOldApi(request);
+                }
+
+                if (string.Equals(request.TableID, "ClientID", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await SearchClientsViaOldApi(request);
+                }
+
                 // Route through OldApi for table IDs not configured in SystemCoreApi
                 if (_fallbackTableIds.Contains(request.TableID))
                 {
@@ -254,8 +269,423 @@ namespace kairo_ui.Controllers.Shared
                         new() { FieldName = "AccountName", DisplayName = "Account Name", FieldOrder = 3 }
                     }
                 },
+                "ClientID" => new SearchConfigDto
+                {
+                    SearchID = "ClientID",
+                    SearchName = "Client",
+                    KeyForNavigation = "ClientID",
+                    SearchFields = new List<SearchFieldDto>
+                    {
+                        new() { FieldName = "ClientID", DisplayName = "Client ID", FieldOrder = 1 },
+                        new() { FieldName = "Name", DisplayName = "Name", FieldOrder = 2 },
+                        new() { FieldName = "IDNumber", DisplayName = "ID Number", FieldOrder = 3 },
+                        new() { FieldName = "MobileNo", DisplayName = "MobileNo", FieldOrder = 4 },
+                        new() { FieldName = "ClientApplicationID", DisplayName = "Client Application ID", FieldOrder = 5 },
+                        new() { FieldName = "AccountID", DisplayName = "Account ID", FieldOrder = 6 },
+                        new() { FieldName = "MotherName", DisplayName = "MotherName", FieldOrder = 7 }
+                    }
+                },
+                "BranchID" or "OurBranchID" => new SearchConfigDto
+                {
+                    SearchID = tableID,
+                    SearchName = "Branch",
+                    KeyForNavigation = "OurBranchID",
+                    SearchFields = new List<SearchFieldDto>
+                    {
+                        new() { FieldName = "OurBranchID", DisplayName = "Branch ID", FieldOrder = 1 },
+                        new() { FieldName = "BranchName", DisplayName = "Branch Name", FieldOrder = 2 }
+                    }
+                },
                 _ => null
             };
+        }
+
+        private async Task<IActionResult> SearchBranchesViaOldApi(SearchResultRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("[SearchModal] Routing branch search through SEARCH_SYSTEM_BRANCHES");
+
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
+                    ?? "00";
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.SEARCH_SYSTEM_BRANCHES,
+                    new
+                    {
+                        BankID = bankId
+                    });
+
+                var rows = new List<JsonElement>();
+                if (response.ValueKind != JsonValueKind.Undefined && response.ValueKind != JsonValueKind.Null)
+                {
+                    if (response.TryGetProperty("Details", out var details) && details.ValueKind == JsonValueKind.Array)
+                    {
+                        rows.AddRange(details.EnumerateArray());
+                    }
+                    else if (response.TryGetProperty("Details01", out var details01) && details01.ValueKind == JsonValueKind.Array)
+                    {
+                        rows.AddRange(details01.EnumerateArray());
+                    }
+                }
+
+                var filters = ExtractSearchFilters(request.SearchKey);
+                var filteredRows = rows.Where(row => MatchesFilters(row, filters)).ToList();
+
+                return Ok(new
+                {
+                    success = filteredRows.Count > 0,
+                    data = new
+                    {
+                        ResponseCode = filteredRows.Count > 0 ? "00" : "99",
+                        ResponseMessage = filteredRows.Count > 0 ? "Search completed successfully" : "No results found",
+                        Details = filteredRows
+                    },
+                    message = filteredRows.Count > 0 ? "Search completed successfully" : "No results found"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SearchModal] Branch search error");
+                return StatusCode(500, new { success = false, message = "Search failed: " + ex.Message });
+            }
+        }
+
+        private async Task<IActionResult> SearchClientsViaOldApi(SearchResultRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("[SearchModal] Routing client search through OldApi with local filter matching");
+
+                var branchId = request.OurBranchID ?? HttpContext.Session.GetString("OurBranchID") ?? HttpContext.Session.GetString("branch_code") ?? string.Empty;
+                var filters = ExtractSearchFilters(request.SearchKey);
+                var primarySearchTerm = ExtractPrimarySearchTerm(request.SearchKey);
+                var rows = await LoadClientRowsViaOldApi(request, branchId, filters.Count == 0 ? string.Empty : primarySearchTerm);
+                var filteredRows = rows.Where(row => MatchesFilters(row, filters)).ToList();
+
+                return Ok(new
+                {
+                    success = filteredRows.Count > 0,
+                    data = new
+                    {
+                        ResponseCode = filteredRows.Count > 0 ? "00" : "99",
+                        ResponseMessage = filteredRows.Count > 0 ? "Search completed successfully" : "No results found",
+                        Details = filteredRows
+                    },
+                    message = filteredRows.Count > 0 ? "Search completed successfully" : "No results found"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SearchModal] Client search error");
+                return StatusCode(500, new { success = false, message = "Search failed: " + ex.Message });
+            }
+        }
+
+        private async Task<List<JsonElement>> LoadClientRowsViaOldApi(SearchResultRequestDto request, string branchId, string? primarySearchTerm)
+        {
+            var searchCandidates = new List<string>();
+            var normalizedPrimaryTerm = primarySearchTerm?.Trim() ?? string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(normalizedPrimaryTerm))
+            {
+                searchCandidates.Add(normalizedPrimaryTerm);
+            }
+            else
+            {
+                searchCandidates.Add(string.Empty);
+            }
+
+            foreach (var fallbackTerm in new[] { "%", "*" })
+            {
+                if (!searchCandidates.Contains(fallbackTerm, StringComparer.Ordinal))
+                {
+                    searchCandidates.Add(fallbackTerm);
+                }
+            }
+
+            foreach (var searchTerm in searchCandidates)
+            {
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_SEARCHRESULT_DBO,
+                    new
+                    {
+                        TableID = request.TableID,
+                        AdvFilterString = request.AdvFilterString ?? string.Empty,
+                        WhereStmt = BuildClientWhereClause(branchId),
+                        PrevOrNext = 0,
+                        RefID = string.Empty,
+                        OperatorID = request.OperatorID ?? string.Empty,
+                        ModuleID = 0,
+                        OurBranchID = branchId,
+                        SearchKey = searchTerm,
+                        LanguageID = "en"
+                    });
+
+                var rows = ExtractRows(response);
+                if (rows.Count > 0)
+                {
+                    _logger.LogInformation("[SearchModal] Client search seed '{SearchSeed}' returned {RowCount} row(s)", searchTerm, rows.Count);
+                    return rows;
+                }
+            }
+
+            return [];
+        }
+
+        private static Dictionary<string, (string Value, string Mode)> ExtractSearchFilters(object? searchKey)
+        {
+            var result = new Dictionary<string, (string Value, string Mode)>(StringComparer.OrdinalIgnoreCase);
+            if (searchKey is null)
+            {
+                return result;
+            }
+
+            if (searchKey is JsonElement json && json.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in json.EnumerateObject())
+                {
+                    if (property.Value.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    var value = property.Value.TryGetProperty("value", out var valueEl)
+                        ? valueEl.GetString() ?? string.Empty
+                        : string.Empty;
+                    var mode = property.Value.TryGetProperty("mode", out var modeEl)
+                        ? modeEl.GetString() ?? "like"
+                        : "like";
+
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        result[property.Name] = (value.Trim(), mode.Trim());
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static bool MatchesFilters(JsonElement row, Dictionary<string, (string Value, string Mode)> filters)
+        {
+            if (filters.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (var filter in filters)
+            {
+                var cellValue = GetJsonElementString(row, filter.Key);
+                if (!MatchesFilter(cellValue, filter.Value.Value, filter.Value.Mode))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static string GetJsonElementString(JsonElement row, string key)
+        {
+            foreach (var property in row.EnumerateObject())
+            {
+                if (string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return property.Value.ToString();
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static bool MatchesFilter(string sourceValue, string filterValue, string mode)
+        {
+            var source = sourceValue?.Trim() ?? string.Empty;
+            var filter = filterValue?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(filter))
+            {
+                return true;
+            }
+
+            return (mode ?? "like").Trim().ToLowerInvariant() switch
+            {
+                "equals" => string.Equals(source, filter, StringComparison.OrdinalIgnoreCase),
+                "startswith" => source.StartsWith(filter, StringComparison.OrdinalIgnoreCase),
+                "endswith" => source.EndsWith(filter, StringComparison.OrdinalIgnoreCase),
+                _ => source.Contains(filter, StringComparison.OrdinalIgnoreCase)
+            };
+        }
+
+        private static string ExtractPrimarySearchTerm(object? searchKey)
+        {
+            if (searchKey is null)
+            {
+                return string.Empty;
+            }
+
+            if (searchKey is string text)
+            {
+                return text.Trim();
+            }
+
+            if (searchKey is JsonElement json)
+            {
+                if (json.ValueKind == JsonValueKind.String)
+                {
+                    return json.GetString()?.Trim() ?? string.Empty;
+                }
+
+                if (json.ValueKind == JsonValueKind.Object)
+                {
+                    var preferredFields = new[]
+                    {
+                        "ClientID",
+                        "Name",
+                        "IDNumber",
+                        "MobileNo",
+                        "ClientApplicationID",
+                        "AccountID",
+                        "MotherName",
+                        "OurBranchID",
+                        "BranchID",
+                        "BranchName"
+                    };
+
+                    foreach (var field in preferredFields)
+                    {
+                        if (!json.TryGetProperty(field, out var property) || property.ValueKind == JsonValueKind.Null)
+                        {
+                            continue;
+                        }
+
+                        var value = property.ValueKind switch
+                        {
+                            JsonValueKind.Object when property.TryGetProperty("value", out var nestedValue) => nestedValue.GetString(),
+                            JsonValueKind.String => property.GetString(),
+                            JsonValueKind.Number => property.ToString(),
+                            JsonValueKind.True => bool.TrueString,
+                            JsonValueKind.False => bool.FalseString,
+                            _ => null
+                        };
+
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            return value.Trim();
+                        }
+                    }
+
+                    foreach (var property in json.EnumerateObject())
+                    {
+                        var value = property.Value.ValueKind switch
+                        {
+                            JsonValueKind.Object when property.Value.TryGetProperty("value", out var nestedValue) => nestedValue.GetString(),
+                            JsonValueKind.String => property.Value.GetString(),
+                            JsonValueKind.Number => property.Value.ToString(),
+                            JsonValueKind.True => bool.TrueString,
+                            JsonValueKind.False => bool.FalseString,
+                            _ => null
+                        };
+
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            return value.Trim();
+                        }
+                    }
+                }
+            }
+
+            return searchKey.ToString()?.Trim() ?? string.Empty;
+        }
+
+        private static List<JsonElement> ExtractRows(JsonElement response)
+        {
+            if (response.ValueKind == JsonValueKind.Array)
+            {
+                return response.EnumerateArray().Select(item => item.Clone()).ToList();
+            }
+
+            if (response.ValueKind != JsonValueKind.Object)
+            {
+                return [];
+            }
+
+            foreach (var propertyName in new[] { "Details01", "Details1", "Details", "data", "Data", "Records" })
+            {
+                if (TryGetPropertyIgnoreCase(response, propertyName, out var propertyValue))
+                {
+                    var rows = NormalizeRows(propertyValue);
+                    if (rows.Count > 0)
+                    {
+                        return rows;
+                    }
+                }
+            }
+
+            foreach (var property in response.EnumerateObject())
+            {
+                var rows = NormalizeRows(property.Value);
+                if (rows.Count > 0)
+                {
+                    return rows;
+                }
+            }
+
+            return [];
+        }
+
+        private static List<JsonElement> NormalizeRows(JsonElement value)
+        {
+            if (value.ValueKind == JsonValueKind.Array)
+            {
+                return value.EnumerateArray().Select(item => item.Clone()).ToList();
+            }
+
+            if (value.ValueKind == JsonValueKind.Object)
+            {
+                if (TryGetPropertyIgnoreCase(value, "SearchResults", out var searchResults))
+                {
+                    return NormalizeRows(searchResults);
+                }
+
+                if (TryGetPropertyIgnoreCase(value, "Details", out var nestedDetails))
+                {
+                    return NormalizeRows(nestedDetails);
+                }
+            }
+
+            return [];
+        }
+
+        private static bool TryGetPropertyIgnoreCase(JsonElement element, string propertyName, out JsonElement propertyValue)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        propertyValue = property.Value;
+                        return true;
+                    }
+                }
+            }
+
+            propertyValue = default;
+            return false;
+        }
+
+        private static string BuildClientWhereClause(string? branchId)
+        {
+            if (string.IsNullOrWhiteSpace(branchId))
+            {
+                return string.Empty;
+            }
+
+            return $"OurBranchID = '{branchId.Replace("'", "''", StringComparison.Ordinal)}'";
         }
 
         /// <summary>
@@ -273,7 +703,7 @@ namespace kairo_ui.Controllers.Shared
                     SearchID = request.TableID,
                     WhereStmt = request.WhereStmt ?? string.Empty,
                     AdvFilterString = request.AdvFilterString ?? string.Empty,
-                    SearchKey = request.SearchKey ?? string.Empty,
+                    SearchKey = ExtractPrimarySearchTerm(request.SearchKey),
                     PrevOrNext = request.PrevOrNext ?? 0,
                     Reference = request.RefID ?? string.Empty,
                     PageSize = request.PageSize ?? 20,
