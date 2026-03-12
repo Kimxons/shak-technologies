@@ -59,11 +59,11 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Identity Types tab dropdown options");
             }
 
-            return View("~/Views/Identities/ClientMaintenance/_ClientIdentityTypes.cshtml");
+            return View("~/Views/Identities/ClientMaintenance/ClientIdentityTypes.cshtml");
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Get([FromBody] GetClientIdentityTypeRequest requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -71,7 +71,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData);
                 _logger.LogInformation("client-maintenance.identitytypes.get request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_IDENTITY_TYPE, requestData);
                 return Ok(response);
