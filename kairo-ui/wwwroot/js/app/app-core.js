@@ -959,7 +959,8 @@
      * @param {string} [options.input.value] - Initial input value
      * @param {boolean} [options.input.required] - Whether input is required
      * @param {number} [options.input.maxLength] - Maximum input length
-     * @param {Object} [options.config] - Additional configuration
+    * @param {string} [options.contentHtml] - Optional trusted HTML content for the dialog body
+    * @param {Object} [options.config] - Additional configuration
      * @param {boolean} [options.config.backdrop] - Show backdrop (default: true)
      * @param {boolean} [options.config.keyboard] - Allow keyboard dismiss (default: false)
      * @param {boolean} [options.config.focus] - Auto-focus input (default: true)
@@ -1008,6 +1009,7 @@
                 dialogId = `appcore-dialog-${Date.now()}`,
                 buttons = null,
                 input = null,
+                contentHtml = '',
                 config = {}
             } = options;
 
@@ -1020,8 +1022,8 @@
             // Build dialog HTML based on type
             const modalSize = config.size || 'md';
             const modalSizeClass = modalSize !== 'md' ? `modal-${modalSize}` : '';
-            
-            let dialogContent = buildDialogContent(type, message, input);
+
+            let dialogContent = buildDialogContent(type, message, input, contentHtml);
             let dialogButtons = buildDialogButtons(type, buttons);
 
             // Create modal HTML
@@ -1082,15 +1084,19 @@
     /**
      * Build dialog content based on type
      */
-    function buildDialogContent(type, message, input) {
-        let content = `<p>${escapeHtml(message)}</p>`;
+    function buildDialogContent(type, message, input, contentHtml) {
+        let content = contentHtml || `<p>${escapeHtml(message)}</p>`;
+
+        if (contentHtml) {
+            return content;
+        }
 
         if (type === 'prompt' && input) {
             const placeholder = input.placeholder || '';
             const value = input.value || '';
             const maxLength = input.maxLength ? `maxlength="${input.maxLength}"` : '';
             const required = input.required ? 'required' : '';
-            
+
             content += `
                 <div class="mt-3">
                     <input type="text" class="form-control" id="dialog-input" 
@@ -1104,7 +1110,7 @@
             const value = input.value || '';
             const maxLength = input.maxLength ? `maxlength="${input.maxLength}"` : '';
             const required = input.required ? 'required' : '';
-            
+
             content += `
                 <div class="mt-3">
                     <textarea class="form-control" id="dialog-input" rows="4" 
@@ -1135,20 +1141,20 @@
         switch (type) {
             case 'alert':
                 return '<button type="button" class="btn btn-primary" data-dialog-action="ok">OK</button>';
-            
+
             case 'confirmation':
                 return `
                     <button type="button" class="btn btn-outline-secondary" data-dialog-action="cancel">Cancel</button>
                     <button type="button" class="btn btn-primary" data-dialog-action="confirm">Confirm</button>
                 `;
-            
+
             case 'prompt':
             case 'remarks':
                 return `
                     <button type="button" class="btn btn-outline-secondary" data-dialog-action="cancel">Cancel</button>
                     <button type="button" class="btn btn-primary" data-dialog-action="submit">Submit</button>
                 `;
-            
+
             default:
                 return '<button type="button" class="btn btn-primary" data-dialog-action="ok">OK</button>';
         }
@@ -1180,16 +1186,16 @@
                     // Custom button handler
                     const btnIndex = parseInt(action);
                     const btnConfig = customButtons.list[btnIndex];
-                    
+
                     let result = btnConfig.value !== undefined ? btnConfig.value : null;
-                    
+
                     // If button has a custom handler, call it
                     if (typeof btnConfig.handler === 'function') {
                         const handlerResult = await btnConfig.handler(inputField?.value);
                         if (handlerResult === false) return; // Don't close if handler returns false
                         result = handlerResult !== undefined ? handlerResult : result;
                     }
-                    
+
                     bsModal.hide();
                     resolve(result);
                 } else {
@@ -1200,7 +1206,7 @@
                             bsModal.hide();
                             resolve(true);
                             break;
-                        
+
                         case 'submit':
                             if (inputField) {
                                 if (inputField.hasAttribute('required') && !inputField.value.trim()) {
@@ -1214,7 +1220,7 @@
                                 resolve(true);
                             }
                             break;
-                        
+
                         case 'cancel':
                         default:
                             bsModal.hide();

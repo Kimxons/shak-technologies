@@ -2,7 +2,9 @@ using CBS.Entities.Common;
 using AccountManagement.Helpers;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -518,43 +520,345 @@ namespace AccountManagement.Modules.AccountMaintenance
         // Account Interest Rate operations
         public async Task<ResponseDetail<object>> AddAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.ADD_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteInterestRateSP(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> UpdateAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.UPDATE_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteInterestRateSP(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> GetAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.GET_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
-            {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+            return await ExecuteGetInterestRateSP(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> DeleteAccountInterestRate(string requestJson, CancellationToken cancellationToken = default)
         {
-            ResponseDetail<string> respStr = _dal.Data.FromSqlInterpolated($"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_INTEREST_RATE} @RequestData={requestJson}").AsEnumerable().FirstOrDefault()!;
-            return new ResponseDetail<object>
+            return await ExecuteDeleteInterestRateSP(requestJson, cancellationToken);
+        }
+
+        private static JsonElement ResolveRequestPayload(string requestJson)
+        {
+            using JsonDocument doc = JsonDocument.Parse(requestJson);
+            JsonElement root = doc.RootElement;
+
+            if (root.ValueKind != JsonValueKind.Object)
+                return root.Clone();
+
+            foreach (var property in root.EnumerateObject())
             {
-                Details = string.IsNullOrEmpty(respStr.Details) ? null : JsonDocument.Parse(respStr.Details!),
-                ResponseCode = respStr.ResponseCode,
-                ResponseMessage = respStr.ResponseMessage
-            };
+                if (!string.Equals(property.Name, "RequestData", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (property.Value.ValueKind == JsonValueKind.Object)
+                    return property.Value.Clone();
+
+                if (property.Value.ValueKind == JsonValueKind.String)
+                {
+                    var nestedJson = property.Value.GetString();
+                    if (!string.IsNullOrWhiteSpace(nestedJson))
+                    {
+                        using JsonDocument nestedDoc = JsonDocument.Parse(nestedJson);
+                        return nestedDoc.RootElement.Clone();
+                    }
+                }
+            }
+
+            return root.Clone();
+        }
+
+        private static bool TryGetPropertyIgnoreCase(JsonElement element, string key, out JsonElement value)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        value = property.Value;
+                        return true;
+                    }
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
+        private static string? GetStringValue(JsonElement payload, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (TryGetPropertyIgnoreCase(payload, key, out var value) && value.ValueKind != JsonValueKind.Null)
+                    return value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString();
+            }
+
+            return null;
+        }
+
+        private static int GetIntValue(JsonElement payload, params string[] keys)
+        {
+            var raw = GetStringValue(payload, keys);
+            return int.TryParse(raw, out var parsed) ? parsed : 0;
+        }
+
+        private static decimal? GetDecimalValue(JsonElement payload, params string[] keys)
+        {
+            var raw = GetStringValue(payload, keys);
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            return decimal.TryParse(raw, out var parsed) ? parsed : null;
+        }
+
+        private static DateTime? GetDateValue(JsonElement payload, params string[] keys)
+        {
+            var raw = GetStringValue(payload, keys);
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            // Try unambiguous formats first with InvariantCulture to avoid locale misparse
+            string[] formats = { "yyyy-MM-dd", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH:mm:ss.fff", "MM/dd/yyyy", "MM/dd/yyyy HH:mm:ss" };
+            if (DateTime.TryParseExact(raw, formats, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var exactParsed))
+                return exactParsed;
+            return DateTime.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var parsed) ? parsed : null;
+        }
+
+        private static object DbValue<T>(T? value) where T : struct
+            => value.HasValue ? value.Value : DBNull.Value;
+
+        private static object DbString(string? value)
+            => string.IsNullOrWhiteSpace(value) ? DBNull.Value : value;
+
+        private async Task<ResponseDetail<object>> ExecuteInterestRateSP(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID") ?? string.Empty;
+                string trxTypeId = GetStringValue(payload, "TrxTypeID", "RateType", "InterestRateTypeID") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId))
+                {
+                    return new ResponseDetail<object> { ResponseCode = "APIEX96", ResponseMessage = "OurBranchID is required" };
+                }
+
+                if (string.IsNullOrWhiteSpace(accountId))
+                {
+                    return new ResponseDetail<object> { ResponseCode = "APIEX96", ResponseMessage = "AccountID is required" };
+                }
+
+                if (string.IsNullOrWhiteSpace(trxTypeId))
+                {
+                    return new ResponseDetail<object> { ResponseCode = "APIEX96", ResponseMessage = "TrxTypeID is required" };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.ADD_ACCOUNT_INTEREST_RATE} " +
+                    "@OurBranchID=@OurBranchID, @AccountID=@AccountID, @TrxTypeID=@TrxTypeID, @EffectiveDate=@EffectiveDate, @RefNo=@RefNo, " +
+                    "@CeilingAmount1=@CeilingAmount1, @MarkingRate1=@MarkingRate1, @SpreadSign1=@SpreadSign1, @EffectiveRate1=@EffectiveRate1, @MinVariance1=@MinVariance1, @MaxVariance1=@MaxVariance1, " +
+                    "@CeilingAmount2=@CeilingAmount2, @MarkingRate2=@MarkingRate2, @SpreadSign2=@SpreadSign2, @EffectiveRate2=@EffectiveRate2, @MinVariance2=@MinVariance2, @MaxVariance2=@MaxVariance2, " +
+                    "@CeilingAmount3=@CeilingAmount3, @MarkingRate3=@MarkingRate3, @SpreadSign3=@SpreadSign3, @EffectiveRate3=@EffectiveRate3, @MinVariance3=@MinVariance3, @MaxVariance3=@MaxVariance3, " +
+                    "@CeilingAmount4=@CeilingAmount4, @MarkingRate4=@MarkingRate4, @SpreadSign4=@SpreadSign4, @EffectiveRate4=@EffectiveRate4, @MinVariance4=@MinVariance4, @MaxVariance4=@MaxVariance4, " +
+                    "@CeilingAmount5=@CeilingAmount5, @MarkingRate5=@MarkingRate5, @SpreadSign5=@SpreadSign5, @EffectiveRate5=@EffectiveRate5, @MinVariance5=@MinVariance5, @MaxVariance5=@MaxVariance5, " +
+                    "@PenaltyMarkingRate=@PenaltyMarkingRate, @PenaltySpreadSign=@PenaltySpreadSign, @PenaltyRate=@PenaltyRate, @CreatedBy=@CreatedBy, @CreatedOn=@CreatedOn, @ModifiedBy=@ModifiedBy, @ModifiedOn=@ModifiedOn, @SupervisedBy=@SupervisedBy, @UpdateCount=@UpdateCount, @ExpiryDate=@ExpiryDate";
+
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+                cmd.Parameters.Add(new SqlParameter("@TrxTypeID", trxTypeId));
+                cmd.Parameters.Add(new SqlParameter("@EffectiveDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "EffectiveDate")) });
+                cmd.Parameters.Add(new SqlParameter("@RefNo", System.Data.SqlDbType.SmallInt) { Value = GetIntValue(payload, "RefNo", "RefID") });
+
+                for (var i = 1; i <= 5; i++)
+                {
+                    cmd.Parameters.Add(new SqlParameter($"@CeilingAmount{i}", DbValue(GetDecimalValue(payload, $"CeilingAmount{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@MarkingRate{i}", DbValue(GetDecimalValue(payload, $"MarkingRate{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@SpreadSign{i}", System.Data.SqlDbType.Char, 1) { Value = DbString(GetStringValue(payload, $"SpreadSign{i}")) });
+                    cmd.Parameters.Add(new SqlParameter($"@EffectiveRate{i}", DbValue(GetDecimalValue(payload, $"EffectiveRate{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@MinVariance{i}", DbValue(GetDecimalValue(payload, $"MinVariance{i}"))));
+                    cmd.Parameters.Add(new SqlParameter($"@MaxVariance{i}", DbValue(GetDecimalValue(payload, $"MaxVariance{i}"))));
+                }
+
+                cmd.Parameters.Add(new SqlParameter("@PenaltyMarkingRate", DbValue(GetDecimalValue(payload, "PenaltyMarkingRate"))));
+                cmd.Parameters.Add(new SqlParameter("@PenaltySpreadSign", System.Data.SqlDbType.Char, 1) { Value = DbString(GetStringValue(payload, "PenaltySpreadSign")) });
+                cmd.Parameters.Add(new SqlParameter("@PenaltyRate", DbValue(GetDecimalValue(payload, "PenaltyRate"))));
+                cmd.Parameters.Add(new SqlParameter("@CreatedBy", DbString(GetStringValue(payload, "CreatedBy", "OperatorID"))));
+                cmd.Parameters.Add(new SqlParameter("@CreatedOn", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "CreatedOn")) });
+                cmd.Parameters.Add(new SqlParameter("@ModifiedBy", DbString(GetStringValue(payload, "ModifiedBy"))));
+                cmd.Parameters.Add(new SqlParameter("@ModifiedOn", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "ModifiedOn")) });
+                cmd.Parameters.Add(new SqlParameter("@SupervisedBy", DbString(GetStringValue(payload, "SupervisedBy"))));
+                cmd.Parameters.Add(new SqlParameter("@UpdateCount", System.Data.SqlDbType.TinyInt) { Value = GetIntValue(payload, "UpdateCount") });
+                cmd.Parameters.Add(new SqlParameter("@ExpiryDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "ExpiryDate")) });
+
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                // After add/edit, fetch the updated interest rate details and return them
+                // so the UI can read Details04 (slab data) immediately.
+                return await ExecuteGetInterestRateSP(requestJson, cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error executing interest rate operation: " + ex.Message
+                };
+            }
+        }
+
+        private async Task<ResponseDetail<object>> ExecuteDeleteInterestRateSP(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID") ?? string.Empty;
+                string trxTypeId = GetStringValue(payload, "TrxTypeID", "RateType", "InterestRateTypeID") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(accountId) || string.IsNullOrWhiteSpace(trxTypeId))
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "OurBranchID, AccountID and TrxTypeID are required"
+                    };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_INTEREST_RATE} @OurBranchID=@OurBranchID, @AccountID=@AccountID, @TrxTypeID=@TrxTypeID, @EffectiveDate=@EffectiveDate, @RefNo=@RefNo, @UpdateCount=@UpdateCount";
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+                cmd.Parameters.Add(new SqlParameter("@TrxTypeID", trxTypeId));
+                cmd.Parameters.Add(new SqlParameter("@EffectiveDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "EffectiveDate")) });
+                cmd.Parameters.Add(new SqlParameter("@RefNo", System.Data.SqlDbType.SmallInt) { Value = GetIntValue(payload, "RefNo", "RefID") });
+                cmd.Parameters.Add(new SqlParameter("@UpdateCount", System.Data.SqlDbType.TinyInt) { Value = GetIntValue(payload, "UpdateCount") });
+
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "00",
+                    ResponseMessage = "Interest rate deleted successfully."
+                };
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error deleting interest rate: " + ex.Message
+                };
+            }
+        }
+
+        private async Task<ResponseDetail<object>> ExecuteGetInterestRateSP(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID") ?? string.Empty;
+                string trxTypeId = GetStringValue(payload, "TrxTypeID", "RateType", "InterestRateTypeID") ?? string.Empty;
+                string operatorId = GetStringValue(payload, "OperatorID", "CreatedBy", "ModifiedBy") ?? string.Empty;
+                int direction = GetIntValue(payload, "Direction");
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(accountId) || string.IsNullOrWhiteSpace(trxTypeId) || string.IsNullOrWhiteSpace(operatorId))
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "OurBranchID, AccountID, TrxTypeID and OperatorID are required"
+                    };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.GET_ACCOUNT_INTEREST_RATE} " +
+                    "@OurBranchID=@OurBranchID, @AccountID=@AccountID, @TrxTypeID=@TrxTypeID, @EffectiveDate=@EffectiveDate, @OperatorID=@OperatorID, @Direction=@Direction";
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+                cmd.Parameters.Add(new SqlParameter("@TrxTypeID", trxTypeId));
+                cmd.Parameters.Add(new SqlParameter("@EffectiveDate", System.Data.SqlDbType.SmallDateTime) { Value = DbValue(GetDateValue(payload, "EffectiveDate")) });
+                cmd.Parameters.Add(new SqlParameter("@OperatorID", operatorId));
+                cmd.Parameters.Add(new SqlParameter("@Direction", System.Data.SqlDbType.SmallInt) { Value = direction });
+
+                using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                var detailSets = new JsonObject();
+                int detailIndex = 1;
+                int totalRows = 0;
+
+                do
+                {
+                    var rows = new JsonArray();
+
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        var row = new JsonObject();
+                        for (int index = 0; index < reader.FieldCount; index++)
+                        {
+                            var value = reader.IsDBNull(index) ? null : reader.GetValue(index);
+                            row[reader.GetName(index)] = value == null ? null : JsonValue.Create(value);
+                        }
+                        rows.Add(row);
+                        totalRows++;
+                    }
+
+                    detailSets[$"Details{detailIndex:00}"] = rows;
+                    detailIndex++;
+                }
+                while (await reader.NextResultAsync(cancellationToken));
+
+                return new ResponseDetail<object>
+                {
+                    Details = JsonDocument.Parse(detailSets.ToJsonString()),
+                    ResponseCode = "00",
+                    ResponseMessage = totalRows > 0 ? "Success" : "No record found."
+                };
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error getting interest rate: " + ex.Message
+                };
+            }
         }
 
         // Notes operations
@@ -924,6 +1228,446 @@ namespace AccountManagement.Modules.AccountMaintenance
                 ResponseCode = respStr.ResponseCode,
                 ResponseMessage = respStr.ResponseMessage
             };
+        }
+
+        // Account Card Maintenance operations
+        public async Task<ResponseDetail<object>> GetAccountCard(string requestJson, CancellationToken cancellationToken = default)
+        {
+            string? accountId = null;
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(requestJson);
+                JsonElement root = doc.RootElement;
+
+                static string? ReadStringPropertyCaseInsensitive(JsonElement element, string propertyName)
+                {
+                    if (element.ValueKind != JsonValueKind.Object) return null;
+
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase) &&
+                            property.Value.ValueKind != JsonValueKind.Null)
+                        {
+                            return property.Value.ValueKind == JsonValueKind.String
+                                ? property.Value.GetString()
+                                : property.Value.ToString();
+                        }
+                    }
+
+                    return null;
+                }
+
+                accountId = ReadStringPropertyCaseInsensitive(root, "AccountID");
+
+                if (string.IsNullOrWhiteSpace(accountId))
+                {
+                    foreach (var property in root.EnumerateObject())
+                    {
+                        if (!string.Equals(property.Name, "RequestData", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        if (property.Value.ValueKind == JsonValueKind.Object)
+                        {
+                            accountId = ReadStringPropertyCaseInsensitive(property.Value, "AccountID");
+                        }
+                        else if (property.Value.ValueKind == JsonValueKind.String)
+                        {
+                            var requestDataJson = property.Value.GetString();
+                            if (!string.IsNullOrWhiteSpace(requestDataJson))
+                            {
+                                using JsonDocument nestedDoc = JsonDocument.Parse(requestDataJson);
+                                accountId = ReadStringPropertyCaseInsensitive(nestedDoc.RootElement, "AccountID");
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            if (string.IsNullOrWhiteSpace(accountId))
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "AccountID is required"
+                };
+            }
+
+            var cards = new List<Dictionary<string, object?>>();
+
+            var conn = _dal.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open)
+                await conn.OpenAsync(cancellationToken);
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"EXECUTE {DBObjectConstants.GET_ACCOUNT_CARD} @AccountID";
+            cmd.Parameters.Add(new SqlParameter("@AccountID", accountId!.Trim()));
+
+            using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var row = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+                for (int index = 0; index < reader.FieldCount; index++)
+                {
+                    var value = reader.IsDBNull(index) ? null : reader.GetValue(index);
+                    row[reader.GetName(index)] = value;
+                }
+                cards.Add(row);
+            }
+
+            return new ResponseDetail<object>
+            {
+                Details = JsonDocument.Parse(JsonSerializer.Serialize(cards)),
+                ResponseCode = "00",
+                ResponseMessage = cards.Count > 0 ? "Success" : "No record found."
+            };
+        }
+
+        // ── AddAccountCard ────────────────────────────────────────────────────────────
+        public async Task<ResponseDetail<object>> AddAccountCard(string requestJson, CancellationToken cancellationToken = default)
+        {
+            return await ExecuteCardSP(requestJson, isNew: true, cancellationToken);
+        }
+
+        // ── UpdateAccountCard ─────────────────────────────────────────────────────────
+        public async Task<ResponseDetail<object>> UpdateAccountCard(string requestJson, CancellationToken cancellationToken = default)
+        {
+            return await ExecuteCardSP(requestJson, isNew: false, cancellationToken);
+        }
+
+        // ── DeleteAccountCard ─────────────────────────────────────────────────────────
+        public async Task<ResponseDetail<object>> DeleteAccountCard(string requestJson, CancellationToken cancellationToken = default)
+        {
+            string? trackingCardId = null;
+            string? branchId = null;
+            string? accountId = null;
+
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(requestJson);
+                JsonElement root = doc.RootElement;
+
+                static JsonElement ResolvePayload(JsonElement sourceRoot)
+                {
+                    if (sourceRoot.ValueKind != JsonValueKind.Object)
+                        return sourceRoot;
+
+                    foreach (var property in sourceRoot.EnumerateObject())
+                    {
+                        if (!string.Equals(property.Name, "RequestData", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        if (property.Value.ValueKind == JsonValueKind.Object)
+                            return property.Value;
+
+                        if (property.Value.ValueKind == JsonValueKind.String)
+                        {
+                            var nestedJson = property.Value.GetString();
+                            if (!string.IsNullOrWhiteSpace(nestedJson))
+                            {
+                                using JsonDocument nestedDoc = JsonDocument.Parse(nestedJson);
+                                return nestedDoc.RootElement.Clone();
+                            }
+                        }
+                    }
+
+                    return sourceRoot;
+                }
+
+                JsonElement payload = ResolvePayload(root);
+
+                static bool TryGetPropertyIgnoreCase(JsonElement element, string key, out JsonElement value)
+                {
+                    if (element.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var property in element.EnumerateObject())
+                        {
+                            if (string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
+                            {
+                                value = property.Value;
+                                return true;
+                            }
+                        }
+                    }
+
+                    value = default;
+                    return false;
+                }
+
+                static string? GetString(JsonElement payloadElement, params string[] keys)
+                {
+                    foreach (var key in keys)
+                    {
+                        if (TryGetPropertyIgnoreCase(payloadElement, key, out var v) && v.ValueKind != JsonValueKind.Null)
+                            return v.ValueKind == JsonValueKind.String ? v.GetString() : v.ToString();
+                    }
+                    return null;
+                }
+
+                trackingCardId = GetString(payload, "TrackingCardID", "TrackingID")?.Trim();
+                branchId = GetString(payload, "OurBranchID", "BranchID")?.Trim();
+                accountId = GetString(payload, "AccountID")?.Trim();
+            }
+            catch
+            {
+            }
+
+            if (string.IsNullOrWhiteSpace(trackingCardId))
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "TrackingCardID is required"
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(branchId))
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "BranchID is required"
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(accountId))
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "AccountID is required"
+                };
+            }
+
+            var conn = _dal.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open)
+                await conn.OpenAsync(cancellationToken);
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"EXECUTE {DBObjectConstants.DELETE_ACCOUNT_CARD} @TrackingCardID, @BranchID, @AccountID";
+            cmd.Parameters.Add(new SqlParameter("@TrackingCardID", trackingCardId));
+            cmd.Parameters.Add(new SqlParameter("@BranchID", branchId));
+            cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+            return new ResponseDetail<object>
+            {
+                ResponseCode = "00",
+                ResponseMessage = "Card deleted successfully."
+            };
+        }
+
+        // ── ExecuteCardSP — maps JSON payload → individual SP params ──────────────────
+        private async Task<ResponseDetail<object>> ExecuteCardSP(string requestJson, bool isNew, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Parse the incoming JSON — strip the RequestData wrapper if present
+                using JsonDocument doc = JsonDocument.Parse(requestJson);
+                JsonElement root = doc.RootElement;
+
+                static JsonElement ResolvePayload(JsonElement sourceRoot)
+                {
+                    if (sourceRoot.ValueKind != JsonValueKind.Object)
+                        return sourceRoot;
+
+                    foreach (var property in sourceRoot.EnumerateObject())
+                    {
+                        if (!string.Equals(property.Name, "RequestData", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        if (property.Value.ValueKind == JsonValueKind.Object)
+                            return property.Value;
+
+                        if (property.Value.ValueKind == JsonValueKind.String)
+                        {
+                            var nestedJson = property.Value.GetString();
+                            if (!string.IsNullOrWhiteSpace(nestedJson))
+                            {
+                                using JsonDocument nestedDoc = JsonDocument.Parse(nestedJson);
+                                return nestedDoc.RootElement.Clone();
+                            }
+                        }
+                    }
+
+                    return sourceRoot;
+                }
+
+                JsonElement payload = ResolvePayload(root);
+
+                static bool TryGetPropertyIgnoreCase(JsonElement element, string key, out JsonElement value)
+                {
+                    if (element.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var property in element.EnumerateObject())
+                        {
+                            if (string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
+                            {
+                                value = property.Value;
+                                return true;
+                            }
+                        }
+                    }
+
+                    value = default;
+                    return false;
+                }
+
+                string? Get(params string[] keys)
+                {
+                    foreach (var k in keys)
+                    {
+                        if (TryGetPropertyIgnoreCase(payload, k, out var v) && v.ValueKind != JsonValueKind.Null)
+                            return v.ValueKind == JsonValueKind.String ? v.GetString() : v.ToString();
+                    }
+
+                    return null;
+                }
+
+                bool GetBool(params string[] keys)
+                {
+                    foreach (var k in keys)
+                        if (TryGetPropertyIgnoreCase(payload, k, out var v))
+                        {
+                            if (v.ValueKind == JsonValueKind.True) return true;
+                            if (v.ValueKind == JsonValueKind.False) return false;
+                            if (v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var n)) return n != 0;
+                            if (v.ValueKind == JsonValueKind.String &&
+                                bool.TryParse(v.GetString(), out var b)) return b;
+                        }
+                    return false;
+                }
+
+                // TrackingCardID must be INT — strip leading zeros / non-digits
+                string? rawTracking = Get("TrackingCardID", "TrackingID");
+                int trackingCardId = 0;
+                if (!string.IsNullOrWhiteSpace(rawTracking))
+                    int.TryParse(rawTracking.TrimStart('0').PadLeft(1, '0'), out trackingCardId);
+
+                string branchId = Get("OurBranchID", "BranchID") ?? "";
+                string accountId = Get("AccountID") ?? "";
+                string cardName = Get("CardName", "NameOnCard") ?? "";
+                string? cardId = Get("CardID", "ID");
+                cardId = string.IsNullOrWhiteSpace(cardId) ? null : cardId;
+                string cardProvider = Get("CardProvider", "CardProviderID") ?? "";
+                string cardType = Get("CardType", "CardTypeID") ?? "";
+                string remarks = Get("CardRemarks", "Remarks") ?? "";
+                string createdBy = Get("CreatedBy", "OperatorID") ?? "SYSTEM";
+                string modifiedBy = Get("ModifiedBy", "OperatorID") ?? "SYSTEM";
+                string blockReason = Get("CardDeactivationReasonID", "Reason") ?? "";
+                string reactivationRemarks = Get("ReactivationRemarks") ?? "";
+
+                bool isApproved = GetBool("IsApproved");
+                bool isExported = GetBool("IsExported", "IsCardExported");
+                bool isActive = GetBool("IsActive");
+                bool isCollected = GetBool("Collected", "IsCollected");
+
+                DateTime? ParseDate(params string[] keys)
+                {
+                    foreach (var k in keys)
+                        if (TryGetPropertyIgnoreCase(payload, k, out var v) &&
+                            v.ValueKind != JsonValueKind.Null &&
+                            DateTime.TryParse(v.GetString(), out var dt))
+                            return dt;
+                    return null;
+                }
+
+                DateTime? approvalDate = ParseDate("ApprovedDate", "ApprovalDate", "approvedDate", "approvalDate", "ApprovedOn", "approvedOn");
+                DateTime? activationDate = ParseDate("ActivatedDate", "ActvationDate", "activatedDate", "actvationDate", "ActivatedOn", "activatedOn");
+                DateTime? collectionDate = ParseDate("CollectionDate", "collectionDate");
+                DateTime? exportedDate = ParseDate("ExportedDate", "CardExportedDate", "exportedDate", "cardExportedDate", "ExportedOn", "exportedOn");
+                DateTime? startDate = ParseDate("StartDate", "startDate");
+                DateTime? expiryDate = ParseDate("ExpiryDate", "expiryDate");
+                DateTime? blockDate = ParseDate("DeactivationDate", "CardBlockDate", "deactivationDate", "cardBlockDate", "DeactivatedOn", "deactivatedOn");
+                DateTime? reactivationDate = ParseDate("ReactivationDate", "reactivationDate", "ReactivatedOn", "reactivatedOn");
+
+                string isNewParam = isNew ? "NEW" : "EDIT";
+
+                var now = DateTime.Now;
+
+                var parameters = new[]
+                {
+                    new SqlParameter("@TrackingCardID", trackingCardId),
+                    new SqlParameter("@CardName", (object?)cardName ?? DBNull.Value),
+                    new SqlParameter("@CardID", (object?)cardId ?? DBNull.Value),
+                    new SqlParameter("@CardProvider", (object?)cardProvider ?? DBNull.Value),
+                    new SqlParameter("@CardType", (object?)cardType ?? DBNull.Value),
+                    new SqlParameter("@BranchID", (object?)branchId ?? DBNull.Value),
+                    new SqlParameter("@AccountID", (object?)accountId ?? DBNull.Value),
+                    new SqlParameter("@Remarks", (object?)remarks ?? DBNull.Value),
+                    new SqlParameter("@CreatedBy", (object?)createdBy ?? DBNull.Value),
+                    new SqlParameter("@CreatedOn", (object?)now),
+                    new SqlParameter("@ModifiedBy", (object?)modifiedBy ?? DBNull.Value),
+                    new SqlParameter("@ModifiedOn", (object?)now),
+                    new SqlParameter("@IsNew", isNewParam),
+                    new SqlParameter("@CardBlockReasonID", string.IsNullOrEmpty(blockReason) ? DBNull.Value : blockReason),
+                    new SqlParameter("@ReactivationRemarks", string.IsNullOrEmpty(reactivationRemarks) ? DBNull.Value : reactivationRemarks),
+                    new SqlParameter("@IsApproved", isApproved),
+                    new SqlParameter("@IsClientExported", false),
+                    new SqlParameter("@IsAccountExported", false),
+                    new SqlParameter("@IsCardExported", isExported),
+                    new SqlParameter("@IsActive", isActive),
+                    new SqlParameter("@IsCollected", isCollected),
+                    new SqlParameter("@ApprovalDate", (object?)approvalDate ?? DBNull.Value),
+                    new SqlParameter("@ClientExportedDate", DBNull.Value),
+                    new SqlParameter("@AccountExportedDate", DBNull.Value),
+                    new SqlParameter("@CardExportedDate", (object?)exportedDate ?? DBNull.Value),
+                    new SqlParameter("@ActvationDate", (object?)activationDate ?? DBNull.Value),
+                    new SqlParameter("@CollectionDate", (object?)collectionDate ?? DBNull.Value),
+                    new SqlParameter("@CardBlockDate", (object?)blockDate ?? DBNull.Value),
+                    new SqlParameter("@StartDate", (object?)startDate ?? DBNull.Value),
+                    new SqlParameter("@ExpiryDate", (object?)expiryDate ?? DBNull.Value),
+                    new SqlParameter("@ReactivationDate", (object?)reactivationDate ?? DBNull.Value),
+                };
+
+                // p_AddEditElectronicCard does NOT return a result set — it just runs.
+                // Execute non-query and return synthetic success.
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {DBObjectConstants.ADD_ACCOUNT_CARD} " +
+                    "@TrackingCardID, @CardName, @CardID, @CardProvider, @CardType, " +
+                    "@BranchID, @AccountID, @Remarks, @CreatedBy, @CreatedOn, " +
+                    "@ModifiedBy, @ModifiedOn, @IsNew, @CardBlockReasonID, @ReactivationRemarks, " +
+                    "@IsApproved, @IsClientExported, @IsAccountExported, @IsCardExported, " +
+                    "@IsActive, @IsCollected, @ApprovalDate, @ClientExportedDate, " +
+                    "@AccountExportedDate, @CardExportedDate, @ActvationDate, " +
+                    "@CollectionDate, @CardBlockDate, @StartDate, @ExpiryDate, @ReactivationDate";
+
+                cmd.Parameters.AddRange(parameters);
+
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "00",
+                    ResponseMessage = isNew ? "Card created successfully." : "Card updated successfully."
+                };
+            }
+            catch (SqlException ex) when (ex.Message.StartsWith("BREX"))
+            {
+                // SP raised a business rule error
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "99",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "99",
+                    ResponseMessage = "Error executing card operation: " + ex.Message
+                };
+            }
         }
     }
 }

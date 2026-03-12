@@ -11,6 +11,7 @@ window.SIDemandDraftModule = (function () {
         branchId: null,
         operatorId: null,
         standingInstructionId: null,
+        referenceNo: null,
         currentMode: 'VIEW',
         currentRecord: null,
         originalData: null
@@ -21,13 +22,25 @@ window.SIDemandDraftModule = (function () {
         CREATE: '/AccountUtilities/api/create-si-demand-draft',
         UPDATE: '/AccountUtilities/api/update-si-demand-draft',
         DELETE: '/AccountUtilities/api/delete-si-demand-draft',
-        STOP:   '/AccountUtilities/api/stop-si-demand-draft'
+        STOP:   '/AccountUtilities/api/stop-si-demand-draft',
+        DROPDOWN: '/AccountUtilities/StandingInstructionDemandDraft/get-dropdown-options'
+    };
+
+    const STATIC_SELECT_OPTIONS = {
+        ddl_amountIn: [
+            { value: 'T', label: 'Transaction CurrencyID' },
+            { value: 'F', label: 'Transfer CurrencyID' }
+        ],
+        ddl_mailingAddress: [
+            { value: 'R', label: 'Residential Address' },
+            { value: 'O', label: 'Office Address' }
+        ]
     };
 
     /* ====================================================================
        INIT
        ==================================================================== */
-    function init() {
+    async function init() {
         console.log('[SI-DD] Initializing module...');
         getContext();
         wireHeaderControls();
@@ -35,7 +48,72 @@ window.SIDemandDraftModule = (function () {
         wireSectionToggles();
         wireLookupButtons();
         initSearchModals();
+        initStaticSelects();
+        await loadDropdowns();
         setMode('VIEW');
+    }
+
+    async function loadDropdowns() {
+        try {
+            const [siTypeOptions, chargeRecoveryOptions, transferFrequencyOptions] = await Promise.all([
+                fetchDropdownOptions('SITypeID').catch(() => []),
+                fetchDropdownOptions('SIChargeTypeID').catch(() => []),
+                fetchDropdownOptions('TrfFrequencyID').catch(() => [])
+            ]);
+
+            populateSelect('ddl_siTransferType', siTypeOptions, '--Select--');
+            populateSelect('ddl_chargeRecovery', chargeRecoveryOptions, '--Select--');
+            populateSelect('ddl_transferFrequency', transferFrequencyOptions, '--Select--');
+
+            if (state.currentRecord) {
+                populateForm(state.currentRecord);
+            }
+        } catch (error) {
+            console.error('[SI-DD] Failed to load dropdowns:', error);
+        }
+    }
+
+    function initStaticSelects() {
+        populateSelect('ddl_amountIn', STATIC_SELECT_OPTIONS.ddl_amountIn, '--Select--');
+        populateSelect('ddl_mailingAddress', STATIC_SELECT_OPTIONS.ddl_mailingAddress, '--Select--');
+    }
+
+    async function fetchDropdownOptions(codeId, valueField) {
+        let url = `${API.DROPDOWN}?codeId=${encodeURIComponent(codeId)}`;
+        if (valueField) {
+            url += `&valueField=${encodeURIComponent(valueField)}`;
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load options');
+        }
+
+        return result.data || [];
+    }
+
+    function populateSelect(selectId, options, placeholder) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        const currentValue = select.value;
+        select.innerHTML = `<option value="">${placeholder || '--Select--'}</option>`;
+
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value ?? '';
+            option.textContent = opt.label ?? opt.value ?? '';
+            select.appendChild(option);
+        });
+
+        if (currentValue) {
+            ensureSelectOption(selectId, currentValue, resolveSelectLabel(selectId, currentValue));
+        }
     }
 
     function getContext() {
@@ -63,10 +141,36 @@ window.SIDemandDraftModule = (function () {
     function wireActionButtons() {
         const actions = {
             'view':   () => {
-                state.standingInstructionId = document.getElementById('txt_standingInstructionId')?.value?.trim() || state.standingInstructionId;
+                // Always sync latest values from the form
+                const siIdFromInput = document.getElementById('txt_standingInstructionId')?.value?.trim();
+                if (siIdFromInput) {
+                    state.standingInstructionId = siIdFromInput;
+                }
+
+                const referenceNoFromInput = document.getElementById('txt_referenceNo')?.value?.trim();
+                if (referenceNoFromInput) {
+                    state.referenceNo = referenceNoFromInput;
+                }
+
+                // If we still don't have an SI ID, first open the Standing Instruction lookup,
+                // then load data for the selected instruction (matches legacy behaviour of selecting SI first).
+                if (!state.standingInstructionId) {
+                    showMessage('Select a Standing Instruction first', 'warning');
+                    openSearchModal('standingInstruction');
+                    return;
+                }
+
                 loadData();
             },
-            'add':    () => { snapshotForm(); clearForm(); setMode('ADD'); focusField('txt_standingInstructionId'); },
+            'add':    () => {
+                snapshotForm();
+                clearForm();
+                state.currentRecord = null;
+                state.standingInstructionId = null;
+                state.referenceNo = null;
+                setMode('ADD');
+                focusField('txt_accountId');
+            },
             'edit':   () => { snapshotForm(); setMode('EDIT'); focusField('txt_referenceNo'); },
             'delete': deleteRecord,
             'save':   saveRecord,
@@ -125,6 +229,20 @@ window.SIDemandDraftModule = (function () {
             const cb = document.getElementById('chk_accountPayee');
             if (cb) cb.disabled = !isEditing;
         }
+
+        // Allow manual entry of Branch ID when adding/editing (matches legacy behaviour)
+        const branchInput = document.getElementById('txt_branchId');
+        if (branchInput) {
+            branchInput.readOnly = !isEditing;
+        }
+
+        // Standing Instruction ID is always readonly (auto-generated on ADD, lookup-only on EDIT/VIEW)
+        const siIdInput = document.getElementById('txt_standingInstructionId');
+        if (siIdInput) siIdInput.readOnly = true;
+
+        // Hide search button in ADD mode (ID will be auto-generated); show it in VIEW/EDIT
+        const siLookupBtn = document.querySelector('[data-open-search="standingInstruction"]');
+        if (siLookupBtn) siLookupBtn.style.display = mode === 'ADD' ? 'none' : '';
 
         const buttons = {
             'view':   { disabled: isEditing },
@@ -185,6 +303,11 @@ window.SIDemandDraftModule = (function () {
         const cb = document.getElementById('chk_accountPayee');
         if (cb) cb.checked = false;
 
+        const generatedIdField = document.getElementById('txt_standingInstructionId');
+        if (generatedIdField) generatedIdField.value = '';
+
+        state.referenceNo = null;
+
         // Clear audit spans
         document.querySelectorAll('.audit-value').forEach(el => { el.textContent = '-'; });
     }
@@ -205,9 +328,9 @@ window.SIDemandDraftModule = (function () {
             OurBranchID:          val('txt_branchId') || state.branchId,
             StandingInstructionID: val('txt_standingInstructionId'),
             ReferenceNo:          val('txt_referenceNo'),
-            SITransferType:       val('ddl_siType'),
-            EffectiveDate:        val('txt_effectiveDate'),
-            TransferCurrencyID:   val('txt_transactionCurrencyId'),
+            SITransferType:       val('ddl_siTransferType'),
+            EffectiveDate:        val('ddl_effectiveDate'),
+            TransferCurrencyID:   val('txt_transferCurrencyId'),
             AmountIn:             val('ddl_amountIn'),
             FixedAmount:          parseFloat(val('txt_fixedAmount')) || 0,
             BeneficiaryName:      val('txt_beneficiaryName'),
@@ -219,13 +342,13 @@ window.SIDemandDraftModule = (function () {
             RegularExecutionDay:  parseInt(val('txt_regularExecutionDay')) || 0,
             FirstExecutionDate:   val('ddl_firstExecutionDate'),
             ChargeRecovery:       val('ddl_chargeRecovery'),
-            MailingAddress:       val('txt_mailingAddress'),
+            MailingAddress:       val('ddl_mailingAddress'),
             Address1:             val('txt_address1'),
             Address2:             val('txt_address2'),
             City:                 val('ddl_city'),
             ZipCode:              val('txt_zipCode'),
             Phone:                val('txt_phone'),
-            LandMark:             val('txt_landmark')
+            LandMark:             val('txt_landMark')
         };
     }
 
@@ -234,8 +357,13 @@ window.SIDemandDraftModule = (function () {
         const set = (id, value) => {
             const el = document.getElementById(id);
             if (el) {
-                if (el.type === 'checkbox') el.checked = !!value;
-                else el.value = value ?? '';
+                if (el.type === 'checkbox') {
+                    el.checked = !!value;
+                } else if (el.tagName === 'SELECT') {
+                    ensureSelectOption(id, value, resolveSelectLabel(id, value));
+                } else {
+                    el.value = value ?? '';
+                }
             }
         };
 
@@ -243,14 +371,13 @@ window.SIDemandDraftModule = (function () {
         set('txt_branchName',              data.BranchName);
         set('txt_accountId',               data.AccountID);
         set('txt_accountName',             data.AccountName);
-        set('txt_standingInstructionId',   data.StandingInstructionID);
-        set('txt_standingInstructionName', data.StandingInstructionDesc);
+        set('txt_standingInstructionId',   data.StandingInstructionID || data.SIID || data.InstructionID);
         set('txt_referenceNo',             data.ReferenceNo);
-        set('ddl_siType',                  data.SITransferType);
-        set('txt_effectiveDate',           data.EffectiveDate);
-        set('txt_transactionCurrencyId',   data.TransferCurrencyID);
-        set('txt_transactionCurrencyName', data.CurrencyName);
-        set('ddl_amountIn',               data.AmountIn);
+        set('ddl_siTransferType',          data.SITransferType);
+        set('ddl_effectiveDate',           data.EffectiveDate);
+        set('txt_transferCurrencyId',      data.TransferCurrencyID);
+        set('txt_transferCurrencyName',    data.CurrencyName || data.TransferCurrencyName);
+        set('ddl_amountIn',                data.AmountIn);
         set('txt_fixedAmount',             data.FixedAmount);
         set('ddl_transferFrequency',       data.TransferFrequency);
         set('txt_noOfExecution',           data.NoOfExecution);
@@ -262,13 +389,16 @@ window.SIDemandDraftModule = (function () {
         set('chk_accountPayee',            data.AccountPayee);
         set('txt_payeeAccountId',          data.PayeeAccountID);
         set('txt_payableAt',               data.PayableAt);
-        set('txt_mailingAddress',          data.MailingAddress);
+        set('ddl_mailingAddress',          data.MailingAddress || data.MailingAddressID);
         set('txt_address1',                data.Address1);
         set('txt_address2',                data.Address2);
-        set('ddl_city',                    data.City);
+        set('ddl_city',                    data.City || data.CityID);
         set('txt_zipCode',                 data.ZipCode);
         set('txt_phone',                   data.Phone);
-        set('txt_landmark',                data.LandMark);
+        set('txt_landMark',                data.LandMark);
+
+        state.standingInstructionId = data.StandingInstructionID || data.SIID || data.InstructionID || state.standingInstructionId;
+        state.referenceNo = data.ReferenceNo ?? state.referenceNo;
 
         populateAuditFields(data);
     }
@@ -300,24 +430,6 @@ window.SIDemandDraftModule = (function () {
        VALIDATION
        ==================================================================== */
     function validateForm() {
-        const accountId = document.getElementById('txt_accountId')?.value?.trim();
-        if (!accountId) {
-            showMessage('Account ID is required', 'warning');
-            focusField('txt_accountId');
-            return false;
-        }
-        const siType = document.getElementById('ddl_siType')?.value;
-        if (!siType) {
-            showMessage('SI Type is required', 'warning');
-            focusField('ddl_siType');
-            return false;
-        }
-        const effectiveDate = document.getElementById('txt_effectiveDate')?.value;
-        if (!effectiveDate) {
-            showMessage('Effective Date is required', 'warning');
-            focusField('txt_effectiveDate');
-            return false;
-        }
         return true;
     }
 
@@ -325,20 +437,30 @@ window.SIDemandDraftModule = (function () {
        API CALLS
        ==================================================================== */
     async function loadData() {
-        if (!state.standingInstructionId && !state.accountId) {
+        const standingInstructionId = document.getElementById('txt_standingInstructionId')?.value?.trim() || state.standingInstructionId || '';
+        const referenceNo = document.getElementById('txt_referenceNo')?.value?.trim() || state.referenceNo || state.currentRecord?.ReferenceNo || '';
+
+        if (!standingInstructionId && !state.accountId) {
             showMessage('Please select a Standing Instruction first', 'warning');
             return;
         }
+
+        state.standingInstructionId = standingInstructionId || state.standingInstructionId;
+        state.referenceNo = referenceNo || state.referenceNo;
+
         console.log('[SI-DD] Loading data...');
         showLoading(true);
 
         try {
             const payload = {
                 SearchKey:  `[${state.branchId}:${state.accountId}]`,
-                SearchID:   state.standingInstructionId || '',
+                SearchID:   standingInstructionId || '',
+                StandingInstructionID: standingInstructionId || '',
+                ReferenceNo: referenceNo || 0,
                 AccountID:  state.accountId,
                 OurBranchID: state.branchId,
-                OperatorID: state.operatorId
+                OperatorID: state.operatorId,
+                Direction: 0
             };
 
             const result = await apiPost(API.GET, payload);
@@ -375,7 +497,20 @@ window.SIDemandDraftModule = (function () {
             const result = await apiPost(endpoint, formData);
 
             if (isSuccess(result)) {
-                state.currentRecord = formData;
+                const responseData = getResponseData(result);
+                const savedRecord = mergeSavedRecord(formData, responseData);
+
+                state.currentRecord = savedRecord;
+                state.standingInstructionId = savedRecord.StandingInstructionID || state.standingInstructionId;
+
+                if (savedRecord.StandingInstructionID) {
+                    document.getElementById('txt_standingInstructionId').value = savedRecord.StandingInstructionID;
+                }
+
+                if (responseData) {
+                    populateForm(savedRecord);
+                }
+
                 snapshotForm();
                 showSuccess(result?.ResponseMessage || 'Record saved successfully');
                 setMode('VIEW');
@@ -401,11 +536,14 @@ window.SIDemandDraftModule = (function () {
         showLoading(true);
 
         try {
+            const standingInstructionId = state.currentRecord?.StandingInstructionID || state.currentRecord?.SIID || state.standingInstructionId || '';
+            const referenceNo = state.currentRecord?.ReferenceNo || state.referenceNo || 0;
             const payload = {
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
-                StandingInstructionID: state.currentRecord.StandingInstructionID
+                StandingInstructionID: standingInstructionId,
+                ReferenceNo: referenceNo
             };
 
             const result = await apiPost(API.DELETE, payload);
@@ -437,11 +575,14 @@ window.SIDemandDraftModule = (function () {
         showLoading(true);
 
         try {
+            const standingInstructionId = state.currentRecord?.StandingInstructionID || state.currentRecord?.SIID || state.standingInstructionId || '';
+            const referenceNo = state.currentRecord?.ReferenceNo || state.referenceNo || 0;
             const payload = {
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
-                StandingInstructionID: state.currentRecord.StandingInstructionID
+                StandingInstructionID: standingInstructionId,
+                ReferenceNo: referenceNo
             };
 
             const result = await apiPost(API.STOP, payload);
@@ -467,11 +608,15 @@ window.SIDemandDraftModule = (function () {
         showLoading(true);
 
         try {
+            const standingInstructionId = state.currentRecord?.StandingInstructionID || state.currentRecord?.SIID || state.standingInstructionId || '';
+            const referenceNo = state.currentRecord?.ReferenceNo || state.referenceNo || 0;
             const payload = {
                 AccountID: state.accountId,
                 OurBranchID: state.branchId,
                 OperatorID: state.operatorId,
-                StandingInstructionID: state.currentRecord?.StandingInstructionID || '',
+                SearchID: standingInstructionId,
+                StandingInstructionID: standingInstructionId,
+                ReferenceNo: referenceNo,
                 Direction: direction,
                 DirectionType: direction > 0 ? 'NEXT' : 'PREV'
             };
@@ -539,17 +684,24 @@ window.SIDemandDraftModule = (function () {
                 tableID: 'BranchCurrencyID',
                 advFilterString: branchId ? `OurBranchID='${branchId}'` : '',
                 onSelect: (rec) => {
-                    document.getElementById('txt_transactionCurrencyId').value   = rec.CurrencyID          || rec.ID          || '';
-                    document.getElementById('txt_transactionCurrencyName').value = rec.CurrencyDescription || rec.Description || rec.CurrencyName || rec.Name || '';
+                    document.getElementById('txt_transferCurrencyId').value   = rec.CurrencyID          || rec.ID          || '';
+                    document.getElementById('txt_transferCurrencyName').value = rec.CurrencyDescription || rec.Description || rec.CurrencyName || rec.Name || '';
                 }
             },
             standingInstruction: {
                 tableID: 'InstructionID',
+                moduleID: '1920',
+                whereStmt: branchId ? `OurBranchID='${branchId}'` : '',
+                ourbranchId: branchId,
                 onSelect: (rec) => {
                     const siId = rec.SIID || rec.InstructionID || rec.StandingInstructionID || rec.ID || '';
-                    document.getElementById('txt_standingInstructionId').value   = siId;
-                    document.getElementById('txt_standingInstructionName').value = rec.AccountName || rec.DebitAccountID || rec.AccountID || rec.Name || '';
+                    document.getElementById('txt_standingInstructionId').value = siId;
+                    document.getElementById('txt_referenceNo').value = rec.ReferenceNo || '';
                     state.standingInstructionId = siId;
+                    state.referenceNo = rec.ReferenceNo || null;
+                    // The InstructionID lookup only returns the ID; load the full record
+                    // to populate description and all other fields (matches loan application pattern)
+                    loadData();
                 }
             }
         };
@@ -583,6 +735,28 @@ window.SIDemandDraftModule = (function () {
                result?.success === true || result?.Success === true;
     }
 
+    function getResponseData(result) {
+        const data = result?.Details || result?.Data || result?.data;
+        return Array.isArray(data) ? data[0] : data;
+    }
+
+    function mergeSavedRecord(formData, responseData) {
+        if (!responseData || typeof responseData !== 'object') {
+            return { ...formData };
+        }
+
+        return {
+            ...formData,
+            ...responseData,
+            StandingInstructionID:
+                responseData.StandingInstructionID ||
+                responseData.SIID ||
+                responseData.InstructionID ||
+                formData.StandingInstructionID ||
+                ''
+        };
+    }
+
     function formatDate(dateString) {
         if (!dateString || dateString === '-') return '-';
         try {
@@ -594,6 +768,60 @@ window.SIDemandDraftModule = (function () {
         } catch (e) {
             return dateString;
         }
+    }
+
+    function ensureSelectOption(id, value, label) {
+        const select = document.getElementById(id);
+        if (!select) return;
+
+        const normalizedValue = value ?? '';
+        if (!normalizedValue) {
+            select.value = '';
+            return;
+        }
+
+        const valueAsString = String(normalizedValue);
+        let option = Array.from(select.options).find(item => item.value === valueAsString);
+
+        if (!option) {
+            option = document.createElement('option');
+            option.value = valueAsString;
+            option.textContent = label || valueAsString;
+            select.appendChild(option);
+        }
+
+        select.value = valueAsString;
+    }
+
+    function resolveSelectLabel(id, value) {
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+
+        const valueAsString = String(value);
+        const staticOption = (STATIC_SELECT_OPTIONS[id] || []).find(option => option.value === valueAsString);
+        if (staticOption) {
+            return staticOption.label;
+        }
+
+        if (id === 'ddl_effectiveDate' || id === 'ddl_firstExecutionDate') {
+            return formatDateOnly(valueAsString);
+        }
+
+        return valueAsString;
+    }
+
+    function formatDateOnly(dateString) {
+        if (!dateString) {
+            return '';
+        }
+
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) {
+            return dateString;
+        }
+
+        return date.toLocaleDateString();
     }
 
     function showLoading(show) {

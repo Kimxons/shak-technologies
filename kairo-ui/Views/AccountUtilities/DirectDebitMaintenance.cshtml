@@ -13,19 +13,6 @@
 </form>
 
 <div class="window">
-    <!-- Header Bar -->
-    <div class="am-header" role="banner" aria-label="Window title bar">
-        <div class="am-header__left">
-            <i class="bi bi-credit-card-2-front am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Direct Debit Maintenance</span>
-        </div>
-        <div class="am-header__right" role="toolbar" aria-label="Window controls">
-            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-arrows-fullscreen"></i></button>
-            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-        </div>
-    </div>
-
     <!-- Main Container -->
     <main class="main-container main-container--with-panel" aria-label="Direct Debit Maintenance form">
         <div class="form-content" role="region" aria-label="Form fields">
@@ -89,6 +76,7 @@
                                 <label class="label-blue" for="txt_directDebitInstructionId">Direct Debit Instruction ID</label>
                                 <div class="kairo-control" data-kairo-control>
                                     <input type="text" id="txt_directDebitInstructionId" name="directDebitInstructionId" class="kairo-control__id" aria-label="Instruction ID">
+                                    <input type="text" id="txt_directDebitInstructionName" class="kairo-control__name" aria-label="Instruction Description" placeholder="Description" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchDDInstruction" aria-label="Search Instruction"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
@@ -103,6 +91,7 @@
                                 <label class="label-blue" for="txt_transactionCurrencyId">Transaction Currency</label>
                                 <div class="kairo-control" data-kairo-control>
                                     <input type="text" id="txt_transactionCurrencyId" name="transactionCurrencyId" class="kairo-control__id" aria-label="Currency ID">
+                                    <input type="text" id="txt_transactionCurrencyName" class="kairo-control__name" aria-label="Currency Description" placeholder="Description" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchCurrency" aria-label="Search Currency"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
@@ -183,6 +172,7 @@
                                 <label class="label-blue" for="txt_bankId">Contra Bank ID</label>
                                 <div class="kairo-control" data-kairo-control>
                                     <input type="text" id="txt_bankId" name="bankId" class="kairo-control__id" aria-label="Bank ID">
+                                    <input type="text" id="txt_bankName" class="kairo-control__name" aria-label="Bank Name" placeholder="Bank Name" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchContraBank" aria-label="Search Bank"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
@@ -190,6 +180,7 @@
                                 <label class="label-blue" for="txt_contraBranchId">Contra Branch ID</label>
                                 <div class="kairo-control" data-kairo-control>
                                     <input type="text" id="txt_contraBranchId" name="contraBranchId" class="kairo-control__id" aria-label="Branch ID">
+                                    <input type="text" id="txt_contraBranchName" class="kairo-control__name" aria-label="Contra Branch Name" placeholder="Branch Name" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchContraBranch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>

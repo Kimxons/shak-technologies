@@ -34,6 +34,8 @@ namespace kairo_ui.Services
         public const string GET_CLIENT_IMAGES = "p_V8_GetImages";
 
         public const string GET_CLIENT_SUPERVISION_PENDING = "p_getclientsupervisionpending";
+        public const string APPROVE_CLIENT_SUPERVISION = "p_ClientApproveSupervision";
+        public const string REJECT_CLIENT_SUPERVISION = "p_ClientRejectSupervision";
 
         // Client Maintenance Module Constants
         public const string GET_CLIENT_BANK_ACCOUNTS = "p_GetClientBankAccounts";
@@ -139,6 +141,12 @@ namespace kairo_ui.Services
         public const string GET_GLOAN_PEN_INT_WAIVE_OFF = "p_GetGLoanPenIntWaiveOff";
 
         // ═══════════════════════════════════════════════════════════════════
+        // LOANS - LOAN MAINTENANCE (Module 4300)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GETLOAN = "p_GetLoan";
+        public const string EDITLOAN = "p_EditLoans";
+
+        // ═══════════════════════════════════════════════════════════════════
         // WORKFLOW LOAN - LOAN SANCTION (Module 7065)
         // ═══════════════════════════════════════════════════════════════════
         public const string GETLOANSANCTION = "p_GetWFLoanSanction";
@@ -219,33 +227,79 @@ namespace kairo_ui.Services
         public const string USER_RIGHTS = "p_UserRights";
 
         // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
+        public const string EDIT_ACCOUNT_PRODUCT_NOTIFICATION = "p_EditAccountProductNotification";
+
+        // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE VIEW SUBMODULES
         // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate";
+        public const string ADD_EDIT_ACCOUNT_INTEREST_RATE = "p_AddEditAccountInterestRate";
+        public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate";
         public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
         public const string GET_INTEREST_DATE_OPTIONS = "p_GetInterestDateOptions";
-        public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+        // public const string GET_SIGNATORY_IMAGE = "p_GetSignatoryImage";
+
         // ═══════════════════════════════════════════════════════════════════
         // DIRECT DEBIT MAINTENANCE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_DIRECT_DEBIT_MAINTENANCE = "p_GetDirectDebitMaintenance";
-        public const string ADD_EDIT_DIRECT_DEBIT_MAINTENANCE = "p_AddEditDirectDebitMaintenance";
+        public const string GET_DIRECT_DEBIT_MAINTENANCE = "p_GetDDTransfer";
+        public const string ADD_EDIT_DIRECT_DEBIT_MAINTENANCE = "p_AddEditDirectDebitTransfer";
         public const string DELETE_DIRECT_DEBIT_MAINTENANCE = "p_DeleteDirectDebitMaintenance";
-        public const string STOP_DIRECT_DEBIT_MAINTENANCE = "p_StopDirectDebitMaintenance";
+        public const string STOP_DIRECT_DEBIT_MAINTENANCE = "p_StopDirectDebitTransfer";
+        public const string ADD_RECORD_LOCK = "p_AddRecordLock";
+        public const string RELEASE_RECORD_LOCK = "p_ReleaseRecordLock";
 
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_SI_TYPES = "p_GetSITypes";
-        public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
-        public const string DELETE_SI_TYPES = "p_DeleteSITypes";
+        public const string GET_SI_TYPES = "dbo.p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "dbo.p_AddEditSITypes";
+        public const string DELETE_SI_TYPES = "dbo.p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
+        public const string GET_ACCOUNT_CLOSING_DETAILS = "p_GetAcClosingDetails";
+        public const string ADD_ACCOUNT_CLOSING_DETAILS = "p_AddAcClosingDetails";
 
         public const string GET_MERGE_CLIENT_ACCOUNTS = "p_GetCustomerQuery_MergeClientAccount";
         public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
         public const string SEARCH_SYSTEM_BRANCHES = "pc_SearchSystemBranches";
         public const string MERGE_ACCOUNTS = "p_MergeAccounts";
+        public const string ADD_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string UPDATE_ACCOUNT_CARD = "p_AddEditElectronicCard";
+        public const string GET_ACCOUNT_CARD = "p_GetAccountElectronicCards";
+        public const string DELETE_ACCOUNT_CARD = "p_DeleteElectronicCard";
+
+
+    
+
+
+
+    
+        // ═══════════════════════════════════════════════════════════════════
+        // EXIT TYPES MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_EXIT_TYPES = "p_GetExitTypes";
+        public const string ADD_EDIT_EXIT_TYPES = "p_AddEditExitTypes";
+        public const string DELETE_EXIT_TYPES = "p_DeleteExitTypes";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTER ATTENDANCE MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_ATTENDANCE = "p_GetGroupAttendance";
+        public const string ADD_EDIT_GROUP_ATTENDANCE = "p_AddEditGroupAttendance";
+        public const string DELETE_GROUP_ATTENDANCE = "p_DeleteGroupAttendance";
+        public const string VALIDATE_ID_DESCRIPTION = "p_GetIDDescription";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTER LOAN / DISBURSEMENT REVERSAL
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_LOAN_REVERSALS = "p_GetGroupLoanReversals";
+        public const string ADD_LOAN_REVERSAL_TRX = "p_AddLoanReversalTrx";
+
     }
 }

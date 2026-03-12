@@ -2,36 +2,31 @@
  * Account Notification Module
  * Migrated from: public/modules/account-maintenance/DataEntry/account-notification.js
  *
- * Parent wires via updateActionPanelForSubmodule:
- *   ADD → setMode('ADD'), EDIT → setMode('EDIT'), VIEW → setMode('VIEW') (via loadData),
- *   DELETE → deleteData(), SAVE → saveData(), CANCEL → cancelChanges(), CLOSE → closeSubmodule()
+ * Button pattern (mirrors old JS setViewMode / setEditMode):
+ *   VIEW MODE  → Edit enabled, Save disabled, Cancel disabled, fields disabled, checkboxes disabled
+ *   EDIT MODE  → Edit disabled, Save enabled, Cancel enabled, fields enabled, checkboxes enabled
  */
 window.AccountNotificationModule = (function () {
     'use strict';
 
-    /* ── State ─────────────────────────────────────────────── */
-    const state = {
-        editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
-        notifications: [],
-        selectedIndex: -1,
-        operatorID: null
-    };
+    /* ── State ───────────────────────────────────────────────── */
+    let loadedNotifications = [];
+    let isEditing = false;
 
-    /* ── API Routes (Standard MVC Controller Routes) ────────── */
+    /* ── API Routes ──────────────────────────────────────────── */
     const API = {
-        GET: 'AccountsMaintenance/api/get-account-notification',
-        ADD: 'AccountsMaintenance/api/add-account-notification',
-        UPDATE: 'AccountsMaintenance/api/update-account-notification',
-        DELETE: 'AccountsMaintenance/api/delete-account-notification'
+        GET:    'AccountsMaintenance/api/get-account-notification',
+        UPDATE: 'AccountsMaintenance/api/update-account-notification'
     };
 
-    /* ── Context ────────────────────────────────────────────── */
+    /* ── Context ─────────────────────────────────────────────── */
     function getContext() {
         const ps = window.AccountMaintenanceState;
         return {
-            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            AccountID:  ps?.AccountID  || sessionStorage.getItem('currentAccountID')  || '',
             OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
-            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
+            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID')  || localStorage.getItem('OperatorID') || 'SYSTEM',
+            ProductID:  ps?.ProductID  || sessionStorage.getItem('currentProductID')   || 'null'
         };
     }
 
@@ -41,7 +36,7 @@ window.AccountNotificationModule = (function () {
     function setVal(id, v) {
         const e = el(id);
         if (!e) return;
-        const s = (v == null) ? '' : v;
+        const s = (v == null) ? '' : String(v);
         if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
             if (e.value !== s) e.value = s;
         } else {
@@ -63,144 +58,294 @@ window.AccountNotificationModule = (function () {
 
     function isSuccess(r) {
         if (!r) return false;
-        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
-    }
-
-    function showConfirm(message, title, iconClass) {
-        if (window.AppCore && window.AppCore.showConfirmation) {
-            return window.AppCore.showConfirmation(title || 'Confirm Action', message);
-        }
-        title = title || 'Confirm Action';
-        iconClass = iconClass || 'bi-question-circle';
-        return new Promise(function (resolve) {
-            var overlay = document.querySelector('.acd-confirm-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.className = 'acd-confirm-overlay';
-                overlay.innerHTML =
-                    '<div class="acd-confirm-card">' +
-                    '  <div class="acd-confirm-icon"><i class="bi ' + iconClass + '"></i></div>' +
-                    '  <div class="acd-confirm-title">' + title + '</div>' +
-                    '  <div class="acd-confirm-msg">' + message + '</div>' +
-                    '  <div class="acd-confirm-actions">' +
-                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--cancel">Cancel</button>' +
-                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--confirm">Confirm</button>' +
-                    '  </div>' +
-                    '</div>';
-                document.body.appendChild(overlay);
-            } else {
-                overlay.querySelector('.acd-confirm-title').textContent = title;
-                overlay.querySelector('.acd-confirm-msg').textContent = message;
-                overlay.querySelector('.acd-confirm-icon i').className = 'bi ' + iconClass;
-            }
-
-            var confirmBtn = overlay.querySelector('.acd-confirm-btn--confirm');
-            var cancelBtn = overlay.querySelector('.acd-confirm-btn--cancel');
-
-            var handleResponse = function (result) {
-                overlay.classList.remove('is-visible');
-                confirmBtn.onclick = null;
-                cancelBtn.onclick = null;
-                setTimeout(function () { resolve(result); }, 300);
-            };
-
-            confirmBtn.onclick = function () { handleResponse(true); };
-            cancelBtn.onclick = function () { handleResponse(false); };
-
-            requestAnimationFrame(function () {
-                overlay.classList.add('is-visible');
-                setTimeout(function () { confirmBtn.focus(); }, 100);
-            });
-        });
+        if (r.Success === true) return true;
+        const d = r.Data || r.data || r;
+        const code = d?.ResponseCode ?? d?.responseCode ?? d?.Status;
+        if (code === undefined || code === null) return true; // no code = assume ok
+        const s = String(code).trim();
+        return s === '' || s === '00' || s === '0' || s.toLowerCase() === 'ok' || s.toLowerCase() === 'success';
     }
 
     function fmtDateTime(ds) {
         if (!ds) return '-';
-        if (window.GlobalUtils?.formatDateTime) {
-            return window.GlobalUtils.formatDateTime(ds);
-        }
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
-    // Attempt to format a date to HTML5 native input Date format (YYYY-MM-DD)
     function formatDateForInput(ds) {
         if (!ds) return '';
-        if (window.GlobalUtils?.parseDateInput) {
-            const parsed = window.GlobalUtils.parseDateInput(ds);
-            if (parsed) return parsed;
-        }
         try {
             const d = new Date(ds);
             if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        } catch (e) {
-            return '';
-        }
+            return d.toISOString().slice(0, 10);
+        } catch (e) { return ''; }
     }
 
-    /* ── Editable fields ─────────────────────────────────────── */
-    const EDITABLE = ['frequency', 'dayOfMonth', 'executionDate'];
-    const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
+    function escapeXml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
 
-    function setFieldsEditable(editable) {
-        EDITABLE.forEach(function (id) {
-            var e = el(id);
-            if (e) e.disabled = !editable;
+    /* ── Button state — mirrors old setViewMode / setEditMode ── */
+    function setViewMode() {
+        isEditing = false;
+        const editB   = el('submoduleBtnEdit');
+        const saveB   = el('submoduleBtnSave');
+        const cancelB = el('submoduleBtnCancel');
+
+        if (editB)   editB.disabled   = false;  // always enabled in view mode
+        if (saveB)   saveB.disabled   = true;
+        if (cancelB) cancelB.disabled = true;
+
+        // Disable form fields and checkboxes
+        ['frequency', 'dayOfMonth', 'executionDate'].forEach(id => {
+            const e = el(id);
+            if (e) e.disabled = true;
         });
+        setCheckboxesEnabled(false);
+        renderGrid();
+        console.log('[AccountNotification] → VIEW MODE');
     }
 
-    /* ── Mode Management (button states via parent IDs) ──────── */
-    function setMode(mode) {
-        state.editMode = mode;
-        var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
-        setFieldsEditable(editing);
+    function setEditMode() {
+        isEditing = true;
+        const editB   = el('submoduleBtnEdit');
+        const saveB   = el('submoduleBtnSave');
+        const cancelB = el('submoduleBtnCancel');
 
-        // Parent-provided action panel buttons (by ID)
-        var viewB = el('submoduleBtnView');
-        var addB = el('submoduleBtnAdd');
-        var editB = el('submoduleBtnEdit');
-        var delB = el('submoduleBtnDelete');
-        var saveB = el('submoduleBtnSave');
-        var cancelB = el('submoduleBtnCancel');
+        if (editB)   editB.disabled   = true;
+        if (saveB)   saveB.disabled   = false;
+        if (cancelB) cancelB.disabled = false;
 
-        var prevB = el('submoduleBtnPrev');
-        var nextB = el('submoduleBtnNext');
+        // Enable form fields and checkboxes
+        ['frequency', 'dayOfMonth', 'executionDate'].forEach(id => {
+            const e = el(id);
+            if (e) e.disabled = false;
+        });
+        setCheckboxesEnabled(true);
+        renderGrid();
+        console.log('[AccountNotification] → EDIT MODE');
+    }
 
-        if (viewB) viewB.disabled = editing;
-        if (addB) addB.disabled = editing;
-        if (editB) editB.disabled = editing || state.notifications.length === 0 || state.selectedIndex === -1;
-        if (delB) delB.disabled = editing || state.notifications.length === 0 || state.selectedIndex === -1;
-        if (saveB) saveB.disabled = !editing;
-        if (cancelB) cancelB.disabled = !editing;
-        if (prevB) prevB.style.display = 'none';
-        if (nextB) nextB.style.display = 'none';
+    /* ── Checkbox helpers ────────────────────────────────────── */
+    function setCheckboxesEnabled(enabled) {
+        const selectAllCb = el('selectAll');
+        if (selectAllCb) selectAllCb.disabled = !enabled;
+        document.querySelectorAll('#notificationsTable .notification-checkbox')
+            .forEach(cb => cb.disabled = !enabled);
+    }
 
-        if (mode === 'ADD') {
-            clearForm();
-            el('frequency')?.focus();
-        } else if (mode === 'NONE' && state.selectedIndex >= 0 && state.notifications[state.selectedIndex]) {
-            bindForm(state.notifications[state.selectedIndex]);
+    /* ── Render grid ─────────────────────────────────────────── */
+    function renderGrid() {
+        const tbody = document.querySelector('#notificationsTable tbody');
+        const countSpan = el('recordCount');
+        const selectAllCb = el('selectAll');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        if (countSpan) countSpan.textContent = loadedNotifications.length + ' records';
+
+        if (loadedNotifications.length === 0) {
+            tbody.innerHTML = '<tr class="table__empty"><td colspan="4">No notifications found.</td></tr>';
+            if (selectAllCb) selectAllCb.disabled = true;
+            return;
         }
 
-        console.log('[AccountNotification] Mode →', mode);
+        if (selectAllCb) selectAllCb.disabled = !isEditing;
+
+        loadedNotifications.forEach((item, index) => {
+            const isChecked = item.IsSelected === 1 || item.IsSelected === true || item.IsSelected === '1';
+            const row = document.createElement('tr');
+            row.innerHTML =
+                `<td><input type="checkbox" class="notification-checkbox" data-index="${index}" aria-label="Select notification" ${isChecked ? 'checked' : ''} ${isEditing ? '' : 'disabled'} /></td>` +
+                `<td>${item.NotificationID || item.notificationId || '-'}</td>` +
+                `<td>${item.NotificationType || item.notificationType || '-'}</td>` +
+                `<td>${item.NotificationMessage || item.notificationMessage || '-'}</td>`;
+            tbody.appendChild(row);
+        });
+
+        if (selectAllCb) {
+            selectAllCb.checked = false;
+            selectAllCb.onchange = function () {
+                tbody.querySelectorAll('.notification-checkbox').forEach(cb => cb.checked = selectAllCb.checked);
+            };
+        }
     }
 
-    /* ── Collapsible Sections ────────────────────────────────── */
+    /* ── Populate audit fields ───────────────────────────────── */
+    function populateAudit(notifications) {
+        if (notifications && notifications.length > 0) {
+            const n = notifications[0];
+            setVal('ModifierID', n.ModifiedBy || '-');
+            setVal('ModifierDT', fmtDateTime(n.ModifiedOn));
+            setVal('MakerID',    n.CreatedBy  || '-');
+            setVal('MakerDT',    fmtDateTime(n.CreatedOn));
+            setVal('CheckerID',  n.CheckedBy  || n.SupervisedBy || '-');
+            setVal('CheckerDT',  fmtDateTime(n.CheckedOn || n.SupervisedOn));
+        } else {
+            ['ModifierID','ModifierDT','MakerID','MakerDT','CheckerID','CheckerDT']
+                .forEach(id => setVal(id, '-'));
+        }
+    }
+
+    /* ── Populate header fields from first notification ─────── */
+    function populateHeader(notifications) {
+        if (notifications && notifications.length > 0) {
+            const n = notifications[0];
+            setVal('frequency',     n.NotificationFrequency || n.Frequency || '');
+            setVal('dayOfMonth',    n.NotificationDuration  || n.NoOfDays  || '');
+            setVal('executionDate', formatDateForInput(n.ExecutionDate || ''));
+        } else {
+            setVal('frequency', '');
+            setVal('dayOfMonth', '');
+            setVal('executionDate', '');
+        }
+    }
+
+    /* ── Load notifications ──────────────────────────────────── */
+    async function loadNotifications() {
+        const ctx = getContext();
+        if (!ctx.AccountID) {
+            showMsg('No Account selected.', 'warning');
+            setViewMode();
+            return;
+        }
+
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET, {
+                AccountID:    ctx.AccountID,
+                ModuleID:     2091,
+                AccountTypeID: ctx.ProductID || 'null'   // controller maps this to ProductID for the SP
+            });
+            showLoading(false);
+
+            // Mirror old JS — check every known response shape
+            let data = [];
+            if (result) {
+                const d = result.Data || result.data || result;
+                if      (d?.Details01 && Array.isArray(d.Details01) && d.Details01.length > 0) data = d.Details01;
+                else if (d?.Details02 && Array.isArray(d.Details02) && d.Details02.length > 0) data = d.Details02;
+                else if (d?.Details   && Array.isArray(d.Details)   && d.Details.length   > 0) data = d.Details;
+                else if (Array.isArray(d)                            && d.length           > 0) data = d;
+                else if (Array.isArray(result.Details01))                                       data = result.Details01;
+                else if (Array.isArray(result.Details))                                         data = result.Details;
+            }
+
+            loadedNotifications = data;   // keep all rows — no filter
+            populateHeader(loadedNotifications);
+            populateAudit(loadedNotifications);
+            renderGrid();
+            console.log('[AccountNotification] Loaded', loadedNotifications.length, 'notifications');
+        } catch (err) {
+            showLoading(false);
+            showMsg('Error loading notifications: ' + err.message, 'error');
+        } finally {
+            setViewMode();
+        }
+    }
+
+    /* ── Save ────────────────────────────────────────────────── */
+    async function saveData() {
+        const frequency = val('frequency');
+        if (!frequency) {
+            showMsg('Notification Frequency is required.', 'warning');
+            el('frequency')?.focus();
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('#notificationsTable .notification-checkbox');
+        const anySelected = Array.from(checkboxes).some(cb => cb.checked);
+        if (checkboxes.length > 0 && !anySelected) {
+            showMsg('Please select at least one notification to save.', 'warning');
+            return;
+        }
+
+        const executionDateRaw = val('executionDate').trim();
+        let formattedExecutionDate = '';
+        if (executionDateRaw) {
+            const parsed = new Date(executionDateRaw);
+            if (isNaN(parsed.getTime())) {
+                showMsg('Execution Date is not a valid date.', 'warning');
+                el('executionDate')?.focus();
+                return;
+            }
+            formattedExecutionDate = parsed.toISOString().split('.')[0];
+        }
+
+        const ctx = getContext();
+        const duration = val('dayOfMonth').trim();
+
+        const notificationsToSave = loadedNotifications.map((notification, index) => {
+            const cb = checkboxes[index];
+            return {
+                ...notification,
+                IsSelected:            cb ? (cb.checked ? 1 : 0) : (notification.IsSelected || 0),
+                NotificationFrequency: frequency,
+                NotificationDuration:  duration || '0',
+                ExecutionDate:         formattedExecutionDate,
+                ButtonMark:            'A'
+            };
+        });
+
+        const xmlData = notificationsToSave.map(n =>
+            `<dt_NotificationFormat>` +
+            `<NotificationID>${escapeXml(n.NotificationID || '')}</NotificationID>` +
+            `<NotificationType>${escapeXml(n.NotificationType || '')}</NotificationType>` +
+            `<NotificationMessage>${escapeXml(n.NotificationMessage || '')}</NotificationMessage>` +
+            `<IsSelected>${n.IsSelected}</IsSelected>` +
+            `<IsEditable>${n.IsEditable ? 1 : 0}</IsEditable>` +
+            `<ProductLevel>${n.ProductLevel ? 1 : 0}</ProductLevel>` +
+            `<NotificationFrequency>${escapeXml(n.NotificationFrequency)}</NotificationFrequency>` +
+            `<NotificationDuration>${escapeXml(n.NotificationDuration)}</NotificationDuration>` +
+            `<ExecutionDate>${escapeXml(n.ExecutionDate)}</ExecutionDate>` +
+            `<ButtonMark>${n.ButtonMark}</ButtonMark>` +
+            `</dt_NotificationFormat>`
+        ).join('');
+
+        showLoading(true);
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.UPDATE, {
+                AccountID:   ctx.AccountID,
+                OurBranchID: ctx.OurBranchID,
+                OperatorID:  ctx.OperatorID,
+                ProductID:   ctx.ProductID,
+                XMLData:     xmlData
+            });
+            showLoading(false);
+            if (isSuccess(result)) {
+                showMsg(result?.Data?.ResponseMessage || result?.ResponseMessage || 'Notifications saved successfully.', 'success');
+                await loadNotifications();
+            } else {
+                const msg = result?.Data?.ResponseMessage || result?.ResponseMessage || result?.Message || 'Save failed.';
+                showMsg(msg, 'error');
+            }
+        } catch (err) {
+            showLoading(false);
+            showMsg('Save error: ' + err.message, 'error');
+        }
+    }
+
+    /* ── Cancel ──────────────────────────────────────────────── */
+    function cancelChanges() {
+        populateHeader(loadedNotifications);
+        renderGrid();
+        setViewMode();
+    }
+
+    /* ── Section toggles ─────────────────────────────────────── */
     function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
             if (header._wiredActNotif) return;
             header._wiredActNotif = true;
             header.addEventListener('click', function (e) {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
-                var section = header.closest('.form-section');
-                var content = section ? section.querySelector('[data-section-content]') : null;
-                var toggleBtn = section ? section.querySelector('.section-toggle-btn') : null;
-                var icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+                const section = header.closest('.form-section');
+                const content = section?.querySelector('[data-section-content]');
+                const toggleBtn = section?.querySelector('.section-toggle-btn');
+                const icon = toggleBtn?.querySelector('i');
                 if (!content) return;
-                var isOpen = content.style.display !== 'none';
+                const isOpen = content.style.display !== 'none';
                 content.style.display = isOpen ? 'none' : '';
                 if (icon) {
                     icon.classList.toggle('bi-chevron-up', !isOpen);
@@ -211,230 +356,23 @@ window.AccountNotificationModule = (function () {
         });
     }
 
-    /* ── Bind form data ──────────────────────────────────────── */
-    function bindForm(doc) {
-        setVal('frequency', doc.NotificationFrequency || doc.Frequency || '');
-        setVal('dayOfMonth', doc.NoOfDays || doc.DayOfMonth || '');
-        setVal('executionDate', formatDateForInput(doc.ExecutionDate || ''));
-
-        // Audit
-        setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
-        setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
-        setVal('ModifierID', doc.ModifiedBy || doc.ModifierId || doc.ModifierID || '');
-        setVal('ModifierDT', fmtDateTime(doc.ModifiedOn || doc.ModifierDt || doc.ModifierDT));
-        setVal('CheckerID', doc.CheckedBy || doc.CheckerId || doc.CheckerID || '');
-        setVal('CheckerDT', fmtDateTime(doc.CheckedOn || doc.CheckerDt || doc.CheckerDT));
-
-        // Metadata
-        state.operatorID = doc.OperatorID || doc.OperatorId || '';
-    }
-
-    /* ── Render Grid ─────────────────────────────────────────── */
-    function renderGrid() {
-        const tbody = document.querySelector('#notificationsTable tbody');
-        const countSpan = el('recordCount');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-        if (countSpan) countSpan.textContent = state.notifications.length + ' records';
-
-        if (state.notifications.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="3">No notifications found.</td></tr>';
-            return;
-        }
-
-        state.notifications.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.style.cursor = 'pointer';
-            row.className = index === state.selectedIndex ? 'table-active' : '';
-
-            row.innerHTML = `
-                <td>${item.NotificationID || item.ID || '-'}</td>
-                <td>${item.NotificationType || item.Type || '-'}</td>
-                <td>${item.NotificationMessage || item.Message || '-'}</td>
-            `;
-
-            row.addEventListener('click', () => {
-                if (state.editMode !== 'NONE') return;
-                state.selectedIndex = index;
-                renderGrid();
-                bindForm(item);
-                setMode('NONE');
-            });
-            tbody.appendChild(row);
-        });
-    }
-
-    /* ── Load / Navigate ─────────────────────────────────────── */
-    async function navigate() {
-        const ctx = getContext();
-        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
-
-        showLoading(true);
-        try {
-            const result = await window.AppCore.invokeControllerAsync(API.GET, {
-                AccountID: ctx.AccountID,
-                OurBranchID: ctx.OurBranchID,
-                OperatorID: ctx.OperatorID
-            });
-
-            showLoading(false);
-            if (isSuccess(result)) {
-                let data = [];
-                const d = result.Details || result.Data || result;
-                if (Array.isArray(d)) data = d;
-                else if (d && d.Details01 && Array.isArray(d.Details01)) data = d.Details01;
-                else if (d && typeof d === 'object') data = [d];
-
-                state.notifications = data;
-                if (state.notifications.length > 0) {
-                    state.selectedIndex = 0;
-                    bindForm(state.notifications[0]);
-                } else {
-                    state.selectedIndex = -1;
-                    clearForm();
-                }
-                renderGrid();
-                setMode('NONE');
-            } else {
-                state.notifications = [];
-                state.selectedIndex = -1;
-                renderGrid();
-                clearForm();
-                setMode('NONE');
-            }
-        } catch (err) {
-            showLoading(false);
-            showMsg('Error loading Account Notifications: ' + err.message, 'error');
-        }
-    }
-
-    /* ── Save ────────────────────────────────────────────────── */
-    async function saveData() {
-        const isAdd = state.editMode === 'ADD';
-        const frequency = val('frequency');
-        if (!frequency) { showMsg('Notification Frequency is required', 'warning'); return; }
-
-        const confirmed = await showConfirm(
-            `Are you sure you want to ${isAdd ? 'create' : 'update'} this notification?`,
-            'Save Confirmation'
-        );
-        if (!confirmed) return;
-
-        const ctx = getContext();
-        const payload = {
-            OurBranchID: ctx.OurBranchID,
-            AccountID: ctx.AccountID,
-            CreatedBy: ctx.OperatorID,
-            OperatorID: ctx.OperatorID,
-            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
-            NotificationFrequency: val('frequency').trim(),
-            NoOfDays: val('dayOfMonth').trim() || "0",
-            ExecutionDate: val('executionDate').trim() || null
-        };
-
-        if (!isAdd && state.selectedIndex >= 0) {
-            const item = state.notifications[state.selectedIndex];
-            payload.NotificationID = item.NotificationID || item.ID || '';
-        }
-
-        showLoading(true);
-        try {
-            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Changes saved successfully.', 'success');
-                setMode('NONE');
-                navigate();
-            } else {
-                showMsg(result.ResponseMessage || 'Save failed.', 'error');
-            }
-        } catch (err) {
-            showLoading(false);
-            showMsg('Save error: ' + err.message, 'error');
-        }
-    }
-
-    /* ── Delete ──────────────────────────────────────────────── */
-    async function deleteData() {
-        if (state.selectedIndex === -1 || !state.notifications[state.selectedIndex]) {
-            showMsg('No data to delete.', 'warning'); return;
-        }
-
-        const confirmed = await showConfirm(
-            'Are you sure you want to delete this notification?',
-            'Delete Confirmation'
-        );
-        if (!confirmed) return;
-
-        const ctx = getContext();
-        const item = state.notifications[state.selectedIndex];
-        showLoading(true);
-        try {
-            const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
-                AccountID: ctx.AccountID,
-                OurBranchID: ctx.OurBranchID,
-                OperatorID: ctx.OperatorID,
-                SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
-                NotificationID: item.NotificationID || item.ID || ''
-            });
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg(result.ResponseMessage || 'Deleted successfully.', 'success');
-                state.selectedIndex = -1;
-                clearForm();
-                setMode('NONE');
-                navigate();
-            } else {
-                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
-            }
-        } catch (err) {
-            showLoading(false);
-            showMsg('Delete error: ' + err.message, 'error');
-        }
-    }
-
-    /* ── Confirmed Action Wrappers (for AccountMaintenance parent) ─ */
-    function confirmAdd() { setMode('ADD'); }
-    function confirmEdit() { if (state.selectedIndex !== -1) setMode('EDIT'); else showMsg('No record selected.', 'warning'); }
-    function confirmCancel() { cancelChanges(); }
-    function cancelChanges() {
-        if (state.selectedIndex >= 0 && state.notifications[state.selectedIndex]) bindForm(state.notifications[state.selectedIndex]);
-        else clearForm();
-        setMode('NONE');
-    }
-    function clearForm() {
-        EDITABLE.forEach(id => setVal(id, ''));
-        AUDIT.forEach(id => setVal(id, '-'));
-    }
-
-    /* ── Init ────────────────────────────────────────────────── */
-    function init() {
+    /* ── Init (called by parent after buttons are in DOM) ────── */
+    async function init() {
         console.log('[AccountNotification] Initializing');
         wireSectionToggles();
-        setMode('NONE');
-
-        // Initial Load
-        const ctx = getContext();
-        if (ctx.AccountID) {
-            navigate();
-        } else {
-            showMsg('No Account selected in context.', 'warning');
-        }
+        setViewMode();        // set button states first — buttons exist at this point
+        await loadNotifications();
     }
 
     /* ── Public API ──────────────────────────────────────────── */
     return {
-        init: init,
-        setMode: setMode,
-        navigate: navigate,
-        saveData: saveData,
-        deleteData: deleteData,
-        confirmAdd: confirmAdd,
-        confirmEdit: confirmEdit,
-        confirmCancel: confirmCancel,
-        cancelChanges: cancelChanges,
-        loadData: navigate
+        init:          init,
+        navigate:      loadNotifications,
+        loadData:      loadNotifications,
+        confirmEdit:   setEditMode,
+        saveData:      saveData,
+        confirmCancel: cancelChanges,
+        cancelChanges: cancelChanges
     };
 })();
 
