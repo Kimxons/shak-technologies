@@ -225,6 +225,9 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE VIEW SUBMODULES
         // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate";
+        public const string ADD_EDIT_ACCOUNT_INTEREST_RATE = "p_AddEditAccountInterestRate";
+        public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate";
         public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";

@@ -5,7 +5,7 @@
 }
 
 <!-- InterestRates Submodule -->
-<div class="form-card" data-main-form>
+<div class="form-card" data-main-form id="interestRateForm">
   <!-- Rate Details Section -->
   <div class="form-section" data-section="rate-details">
       <div class="section-header" data-section-toggle>
@@ -59,33 +59,108 @@
   <!-- Interest Rate Slabs Section -->
   <div class="form-section" data-section="rate-slabs">
       <div class="section-header" data-section-toggle>
-          <span class="section-header__title"><i class="bi bi-table me-1"></i>Amount Slab Wise Rate of Interest</span>
-          <div class="ms-auto me-3">
-              <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlab" style="display: none;">
-                  <i class="bi bi-plus-circle me-1"></i>Add Slab
-              </button>
-          </div>
+          <span class="section-header__title"><i class="bi bi-table me-1"></i>Amount Slab Wise Rate Of Interest</span>
           <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Slabs" aria-expanded="true">
               <i class="bi bi-chevron-up"></i>
           </button>
       </div>
-      <div class="section-content table-responsive" data-section-content>
-          <table class="table table-sm table-hover" id="rateSlabGrid">
-              <thead class="table-light">
-                  <tr>
-                      <th>From Amount</th>
-                      <th>To Amount</th>
-                      <th>Spread / Margin</th>
-                      <th>Interest Rate</th>
-                      <th class="text-center" style="width: 80px;">Action</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr class="table__empty">
-                      <td colspan="5">No rate slabs defined.</td>
-                  </tr>
-              </tbody>
-          </table>
+      <div class="section-content" data-section-content style="padding:0;">
+          <div style="max-height:260px; overflow-y:auto; overflow-x:auto; padding:16px;">
+              <table style="width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; min-width:1080px;">
+                  <colgroup>
+                      <col style="width:12%;">
+                      <col style="width:18%;">
+                      <col style="width:18%;">
+                      <col style="width:16%;">
+                      <col style="width:15%;">
+                      <col style="width:10%;">
+                      <col style="width:15%;">
+                  </colgroup>
+                  <thead>
+                      <tr>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;"></th>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;">From</th>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;">To</th>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;"></th>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;">Mark Up / Down</th>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;">%</th>
+                          <th style="text-align:left; padding:8px; background:#e8f4f8; border:1px solid #b8d4e0; font-weight:600; color:#2c5f7d;">Effective Rate</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr style="background:white;">
+                          <td style="padding:6px 8px; border:1px solid #d0d0d0; text-align:center; font-weight:600; color:#333;">Amount</td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="amountFrom" name="amountFrom" class="bs-input-text bg-light" style="height:28px; font-size:13px; width:100%;" readonly /></td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="amountTo" name="amountTo" class="bs-input-text" style="height:28px; font-size:13px; width:100%;" /></td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"><select id="markUpDown" name="markUpDown" class="bs-select" style="height:28px; font-size:13px; width:100%;"><option value="">--Select--</option></select></td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="markValue" name="markValue" class="bs-input-text" style="height:28px; font-size:13px; width:100%;" /></td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="effectiveRate" name="effectiveRate" class="bs-input-text text-end" style="height:28px; font-size:13px; width:100%;" /></td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"></td>
+                      </tr>
+                      @for (var i = 2; i <= 5; i++)
+                      {
+                          <tr style="background:white;">
+                              <td style="padding:6px 8px; border:1px solid #d0d0d0; text-align:center; font-weight:600; color:#333;">@i.</td>
+                              <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="amount@(i)From" name="amount@(i)From" class="bs-input-text bg-light" style="height:28px; font-size:13px; width:100%;" readonly /></td>
+                              <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="amount@(i)To" name="amount@(i)To" class="bs-input-text" style="height:28px; font-size:13px; width:100%;" /></td>
+                              <td style="padding:3px; border:1px solid #d0d0d0;"><select id="markUpDown@(i)" name="markUpDown@(i)" class="bs-select" style="height:28px; font-size:13px; width:100%;"><option value="">--Select--</option></select></td>
+                              <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="markValue@(i)" name="markValue@(i)" class="bs-input-text" style="height:28px; font-size:13px; width:100%;" /></td>
+                              <td style="padding:3px; border:1px solid #d0d0d0;"><input type="text" id="effectiveRate@(i)" name="effectiveRate@(i)" class="bs-input-text text-end" style="height:28px; font-size:13px; width:100%;" /></td>
+                              <td style="padding:3px; border:1px solid #d0d0d0;"></td>
+                          </tr>
+                      }
+                      <tr style="background:white;">
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td style="text-align:right; font-weight:600; color:#2c5f7d; padding:6px 8px;">Penalty Rate</td>
+                          <td style="padding:3px; border:1px solid #d0d0d0;"><select id="penaltyRate" name="penaltyRate" class="bs-select" style="height:28px; font-size:13px; width:100%;"><option value="">--Select--</option><option value="+">+</option><option value="-">-</option></select></td>
+                          <td></td>
+                          <td></td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </div>
+
+  <div class="form-section" data-section="rate-list">
+      <div class="section-content" data-section-content style="padding:0;">
+          <div style="display:flex; border-bottom:2px solid #b8d4e0; background:#f5f5f5; overflow-x:auto; white-space:nowrap;">
+              <div class="rate-tab active" data-tab="reference" style="padding:8px 16px; font-size:13px; font-weight:600; color:#2c5f7d; cursor:pointer; border-right:1px solid #d0d0d0; background:white;">Reference No.</div>
+              <div class="rate-tab" data-tab="amount1" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Amount 1</div>
+              <div class="rate-tab" data-tab="rate1" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Rate 1</div>
+              <div class="rate-tab" data-tab="amount2" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Amount 2</div>
+              <div class="rate-tab" data-tab="rate2" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Rate 2</div>
+              <div class="rate-tab" data-tab="amount3" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Amount 3</div>
+              <div class="rate-tab" data-tab="rate3" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Rate 3</div>
+              <div class="rate-tab" data-tab="amount4" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Amount 4</div>
+              <div class="rate-tab" data-tab="rate4" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Rate 4</div>
+              <div class="rate-tab" data-tab="amount5" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer; border-right:1px solid #d0d0d0;">Amount 5</div>
+              <div class="rate-tab" data-tab="rate5" style="padding:8px 16px; font-size:13px; font-weight:600; color:#666; cursor:pointer;">Rate 5</div>
+          </div>
+          <div id="rateListContent" style="max-height:240px; overflow-y:auto; overflow-x:auto; background:white;">
+              <table style="width:100%; min-width:1220px; border-collapse:collapse; font-size:12px; table-layout:fixed;">
+                  <colgroup>
+                      <col style="width:120px;">
+                      <col style="width:150px;">
+                      <col style="width:100px;">
+                      <col style="width:150px;">
+                      <col style="width:100px;">
+                      <col style="width:150px;">
+                      <col style="width:100px;">
+                      <col style="width:150px;">
+                      <col style="width:100px;">
+                      <col style="width:150px;">
+                      <col style="width:100px;">
+                  </colgroup>
+                  <tbody>
+                      <tr>
+                          <td colspan="11" style="padding:10px 12px; color:#000; border:1px solid #d0d0d0; vertical-align:top; height:200px;">No records to display.</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
       </div>
   </div>
 

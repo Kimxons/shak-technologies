@@ -1,197 +1,285 @@
 /**
  * Account Interest Rates Module
- * Migrated from: public/modules/account-maintenance/DataEntry/account-interest-rates.js
+ * Legacy-style fixed slab UI
  */
 window.AccountInterestRatesModule = (function () {
     'use strict';
 
-    /* ── State ─────────────────────────────────────────────── */
     const state = {
-        editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
-        rateData: null,
-        slabs: [],
-        originalData: null,
-        operatorID: null
+        mode: 'view',
+        currentRecord: null,
+        records: [],
+        pendingRateUpdates: {}
     };
 
-    /* ── API Routes ─────────────────────────────────────────── */
-    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
-        GET: 'AccountsMaintenance/api/get-account-interest-rate',
         ADD: 'AccountsMaintenance/api/add-account-interest-rate',
         UPDATE: 'AccountsMaintenance/api/update-account-interest-rate',
         DELETE: 'AccountsMaintenance/api/delete-account-interest-rate'
     };
 
-    /* ── Context ────────────────────────────────────────────── */
+    function el(id) { return document.getElementById(id); }
+    function val(id) { return el(id)?.value || ''; }
+    function setVal(id, value) {
+        const node = el(id);
+        if (!node) return;
+        const normalized = value == null ? '' : String(value);
+        if ('value' in node) node.value = normalized;
+        else node.textContent = normalized;
+    }
+
+    function parseNumericInput(value) {
+        const normalized = String(value ?? '').replace(/,/g, '').trim();
+        if (!normalized) return null;
+        const parsed = parseFloat(normalized);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function formatAmount(value) {
+        const parsed = parseNumericInput(value);
+        if (parsed == null) return '';
+        return Number.isInteger(parsed) ? String(parsed) : String(parsed);
+    }
+
+    function isZeroLike(value) {
+        const parsed = parseNumericInput(value);
+        return parsed == null || parsed === 0;
+    }
+
+    function isEmptySlabData(source, index) {
+        const spreadSign = String(source?.[`SpreadSign${index}`] || '').trim();
+        return isZeroLike(source?.[`CeilingAmount${index}`])
+            && isZeroLike(source?.[`MarkingRate${index}`])
+            && isZeroLike(source?.[`EffectiveRate${index}`])
+            && isZeroLike(source?.[`MinVariance${index}`])
+            && isZeroLike(source?.[`MaxVariance${index}`])
+            && !spreadSign;
+    }
+
     function getContext() {
-        const ps = window.AccountMaintenanceState;
+        const ps = window.AccountMaintenanceState || {};
+        let branchID = ps.OurBranchID || sessionStorage.getItem('OurBranchID') || sessionStorage.getItem('currentBranchID') || sessionStorage.getItem('BranchID') || '';
+        let accountID = ps.AccountID || sessionStorage.getItem('CurrentAccountID') || sessionStorage.getItem('currentAccountID') || sessionStorage.getItem('AccountID') || '';
+        let operatorID = ps.OperatorID || sessionStorage.getItem('OperatorID') || sessionStorage.getItem('currentOperatorID') || sessionStorage.getItem('UserID') || localStorage.getItem('OperatorID') || 'SYS';
+
+        if ((!branchID || !accountID) && window.parent && window.parent !== window) {
+            try {
+                branchID = branchID || window.parent.document.getElementById('branchID')?.value || window.parent.document.getElementById('OurBranchID')?.value || '';
+                accountID = accountID || window.parent.document.getElementById('accountID')?.value || window.parent.document.getElementById('AccountID')?.value || '';
+            } catch (_) {
+                // ignore
+            }
+        }
+
         return {
-            AccountID: ps?.AccountID || sessionStorage.getItem('currentAccountID') || '',
-            OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
-            OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
+            OurBranchID: branchID,
+            AccountID: accountID,
+            OperatorID: operatorID
         };
     }
 
-    /* ── UI Helpers ──────────────────────────────────────────── */
-    function el(id) { return document.getElementById(id); }
-    function val(id) { const e = el(id); return e ? e.value : ''; }
-    function setVal(id, v) {
-        const e = el(id);
-        if (!e) return;
-        const s = (v == null) ? '' : v;
-        if (e.tagName === 'INPUT' || e.tagName === 'TEXTAREA' || e.tagName === 'SELECT') {
-            if (e.value !== s) e.value = s;
-        } else {
-            if (e.textContent !== s) e.textContent = s;
+    function formatDateForSQL(dateString) {
+        if (!dateString) return '';
+        if (dateString.includes('/')) return dateString;
+        const [year, month, day] = dateString.split('-');
+        return `${month}/${day}/${year}`;
+    }
+
+    function formatDateForInput(value) {
+        if (!value) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(value);
+            if (parsed) return parsed;
         }
+        const raw = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+        const date = new Date(raw);
+        if (isNaN(date.getTime())) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatDateTime(value) {
+        if (!value) return '-';
+        if (window.GlobalUtils?.formatDateTime) return window.GlobalUtils.formatDateTime(value);
+        const date = new Date(value);
+        return isNaN(date.getTime()) ? String(value) : date.toLocaleString();
     }
 
     function showLoading(show) {
-        const o = el('loadingOverlay');
-        if (o) o.hidden = !show;
+        const overlay = el('loadingOverlay') || el('pageLoadingOverlay');
+        if (!overlay) return;
+        if ('hidden' in overlay) overlay.hidden = !show;
     }
 
-    function showMsg(msg, type) {
-        if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
+    function showMessage(text, type = 'info') {
+        const panel = document.querySelector('.am-message-panel') || document.querySelector('.de-message-bar');
+        if (!panel) return;
+        const span = panel.querySelector('span');
+        if (span) span.textContent = text;
+
+        panel.classList.remove('show', 'am-message-panel--success', 'am-message-panel--error', 'am-message-panel--warning', 'de-message-bar--success', 'de-message-bar--error', 'de-message-bar--warning');
+
+        if (panel.classList.contains('am-message-panel')) {
+            panel.classList.add('show');
+            if (type === 'success') panel.classList.add('am-message-panel--success');
+            else if (type === 'error') panel.classList.add('am-message-panel--error');
+            else if (type === 'warning') panel.classList.add('am-message-panel--warning');
+        } else {
+            panel.style.display = 'flex';
+            if (type === 'success') panel.classList.add('de-message-bar--success');
+            else if (type === 'error') panel.classList.add('de-message-bar--error');
+            else if (type === 'warning') panel.classList.add('de-message-bar--warning');
         }
-        console.log('[InterestRates] ' + type + ': ' + msg);
+
+        clearTimeout(panel._timer);
+        panel._timer = setTimeout(() => {
+            if (panel.classList.contains('am-message-panel')) panel.classList.remove('show');
+            else panel.style.display = 'none';
+        }, 5000);
     }
 
-    function isSuccess(r) {
-        if (!r) return false;
-        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
-    }
-
-    function showConfirm(message, title, iconClass) {
-        if (window.AppCore && window.AppCore.showConfirmation) {
+    function showConfirm(message, title) {
+        if (window.AppCore?.showConfirmation) {
             return window.AppCore.showConfirmation(title || 'Confirm Action', message);
         }
-        title = title || 'Confirm Action';
-        iconClass = iconClass || 'bi-question-circle';
-        return new Promise(function (resolve) {
-            var overlay = document.querySelector('.acd-confirm-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.className = 'acd-confirm-overlay';
-                overlay.innerHTML =
-                    '<div class="acd-confirm-card">' +
-                    '  <div class="acd-confirm-icon"><i class="bi ' + iconClass + '"></i></div>' +
-                    '  <div class="acd-confirm-title">' + title + '</div>' +
-                    '  <div class="acd-confirm-msg">' + message + '</div>' +
-                    '  <div class="acd-confirm-actions">' +
-                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--cancel">Cancel</button>' +
-                    '    <button type="button" class="acd-confirm-btn acd-confirm-btn--confirm">Confirm</button>' +
-                    '  </div>' +
-                    '</div>';
-                document.body.appendChild(overlay);
-            } else {
-                overlay.querySelector('.acd-confirm-title').textContent = title;
-                overlay.querySelector('.acd-confirm-msg').textContent = message;
-                overlay.querySelector('.acd-confirm-icon i').className = 'bi ' + iconClass;
+        return Promise.resolve(window.confirm(message));
+    }
+
+    function isSuccess(response) {
+        if (!response) return false;
+        return response.Success === true
+            || response.success === true
+            || response.ResponseCode === '00'
+            || response.ResponseCode === '000'
+            || response.ResponseCode === 0;
+    }
+
+    async function invokeController(endpoint, payload) {
+        if (!window.AppCore?.invokeControllerAsync) {
+            throw new Error('AppCore.invokeControllerAsync is not available');
+        }
+        return window.AppCore.invokeControllerAsync(endpoint, payload || {});
+    }
+
+    function normalizePayload(payload) {
+        if (!payload) return null;
+        if (typeof payload === 'string') {
+            try {
+                return JSON.parse(payload);
+            } catch (_) {
+                return null;
             }
+        }
+        if (typeof payload === 'object' && payload.json && typeof payload.json === 'function') {
+            return payload.json();
+        }
+        return payload;
+    }
 
-            var confirmBtn = overlay.querySelector('.acd-confirm-btn--confirm');
-            var cancelBtn = overlay.querySelector('.acd-confirm-btn--cancel');
+    async function loadRateTypes() {
+        const select = el('rateType');
+        if (!select || !window.LookupService?.getBaseRateTypes) return;
+        try {
+            const options = await window.LookupService.getBaseRateTypes();
+            const current = select.value;
+            select.innerHTML = '<option value="">--Select--</option>';
+            options.forEach(option => {
+                const item = document.createElement('option');
+                item.value = option.value;
+                item.textContent = option.label;
+                select.appendChild(item);
+            });
+            select.value = current || select.value;
+        } catch (error) {
+            console.error('[InterestRates] Failed to load rate types', error);
+        }
+    }
 
-            var handleResponse = function (result) {
-                overlay.classList.remove('is-visible');
-                confirmBtn.onclick = null;
-                cancelBtn.onclick = null;
-                setTimeout(function () { resolve(result); }, 300);
-            };
+    function loadMarkUpDownOptions() {
+        const options = [
+            { value: '', label: '--Select--' },
+            { value: 'UP', label: 'Mark Up' },
+            { value: 'DOWN', label: 'Mark Down' },
+            { value: 'FIXED', label: 'Fixed Rate' }
+        ];
 
-            confirmBtn.onclick = function () { handleResponse(true); };
-            cancelBtn.onclick = function () { handleResponse(false); };
+        for (let i = 1; i <= 5; i += 1) {
+            const suffix = i === 1 ? '' : String(i);
+            const select = el(`markUpDown${suffix}`);
+            if (!select) continue;
+            const current = select.value;
+            select.innerHTML = '';
+            options.forEach(option => {
+                const item = document.createElement('option');
+                item.value = option.value;
+                item.textContent = option.label;
+                select.appendChild(item);
+            });
+            select.value = current || '';
+        }
+    }
 
-            requestAnimationFrame(function () {
-                overlay.classList.add('is-visible');
-                setTimeout(function () { confirmBtn.focus(); }, 100);
+    function initializeTabs() {
+        document.querySelectorAll('.rate-tab').forEach(tab => {
+            if (tab._wiredInterestTab) return;
+            tab._wiredInterestTab = true;
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.rate-tab').forEach(node => {
+                    node.classList.remove('active');
+                    node.style.background = '#f5f5f5';
+                    node.style.color = '#666';
+                    node.style.borderBottom = '';
+                    node.style.marginBottom = '';
+                });
+                this.classList.add('active');
+                this.style.background = 'white';
+                this.style.color = '#2c5f7d';
+                this.style.borderBottom = '3px solid #2c5f7d';
+                this.style.marginBottom = '-2px';
             });
         });
     }
 
-    function fmtDateTime(ds) {
-        if (!ds) return '-';
-        if (window.GlobalUtils?.formatDateTime) {
-            return window.GlobalUtils.formatDateTime(ds);
-        }
-        try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
-    }
-
-    function formatDateForInput(ds) {
-        if (!ds) return '';
-        if (window.GlobalUtils?.parseDateInput) {
-            const parsed = window.GlobalUtils.parseDateInput(ds);
-            if (parsed) return parsed;
-        }
+    function openDatePickerById(id) {
+        const input = el(id);
+        if (!input || input.disabled) return;
         try {
-            const d = new Date(ds);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        } catch (e) { return ''; }
-    }
-
-    function formatNumber(num) { return parseFloat(num || 0).toFixed(4); }
-
-    const EDITABLE = ['rateType', 'effectiveDate', 'expiryDate', 'refId'];
-    const AUDIT = ['CreatedBy', 'CreatedOn', 'ModifiedBy', 'ModifiedOn', 'SupervisedBy', 'SupervisedOn'];
-
-    function setFieldsEditable(editable) {
-        EDITABLE.forEach(id => { const e = el(id); if (e) e.disabled = !editable; });
-        const addSlabBtn = el('btnAddSlab');
-        if (addSlabBtn) addSlabBtn.style.display = editable ? 'inline-block' : 'none';
-    }
-
-    /* ── Mode Management (button states via parent IDs) ──────── */
-    function setMode(mode) {
-        state.editMode = mode;
-        const editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
-        setFieldsEditable(editing);
-        renderSlabGrid();
-
-        // Parent-provided action panel buttons (by ID)
-        var viewB = el('submoduleBtnView');
-        var addB = el('submoduleBtnAdd');
-        var editB = el('submoduleBtnEdit');
-        var delB = el('submoduleBtnDelete');
-        var saveB = el('submoduleBtnSave');
-        var cancelB = el('submoduleBtnCancel');
-
-        if (viewB) viewB.disabled = editing;
-        if (addB) addB.disabled = editing || state.rateData !== null;
-        if (editB) editB.disabled = editing || state.rateData === null;
-        if (delB) delB.disabled = editing || state.rateData === null;
-        if (saveB) saveB.disabled = !editing;
-        if (cancelB) cancelB.disabled = !editing;
-
-        if (mode === 'ADD') {
-            clearForm();
-            el('rateType')?.focus();
-        } else if (mode === 'NONE' && state.rateData) {
-            bindForm(state.rateData);
+            if (typeof input.showPicker === 'function') {
+                input.showPicker();
+                return;
+            }
+        } catch (_) {
+            // ignore
         }
-
-        console.log('[InterestRates] Mode →', mode);
+        input.focus();
+        input.click();
     }
 
-    /* ── Collapsible Sections ────────────────────────────────── */
-    function wireEvents() {
+    function wireDatePickerButtons() {
+        document.querySelectorAll('[data-open-date]').forEach(button => {
+            if (button._wiredInterestDate) return;
+            button._wiredInterestDate = true;
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                openDatePickerById(button.getAttribute('data-open-date'));
+            });
+        });
+    }
+
+    function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(header => {
-            if (header._wiredIntRate) return;
-            header._wiredIntRate = true;
-            header.addEventListener('click', e => {
+            if (header._wiredInterestSection) return;
+            header._wiredInterestSection = true;
+            header.addEventListener('click', function (e) {
                 if (e.target.closest('button') && !e.target.closest('.section-toggle-btn')) return;
-                var section = header.closest('.form-section');
-                var content = section ? section.querySelector('[data-section-content]') : null;
-                var toggleBtn = section ? section.querySelector('.section-toggle-btn') : null;
-                var icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+                const section = header.closest('.form-section');
+                const content = section?.querySelector('[data-section-content]');
+                const icon = header.querySelector('.section-toggle-btn i');
                 if (!content) return;
-                var isOpen = content.style.display !== 'none';
+                const isOpen = content.style.display !== 'none';
                 content.style.display = isOpen ? 'none' : '';
                 if (icon) {
                     icon.classList.toggle('bi-chevron-up', !isOpen);
@@ -199,256 +287,543 @@ window.AccountInterestRatesModule = (function () {
                 }
             });
         });
+    }
 
-        const addSlabBtn = el('btnAddSlab');
-        if (addSlabBtn && !addSlabBtn._wiredIntRate) {
-            addSlabBtn._wiredIntRate = true;
-            addSlabBtn.addEventListener('click', () => {
-                if (state.editMode === 'ADD' || state.editMode === 'EDIT') {
-                    state.slabs.push({ FromAmount: 0, ToAmount: 0, Spread: 0, InterestRate: 0 });
-                    renderSlabGrid();
-                }
-            });
+    function setButtons() {
+        const editing = state.mode === 'add' || state.mode === 'edit';
+        const hasRecord = !!state.currentRecord;
+        if (el('submoduleBtnView')) el('submoduleBtnView').disabled = editing;
+        if (el('submoduleBtnAdd')) el('submoduleBtnAdd').disabled = editing;
+        if (el('submoduleBtnEdit')) el('submoduleBtnEdit').disabled = editing || !hasRecord;
+        if (el('submoduleBtnDelete')) el('submoduleBtnDelete').disabled = editing || !hasRecord;
+        if (el('submoduleBtnSave')) el('submoduleBtnSave').disabled = !editing;
+        if (el('submoduleBtnCancel')) el('submoduleBtnCancel').disabled = !editing;
+    }
+
+    function enableFormForEdit(mode) {
+        state.mode = mode;
+        state.pendingRateUpdates = {};
+        const inputs = document.querySelectorAll('#interestRateForm input, #interestRateForm select');
+        inputs.forEach(input => {
+            if (input.id === 'baseRate') return;
+            input.disabled = false;
+        });
+        setButtons();
+    }
+
+    function disableFormInputs() {
+        state.mode = 'view';
+        const inputs = document.querySelectorAll('#interestRateForm input, #interestRateForm select');
+        inputs.forEach(input => {
+            input.disabled = input.id !== 'rateType' && input.id !== 'effectiveDate';
+        });
+        if (el('rateType')) el('rateType').disabled = false;
+        if (el('effectiveDate')) el('effectiveDate').disabled = false;
+        if (el('baseRate')) el('baseRate').disabled = true;
+        setButtons();
+    }
+
+    function clearGrid() {
+        const tbody = document.querySelector('#rateListContent tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="11" style="padding:10px 12px; color:#000; border:1px solid #d0d0d0; vertical-align:top; height:200px;">No records to display.</td></tr>';
+    }
+
+    function clearForm() {
+        state.currentRecord = null;
+        state.pendingRateUpdates = {};
+        setVal('rateType', '');
+        setVal('baseRate', '0.0000');
+        setVal('effectiveDate', '');
+        setVal('expiryDate', '');
+        setVal('refId', '');
+        for (let i = 1; i <= 5; i += 1) {
+            const suffix = i === 1 ? '' : String(i);
+            setVal(`amount${suffix}From`, i === 1 ? '0.00' : '');
+            setVal(`amount${suffix}To`, '');
+            setVal(`markUpDown${suffix}`, '');
+            setVal(`markValue${suffix}`, '');
+            setVal(`effectiveRate${suffix}`, '');
+        }
+        setVal('penaltyRate', '');
+        ['CreatedBy', 'CreatedOn', 'SupervisedBy', 'SupervisedOn', 'ModifiedBy', 'ModifiedOn'].forEach(id => setVal(id, '-'));
+        syncSlabStartValues();
+        clearGrid();
+        disableFormInputs();
+    }
+
+    function syncSlabStartValues() {
+        setVal('amountFrom', '0.00');
+
+        for (let i = 2; i <= 5; i += 1) {
+            const previousSuffix = i - 1 === 1 ? '' : String(i - 1);
+            const currentSuffix = String(i);
+            const previousTo = parseNumericInput(val(`amount${previousSuffix}To`));
+            setVal(`amount${currentSuffix}From`, previousTo == null ? '' : formatAmount(previousTo));
         }
     }
 
-    /* ── Bind form data ──────────────────────────────────────── */
-    function bindForm(data) {
-        if (!data) return;
-        setVal('rateType', data.RateType || data.InterestRateTypeID || '');
-        setVal('baseRate', formatNumber(data.BaseRate || 0));
-        setVal('effectiveDate', formatDateForInput(data.EffectiveDate));
-        setVal('expiryDate', formatDateForInput(data.ExpiryDate));
-        setVal('refId', data.RefID || data.ReferenceID || '');
+    function getSlabValues(index) {
+        const suffix = index === 1 ? '' : String(index);
+        const fromValue = index === 1 ? null : parseNumericInput(val(`amount${suffix}From`));
+        const toValue = parseNumericInput(val(`amount${suffix}To`));
+        const markValue = parseNumericInput(val(`markValue${suffix}`));
+        const effectiveRate = parseNumericInput(val(`effectiveRate${suffix}`));
+        const markUpDown = val(`markUpDown${suffix}`);
+        const hasNonZeroValue = (toValue != null && toValue !== 0)
+            || (markValue != null && markValue !== 0)
+            || (effectiveRate != null && effectiveRate !== 0);
 
-        setVal('CreatedBy', data.CreatedBy || '-');
-        setVal('CreatedOn', fmtDateTime(data.CreatedOn));
-        setVal('SupervisedBy', data.SupervisedBy || '-');
-        setVal('SupervisedOn', fmtDateTime(data.SupervisedOn));
-        setVal('ModifiedBy', data.ModifiedBy || '-');
-        setVal('ModifiedOn', fmtDateTime(data.ModifiedOn));
-
-        state.slabs = data.Slabs || data.RateSlabs || [];
-        renderSlabGrid();
+        return {
+            fromValue,
+            toValue,
+            markValue,
+            effectiveRate,
+            markUpDown,
+            hasData: hasNonZeroValue || !!markUpDown
+        };
     }
 
-    /* ── Render Slab Grid ────────────────────────────────────── */
-    function renderSlabGrid() {
-        const tbody = document.querySelector('#rateSlabGrid tbody');
-        if (!tbody) return;
+    function validateSlabs() {
+        let lastTo = null;
 
+        for (let i = 1; i <= 5; i += 1) {
+            const slab = getSlabValues(i);
+            if (!slab.hasData) continue;
+
+            if (slab.toValue == null) {
+                return `Please enter the To amount for slab ${i}`;
+            }
+
+            if (i > 1 && lastTo == null) {
+                return `Please complete slab ${i - 1} before entering slab ${i}`;
+            }
+
+            if (i > 1 && slab.fromValue == null) {
+                return `Slab ${i} start amount is missing`;
+            }
+
+            if (i > 1 && slab.fromValue != null && slab.toValue < slab.fromValue) {
+                return `Slab ${i} To amount cannot be less than the From amount`;
+            }
+
+            if (i === 1 && slab.toValue <= 0) {
+                return 'The first slab To amount must be greater than zero';
+            }
+
+            lastTo = slab.toValue;
+        }
+
+        return null;
+    }
+
+    function extractInterestRateRecords(rawData) {
+        if (!rawData) return [];
+
+        const detailKeys = ['Details04', 'Details03', 'Details02', 'Details01', 'details04', 'details03', 'details02', 'details01'];
+        for (const key of detailKeys) {
+            if (Array.isArray(rawData?.[key]) && rawData[key].length > 0) {
+                return rawData[key];
+            }
+        }
+
+        if (Array.isArray(rawData)) return rawData;
+        return [];
+    }
+
+    function populateForm(data) {
+        if (!data) return;
+        state.currentRecord = data;
+        state.pendingRateUpdates = {};
+        setVal('rateType', data.TrxTypeID || data.RateType || '');
+        setVal('baseRate', (parseFloat(data.BaseRate || 0) || 0).toFixed(4));
+        setVal('effectiveDate', formatDateForInput(data.EffectiveDate));
+        setVal('expiryDate', formatDateForInput(data.ExpiryDate));
+        setVal('refId', data.RefNo || data.RefID || '');
+
+        for (let i = 1; i <= 5; i += 1) {
+            const suffix = i === 1 ? '' : String(i);
+            const minVariance = data[`MinVariance${i}`];
+            const ceilingAmount = data[`CeilingAmount${i}`];
+            const markValue = data[`MarkingRate${i}`];
+            const effectiveRate = data[`EffectiveRate${i}`];
+            const spreadSign = String(data[`SpreadSign${i}`] || '').trim();
+            const isEmptySlab = i > 1 && isEmptySlabData(data, i);
+            setVal(`amount${suffix}From`, i === 1 ? '0.00' : (isEmptySlab || minVariance == null ? '' : Math.abs(parseFloat(minVariance) || 0)));
+            setVal(`amount${suffix}To`, isEmptySlab || ceilingAmount == null || parseFloat(ceilingAmount) === 0 ? '' : Math.abs(parseFloat(ceilingAmount) || 0));
+            setVal(`markValue${suffix}`, isEmptySlab || markValue == null || parseFloat(markValue) === 0 ? '' : markValue);
+            setVal(`effectiveRate${suffix}`, isEmptySlab || effectiveRate == null || parseFloat(effectiveRate) === 0 ? '' : effectiveRate);
+            if (spreadSign === '+') setVal(`markUpDown${suffix}`, 'UP');
+            else if (spreadSign === '-') setVal(`markUpDown${suffix}`, 'DOWN');
+            else if (spreadSign) setVal(`markUpDown${suffix}`, 'FIXED');
+            else setVal(`markUpDown${suffix}`, '');
+        }
+
+        const penaltyValue = String(data.PenaltyRate || '');
+        if (penaltyValue.startsWith('+') || penaltyValue.startsWith('-')) setVal('penaltyRate', penaltyValue.charAt(0));
+        else setVal('penaltyRate', '');
+
+        setVal('CreatedBy', data.CreatedBy || '-');
+        setVal('CreatedOn', formatDateTime(data.CreatedOn));
+        setVal('ModifiedBy', data.ModifiedBy || '-');
+        setVal('ModifiedOn', formatDateTime(data.ModifiedOn));
+        setVal('SupervisedBy', data.SupervisedBy || '-');
+        setVal('SupervisedOn', formatDateTime(data.SupervisedOn));
+        syncSlabStartValues();
+    }
+
+    function populateGrid(records) {
+        const tbody = document.querySelector('#rateListContent tbody');
+        if (!tbody) return;
         tbody.innerHTML = '';
-        if (state.slabs.length === 0) {
-            tbody.innerHTML = '<tr class="table__empty"><td colspan="5">No rate slabs defined.</td></tr>';
+
+        if (!Array.isArray(records) || records.length === 0) {
+            clearGrid();
             return;
         }
 
-        const isEditing = state.editMode === 'ADD' || state.editMode === 'EDIT';
-
-        state.slabs.forEach((slab, index) => {
+        records.forEach(record => {
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><input type="number" class="bs-input-text text-end" data-field="FromAmount" 
-                           value="${slab.FromAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
-                <td><input type="number" class="bs-input-text text-end" data-field="ToAmount" 
-                           value="${slab.ToAmount || 0}" ${!isEditing ? 'disabled' : ''}></td>
-                <td><input type="number" class="bs-input-text text-end" data-field="Spread" 
-                           value="${slab.Spread || slab.SpreadMargin || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
-                <td><input type="number" class="bs-input-text text-end" data-field="InterestRate" 
-                           value="${slab.InterestRate || slab.Rate || 0}" step="0.0001" ${!isEditing ? 'disabled' : ''}></td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-delete-slab="${index}" 
-                            ${!isEditing ? 'disabled' : ''} title="Remove slab">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            `;
-
-            row.querySelectorAll('input').forEach(input => {
-                input.addEventListener('change', () => {
-                    const field = input.dataset.field;
-                    state.slabs[index][field] = parseFloat(input.value) || 0;
-                });
+            row.style.cursor = 'pointer';
+            let html = `<td style="padding:8px; border:1px solid #d0d0d0;">${record.RefNo || record.RefID || ''}</td>`;
+            for (let i = 1; i <= 5; i += 1) {
+                const isEmptySlab = i > 1 && isEmptySlabData(record, i);
+                const minVariance = record[`MinVariance${i}`];
+                const ceilingAmount = record[`CeilingAmount${i}`];
+                const effectiveRate = record[`EffectiveRate${i}`];
+                let amountRange = '';
+                const fromValue = isEmptySlab ? '' : (i === 1 ? 0 : (minVariance == null || minVariance === '' ? '' : Math.abs(parseFloat(minVariance) || 0)));
+                const toValue = isEmptySlab || ceilingAmount == null || ceilingAmount === '' || parseFloat(ceilingAmount) === 0 ? '' : Math.abs(parseFloat(ceilingAmount) || 0);
+                if (fromValue !== '' && toValue !== '') amountRange = `${fromValue} - ${toValue}`;
+                else if (fromValue !== '') amountRange = String(fromValue);
+                else if (toValue !== '') amountRange = String(toValue);
+                html += `<td style="padding:8px; border:1px solid #d0d0d0;">${amountRange}</td><td style="padding:8px; border:1px solid #d0d0d0; text-align:right;">${isEmptySlab || effectiveRate == null || parseFloat(effectiveRate) === 0 ? '' : effectiveRate}</td>`;
+            }
+            row.innerHTML = html;
+            row.addEventListener('click', () => {
+                populateForm(record);
+                disableFormInputs();
             });
-
-            row.querySelector('[data-delete-slab]')?.addEventListener('click', () => {
-                if (isEditing) {
-                    state.slabs.splice(index, 1);
-                    renderSlabGrid();
-                }
-            });
-
             tbody.appendChild(row);
         });
     }
 
-    /* ── Load / Navigate ─────────────────────────────────────── */
-    async function navigate() {
+    async function navigate(direction = 0) {
+        const rateType = val('rateType');
+        const effectiveDate = val('effectiveDate');
         const ctx = getContext();
-        if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
-        showLoading(true);
+        if (!rateType) {
+            showMessage('Please select a Rate Type before viewing interest rates', 'warning');
+            el('rateType')?.focus();
+            return;
+        }
+        if (!effectiveDate) {
+            showMessage('Please select an Effective Date before viewing interest rates', 'warning');
+            el('effectiveDate')?.focus();
+            return;
+        }
+        if (!ctx.OurBranchID || !ctx.AccountID) {
+            showMessage('Branch ID and Account ID are required. Please select an account first.', 'error');
+            return;
+        }
+
         try {
-            const result = await window.AppCore.invokeControllerAsync(API.GET, {
-                AccountID: ctx.AccountID,
+            showLoading(true);
+            const response = await invokeController('AccountsMaintenance/api/get-account-interest-rate', {
                 OurBranchID: ctx.OurBranchID,
-                OperatorID: ctx.OperatorID
+                AccountID: ctx.AccountID,
+                TrxTypeID: rateType,
+                EffectiveDate: formatDateForSQL(effectiveDate),
+                OperatorID: ctx.OperatorID,
+                Direction: direction,
+                SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
+                RelevantID: ctx.AccountID,
+                ModuleTypeID: 'A'
             });
 
-            showLoading(false);
-            if (isSuccess(result)) {
-                const data = result.Details || result.Data || result;
-                if (Array.isArray(data) && data.length > 0) state.rateData = data[0];
-                else if (data && !Array.isArray(data)) state.rateData = data;
-                else state.rateData = null;
+            const rawData = normalizePayload(response?.Details || response?.details || response?.data || response?.Data || response);
+            const gridData = extractInterestRateRecords(rawData);
+            const formData = gridData.length > 0 ? gridData[0] : null;
 
-                if (state.rateData) {
-                    state.originalData = JSON.parse(JSON.stringify(state.rateData));
-                    bindForm(state.rateData);
-                } else {
-                    state.originalData = null;
-                    clearForm();
-                }
-                setMode('NONE');
-            } else {
-                state.rateData = null;
-                state.originalData = null;
+            state.records = gridData;
+            if (!formData && gridData.length === 0) {
                 clearForm();
-                setMode('NONE');
+                showMessage('No interest rate data found. Account may not have interest rates configured for this date/type.', 'info');
+                return;
             }
-        } catch (err) {
+
+            if (formData) populateForm(formData);
+            populateGrid(gridData);
+            state.mode = 'view';
+            disableFormInputs();
+            showMessage('Interest rate data loaded successfully', 'success');
+        } catch (error) {
+            console.error('[InterestRates] Error fetching interest rates:', error);
+            showMessage('Error loading interest rate data', 'error');
+        } finally {
             showLoading(false);
-            showMsg('Error loading Interest Rates: ' + err.message, 'error');
         }
     }
 
-    /* ── Save ────────────────────────────────────────────────── */
-    async function saveData() {
-        const isAdd = state.editMode === 'ADD';
-        const rateType = val('rateType');
-        if (!rateType) { showMsg('Rate Type is required', 'warning'); return; }
-
-        const confirmed = await showConfirm(
-            `Are you sure you want to ${isAdd ? 'create' : 'update'} this interest rate?`,
-            'Save Confirmation'
-        );
-        if (!confirmed) return;
-
+    function buildSaveRequestData() {
         const ctx = getContext();
-        const searchKey = `[${ctx.OurBranchID}:${ctx.AccountID}]`;
-
-        const payload = {
-            OurBranchID: ctx.OurBranchID,
-            AccountID: ctx.AccountID,
-            CreatedBy: ctx.OperatorID,
-            OperatorID: ctx.OperatorID,
-            SearchKey: searchKey,
-            RateType: rateType,
-            InterestRateTypeID: rateType,
-            BaseRate: parseFloat(val('baseRate')) || 0,
-            EffectiveDate: val('effectiveDate') ? new Date(val('effectiveDate')).toISOString() : null,
-            ExpiryDate: val('expiryDate') ? new Date(val('expiryDate')).toISOString() : null,
-            RefID: val('refId'),
-            Slabs: state.slabs
+        const parseNumber = (input) => parseNumericInput(input) ?? 0;
+        const parseNullableNumber = (input, zeroAsNull = false) => {
+            const parsed = parseNumericInput(input);
+            if (parsed == null) return null;
+            if (zeroAsNull && parsed === 0) return null;
+            return parsed;
         };
-
-        if (!isAdd && state.rateData) {
-            payload.RateID = state.rateData.RateID || state.rateData.InterestRateID || '';
-        }
-
-        showLoading(true);
-        try {
-            const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg('Interest Rate saved.', 'success');
-                setMode('NONE');
-                navigate();
-            } else {
-                showMsg(result.ResponseMessage || 'Save failed.', 'error');
-            }
-        } catch (err) {
-            showLoading(false);
-            showMsg('Save error: ' + err.message, 'error');
-        }
-    }
-
-    /* ── Delete ──────────────────────────────────────────────── */
-    async function deleteData() {
-        if (!state.rateData) { showMsg('No data to delete.', 'warning'); return; }
-
-        const confirmed = await showConfirm('Are you sure you want to delete this Interest Rate?', 'Delete Confirmation');
-        if (!confirmed) return;
-
-        const ctx = getContext();
-        const payload = {
-            AccountID: ctx.AccountID,
+        const requestData = {
             OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
             OperatorID: ctx.OperatorID,
             SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
-            RateID: state.rateData.RateID || state.rateData.InterestRateID || ''
+            RelevantID: ctx.AccountID,
+            ModuleTypeID: 'A',
+            TrxTypeID: val('rateType'),
+            EffectiveDate: formatDateForSQL(val('effectiveDate')),
+            RefNo: state.mode === 'add' ? 0 : (parseInt(val('refId'), 10) || 0),
+            ExpiryDate: formatDateForSQL(val('expiryDate')),
+            CreatedBy: state.mode === 'add' ? ctx.OperatorID : (state.currentRecord?.CreatedBy || ctx.OperatorID),
+            CreatedOn: null,
+            ModifiedBy: state.mode === 'edit' ? ctx.OperatorID : null,
+            ModifiedOn: null,
+            SupervisedBy: null,
+            UpdateCount: state.mode === 'add' ? 1 : (parseInt(val('refId'), 10) > 0 ? 2 : 1)
         };
 
-        showLoading(true);
+        for (let i = 1; i <= 5; i += 1) {
+            const suffix = i === 1 ? '' : String(i);
+            const markUpDown = val(`markUpDown${suffix}`);
+            let spreadSign = '';
+            if (markUpDown === 'UP') spreadSign = '+';
+            else if (markUpDown === 'DOWN') spreadSign = '-';
+            else if (markUpDown === 'FIXED') spreadSign = 'F';
+
+            requestData[`MinVariance${i}`] = i === 1 ? null : parseNullableNumber(val(`amount${suffix}From`), true);
+            requestData[`CeilingAmount${i}`] = parseNumber(val(`amount${suffix}To`));
+            requestData[`MarkingRate${i}`] = parseNumber(val(`markValue${suffix}`));
+            requestData[`SpreadSign${i}`] = spreadSign || null;
+            requestData[`EffectiveRate${i}`] = parseNumber(val(`effectiveRate${suffix}`));
+            requestData[`MaxVariance${i}`] = null;
+        }
+
+        requestData.PenaltySpreadSign = val('penaltyRate') || null;
+        requestData.PenaltyMarkingRate = 0;
+        requestData.PenaltyRate = 0;
+        return requestData;
+    }
+
+    function buildDeletePayload() {
+        const ctx = getContext();
+        return {
+            OurBranchID: ctx.OurBranchID,
+            AccountID: ctx.AccountID,
+            OperatorID: ctx.OperatorID,
+            SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
+            RelevantID: ctx.AccountID,
+            ModuleTypeID: 'A',
+            TrxTypeID: val('rateType'),
+            EffectiveDate: formatDateForSQL(val('effectiveDate')),
+            RefNo: parseInt(val('refId'), 10) || 0,
+            UpdateCount: 3,
+            ModifiedBy: ctx.OperatorID,
+            ModifiedOn: null,
+            RefID: val('refId') || '0'
+        };
+    }
+
+    async function saveData() {
+        if (state.mode === 'view') {
+            showMessage('Please click Add or Edit before saving', 'warning');
+            return;
+        }
+
+        if (!val('rateType')) {
+            showMessage('Please select a Rate Type', 'warning');
+            el('rateType')?.focus();
+            return;
+        }
+        if (!val('effectiveDate')) {
+            showMessage('Please select an Effective Date', 'warning');
+            el('effectiveDate')?.focus();
+            return;
+        }
+        if (!val('expiryDate')) {
+            showMessage('Please select an Expiry Date', 'warning');
+            el('expiryDate')?.focus();
+            return;
+        }
+
+        const effectiveDate = new Date(val('effectiveDate'));
+        const expiryDate = new Date(val('expiryDate'));
+        if (expiryDate <= effectiveDate) {
+            showMessage('Expiry Date should be more than Effective Date', 'error');
+            el('expiryDate')?.focus();
+            return;
+        }
+
+        const pendingSlabs = Object.keys(state.pendingRateUpdates).filter(key => state.pendingRateUpdates[key]);
+        if (pendingSlabs.length > 0) {
+            showMessage(`Please update the Effective Rate for amount slab(s): ${pendingSlabs.map(s => s.replace('slab', '')).join(', ')}`, 'error');
+            return;
+        }
+
+        const slabValidationError = validateSlabs();
+        if (slabValidationError) {
+            showMessage(slabValidationError, 'error');
+            return;
+        }
+
+        const payload = buildSaveRequestData();
+        const hasAnySlab = Array.from({ length: 5 }, (_, index) => index + 1).some((i) => getSlabValues(i).hasData);
+        if (!hasAnySlab) {
+            showMessage('Please enter at least one amount slab with an effective rate', 'warning');
+            el('effectiveRate')?.focus();
+            return;
+        }
+
+        const confirmed = await showConfirm(`Are you sure you want to ${state.mode === 'add' ? 'create' : 'update'} this interest rate?`, 'Save Confirmation');
+        if (!confirmed) return;
+
         try {
-            const result = await window.AppCore.invokeControllerAsync(API.DELETE, payload);
-            showLoading(false);
-            if (isSuccess(result)) {
-                showMsg('Interest Rate deleted.', 'success');
-                state.rateData = null;
-                state.originalData = null;
-                clearForm();
-                setMode('NONE');
-                navigate();
-            } else {
-                showMsg(result.ResponseMessage || 'Delete failed.', 'error');
+            showLoading(true);
+            const response = await invokeController(state.mode === 'add' ? API.ADD : API.UPDATE, payload);
+            if (!isSuccess(response)) {
+                showMessage(response?.ErrorMessage || response?.ResponseMessage || response?.message || 'Failed to save interest rate data', 'error');
+                return;
             }
-        } catch (err) {
+            showMessage(state.mode === 'add' ? 'Interest rate added successfully' : 'Interest rate updated successfully', 'success');
+            state.mode = 'view';
+            await navigate();
+        } catch (error) {
+            console.error('[InterestRates] Error saving interest rate:', error);
+            showMessage('Error saving interest rate data', 'error');
+        } finally {
             showLoading(false);
-            showMsg('Delete error: ' + err.message, 'error');
         }
     }
 
-    /* ── Public API ──────────────────────────────────────────── */
-    function confirmAdd() { setMode('ADD'); }
-    function confirmEdit() { if (state.rateData) setMode('EDIT'); else showMsg('No internal record.', 'warning'); }
-    function confirmCancel() { cancelChanges(); }
-    function cancelChanges() {
-        if (state.originalData) {
-            state.rateData = JSON.parse(JSON.stringify(state.originalData));
-            bindForm(state.rateData);
-        } else clearForm();
-        setMode('NONE');
+    async function deleteData() {
+        if (!val('rateType') || !val('effectiveDate') || !val('refId')) {
+            showMessage('Please select a record to delete', 'warning');
+            return;
+        }
+
+        const confirmed = await showConfirm('Are you sure you want to delete this interest rate record?', 'Delete Confirmation');
+        if (!confirmed) return;
+
+        try {
+            showLoading(true);
+            const response = await invokeController(API.DELETE, buildDeletePayload());
+            if (!isSuccess(response)) {
+                const errorMessage = response?.ErrorMessage || response?.ResponseMessage || response?.message || 'Failed to delete interest rate data';
+                showMessage(errorMessage, 'error');
+                return;
+            }
+            showMessage('Interest rate deleted successfully', 'success');
+            clearForm();
+        } catch (error) {
+            console.error('[InterestRates] Error deleting interest rate:', error);
+            showMessage(error?.message || 'Error deleting interest rate data', 'error');
+        } finally {
+            showLoading(false);
+        }
     }
 
-    function clearForm() {
-        EDITABLE.forEach(id => setVal(id, ''));
-        setVal('baseRate', '0.0000');
-        AUDIT.forEach(id => setVal(id, '-'));
-        state.slabs = [];
-        renderSlabGrid();
+    function confirmAdd() {
+        clearForm();
+        enableFormForEdit('add');
+        if (!val('rateType')) setVal('rateType', 'ADV');
+        setVal('amountFrom', '0.00');
+        el('effectiveDate')?.focus();
+        showMessage('Add mode: Enter new interest rate details', 'info');
+    }
+
+    function confirmEdit() {
+        if (!val('refId')) {
+            showMessage('Please view a record before editing', 'warning');
+            return;
+        }
+        enableFormForEdit('edit');
+        el('effectiveDate')?.focus();
+        showMessage('Edit mode: Modify interest rate details', 'info');
+    }
+
+    function confirmCancel() {
+        if (state.currentRecord) populateForm(state.currentRecord);
+        else clearForm();
+        disableFormInputs();
+        showMessage('Changes cancelled', 'info');
+    }
+
+    function wireFieldWatchers() {
+        const effectiveDateInput = el('effectiveDate');
+        if (effectiveDateInput && !effectiveDateInput._wiredAddEnable) {
+            effectiveDateInput._wiredAddEnable = true;
+            effectiveDateInput.addEventListener('change', setButtons);
+        }
+
+        for (let i = 1; i <= 5; i += 1) {
+            const suffix = i === 1 ? '' : String(i);
+            const amountToField = el(`amount${suffix}To`);
+            const effectiveRateField = el(`effectiveRate${suffix}`);
+            if (!amountToField || !effectiveRateField || amountToField._wiredAmountChange) continue;
+
+            let originalValue = '';
+            amountToField._wiredAmountChange = true;
+            amountToField.addEventListener('focus', function () {
+                originalValue = this.value || '';
+            });
+            amountToField.addEventListener('change', function () {
+                const newValue = this.value || '';
+                syncSlabStartValues();
+                if (!newValue.trim()) return;
+                const newAmount = parseFloat(newValue.replace(/,/g, ''));
+                const oldAmount = parseFloat((originalValue || '').replace(/,/g, ''));
+                if (originalValue && !isNaN(oldAmount) && !isNaN(newAmount) && newAmount !== oldAmount) {
+                    state.pendingRateUpdates[`slab${i}`] = true;
+                    showMessage('Amount has changed. Please verify and update the Effective Rate if needed', 'warning');
+                    effectiveRateField.focus();
+                }
+            });
+            effectiveRateField.addEventListener('change', function () {
+                if (this.value && this.value.trim()) state.pendingRateUpdates[`slab${i}`] = false;
+            });
+        }
     }
 
     function init() {
-        wireEvents();
-        setMode('NONE');
-        const ctx = getContext();
-        if (ctx.AccountID) navigate();
+        wireSectionToggles();
+        wireDatePickerButtons();
+        wireFieldWatchers();
+        initializeTabs();
+        loadRateTypes();
+        loadMarkUpDownOptions();
+        clearForm();
+        setVal('amountFrom', '0.00');
+        syncSlabStartValues();
+        disableFormInputs();
     }
 
     return {
-        init: init,
-        setMode: setMode,
-        navigate: navigate,
-        saveData: saveData,
-        deleteData: deleteData,
-        confirmAdd: confirmAdd,
-        confirmEdit: confirmEdit,
-        confirmCancel: confirmCancel,
-        cancelChanges: cancelChanges,
-        loadData: navigate
+        init,
+        navigate,
+        saveData,
+        deleteData,
+        confirmAdd,
+        confirmEdit,
+        confirmCancel,
+        cancelChanges: confirmCancel,
+        loadData: navigate,
+        setMode: function (mode) {
+            if (mode === 'ADD') confirmAdd();
+            else if (mode === 'EDIT') confirmEdit();
+            else confirmCancel();
+        }
     };
 })();
-
 
 console.log('[InterestRates] Module registered');

@@ -1501,19 +1501,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-account-interest-rate")]
-        public async Task<IActionResult> GetAccountInterestRate([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountInterestRate([FromBody] JsonElement request)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                _commonUtilities.EnsureDefaults(request);
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.GET_ACCOUNT_INTEREST_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);
@@ -1588,10 +1589,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
+                var requestDict = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                _commonUtilities.EnsureDefaults(requestDict);
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.DELETE_ACCOUNT_INTEREST_RATE,
-                    request
+                    requestDict
                 );
 
                 return Ok(response);

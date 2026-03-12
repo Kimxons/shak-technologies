@@ -68,10 +68,10 @@ namespace AccountManagement.Helpers
         public const string GET_SPECIAL_CONDITION_CLASSES = "p_GetSpecialConditionClasses_V0";
 
         // Account Interest Rate procedures
-        public const string ADD_ACCOUNT_INTEREST_RATE = "p_AddAccountInterestRate_V0";
-        public const string UPDATE_ACCOUNT_INTEREST_RATE = "p_UpdateAccountInterestRate_V0";
-        public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate_V0";
-        public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate_V0";
+        public const string ADD_ACCOUNT_INTEREST_RATE = "p_AddEditAccountInterestRate";
+        public const string UPDATE_ACCOUNT_INTEREST_RATE = "p_AddEditAccountInterestRate";
+        public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate";
+        public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate";
 
         // Notes procedures
         public const string UPDATE_NOTES = "p_V8_UpdateNotes";
