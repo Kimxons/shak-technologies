@@ -43,3 +43,7 @@ packages/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+kairo-ui/EXIT_TYPES_IMPLEMENTATION_REVIEW.md
+kairo-ui/EXIT_TYPES_STRUCTURE_DIAGRAM.md
+kairo-ui/EXIT_TYPES_TEST_GUIDE.md
+kairo-ui/MIGRATION_EXIT_TYPES.md
