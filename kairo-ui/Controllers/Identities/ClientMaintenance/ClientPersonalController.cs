@@ -149,6 +149,16 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+                if (requestData["ModifiedBy"] == null)
+                {
+                    requestData["ModifiedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+
+                if (requestData["OurBranchID"] == null)
+                {
+                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                }
+
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]!.ToString());
                 _logger.LogInformation("client-maintenance.personal.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_INDIVIDUAL, requestData);
