@@ -240,12 +240,11 @@ namespace kairo_ui.Controllers.Shared
                 // Prepare request data matching the SystemCore API format
                 var requestData = new
                 {
-                    RequestData = new
-                    {
-                        OurBranchID = branchId,
-                        OperatorID = operatorId,
-                        ModuleID = moduleId?.ToString() ?? string.Empty
-                    }
+                   
+                    OurBranchID = branchId,
+                    OperatorID = operatorId,
+                    ModuleID = moduleId?.ToString() ?? string.Empty
+                    
                 };
 
                 _logger.LogDebug($"[SideBar] Request data: BranchID={branchId}, OperatorID={operatorId}, ModuleID={moduleId}");

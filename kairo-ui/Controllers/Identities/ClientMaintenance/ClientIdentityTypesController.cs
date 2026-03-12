@@ -63,7 +63,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Get([FromBody] System.Text.Json.Nodes.JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -71,7 +71,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.identitytypes.get request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_IDENTITY_TYPE, requestData);
                 return Ok(response);
@@ -84,7 +84,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("create")]
-        public async Task<IActionResult> Create([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Create([FromBody] System.Text.Json.Nodes.JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -92,7 +92,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.identitytypes.create request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.ADD_EDIT_CLIENT_IDENTITY_TYPES, requestData);
                 return Ok(response);
@@ -105,7 +105,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("update")]
-        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Update([FromBody] System.Text.Json.Nodes.JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -113,7 +113,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.identitytypes.update request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.ADD_EDIT_CLIENT_IDENTITY_TYPES, requestData);
                 return Ok(response);
@@ -126,7 +126,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("delete")]
-        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Delete([FromBody] System.Text.Json.Nodes.JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -134,7 +134,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.identitytypes.delete request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.DELETE_CLIENT_IDENTITY_TYPES, requestData);
                 return Ok(response);
