@@ -1,7 +1,94 @@
 const CM_PROFILE_CHANGE_BASE = 'Identities/ClientMaintenance/ProfileChange';
 
+function getProfileChangeAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getProfileChangeClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getProfileChangeSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getProfileChangeParentContext() {
+    const maintenanceCore = getProfileChangeClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getProfileChangeSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toProfileChangeString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function resolveProfileChangeContext(requestData, fallbackModuleId) {
+    const parentContext = getProfileChangeParentContext() || {};
+    const maintenanceCore = getProfileChangeClientMaintenanceCore();
+
+    const moduleId = toProfileChangeString(
+        requestData?.ModuleID ??
+        fallbackModuleId ??
+        maintenanceCore?.moduleId ??
+        parentContext.moduleId
+    );
+
+    const clientId = toProfileChangeString(
+        requestData?.ClientID ??
+        maintenanceCore?.getClientId?.() ??
+        maintenanceCore?.clientId ??
+        parentContext.clientId
+    );
+
+    const requestId = toProfileChangeString(
+        requestData?.RequestID ??
+        maintenanceCore?.getRequestId?.() ??
+        maintenanceCore?.requestId ??
+        parentContext.requestId
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId
+    };
+}
+
 function invokeClientMaintenanceProfileChange(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_PROFILE_CHANGE_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getProfileChangeClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_PROFILE_CHANGE_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getProfileChangeAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_PROFILE_CHANGE_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Profile change controller invocation is not available.'));
 }
 
 window.ClientMaintenanceProfileChangeService = {
@@ -9,8 +96,84 @@ window.ClientMaintenanceProfileChangeService = {
     create: (requestData) => invokeClientMaintenanceProfileChange('create', requestData)
 };
 
-window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
+function closeProfileChangeView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientProfileChange' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientProfileChange' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientProfileChange' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientProfileChange' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    }
+}
+
+function bindProfileChangeActionPanel(moduleRoot) {
     if (!moduleRoot) return;
+
+    const actionScope =
+        moduleRoot.closest('.window') ||
+        moduleRoot.closest('[data-cm-layout="client-profile-change"]') ||
+        moduleRoot.parentElement ||
+        moduleRoot;
+
+    if (!actionScope || actionScope.dataset.cmProfileChangeActionDelegated === 'true') return;
+    actionScope.dataset.cmProfileChangeActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof moduleRoot._cmRefreshData === 'function') {
+            await moduleRoot._cmRefreshData();
+        }
+    };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closeProfileChangeView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closeProfileChangeView();
+    });
+}
+
+window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
+    if (!moduleRoot || moduleRoot.dataset.cmProfileChangeInitialized === 'true') return;
+    moduleRoot.dataset.cmProfileChangeInitialized = 'true';
 
     const state = {
         profileData: null,
@@ -21,6 +184,203 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
     const form = moduleRoot.querySelector('[data-profilechange-form]');
     const table = moduleRoot.querySelector('[data-table="profile-changes"]');
     const tbody = table?.querySelector('[data-profilechanges-body]');
+    const dateFields = {
+        dob: form?.querySelector('#txt_dob'),
+        ageAsOn: form?.querySelector('#txt_ageAsOn'),
+        receivedOn: form?.querySelector('#txt_receivedOn')
+    };
+    const monthIndexes = {
+        jan: 0,
+        feb: 1,
+        mar: 2,
+        apr: 3,
+        may: 4,
+        jun: 5,
+        jul: 6,
+        aug: 7,
+        sep: 8,
+        sept: 8,
+        oct: 9,
+        nov: 10,
+        dec: 11
+    };
+
+    const isValidDateParts = (year, monthIndex, day) => {
+        const candidate = new Date(year, monthIndex, day);
+        return candidate.getFullYear() === year &&
+            candidate.getMonth() === monthIndex &&
+            candidate.getDate() === day;
+    };
+
+    const parseSystemDateValue = (value) => {
+        if (value instanceof Date) {
+            return Number.isNaN(value.getTime()) ? null : new Date(value.getTime());
+        }
+
+        const text = toProfileChangeString(value);
+        if (!text) {
+            return null;
+        }
+
+        let match = text.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+        if (match) {
+            const year = parseInt(match[1], 10);
+            const monthIndex = parseInt(match[2], 10) - 1;
+            const day = parseInt(match[3], 10);
+            if (isValidDateParts(year, monthIndex, day)) {
+                return new Date(year, monthIndex, day);
+            }
+        }
+
+        match = text.match(/^(\d{1,2})[-\/\s.,]+([a-zA-Z]{3,})[-\/\s.,]+(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const monthKey = match[2].toLowerCase().substring(0, 4).replace(/[^a-z]/g, '');
+            const monthIndex = monthIndexes[monthKey] ?? monthIndexes[monthKey.substring(0, 3)];
+            const year = parseInt(match[3], 10);
+            if (monthIndex !== undefined && isValidDateParts(year, monthIndex, day)) {
+                return new Date(year, monthIndex, day);
+            }
+        }
+
+        match = text.match(/^(\d{1,2})[-\/\s.,]+(\d{1,2})[-\/\s.,]+(\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const monthIndex = parseInt(match[2], 10) - 1;
+            const year = parseInt(match[3], 10);
+            if (isValidDateParts(year, monthIndex, day)) {
+                return new Date(year, monthIndex, day);
+            }
+        }
+
+        const normalized = window.GlobalUtils?.parseDateInput?.(text);
+        if (normalized) {
+            const parsed = new Date(`${normalized}T00:00:00`);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed;
+            }
+        }
+
+        const fallback = new Date(text);
+        return Number.isNaN(fallback.getTime()) ? null : fallback;
+    };
+
+    const toIsoDateValue = (value) => {
+        const parsed = parseSystemDateValue(value);
+        if (!parsed) {
+            return '';
+        }
+
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const syncDateFieldState = (input) => {
+        if (!input || !input._flatpickr) return;
+
+        const isDisabled = Boolean(input.disabled || input.readOnly);
+        try {
+            input._flatpickr.set('clickOpens', !isDisabled);
+            input._flatpickr.set('allowInput', !isDisabled);
+            if (input._flatpickr.altInput) {
+                input._flatpickr.altInput.disabled = isDisabled;
+                input._flatpickr.altInput.readOnly = isDisabled;
+            }
+            if (isDisabled) {
+                input._flatpickr.close();
+            }
+        } catch (error) {
+            console.warn('[ProfileChange] Failed to sync flatpickr state:', error);
+        }
+    };
+
+    const initDateField = (input) => {
+        if (!input || typeof window.flatpickr !== 'function') return;
+
+        const initialIsoValue = toIsoDateValue(input.value);
+        if (initialIsoValue) {
+            input.value = initialIsoValue;
+        }
+
+        if (!input._flatpickr) {
+            try {
+                window.flatpickr(input, {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd-M-Y',
+                    disableMobile: true,
+                    monthSelectorType: 'dropdown',
+                    clickOpens: !(input.disabled || input.readOnly),
+                    allowInput: !(input.disabled || input.readOnly),
+                    parseDate: (dateStr) => parseSystemDateValue(dateStr),
+                    onReady: (_selectedDates, _dateStr, instance) => {
+                        syncDateFieldState(instance.input);
+                    },
+                    onOpen: (_selectedDates, _dateStr, instance) => {
+                        if (instance.input.disabled || instance.input.readOnly) {
+                            instance.close();
+                        }
+                    },
+                    onClose: (_selectedDates, _dateStr, instance) => {
+                        const rawValue = instance.altInput?.value || instance.input.value;
+                        const normalized = toIsoDateValue(rawValue);
+                        if (normalized) {
+                            instance.setDate(normalized, true, 'Y-m-d');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn('[ProfileChange] Failed to initialize flatpickr:', error);
+            }
+        }
+
+        if (input._flatpickr && initialIsoValue) {
+            input._flatpickr.setDate(initialIsoValue, true, 'Y-m-d');
+        }
+
+        syncDateFieldState(input);
+    };
+
+    const initializeDateFields = () => {
+        Object.values(dateFields).forEach(initDateField);
+    };
+
+    const setDateFieldValue = (input, value) => {
+        if (!input) return;
+
+        const normalized = toIsoDateValue(value);
+        if (input._flatpickr) {
+            if (normalized) {
+                input._flatpickr.setDate(normalized, true, 'Y-m-d');
+            } else {
+                input._flatpickr.clear();
+            }
+            syncDateFieldState(input);
+            return;
+        }
+
+        input.value = normalized;
+    };
+
+    const getDateFieldValue = (input) => {
+        if (!input) return '';
+
+        const rawValue = input._flatpickr?.altInput?.value || input.value;
+        if (!rawValue) return '';
+
+        const normalized = toIsoDateValue(rawValue);
+        if (!normalized) return '';
+
+        if (input._flatpickr) {
+            input._flatpickr.setDate(normalized, true, 'Y-m-d');
+        } else {
+            input.value = normalized;
+        }
+
+        return normalized;
+    };
 
     const renderTable = (changes) => {
         if (!tbody) return;
@@ -73,12 +433,12 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
         form.querySelector('#txt_middleName').value = profile?.MiddleName || '';
         form.querySelector('#txt_lastName').value = profile?.LastName || '';
         form.querySelector('#ddl_gender').value = profile?.GenderID || '';
-        form.querySelector('#txt_dob').value = profile?.DateOfBirth ? formatDateForInput(profile.DateOfBirth) : '';
+        setDateFieldValue(dateFields.dob, profile?.DateOfBirth || '');
         form.querySelector('#txt_age').value = profile?.Age || '';
-        form.querySelector('#txt_ageAsOn').value = profile?.AgeAsOn ? formatDateForInput(profile.AgeAsOn) : '';
+        setDateFieldValue(dateFields.ageAsOn, profile?.AgeAsOn || '');
         form.querySelector('#ddl_clientType').value = profile?.ClientTypeID || '';
         form.querySelector('#txt_documentsReceived').value = profile?.DocumentsReceived || '';
-        form.querySelector('#txt_receivedOn').value = profile?.ReceivedOn ? formatDateForInput(profile.ReceivedOn) : '';
+        setDateFieldValue(dateFields.receivedOn, profile?.ReceivedOn || '');
         form.querySelector('#ddl_changedReason').value = profile?.ChangeReasonID || '';
         form.querySelector('#txa_remarks').value = profile?.Remarks || '';
 
@@ -89,19 +449,34 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
     const setFormState = (mode) => {
         state.mode = mode;
         const isView = mode === 'view';
+        const allowEdit = Boolean(getProfileChangeClientMaintenanceCore()?.isEditMode);
 
         // Form fields (except readonly fields and clientName which is always readonly)
         const fields = form?.querySelectorAll('input:not([type="hidden"]):not([readonly]), select, textarea');
         fields?.forEach(field => {
             if (field.id !== 'txt_clientName' && field.id !== 'txt_age') {
-                field.disabled = isView;
+                field.disabled = !allowEdit || isView;
             }
         });
+
+        if (!allowEdit) {
+            ['#btn_editProfileChange', '#btn_saveProfileChange', '#btn_cancelProfileChange']
+                .forEach((selector) => {
+                    const btn = moduleRoot.querySelector(selector);
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.display = '';
+                    }
+                });
+            Object.values(dateFields).forEach(syncDateFieldState);
+            return;
+        }
 
         // Buttons
         toggleButton('#btn_editProfileChange', isView);
         toggleButton('#btn_saveProfileChange', !isView);
         toggleButton('#btn_cancelProfileChange', !isView);
+        Object.values(dateFields).forEach(syncDateFieldState);
     };
 
     const toggleButton = (selector, enabled) => {
@@ -114,16 +489,16 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     const refreshData = async (requestData = {}) => {
         try {
-            const clientId = window.ClientMaintenanceCore?.getClientId?.() || requestData?.ClientID;
-            if (!clientId) {
-                console.warn('No ClientID available for profile change');
+            const context = resolveProfileChangeContext(requestData, moduleId);
+            if (!context.ClientID && !context.RequestID) {
+                console.warn('No ClientID/RequestID available for profile change');
                 return;
             }
 
             const payload = {
-                ClientID: clientId,
-                ModuleID: moduleId,
-                ...requestData
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID
             };
 
             const result = await window.ClientMaintenanceProfileChangeService.get(payload);
@@ -153,15 +528,16 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
         const formData = getFormData();
         if (!validateForm(formData)) return;
 
-        const clientId = window.ClientMaintenanceCore?.getClientId?.();
-        if (!clientId) {
-            window.ToastManager?.showError('Client ID is required');
+        const context = resolveProfileChangeContext({}, moduleId);
+        if (!context.ClientID && !context.RequestID) {
+            window.ToastManager?.showError('Client or request context is required');
             return;
         }
 
         const payload = {
-            ClientID: clientId,
-            ModuleID: moduleId,
+            ModuleID: context.ModuleID,
+            ClientID: context.ClientID,
+            RequestID: context.RequestID,
             ProfileChangeID: formData.profileChangeId || null,
             TitleID: formData.titleId,
             FirstName: formData.firstName,
@@ -210,12 +586,12 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
             middleName: form.querySelector('#txt_middleName')?.value || '',
             lastName: form.querySelector('#txt_lastName')?.value || '',
             genderId: form.querySelector('#ddl_gender')?.value || '',
-            dob: form.querySelector('#txt_dob')?.value || '',
+            dob: getDateFieldValue(dateFields.dob),
             age: form.querySelector('#txt_age')?.value || '',
-            ageAsOn: form.querySelector('#txt_ageAsOn')?.value || '',
+            ageAsOn: getDateFieldValue(dateFields.ageAsOn),
             clientTypeId: form.querySelector('#ddl_clientType')?.value || '',
             documentsReceived: form.querySelector('#txt_documentsReceived')?.value || '',
-            receivedOn: form.querySelector('#txt_receivedOn')?.value || '',
+            receivedOn: getDateFieldValue(dateFields.receivedOn),
             changeReasonId: form.querySelector('#ddl_changedReason')?.value || '',
             remarks: form.querySelector('#txa_remarks')?.value || ''
         };
@@ -244,15 +620,22 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
         const dobInput = form?.querySelector('#txt_dob');
         const ageInput = form?.querySelector('#txt_age');
         const ageAsOnInput = form?.querySelector('#txt_ageAsOn');
+        const dobValue = dobInput?._flatpickr?.altInput?.value || dobInput?.value || '';
+        const ageAsOnValue = ageAsOnInput?._flatpickr?.altInput?.value || ageAsOnInput?.value || '';
 
-        if (!dobInput?.value) {
+        if (!dobValue) {
             if (ageInput) ageInput.value = '';
             return;
         }
 
         try {
-            const dob = new Date(dobInput.value);
-            const ageAsOnDate = ageAsOnInput?.value ? new Date(ageAsOnInput.value) : new Date();
+            const dob = parseSystemDateValue(dobValue);
+            const ageAsOnDate = ageAsOnValue ? parseSystemDateValue(ageAsOnValue) : new Date();
+
+            if (!dob || !ageAsOnDate) {
+                if (ageInput) ageInput.value = '';
+                return;
+            }
 
             let age = ageAsOnDate.getFullYear() - dob.getFullYear();
             const monthDiff = ageAsOnDate.getMonth() - dob.getMonth();
@@ -270,6 +653,9 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(dateStr);
+        }
         try {
             const date = new Date(dateStr);
             return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -278,27 +664,42 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
         }
     };
 
-    const formatDateForInput = (dateStr) => {
-        if (!dateStr) return '';
-        try {
-            const date = new Date(dateStr);
-            return date.toISOString().split('T')[0];
-        } catch {
-            return '';
-        }
-    };
-
     // Date change handlers to calculate age
-    const dobInput = form?.querySelector('#txt_dob');
-    const ageAsOnInput = form?.querySelector('#txt_ageAsOn');
+    initializeDateFields();
+    const dobInput = dateFields.dob;
+    const ageAsOnInput = dateFields.ageAsOn;
 
     if (dobInput) {
         dobInput.addEventListener('change', calculateAge);
+        dobInput._flatpickr?.altInput?.addEventListener('change', calculateAge);
     }
 
     if (ageAsOnInput) {
         ageAsOnInput.addEventListener('change', calculateAge);
+        ageAsOnInput._flatpickr?.altInput?.addEventListener('change', calculateAge);
     }
+
+    const bindStandaloneBootstrap = () => {
+        if (moduleRoot.dataset.cmProfileChangeParentContextBound === 'true') {
+            return;
+        }
+
+        moduleRoot.dataset.cmProfileChangeParentContextBound = 'true';
+        window.addEventListener('message', (event) => {
+            const data = event?.data;
+            if (!data || typeof data !== 'object') return;
+            if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+            const parentData = data.data || {};
+            if (typeof moduleRoot._cmLoadData === 'function') {
+                void moduleRoot._cmLoadData({
+                    ModuleID: parentData.moduleId,
+                    ClientID: parentData.clientId,
+                    RequestID: parentData.requestId
+                });
+            }
+        });
+    };
 
     // Event delegation for action buttons
     moduleRoot.addEventListener('click', (e) => {
@@ -322,9 +723,12 @@ window.initClientMaintenanceProfileChange = function (moduleRoot, moduleId) {
 
     // Register load function for external calls
     moduleRoot._cmLoadData = (requestData) => refreshData(requestData);
+    moduleRoot._cmRefreshData = (requestData) => refreshData(requestData);
 
     // Initial state
+    bindProfileChangeActionPanel(moduleRoot);
     setFormState('view');
+    bindStandaloneBootstrap();
     refreshData({});
 };
 
@@ -336,4 +740,18 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+function autoInitializeStandaloneProfileChangeView() {
+    const moduleRoot = document.querySelector('[data-section="client-profile-change"]');
+    if (!moduleRoot || typeof window.initClientMaintenanceProfileChange !== 'function') return;
+
+    const moduleId = document.getElementById('moduleIdProfileChange')?.value || '';
+    window.initClientMaintenanceProfileChange(moduleRoot, moduleId);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandaloneProfileChangeView);
+} else {
+    autoInitializeStandaloneProfileChangeView();
 }

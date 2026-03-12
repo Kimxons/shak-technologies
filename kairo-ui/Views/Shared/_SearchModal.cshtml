@@ -6,11 +6,13 @@
 <link rel="stylesheet" href="/css/search-modal.css" />
 
 <!-- Search Modal HTML -->
-<div id="search-modal" class="search-modal-themed" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index: 9999; justify-content: center; align-items: center;">
+<div id="search-modal" class="search-modal-themed"
+     style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index: 9999; justify-content: center; align-items: center;">
     <div class="search-modal-themed__panel">
         <div class="search-modal-themed__header">
             <h5 id="search-modal-title" class="search-modal-themed__title">@(Model.SearchTitle ?? "Search Results")</h5>
-            <button type="button" id="search-modal-close" class="search-modal-themed__close" aria-label="Close">&times;</button>
+            <button type="button" id="search-modal-close" class="search-modal-themed__close"
+                    aria-label="Close">&times;</button>
         </div>
         <div class="search-modal-themed__criteria-wrap">
             <form id="search-modal-form" class="search-modal-themed__criteria">
@@ -22,24 +24,23 @@
                         <div class="search-modal-themed__field">
                             <label class="search-modal-themed__label">@field.DisplayName</label>
                             <div class="search-modal-themed__input-row">
-                                <select class="search-modal-themed__select" data-field="@field.FieldName" aria-label="@field.DisplayName Filter Type">
+                                <select class="search-modal-themed__select" data-field="@field.FieldName"
+                                        aria-label="@field.DisplayName Filter Type">
                                     <option value="like" selected>Like</option>
                                     <option value="equals">Equals</option>
                                     <option value="startswith">Starts</option>
                                     <option value="endswith">Ends</option>
                                 </select>
-                                <input type="text"
-                                       class="search-modal-themed__input"
-                                       data-field="@field.FieldName"
-                                       placeholder="@field.DisplayName"
-                                       autocomplete="off" />
+                                <input type="text"                                 class="search-modal-themed__input"                       data-field="@field.FieldName"
+                                       placeholder="@field.DisplayName"                        autocomplete="off" />
                             </div>
                         </div>
                     }
                 }
             </form>
             <div class="search-modal-themed__actions">
-                <button type="button" id="search-modal-search-btn" class="search-modal-themed__btn search-modal-themed__btn--secondary">Search</button>
+                <button type="button" id="search-modal-search-btn"
+                        class="search-modal-themed__btn search-modal-themed__btn--secondary">Search</button>
             </div>
         </div>
         <div class="search-modal-themed__body">
@@ -49,22 +50,27 @@
         </div>
         <div class="search-modal-themed__footer">
             <div class="search-modal-themed__footer-left">
-                <button type="button" id="search-modal-nav-prev" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">
+                <button type="button" id="search-modal-nav-prev"
+                        class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">
                     <i class="bi bi-chevron-left"></i> Previous
                 </button>
             </div>
             <div class="search-modal-themed__footer-center">
                 <h5 class="search-modal-themed__footer-label">Page Size:</h5>
-                <select id="search-page-size" class="search-modal-themed__select" aria-label="Page Size" style="flex: 0 0 auto; padding: 4px 8px;">
-                    <option value="10">10</option>
-                    <option value="20" selected>20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
+                <select id="search-page-size" class="search-modal-themed__select" aria-label="Page Size"
+                        style="flex: 0 0 auto; padding: 4px 8px;">
+                    <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
+                    <option value="20" selected="@(Model.PageSize == 20 ? "selected" : null)">20</option>
+                    <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
+                    <option value="100" selected="@(Model.PageSize == 100 ? "selected" : null)">100</option>
+                    <option value="1000" selected="@(Model.PageSize == 1000 ? "selected" : null)">1000</option>
                 </select>
-                <button type="button" id="search-modal-ok" class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>
+                <button type="button" id="search-modal-ok"
+                        class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>
             </div>
             <div class="search-modal-themed__footer-right">
-                <button type="button" id="search-modal-nav-next" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">
+                <button type="button" id="search-modal-nav-next"
+                        class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">
                     Next <i class="bi bi-chevron-right"></i>
                 </button>
             </div>

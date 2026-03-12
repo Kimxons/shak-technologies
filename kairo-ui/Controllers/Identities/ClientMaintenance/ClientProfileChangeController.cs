@@ -69,11 +69,11 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _logger.LogError(ex, "Error loading Profile Change dropdown options");
             }
 
-            return PartialView("~/Views/Identities/ClientMaintenance/_ClientProfileChange.cshtml");
+            return PartialView("~/Views/Identities/ClientMaintenance/ClientProfileChange.cshtml");
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Get([FromBody] JsonDocument requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -81,9 +81,9 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData?.RootElement.GetProperty("ModuleID").GetString());
                 _logger.LogInformation("client-maintenance.profilechange.get request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_PROFILE_CHANGES, requestData);
+                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_PROFILE_CHANGES, requestData!);
                 return Ok(response);
             }
             catch (Exception ex)

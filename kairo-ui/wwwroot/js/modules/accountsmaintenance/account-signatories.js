@@ -22,11 +22,13 @@ window.AccountSignatoriesModule = (function () {
         signatories: [],
         selectedRow: null,
         pendingChanges: [],
+        loadMetadata: null,
         context: {
             OurBranchID: '',
             AccountID: '',
             OperatorID: '',
-            ClientID: ''
+            ClientID: '',
+            BankID: '00'
         }
     };
 
@@ -93,9 +95,9 @@ window.AccountSignatoriesModule = (function () {
     }
 
     function showSuccess(m) { showMessage(m, 'success'); }
-    function showError(m)   { showMessage(m, 'error'); }
+    function showError(m) { showMessage(m, 'error'); }
     function showWarning(m) { showMessage(m, 'warning'); }
-    function showInfo(m)    { showMessage(m, 'info'); }
+    function showInfo(m) { showMessage(m, 'info'); }
 
     function escapeHtml(text) {
         if (text == null) return '';
@@ -116,6 +118,9 @@ window.AccountSignatoriesModule = (function () {
 
     function formatDate(value) {
         if (!value) return '-';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(value);
+        }
         try {
             const d = new Date(value);
             if (isNaN(d.getTime())) return String(value);
@@ -130,17 +135,22 @@ window.AccountSignatoriesModule = (function () {
         // 1) Same-page global (set by loadSubmoduleView)
         if (window.AccountMaintenanceState) {
             state.context.OurBranchID = window.AccountMaintenanceState.OurBranchID || '';
-            state.context.AccountID   = window.AccountMaintenanceState.AccountID || '';
-            state.context.OperatorID  = window.AccountMaintenanceState.OperatorID || '';
-            state.context.ClientID    = window.AccountMaintenanceState.ClientID || '';
+            state.context.AccountID = window.AccountMaintenanceState.AccountID || '';
+            state.context.OperatorID = window.AccountMaintenanceState.OperatorID || '';
+            state.context.ClientID = window.AccountMaintenanceState.ClientID || '';
+            state.context.BankID = window.AccountMaintenanceState.BankID
+                || sessionStorage.getItem('BankId')
+                || sessionStorage.getItem('BankID')
+                || '00';
             console.log('[AccountSignatories] Context from AccountMaintenanceState:', state.context);
             return;
         }
         // 2) sessionStorage fallback
-        state.context.AccountID   = sessionStorage.getItem('currentAccountID') || '';
+        state.context.AccountID = sessionStorage.getItem('currentAccountID') || '';
         state.context.OurBranchID = sessionStorage.getItem('currentBranchID') || '';
-        state.context.OperatorID  = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
-        state.context.ClientID    = sessionStorage.getItem('currentClientID') || '';
+        state.context.OperatorID = sessionStorage.getItem('currentOperatorID') || 'SYSTEM';
+        state.context.ClientID = sessionStorage.getItem('currentClientID') || '';
+        state.context.BankID = sessionStorage.getItem('BankId') || sessionStorage.getItem('BankID') || '00';
         console.log('[AccountSignatories] Context from sessionStorage:', state.context);
     }
 
@@ -164,6 +174,11 @@ window.AccountSignatoriesModule = (function () {
         updateMandatesButtonText();
 
         if (tableBody) tableBody.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+
+        ['createdBy', 'createdOn', 'modifiedBy', 'modifiedOn', 'supervisedBy', 'supervisedOn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '-';
+        });
     }
 
     function setFormFieldsReadonly(readonly) {
@@ -205,11 +220,11 @@ window.AccountSignatoriesModule = (function () {
         };
         const sv = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
 
-        sv('signatoryId',  fv(['SignatoryID', 'signatoryID', 'OperatorID']));
+        sv('signatoryId', fv(['SignatoryID', 'signatoryID', 'OperatorID']));
         sv('signatoryName', fv(['SignatoryName', 'signatoryName', 'OperatorName']));
-        sv('groupId',       fv(['GroupID', 'groupID']));
-        sv('sequenceNo',    fv(['ReferenceID', 'Sequence', 'SeqNo', 'SequenceNo']));
-        sv('limit',         fv(['Limit', 'limit']));
+        sv('groupId', fv(['GroupID', 'groupID']));
+        sv('sequenceNo', fv(['ReferenceID', 'Sequence', 'SeqNo', 'SequenceNo']));
+        sv('limit', fv(['Limit', 'limit']));
 
         const stSel = document.getElementById('signatoryType');
         if (stSel) {
@@ -240,10 +255,10 @@ window.AccountSignatoriesModule = (function () {
         }
 
         const sa = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '-'; };
-        sa('createdBy',    data.CreatedBy);
-        sa('createdOn',    data.CreatedOn ? formatDate(data.CreatedOn) : '-');
-        sa('modifiedBy',   data.ModifiedBy);
-        sa('modifiedOn',   data.ModifiedOn ? formatDate(data.ModifiedOn) : '-');
+        sa('createdBy', data.CreatedBy);
+        sa('createdOn', data.CreatedOn ? formatDate(data.CreatedOn) : '-');
+        sa('modifiedBy', data.ModifiedBy);
+        sa('modifiedOn', data.ModifiedOn ? formatDate(data.ModifiedOn) : '-');
         sa('supervisedBy', data.SupervisedBy);
         sa('supervisedOn', data.SupervisedOn ? formatDate(data.SupervisedOn) : '-');
     }
@@ -255,21 +270,28 @@ window.AccountSignatoriesModule = (function () {
         const stTxt = stSel?.options[stSel.selectedIndex]?.text || '';
         const isNew = state.mode === 'ADD' || state.mode === 'NEW';
         const existing = (!isNew && state.selectedRow !== null) ? state.signatories[state.selectedRow] : null;
+        const openedDate = existing?.OpenedDate || existing?.openedDate || new Date().toISOString().split('T')[0];
+        const updateCount = existing?.UpdateCount ?? existing?.updateCount ?? 0;
+        const referenceID = gv('sequenceNo') || existing?.ReferenceID || existing?.Sequence || existing?.SeqNo || existing?.SequenceNo || '';
 
         let fd = {
-            OurBranchID:    state.context.OurBranchID,
-            AccountID:      state.context.AccountID,
-            SignatoryID:    gv('signatoryId'),
-            SignatoryName:  gv('signatoryName') || gv('signatoryId'),
-            GroupID:        gv('groupId'),
+            OurBranchID: state.context.OurBranchID,
+            AccountID: state.context.AccountID,
+            SignatoryID: gv('signatoryId'),
+            SignatoryName: gv('signatoryName') || gv('signatoryId'),
+            GroupID: gv('groupId'),
             SignatoryTypeID: stVal,
-            SignatoryType:  stTxt,
-            ReferenceID:    gv('sequenceNo'),
-            Limit:          gv('limit'),
-            Mandates:       getSelectedMandates(),
-            IsMandatory:    document.getElementById('isMandatory')?.checked || false,
-            _isNew:         isNew,
-            _isModified:    !isNew
+            SignatoryType: stTxt,
+            ReferenceID: referenceID,
+            Limit: gv('limit'),
+            Mandates: getSelectedMandates(),
+            IsMandatory: document.getElementById('isMandatory')?.checked || false,
+            OpenedDate: openedDate,
+            UpdateCount: updateCount,
+            SignID: existing?.SignID || existing?.SignatoryID || gv('signatoryId'),
+            PhotoID: existing?.PhotoID || existing?.SignatoryID || gv('signatoryId'),
+            _isNew: isNew,
+            _isModified: !isNew
         };
         if (existing) fd = { ...existing, ...fd, _isNew: false, _isModified: true };
         return fd;
@@ -286,12 +308,21 @@ window.AccountSignatoriesModule = (function () {
         return { isValid: true };
     }
 
+    function getMandateLabel(value) {
+        const lbl = document.querySelector(`#mandatesDropdownMenu input[value="${value}"]`)?.closest('.form-check')?.querySelector('label');
+        return lbl ? lbl.textContent.trim() : value;
+    }
+
     // ========================================================================
     // MANDATES HELPERS
     // ========================================================================
     function getSelectedMandates() {
         const cbs = document.querySelectorAll('#mandatesDropdownMenu input[type="checkbox"]:checked');
-        return Array.from(cbs).map(cb => cb.value).join(',');
+        return Array.from(cbs)
+            .map(cb => ({ value: cb.value, label: getMandateLabel(cb.value) }))
+            .sort((a, b) => a.label.localeCompare(b.label) || a.value.localeCompare(b.value))
+            .map(item => item.value)
+            .join(',');
     }
 
     function updateMandatesButtonText() {
@@ -299,10 +330,7 @@ window.AccountSignatoriesModule = (function () {
         if (!btn) return;
         const sel = getSelectedMandates();
         if (sel) {
-            const labels = sel.split(',').map(v => {
-                const lbl = document.querySelector(`#mandatesDropdownMenu input[value="${v}"]`)?.closest('.form-check')?.querySelector('label');
-                return lbl ? lbl.textContent.trim() : v;
-            });
+            const labels = sel.split(',').map(v => getMandateLabel(v));
             btn.textContent = labels.join(', ');
         } else {
             btn.textContent = 'Select Mandates';
@@ -316,7 +344,17 @@ window.AccountSignatoriesModule = (function () {
         if (!tableBody) return;
         state.signatories = data || [];
 
-        const visible = state.signatories.filter(r => !r._isDeleted);
+        const visible = state.signatories
+            .filter(r => !r._isDeleted)
+            .slice()
+            .sort((a, b) => {
+                const av = parseInt(a.ReferenceID || a.referenceID || a.SequenceNo || a.Sequence || a.SeqNo, 10);
+                const bv = parseInt(b.ReferenceID || b.referenceID || b.SequenceNo || b.Sequence || b.SeqNo, 10);
+                const aNum = Number.isNaN(av) ? Number.MAX_SAFE_INTEGER : av;
+                const bNum = Number.isNaN(bv) ? Number.MAX_SAFE_INTEGER : bv;
+                if (aNum !== bNum) return aNum - bNum;
+                return String(a.SignatoryID || a.signatoryID || '').localeCompare(String(b.SignatoryID || b.signatoryID || ''));
+            });
         if (visible.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i><span>No signatories found</span></td></tr>';
             updateStatus('Ready - No records');
@@ -330,18 +368,18 @@ window.AccountSignatoriesModule = (function () {
         };
 
         tableBody.innerHTML = visible.map(row => {
-            const idx  = state.signatories.indexOf(row);
-            const sid  = fv(row, ['SignatoryID','signatoryID','OperatorID']) || '-';
-            const nm   = fv(row, ['SignatoryName','signatoryName','OperatorName']) || '-';
-            const st   = fv(row, ['SignatoryType','SignatoryTypeID','signatoryType']) || '-';
-            const lim  = fv(row, ['Limit','limit','GroupID']) || '-';
-            const ref  = fv(row, ['ReferenceID','referenceID','SequenceNo','SeqNo']) || '-';
-            const mv   = fv(row, ['IsMandatory','isMandatory','Mandatory']);
+            const idx = state.signatories.indexOf(row);
+            const sid = fv(row, ['SignatoryID', 'signatoryID', 'OperatorID']) || '-';
+            const nm = fv(row, ['SignatoryName', 'signatoryName', 'OperatorName']) || '-';
+            const st = fv(row, ['SignatoryType', 'SignatoryTypeID', 'signatoryType']) || '-';
+            const lim = fv(row, ['Limit', 'limit', 'GroupID']) || '-';
+            const ref = fv(row, ['ReferenceID', 'referenceID', 'SequenceNo', 'SeqNo']) || '-';
+            const mv = fv(row, ['IsMandatory', 'isMandatory', 'Mandatory']);
             const mand = mv === true || mv === 1 || mv === '1' || mv === 'Y' || mv === 'Yes';
-            const isN  = row._isNew === true;
-            const isM  = row._isModified === true;
-            const cls  = isN ? 'table-info' : isM ? 'table-warning' : '';
-            const bdg  = isN ? ' <span class="badge bg-success">NEW</span>' : isM ? ' <span class="badge bg-warning">MOD</span>' : '';
+            const isN = row._isNew === true;
+            const isM = row._isModified === true;
+            const cls = isN ? 'table-info' : isM ? 'table-warning' : '';
+            const bdg = isN ? ' <span class="badge bg-success">NEW</span>' : isM ? ' <span class="badge bg-warning">MOD</span>' : '';
 
             return `<tr class="${cls}" data-index="${idx}" tabindex="0">
                 <td>${escapeHtml(String(sid))}${bdg}</td>
@@ -376,9 +414,10 @@ window.AccountSignatoriesModule = (function () {
         const d = state.signatories[index];
         if (d) {
             populateForm(d);
-            state.mode = 'EDIT';
+            populateBts(state.loadMetadata, d);
+            state.mode = state.pendingChanges.length > 0 ? 'UPDATE' : 'VIEW';
             updateButtonStates();
-            showInfo('Signatory selected. Click ALTER to modify or view details.');
+            showInfo('Signatory selected. Click Edit or Alter to modify it.');
         }
     }
 
@@ -386,22 +425,15 @@ window.AccountSignatoriesModule = (function () {
     // BUTTON STATE MANAGEMENT
     // ========================================================================
     function updateButtonStates() {
-        // Form-section buttons
-        const newBtn    = document.querySelector('.form-section .btn[data-action="new"]');
-        const alterBtn  = document.querySelector('.form-section .btn[data-action="alter"]');
-        const removeBtn = document.querySelector('.form-section .btn[data-action="remove"]');
-        const updateBtn = document.querySelector('.form-section .btn[data-action="update"]');
-        const clearBtn  = document.querySelector('.form-section .btn[data-action="clear"]');
-        const closeBtn  = document.querySelector('.form-section .btn[data-action="close-form"]');
-
         // Parent action-panel buttons
         const signatureBtn = document.getElementById('submoduleBtnSignature');
-        const photoBtn     = document.getElementById('submoduleBtnPhoto');
-        const bothBtn      = document.getElementById('submoduleBtnBoth');
-        const addBtn       = document.getElementById('submoduleBtnAdd');
-        const editBtn      = document.getElementById('submoduleBtnEdit');
-        const saveBtn      = document.getElementById('submoduleBtnSave');
-        const cancelBtn    = document.getElementById('submoduleBtnCancel');
+        const photoBtn = document.getElementById('submoduleBtnPhoto');
+        const bothBtn = document.getElementById('submoduleBtnBoth');
+        const addBtn = document.getElementById('submoduleBtnAdd');
+        const editBtn = document.getElementById('submoduleBtnEdit');
+        const saveBtn = document.getElementById('submoduleBtnSave');
+        const cancelBtn = document.getElementById('submoduleBtnCancel');
+        const closeSubmoduleBtn = document.getElementById('submoduleBtnClose');
 
         const se = (btn, on) => {
             if (!btn) return;
@@ -410,74 +442,80 @@ window.AccountSignatoriesModule = (function () {
             btn.style.opacity = on ? '1' : '0.5';
         };
 
+        const sa = (btn, on) => {
+            if (!btn) return;
+            btn.classList.toggle('active', !!on);
+        };
+
         // Update BTS operating mode display
         const modeEl = document.getElementById('operatingMode');
         if (modeEl) modeEl.textContent = state.mode;
 
         const hasPending = state.pendingChanges.length > 0;
+        const hasRows = state.signatories.some(s => !s._isDeleted);
+        const hasSelection = state.selectedRow !== null && !!state.signatories[state.selectedRow] && !state.signatories[state.selectedRow]._isDeleted;
+
+        sa(addBtn, state.mode === 'ADD' || state.mode === 'NEW');
+        sa(editBtn, state.mode === 'ALTER' || state.mode === 'UPDATE');
+        sa(saveBtn, hasPending || state.mode === 'REMOVE');
+        sa(signatureBtn, false);
+        sa(photoBtn, false);
+        sa(bothBtn, false);
 
         switch (state.mode) {
             case 'VIEW':
-                se(signatureBtn, true);  se(photoBtn, true);  se(bothBtn, true);
-                se(editBtn, true);       se(addBtn, false);   se(saveBtn, false);  se(cancelBtn, false);
-                se(newBtn, false); se(alterBtn, false); se(removeBtn, false);
-                se(updateBtn, false); se(clearBtn, false); se(closeBtn, false);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
+                se(editBtn, hasRows); se(addBtn, true); se(saveBtn, hasPending); se(cancelBtn, hasPending);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(true);
                 break;
 
             case 'EDIT':
-                se(signatureBtn, true);  se(photoBtn, true);  se(bothBtn, true);
-                se(editBtn, true);       se(addBtn, false);   se(saveBtn, hasPending); se(cancelBtn, true);
-                se(newBtn, true); se(alterBtn, true); se(removeBtn, true);
-                se(updateBtn, false); se(clearBtn, true); se(closeBtn, true);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
+                se(editBtn, hasRows); se(addBtn, true); se(saveBtn, hasPending); se(cancelBtn, true);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(true);
                 break;
 
             case 'ADD': case 'NEW':
-                se(signatureBtn, true); se(photoBtn, true); se(bothBtn, true);
-                se(addBtn, false); se(editBtn, false); se(saveBtn, false); se(cancelBtn, true);
-                se(updateBtn, true); se(clearBtn, true); se(closeBtn, true);
-                se(newBtn, false); se(alterBtn, false); se(removeBtn, false);
+                se(signatureBtn, false); se(photoBtn, false); se(bothBtn, false);
+                se(addBtn, false); se(editBtn, false); se(saveBtn, true); se(cancelBtn, true);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(false);
                 break;
 
             case 'ALTER':
-                se(signatureBtn, true); se(photoBtn, true); se(bothBtn, true);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
                 se(addBtn, false); se(editBtn, false); se(saveBtn, true); se(cancelBtn, true);
-                se(newBtn, true); se(alterBtn, true); se(removeBtn, true);
-                se(updateBtn, true); se(clearBtn, true); se(closeBtn, true);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(false);
                 break;
 
             case 'UPDATE':
-                se(signatureBtn, true); se(photoBtn, true); se(bothBtn, true);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
                 se(addBtn, false); se(editBtn, false); se(saveBtn, true); se(cancelBtn, true);
-                se(newBtn, true); se(alterBtn, true); se(removeBtn, true);
-                se(updateBtn, false); se(clearBtn, true); se(closeBtn, true);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(false);
                 break;
 
             case 'SAVE':
-                se(signatureBtn, true); se(photoBtn, true); se(bothBtn, true);
-                se(editBtn, true); se(addBtn, false); se(saveBtn, false); se(cancelBtn, false);
-                se(newBtn, false); se(alterBtn, false); se(removeBtn, false);
-                se(updateBtn, false); se(clearBtn, false); se(closeBtn, false);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
+                se(editBtn, hasRows); se(addBtn, true); se(saveBtn, false); se(cancelBtn, false);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(true);
                 break;
 
             case 'REMOVE':
-                se(signatureBtn, true); se(photoBtn, true); se(bothBtn, true);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
                 se(addBtn, false); se(editBtn, false); se(saveBtn, true); se(cancelBtn, true);
-                se(newBtn, true); se(alterBtn, true); se(removeBtn, true);
-                se(updateBtn, false); se(clearBtn, false); se(closeBtn, false);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(true);
                 break;
 
             default:
-                se(signatureBtn, true); se(photoBtn, true); se(bothBtn, true);
-                se(editBtn, true); se(addBtn, false); se(saveBtn, false); se(cancelBtn, false);
-                se(newBtn, false); se(alterBtn, false); se(removeBtn, false);
-                se(updateBtn, false); se(clearBtn, false); se(closeBtn, false);
+                se(signatureBtn, hasSelection); se(photoBtn, hasSelection); se(bothBtn, hasSelection);
+                se(editBtn, hasRows); se(addBtn, true); se(saveBtn, hasPending); se(cancelBtn, hasPending);
+                se(closeSubmoduleBtn, true);
                 setFormFieldsReadonly(true);
         }
     }
@@ -504,78 +542,41 @@ window.AccountSignatoriesModule = (function () {
             const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
             const basePayload = {
                 SearchKey: searchKey,
-                SearchID:  searchKey,
+                SearchID: searchKey,
                 OurBranchID: state.context.OurBranchID,
-                AccountID:   state.context.AccountID,
-                OperatorID:  state.context.OperatorID,
+                AccountID: state.context.AccountID,
+                OperatorID: state.context.OperatorID,
                 ModuleID: 20
             };
 
-            // V8 backend returns one signatory at a time with Navigation.
-            // We loop: Direction=0 (first), then Direction=1 (next) until no NextID.
-            const allRows = [];
-            let direction = 0;
-            let currentID = '';
-            let lastMetadata = null;
-            const MAX_ITERATIONS = 200; // safety limit
+            const firstPayload = { ...basePayload, Direction: 0, SignatoryID: '' };
+            const firstResp = await fetch('/AccountsMaintenance/api/get-account-signatories', {
+                method: 'POST', headers, body: JSON.stringify(firstPayload)
+            });
+            if (!firstResp.ok) throw new Error(`HTTP ${firstResp.status}`);
+            const firstResult = await firstResp.json();
+            console.log('[AccountSignatories] First response:', firstResult);
 
-            for (let i = 0; i < MAX_ITERATIONS; i++) {
-                const payload = { ...basePayload, Direction: direction, SignatoryID: currentID };
-                console.log(`[AccountSignatories] Fetch iteration ${i}, Direction=${direction}, SignatoryID=${currentID}`);
+            const firstOk = firstResult?.ResponseCode === '00' || firstResult?.ResponseCode === 0 ||
+                firstResult?.success === true || firstResult?.Success === true ||
+                firstResult?.Details || firstResult?.data;
+            if (!firstOk) {
+                showError(firstResult?.ResponseMessage || firstResult?.message || 'Failed to load signatories');
+                renderGrid([]);
+                return;
+            }
 
-                const resp = await fetch('/AccountsMaintenance/api/get-account-signatories', {
-                    method: 'POST', headers, body: JSON.stringify(payload)
-                });
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                const result = await resp.json();
-                console.log('[AccountSignatories] Response:', result);
+            const parsed = parseSignatoriesResponse(firstResult);
+            let allRows = parsed.rows;
+            let lastMetadata = parsed.metadata || firstResult;
 
-                const ok = result?.ResponseCode === '00' || result?.ResponseCode === 0 ||
-                           result?.success === true || result?.Success === true;
-                if (!ok) {
-                    // If first call fails, show error; if mid-navigation, just stop
-                    if (i === 0) {
-                        showError(result?.ResponseMessage || result?.message || 'Failed to load signatories');
-                        renderGrid([]);
-                        return;
-                    }
-                    break;
-                }
-
-                // Extract the single record from the response
-                const record = extractSingleRecord(result);
-                if (!record) {
-                    console.log('[AccountSignatories] No record in response, stopping navigation.');
-                    break;
-                }
-
-                // Avoid duplicates (in case backend loops)
-                const rid = record.SignatoryID || record.signatoryID || '';
-                if (!allRows.some(r => (r.SignatoryID || r.signatoryID) === rid)) {
-                    allRows.push(record);
-                }
-
-                // Save metadata from first response
-                if (i === 0) lastMetadata = result;
-
-                // Check Navigation for next record
-                const nav = result?.Details?.Navigation || result?.Navigation || null;
-                const nextID = nav?.NextID;
-                const totalCount = nav?.TotalCount ?? 0;
-
-                console.log(`[AccountSignatories] Collected ${allRows.length}/${totalCount}, NextID=${nextID}`);
-
-                if (!nextID || allRows.length >= totalCount) {
-                    break; // No more records
-                }
-
-                // Navigate to next
-                direction = 1;
-                currentID = nextID;
+            if (allRows.length === 0) {
+                allRows = await loadSignatoriesByNavigation(basePayload, headers, firstResult);
             }
 
             console.log(`[AccountSignatories] Finished loading ${allRows.length} signator(ies).`);
             state.pendingChanges = [];
+            state.loadMetadata = lastMetadata;
             state.signatories = allRows;
             renderGrid(allRows);
             if (allRows.length > 0) showSuccess(`Loaded ${allRows.length} signator${allRows.length !== 1 ? 'ies' : 'y'}.`);
@@ -587,6 +588,95 @@ window.AccountSignatoriesModule = (function () {
         } finally {
             showLoader(false);
         }
+    }
+
+    function parseSignatoriesResponse(result) {
+        const rows = [];
+        const seen = new Set();
+        let metadata = null;
+
+        const isStatusRow = item => item && typeof item === 'object' &&
+            ((item.ResponseCode !== undefined) || (item.EventID !== undefined && item.SignatoryID === undefined && item.SignatoryName === undefined));
+
+        const isSignatoryRow = item => item && typeof item === 'object' &&
+            (item.SignatoryID !== undefined || item.signatoryID !== undefined || item.SignatoryName !== undefined || item.signatoryName !== undefined);
+
+        const pushRows = value => {
+            if (!Array.isArray(value)) return;
+            value.forEach(item => {
+                if (!isSignatoryRow(item) || isStatusRow(item)) return;
+                const key = item.SignatoryID || item.signatoryID || item.ReferenceID || `${rows.length}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                rows.push(item);
+            });
+        };
+
+        const scanObject = obj => {
+            if (!obj || typeof obj !== 'object') return;
+
+            if (!metadata && obj.Metadata && typeof obj.Metadata === 'object' && !Array.isArray(obj.Metadata)) {
+                metadata = obj.Metadata;
+            }
+
+            if (Array.isArray(obj.AccountOperators)) pushRows(obj.AccountOperators);
+            if (Array.isArray(obj.Signatories)) pushRows(obj.Signatories);
+            if (Array.isArray(obj.SignatoryData)) pushRows(obj.SignatoryData);
+
+            Object.keys(obj).forEach(key => {
+                const value = obj[key];
+                if (Array.isArray(value)) {
+                    pushRows(value);
+                    return;
+                }
+
+                if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    if (!metadata && key.toLowerCase().includes('metadata')) metadata = value;
+                    if (isSignatoryRow(value)) pushRows([value]);
+                }
+            });
+        };
+
+        scanObject(result);
+        scanObject(result?.Details);
+        scanObject(result?.data);
+        scanObject(result?.Data);
+
+        return { rows, metadata };
+    }
+
+    async function loadSignatoriesByNavigation(basePayload, headers, firstResult) {
+        const allRows = [];
+        const seedRecord = extractSingleRecord(firstResult);
+        const seedId = seedRecord?.SignatoryID || seedRecord?.signatoryID || '';
+        if (seedRecord && !allRows.some(r => (r.SignatoryID || r.signatoryID) === seedId)) {
+            allRows.push(seedRecord);
+        }
+
+        let currentID = firstResult?.Details?.Navigation?.NextID || firstResult?.Navigation?.NextID || '';
+        const totalCount = firstResult?.Details?.Navigation?.TotalCount ?? firstResult?.Navigation?.TotalCount ?? 0;
+        const MAX_ITERATIONS = 200;
+
+        for (let i = 0; i < MAX_ITERATIONS && currentID; i++) {
+            const payload = { ...basePayload, Direction: 1, SignatoryID: currentID };
+            const resp = await fetch('/AccountsMaintenance/api/get-account-signatories', {
+                method: 'POST', headers, body: JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const result = await resp.json();
+            const record = extractSingleRecord(result);
+            if (!record) break;
+
+            const recordId = record.SignatoryID || record.signatoryID || '';
+            if (!allRows.some(r => (r.SignatoryID || r.signatoryID) === recordId)) {
+                allRows.push(record);
+            }
+
+            currentID = result?.Details?.Navigation?.NextID || result?.Navigation?.NextID || '';
+            if (!currentID || (totalCount > 0 && allRows.length >= totalCount)) break;
+        }
+
+        return allRows;
     }
 
     /**
@@ -607,7 +697,7 @@ window.AccountSignatoriesModule = (function () {
         // Legacy fallback: array in Details01/Details02/Details
         const isSig = arr => Array.isArray(arr) && arr.length > 0 && arr[0] &&
             (arr[0].SignatoryID !== undefined || arr[0].signatoryID !== undefined ||
-             arr[0].SignatoryName !== undefined || arr[0].signatoryName !== undefined);
+                arr[0].SignatoryName !== undefined || arr[0].signatoryName !== undefined);
 
         const data = details || result?.Data || result?.data || result;
         if (Array.isArray(data) && isSig(data)) return data[0];
@@ -622,23 +712,111 @@ window.AccountSignatoriesModule = (function () {
         return null;
     }
 
-    function populateBts(result) {
+    function pickAuditValue(source, keys) {
+        if (!source || typeof source !== 'object') return null;
+        for (const key of keys) {
+            if (source[key] !== undefined && source[key] !== null && source[key] !== '') {
+                return source[key];
+            }
+        }
+        return null;
+    }
+
+    function resolveBtsData(result, selectedRowData) {
+        const details = result?.Details || result?.data?.Details || result?.Data?.Details || null;
+        const metadata = result?.Metadata || details?.Metadata || result?.data?.Metadata || state.loadMetadata || null;
+        const summary = result?.Summary || details?.Summary || result?.data?.Summary || null;
+        const rowData = selectedRowData || (state.selectedRow !== null ? state.signatories[state.selectedRow] : null);
+        const parentState = window.AccountMaintenanceState || {};
+
+        return {
+            metadata,
+            summary,
+            rowData,
+            operatingMode: parentState.OperatingModeDescription
+                || parentState.OperatingMode
+                || parentState.OperatingModeID
+                || pickAuditValue(rowData, ['OperatingModeDescription', 'OperatingMode', 'OperatingModeID'])
+                || pickAuditValue(metadata, ['OperatingModeDescription', 'OperatingMode', 'OperatingModeID'])
+                || state.mode,
+            operatingInstruction: parentState.OperatingInstructions
+                || parentState.OperatingInstruction
+                || parentState.OperatingInstructionID
+                || pickAuditValue(rowData, ['OperatingInstructions', 'OperatingInstruction', 'OperatingInstructionID'])
+                || pickAuditValue(metadata, ['OperatingInstructions', 'OperatingInstruction', 'OperatingInstructionID'])
+                || '-',
+            createdBy: pickAuditValue(rowData, ['CreatedBy', 'OpenedBy']),
+            createdOn: pickAuditValue(rowData, ['CreatedOn', 'OpenedDate']),
+            modifiedBy: pickAuditValue(rowData, ['ModifiedBy', 'UpdatedBy']),
+            modifiedOn: pickAuditValue(rowData, ['ModifiedOn', 'UpdatedOn']),
+            supervisedBy: pickAuditValue(rowData, ['SupervisedBy']),
+            supervisedOn: pickAuditValue(rowData, ['SupervisedOn'])
+        };
+    }
+
+    function populateBts(result, selectedRowData) {
+        const bts = resolveBtsData(result, selectedRowData);
+
         if (window.AccountMaintenanceState) {
-            const ps = window.AccountMaintenanceState;
             const m = document.getElementById('operatingMode');
             const i = document.getElementById('operatingInstruction');
-            if (m) m.textContent = ps.OperatingModeDescription || ps.OperatingModeID || state.mode;
-            if (i) i.textContent = ps.OperatingInstructions || '-';
+            if (m) m.textContent = bts.operatingMode || '-';
+            if (i) i.textContent = bts.operatingInstruction || '-';
         }
-        const d = result?.Details01?.[0] || result?.data?.Details01?.[0] || null;
-        if (!d) return;
+
         const sf = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || '-'; };
-        sf('createdBy',    d.CreatedBy || d.OpenedBy);
-        sf('createdOn',    d.CreatedOn ? formatDate(d.CreatedOn) : '-');
-        sf('modifiedBy',   d.ModifiedBy || d.UpdatedBy);
-        sf('modifiedOn',   d.ModifiedOn ? formatDate(d.ModifiedOn) : '-');
-        sf('supervisedBy', d.SupervisedBy);
-        sf('supervisedOn', d.SupervisedOn ? formatDate(d.SupervisedOn) : '-');
+        sf('createdBy', bts.createdBy || '-');
+        sf('createdOn', bts.createdOn ? formatDate(bts.createdOn) : '-');
+        sf('modifiedBy', bts.modifiedBy || '-');
+        sf('modifiedOn', bts.modifiedOn ? formatDate(bts.modifiedOn) : '-');
+        sf('supervisedBy', bts.supervisedBy || '-');
+        sf('supervisedOn', bts.supervisedOn ? formatDate(bts.supervisedOn) : '-');
+    }
+
+    async function ensureLegacySignatoryService() {
+        if (window.OtherAccountService?.addEditAccountOperatedBy || window.otherAccountService?.addEditAccountOperatedBy) {
+            return window.OtherAccountService || window.otherAccountService;
+        }
+
+        if (!window.ServiceLoader) {
+            throw new Error('ServiceLoader is not available to load the legacy signatory service.');
+        }
+
+        const servicePath = `${window.ServiceLoader.getBasePath()}services/account/OtherAccountService.js`;
+        await window.ServiceLoader.loadCore();
+        await window.ServiceLoader.loadScript(servicePath);
+        await window.ServiceLoader.waitForService('OtherAccountService', 5000);
+
+        const legacyService = window.OtherAccountService || window.otherAccountService;
+        if (!legacyService?.addEditAccountOperatedBy) {
+            throw new Error('Legacy signatory save service could not be initialized.');
+        }
+
+        return legacyService;
+    }
+
+    async function saveNewSignatoriesViaLegacyService(newPending, maxUpdateCount) {
+        const legacyService = await ensureLegacySignatoryService();
+
+        const detailRecords = buildXmlForSubset(newPending, 'N');
+        const requestData = {
+            OurBranchID: state.context.OurBranchID,
+            AccountID: state.context.AccountID,
+            OperatedBy: state.context.OperatorID || 'web_portal',
+            OperatedOn: new Date().toISOString(),
+            SupervisedBy: '',
+            UpdateCount: maxUpdateCount,
+            DetailRecords: detailRecords
+        };
+
+        console.log('[AccountSignatories] LEGACY ADD payload:', requestData);
+        const result = await legacyService.addEditAccountOperatedBy(requestData);
+        console.log('[AccountSignatories] LEGACY ADD response:', result);
+
+        const ok = result?.success === true || result?.Success === true || result?.code === '00' || result?.ResponseCode === '00';
+        if (!ok) {
+            throw new Error(result?.message || result?.ResponseMessage || 'Failed to add new signatories.');
+        }
     }
 
     async function saveAllChanges() {
@@ -652,56 +830,52 @@ window.AccountSignatoriesModule = (function () {
         try {
             const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
             const maxUC = state.signatories.reduce((m, s) => Math.max(m, parseInt(s.UpdateCount, 10) || 0), 0);
+            const parentState = window.AccountMaintenanceState || {};
+            const operatingModeID = parentState.OperatingModeID || parentState.OperatingMode || '';
+            const operatingInstructionID = parentState.OperatingInstructionID || parentState.OperatingInstructions || parentState.OperatingInstruction || '';
             const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             const headers = {
                 'Content-Type': 'application/json',
                 ...(csrfToken && { 'RequestVerificationToken': csrfToken })
             };
 
-            // Split signatories into new (Add) vs existing (Edit/Remove)
-            const newSigs  = state.signatories.filter(s => s._isNew && !s._isDeleted);
-            const editSigs = state.signatories.filter(s => !s._isNew); // includes _isModified and _isDeleted
-
             const buildBasePayload = () => ({
                 SearchKey: searchKey,
-                SearchID:  searchKey,
+                SearchID: searchKey,
                 OurBranchID: state.context.OurBranchID,
-                AccountID:   state.context.AccountID,
-                OperatorID:  state.context.OperatorID || 'web_portal',
-                OperatedBy:  state.context.OperatorID || 'web_portal',
-                OperatedOn:  new Date().toISOString(),
+                AccountID: state.context.AccountID,
+                BankID: state.context.BankID || '00',
+                OperatorID: state.context.OperatorID || 'web_portal',
+                OperatingModeID: operatingModeID,
+                OperatingInstructionID: operatingInstructionID,
+                OperatedBy: state.context.OperatorID || 'web_portal',
+                OperatedOn: new Date().toISOString(),
                 SupervisedBy: '',
                 UpdateCount: maxUC,
                 ModuleID: 20
             });
 
+            const existingPending = state.signatories.filter(s => !s._isNew && (s._isModified || s._isDeleted));
+            const newPending = state.signatories.filter(s => s._isNew && !s._isDeleted);
+
             let allOk = true;
             let lastMessage = '';
 
-            // 1) Add new signatories (p_V8_AddBankSignatory)
-            if (newSigs.length > 0) {
-                const addXml = buildXmlForSubset(newSigs, 'N');
-                const addPayload = { ...buildBasePayload(), DetailRecords: addXml, SignatoriesXml: addXml };
-                console.log('[AccountSignatories] ADD payload:', addPayload);
-
-                const addResp = await fetch('/AccountsMaintenance/api/add-account-signatories', {
-                    method: 'POST', headers, body: JSON.stringify(addPayload)
-                });
-                if (!addResp.ok) throw new Error(`Add HTTP ${addResp.status}`);
-                const addResult = await addResp.json();
-                console.log('[AccountSignatories] ADD response:', addResult);
-
-                const addOk = addResult?.ResponseCode === '00' || addResult?.ResponseCode === 0 ||
-                              addResult?.success === true || addResult?.Success === true;
-                if (!addOk) {
+            // 1) Add new signatories.
+            // The dedicated MVC add endpoint is currently failing with APIEX96 transaction-count errors,
+            // so use the legacy save contract for inserts until the backend procedure is corrected.
+            if (newPending.length > 0) {
+                try {
+                    await saveNewSignatoriesViaLegacyService(newPending, maxUC);
+                } catch (err) {
                     allOk = false;
-                    lastMessage = addResult?.ResponseMessage || addResult?.message || 'Add failed.';
+                    lastMessage = err.message || 'Add failed.';
                 }
             }
 
             // 2) Edit/Remove existing signatories (p_V8_EditBankSignatory)
-            if (editSigs.length > 0 && allOk) {
-                const editXml = buildXmlForSubset(editSigs);
+            if (existingPending.length > 0 && allOk) {
+                const editXml = buildXmlForSubset(existingPending);
                 const editPayload = { ...buildBasePayload(), DetailRecords: editXml, SignatoriesXml: editXml };
                 console.log('[AccountSignatories] EDIT payload:', editPayload);
 
@@ -713,7 +887,7 @@ window.AccountSignatoriesModule = (function () {
                 console.log('[AccountSignatories] EDIT response:', editResult);
 
                 const editOk = editResult?.ResponseCode === '00' || editResult?.ResponseCode === 0 ||
-                               editResult?.success === true || editResult?.Success === true;
+                    editResult?.success === true || editResult?.Success === true;
                 if (!editOk) {
                     allOk = false;
                     lastMessage = editResult?.ResponseMessage || editResult?.message || 'Edit failed.';
@@ -782,8 +956,11 @@ window.AccountSignatoriesModule = (function () {
     // ========================================================================
     function addToGrid(fd) {
         const maxRef = state.signatories.reduce((m, s) => Math.max(m, parseInt(s.ReferenceID, 10) || 0), 0);
-        fd.ReferenceID = (maxRef + 1).toString();
+        const typedRef = parseInt(fd.ReferenceID, 10);
+        fd.ReferenceID = Number.isNaN(typedRef) ? String(maxRef + 1) : String(typedRef);
         fd._isNew = true;
+        fd.UpdateCount = fd.UpdateCount ?? 0;
+        fd.OpenedDate = fd.OpenedDate || new Date().toISOString().split('T')[0];
         state.signatories.push(fd);
         state.pendingChanges.push({ action: 'add', data: fd, index: state.signatories.length - 1 });
         renderGrid(state.signatories);
@@ -791,7 +968,18 @@ window.AccountSignatoriesModule = (function () {
 
     function updateGridRow(index, fd) {
         const wasNew = state.signatories[index]?._isNew;
-        state.signatories[index] = { ...state.signatories[index], ...fd, _isNew: wasNew, _isModified: !wasNew };
+        const existing = state.signatories[index] || {};
+        state.signatories[index] = {
+            ...existing,
+            ...fd,
+            ReferenceID: fd.ReferenceID || existing.ReferenceID || existing.Sequence || existing.SeqNo || existing.SequenceNo,
+            UpdateCount: fd.UpdateCount ?? existing.UpdateCount ?? existing.updateCount ?? 0,
+            OpenedDate: fd.OpenedDate || existing.OpenedDate || existing.openedDate,
+            SignID: fd.SignID || existing.SignID || existing.SignatoryID,
+            PhotoID: fd.PhotoID || existing.PhotoID || existing.SignatoryID,
+            _isNew: wasNew,
+            _isModified: !wasNew
+        };
         if (!wasNew) {
             const ei = state.pendingChanges.findIndex(c => c.index === index && c.action === 'edit');
             if (ei >= 0) state.pendingChanges[ei].data = fd;
@@ -838,13 +1026,13 @@ window.AccountSignatoriesModule = (function () {
             return;
         }
         const sig = state.signatories[state.selectedRow];
-        const sigId   = sig.SignatoryID || sig.OperatorID || '';
+        const sigId = sig.SignatoryID || sig.OperatorID || '';
         const sigName = sig.SignatoryName || sig.OperatorName || sigId;
 
-        const mId  = document.getElementById('modalSignatoryId');
-        const mNm  = document.getElementById('modalSignatoryName');
-        if (mId)  mId.value  = sigId;
-        if (mNm)  mNm.value  = sigName;
+        const mId = document.getElementById('modalSignatoryId');
+        const mNm = document.getElementById('modalSignatoryName');
+        if (mId) mId.value = sigId;
+        if (mNm) mNm.value = sigName;
 
         const sCol = document.getElementById('signatureCol');
         const pCol = document.getElementById('photoCol');
@@ -854,8 +1042,8 @@ window.AccountSignatoriesModule = (function () {
             else { sCol.hidden = false; sCol.className = 'col-6'; pCol.hidden = false; pCol.className = 'col-6'; }
         }
 
-        if (type === 'signature' || type === 'both') displayImage('signature', sig);
-        if (type === 'photo' || type === 'both')     displayImage('photo', sig);
+        if (type === 'signature' || type === 'both') displayImage('signature', sig, sigId);
+        if (type === 'photo' || type === 'both') displayImage('photo', sig, sigId);
 
         const modalEl = document.getElementById('signaturePhotoModal');
         if (modalEl && typeof bootstrap !== 'undefined') {
@@ -867,11 +1055,22 @@ window.AccountSignatoriesModule = (function () {
         }
     }
 
-    function displayImage(imageType, sig) {
+    async function displayImage(imageType, sig, signatoryId) {
         const cid = imageType === 'signature' ? 'signatureImage' : 'photoImage';
         const c = document.getElementById(cid);
         if (!c) return;
-        const b64 = sig?.SignatureData || sig?.sImage || sig?.PhotoData || sig?.pImage || sig?.SignatureImage || sig?.PhotoImage;
+
+        const directB64 = imageType === 'signature'
+            ? sig?.SignatureData || sig?.sImage || sig?.SignatureImage
+            : sig?.PhotoData || sig?.pImage || sig?.PhotoImage;
+
+        c.innerHTML = `<span class="text-muted"><i class="bi bi-hourglass-split fs-1 d-block mb-2"></i>Loading ${imageType}...</span>`;
+
+        let b64 = directB64;
+        if (!b64 && signatoryId) {
+            b64 = await fetchImageFromEndpoint(imageType, signatoryId);
+        }
+
         if (b64) {
             let mime = 'image/png', clean = b64;
             if (b64.startsWith('data:')) clean = b64.split(',')[1] || b64;
@@ -880,6 +1079,37 @@ window.AccountSignatoriesModule = (function () {
         } else {
             const ic = imageType === 'signature' ? 'bi-pen' : 'bi-person-bounding-box';
             c.innerHTML = `<span class="text-muted"><i class="bi ${ic} fs-1 d-block mb-2"></i>No ${imageType} available</span>`;
+        }
+    }
+
+    async function fetchImageFromEndpoint(imageType, signatoryId) {
+        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'RequestVerificationToken': csrfToken })
+        };
+
+        const endpoint = imageType === 'signature'
+            ? '/AccountsMaintenance/api/get-signature-image'
+            : '/AccountsMaintenance/api/get-photo-image';
+
+        try {
+            const resp = await fetch(endpoint, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    OurBranchID: state.context.OurBranchID,
+                    SignatoryID: signatoryId,
+                    OperatorID: state.context.OperatorID
+                })
+            });
+
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const result = await resp.json();
+            return result?.ImageData || result?.imageData || result?.Data || result?.data || null;
+        } catch (err) {
+            console.error(`[AccountSignatories] Failed to fetch ${imageType}:`, err);
+            return null;
         }
     }
 
@@ -913,86 +1143,45 @@ window.AccountSignatoriesModule = (function () {
         console.log('[AccountSignatories] handleAction called:', action, '| Mode:', state.mode, '| SelectedRow:', state.selectedRow);
 
         switch (action) {
-            // --- Form section buttons ---
-            case 'new':
-                clearForm();
-                state.mode = 'NEW';
-                state.selectedRow = null;
-                updateButtonStates();
-                showInfo('New signatory mode. Fill the form and click Update.');
-                document.getElementById('signatoryId')?.focus();
-                break;
-
-            case 'alter':
-                if (state.selectedRow === null) { showWarning('Please select a signatory first.'); return; }
-                state.mode = 'ALTER';
-                updateButtonStates();
-                showInfo('Alter mode. Make changes and click Update.');
-                document.getElementById('signatoryId')?.focus();
-                break;
-
-            case 'remove':
-                if (state.selectedRow === null) { showWarning('Please select a signatory first.'); return; }
-                const rmSig = state.signatories[state.selectedRow];
-                const rmName = rmSig?.SignatoryName || rmSig?.SignatoryID || 'this signatory';
-                if (confirm(`Are you sure you want to remove ${rmName}?`)) {
-                    markForDeletion(state.selectedRow);
-                }
-                break;
-
-            case 'update':
-                if (!['ALTER','UPDATE','NEW','ADD'].includes(state.mode)) {
-                    showWarning('Please click ALTER or NEW first.');
-                    return;
-                }
-                const fd = collectFormData();
-                const v = validateFormData(fd);
-                if (!v.isValid) { showError(v.message); return; }
-                if (state.mode === 'ADD' || state.mode === 'NEW') {
-                    addToGrid(fd);
-                    showSuccess('Signatory added. Saving...');
-                    await saveAllChanges();
-                } else if (state.selectedRow !== null) {
-                    updateGridRow(state.selectedRow, fd);
-                    showSuccess('Signatory updated. Saving...');
-                    await saveAllChanges();
-                } else {
-                    showWarning('Please select a signatory.');
-                }
-                break;
-
-            case 'clear':
-                clearForm();
-                state.mode = 'VIEW';
-                state.selectedRow = null;
-                updateButtonStates();
-                showInfo('Form cleared.');
-                break;
-
-            case 'close-form':
-                clearForm();
-                state.mode = 'VIEW';
-                state.selectedRow = null;
-                updateButtonStates();
-                break;
-
             // --- Parent action panel buttons ---
             case 'add':
                 clearForm();
                 state.mode = 'ADD';
                 state.selectedRow = null;
                 updateButtonStates();
-                showInfo('Add mode. Fill the form and click Update.');
+                showInfo('Add mode. Fill the form, then click Save to persist changes.');
                 document.getElementById('signatoryId')?.focus();
                 break;
 
             case 'edit':
-                state.mode = 'EDIT';
+                if (state.selectedRow === null) {
+                    showWarning('Please select a signatory first.');
+                    return;
+                }
+                state.mode = 'ALTER';
                 updateButtonStates();
-                showInfo('Edit mode. Select a signatory or click New.');
+                showInfo('Edit mode. Make changes, then click Save to persist changes.');
+                document.getElementById('signatoryId')?.focus();
                 break;
 
             case 'save':
+                if (state.mode === 'ADD' || state.mode === 'ALTER') {
+                    const fd = collectFormData();
+                    const v = validateFormData(fd);
+                    if (!v.isValid) { showError(v.message); return; }
+
+                    if (state.mode === 'ADD') {
+                        addToGrid(fd);
+                    } else if (state.selectedRow !== null) {
+                        updateGridRow(state.selectedRow, fd);
+                    } else {
+                        showWarning('Please select a signatory.');
+                        return;
+                    }
+
+                    state.mode = 'UPDATE';
+                    updateButtonStates();
+                }
                 await saveAllChanges();
                 break;
 
@@ -1065,13 +1254,13 @@ window.AccountSignatoriesModule = (function () {
         // so they have no prior listeners — just bind directly.
         const panelMap = {
             submoduleBtnSignature: 'signature',
-            submoduleBtnPhoto:     'photo',
-            submoduleBtnBoth:      'both',
-            submoduleBtnAdd:       'add',
-            submoduleBtnEdit:      'edit',
-            submoduleBtnSave:      'save',
-            submoduleBtnCancel:    'cancel',
-            submoduleBtnClose:     'close-submodule'
+            submoduleBtnPhoto: 'photo',
+            submoduleBtnBoth: 'both',
+            submoduleBtnAdd: 'add',
+            submoduleBtnEdit: 'edit',
+            submoduleBtnSave: 'save',
+            submoduleBtnCancel: 'cancel',
+            submoduleBtnClose: 'close-submodule'
         };
         Object.entries(panelMap).forEach(([id, action]) => {
             const btn = document.getElementById(id);
@@ -1124,8 +1313,8 @@ window.AccountSignatoriesModule = (function () {
             hdr.addEventListener('click', () => {
                 const sec = hdr.closest('.form-section');
                 const cnt = sec?.querySelector('.section-content');
-                const ic  = hdr.querySelector('.section-toggle-btn i');
-                const tb  = hdr.querySelector('.section-toggle-btn');
+                const ic = hdr.querySelector('.section-toggle-btn i');
+                const tb = hdr.querySelector('.section-toggle-btn');
                 if (cnt) {
                     const exp = !cnt.hidden;
                     cnt.hidden = exp;

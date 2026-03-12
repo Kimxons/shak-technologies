@@ -3,6 +3,11 @@
     Layout = "_ApplicationLayout";
 }
 
+<!-- CSRF Protection -->
+<form id="centerPenaltyForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <!-- Toast Container -->
 <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
@@ -123,46 +128,34 @@
                     <div class="section-content" data-section-content>
                         <div class="form-row two-col">
                             <div class="col">
-                                <label class="form-label" for="WaiveOffStatus">Waive-Off Status</label>
-                                <input type="text" class="form-control" id="WaiveOffStatus" readonly>
+                                <span class="label-blue">Waive-Off Status</span>
+                                <span class="audit-value" id="spn_waiveOffStatus">-</span>
                             </div>
                         </div>
                         <div class="audit-section audit-section--summary" aria-label="Audit Summary">
                             <div class="audit-cell">
-                                <div class="audit-label">Created By</div>
-                                <div class="audit-value">
-                                    <input type="text" class="form-control" id="CreatedBy" readonly aria-label="Created By">
-                                </div>
+                                <span class="audit-label">Created By</span>
+                                <span class="audit-value" id="spn_createdBy">-</span>
                             </div>
                             <div class="audit-cell">
-                                <div class="audit-label">Created On</div>
-                                <div class="audit-value">
-                                    <input type="text" class="form-control" id="CreatedOn" readonly aria-label="Created On">
-                                </div>
+                                <span class="audit-label">Created On</span>
+                                <span class="audit-value" id="spn_createdOn">-</span>
                             </div>
                             <div class="audit-cell">
-                                <div class="audit-label">Modified By</div>
-                                <div class="audit-value">
-                                    <input type="text" class="form-control" id="ModifiedBy" readonly aria-label="Modified By">
-                                </div>
+                                <span class="audit-label">Modified By</span>
+                                <span class="audit-value" id="spn_modifiedBy">-</span>
                             </div>
                             <div class="audit-cell">
-                                <div class="audit-label">Modified On</div>
-                                <div class="audit-value">
-                                    <input type="text" class="form-control" id="ModifiedOn" readonly aria-label="Modified On">
-                                </div>
+                                <span class="audit-label">Modified On</span>
+                                <span class="audit-value" id="spn_modifiedOn">-</span>
                             </div>
                             <div class="audit-cell">
-                                <div class="audit-label">Supervised By</div>
-                                <div class="audit-value">
-                                    <input type="text" class="form-control" id="SupervisedBy" readonly aria-label="Supervised By">
-                                </div>
+                                <span class="audit-label">Supervised By</span>
+                                <span class="audit-value" id="spn_supervisedBy">-</span>
                             </div>
                             <div class="audit-cell">
-                                <div class="audit-label">Supervised On</div>
-                                <div class="audit-value">
-                                    <input type="text" class="form-control" id="SupervisedOn" readonly aria-label="Supervised On">
-                                </div>
+                                <span class="audit-label">Supervised On</span>
+                                <span class="audit-value" id="spn_supervisedOn">-</span>
                             </div>
                         </div>
                     </div>
@@ -214,5 +207,5 @@
 }
 
 @section Scripts {
-    <script src="~/js/modules/microfinance/center-penalty-interest-waive-off.js"></script>
+    <script type="text/javascript" src="~/js/modules/microfinance/center-penalty-interest-waive-off.js"></script>
 }

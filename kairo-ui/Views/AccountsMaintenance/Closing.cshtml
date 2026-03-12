@@ -1,8 +1,9 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // No layout - this is a partial view loaded dynamically
     // Migrated from: public/modules/account-maintenance/DataEntry/account-closing.html
-    var accountCloseReasonOptions = ViewData["AccountCloseReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var accountCloseReasonOptions = ViewData["AccountCloseReasonOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Closing Submodule - Original HTML Preserved -->
@@ -12,12 +13,14 @@
         <!-- Bootstrap 5 Nav Tabs -->
         <ul class="nav nav-tabs mb-3" id="closingTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="close-tab" data-bs-toggle="tab" data-bs-target="#close-pane" type="button" role="tab" aria-controls="close-pane" aria-selected="true">
+                <button class="nav-link active" id="close-tab" data-bs-toggle="tab" data-bs-target="#close-pane"
+                        type="button" role="tab" aria-controls="close-pane" aria-selected="true">
                     Close Details
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="transaction-tab" data-bs-toggle="tab" data-bs-target="#transaction-pane" type="button" role="tab" aria-controls="transaction-pane" aria-selected="false">
+                <button class="nav-link" id="transaction-tab" data-bs-toggle="tab" data-bs-target="#transaction-pane"
+                        type="button" role="tab" aria-controls="transaction-pane" aria-selected="false">
                     Transaction Details
                 </button>
             </li>
@@ -29,333 +32,359 @@
             <div class="tab-pane fade show active" id="close-pane" role="tabpanel" aria-labelledby="close-tab">
                 <div class="form-section" data-section="account-details">
                     <div class="section-header" data-section-toggle>
-                        <span class="section-header__title"><i class="bi bi-file-earmark-text"></i> Account Details</span>
-                        <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details" aria-expanded="true">
-                            <i class="bi bi-chevron-up"></i>
-                        </button>
+                        <span class="section-header__title"><i class="bi bi-file-earmark-text"></i> Account
+                            Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Account Details"
+                                    aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <!-- Row 1: Reason -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-12">
+                                    <label class="label-blue am-label" for="reason">Reason</label>
+                                    <select id="reason" name="ReasonID" class="form-select am-input">
+                                        <option value="">Select Reason</option>
+                                        @foreach (var option in accountCloseReasonOptions)
+                                        {
+                                            <option value="@option.Value">@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Remarks -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-12">
+                                    <label class="label-blue am-label" for="remarks">Remarks</label>
+                                    <input id="remarks" name="Remarks" type="text" class="form-control am-input" />
+                                </div>
+                            </div>
+
+                            <!-- Row 3: Financials -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="balance">Balance</label>
+                                    <input id="balance" name="Balance" type="text" class="form-control am-input" readonly />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="penalInterestReceivable">Penal Int. Rec.</label>
+                                    <input id="penalInterestReceivable" name="PenalInterestReceivable" type="text"
+                                           class="form-control am-input" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="creditInterestPayable">Credit Int. Pay.</label>
+                                    <input id="creditInterestPayable" name="CreditInterestPayable" type="text"
+                                           class="form-control am-input" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="taxAmount">Tax Amount</label>
+                                    <input id="taxAmount" name="TaxAmount" type="text" class="form-control am-input" />
+                                </div>
+                            </div>
+
+                            <!-- Row 4: More Financials -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="debitInterestReceivable">Debit Int. Rec.</label>
+                                    <input id="debitInterestReceivable" name="DebitInterestReceivable" type="text"
+                                           class="form-control am-input" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="closingCharges">Closing Charges</label>
+                                    <input id="closingCharges" name="ClosingCharges" type="text"
+                                           class="form-control am-input" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="label-blue am-label" for="netPayable">Net Payable</label>
+                                    <input id="netPayable" name="NetPayable" type="text" class="form-control am-input"
+                                           readonly />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="section-content" data-section-content>
-                        <!-- Row 1: Reason -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-12">
-                                <label class="label-blue am-label" for="reason">Reason</label>
-                                <select id="reason" name="ReasonID" class="form-select am-input">
-                                    <option value="">Select Reason</option>
-                                    @foreach (var option in accountCloseReasonOptions)
-                                    {
-                                        <option value="@option.Value">@option.Text</option>
+
+                </div>
+
+                <!-- Transaction Details Tab -->
+                <div class="tab-pane fade" id="transaction-pane" role="tabpanel" aria-labelledby="transaction-tab">
+                    <div class="form-section" data-section="txn-information">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-receipt"></i> Transaction Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Information"
+                                    aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <!-- Row 1: Types -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="transactionType">Transaction Type</label>
+                                    <select id="transactionType" name="TrxType" class="form-select am-input">
+                                        <option value="">Select Transaction Type</option>
+                                        <option value="D">Debit</option>
+                                        <option value="C">Credit</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="till">Till</label>
+                                    <select id="till" name="TillID" class="form-select am-input">
+                                        <option value="">Select Till</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="typeOfService">Type Of Service</label>
+                                    <select id="typeOfService" name="TypeOfServiceID" class="form-select am-input">
+                                        <option value="">Select Service</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="label-blue am-label" for="accountType">Account Type</label>
+                                    <select id="accountType" name="AccountTypeID" class="form-select am-input">
+                                        <option value="">Select Type</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Account / Summary Amounts -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <label class="label-blue am-label">Account ID</label>
+                                    <div class="kairo-account-control" data-kairo-account-control>
+                                        <input type="text" id="txnAccountId" name="AccountID"
+                                               class="kairo-account-control__id form-control am-input"
+                                               placeholder="Account ID" />
+                                        <input type="text" id="txnAccountName" name="AccountName"
+                                               class="kairo-account-control__name form-control am-input"
+                                               placeholder="Account Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-account-control__lookup"
+                                                data-lookup="Account" title="Lookup Account"><i
+                                            class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="unpostedAmount">Unposted Amount</label>
+                                        <input id="unpostedAmount" name="UnpostedAmount" type="text"
+                                               class="form-control am-input text-end" readonly />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="balanceAmount">Balance Amount</label>
+                                        <input id="balanceAmount" name="BalanceAmount" type="text"
+                                               class="form-control am-input text-end" readonly />
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-3 offset-md-6">
+                                        <label class="label-blue am-label" for="currencyId">Currency ID</label>
+                                        <input id="currencyId" name="CurrencyID" type="text" class="form-control am-input"
+                                               readonly disabled />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="productId">Product ID</label>
+                                        <input id="productId" name="ProductID" type="text" class="form-control am-input"
+                                               readonly disabled />
+                                    </div>
+                                </div>
+
+                                <!-- Row 3: Cheque / Beneficiary -->
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="chequeId">Cheque ID</label>
+                                        <input id="chequeId" name="ChequeID" type="text" class="form-control am-input" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label">Payable At</label>
+                                        <div class="kairo-account-control" data-kairo-account-control>
+                                            <input type="text" id="payableAt" name="PayableAtBranchID"
+                                                   class="kairo-account-control__id form-control am-input"
+                                                   placeholder="Branch ID" />
+                                            <input type="text" id="payableAtName" name="PayableAtBranchName"
+                                                   class="kairo-account-control__name form-control am-input"
+                                                   placeholder="Branch Name" readonly />
+                                            <button type="button" class="btn-lookup kairo-account-control__lookup"
+                                                    data-lookup="Branch" title="Lookup Branch"><i class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="beneficiaryName">Beneficiary Name</label>
+                                        <input id="beneficiaryName" name="BeneficiaryName" type="text"
+                                               class="form-control am-input" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="label-blue am-label" for="referenceNo">Reference No</label>
+                                        <input id="referenceNo" name="ReferenceNo" type="text" class="form-control am-input" />
+                                    </div>
+                                </div>
+
+                                <!-- Row 4: Transaction Lookup -->
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label class="label-blue am-label">Transaction ID</label>
+                                        <div class="kairo-account-control" data-kairo-account-control>
+                                            <input type="text" id="transactionId" name="TransactionID"
+                                                   class="kairo-account-control__id form-control am-input" placeholder="Trx ID" />
+                                            <input type="text" id="transactionIdName" name="TransactionName"
+                                                   class="kairo-account-control__name form-control am-input" placeholder="Trx Name"
+                                                   readonly />
+                                            <button type="button" class="btn-lookup kairo-account-control__lookup"
+                                                    data-lookup="Transaction" title="Lookup Transaction"><i
+                                                class="bi bi-search"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="label-blue am-label" for="narration">Narration</label>
+                                            <input id="narration" name="Narration" type="text" class="form-control am-input" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 5: Amounts -->
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-3">
+                                            <label class="label-blue am-label" for="transactionAmount">Transaction Amount</label>
+                                            <input id="transactionAmount" name="TransactionAmount" type="text"
+                                                   class="form-control am-input text-end" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="label-blue am-label" for="localAmount">Local Amount</label>
+                                            <input id="localAmount" name="LocalAmount" type="text"
+                                                   class="form-control am-input text-end" readonly />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="label-blue am-label" for="exchangeRate">Exchange Rate</label>
+                                            <input id="exchangeRate" name="ExchangeRate" type="text"
+                                                   class="form-control am-input text-end" value="1" readonly />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="label-blue am-label" for="forexGainLoss">Forex Gain/Loss</label>
+                                            <input id="forexGainLoss" name="ForexGainLoss" type="text"
+                                                   class="form-control am-input text-end" readonly />
+                                        </div>
+                                    </div>
+
+                                    <!-- Transaction Grid Actions -->
+                                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                                        <button class="btn btn-sm btn-outline-primary" type="button" data-action="txnNew"><i
+                                            class="bi bi-plus"></i> New</button>
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="txnAlter"><i
+                                                class="bi bi-pencil"></i> Alter</button>
+                                                <button class="btn btn-sm btn-outline-danger" type="button" data-action="txnRemove"><i
+                                                    class="bi bi-trash"></i> Remove</button>
+                                                    <button class="btn btn-sm btn-outline-success" type="button" data-action="txnUpdate"><i
+                                                        class="bi bi-check-lg"></i> Update</button>
+                                                        <button class="btn btn-sm btn-outline-info" type="button" data-action="txnClear"><i
+                                                            class="bi bi-eraser"></i> Clear</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Transaction Details Grid -->
+                                                <div class="form-section mt-3" data-section="txn-details">
+                                                    <div class="section-header" data-section-toggle>
+                                                        <span class="section-header__title"><i class="bi bi-table"></i> Transaction Details</span>
+                                                        <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Details"
+                                                                aria-expanded="true">
+                                                            <i class="bi bi-chevron-up"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="section-content" data-section-content>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-hover am-table" id="transactionGrid">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Account Type</th>
+                                                                        <th>Account ID</th>
+                                                                        <th>Till ID</th>
+                                                                        <th>Trx Type</th>
+                                                                        <th>Product ID</th>
+                                                                        <th>Currency ID</th>
+                                                                        <th class="text-end">Credit Amount</th>
+                                                                        <th class="text-end">Debit Amount</th>
+                                                                        <th class="text-end">Amount</th>
+                                                                        <th class="text-end">Local Amount</th>
+                                                                        <th class="text-end">Exchange Rate</th>
+                                                                        <th>Reference Number</th>
+                                                                        <th>Beneficiary Name</th>
+                                                                        <th>Trx Description</th>
+                                                                        <th class="text-end">Profit</th>
+                                                                        <th>Remarks</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="transactionGridBody">
+                                                                    <tr>
+                                                                        <td colspan="16" class="text-center text-muted">No records to display.</td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Behind the Scene Section -->
+                                        <div class="form-section form-section--bts mt-3" data-section="behind-scene">
+                                            <div class="section-header" data-section-toggle>
+                                                <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
+                                                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene"
+                                                        aria-expanded="true">
+                                                    <i class="bi bi-chevron-up"></i>
+                                                </button>
+                                            </div>
+                                            <div class="section-content" data-section-content>
+                                                <div class="form-row four-col">
+                                                    <div class="col">
+                                                        <label for="MakerID">Created By</label>
+                                                        <input id="MakerID" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="MakerDT">Created On</label>
+                                                        <input id="MakerDT" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="CheckerID">Checked By</label>
+                                                        <input id="CheckerID" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="CheckerDT">Checked On</label>
+                                                        <input id="CheckerDT" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                </div>
+                                                <div class="form-row four-col">
+                                                    <div class="col">
+                                                        <label for="ModifierID">Modified By</label>
+                                                        <input id="ModifierID" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="ModifierDT">Modified On</label>
+                                                        <input id="ModifierDT" type="text" class="bs-input-text" value="-" readonly />
+                                                    </div>
+                                                    <div class="col"></div>
+                                                    <div class="col"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="loading-overlay" id="loadingOverlay" hidden>
+                                    <div class="loading-spinner">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <div class="loading-text">Loading account closing...</div>
+                                    </div>
+                                </div>
+
+                                <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-closing.js"></script>
+                                <script>
+                                    // Auto-initialize on load
+                                    if (document.readyState === 'loading') {
+                                        document.addEventListener('DOMContentLoaded', () => window.AccountClosingModule?.init());
+                                    } else {
+                                        window.AccountClosingModule?.init();
                                     }
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Remarks -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-12">
-                                <label class="label-blue am-label" for="remarks">Remarks</label>
-                                <input id="remarks" name="Remarks" type="text" class="form-control am-input" />
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Financials -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="balance">Balance</label>
-                                <input id="balance" name="Balance" type="text" class="form-control am-input" readonly />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="penalInterestReceivable">Penal Int. Rec.</label>
-                                <input id="penalInterestReceivable" name="PenalInterestReceivable" type="text" class="form-control am-input" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="creditInterestPayable">Credit Int. Pay.</label>
-                                <input id="creditInterestPayable" name="CreditInterestPayable" type="text" class="form-control am-input" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="taxAmount">Tax Amount</label>
-                                <input id="taxAmount" name="TaxAmount" type="text" class="form-control am-input" />
-                            </div>
-                        </div>
-
-                        <!-- Row 4: More Financials -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="debitInterestReceivable">Debit Int. Rec.</label>
-                                <input id="debitInterestReceivable" name="DebitInterestReceivable" type="text" class="form-control am-input" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="closingCharges">Closing Charges</label>
-                                <input id="closingCharges" name="ClosingCharges" type="text" class="form-control am-input" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="label-blue am-label" for="netPayable">Net Payable</label>
-                                <input id="netPayable" name="NetPayable" type="text" class="form-control am-input" readonly />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Components Section -->
-                <div class="form-section mt-3" data-section="components">
-                    <div class="section-header" data-section-toggle>
-                        <span class="section-header__title"><i class="bi bi-puzzle"></i> Components</span>
-                        <button type="button" class="section-toggle-btn" aria-label="Toggle Components" aria-expanded="true">
-                            <i class="bi bi-chevron-up"></i>
-                        </button>
-                    </div>
-                    <div class="section-content" data-section-content>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover am-table" id="componentsGrid">
-                                <thead>
-                                    <tr>
-                                        <th>Component ID</th>
-                                        <th>Branch ID</th>
-                                        <th>Account Type</th>
-                                        <th>Account ID</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="componentsGridBody">
-                                    <tr><td colspan="4" class="text-center text-muted">No components found</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Transaction Details Tab -->
-            <div class="tab-pane fade" id="transaction-pane" role="tabpanel" aria-labelledby="transaction-tab">
-                <div class="form-section" data-section="txn-information">
-                    <div class="section-header" data-section-toggle>
-                        <span class="section-header__title"><i class="bi bi-receipt"></i> Transaction Information</span>
-                        <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Information" aria-expanded="true">
-                            <i class="bi bi-chevron-up"></i>
-                        </button>
-                    </div>
-                    <div class="section-content" data-section-content>
-                        <!-- Row 1: Types -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="transactionType">Trx Type</label>
-                                <select id="transactionType" name="TrxType" class="form-select am-input">
-                                    <option value="D">Debit</option>
-                                    <option value="C">Credit</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="till">Till</label>
-                                <select id="till" name="TillID" class="form-select am-input">
-                                    <option value="">Select Till</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="typeOfService">Service Type</label>
-                                <select id="typeOfService" name="TypeOfServiceID" class="form-select am-input">
-                                    <option value="">Select Service</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="accountType">Account Type</label>
-                                <select id="accountType" name="AccountTypeID" class="form-select am-input">
-                                    <option value="">Select Type</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Account -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-6">
-                                <label class="label-blue am-label">Account ID</label>
-                                <div class="kairo-account-control" data-kairo-account-control>
-                                    <input type="text" id="txnAccountId" name="AccountID" class="kairo-account-control__id form-control am-input" placeholder="Account ID" />
-                                    <input type="text" id="txnAccountName" name="AccountName" class="kairo-account-control__name form-control am-input" placeholder="Account Name" readonly />
-                                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Account" title="Lookup Account"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="productId">Product ID</label>
-                                <input id="productId" name="ProductID" type="text" class="form-control am-input" readonly disabled />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="currencyId">Currency ID</label>
-                                <input id="currencyId" name="CurrencyID" type="text" class="form-control am-input" readonly disabled />
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Cheque / Beneficiary -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="chequeId">Cheque ID</label>
-                                <input id="chequeId" name="ChequeID" type="text" class="form-control am-input" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label">Payable At</label>
-                                <div class="kairo-account-control" data-kairo-account-control>
-                                    <input type="text" id="payableAt" name="PayableAtBranchID" class="kairo-account-control__id form-control am-input" placeholder="Branch ID" />
-                                    <input type="text" id="payableAtName" name="PayableAtBranchName" class="kairo-account-control__name form-control am-input" placeholder="Branch Name" readonly />
-                                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Branch" title="Lookup Branch"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="beneficiaryName">Beneficiary Name</label>
-                                <input id="beneficiaryName" name="BeneficiaryName" type="text" class="form-control am-input" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="referenceNo">Reference No</label>
-                                <input id="referenceNo" name="ReferenceNo" type="text" class="form-control am-input" />
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Transaction Lookup -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-6">
-                                <label class="label-blue am-label">Transaction ID</label>
-                                <div class="kairo-account-control" data-kairo-account-control>
-                                    <input type="text" id="transactionId" name="TransactionID" class="kairo-account-control__id form-control am-input" placeholder="Trx ID" />
-                                    <input type="text" id="transactionIdName" name="TransactionName" class="kairo-account-control__name form-control am-input" placeholder="Trx Name" readonly />
-                                    <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Transaction" title="Lookup Transaction"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="label-blue am-label" for="narration">Narration</label>
-                                <input id="narration" name="Narration" type="text" class="form-control am-input" />
-                            </div>
-                        </div>
-
-                        <!-- Row 5: Amounts -->
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="unpostedAmount">Unposted Amt</label>
-                                <input id="unpostedAmount" name="UnpostedAmount" type="text" class="form-control am-input text-end" readonly />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="exchangeRate">Exchange Rate</label>
-                                <input id="exchangeRate" name="ExchangeRate" type="text" class="form-control am-input text-end" value="1" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="transactionAmount">Trx Amount</label>
-                                <input id="transactionAmount" name="TransactionAmount" type="text" class="form-control am-input text-end" />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="label-blue am-label" for="localAmount">Local Amount</label>
-                                <input id="localAmount" name="LocalAmount" type="text" class="form-control am-input text-end" readonly />
-                            </div>
-                        </div>
-
-                        <!-- Transaction Grid Actions -->
-                        <div class="d-flex gap-2 mt-3">
-                            <button class="btn btn-sm btn-outline-primary" type="button" data-action="txnNew"><i class="bi bi-plus"></i> New</button>
-                            <button class="btn btn-sm btn-outline-secondary" type="button" data-action="txnUpdate"><i class="bi bi-check-lg"></i> Update</button>
-                            <button class="btn btn-sm btn-outline-danger" type="button" data-action="txnRemove"><i class="bi bi-trash"></i> Remove</button>
-                            <button class="btn btn-sm btn-outline-info" type="button" data-action="txnClear"><i class="bi bi-eraser"></i> Clear</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transaction Details Grid -->
-                <div class="form-section mt-3" data-section="txn-details">
-                    <div class="section-header" data-section-toggle>
-                        <span class="section-header__title"><i class="bi bi-table"></i> Transaction Details</span>
-                        <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Details" aria-expanded="true">
-                            <i class="bi bi-chevron-up"></i>
-                        </button>
-                    </div>
-                    <div class="section-content" data-section-content>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover am-table" id="transactionGrid">
-                                <thead>
-                                    <tr>
-                                        <th>Acc. Type</th>
-                                        <th>Account ID</th>
-                                        <th>Type</th>
-                                        <th>Currency</th>
-                                        <th class="text-end">Amount</th>
-                                        <th>Narration</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="transactionGridBody">
-                                    <tr><td colspan="6" class="text-center text-muted">No transactions added</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Behind the Scene Section -->
-        <div class="form-section mt-3" data-section="behind-scene">
-            <div class="section-header" data-section-toggle>
-                <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
-                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-                    <i class="bi bi-chevron-up"></i>
-                </button>
-            </div>
-            <div class="section-content" data-section-content>
-                <div class="audit-section audit-section--summary">
-                    <div class="audit-cell">
-                        <span class="audit-label">Created By</span>
-                        <span class="audit-value" id="MakerID">-</span>
-                    </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Created On</span>
-                        <span class="audit-value" id="MakerDT">-</span>
-                    </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Checked By</span>
-                        <span class="audit-value" id="CheckerID">-</span>
-                    </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Checked On</span>
-                        <span class="audit-value" id="CheckerDT">-</span>
-                    </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Modified By</span>
-                        <span class="audit-value" id="ModifierID">-</span>
-                    </div>
-                    <div class="audit-cell">
-                        <span class="audit-label">Modified On</span>
-                        <span class="audit-value" id="ModifierDT">-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="loading-overlay" id="loadingOverlay" hidden>
-    <div class="loading-spinner">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <div class="loading-text">Loading account closing...</div>
-    </div>
-</div>
-
-    <!-- Message Panel -->
-    <div class="am-message-panel" role="alert" aria-live="polite">
-      <i class="bi bi-info-circle"></i>
-      <span class="message-text"></span>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div class="page-loading-overlay" id="loadingOverlay" hidden>
-      <div class="page-loading-spinner">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <div class="page-loading-text">Loading account closing...</div>
-      </div>
-    </div>
-  </div>
-
-  <script src="~/js/modules/accountsmaintenance/account-closing.js"></script>
-<script>
-  // Auto-initialize on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountClosingModule?.init());
-  } else {
-    window.AccountClosingModule?.init();
-  }
-  console.log('✅ Account Closing view loaded');
-</script>
+                                    console.log('✅ Account Closing view loaded');
+                                </script>

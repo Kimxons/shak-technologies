@@ -1,113 +1,138 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-interest-rates.html
-    var interestRateTypeOptions = ViewData["InterestRateTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var interestRateTypeOptions = ViewData["InterestRateTypeOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
 }
 
 <!-- InterestRates Submodule -->
 <div class="form-card" data-main-form>
-  <!-- Rate Details Section -->
-  <div class="form-section" data-section="rate-details">
-      <div class="section-header" data-section-toggle>
-          <span class="section-header__title"><i class="bi bi-percent me-1"></i>Rate Details</span>
-          <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Details" aria-expanded="true">
-              <i class="bi bi-chevron-up"></i>
-          </button>
-      </div>
-      <div class="section-content" data-section-content>
-          <!-- Row 1: Rate Type, Base Rate -->
-          <div class="form-row two-col">
-              <div class="col">
-                  <label class="label-blue" for="rateType">Rate Type<span class="text-danger">*</span></label>
-                  <select id="rateType" name="rateType" class="bs-select">
-                      <option value="">--Select--</option>
-                      @foreach (var option in interestRateTypeOptions)
-                      {
-                          <option value="@option.Value">@option.Text</option>
-                      }
-                  </select>
-              </div>
-              <div class="col">
-                  <label class="label-blue" for="baseRate">Base Rate</label>
-                  <input id="baseRate" name="baseRate" type="text" class="bs-input-text text-end" value="0.0000" readonly />
-              </div>
-          </div>
+    <!-- Rate Details Section -->
+    <div class="form-section" data-section="rate-details">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-percent me-1"></i>Rate Details</span>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Details" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content" data-section-content>
+            <!-- Row 1: Rate Type, Base Rate -->
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="label-blue" for="rateType">Rate Type<span class="text-danger">*</span></label>
+                    <select id="rateType" name="rateType" class="bs-select">
+                        <option value="">--Select--</option>
+                        @foreach (var option in interestRateTypeOptions)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="baseRate">Base Rate</label>
+                    <input id="baseRate" name="baseRate" type="text" class="bs-input-text text-end" value="0.0000"
+                           readonly />
+                </div>
+            </div>
 
-          <!-- Row 2: Effective Date, Expiry Date -->
-          <div class="form-row two-col">
-              <div class="col">
-                  <label class="label-blue" for="effectiveDate">Effective Date</label>
-                  <input type="date" id="effectiveDate" name="effectiveDate" class="bs-input-text">
-              </div>
-              <div class="col">
-                  <label class="label-blue" for="expiryDate">Expiry Date</label>
-                  <input type="date" id="expiryDate" name="expiryDate" class="bs-input-text">
-              </div>
-          </div>
+            <!-- Row 2: Effective Date, Expiry Date -->
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="label-blue" for="effectiveDate">Effective Date</label>
+                    <input type="date" id="effectiveDate" name="effectiveDate" class="bs-input-text">
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="expiryDate">Expiry Date</label>
+                    <input type="date" id="expiryDate" name="expiryDate" class="bs-input-text">
+                </div>
+            </div>
 
-          <!-- Row 3: Ref ID -->
-          <div class="form-row two-col">
-              <div class="col">
-                  <label class="label-blue" for="refId">Ref ID</label>
-                  <input id="refId" name="refId" type="text" class="bs-input-text" />
-              </div>
-              <div class="col"></div>
-          </div>
-      </div>
-  </div>
+            <!-- Row 3: Ref ID -->
+            <div class="form-row two-col">
+                <div class="col">
+                    <label class="label-blue" for="refId">Ref ID</label>
+                    <input id="refId" name="refId" type="text" class="bs-input-text" />
+                </div>
+                <div class="col"></div>
+            </div>
+        </div>
+    </div>
 
-  <!-- Interest Rate Slabs Section -->
-  <div class="form-section" data-section="rate-slabs">
-      <div class="section-header" data-section-toggle>
-          <span class="section-header__title"><i class="bi bi-table me-1"></i>Amount Slab Wise Rate of Interest</span>
-          <div class="ms-auto me-3">
-              <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlab" style="display: none;">
-                  <i class="bi bi-plus-circle me-1"></i>Add Slab
-              </button>
-          </div>
-          <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Slabs" aria-expanded="true">
-              <i class="bi bi-chevron-up"></i>
-          </button>
-      </div>
-      <div class="section-content table-responsive" data-section-content>
-          <table class="table table-sm table-hover" id="rateSlabGrid">
-              <thead class="table-light">
-                  <tr>
-                      <th>From Amount</th>
-                      <th>To Amount</th>
-                      <th>Spread / Margin</th>
-                      <th>Interest Rate</th>
-                      <th class="text-center" style="width: 80px;">Action</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr class="table__empty">
-                      <td colspan="5">No rate slabs defined.</td>
-                  </tr>
-              </tbody>
-          </table>
-      </div>
-  </div>
+    <!-- Interest Rate Slabs Section -->
+    <div class="form-section" data-section="rate-slabs">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-table me-1"></i>Amount Slab Wise Rate of Interest</span>
+            <div class="ms-auto me-3">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSlab" style="display: none;">
+                    <i class="bi bi-plus-circle me-1"></i>Add Slab
+                </button>
+            </div>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle Rate Slabs" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content table-responsive" data-section-content>
+            <table class="table table-sm table-hover" id="rateSlabGrid">
+                <thead class="table-light">
+                    <tr>
+                        <th>From Amount</th>
+                        <th>To Amount</th>
+                        <th>Spread / Margin</th>
+                        <th>Interest Rate</th>
+                        <th class="text-center" style="width: 80px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="table__empty">
+                        <td colspan="5">No rate slabs defined.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-  <!-- Behind the Scene Section -->
-  <div class="form-section" data-section="behind-scene">
-      <div class="section-header" data-section-toggle>
-          <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind the Scene</span>
-          <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
-              <i class="bi bi-chevron-up"></i>
-          </button>
-      </div>
-      <div class="section-content" data-section-content>
-          <div class="audit-section audit-section--summary">
-              <div class="audit-item"><label>Created By</label><span class="audit-value" id="CreatedBy">-</span></div>
-              <div class="audit-item"><label>Created On</label><span class="audit-value" id="CreatedOn">-</span></div>
-              <div class="audit-item"><label>Supervised By</label><span class="audit-value" id="SupervisedBy">-</span></div>
-              <div class="audit-item"><label>Supervised On</label><span class="audit-value" id="SupervisedOn">-</span></div>
-              <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifiedBy">-</span></div>
-              <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifiedOn">-</span></div>
-          </div>
-      </div>
-  </div>
+    <!-- Behind the Scene Section -->
+    <div class="form-section form-section--bts" data-section="behind-scene">
+        <div class="section-header" data-section-toggle>
+            <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind the Scene</span>
+            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="section-content" data-section-content>
+            <div class="form-row four-col">
+                <div class="col">
+                    <label for="CreatedBy">Created By</label>
+                    <input id="CreatedBy" type="text" class="bs-input-text" value="-" readonly />
+                </div>
+                <div class="col">
+                    <label for="CreatedOn">Created On</label>
+                    <input id="CreatedOn" type="text" class="bs-input-text" value="-" readonly />
+                </div>
+                <div class="col">
+                    <label for="SupervisedBy">Supervised By</label>
+                    <input id="SupervisedBy" type="text" class="bs-input-text" value="-" readonly />
+                </div>
+                <div class="col">
+                    <label for="SupervisedOn">Supervised On</label>
+                    <input id="SupervisedOn" type="text" class="bs-input-text" value="-" readonly />
+                </div>
+            </div>
+            <div class="form-row four-col">
+                <div class="col">
+                    <label for="ModifiedBy">Modified By</label>
+                    <input id="ModifiedBy" type="text" class="bs-input-text" value="-" readonly />
+                </div>
+                <div class="col">
+                    <label for="ModifiedOn">Modified On</label>
+                    <input id="ModifiedOn" type="text" class="bs-input-text" value="-" readonly />
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="~/js/modules/accountsmaintenance/account-interest-rates.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-interest-rates.js"
+        asp-append-version="true"></script>

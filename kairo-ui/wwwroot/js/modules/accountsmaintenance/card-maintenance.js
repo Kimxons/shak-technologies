@@ -1,6 +1,5 @@
 /**
  * Card Maintenance Module
- * Rewritten to standard submodule API pattern for KAIRO MVC
  */
 window.CardMaintenanceModule = (function () {
     'use strict';
@@ -10,11 +9,14 @@ window.CardMaintenanceModule = (function () {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
         cards: [],
         selectedIndex: -1,
-        operatorID: null
+        operatorID: null,
+        accountId: null,
+        branchId: null,
+        accountName: null,
+        currentMode: 'VIEW'
     };
 
     /* ── API Routes ─────────────────────────────────────────── */
-    /* ── API Routes (Standard MVC Controller Routes) ────────── */
     const API = {
         GET: 'AccountsMaintenance/api/get-account-card',
         ADD: 'AccountsMaintenance/api/add-account-card',
@@ -31,6 +33,15 @@ window.CardMaintenanceModule = (function () {
             OurBranchID: ps?.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
             OperatorID: ps?.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM'
         };
+    }
+
+    function refreshContext() {
+        const ctx = getContext();
+        state.accountId = ctx.AccountID || null;
+        state.branchId = ctx.OurBranchID || null;
+        state.operatorID = ctx.OperatorID || null;
+        state.accountName = ctx.AccountName || null;
+        return ctx;
     }
 
     /* ── UI Helpers ──────────────────────────────────────────── */
@@ -63,7 +74,26 @@ window.CardMaintenanceModule = (function () {
 
     function isSuccess(r) {
         if (!r) return false;
-        return r.Success === true || r.ResponseCode === '00' || r.ResponseCode === 0;
+        return r.Success === true || r.success === true || r.ResponseCode === '00' || r.ResponseCode === '000' || r.ResponseCode === 0;
+    }
+
+    function normalizeDetails(result) {
+        if (!result) return [];
+
+        let details = result.Details ?? result.Data ?? result.data ?? result;
+
+        if (typeof details === 'string') {
+            try {
+                details = JSON.parse(details);
+            } catch (e) {
+                details = [];
+            }
+        }
+
+        if (Array.isArray(details)) return details;
+        if (details && Array.isArray(details.Details01)) return details.Details01;
+        if (details && typeof details === 'object' && (details.TrackingCardID || details.TrackingID || details.AccountID)) return [details];
+        return [];
     }
 
     function showConfirm(message, title, iconClass) {
@@ -116,18 +146,51 @@ window.CardMaintenanceModule = (function () {
 
     function fmtDateTime(ds) {
         if (!ds) return '-';
+        if (window.GlobalUtils?.formatDateTime) {
+            return window.GlobalUtils.formatDateTime(ds);
+        }
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
     function formatDateForInput(ds) {
         if (!ds) return '';
+
+        const toIsoDate = (dateObj) => {
+            if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '';
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
         try {
-            const d = new Date(ds);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
+            if (ds instanceof Date) return toIsoDate(ds);
+
+            const raw = String(ds).trim();
+            if (!raw) return '';
+
+            // Already in expected HTML date format
+            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+            // dd/MM/yyyy or d/M/yyyy
+            const dmyMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (dmyMatch) {
+                const day = dmyMatch[1].padStart(2, '0');
+                const month = dmyMatch[2].padStart(2, '0');
+                const year = dmyMatch[3];
+                return `${year}-${month}-${day}`;
+            }
+
+            // .NET JSON date: /Date(1710028800000)/
+            const dotNetMatch = raw.match(/\/Date\((\d+)\)\//);
+            if (dotNetMatch) {
+                const d = new Date(Number(dotNetMatch[1]));
+                return toIsoDate(d);
+            }
+
+            // ISO datetime or other parseable date strings
+            const d = new Date(raw);
+            return toIsoDate(d);
         } catch (e) { return ''; }
     }
 
@@ -148,6 +211,7 @@ window.CardMaintenanceModule = (function () {
     /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
         state.editMode = mode;
+        state.currentMode = mode === 'NONE' ? 'VIEW' : mode;
         const editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
         setFieldsEditable(editing);
 
@@ -201,42 +265,68 @@ window.CardMaintenanceModule = (function () {
     }
 
     /* ── Bind form data ──────────────────────────────────────── */
+    function readField(obj, ...keys) {
+        if (!obj || typeof obj !== 'object') return undefined;
+
+        for (const key of keys) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                return obj[key];
+            }
+
+            const match = Object.keys(obj).find(k => k.toLowerCase() === String(key).toLowerCase());
+            if (match) return obj[match];
+        }
+
+        return undefined;
+    }
+
     function bindForm(data) {
         if (!data) return;
-        setVal('trackingId', data.TrackingID || '');
-        setVal('cardProvider', data.CardProvider || data.Provider || data.CardProviderID || '');
-        setVal('cardName', data.CardName || data.NameOnCard || '');
-        setVal('cardType', data.CardType || data.Type || data.CardTypeID || '');
 
-        setVal('cardId', data.CardID || data.ID || '');
-        setVal('cardRemarks', data.CardRemarks || '');
-        setVal('isApproved', data.IsApproved || false);
-        setVal('approvedDate', formatDateForInput(data.ApprovedDate));
+        const toBool = (value) => {
+            if (typeof value === 'boolean') return value;
+            if (typeof value === 'number') return value !== 0;
+            if (typeof value === 'string') {
+                const v = value.trim().toLowerCase();
+                return v === 'true' || v === '1' || v === 'y' || v === 'yes';
+            }
+            return false;
+        };
 
-        setVal('isExported', data.IsExported || false);
-        setVal('exportedDate', formatDateForInput(data.ExportedDate));
-        setVal('isActive', data.IsActive || false);
-        setVal('activatedDate', formatDateForInput(data.ActivatedDate));
+        setVal('trackingId', readField(data, 'TrackingCardID', 'TrackingID') || '');
+        setVal('cardProvider', readField(data, 'CardProvider', 'Provider', 'CardProviderID') || '');
+        setVal('cardName', readField(data, 'CardName', 'NameOnCard') || '');
+        setVal('cardType', readField(data, 'CardType', 'Type', 'CardTypeID') || '');
 
-        setVal('startDate', formatDateForInput(data.StartDate));
-        setVal('expiryDate', formatDateForInput(data.ExpiryDate));
-        setVal('collected', data.Collected || data.IsCollected || false);
-        setVal('collectionDate', formatDateForInput(data.CollectionDate));
+        setVal('cardId', readField(data, 'CardID', 'ID') || '');
+        setVal('cardRemarks', readField(data, 'CardRemarks', 'Remarks') || '');
+        setVal('isApproved', toBool(readField(data, 'IsApproved')));
+        setVal('approvedDate', formatDateForInput(readField(data, 'ApprovedDate', 'ApprovalDate')));
 
-        setVal('deactivationDate', formatDateForInput(data.DeactivationDate));
-        setVal('reason', data.DeactivationReason || data.Reason || data.CardDeactivationReasonID || '');
-        setVal('reactivationDate', formatDateForInput(data.ReactivationDate));
-        setVal('reactivationRemarks', data.ReactivationRemarks || '');
+        setVal('isExported', toBool(readField(data, 'IsExported', 'IsCardExported')));
+        setVal('exportedDate', formatDateForInput(readField(data, 'ExportedDate', 'CardExportedDate')));
+        setVal('isActive', toBool(readField(data, 'IsActive')));
+        setVal('activatedDate', formatDateForInput(readField(data, 'ActivatedDate', 'ActvationDate')));
 
-        setVal('status', data.Status || data.CardStatus || data.CardStatusID || '');
-        setVal('initialTransaction', data.InitialTransaction || '');
+        setVal('startDate', formatDateForInput(readField(data, 'StartDate')));
+        setVal('expiryDate', formatDateForInput(readField(data, 'ExpiryDate')));
+        setVal('collected', toBool(readField(data, 'Collected', 'IsCollected')));
+        setVal('collectionDate', formatDateForInput(readField(data, 'CollectionDate')));
 
-        setVal('MakerID', data.CreatedBy || '-');
-        setVal('MakerDT', fmtDateTime(data.CreatedOn));
-        setVal('ModifierID', data.ModifiedBy || '-');
-        setVal('ModifierDT', fmtDateTime(data.ModifiedOn));
-        setVal('CheckerID', data.CheckedBy || '-');
-        setVal('CheckerDT', fmtDateTime(data.CheckedOn));
+        setVal('deactivationDate', formatDateForInput(readField(data, 'DeactivationDate', 'CardBlockDate')));
+        setVal('reason', readField(data, 'DeactivationReason', 'Reason', 'CardDeactivationReasonID', 'CardBlockReasonID') || '');
+        setVal('reactivationDate', formatDateForInput(readField(data, 'ReactivationDate')));
+        setVal('reactivationRemarks', readField(data, 'ReactivationRemarks') || '');
+
+        setVal('status', readField(data, 'Status', 'CardStatus', 'CardStatusID') || '');
+        setVal('initialTransaction', readField(data, 'InitialTransaction') || '');
+
+        setVal('MakerID', readField(data, 'CreatedBy') || '-');
+        setVal('MakerDT', fmtDateTime(readField(data, 'CreatedOn')));
+        setVal('ModifierID', readField(data, 'ModifiedBy') || '-');
+        setVal('ModifierDT', fmtDateTime(readField(data, 'ModifiedOn', 'Modifiedon')));
+        setVal('CheckerID', readField(data, 'CheckedBy') || '-');
+        setVal('CheckerDT', fmtDateTime(readField(data, 'CheckedOn')));
     }
 
     /* ── Render Grid ─────────────────────────────────────────── */
@@ -259,11 +349,11 @@ window.CardMaintenanceModule = (function () {
             if (index === state.selectedIndex) row.classList.add('table-active');
 
             row.innerHTML = `
-                <td>${item.TrackingID || '-'}</td>
-                <td>${item.CardID || item.ID || '-'}</td>
-                <td>${item.AccountID || '-'}</td>
-                <td>${item.CardProvider || '-'}</td>
-                <td>${item.CardRemarks || '-'}</td>
+                <td>${readField(item, 'TrackingCardID', 'TrackingID') || '-'}</td>
+                <td>${readField(item, 'CardID', 'ID') || '-'}</td>
+                <td>${readField(item, 'AccountID') || '-'}</td>
+                <td>${readField(item, 'CardProvider') || '-'}</td>
+                <td>${readField(item, 'CardRemarks', 'Remarks') || '-'}</td>
             `;
 
             row.addEventListener('click', () => {
@@ -279,7 +369,7 @@ window.CardMaintenanceModule = (function () {
 
     /* ── Load / Navigate ─────────────────────────────────────── */
     async function navigate() {
-        const ctx = getContext();
+        const ctx = refreshContext();
         if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
 
         showLoading(true);
@@ -292,8 +382,7 @@ window.CardMaintenanceModule = (function () {
 
             showLoading(false);
             if (isSuccess(result)) {
-                const d = result.Details || result.Data || result;
-                state.cards = Array.isArray(d) ? d : (d && d.Details01 ? d.Details01 : (typeof d === 'object' ? [d] : []));
+                state.cards = normalizeDetails(result);
 
                 if (state.cards.length > 0) {
                     state.selectedIndex = 0;
@@ -320,7 +409,7 @@ window.CardMaintenanceModule = (function () {
     async function saveData() {
         const isAdd = state.editMode === 'ADD';
         const trackingId = val('trackingId');
-        if (!trackingId) { showMsg('TrackingID is required', 'warning'); return; }
+        if (!trackingId) { showMsg('TrackingCardID is required', 'warning'); return; }
 
         const confirmed = await showConfirm(
             `Are you sure you want to ${isAdd ? 'create' : 'update'} this card?`,
@@ -328,7 +417,7 @@ window.CardMaintenanceModule = (function () {
         );
         if (!confirmed) return;
 
-        const ctx = getContext();
+        const ctx = refreshContext();
         const payload = {
             OurBranchID: ctx.OurBranchID,
             AccountID: ctx.AccountID,
@@ -336,6 +425,7 @@ window.CardMaintenanceModule = (function () {
             OperatorID: ctx.OperatorID,
             SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
 
+            TrackingCardID: trackingId,
             TrackingID: trackingId,
             CardProvider: val('cardProvider'),
             CardProviderID: val('cardProvider'),
@@ -393,14 +483,21 @@ window.CardMaintenanceModule = (function () {
         if (!confirmed) return;
 
         const item = state.cards[state.selectedIndex];
+        const ctx = refreshContext();
+        const itemAccountId = readField(item, 'AccountID') || ctx.AccountID;
+        const itemBranchId = readField(item, 'OurBranchID', 'BranchID') || ctx.OurBranchID;
+        const itemTrackingId = readField(item, 'TrackingCardID', 'TrackingID');
+
         showLoading(true);
         try {
             const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
-                AccountID: item.AccountID,
-                OurBranchID: item.OurBranchID,
-                OperatorID: getContext().OperatorID,
-                SearchKey: `[${item.OurBranchID}:${item.AccountID}]`,
-                CardID: item.CardID || item.ID || ''
+                AccountID: itemAccountId,
+                OurBranchID: itemBranchId,
+                OperatorID: ctx.OperatorID,
+                SearchKey: `[${itemBranchId}:${itemAccountId}]`,
+                TrackingCardID: itemTrackingId,
+                TrackingID: itemTrackingId,
+                CardID: readField(item, 'CardID', 'ID') || ''
             });
 
             showLoading(false);
@@ -430,15 +527,16 @@ window.CardMaintenanceModule = (function () {
 
     function clearForm() {
         EDITABLE.forEach(id => setVal(id, ''));
-        setVal('cardName', getContext().AccountName || '');
+        const ctx = refreshContext();
+        setVal('cardName', ctx.AccountName || '');
         setVal('cardId', '');
         AUDIT.forEach(id => setVal(id, '-'));
     }
 
     function init() {
+        const ctx = refreshContext();
         wireSectionToggles();
         setMode('NONE');
-        const ctx = getContext();
         if (ctx.AccountID) navigate();
     }
 

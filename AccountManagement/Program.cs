@@ -2,6 +2,8 @@ using Asp.Versioning;
 using AccountManagement.Helpers;
 using AccountManagement.Modules.AccountMaintenance;
 using AccountManagement.Modules.Shared;
+using AccountManagement.Modules.StandingInstructionEFT;
+using AccountManagement.Modules.StandingInstructionDemandDraft;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -81,6 +83,8 @@ try
     }, ServiceLifetime.Transient);
 
     builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+    builder.Services.AddScoped<ISIEFTRepo, SIEFTRepo>();
+    builder.Services.AddScoped<ISIDDRepo, SIDDRepo>();
     builder.Services.AddScoped<ISharedRepo, SharedRepo>();
 
     builder.Services.AddAuthentication("oauth2")

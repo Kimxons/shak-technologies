@@ -15,14 +15,40 @@
   }
 
   function getEnv() {
-    const e = window.Environment || {};
-    const session = window.getAuthSession?.() || {};
-    return {
-      operatorId: String(e.operatorId || e.operatorID || session.operatorId || session.name || 'CSADM').trim(),
-      ourBranchId: String(e.OurBranchID || e.branchId || session.branchId || sessionStorage.getItem('BranchID') || '').trim(),
-      bankId: String(e.defaultBankId || e.defaultBankID || e.bankID || sessionStorage.getItem('BankID') || '00').trim(),
-      workingDate: e.workingDate || new Date().toISOString().split('T')[0]
-    };
+    var e = window.Environment || {};
+
+    // Auth session from AuthService (localStorage['nimble_auth_session'])
+    var session = null;
+    try {
+      var raw = localStorage.getItem('nimble_auth_session');
+      if (raw) session = JSON.parse(raw);
+    } catch (_) { /* ignore */ }
+    session = session || {};
+
+    var bankId = String(
+      e.defaultBankId || e.defaultBankID || e.bankID || e.bankId ||
+      sessionStorage.getItem('BankID') || sessionStorage.getItem('bankId') ||
+      session.bankID || session.BankID ||
+      localStorage.getItem('BankID') || '00'
+    ).trim();
+
+    var ourBranchId = String(
+      e.OurBranchID || e.branchID || e.branchId ||
+      sessionStorage.getItem('BranchID') || sessionStorage.getItem('OurBranchID') || sessionStorage.getItem('currentBranchId') ||
+      session.branchID || session.BranchID || session.OurBranchID ||
+      localStorage.getItem('BranchID') || '0603'
+    ).trim();
+
+    var operatorId = String(
+      e.operatorID || e.operatorId || e.UserID ||
+      sessionStorage.getItem('OperatorID') || sessionStorage.getItem('operatorId') ||
+      session.operatorID || session.OperatorID ||
+      localStorage.getItem('OperatorID') || 'CSADM'
+    ).trim();
+
+    var workingDate = String(e.workingDate || e.WorkingDate || e.systemDate || e.SystemDate || '2025-08-29').trim();
+
+    return { bankId: bankId, ourBranchId: ourBranchId, operatorId: operatorId, workingDate: workingDate };
   }
 
   // =========================================================================
@@ -37,15 +63,11 @@
     return appCore.invokeControllerAsync(endpoint, requestData || {});
   }
 
-  async function callOldApi(formId, requestData) {
-    return invokeController('old-api', { FormId: formId, RequestData: requestData });
-  }
-
   // =========================================================================
   // Constants
   // =========================================================================
   const MODULE_ID = '5080';
-  const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || MODULE_ID);
+  const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || window.Environment?.microfinanceModuleId || '5060');
 
   // =========================================================================
   // State
@@ -113,20 +135,41 @@
     return el;
   }
 
-  function showToast(message, variant) {
-    const container = ensureToastContainer();
-    const toast = document.createElement('div');
-    toast.className = 'kairo-toast kairo-toast--' + (variant || 'info');
+  function showToast(message, options) {
+    var opts = typeof options === 'string' ? { variant: options } : (options || {});
+    var variant = opts.variant || 'info';
+    var timeoutMs = opts.timeoutMs || 5000;
+
+    var container = ensureToastContainer();
+    container.querySelectorAll('.kairo-toast').forEach(function (t) { t.remove(); });
+
+    var toast = document.createElement('div');
+    toast.className = 'kairo-toast kairo-toast--' + variant;
     toast.setAttribute('role', 'alert');
-    toast.textContent = message;
+    toast.setAttribute('aria-atomic', 'true');
+
+    var body = document.createElement('div');
+    body.className = 'kairo-toast__body';
+    body.textContent = String(message || '');
+
+    toast.appendChild(body);
     container.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('show'));
-    setTimeout(() => {
-      toast.classList.remove('show');
-      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
-      setTimeout(() => toast.remove(), 500);
-    }, 5000);
+
+    var remove = function () {
+      try {
+        toast.classList.remove('is-show');
+        setTimeout(function () { toast.remove(); }, 160);
+      } catch { /* ignore */ }
+    };
+
+    setTimeout(function () { toast.classList.add('is-show'); }, 0);
+    if (timeoutMs > 0) setTimeout(remove, timeoutMs);
   }
+
+  function showSuccess(msg) { showToast(msg, { variant: 'success' }); }
+  function showError(msg) { showToast(msg, { variant: 'danger' }); }
+  function showWarning(msg) { showToast(msg, { variant: 'warning' }); }
+  function showInfo(msg) { showToast(msg, { variant: 'info' }); }
 
   window.showToast = showToast;
 
@@ -146,46 +189,57 @@
     return searchModal;
   }
 
-  // LOOKUP_CONFIG pattern per MODULE_MIGRATION_CHEATSHEET
+  // LOOKUP_CONFIG — matches legacy searchGroupClientID / searchGroupID / searchSubGroupID
+  // Center & Group use same pattern as change-center-group.js (moduleID 5060)
   const LOOKUP_CONFIG = {
     client: {
-      getTableID: () => currentFormState === 'add' ? 'ClientWithoutGroupID' : 'GroupClientID',
-      moduleID: MODULE_ID,
-      getAdvFilterString: () => '',
-      pageSize: 500,
+      getTableID: function () { return currentFormState === 'add' ? 'ClientWithoutGroupID' : 'GroupClientID'; },
+      moduleID: DEFAULT_SEARCH_MODULE_ID,
+      getAdvFilterString: function () { return ''; },
       onSelect: function (selected) {
         if (!selected) return;
         clientIdInput.value = selected.ClientID || '';
-        if (clientNameInput) clientNameInput.value = selected.ClientName || '';
-        if (centerIdInput) centerIdInput.value = selected.GroupID || '';
-        if (centerNameInput) centerNameInput.value = selected.GroupName || '';
-        clientIdInput.dispatchEvent(new Event('change', { bubbles: true }));
+        if (clientNameInput) clientNameInput.value = selected.ClientName || selected.Name || '';
+        if (currentFormState !== 'add') {
+          // View/browse: populate center & group from the client's membership
+          if (centerIdInput) centerIdInput.value = selected.GroupID || '';
+          if (centerNameInput) centerNameInput.value = selected.GroupName || '';
+          if (groupIdInput) groupIdInput.value = selected.SubGroupID || '';
+          if (groupNameInput) groupNameInput.value = selected.SubGroupName || '';
+        }
       }
     },
     center: {
       tableID: 'GroupID',
-      moduleID: MODULE_ID,
+      moduleID: DEFAULT_SEARCH_MODULE_ID,
       getAdvFilterString: function () {
         var env = getEnv();
-        return "OurBranchID='" + env.ourBranchId + "' AND GroupStatusID='A'";
+        var safeBranchId = String(env.ourBranchId || '').replace(/'/g, "''");
+        return safeBranchId ? "OurBranchID='" + safeBranchId + "' AND GroupStatusID='A'" : "GroupStatusID='A'";
       },
-      pageSize: 500,
       onSelect: async function (selected) {
         if (!selected) return;
         centerIdInput.value = selected.GroupID || '';
         if (centerNameInput) centerNameInput.value = selected.GroupName || '';
+        // Clear group — groups depend on the selected center
+        if (groupIdInput) groupIdInput.value = '';
+        if (groupNameInput) groupNameInput.value = '';
         await fetchGroupProductDetails(selected.GroupID);
       }
     },
     group: {
       tableID: 'SubGroupID',
-      moduleID: MODULE_ID,
+      moduleID: DEFAULT_SEARCH_MODULE_ID,
       getAdvFilterString: function () {
         var env = getEnv();
         var centerId = String(centerIdInput?.value || '').trim();
-        return "OurBranchID='" + env.ourBranchId + "'" + (centerId ? " AND GroupID='" + centerId + "'" : '');
+        var safeBranchId = String(env.ourBranchId || '').replace(/'/g, "''");
+        var safeCenterId = String(centerId).replace(/'/g, "''");
+        var parts = [];
+        if (safeBranchId) parts.push("OurBranchID='" + safeBranchId + "'");
+        if (safeCenterId) parts.push("GroupID='" + safeCenterId + "'");
+        return parts.join(' AND ');
       },
-      pageSize: 500,
       onSelect: function (selected) {
         if (!selected) return;
         groupIdInput.value = selected.SubGroupID || selected.GroupID || '';
@@ -193,6 +247,44 @@
       }
     }
   };
+
+  // =========================================================================
+  // Background Search — uses SearchModal/Search (same endpoint as lookup button)
+  // =========================================================================
+  async function backgroundSearch(tableID, advFilterString, whereStmt, moduleID) {
+    var appCore = getAppCore();
+    if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
+      throw new Error('AppCore is not available');
+    }
+
+    var env = getEnv();
+    var response = await appCore.invokeControllerAsync('SearchModal/Search', {
+      TableID: tableID,
+      WhereStmt: whereStmt || '',
+      AdvFilterString: advFilterString || '',
+      SearchKey: '',
+      ModuleID: String(moduleID || DEFAULT_SEARCH_MODULE_ID),
+      PageSize: 20,
+      RefID: '',
+      PrevOrNext: 1,
+      OurBranchID: env.ourBranchId
+    });
+
+    var results = [];
+    if (response?.success && response?.data) {
+      var d = response.data;
+      if (Array.isArray(d)) {
+        results = d;
+      } else if (d.Details) {
+        results = Array.isArray(d.Details) ? d.Details : [d.Details];
+      } else if (d.details?.SearchResults) {
+        results = Array.isArray(d.details.SearchResults) ? d.details.SearchResults : [];
+      } else if (d.Records) {
+        results = Array.isArray(d.Records) ? d.Records : [];
+      }
+    }
+    return results;
+  }
 
   function openLookup(type) {
     var modal = getSearchModal();
@@ -210,11 +302,10 @@
 
     modal.open({
       tableID: tableID,
-      moduleID: config.moduleID || MODULE_ID,
+      moduleID: config.moduleID || DEFAULT_SEARCH_MODULE_ID,
       whereStmt: '',
       advFilterString: advFilterString,
       searchKey: '',
-      pageSize: config.pageSize || 500,
       ourbranchId: env.ourBranchId,
       onSelect: config.onSelect
     });
@@ -227,7 +318,7 @@
     if (!groupId) return;
     try {
       var env = getEnv();
-      var result = await callOldApi('dbo.p_GetGroupProductDetails', {
+      var result = await invokeController('get-group-product-details', {
         GroupID: groupId,
         OurBranchID: env.ourBranchId
       });
@@ -239,9 +330,7 @@
         if (maxOtherLoansInput) maxOtherLoansInput.value = details.MaxLoans ?? details.maxOtherLoans ?? '';
         if (maxOtherLoanLimitInput) maxOtherLoanLimitInput.value = details.MaxLoanLimit ?? details.maxOtherLoanLimit ?? '';
       } else {
-        showToast('Group Product Details Not found', 'warning');
-        centerIdInput.value = '';
-        if (centerNameInput) centerNameInput.value = '';
+        showWarning('Group Product Details not found for this center');
         if (maxGroupLoansInput) maxGroupLoansInput.value = '';
         if (maxGroupLoanLimitInput) maxGroupLoanLimitInput.value = '';
         if (maxOtherLoansInput) maxOtherLoansInput.value = '';
@@ -358,7 +447,21 @@
 
   function setValue(el, value) {
     if (!el) return;
-    el.value = value === null || value === undefined ? '' : value;
+    var v = (value === null || value === undefined) ? '' : value;
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+      el.value = v;
+    } else {
+      el.textContent = v || '-';
+    }
+  }
+
+  function getValue(el) {
+    if (!el) return '';
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+      return el.value || '';
+    }
+    var text = el.textContent || '';
+    return text === '-' ? '' : text;
   }
 
   function getFirstNonEmptyValue(obj) {
@@ -381,7 +484,7 @@
     setValue(centerIdInput, member.GroupID);
     setValue(centerNameInput, member.GroupName);
     setValue(groupIdInput, member.SubGroupID);
-    setValue(groupNameInput, member.GroupName || member.GroupLeaderDesc || '');
+    setValue(groupNameInput, member.SubGroupName || member.GroupLeaderDesc || '');
     if (joinOnInput) {
       joinOnInput.value = formatDateOnly(member.JoinDate);
     }
@@ -426,21 +529,56 @@
     currentFormState = mode;
     stopJoinOnGuard();
 
-    if (mode === 'edit') {
+    if (mode === 'view') {
+      // After loading data — all detail fields disabled, edit/delete available
       setDisabled(document.querySelector('[data-cmm-action="view"]'), true);
       setDisabled(document.querySelector('[data-cmm-action="add"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="edit"]'), false);
+      setDisabled(document.querySelector('[data-cmm-action="delete"]'), false);
+      setDisabled(document.querySelector('[data-cmm-action="save"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
+
       setDisabled(clientIdInput, true);
+      setDisabled(referenceNoInput, true);
+      setDisabled(seriesInput, true);
+      disableLookupButton('client');
+      setDisabled(centerIdInput, true);
+      disableLookupButton('center');
+      setDisabled(groupIdInput, true);
+      disableLookupButton('group');
+      setDisabled(joinOnInput, true);
+      setDisabled(maxGroupLoansInput, true);
+      setDisabled(maxGroupLoanLimitInput, true);
+      setDisabled(maxOtherLoansInput, true);
+      setDisabled(maxOtherLoanLimitInput, true);
+      setDisabled(centerLeaderInput, true);
+    } else if (mode === 'edit') {
+      // Edit mode — detail fields enabled for editing
+      setDisabled(document.querySelector('[data-cmm-action="view"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="add"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="edit"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="delete"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="save"]'), false);
+      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
+
+      setDisabled(clientIdInput, true);
+      setDisabled(referenceNoInput, true);
+      setDisabled(seriesInput, true);
+      disableLookupButton('client');
+      setDisabled(centerIdInput, true);
+      disableLookupButton('center');
+      setDisabled(groupIdInput, true);
+      disableLookupButton('group');
+
       setDisabled(joinOnInput, false);
       forceEnableJoinOn();
       requestAnimationFrame(forceEnableJoinOn);
       setTimeout(forceEnableJoinOn, 0);
       startJoinOnGuard();
-      disableLookupButton('client');
-
-      setDisabled(document.querySelector('[data-cmm-action="edit"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="delete"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
-      setDisabled(document.querySelector('[data-cmm-action="save"]'), true);
+      setDisabled(maxGroupLoansInput, false);
+      setDisabled(maxGroupLoanLimitInput, false);
+      setDisabled(maxOtherLoansInput, false);
+      setDisabled(maxOtherLoanLimitInput, false);
     } else if (mode === 'add') {
       clearMemberDetails();
 
@@ -451,6 +589,8 @@
       setDisabled(document.querySelector('[data-cmm-action="save"]'), false);
       setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
 
+      setDisabled(referenceNoInput, true);
+      setDisabled(seriesInput, true);
       setDisabled(clientIdInput, false);
       enableLookupButton('client');
       setDisabled(centerIdInput, false);
@@ -462,11 +602,17 @@
       requestAnimationFrame(forceEnableJoinOn);
       setTimeout(forceEnableJoinOn, 0);
       startJoinOnGuard();
+      setDisabled(maxGroupLoansInput, false);
+      setDisabled(maxGroupLoanLimitInput, false);
+      setDisabled(maxOtherLoansInput, false);
+      setDisabled(maxOtherLoanLimitInput, false);
     } else {
       // browse
       setDisabled(document.querySelector('[data-cmm-action="view"]'), false);
       setDisabled(document.querySelector('[data-cmm-action="add"]'), false);
       setDisabled(clientIdInput, false);
+      setDisabled(referenceNoInput, false);
+      setDisabled(seriesInput, false);
       enableLookupButton('client');
 
       setDisabled(document.querySelector('[data-cmm-action="edit"]'), true);
@@ -479,12 +625,16 @@
       setDisabled(groupIdInput, true);
       disableLookupButton('group');
       setDisabled(joinOnInput, true);
+      setDisabled(maxGroupLoansInput, true);
+      setDisabled(maxGroupLoanLimitInput, true);
+      setDisabled(maxOtherLoansInput, true);
+      setDisabled(maxOtherLoanLimitInput, true);
     }
   }
 
-  // Disable fields on load
+  // Disable fields on load (ReferenceNo and Series remain enabled for browse/view filtering)
   (function disableFieldsOnLoad() {
-    ['ReferenceNo', 'Series', 'CenterId', 'GroupId', 'JoinOn',
+    ['CenterId', 'GroupId', 'JoinOn',
       'MaxGroupLoans', 'MaxGroupLoanLimit', 'MaxOtherLoans', 'MaxOtherLoanLimit', 'CenterLeader'
     ].forEach(disableById);
     disableLookupButton('center');
@@ -492,7 +642,7 @@
   })();
 
   // =========================================================================
-  // Client ID Change Handler
+  // Client ID Change Handler (uses backgroundSearch via SearchModal/Search)
   // =========================================================================
   clientIdInput.addEventListener('change', async function () {
     var val = String(clientIdInput.value || '').trim();
@@ -504,57 +654,43 @@
     }
 
     try {
-      var env = getEnv();
-      if (currentFormState === 'add') {
-        var result = await callOldApi('dbo.p_GetIDDescription', {
-          OurBranchID: env.ourBranchId,
-          ControlTypeID: 'ClientWithoutGroupID',
-          ID: val,
-          BankID: env.bankId,
-          TypeID: '',
-          AdvanceFilter: '',
-          LanguageID: 'en'
-        });
-        var details = result?.Details?.[0] || null;
-        if (details) {
-          if (clientNameInput) clientNameInput.value = details.ClientName || '';
-          if (centerIdInput) centerIdInput.value = '';
-          if (centerNameInput) centerNameInput.value = '';
-        } else {
-          showToast('Invalid Non Group Client', 'warning');
-          clientIdInput.value = '';
-          if (clientNameInput) clientNameInput.value = '';
+      var config = LOOKUP_CONFIG.client;
+      var tableID = typeof config.getTableID === 'function' ? config.getTableID() : config.tableID;
+      var advFilter = typeof config.getAdvFilterString === 'function' ? config.getAdvFilterString() : '';
+      var safeVal = String(val).replace(/'/g, "''");
+      var whereStmt = "ClientID='" + safeVal + "'";
+
+      var results = await backgroundSearch(tableID, advFilter, whereStmt, config.moduleID);
+
+      if (results.length > 0) {
+        var selected = results[0];
+        if (clientNameInput) clientNameInput.value = selected.ClientName || selected.Name || '';
+        if (currentFormState !== 'add') {
+          // In browse mode, populate center & group from the search result
+          if (centerIdInput) centerIdInput.value = selected.GroupID || '';
+          if (centerNameInput) centerNameInput.value = selected.GroupName || '';
+          if (groupIdInput) groupIdInput.value = selected.SubGroupID || '';
+          if (groupNameInput) groupNameInput.value = selected.SubGroupName || '';
         }
+        // In add mode, client/center/group are independent — don't touch center or group fields
       } else {
-        var result = await callOldApi('dbo.p_GetIDDescription', {
-          OurBranchID: env.ourBranchId,
-          ControlTypeID: 'GroupClientID',
-          ID: val,
-          BankID: env.bankId,
-          TypeID: '',
-          AdvanceFilter: '',
-          LanguageID: 'en'
-        });
-        var details = result?.Details?.[0] || null;
-        if (details) {
-          var nameValue = details.ClientName || getFirstNonEmptyValue(details);
-          if (clientNameInput) clientNameInput.value = nameValue;
-        } else {
-          showToast('Invalid Group Client', 'warning');
-          clientIdInput.value = '';
-          if (clientNameInput) clientNameInput.value = '';
-        }
+        if (clientNameInput) clientNameInput.value = '';
+        showWarning('Client not found');
       }
     } catch (err) {
       console.error('[CenterMemberMaintenance] ClientId resolve failed:', err);
+      showError('Error resolving Client ID');
     }
   });
 
   // =========================================================================
-  // Center ID Change Handler
+  // Center ID Change Handler (uses backgroundSearch via SearchModal/Search)
   // =========================================================================
   centerIdInput.addEventListener('change', async function () {
     var val = String(centerIdInput.value || '').trim();
+    // Always clear group when center changes (groups depend on the center)
+    if (groupIdInput) groupIdInput.value = '';
+    if (groupNameInput) groupNameInput.value = '';
     if (!val) {
       if (centerNameInput) centerNameInput.value = '';
       if (maxGroupLoansInput) maxGroupLoansInput.value = '';
@@ -565,37 +701,29 @@
     }
 
     try {
-      var env = getEnv();
-      var result = await callOldApi('dbo.p_GetIDDescription', {
-        OurBranchID: env.ourBranchId,
-        ControlTypeID: 'GroupID',
-        ID: val,
-        BankID: env.bankId,
-        TypeID: '',
-        AdvanceFilter: "GroupID='" + val + "' AND OurBranchID='" + env.ourBranchId + "'",
-        LanguageID: 'en'
-      });
-      var details = result?.Details?.[0] || null;
-      if (details) {
-        if (centerNameInput) centerNameInput.value = details.GroupName || '';
+      var config = LOOKUP_CONFIG.center;
+      var advFilter = typeof config.getAdvFilterString === 'function' ? config.getAdvFilterString() : '';
+      var safeVal = String(val).replace(/'/g, "''");
+      var whereStmt = "GroupID='" + safeVal + "'";
+
+      var results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleID);
+
+      if (results.length > 0) {
+        var selected = results[0];
+        if (centerNameInput) centerNameInput.value = selected.GroupName || '';
         await fetchGroupProductDetails(val);
       } else {
-        showToast('Invalid Center ID', 'warning');
-        centerIdInput.value = '';
         if (centerNameInput) centerNameInput.value = '';
-        if (maxGroupLoansInput) maxGroupLoansInput.value = '';
-        if (maxGroupLoanLimitInput) maxGroupLoanLimitInput.value = '';
-        if (maxOtherLoansInput) maxOtherLoansInput.value = '';
-        if (maxOtherLoanLimitInput) maxOtherLoanLimitInput.value = '';
+        showWarning('Center not found');
       }
     } catch (err) {
       console.error('[CenterMemberMaintenance] CenterId validation failed:', err);
-      showToast('Failed to validate Center ID: ' + (err?.message || 'Unknown error'), 'danger');
+      showError('Error validating Center ID');
     }
   });
 
   // =========================================================================
-  // Group ID Change Handler
+  // Group ID Change Handler (uses backgroundSearch via SearchModal/Search)
   // =========================================================================
   groupIdInput.addEventListener('change', async function () {
     var val = String(groupIdInput.value || '').trim();
@@ -605,28 +733,23 @@
     }
 
     try {
-      var env = getEnv();
-      var centerId = String(centerIdInput?.value || '').trim();
-      var result = await callOldApi('dbo.p_GetIDDescription', {
-        OurBranchID: env.ourBranchId,
-        ControlTypeID: 'SubGroupID',
-        ID: val,
-        BankID: env.bankId,
-        TypeID: '',
-        AdvanceFilter: "GroupID='" + centerId + "' AND OurBranchID='" + env.ourBranchId + "'",
-        LanguageID: 'en'
-      });
-      var details = result?.Details?.[0] || null;
-      if (details) {
-        if (groupNameInput) groupNameInput.value = details.SubGroupID || details.SubGroupName || '';
+      var config = LOOKUP_CONFIG.group;
+      var advFilter = typeof config.getAdvFilterString === 'function' ? config.getAdvFilterString() : '';
+      var safeVal = String(val).replace(/'/g, "''");
+      var whereStmt = "SubGroupID='" + safeVal + "'";
+
+      var results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleID);
+
+      if (results.length > 0) {
+        var selected = results[0];
+        if (groupNameInput) groupNameInput.value = selected.SubGroupName || selected.GroupName || '';
       } else {
-        showToast('Invalid Group ID', 'warning');
-        groupIdInput.value = '';
         if (groupNameInput) groupNameInput.value = '';
+        showWarning('Group not found');
       }
     } catch (err) {
       console.error('[CenterMemberMaintenance] GroupId validation failed:', err);
-      showToast('Failed to validate Group ID: ' + (err?.message || 'Unknown error'), 'danger');
+      showError('Error validating Group ID');
     }
   });
 
@@ -649,7 +772,7 @@
     setDisabled(viewBtn, true);
 
     try {
-      var result = await callOldApi('dbo.p_GetGroupMembers', {
+      var result = await invokeController('get-group-members', {
         ClientID: clientId,
         OurBranchID: env.ourBranchId,
         OperatorID: env.operatorId,
@@ -658,10 +781,20 @@
         Direction: direction
       });
 
-      var members = result?.Details || [];
-      var first = Array.isArray(members) ? members[0] : null;
+      // Actual member data is in Details01; Details is metadata/placeholder
+      var root = result?.data ?? result;
+      var members = [];
+      var details01 = root?.Details01 ?? root?.details01;
+      var details = root?.Details ?? root?.details;
+      if (Array.isArray(details01) && details01.length > 0) {
+        members = details01;
+      } else if (Array.isArray(details) && details.length > 0) {
+        members = details;
+      }
+      var first = members[0] || null;
 
-      if (!first) {
+      // Detect empty placeholder response (no actual member data)
+      if (!first || (!first.ClientID && !first.GroupID && !first.RefID)) {
         if (direction !== 0) {
           showToast('No more records available in this direction', 'info');
           setDisabled(viewBtn, false);
@@ -676,7 +809,7 @@
       bindMemberDetails(first);
       currentUpdateCount = first.UpdateCount || 0;
       setDisabled(viewBtn, true);
-      setFormState('edit');
+      setFormState('view');
 
       var previousBtn = document.querySelector('[data-cmm-nav="previous"]');
       var nextBtn = document.querySelector('[data-cmm-nav="next"]');
@@ -713,7 +846,7 @@
     try {
       var isAdd = currentFormState === 'add';
       var groupId = String(groupIdInput?.value || '').trim();
-      var supervisedBy = behindFields.supervisedBy?.value || '';
+      var supervisedBy = getValue(behindFields.supervisedBy);
 
       var requestData = {
         ClientID: clientId,
@@ -721,14 +854,14 @@
         OurBranchID: env.ourBranchId,
         GroupID: centerId,
         SubGroupID: groupId,
-        RegistrationDate: env.workingDate,
+        RegistrationDate: isAdd ? env.workingDate : (env.workingDate || joinOnDate),
         JoinDate: joinOnDate,
         MaxGroupLoans: Number(maxGroupLoansInput?.value || 0),
         MaxGroupLoanLimit: Number(maxGroupLoanLimitInput?.value || 0),
         MaxLoans: Number(maxOtherLoansInput?.value || 0),
         MaxLoanLimit: Number(maxOtherLoanLimitInput?.value || 0),
-        CreatedBy: isAdd ? env.operatorId : (behindFields.createdBy?.value || ''),
-        CreatedOn: isAdd ? new Date().toISOString() : (behindFields.createdOn?.value || ''),
+        CreatedBy: isAdd ? env.operatorId : getValue(behindFields.createdBy),
+        CreatedOn: isAdd ? new Date().toISOString() : getValue(behindFields.createdOn),
         ModifiedBy: isAdd ? '' : env.operatorId,
         ModifiedOn: isAdd ? '' : new Date().toISOString(),
         SupervisedBy: supervisedBy,
@@ -737,7 +870,7 @@
         GroupLeaderID: String(centerLeaderInput?.value || '').trim()
       };
 
-      var result = await callOldApi('dbo.p_AddEditGroupMembers', requestData);
+      var result = await invokeController('save-group-member', requestData);
 
       if (result?.Details !== undefined) {
         showToast('Center Member saved successfully', 'success');
@@ -775,9 +908,14 @@
   }
 
   async function deleteClientMember() {
-    if (!confirm('Do you want to Abort/Discard the changes?\n[No:1100]')) {
-      return;
+    var appCore = getAppCore();
+    var confirmed = false;
+    if (appCore && typeof appCore.showConfirmation === 'function') {
+      confirmed = await appCore.showConfirmation('Confirm Delete', 'Do you want to Abort/Discard the changes? [No:1100]');
+    } else {
+      confirmed = confirm('Do you want to Abort/Discard the changes?\n[No:1100]');
     }
+    if (!confirmed) return;
 
     var clientId = String(clientIdInput?.value || '').trim();
     var refNo = String(referenceNoInput?.value || '').trim();
@@ -787,7 +925,7 @@
     setDisabled(deleteBtn, true);
 
     try {
-      var result = await callOldApi('dbo.p_DeleteGroupMembers', {
+      var result = await invokeController('delete-group-member', {
         ClientID: clientId,
         RefID: refNo,
         Series: series,
@@ -816,67 +954,48 @@
   // =========================================================================
   // Event Wiring — Action Buttons
   // =========================================================================
-  document.querySelector('[data-cmm-action="view"]')?.addEventListener('click', function (e) {
-    e.preventDefault();
-    viewMemberMaintenance();
-  });
+  function wireActionButtons() {
+    document.querySelector('[data-cmm-action="view"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      viewMemberMaintenance();
+    });
 
-  document.querySelector('[data-cmm-action="add"]')?.addEventListener('click', function (e) {
-    e.preventDefault();
-    setFormState('add');
-    requestAnimationFrame(forceEnableJoinOn);
-    setTimeout(forceEnableJoinOn, 0);
-    startJoinOnGuard();
-  });
+    document.querySelector('[data-cmm-action="add"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      setFormState('add');
+      requestAnimationFrame(forceEnableJoinOn);
+      setTimeout(forceEnableJoinOn, 0);
+      startJoinOnGuard();
+    });
 
-  document.querySelector('[data-cmm-action="cancel"]')?.addEventListener('click', function (e) {
-    e.preventDefault();
-    clearMemberDetails();
-    setFormState('browse');
-  });
+    document.querySelector('[data-cmm-action="cancel"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      clearMemberDetails();
+      setFormState('browse');
+    });
 
-  document.querySelector('[data-cmm-action="edit"]')?.addEventListener('click', function (e) {
-    e.preventDefault();
+    document.querySelector('[data-cmm-action="edit"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      setFormState('edit');
 
-    setDisabled(document.querySelector('[data-cmm-action="view"]'), true);
-    setDisabled(document.querySelector('[data-cmm-action="add"]'), true);
-    setDisabled(document.querySelector('[data-cmm-action="edit"]'), true);
-    setDisabled(document.querySelector('[data-cmm-action="delete"]'), true);
+      setDisabled(document.querySelector('[data-cmm-action="save"]'), false);
 
-    setDisabled(clientIdInput, true);
-    disableLookupButton('client');
-    setDisabled(centerIdInput, true);
-    disableLookupButton('center');
-    setDisabled(groupIdInput, true);
-    disableLookupButton('group');
+      joinOnInput?.focus();
+    });
 
-    setDisabled(joinOnInput, false);
-    forceEnableJoinOn();
-    requestAnimationFrame(forceEnableJoinOn);
-    setTimeout(forceEnableJoinOn, 0);
-    startJoinOnGuard();
+    document.querySelector('[data-cmm-action="save"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      saveCenterMember();
+    });
 
-    setDisabled(maxGroupLoansInput, true);
-    setDisabled(maxGroupLoanLimitInput, true);
-    setDisabled(maxOtherLoansInput, true);
-    setDisabled(maxOtherLoanLimitInput, true);
-    setDisabled(centerLeaderInput, true);
+    document.querySelector('[data-cmm-action="delete"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      deleteClientMember();
+    });
+  }
 
-    setDisabled(document.querySelector('[data-cmm-action="save"]'), false);
-    setDisabled(document.querySelector('[data-cmm-action="cancel"]'), false);
-
-    joinOnInput?.focus();
-  });
-
-  document.querySelector('[data-cmm-action="save"]')?.addEventListener('click', function (e) {
-    e.preventDefault();
-    saveCenterMember();
-  });
-
-  document.querySelector('[data-cmm-action="delete"]')?.addEventListener('click', function (e) {
-    e.preventDefault();
-    deleteClientMember();
-  });
+  // Wire main action buttons on initial load
+  wireActionButtons();
 
   // Navigation
   document.querySelector('[data-cmm-nav="previous"]')?.addEventListener('click', function (e) {
@@ -1012,7 +1131,7 @@
 
     var applySubmoduleFilter = function () {
       var searchTerm = String(searchInput.value || '').toLowerCase().trim();
-      var allItems = document.querySelectorAll('.sidebar-item--enhanced[data-cmm-open]');
+      var allItems = document.querySelectorAll('.sidebar-item--enhanced[data-submodule]');
       var sections = Array.from(document.querySelectorAll('[data-nav-section]'));
 
       allItems.forEach(function (item) {
@@ -1023,7 +1142,7 @@
       });
 
       sections.forEach(function (section) {
-        var items = section.querySelectorAll('.sidebar-item--enhanced[data-cmm-open]');
+        var items = section.querySelectorAll('.sidebar-item--enhanced[data-submodule]');
         var visibleItems = Array.from(items).filter(function (item) { return item.style.display !== 'none'; });
         var navItems = section.querySelector('.menu-items');
         if (!navItems) return;
@@ -1082,25 +1201,35 @@
   });
 
   // =========================================================================
-  // Docked DataEntry (Submodule Iframe)
+  // Submodule Loading (fetch + innerHTML pattern, like Account Maintenance)
   // =========================================================================
-  var closeDockedDataEntry = null;
-  var activeDockedFrameWindow = null;
 
-  window.addEventListener('message', function (evt) {
-    try {
-      if (!evt || !evt.data || evt.data.type !== 'kairo-dataentry-close') return;
-      if (activeDockedFrameWindow && evt.source !== activeDockedFrameWindow) return;
-      closeDockedDataEntry?.();
-    } catch { /* ignore */ }
-  });
+  function executeScripts(scripts) {
+    return scripts.reduce(function (promise, scriptStub) {
+      return promise.then(function () {
+        return new Promise(function (resolve) {
+          var newScript = document.createElement('script');
+          Array.from(scriptStub.attributes).forEach(function (attr) {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+          if (scriptStub.textContent) {
+            newScript.textContent = scriptStub.textContent;
+          }
+          if (newScript.src) {
+            newScript.onload = function () { resolve(); };
+            newScript.onerror = function () { resolve(); };
+            document.body.appendChild(newScript);
+          } else {
+            document.body.appendChild(newScript);
+            setTimeout(resolve, 10);
+          }
+        });
+      });
+    }, Promise.resolve());
+  }
 
-  document.querySelector('.sidebar-content')?.addEventListener('click', function (e) {
-    var item = e.target?.closest?.('[data-cmm-open]');
-    if (!item) return;
-    e.preventDefault();
-
-    if (currentFormState !== 'edit') {
+  function loadSubmoduleView(submoduleName) {
+    if (currentFormState !== 'view' && currentFormState !== 'edit') {
       showToast('Please load a record in View Mode before accessing this module.', 'warning');
       return;
     }
@@ -1111,92 +1240,170 @@
     var clientName = String(clientNameInput?.value || '').trim();
 
     if (!referenceNo || !series || !clientId || !clientName) {
-      showToast('Please ensure all required fields (Reference No, Series, Client ID, and Client Name) are filled in the master screen before accessing this module.', 'warning');
+      showToast('Please ensure all required fields (Reference No, Series, Client ID, and Client Name) are filled before accessing this module.', 'warning');
       return;
     }
 
-    var url = item.getAttribute('data-cmm-open');
-    var modalEl = document.getElementById('centerMemberMaintenanceDataEntryModal');
-    var frame = document.getElementById('centerMemberMaintenanceDataEntryFrame');
-    if (!modalEl || !frame || !url) return;
+    fetch('/MicroFinance/CenterMemberMaintenance/' + submoduleName + '?_t=' + Date.now(), {
+      method: 'GET',
+      headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' }
+    })
+      .then(function (response) {
+        if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
+        return response.text();
+      })
+      .then(function (html) {
+        var container = document.getElementById('submodule-container');
+        if (!container) return;
 
-    if (typeof closeDockedDataEntry === 'function') {
-      closeDockedDataEntry();
+        // Hide the main form
+        var mainForm = container.querySelector('[data-main-form]');
+        if (mainForm) mainForm.style.display = 'none';
+
+        // Remove any existing submodule
+        var existingSubmodule = container.querySelector('[data-submodule-content]');
+        if (existingSubmodule) existingSubmodule.remove();
+
+        // Create wrapper, inject HTML
+        var wrapper = document.createElement('div');
+        wrapper.setAttribute('data-submodule-content', submoduleName);
+        wrapper.innerHTML = html;
+
+        // Extract scripts to execute them after insertion
+        var scripts = Array.from(wrapper.querySelectorAll('script'));
+        scripts.forEach(function (s) { s.remove(); });
+        container.appendChild(wrapper);
+
+        var formContent = document.querySelector('.form-content');
+        if (formContent) formContent.scrollTop = 0;
+
+        // Execute scripts then init the submodule
+        executeScripts(scripts).then(function () {
+          updateActionPanelForSubmodule(submoduleName);
+
+          if (submoduleName === 'CenterMemberScheme' && window.CenterMemberSchemeModule && window.CenterMemberSchemeModule.init) {
+            window.CenterMemberSchemeModule.init();
+          }
+        });
+
+        showToast(submoduleName + ' loaded successfully', 'success');
+      })
+      .catch(function (error) {
+        console.error('[CenterMemberMaintenance] Error loading ' + submoduleName + ':', error);
+        showToast('Failed to load ' + submoduleName + ': ' + error.message, 'danger');
+      });
+  }
+
+  function updateActionPanelForSubmodule(submoduleName) {
+    var parentActionPanel = document.querySelector('.main-container > .action-panel');
+    if (!parentActionPanel) return;
+
+    // Hide nav groups
+    parentActionPanel.querySelectorAll('.nav-group').forEach(function (g) { g.style.display = 'none'; });
+
+    // Hide reinstate button
+    var reinstateBtn = parentActionPanel.querySelector('[data-cmm-action="reinstate"]');
+    if (reinstateBtn) reinstateBtn.style.display = 'none';
+
+    var actionButtonsContainer = parentActionPanel.querySelector('.action-buttons');
+    if (!actionButtonsContainer) return;
+
+    // Store original buttons if not already stored
+    if (!parentActionPanel.dataset.originalButtons) {
+      parentActionPanel.dataset.originalButtons = actionButtonsContainer.innerHTML;
     }
 
-    dockDataEntryModal(modalEl);
+    var newButtonsHtml = '';
 
-    var titleText = String(item.querySelector('.sidebar-item__title')?.textContent || '').trim() || 'Submodule';
-    var titleEl = modalEl.querySelector('[data-cmm-de-title]');
-    if (titleEl) titleEl.textContent = titleText;
+    if (submoduleName === 'CenterMemberScheme') {
+      // Remove any previously injected nav groups
+      parentActionPanel.querySelectorAll('.submodule-nav-group').forEach(function (e) { e.remove(); });
 
-    frame.src = url;
-    modalEl.hidden = false;
-    document.body.classList.add('cmm-inline-open');
-    activeDockedFrameWindow = frame.contentWindow;
+      var navGroupHtml = '<div class="nav-group submodule-nav-group">' +
+        '<button class="btn-nav green" type="button" id="submoduleBtnPrev" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>' +
+        '<span>Record</span>' +
+        '<button class="btn-nav green" type="button" id="submoduleBtnNext" aria-label="Next"><i class="bi bi-chevron-right"></i></button>' +
+        '</div>';
 
-    document.querySelectorAll('.sidebar-item--enhanced[data-cmm-open].active').forEach(function (el) { el.classList.remove('active'); });
-    item.classList.add('active');
+      actionButtonsContainer.insertAdjacentHTML('beforebegin', navGroupHtml);
 
-    var onResize = function () { dockDataEntryModal(modalEl); };
-    var onKeyDown = function (evt) {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        closeDockedDataEntry?.();
-      }
-    };
+      newButtonsHtml = '<button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i>View</button>' +
+        '<button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i>Add</button>' +
+        '<button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i>Edit</button>' +
+        '<button class="btn-action btn-delete" type="button" id="submoduleBtnDelete"><i class="bi bi-trash me-1"></i>Delete</button>' +
+        '<button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i>Save</button>' +
+        '<button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>' +
+        '<button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose"><i class="bi bi-box-arrow-right me-1"></i>Close</button>';
+    }
 
-    var closeBtn = modalEl.querySelector('[data-cmm-de-close]');
-    var onCloseClick = function (evt) {
-      evt.preventDefault();
-      closeDockedDataEntry?.();
-    };
-
-    window.addEventListener('resize', onResize);
-    document.addEventListener('keydown', onKeyDown);
-    closeBtn?.addEventListener('click', onCloseClick);
-
-    closeDockedDataEntry = function () {
-      try {
-        window.removeEventListener('resize', onResize);
-        document.removeEventListener('keydown', onKeyDown);
-        closeBtn?.removeEventListener('click', onCloseClick);
-      } catch { /* ignore */ }
-
-      document.querySelectorAll('.sidebar-item--enhanced[data-cmm-open].active').forEach(function (el) { el.classList.remove('active'); });
-
-      frame.src = 'about:blank';
-      modalEl.hidden = true;
-      document.body.classList.remove('cmm-inline-open');
-      closeDockedDataEntry = null;
-      activeDockedFrameWindow = null;
-    };
-  });
-
-  function dockDataEntryModal(modalEl) {
-    try {
-      var sidebar = document.getElementById('main-sidebar') || document.querySelector('.sidebar');
-      var actionPanel = document.querySelector('.action-panel');
-      var windowEl = document.querySelector('.window') || document.body;
-      if (!sidebar || !actionPanel || !windowEl) return;
-
-      var sidebarRect = sidebar.getBoundingClientRect();
-      var actionRect = actionPanel.getBoundingClientRect();
-      var windowRect = windowEl.getBoundingClientRect();
-
-      var left = Math.round(sidebarRect.right);
-      var top = Math.round(windowRect.top);
-      var height = Math.round(windowRect.height);
-      var width = Math.max(320, Math.round(actionRect.right - sidebarRect.right));
-
-      modalEl.style.setProperty('--de-left', left + 'px');
-      modalEl.style.setProperty('--de-top', top + 'px');
-      modalEl.style.setProperty('--de-width', width + 'px');
-      modalEl.style.setProperty('--de-height', height + 'px');
-    } catch (err) {
-      console.warn('[CenterMemberMaintenance] Failed to dock DataEntry modal:', err);
+    if (newButtonsHtml) {
+      actionButtonsContainer.innerHTML = newButtonsHtml;
     }
   }
+
+  function restoreMainActionPanel() {
+    var parentActionPanel = document.querySelector('.main-container > .action-panel');
+    if (!parentActionPanel) return;
+
+    // Show nav groups
+    parentActionPanel.querySelectorAll('.nav-group:not(.submodule-nav-group)').forEach(function (g) { g.style.display = 'flex'; });
+
+    // Show reinstate button
+    var reinstateBtn = parentActionPanel.querySelector('[data-cmm-action="reinstate"]');
+    if (reinstateBtn) reinstateBtn.style.display = '';
+
+    // Remove injected submodule nav groups
+    parentActionPanel.querySelectorAll('.submodule-nav-group').forEach(function (e) { e.remove(); });
+
+    var actionButtonsContainer = parentActionPanel.querySelector('.action-buttons');
+    if (actionButtonsContainer && parentActionPanel.dataset.originalButtons) {
+      actionButtonsContainer.innerHTML = parentActionPanel.dataset.originalButtons;
+      delete parentActionPanel.dataset.originalButtons;
+    }
+
+    // Re-wire the main action buttons
+    wireActionButtons();
+  }
+
+  function closeSubmodule() {
+    var container = document.getElementById('submodule-container');
+    if (!container) return;
+
+    // Remove the submodule content
+    var submoduleContent = container.querySelector('[data-submodule-content]');
+    if (submoduleContent) submoduleContent.remove();
+
+    // Show the main form again
+    var mainForm = container.querySelector('[data-main-form]');
+    if (mainForm) mainForm.style.display = '';
+
+    // Restore the main action panel
+    restoreMainActionPanel();
+
+    // Remove active state from sidebar
+    document.querySelectorAll('.sidebar-item--enhanced[data-submodule].active').forEach(function (el) {
+      el.classList.remove('active');
+    });
+  }
+
+  // Expose closeSubmodule for submodule scripts to call
+  window.closeSubmodule = closeSubmodule;
+
+  // Sidebar click handler — loads submodule inline
+  document.querySelector('.sidebar-content')?.addEventListener('click', function (e) {
+    var item = e.target?.closest?.('[data-submodule]');
+    if (!item) return;
+    e.preventDefault();
+
+    var submoduleName = item.getAttribute('data-submodule');
+    if (!submoduleName) return;
+
+    // Set active state
+    document.querySelectorAll('.sidebar-item--enhanced[data-submodule].active').forEach(function (el) { el.classList.remove('active'); });
+    item.classList.add('active');
+
+    loadSubmoduleView(submoduleName);
+  });
 
   // =========================================================================
   // Init

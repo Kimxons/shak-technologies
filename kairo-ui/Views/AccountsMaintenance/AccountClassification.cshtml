@@ -1,9 +1,11 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // Migrated from: account-classification.html
-    // Rendered inside parent #submodule-container; parent provides window shell + action panel
-    var classificationCodeOptions = ViewData["ClassificationCodeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var classificationSubCodeOptions = ViewData["ClassificationSubCodeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+  // Migrated from: account-classification.html
+  // Rendered inside parent #submodule-container; parent provides window shell + action panel
+  var classificationCodeOptions = ViewData["ClassificationCodeOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
+  var classificationSubCodeOptions = ViewData["ClassificationSubCodeOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountClassification Submodule -->
@@ -11,7 +13,8 @@
   <div class="form-section" data-section="classification-selection">
     <div class="section-header" data-section-toggle>
       <span class="section-header__title"><i class="bi bi-tags me-1"></i>Classification Selection</span>
-      <button type="button" class="section-toggle-btn" aria-label="Toggle Classification Selection" aria-expanded="true">
+      <button type="button" class="section-toggle-btn" aria-label="Toggle Classification Selection"
+              aria-expanded="true">
         <i class="bi bi-chevron-up"></i>
       </button>
     </div>
@@ -24,7 +27,7 @@
               <option value="">--Select--</option>
               @foreach (var option in classificationCodeOptions)
               {
-                  <option value="@option.Value">@option.Text</option>
+                <option value="@option.Value">@option.Text</option>
               }
             </select>
           </div>
@@ -34,7 +37,7 @@
               <option value="">--Select--</option>
               @foreach (var option in classificationSubCodeOptions)
               {
-                  <option value="@option.Value">@option.Text</option>
+                <option value="@option.Value">@option.Text</option>
               }
             </select>
           </div>
@@ -51,19 +54,49 @@
         <i class="bi bi-chevron-up"></i>
       </button>
     </div>
-    <div class="section-content table-responsive" data-section-content>
-      <table class="table table-sm table-hover" id="classificationGrid">
-        <thead>
-          <tr><th>Class Code</th><th>Sub Class Code</th></tr>
-        </thead>
-        <tbody>
-          <tr class="table__empty"><td colspan="2">No records to display.</td></tr>
-        </tbody>
-      </table>
+    <div class="section-content" data-section-content>
+      <div class="row g-2 align-items-end mb-2" id="classificationFiltersToolbar">
+        <div class="col-12 col-md-8">
+          <label class="label-blue" for="classificationGridSearch">Search</label>
+          <div class="d-flex gap-2">
+            <div class="flex-grow-1 position-relative">
+              <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 text-muted"
+                 aria-hidden="true"></i>
+              <input type="text" id="classificationGridSearch" class="form-control ps-5"
+                     placeholder="Search class code or sub class code" />
+            </div>
+            <button type="button" id="clearClassificationGridSearch" class="btn btn-outline-secondary btn-sm d-none"
+                    title="Clear search">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="label-blue" for="classificationCodeFilter">Class Code</label>
+          <select id="classificationCodeFilter" class="bs-select form-control">
+            <option value="">All class codes</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover" id="classificationGrid">
+          <thead>
+            <tr>
+              <th>Class Code</th>
+              <th>Sub Class Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table__empty">
+              <td colspan="2">No records to display.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <div class="form-section" data-section="behind-scene">
+  <div class="form-section form-section--bts" data-section="behind-scene">
     <div class="section-header" data-section-toggle>
       <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind the Scene</span>
       <button type="button" class="section-toggle-btn" aria-label="Toggle BTS" aria-expanded="true">
@@ -71,16 +104,27 @@
       </button>
     </div>
     <div class="section-content" data-section-content>
-      <div class="audit-section audit-section--summary">
-        <div class="audit-item"><label>Created By</label><span class="audit-value" id="MakerID">-</span></div>
-        <div class="audit-item"><label>Created On</label><span class="audit-value" id="MakerDT">-</span></div>
-        <div class="audit-item"><label>Checked By</label><span class="audit-value" id="CheckerID">-</span></div>
-        <div class="audit-item"><label>Checked On</label><span class="audit-value" id="CheckerDT">-</span></div>
-        <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifierID">-</span></div>
-        <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifierDT">-</span></div>
-      </div>
-    </div>
-  </div>
-</div>
+      <div class="form-row four-col">
+        <div class="col"><label for="MakerID">Created By</label><input id="MakerID" type="text" class="bs-input-text"
+                                                                         value="-" readonly /></div>
+          <div class="col"><label for="MakerDT">Created On</label><input id="MakerDT" type="text" class="bs-input-text"
+                                                                           value="-" readonly /></div>
+            <div class="col"><label for="CheckerID">Checked By</label><input id="CheckerID" type="text"
+                                                                               class="bs-input-text" value="-" readonly /></div>
+              <div class="col"><label for="CheckerDT">Checked On</label><input id="CheckerDT" type="text"
+                                                                                 class="bs-input-text" value="-" readonly /></div>
+              </div>
+              <div class="form-row four-col">
+                <div class="col"><label for="ModifierID">Modified By</label><input id="ModifierID" type="text"
+                                                                                     class="bs-input-text" value="-" readonly /></div>
+                  <div class="col"><label for="ModifierDT">Modified On</label><input id="ModifierDT" type="text"
+                                                                                       class="bs-input-text" value="-" readonly /></div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-<script src="~/js/modules/accountsmaintenance/account-classification.js" asp-append-version="true"></script>
+            <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-classification.js"
+                    asp-append-version="true"></script>

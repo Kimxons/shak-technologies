@@ -57,4 +57,22 @@ namespace kairo_ui.Models.Identities.ClientApproval
         public string? RejectedReason { get; set; }
         public string? DetailRecords { get; set; } // XML of clients to reject
     }
+
+    /// <summary>
+    /// Request model for adding client to supervision queue
+    /// </summary>
+    public class ClientSupervisionDataRequest : ClientApprovalBaseRequest
+    {
+        public string? ClientID { get; set; }
+        public int ModuleID { get; set; } = 6961;
+        public int LockModuleID { get; set; } = 6961;
+        public string? Searchkey { get; set; }
+        public string? LockKey { get; set; }
+        public int EventID { get; set; } = 1;
+        public string? NewData { get; set; }
+        public string? OldData { get; set; }
+        public string? Remarks { get; set; }
+        public int NewRecord { get; set; } = 1;
+        public string? IPAddress { get; set; }
+    }
 }

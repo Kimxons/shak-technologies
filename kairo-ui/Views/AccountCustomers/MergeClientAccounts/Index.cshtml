@@ -1,0 +1,672 @@
+@{
+    Layout = null;
+
+    var branchId = Context.Session.GetString("branch_code") ?? Context.Session.GetString("branch_id") ?? string.Empty;
+    var branchName = Context.Session.GetString("branch_name") ?? string.Empty;
+    var operatorId = Context.Session.GetString("user_name") ?? Context.Session.GetString("user_id") ?? string.Empty;
+    var bankId = Context.Session.GetString("bank_id") ?? Context.Session.GetString("bank_code") ?? "00";
+    var moduleId = (ViewData["ModuleId"]?.ToString() ?? Context.Request.Query["ModuleID"].ToString() ?? "9900").Trim();
+    if (string.IsNullOrWhiteSpace(moduleId))
+    {
+        moduleId = "9900";
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Merge Client Accounts</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+    <style>
+        #mergeClientAccountsModule {
+            --mca-gap: 10px;
+            --mca-section-padding: 12px;
+            --mca-surface: #f4f7fb;
+            --mca-section-surface: #ffffff;
+        }
+
+        #mergeClientAccountsModule .window {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #mergeClientAccountsModule .main-container {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            gap: 10px;
+            padding: 8px 10px 10px;
+            height: calc(100vh - 40px);
+            background: var(--mca-surface);
+        }
+
+        #mergeClientAccountsModule .form-content {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            margin-top: 0;
+            padding-top: 0;
+            padding-right: 0;
+        }
+
+        #mergeClientAccountsModule .form-card {
+            display: flex;
+            flex-direction: column;
+            gap: var(--mca-gap);
+            border-radius: 0;
+            box-shadow: none !important;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+
+        #mergeClientAccountsModule .form-section {
+            box-shadow: none !important;
+            border: 1px solid var(--am-border-light, #e2e8f0);
+            border-radius: 0;
+            overflow: hidden;
+            margin-bottom: 0;
+            background: var(--mca-section-surface);
+        }
+
+        #mergeClientAccountsModule .form-section .section-header {
+            gap: 8px;
+        }
+
+        #mergeClientAccountsModule .form-section .section-header::before {
+            content: none !important;
+            display: none !important;
+        }
+
+        #mergeClientAccountsModule .form-section .section-content {
+            padding: var(--mca-section-padding);
+        }
+
+        #mergeClientAccountsModule .section-toggle-btn {
+            margin-left: auto;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 2px 4px;
+            line-height: 1;
+        }
+
+        #mergeClientAccountsModule .section-toggle-btn i {
+            font-size: 14px;
+        }
+
+        #mergeClientAccountsModule .lookup-card {
+            border: 1px solid #dbe4ee;
+            border-radius: 8px;
+            padding: 12px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        #mergeClientAccountsModule .lookup-card .label-blue {
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        #mergeClientAccountsModule .lookup-card .form-control,
+        #mergeClientAccountsModule .lookup-card .btn {
+            height: 38px;
+            font-size: 12px;
+        }
+
+        #mergeClientAccountsModule .lookup-hint {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #4f647a;
+        }
+
+        #mergeClientAccountsModule .record-count-badge {
+            margin-left: auto;
+            background: #ffffff;
+            border: 1px solid #c9d5e2;
+            color: #35557d;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 3px 10px;
+            line-height: 1;
+        }
+
+        #mergeClientAccountsModule .parity-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #c8d4df;
+            font-weight: 700;
+            font-size: 12px;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            text-align: left;
+        }
+
+        #mergeClientAccountsModule .parity-header .section-header__title {
+            text-align: left;
+        }
+
+        #mergeClientAccountsModule .parity-header--from {
+            color: #7b2e2f;
+            background: linear-gradient(180deg, #fbe3e3 0%, #f6cccc 100%);
+        }
+
+        #mergeClientAccountsModule .parity-header--to {
+            color: #114061;
+            background: linear-gradient(180deg, #dff3ff 0%, #c6e9ff 100%);
+        }
+
+        #mergeClientAccountsModule .card-table {
+            border: 0;
+            border-radius: 0;
+            overflow: hidden;
+            background: #fff;
+            max-height: 230px;
+            overflow-y: auto;
+        }
+
+        #mergeClientAccountsModule .parity-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        #mergeClientAccountsModule .parity-table thead th {
+            color: #35557d !important;
+            font-weight: 600;
+            font-size: 11px;
+            padding: 10px 8px;
+            border: 1px solid #bcc6d2;
+            white-space: nowrap;
+            background: #eef3f8 !important;
+            vertical-align: middle;
+            text-align: left;
+        }
+
+        #mergeClientAccountsModule .parity-table tbody td {
+            font-size: 11px;
+            padding: 8px;
+            border-bottom: 1px solid #d4dbe4;
+            vertical-align: middle;
+            background-color: #fff;
+        }
+
+        #mergeClientAccountsModule .parity-table tbody tr:hover td {
+            background: #e7f3ff;
+        }
+
+        #mergeClientAccountsModule .parity-table tbody tr.row-selected td,
+        #mergeClientAccountsModule .parity-table tbody tr.selected td,
+        #mergeClientAccountsModule .parity-table tbody tr.table-active td {
+            background: #d6ecff;
+            border-top-color: #8ec4e8;
+            border-bottom-color: #8ec4e8;
+        }
+
+        #mergeClientAccountsModule .table-empty td {
+            color: #6c757d;
+            text-align: center;
+            padding: 40px 12px;
+        }
+
+        #mergeClientAccountsModule .table-empty i {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.35;
+        }
+
+        #mergeClientAccountsModule .summary-strip {
+            border: 1px solid #dae3ea;
+            border-radius: 6px;
+            background: linear-gradient(180deg, #fdfefe 0%, #f5f8fb 100%);
+            padding: 10px 12px;
+            line-height: 1.2;
+        }
+
+        #mergeClientAccountsModule .summary-strip__label {
+            color: #2a4a63;
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        #mergeClientAccountsModule .summary-strip__warning {
+            color: #9a6800;
+            font-size: 0.85rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        #mergeClientAccountsModule .summary-badge {
+            min-width: 58px;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: 0.01em;
+            border: 1px solid transparent;
+        }
+
+        #mergeClientAccountsModule .summary-badge--count {
+            color: #0c3b63;
+            background: #d8eefe;
+            border-color: #9fc6e3;
+        }
+
+        #mergeClientAccountsModule .summary-badge--balance {
+            color: #0a4f47;
+            background: #d9f5ef;
+            border-color: #9ad1c6;
+        }
+
+        #mergeClientAccountsModule .action-panel {
+            flex: 0 0 var(--action-panel-width);
+            align-self: stretch;
+            position: sticky;
+            top: 6px;
+            max-height: calc(100vh - 56px);
+            overflow-y: auto;
+            padding-top: 4px;
+            z-index: 2;
+            min-height: calc(100vh - var(--title-bar-height) - 8px);
+        }
+
+        #mergeClientAccountsModule .action-panel .d-flex {
+            position: sticky;
+            top: 0;
+        }
+
+        #mergeClientAccountsModule .action-panel .btn-action {
+            height: 54px;
+            min-height: 54px;
+        }
+
+        #mergeClientAccountsModule .action-panel .btn-action i {
+            font-size: 18px;
+        }
+
+        #mergeClientAccountsModule .action-panel .btn-action span {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        #mergeClientAccountsModule .am-message-panel {
+            top: 74px;
+            right: 20px;
+            left: auto;
+            transform: translateY(-10px) scale(0.98);
+            min-width: 320px;
+            max-width: min(520px, calc(100vw - 32px));
+            padding: 12px 14px;
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            border-left-width: 0;
+            border-radius: 12px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+            backdrop-filter: blur(8px);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        #mergeClientAccountsModule .am-message-panel::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 12px 0 0 12px;
+            background: #3b82f6;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.show {
+            transform: translateY(0) scale(1);
+        }
+
+        #mergeClientAccountsModule .am-message-panel__icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.12);
+            flex-shrink: 0;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.success {
+            background: linear-gradient(180deg, #f4fff7 0%, #eafff2 100%) !important;
+            color: #14532d !important;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.success::before {
+            background: #16a34a;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.success .am-message-panel__icon {
+            color: #16a34a;
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        #mergeClientAccountsModule .am-message-panel.error {
+            background: linear-gradient(180deg, #fff7f7 0%, #ffecec 100%) !important;
+            color: #7f1d1d !important;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.error::before {
+            background: #dc2626;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.error .am-message-panel__icon {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.14);
+        }
+
+        #mergeClientAccountsModule .am-message-panel.warning {
+            background: linear-gradient(180deg, #fffdf4 0%, #fff7e8 100%) !important;
+            color: #78350f !important;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.warning::before {
+            background: #d97706;
+        }
+
+        #mergeClientAccountsModule .am-message-panel.warning .am-message-panel__icon {
+            color: #d97706;
+            background: rgba(217, 119, 6, 0.14);
+        }
+
+        @@media (max-width: 992px) {
+            #mergeClientAccountsModule .main-container {
+                height: auto;
+                overflow: auto;
+            }
+
+            #mergeClientAccountsModule .action-panel {
+                position: static;
+                max-height: none;
+                overflow: visible;
+                min-height: 0;
+            }
+
+            #mergeClientAccountsModule .action-panel .d-flex {
+                position: static;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            #mergeClientAccountsModule .am-message-panel {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                min-width: 0;
+            }
+
+            #mergeClientAccountsModule .lookup-card {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <form id="mergeClientAccountsRequestForm" class="d-none">
+        @Html.AntiForgeryToken()
+    </form>
+
+        <div id="mergeClientAccountsModule" data-branch-id="@branchId" data-branch-name="@branchName"
+            data-operator-id="@operatorId" data-bank-id="@bankId" data-module-id="@moduleId" data-close-mode="window">
+        <div class="window">
+            <main class="main-container" aria-label="Merge Client Accounts workspace">
+                <div class="form-content" role="region" aria-label="Merge Client Accounts form">
+                    <div class="form-card" data-main-form>
+                        <div class="form-section" data-section="branch-selection">
+                            <div class="section-header" data-section-toggle>
+                                <i class="bi bi-building section-header__icon"></i>
+                                <span class="section-header__title">Branch Selection</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Branch Selection" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="lookup-card">
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-12 col-lg-3">
+                                            <label class="label-blue" for="branchId">Branch ID</label>
+                                            <input type="text" id="branchId" class="form-control" value="@branchId" />
+                                        </div>
+                                        <div class="col-12 col-lg-7">
+                                            <label class="label-blue" for="branchName">Branch Name</label>
+                                            <input type="text" id="branchName" class="form-control" value="@branchName"
+                                                   readonly />
+                                        </div>
+                                        <div class="col-12 col-lg-2">
+                                            <button type="button" class="btn btn-primary w-100" id="btnBranchLookup"
+                                                    aria-label="Search Branch">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="lookup-hint">Enter a branch or use search to load the available branch list before selecting source and target clients.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section parity-card" data-section="source-client">
+                            <div class="section-header parity-header parity-header--from" data-section-toggle>
+                                <i class="bi bi-box-arrow-right section-header__icon"></i>
+                                <span class="section-header__title">Source Client (Move Accounts FROM)</span>
+                                <span class="record-count-badge" id="fromRecordCount">0 records</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Source Client Section" aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content" data-section-content>
+                                <div class="row g-2 align-items-end mb-3">
+                                    <div class="col-12 col-lg-3">
+                                        <label class="label-blue" for="fromClientId">From Client/Account ID</label>
+                                        <input type="text" id="fromClientId" class="form-control" />
+                                    </div>
+                                    <div class="col-12 col-lg-7">
+                                        <label class="label-blue" for="fromClientName">Client Name</label>
+                                        <input type="text" id="fromClientName" class="form-control" readonly />
+                                    </div>
+                                    <div class="col-12 col-lg-2">
+                                        <button type="button" class="btn btn-primary w-100" id="btnFromClientLookup"
+                                                aria-label="Search Source Client or Account">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="card-table table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0 parity-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center" style="width: 40px;"><input type="checkbox"
+                                                                                                        class="form-check-input" id="selectAllFrom"
+                                                                                                        aria-label="Select all source accounts" /></th>
+                                                    <th>Account Type</th>
+                                                    <th>Our Branch ID</th>
+                                                    <th>Product ID</th>
+                                                    <th>Account ID</th>
+                                                    <th class="text-end">Clear Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="fromAccountsGrid">
+                                                <tr class="table-empty">
+                                                    <td colspan="6">
+                                                        <i class="bi bi-inbox" aria-hidden="true"></i>
+                                                        <span>No records to display. Select a branch and source client.</span>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section parity-card" data-section="target-client">
+                                    <div class="section-header parity-header parity-header--to" data-section-toggle>
+                                        <i class="bi bi-box-arrow-in-left section-header__icon"></i>
+                                        <span class="section-header__title">Target Client (Merge Accounts TO)</span>
+                                        <span class="record-count-badge" id="toRecordCount">0 records</span>
+                                        <button type="button" class="section-toggle-btn" aria-label="Toggle Target Client Section" aria-expanded="true">
+                                            <i class="bi bi-chevron-up"></i>
+                                        </button>
+                                    </div>
+                                    <div class="section-content" data-section-content>
+                                        <div class="row g-2 align-items-end mb-3">
+                                            <div class="col-12 col-lg-3">
+                                                <label class="label-blue" for="toClientId">To Client/Account ID</label>
+                                                <input type="text" id="toClientId" class="form-control" />
+                                            </div>
+                                            <div class="col-12 col-lg-7">
+                                                <label class="label-blue" for="toClientName">Client Name</label>
+                                                <input type="text" id="toClientName" class="form-control" readonly />
+                                            </div>
+                                            <div class="col-12 col-lg-2">
+                                                <button type="button" class="btn btn-primary w-100" id="btnToClientLookup"
+                                                        aria-label="Search Target Client or Account">
+                                                    <i class="bi bi-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-table table-responsive">
+                                            <table class="table table-sm table-hover align-middle mb-0 parity-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Account Type</th>
+                                                        <th>Our Branch ID</th>
+                                                        <th>Product ID</th>
+                                                        <th>Account ID</th>
+                                                        <th class="text-end">Clear Balance</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="toAccountsGrid">
+                                                    <tr class="table-empty">
+                                                        <td colspan="5">
+                                                            <i class="bi bi-inbox" aria-hidden="true"></i>
+                                                            <span>No records to display. Select a branch and target client.</span>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-section" data-section="merge-summary">
+                                        <div class="section-header" data-section-toggle>
+                                            <i class="bi bi-info-circle section-header__icon"></i>
+                                            <span class="section-header__title">Merge Summary</span>
+                                            <button type="button" class="section-toggle-btn" aria-label="Toggle Merge Summary" aria-expanded="true">
+                                                <i class="bi bi-chevron-up"></i>
+                                            </button>
+                                        </div>
+                                        <div class="section-content" data-section-content>
+                                            <div class="row g-2">
+                                                <div class="col-md-4">
+                                                    <div
+                                                        class="summary-strip h-100 d-flex align-items-center justify-content-between">
+                                                        <span class="summary-strip__label">Accounts Selected</span>
+                                                        <span id="selectedCountDisplay"
+                                                              class="badge summary-badge summary-badge--count">0</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div
+                                                        class="summary-strip h-100 d-flex align-items-center justify-content-between">
+                                                        <span class="summary-strip__label">Total Balance to Move</span>
+                                                        <span id="summaryBalance"
+                                                              class="badge summary-badge summary-badge--balance">0.00</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="summary-strip h-100 d-flex align-items-center">
+                                                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                                        <span id="mergeReadyBadge" class="summary-strip__warning">Awaiting validated
+                                                            selection</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 small text-muted">This action cannot be undone. Review source and
+                                                    target details before merging.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <aside class="action-panel" aria-label="Merge actions">
+                                        <div class="d-flex flex-column gap-2 mt-auto">
+                                            <button class="btn-action btn-view" type="button" id="btnView" data-action="view">
+                                                <i class="bi bi-eye"></i><span>View</span>
+                                            </button>
+                                            <button class="btn-action btn-save" type="button" id="btnMerge" data-action="merge" disabled>
+                                                <i class="bi bi-arrow-left-right"></i><span>Merge</span>
+                                            </button>
+                                            <button class="btn-action btn-clear" type="button" id="btnClear" data-action="clear">
+                                                <i class="bi bi-eraser"></i><span>Clear</span>
+                                            </button>
+                                            <button class="btn-action btn-cancel" type="button" id="btnCancel" data-action="cancel">
+                                                <i class="bi bi-x-lg"></i><span>Cancel</span>
+                                            </button>
+                                        </div>
+                                    </aside>
+                                </main>
+
+                                <footer class="de-status-bar" id="mergeClientAccountsStatus" role="status" aria-live="polite">Ready</footer>
+
+                                <div class="am-message-panel" id="amMessagePanel" role="alert" aria-live="polite" hidden>
+                                    <i class="bi bi-info-circle-fill am-message-panel__icon" id="messagePanelIcon" aria-hidden="true"></i>
+                                    <span id="messagePanelText"></span>
+                                    <button type="button" class="am-message-panel__close" id="messagePanelClose" aria-label="Close">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+
+                                <div class="de-loading-overlay loading-overlay" id="loadingOverlay" hidden>
+                                    <div class="de-loading-spinner loading-spinner">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <span>Loading...</span>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="selectedCount" value="0" />
+                                <input type="hidden" id="totalBalance" value="0.00" />
+                                <span id="branchSummaryDisplay" class="d-none"></span>
+                                <span id="sourceClientSummary" class="d-none"></span>
+                                <span id="targetClientSummary" class="d-none"></span>
+                                <span id="sourceAccountHelper" class="d-none"></span>
+                                <span id="targetAccountHelper" class="d-none"></span>
+                                <span id="summaryBranch" class="d-none"></span>
+                                <span id="summarySourceClient" class="d-none"></span>
+                                <span id="summaryTargetClient" class="d-none"></span>
+                                <span id="fromAccountsCount" class="d-none"></span>
+                                <span id="toAccountsCount" class="d-none"></span>
+                                <span id="branchReviewText" class="d-none"></span>
+                                <button class="d-none" type="button" id="btnViewMobile"></button>
+                                <button class="d-none" type="button" id="btnMergeMobile"></button>
+                                <button class="d-none" type="button" id="btnCancelMobile"></button>
+                            </div>
+
+                            <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+                            <script src="~/js/environment.js" asp-append-version="true"></script>
+                            <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+                            <script src="~/js/app/app-core.js" asp-append-version="true"></script>
+                            <script src="~/js/modules/shared/searchModal.js" asp-append-version="true"></script>
+                            <script src="~/modules/account-maintenance/merge-client-accounts.js" asp-append-version="true"></script>
+                        </body>
+
+                    </html>

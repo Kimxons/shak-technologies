@@ -538,98 +538,97 @@
 
             tbody.appendChild(tr);
         });
+    }
 
+    function updatePaginationControls() {
+        var totalRecords = paginationState.allRows.length;
+        var pageSize = paginationState.pageSize === 'all' ? totalRecords : paginationState.pageSize;
+        var startRecord = totalRecords === 0 ? 0 : (paginationState.currentPage - 1) * pageSize + 1;
+        var endRecord = paginationState.pageSize === 'all' ? totalRecords : Math.min(paginationState.currentPage * pageSize, totalRecords);
 
-        function updatePaginationControls() {
-            var totalRecords = paginationState.allRows.length;
-            var pageSize = paginationState.pageSize === 'all' ? totalRecords : paginationState.pageSize;
-            var startRecord = totalRecords === 0 ? 0 : (paginationState.currentPage - 1) * pageSize + 1;
-            var endRecord = paginationState.pageSize === 'all' ? totalRecords : Math.min(paginationState.currentPage * pageSize, totalRecords);
-        
-            var spnPaginationInfo = document.getElementById('spn_paginationInfo');
-            if (spnPaginationInfo) {
-                spnPaginationInfo.textContent = 'Showing ' + startRecord + ' - ' + endRecord + ' of ' + totalRecords;
-            }
-        
-            var btnFirstPage = document.getElementById('btn_firstPage');
-            var btnPrevPage = document.getElementById('btn_prevPage');
-            var btnNextPage = document.getElementById('btn_nextPage');
-            var btnLastPage = document.getElementById('btn_lastPage');
-        
-            if (btnFirstPage) btnFirstPage.disabled = paginationState.currentPage === 1;
-            if (btnPrevPage) btnPrevPage.disabled = paginationState.currentPage === 1;
-            if (btnNextPage) btnNextPage.disabled = paginationState.currentPage >= paginationState.totalPages;
-            if (btnLastPage) btnLastPage.disabled = paginationState.currentPage >= paginationState.totalPages;
-        
-            renderPageNumbers();
+        var spnPaginationInfo = document.getElementById('spn_paginationInfo');
+        if (spnPaginationInfo) {
+            spnPaginationInfo.textContent = 'Showing ' + startRecord + ' - ' + endRecord + ' of ' + totalRecords;
         }
 
-        function renderPageNumbers() {
-            var container = document.getElementById('dv_pageNumbers');
-            if (!container) return;
-        
-            container.innerHTML = '';
-        
-            if (paginationState.totalPages <= 1) return;
-        
-            var maxButtons = 7;
-            var startPage = Math.max(1, paginationState.currentPage - Math.floor(maxButtons / 2));
-            var endPage = Math.min(paginationState.totalPages, startPage + maxButtons - 1);
-        
-            if (endPage - startPage + 1 < maxButtons) {
-                startPage = Math.max(1, endPage - maxButtons + 1);
-            }
-        
-            if (startPage > 1) {
-                addPageButton(container, 1);
-                if (startPage > 2) {
-                    addEllipsis(container);
-                }
-            }
-        
-            for (var i = startPage; i <= endPage; i++) {
-                addPageButton(container, i);
-            }
-        
-            if (endPage < paginationState.totalPages) {
-                if (endPage < paginationState.totalPages - 1) {
-                    addEllipsis(container);
-                }
-                addPageButton(container, paginationState.totalPages);
+        var btnFirstPage = document.getElementById('btn_firstPage');
+        var btnPrevPage = document.getElementById('btn_prevPage');
+        var btnNextPage = document.getElementById('btn_nextPage');
+        var btnLastPage = document.getElementById('btn_lastPage');
+
+        if (btnFirstPage) btnFirstPage.disabled = paginationState.currentPage === 1;
+        if (btnPrevPage) btnPrevPage.disabled = paginationState.currentPage === 1;
+        if (btnNextPage) btnNextPage.disabled = paginationState.currentPage >= paginationState.totalPages;
+        if (btnLastPage) btnLastPage.disabled = paginationState.currentPage >= paginationState.totalPages;
+
+        renderPageNumbers();
+    }
+
+    function renderPageNumbers() {
+        var container = document.getElementById('dv_pageNumbers');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (paginationState.totalPages <= 1) return;
+
+        var maxButtons = 7;
+        var startPage = Math.max(1, paginationState.currentPage - Math.floor(maxButtons / 2));
+        var endPage = Math.min(paginationState.totalPages, startPage + maxButtons - 1);
+
+        if (endPage - startPage + 1 < maxButtons) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        if (startPage > 1) {
+            addPageButton(container, 1);
+            if (startPage > 2) {
+                addEllipsis(container);
             }
         }
 
-        function addPageButton(container, pageNum) {
-            var btn = document.createElement('div');
-            btn.className = 'sv-page-number' + (pageNum === paginationState.currentPage ? ' active' : '');
-            btn.textContent = pageNum;
-            btn.onclick = function() {
-                goToPage(pageNum);
-            };
-            container.appendChild(btn);
+        for (var i = startPage; i <= endPage; i++) {
+            addPageButton(container, i);
         }
 
-        function addEllipsis(container) {
-            var ellipsis = document.createElement('div');
-            ellipsis.className = 'sv-page-number ellipsis';
-            ellipsis.textContent = '...';
-            container.appendChild(ellipsis);
+        if (endPage < paginationState.totalPages) {
+            if (endPage < paginationState.totalPages - 1) {
+                addEllipsis(container);
+            }
+            addPageButton(container, paginationState.totalPages);
         }
+    }
 
-        function goToPage(pageNum) {
-            if (pageNum < 1 || pageNum > paginationState.totalPages) return;
-            paginationState.currentPage = pageNum;
-            renderCurrentPage();
-            updatePaginationControls();
-        }
+    function addPageButton(container, pageNum) {
+        var btn = document.createElement('div');
+        btn.className = 'sv-page-number' + (pageNum === paginationState.currentPage ? ' active' : '');
+        btn.textContent = pageNum;
+        btn.onclick = function () {
+            goToPage(pageNum);
+        };
+        container.appendChild(btn);
+    }
 
-        function changePageSize(newSize) {
-            paginationState.pageSize = newSize === 'all' ? 'all' : parseInt(newSize, 10);
-            paginationState.currentPage = 1;
-            paginationState.totalPages = paginationState.pageSize === 'all' ? 1 : Math.ceil(paginationState.allRows.length / paginationState.pageSize);
-            renderCurrentPage();
-            updatePaginationControls();
-        }
+    function addEllipsis(container) {
+        var ellipsis = document.createElement('div');
+        ellipsis.className = 'sv-page-number ellipsis';
+        ellipsis.textContent = '...';
+        container.appendChild(ellipsis);
+    }
+
+    function goToPage(pageNum) {
+        if (pageNum < 1 || pageNum > paginationState.totalPages) return;
+        paginationState.currentPage = pageNum;
+        renderCurrentPage();
+        updatePaginationControls();
+    }
+
+    function changePageSize(newSize) {
+        paginationState.pageSize = newSize === 'all' ? 'all' : parseInt(newSize, 10);
+        paginationState.currentPage = 1;
+        paginationState.totalPages = paginationState.pageSize === 'all' ? 1 : Math.ceil(paginationState.allRows.length / paginationState.pageSize);
+        renderCurrentPage();
+        updatePaginationControls();
     }
 
     // HANDLE ROW DOUBLE-CLICK
@@ -933,7 +932,7 @@ var cells = rows[i].querySelectorAll('td');
             '.footer { margin-top: 20px; text-align: center; font-size: 10px; color: #64748b; }' +
    '@media print { th { background: #4a7c95 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }' +
  '</style></head><body>' +
-       '<div class="header"><h1>ACCOUNT STATEMENT</h1><div>' + new Date().toLocaleDateString() + '</div></div>' +
+     '<div class="header"><h1>ACCOUNT STATEMENT</h1><div>' + (window.GlobalUtils?.formatDate ? window.GlobalUtils.formatDate(new Date()) : new Date().toLocaleDateString()) + '</div></div>' +
    '<div class="info">' +
           '<span><strong>Branch:</strong> ' + (state.OurBranchID || '-') + '</span>' +
             '<span><strong>Account:</strong> ' + (state.AccountID || '-') + '</span>' +
@@ -998,39 +997,44 @@ var cells = rows[i].querySelectorAll('td');
             btnPrint.addEventListener('click', function (e) {
         e.preventDefault();
  printStatement();
-
-        // Pagination event handlers
-        if (ddlPageSize) {
-            ddlPageSize.addEventListener('change', function() {
-                changePageSize(this.value);
-            });
-        }
-
-        if (btnFirstPage) {
-            btnFirstPage.addEventListener('click', function() {
-                goToPage(1);
-            });
-        }
-
-        if (btnPrevPage) {
-            btnPrevPage.addEventListener('click', function() {
-                goToPage(paginationState.currentPage - 1);
-            });
-        }
-
-        if (btnNextPage) {
-            btnNextPage.addEventListener('click', function() {
-                goToPage(paginationState.currentPage + 1);
-            });
-        }
-
-        if (btnLastPage) {
-            btnLastPage.addEventListener('click', function() {
-                goToPage(paginationState.totalPages);
-            });
-        }
 });
    }
+
+        // Pagination event handlers
+        if (ddlPageSize && !ddlPageSize.dataset.paginationBound) {
+            ddlPageSize.addEventListener('change', function () {
+                changePageSize(this.value);
+            });
+            ddlPageSize.dataset.paginationBound = 'true';
+        }
+
+        if (btnFirstPage && !btnFirstPage.dataset.paginationBound) {
+            btnFirstPage.addEventListener('click', function () {
+                goToPage(1);
+            });
+            btnFirstPage.dataset.paginationBound = 'true';
+        }
+
+        if (btnPrevPage && !btnPrevPage.dataset.paginationBound) {
+            btnPrevPage.addEventListener('click', function () {
+                goToPage(paginationState.currentPage - 1);
+            });
+            btnPrevPage.dataset.paginationBound = 'true';
+        }
+
+        if (btnNextPage && !btnNextPage.dataset.paginationBound) {
+            btnNextPage.addEventListener('click', function () {
+                goToPage(paginationState.currentPage + 1);
+            });
+            btnNextPage.dataset.paginationBound = 'true';
+        }
+
+        if (btnLastPage && !btnLastPage.dataset.paginationBound) {
+            btnLastPage.addEventListener('click', function () {
+                goToPage(paginationState.totalPages);
+            });
+            btnLastPage.dataset.paginationBound = 'true';
+        }
 
         var btnExportExcel = document.getElementById('btn_exportExcel');
         var btnExportPdf = document.getElementById('btn_exportPdf');

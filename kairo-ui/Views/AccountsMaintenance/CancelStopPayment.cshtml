@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-cancel-stop-payment.html
     Layout = null;
@@ -21,7 +21,7 @@
                         <div class="kairo-account-control" data-kairo-account-control>
                             <input type="text" id="branchId" name="branchId" class="kairo-account-control__id form-control am-input" readonly />
                             <input type="text" id="branchName" class="kairo-account-control__name form-control am-input" readonly />
-                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="Branch"><i class="bi bi-search"></i></button>
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="branchId"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -29,7 +29,7 @@
                         <div class="kairo-account-control" data-kairo-account-control>
                             <input type="text" id="accountId" name="accountId" class="kairo-account-control__id form-control am-input" readonly />
                             <input type="text" id="accountName" class="kairo-account-control__name form-control am-input" readonly />
-                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="Account"><i class="bi bi-search"></i></button>
+                            <button class="btn-lookup kairo-account-control__lookup" type="button" data-lookup="accountId"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                         <label class="label-blue am-label" for="requestRef">Request Ref No</label>
                         <div class="input-group">
                             <input id="requestRef" name="requestRef" type="text" class="form-control am-input" />
-                            <button class="btn btn-secondary btn-lookup" type="button" data-lookup="RequestRef" style="border-radius: 0 4px 4px 0;"><i class="bi bi-search"></i></button>
+                            <button class="btn btn-secondary btn-lookup" type="button" data-lookup="requestRef" data-lookup-owner="module"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
                 </div>
@@ -231,4 +231,4 @@
     </div>
 </div>
 
-<script src="~/js/modules/accountsmaintenance/account-cancel-stop-payment.js?v=@DateTime.Now.Ticks"></script>
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-cancel-stop-payment.js?v=@DateTime.Now.Ticks"></script>

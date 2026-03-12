@@ -12,19 +12,6 @@
 </form>
 
 <div class="window">
-    <!-- Header Bar -->
-    <div class="am-header" role="banner" aria-label="Window title bar">
-      <div class="am-header__left">
-        <i class="bi bi-arrow-left-right am-header__icon" aria-hidden="true"></i>
-        <span class="am-header__title">Standing Instruction EFT</span>
-      </div>
-      <div class="am-header__right" role="toolbar" aria-label="Window controls">
-        <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
-        <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize window"><i class="bi bi-arrows-fullscreen"></i></button>
-        <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window"><i class="bi bi-x-lg"></i></button>
-      </div>
-    </div>
-
     <!-- Main Container -->
     <main class="main-container main-container--with-panel" aria-label="Standing Instruction EFT form">
       <div class="form-content" role="region" aria-label="Form fields">
@@ -103,7 +90,7 @@
                 <div class="col">
                   <label class="label-blue" id="lbl_amountIn" for="ddl_amountIn">Amount In</label>
                   <select id="ddl_amountIn" name="amountIn" class="bs-select">
-                    <option value="TransactionCurrencyID">Transaction CurrencyID</option>
+                    <option value="">--Select--</option>
                   </select>
                 </div>
               </div>
@@ -117,13 +104,6 @@
                   <label class="label-blue" id="lbl_transferFrequency" for="ddl_transferFrequency">Transfer Frequency</label>
                   <select id="ddl_transferFrequency" name="transferFrequency" class="bs-select">
                     <option value="">--Select--</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Bi-Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="halfyearly">Half Yearly</option>
-                    <option value="yearly">Yearly</option>
                   </select>
                 </div>
               </div>
@@ -188,7 +168,7 @@
                   <div class="kairo-control" data-kairo-control>
                     <input type="text" id="txt_beneficiaryBranchId" name="beneficiaryBranchId" class="kairo-control__id" aria-label="Beneficiary Branch ID">
                     <input type="text" id="txt_beneficiaryBranchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
-                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                    <button type="button" class="btn-lookup kairo-control__lookup" data-open-search="beneficiaryBranch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
                   </div>
                 </div>
               </div>

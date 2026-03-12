@@ -33,10 +33,12 @@ window.StopPaymentVoidModule = (function () {
     function init() {
         console.log(`[${state.submoduleName}] Initializing...`);
 
-        // Load context from global state or session
-        loadContext();
+        wireSectionToggles();
 
-        if (!state.context.accountId) {
+        // Load context from global state or session
+        const ctx = loadContext();
+
+        if (!ctx.accountId) {
             AppCore.showMsg('No account selected. Please load an account first.', 'warning');
             return;
         }
@@ -50,37 +52,82 @@ window.StopPaymentVoidModule = (function () {
         console.log(`[${state.submoduleName}] Initialized successfully.`);
     }
 
+    function wireSectionToggles() {
+        document.querySelectorAll('[data-section-toggle]').forEach(header => {
+            if (header._wiredSectionToggle) return;
+            header._wiredSectionToggle = true;
+
+            header.addEventListener('click', function () {
+                const section = this.closest('.form-section');
+                const content = section?.querySelector('[data-section-content], .section-content');
+                const btn = section?.querySelector('.section-toggle-btn');
+                const icon = btn?.querySelector('i');
+                if (!content) return;
+
+                const expanded = (btn?.getAttribute('aria-expanded') ?? 'true') === 'true';
+                content.style.display = expanded ? 'none' : '';
+                btn?.setAttribute('aria-expanded', String(!expanded));
+
+                if (icon) {
+                    icon.classList.toggle('bi-chevron-up', !expanded);
+                    icon.classList.toggle('bi-chevron-down', expanded);
+                }
+            });
+        });
+    }
+
     /**
      * Load Account Context
      */
-    function loadContext() {
+    function getContext() {
         const globalState = window.AccountMaintenanceState || {};
-        state.context.accountId = globalState.AccountID || sessionStorage.getItem('currentAccountID');
-        state.context.branchId = globalState.OurBranchID || sessionStorage.getItem('currentBranchID');
-        state.context.operatorId = globalState.OperatorID || localStorage.getItem('OperatorID') || 'SYSTEM';
+        return {
+            accountId: globalState.AccountID || sessionStorage.getItem('currentAccountID') || '',
+            branchId: globalState.OurBranchID || sessionStorage.getItem('currentBranchID') || '',
+            operatorId: globalState.OperatorID || sessionStorage.getItem('currentOperatorID') || localStorage.getItem('OperatorID') || 'SYSTEM',
+            accountName: globalState.AccountName || sessionStorage.getItem('currentAccountName') || '',
+            branchName: globalState.BranchName || sessionStorage.getItem('currentBranchName') || ''
+        };
+    }
 
-        // Auto-populate Account ID and Branch if available
+    function applyContextToIdentification(ctx) {
         const accountIdEl = document.getElementById('accountId');
         const branchIdEl = document.getElementById('branchId');
         const accountNameEl = document.getElementById('accountName');
         const branchNameEl = document.getElementById('branchName');
 
-        if (accountIdEl) accountIdEl.value = state.context.accountId || '';
-        if (branchIdEl) branchIdEl.value = state.context.branchId || '';
-        if (accountNameEl) accountNameEl.value = globalState.AccountName || '';
-        if (branchNameEl) branchNameEl.value = globalState.BranchName || '';
+        if (accountIdEl) accountIdEl.value = ctx.accountId || '';
+        if (branchIdEl) branchIdEl.value = ctx.branchId || '';
+        if (accountNameEl) accountNameEl.value = ctx.accountName || '';
+        if (branchNameEl) branchNameEl.value = ctx.branchName || '';
+    }
+
+    function loadContext() {
+        const ctx = getContext();
+        state.context.accountId = ctx.accountId;
+        state.context.branchId = ctx.branchId;
+        state.context.operatorId = ctx.operatorId;
+        applyContextToIdentification(ctx);
+        return ctx;
     }
 
     /**
      * Load Stop Payment Records
      */
     async function loadData() {
+        const ctx = loadContext();
+        if (!ctx.accountId || !ctx.branchId) {
+            AppCore.showMsg('No account selected. Please load an account first.', 'warning');
+            return;
+        }
+
         try {
             AppCore.showLoading(true, 'Loading stop payment records...');
 
             const requestData = {
-                AccountID: state.context.accountId,
-                OurBranchID: state.context.branchId
+                AccountID: ctx.accountId,
+                OurBranchID: ctx.branchId,
+                OperatorID: ctx.operatorId
             };
 
             const result = await AppCore.invokeControllerAsync(API.GET, requestData);
@@ -246,9 +293,7 @@ window.StopPaymentVoidModule = (function () {
      */
     function navigate() {
         setMode('VIEW');
-        if (state.records.length > 0) {
-            selectRecord(0);
-        }
+        loadData();
     }
 
     /**
@@ -275,13 +320,14 @@ window.StopPaymentVoidModule = (function () {
     async function saveData() {
         try {
             if (state.currentMode === 'VIEW') return;
+            const ctx = loadContext();
 
             const isAdd = state.currentMode === 'ADD';
 
             const payload = {
-                AccountID: state.context.accountId,
-                OurBranchID: state.context.branchId,
-                OperatorID: state.context.operatorId,
+                AccountID: ctx.accountId,
+                OurBranchID: ctx.branchId,
+                OperatorID: ctx.operatorId,
                 ChequeNoStart: document.getElementById('chequeNoStart').value,
                 ChequeNoEnd: document.getElementById('chequeNoEnd').value,
                 ChequeDate: document.getElementById('chequeDate').value,
@@ -332,6 +378,8 @@ window.StopPaymentVoidModule = (function () {
             return;
         }
 
+        const ctx = loadContext();
+
         const confirmed = await AppCore.showConfirmation('Confirm Void', 'Are you sure you want to void this stop payment record?');
         if (!confirmed) return;
 
@@ -339,10 +387,10 @@ window.StopPaymentVoidModule = (function () {
             AppCore.showLoading(true, 'Voiding stop payment record...');
 
             const requestData = {
-                AccountID: state.context.accountId,
-                OurBranchID: state.context.branchId,
+                AccountID: ctx.accountId,
+                OurBranchID: ctx.branchId,
                 RecordID: state.selectedRecord.RecordID, // Adjust field name if necessary
-                OperatorID: state.context.operatorId
+                OperatorID: ctx.operatorId
             };
 
             const result = await AppCore.invokeControllerAsync(API.DELETE, requestData);

@@ -33,6 +33,13 @@
     let currentData = null;
     let editMode = false;
 
+    const parentContext = {
+        branchId: '',
+        centerId: '',
+        groupId: '',
+        clientId: ''
+    };
+
     // =========================================================================
     // Environment Helper
     // =========================================================================
@@ -40,8 +47,9 @@
         const e = window.Environment || {};
         const bankID = e.defaultBankId || e.defaultBankID || e.bankID || e.bankId ||
             sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
-        const ourBranchID = e.branchID || e.branchId || e.OurBranchID || e.defaultOurBranchId ||
-            sessionStorage.getItem('BranchID') || sessionStorage.getItem('OurBranchID') || localStorage.getItem('BranchID') || '0101';
+        // Branch code from session (window.Environment or sessionStorage), fallback to '0603'
+        const ourBranchID = e.branch_code || e.branchID || e.branchId || e.OurBranchID || e.defaultOurBranchId ||
+            sessionStorage.getItem('branch_code') || sessionStorage.getItem('BranchID') || sessionStorage.getItem('OurBranchID') || localStorage.getItem('BranchID') || '0603';
         const operatorID = e.operatorID || e.operatorId ||
             sessionStorage.getItem('OperatorID') || sessionStorage.getItem('operatorId') || localStorage.getItem('OperatorID') || 'CSADM';
         return { bankID, ourBranchID, operatorID };
@@ -171,7 +179,11 @@
             tableID: 'GroupID',
             moduleIDOverride: 5060,
             getAdvFilterString: () => {
-                const branchId = $('BranchId')?.value?.trim() || '';
+                // Always set BranchId hidden input from session
+                const { ourBranchID } = getEnv();
+                const branchIdEl = $('BranchId');
+                if (branchIdEl) branchIdEl.value = ourBranchID;
+                const branchId = branchIdEl?.value?.trim() || '';
                 const safeBranchId = String(branchId).replace(/'/g, "''");
                 return safeBranchId ? `OurBranchID ='${safeBranchId}' AND GroupStatusID='A'` : "GroupStatusID='A'";
             },
@@ -191,7 +203,11 @@
             tableID: 'SubGroupID',
             moduleIDOverride: 5060,
             getAdvFilterString: () => {
-                const branchId = $('BranchId')?.value?.trim() || '';
+                // Always set BranchId hidden input from session
+                const { ourBranchID } = getEnv();
+                const branchIdEl = $('BranchId');
+                if (branchIdEl) branchIdEl.value = ourBranchID;
+                const branchId = branchIdEl?.value?.trim() || '';
                 const centerId = $('CenterId')?.value?.trim() || '';
                 const safeBranchId = String(branchId).replace(/'/g, "''");
                 const safeCenterId = String(centerId).replace(/'/g, "''");
@@ -216,7 +232,11 @@
             tableID: 'GroupClientID',
             moduleIDOverride: 5060,
             getAdvFilterString: () => {
-                const branchId = $('BranchId')?.value?.trim() || '';
+                // Always set BranchId hidden input from session
+                const { ourBranchID } = getEnv();
+                const branchIdEl = $('BranchId');
+                if (branchIdEl) branchIdEl.value = ourBranchID;
+                const branchId = branchIdEl?.value?.trim() || '';
                 const centerId = $('CenterId')?.value?.trim() || '';
                 const groupId = $('GroupId')?.value?.trim() || '';
                 const safeBranchId = String(branchId).replace(/'/g, "''");
@@ -265,30 +285,40 @@
             const branchName = data.BranchName || data.Description || data.Name || '';
             if (idField) idField.value = branchId;
             if (nameField) nameField.value = branchName;
+            parentContext.branchId = branchId;
             clearCenterFields();
             clearGroupFields();
             clearClientFields();
+            parentContext.centerId = '';
+            parentContext.groupId = '';
+            parentContext.clientId = '';
             showSuccess(`Branch '${branchName}' selected`);
         } else if (lookupType === 'center') {
             const centerId = data.GroupID || data.CenterID || data.ID || '';
             const centerName = data.GroupName || data.CenterName || data.Description || data.Name || '';
             if (idField) idField.value = centerId;
             if (nameField) nameField.value = centerName;
+            parentContext.centerId = centerId;
             clearGroupFields();
             clearClientFields();
+            parentContext.groupId = '';
+            parentContext.clientId = '';
             showSuccess(`Center '${centerName}' selected`);
         } else if (lookupType === 'group') {
             const groupId = data.SubGroupID || data.GroupID || data.ID || '';
             const groupName = data.SubGroupName || data.GroupName || data.Description || data.Name || '';
             if (idField) idField.value = groupId;
             if (nameField) nameField.value = groupName;
+            parentContext.groupId = groupId;
             clearClientFields();
+            parentContext.clientId = '';
             showSuccess(`Group '${groupName}' selected`);
         } else if (lookupType === 'client') {
             const clientId = data.ClientID || data.GroupClientID || data.ID || '';
             const clientName = data.Name || data.ClientName || data.CustomerName || data.Description || '';
             if (idField) idField.value = clientId;
             if (nameField) nameField.value = clientName;
+            parentContext.clientId = clientId;
             showSuccess(`Client '${clientName}' selected`);
         }
     }
@@ -329,6 +359,44 @@
             ourbranchId: ourBranchID,
             onSelect: (record) => mapSelectedData(lookupType, record)
         });
+    }
+
+    // =========================================================================
+    // Background Search — same SearchModal/Search endpoint used by search button
+    // =========================================================================
+    async function backgroundSearch(tableID, advFilterString, whereStmt, moduleID) {
+        const appCore = getAppCore();
+        if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
+            throw new Error('AppCore is not available');
+        }
+
+        const { ourBranchID } = getEnv();
+        const response = await appCore.invokeControllerAsync('SearchModal/Search', {
+            TableID: tableID,
+            WhereStmt: whereStmt || '',
+            AdvFilterString: advFilterString || '',
+            SearchKey: '',
+            ModuleID: String(moduleID || DEFAULT_SEARCH_MODULE_ID),
+            PageSize: 20,
+            RefID: '',
+            PrevOrNext: 1,
+            OurBranchID: ourBranchID
+        });
+
+        let results = [];
+        if (response?.success && response?.data) {
+            const d = response.data;
+            if (Array.isArray(d)) {
+                results = d;
+            } else if (d.Details) {
+                results = Array.isArray(d.Details) ? d.Details : [d.Details];
+            } else if (d.details?.SearchResults) {
+                results = Array.isArray(d.details.SearchResults) ? d.details.SearchResults : [];
+            } else if (d.Records) {
+                results = Array.isArray(d.Records) ? d.Records : [];
+            }
+        }
+        return results;
     }
 
     // =========================================================================
@@ -548,22 +616,22 @@
             const exitDate = pickValue(headerRow, ['ExitDate', 'ExitDateValue', 'DateOfExit']);
             if (exitDate !== undefined) $('ExitDate').value = coerceString(exitDate).slice(0, 10);
 
-            $('TotalRecoverable').value = coerceNumberOrBlank(pickValue(headerRow, ['TotalRecoverable']));
-            $('TotalPayable').value = coerceNumberOrBlank(pickValue(headerRow, ['TotalPayable']));
-            $('ForfeitSavings').value = coerceNumberOrBlank(pickValue(headerRow, ['ForfeitSavingsAmount', 'ForfeitSavings']));
-            $('ForfeitCollateral').value = coerceNumberOrBlank(pickValue(headerRow, ['ForfeitCollateralsAmount', 'ForfeitCollateralAmount', 'ForfeitCollateral']));
-            $('ChargeOffLoss').value = coerceNumberOrBlank(pickValue(headerRow, ['ChargeOffLossAmount', 'ChargeOffLoss', 'ChargeOffLoan']));
-            $('ChargeOffInsurance').value = coerceNumberOrBlank(pickValue(headerRow, ['ChargeOffInsuranceAmount', 'ChargeOffInsurance']));
-            $('NetPayable').value = coerceNumberOrBlank(pickValue(headerRow, ['NetPayable']));
-            $('NetReceivable').value = coerceNumberOrBlank(pickValue(headerRow, ['NetReceivable']));
+            $('TotalRecoverable').textContent = coerceNumberOrBlank(pickValue(headerRow, ['TotalRecoverable'])) || '-';
+            $('TotalPayable').textContent = coerceNumberOrBlank(pickValue(headerRow, ['TotalPayable'])) || '-';
+            $('ForfeitSavings').textContent = coerceNumberOrBlank(pickValue(headerRow, ['ForfeitSavingsAmount', 'ForfeitSavings'])) || '-';
+            $('ForfeitCollateral').textContent = coerceNumberOrBlank(pickValue(headerRow, ['ForfeitCollateralsAmount', 'ForfeitCollateralAmount', 'ForfeitCollateral'])) || '-';
+            $('ChargeOffLoss').textContent = coerceNumberOrBlank(pickValue(headerRow, ['ChargeOffLossAmount', 'ChargeOffLoss', 'ChargeOffLoan'])) || '-';
+            $('ChargeOffInsurance').textContent = coerceNumberOrBlank(pickValue(headerRow, ['ChargeOffInsuranceAmount', 'ChargeOffInsurance'])) || '-';
+            $('NetPayable').textContent = coerceNumberOrBlank(pickValue(headerRow, ['NetPayable'])) || '-';
+            $('NetReceivable').textContent = coerceNumberOrBlank(pickValue(headerRow, ['NetReceivable'])) || '-';
 
-            $('PrimaryCollateral').value = coerceNumberOrBlank(pickValue(headerRow, ['PrimaryCollateral', 'PrimaryCollateralAmount']));
-            $('SecondaryCollateral').value = coerceNumberOrBlank(pickValue(headerRow, ['SecondaryCollateral', 'SecondaryCollateralAmount']));
-            $('AdditionalCollateral').value = coerceNumberOrBlank(pickValue(headerRow, ['AdditionalCollateral', 'AdditionalCollateralAmount']));
-            $('CreditInterest').value = coerceNumberOrBlank(pickValue(headerRow, ['CreditInterest', 'CreditInterestAmount']));
-            $('Tax').value = coerceNumberOrBlank(pickValue(headerRow, ['TaxOnCreditInterest', 'Tax', 'TaxAmount']));
-            $('DebitInterest').value = coerceNumberOrBlank(pickValue(headerRow, ['DebitInterest', 'DebitInterestAmount']));
-            $('LoanBalance').value = coerceNumberOrBlank(pickValue(headerRow, ['LoanBalance', 'DebitLoanBalance']));
+            $('PrimaryCollateral').textContent = coerceNumberOrBlank(pickValue(headerRow, ['PrimaryCollateral', 'PrimaryCollateralAmount'])) || '-';
+            $('SecondaryCollateral').textContent = coerceNumberOrBlank(pickValue(headerRow, ['SecondaryCollateral', 'SecondaryCollateralAmount'])) || '-';
+            $('AdditionalCollateral').textContent = coerceNumberOrBlank(pickValue(headerRow, ['AdditionalCollateral', 'AdditionalCollateralAmount'])) || '-';
+            $('CreditInterest').textContent = coerceNumberOrBlank(pickValue(headerRow, ['CreditInterest', 'CreditInterestAmount'])) || '-';
+            $('Tax').textContent = coerceNumberOrBlank(pickValue(headerRow, ['TaxOnCreditInterest', 'Tax', 'TaxAmount'])) || '-';
+            $('DebitInterest').textContent = coerceNumberOrBlank(pickValue(headerRow, ['DebitInterest', 'DebitInterestAmount'])) || '-';
+            $('LoanBalance').textContent = coerceNumberOrBlank(pickValue(headerRow, ['LoanBalance', 'DebitLoanBalance'])) || '-';
         }
 
         if (!$('ClientName').value.trim()) {
@@ -671,10 +739,7 @@
     function setEditMode(enabled) {
         editMode = Boolean(enabled);
         const editableIds = [
-            'ExitReason', 'ExitDate', 'TotalRecoverable', 'TotalPayable', 'ForfeitSavings',
-            'ForfeitCollateral', 'ChargeOffLoss', 'ChargeOffInsurance', 'NetPayable', 'NetReceivable',
-            'PrimaryCollateral', 'CreditInterest', 'Tax', 'SecondaryCollateral', 'AdditionalCollateral',
-            'LoanBalance', 'DebitInterest', 'Others', 'NetBalance'
+            'ExitReason', 'ExitDate'
         ];
         editableIds.forEach(id => {
             const el = $(id);
@@ -685,7 +750,7 @@
     }
 
     function setIdentityDisabled(disabled) {
-        ['BranchId', 'CenterId', 'GroupId', 'ClientId', 'ExitReason'].forEach(id => {
+        ['CenterId', 'GroupId', 'ClientId', 'ExitReason'].forEach(id => {
             const el = $(id);
             if (el) el.disabled = Boolean(disabled);
         });
@@ -700,7 +765,7 @@
 
         if (btnView) btnView.disabled = true;
         if (btnSave) btnSave.disabled = true;
-        if (btnAdd) btnAdd.hidden = false;
+        if (btnAdd) btnAdd.disabled = false;
 
         if (updateCount <= 0) {
             if (btnAdd) btnAdd.disabled = false;
@@ -717,34 +782,45 @@
     function clearForm() {
         [
             'CenterId', 'CenterName', 'GroupId', 'GroupName', 'ClientId', 'ClientName',
-            'ExitReason', 'ExitDate', 'TotalRecoverable', 'TotalPayable', 'ForfeitSavings',
-            'ForfeitCollateral', 'ChargeOffLoss', 'ChargeOffInsurance', 'NetPayable', 'NetReceivable',
-            'TotalForfeitAmount', 'PrimaryCollateral', 'CreditInterest', 'Tax', 'SecondaryCollateral',
-            'AdditionalCollateral', 'LoanBalance', 'DebitInterest', 'Others', 'NetBalance'
+            'ExitReason', 'ExitDate', 'TotalForfeitAmount'
         ].forEach(id => {
             const el = $(id);
             if (el) el.value = '';
+        });
+        // Reset span fields (exit details + portfolio)
+        ['TotalRecoverable', 'TotalPayable', 'ForfeitSavings', 'ForfeitCollateral',
+         'ChargeOffLoss', 'ChargeOffInsurance', 'NetPayable', 'NetReceivable',
+         'PrimaryCollateral', 'CreditInterest', 'Tax', 'SecondaryCollateral', 'AdditionalCollateral',
+         'LoanBalance', 'DebitInterest', 'Others', 'NetBalance'
+        ].forEach(id => {
+            const el = $(id);
+            if (el) el.textContent = '-';
         });
         renderAccounts([]);
         renderForfeits([]);
     }
 
     function getFormData() {
+        const spanVal = (id) => {
+            const el = $(id);
+            if (!el) return 0;
+            return ('value' in el) ? safeNumber(el.value) : safeNumber(el.textContent);
+        };
         return {
-            branchId: ($('BranchId')?.value || '').trim(),
+            branchId: getEnv().ourBranchID,
             centerId: ($('CenterId')?.value || '').trim(),
             groupId: ($('GroupId')?.value || '').trim(),
             clientId: ($('ClientId')?.value || '').trim(),
             exitReason: ($('ExitReason')?.value || '').trim(),
             exitDate: ($('ExitDate')?.value || '').trim(),
-            totalRecoverable: safeNumber($('TotalRecoverable')?.value),
-            totalPayable: safeNumber($('TotalPayable')?.value),
-            forfeitSavings: safeNumber($('ForfeitSavings')?.value),
-            forfeitCollateral: safeNumber($('ForfeitCollateral')?.value),
-            chargeOffLoss: safeNumber($('ChargeOffLoss')?.value),
-            chargeOffInsurance: safeNumber($('ChargeOffInsurance')?.value),
-            netPayable: safeNumber($('NetPayable')?.value),
-            netReceivable: safeNumber($('NetReceivable')?.value)
+            totalRecoverable: spanVal('TotalRecoverable'),
+            totalPayable: spanVal('TotalPayable'),
+            forfeitSavings: spanVal('ForfeitSavings'),
+            forfeitCollateral: spanVal('ForfeitCollateral'),
+            chargeOffLoss: spanVal('ChargeOffLoss'),
+            chargeOffInsurance: spanVal('ChargeOffInsurance'),
+            netPayable: spanVal('NetPayable'),
+            netReceivable: spanVal('NetReceivable')
         };
     }
 
@@ -755,47 +831,32 @@
         const v = (id) => String($(id)?.value || '').trim();
         const missing = (msg, focusId) => ({ ok: false, message: msg, focusId });
 
-        if (!v('BranchId')) return missing('Branch ID is required', 'BranchId');
-        if (!v('BranchName')) return missing('Branch Name is required', 'BranchId');
         if (!v('CenterId')) return missing('Center ID is required', 'CenterId');
-        if (!v('CenterName')) return missing('Center Name is required', 'CenterId');
-        if (!v('GroupId')) return missing('Group ID is required', 'GroupId');
-        if (!v('GroupName')) return missing('Group Name is required', 'GroupId');
         if (!v('ClientId')) return missing('Client ID is required', 'ClientId');
-        if (!v('ClientName')) return missing('Client Name is required', 'ClientId');
         if (!v('ExitReason')) return missing('Exit Reason is required', 'ExitReason');
 
         return { ok: true };
     }
 
     // =========================================================================
-    // ID Validation Handlers (via OldAPI)
+    // ID Validation Handlers — background search via SearchModal/Search
     // =========================================================================
     async function handleViewBranch() {
         const branchId = ($('BranchId')?.value || '').trim();
         if (!branchId) { showWarning('Please enter a Branch ID'); return; }
 
         try {
-            showInfo('Loading branch details...');
-            const result = await invokeExitProcessController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: branchId,
-                    ControlTypeID: 'BranchID',
-                    ID: branchId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: '',
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const branch = Array.isArray(details) ? details[0] : details;
-            if (branch && (branch.BranchName || branch.Description)) {
-                $('BranchName').value = branch.BranchName || branch.Description || '';
-                clearAllDependents();
-                showSuccess(`Branch '${branch.BranchName || branch.Description}' loaded`);
+            const config = searchDialogConfig['branch'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(branchId).replace(/'/g, "''");
+            const whereStmt = `OurBranchID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('branch', results[0]);
             } else {
+                $('BranchName').value = '';
                 showWarning('Branch not found');
             }
         } catch (error) {
@@ -808,29 +869,21 @@
         const centerId = ($('CenterId')?.value || '').trim();
         if (!centerId) { showWarning('Please enter a Center ID'); return; }
 
+        const branchId = parentContext.branchId || ($('BranchId')?.value || '').trim();
+        if (!branchId) { showWarning('Please select a Branch first'); return; }
+
         try {
-            showInfo('Loading center details...');
-            const branchId = ($('BranchId')?.value || '').trim() || getEnv().ourBranchID;
-            const result = await invokeExitProcessController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: branchId,
-                    ControlTypeID: 'GroupID',
-                    ID: centerId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${branchId}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const center = Array.isArray(details) ? details[0] : details;
-            if (center && (center.GroupName || center.Description)) {
-                $('CenterName').value = center.GroupName || center.Description || '';
-                clearGroupFields();
-                clearClientFields();
-                showSuccess(`Center '${center.GroupName || center.Description}' loaded`);
+            const config = searchDialogConfig['center'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(centerId).replace(/'/g, "''");
+            const whereStmt = `GroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('center', results[0]);
             } else {
+                $('CenterName').value = '';
                 showWarning('Center not found');
             }
         } catch (error) {
@@ -843,31 +896,21 @@
         const groupId = ($('GroupId')?.value || '').trim();
         if (!groupId) { showWarning('Please enter a Group ID'); return; }
 
-        const branchId = ($('BranchId')?.value || '').trim() || getEnv().ourBranchID;
-        const centerId = ($('CenterId')?.value || '').trim();
+        const centerId = parentContext.centerId || ($('CenterId')?.value || '').trim();
         if (!centerId) { showWarning('Please select a Center first'); return; }
 
         try {
-            showInfo('Loading group details...');
-            const result = await invokeExitProcessController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: branchId,
-                    ControlTypeID: 'SubGroupID',
-                    ID: groupId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${branchId}' AND GroupID='${centerId}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const group = Array.isArray(details) ? details[0] : details;
-            if (group && (group.SubGroupName || group.SubGroupID || group.Description)) {
-                $('GroupName').value = group.SubGroupName || group.Description || group.SubGroupID || '';
-                clearClientFields();
-                showSuccess(`Group loaded`);
+            const config = searchDialogConfig['group'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(groupId).replace(/'/g, "''");
+            const whereStmt = `SubGroupID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('group', results[0]);
             } else {
+                $('GroupName').value = '';
                 showWarning('Group not found');
             }
         } catch (error) {
@@ -880,34 +923,24 @@
         const clientId = ($('ClientId')?.value || '').trim();
         if (!clientId) { showWarning('Please enter a Client ID'); return; }
 
-        const branchId = ($('BranchId')?.value || '').trim() || getEnv().ourBranchID;
-        const centerId = ($('CenterId')?.value || '').trim();
-        const groupId = ($('GroupId')?.value || '').trim();
-        if (!centerId || !groupId) {
-            showWarning('Please select Center and Group first');
+        const centerId = parentContext.centerId || ($('CenterId')?.value || '').trim();
+        if (!centerId) {
+            showWarning('Please select a Center first');
             return;
         }
 
         try {
-            showInfo('Loading client details...');
-            const result = await invokeExitProcessController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: branchId,
-                    ControlTypeID: 'GroupClientActiveID',
-                    ID: clientId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: `OurBranchID='${branchId}' AND GroupID='${centerId}' AND SubGroupID='${groupId}'`,
-                    LanguageID: 'en'
-                }
-            });
-            const details = result?.Details || result?.data?.Details || [];
-            const client = Array.isArray(details) ? details[0] : details;
-            if (client && (client.ClientName || client.CustomerName || client.Name)) {
-                $('ClientName').value = client.ClientName || client.CustomerName || client.Name || '';
-                showSuccess(`Client loaded`);
+            const config = searchDialogConfig['client'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(clientId).replace(/'/g, "''");
+            const whereStmt = `ClientID='${safeId}'`;
+
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
+
+            if (results.length > 0) {
+                mapSelectedData('client', results[0]);
             } else {
+                $('ClientName').value = '';
                 showWarning('Client not found');
             }
         } catch (error) {
@@ -923,6 +956,8 @@
         const select = $('ExitReason');
         if (!select || select.dataset.exitTypesLoaded === '1') return;
 
+        const previousValue = String(select.value ?? '').trim();
+
         const placeholder = select.querySelector('option[value=""]');
         select.innerHTML = '';
         if (placeholder) select.appendChild(placeholder);
@@ -936,23 +971,19 @@
         select.disabled = true;
 
         try {
-            const { ourBranchID, operatorID } = getEnv();
-            const result = await invokeExitProcessController('old-api', {
-                FormId: 'p_GetSearchResult',
-                RequestData: {
-                    TableID: 'ExitTypeID',
-                    WhereStmt: '1=1',
-                    AdvFilterString: '',
-                    PrevOrNext: '1',
-                    RefID: '',
-                    OperatorID: operatorID,
-                    ModuleID: 1000,
-                    OurBranchID: ourBranchID
-                }
-            });
+            const { ourBranchID } = getEnv();
 
-            const details = result?.Details || result?.data?.Details || [];
-            const rows = Array.isArray(details) ? details : [];
+            // Try current branch first, then common fallbacks (matches legacy pattern)
+            const branchesToTry = [ourBranchID, '0101']
+                .map(b => String(b || '').trim())
+                .filter(Boolean);
+
+            let rows = [];
+            for (const branch of branchesToTry) {
+                const results = await backgroundSearch('ExitTypeID', '', '1=1', 1000);
+                rows = Array.isArray(results) ? results : [];
+                if (rows.length) break;
+            }
 
             const normalized = rows.map(r => {
                 const id = (r.ExitTypeID || r.ID || r.Id || '').toString().trim();
@@ -963,6 +994,7 @@
             normalized.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }));
 
             if (normalized.length === 0) {
+                console.warn('[ExitProcess] No Exit Types returned from SearchModal/Search (TableID: ExitTypeID)');
                 showWarning('No Exit Types found');
                 return;
             }
@@ -972,6 +1004,10 @@
                 opt.value = x.id;
                 opt.textContent = x.desc ? `${x.id} - ${x.desc}` : x.id;
                 select.appendChild(opt);
+            }
+
+            if (previousValue && Array.from(select.options).some(o => o.value === previousValue)) {
+                select.value = previousValue;
             }
 
             select.dataset.exitTypesLoaded = '1';
@@ -994,7 +1030,7 @@
             return;
         }
 
-        const branchId = ($('BranchId')?.value || '').trim();
+        const branchId = getEnv().ourBranchID;
         const centerId = ($('CenterId')?.value || '').trim();
         const groupId = ($('GroupId')?.value || '').trim();
         const clientId = ($('ClientId')?.value || '').trim();
@@ -1009,6 +1045,7 @@
                     GroupID: centerId,
                     SubGroupID: groupId,
                     ClientID: clientId,
+                    RefID: '',
                     ExitTypeID: exitTypeId,
                     OperatorID: getEnv().operatorID
                 }
@@ -1047,13 +1084,17 @@
             return;
         }
 
-        const branchId = ($('BranchId')?.value || '').trim();
+        const branchId = getEnv().ourBranchID;
         const centerId = ($('CenterId')?.value || '').trim();
         const groupId = ($('GroupId')?.value || '').trim();
         const clientId = ($('ClientId')?.value || '').trim();
         const exitTypeId = ($('ExitReason')?.value || '').trim();
 
-        const getAmount = (id) => safeNumber($(id)?.value);
+        const getAmount = (id) => {
+            const el = $(id);
+            if (!el) return 0;
+            return ('value' in el) ? safeNumber(el.value) : safeNumber(el.textContent);
+        };
 
         try {
             showInfo('Loading exit transactions...');
@@ -1127,14 +1168,8 @@
     function handleCancel() {
         clearForm();
 
-        // Reset branch to logged-in context
-        const { ourBranchID } = getEnv();
-        const branchName = getOurBranchName();
-        if ($('BranchId')) { $('BranchId').value = ourBranchID; }
-        if ($('BranchName')) { $('BranchName').value = branchName; }
-
         // Enable identity fields
-        ['BranchId', 'CenterId', 'GroupId', 'ClientId', 'ExitReason'].forEach(id => {
+        ['CenterId', 'GroupId', 'ClientId', 'ExitReason'].forEach(id => {
             const el = $(id);
             if (el) el.disabled = false;
         });
@@ -1149,6 +1184,9 @@
 
         setEditMode(false);
         currentData = null;
+        parentContext.centerId = '';
+        parentContext.groupId = '';
+        parentContext.clientId = '';
 
         // Reset exit date to working date
         initExitDate();
@@ -1162,7 +1200,11 @@
             return;
         }
 
-        const val = (id) => $(id)?.value || '';
+        const val = (id) => {
+            const el = $(id);
+            if (!el) return '';
+            return ('value' in el) ? el.value : (el.textContent || '');
+        };
         const exitReasonText = $('ExitReason')?.options[$('ExitReason')?.selectedIndex]?.text || '';
 
         const accountsBody = $('accountsBody');
@@ -1193,6 +1235,10 @@
             forfeitsHtml = '<tr><td colspan="5" class="text-center">No records to display.</td></tr>';
         }
 
+        const generatedOn = window.GlobalUtils?.formatDateTime
+            ? window.GlobalUtils.formatDateTime(new Date())
+            : new Date().toLocaleString();
+
         const printContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Exit Process Report</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:20px;font-size:12px;line-height:1.4}
 .report-header{text-align:center;margin-bottom:20px;border-bottom:2px solid #333;padding-bottom:10px}
@@ -1208,7 +1254,7 @@ th{background:#e2e8f0;font-weight:bold}.text-end{text-align:right}.text-center{t
 .total-row{background:#e2e8f0;font-weight:bold}
 @media print{body{padding:10px}.section{page-break-inside:avoid}}</style></head>
 <body>
-<div class="report-header"><h1>Exit Process Report</h1><p>Generated on ${new Date().toLocaleString()}</p></div>
+<div class="report-header"><h1>Exit Process Report</h1><p>Generated on ${generatedOn}</p></div>
 <div class="client-info">
 <div class="info-row"><span class="info-label">Branch:</span><span>${val('BranchId')} - ${val('BranchName')}</span></div>
 <div class="info-row"><span class="info-label">Center:</span><span>${val('CenterId')} - ${val('CenterName')}</span></div>
@@ -1277,20 +1323,13 @@ th{background:#e2e8f0;font-weight:bold}.text-end{text-align:right}.text-center{t
     function initBranch() {
         const { ourBranchID } = getEnv();
         const branchName = getOurBranchName();
+
+        // Store session branch into hidden fields and parentContext
         const branchIdEl = $('BranchId');
         const branchNameEl = $('BranchName');
-
-        if (branchIdEl && !branchIdEl.value.trim() && ourBranchID) {
-            branchIdEl.value = ourBranchID;
-        }
-        if (branchNameEl && !branchNameEl.value.trim() && branchName) {
-            branchNameEl.value = branchName;
-        }
-
-        // If we have ID but no name, resolve via server
-        if (branchIdEl?.value.trim() && !branchNameEl?.value.trim()) {
-            handleViewBranch();
-        }
+        if (branchIdEl) branchIdEl.value = ourBranchID;
+        if (branchNameEl) branchNameEl.value = branchName;
+        parentContext.branchId = ourBranchID;
     }
 
     function setupEventListeners() {
@@ -1310,26 +1349,21 @@ th{background:#e2e8f0;font-weight:bold}.text-end{text-align:right}.text-center{t
         $('btnCancel')?.addEventListener('click', handleCancel);
 
         // Enter key / blur handlers for ID fields
-        $('BranchId')?.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); handleViewBranch(); } });
         $('CenterId')?.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); handleViewCenter(); } });
         $('GroupId')?.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); handleViewGroup(); } });
         $('ClientId')?.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); handleViewClient(); } });
 
-        $('BranchId')?.addEventListener('blur', () => {
-            const val = ($('BranchId')?.value || '').trim();
-            if (val && !$('BranchName')?.value.trim()) handleViewBranch();
-        });
         $('CenterId')?.addEventListener('blur', () => {
             const val = ($('CenterId')?.value || '').trim();
-            if (val && !$('CenterName')?.value.trim()) handleViewCenter();
+            if (val && val !== parentContext.centerId) handleViewCenter();
         });
         $('GroupId')?.addEventListener('blur', () => {
             const val = ($('GroupId')?.value || '').trim();
-            if (val && !$('GroupName')?.value.trim()) handleViewGroup();
+            if (val && val !== parentContext.groupId) handleViewGroup();
         });
         $('ClientId')?.addEventListener('blur', () => {
             const val = ($('ClientId')?.value || '').trim();
-            if (val && !$('ClientName')?.value.trim()) handleViewClient();
+            if (val && val !== parentContext.clientId) handleViewClient();
         });
 
         // Exit Reason lazy load

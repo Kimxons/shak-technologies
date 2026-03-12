@@ -9,6 +9,7 @@ namespace kairo_ui.Models.Identities.ClientMaintenance
         public string? ClientID { get; set; }
         public string? RequestID { get; set; }
         public string? ApplicationID { get; set; }
+        public int? Direction { get; set; } = 0;
     }
 
     public class ClientMaintenanceValidateRequest : ClientMaintenanceBaseRequest

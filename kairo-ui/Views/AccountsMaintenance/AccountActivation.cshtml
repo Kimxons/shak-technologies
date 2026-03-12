@@ -1,4 +1,4 @@
-﻿@{
+@{
     // Migrated from: account-activation.html
 }
 
@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- BEHIND THE SCENE SECTION (COLLAPSIBLE) -->
+    <!-- BEHIND THE SCENE SECTION (matching legacy) -->
     <div class="form-section">
       <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-gear me-1"></i>Behind The Scene</span>
@@ -69,38 +69,29 @@
       <div class="section-content" data-section-content>
         <div class="row g-2 mb-2">
           <div class="col-md-3">
-            <label class="am-label" for="dormantDate">Dormant Date</label>
-            <input id="dormantDate" name="dormantDate" type="text" class="form-control am-input" readonly />
+            <label class="am-label" for="createdOn">Created On</label>
+            <input id="createdOn" name="createdOn" type="text" class="form-control am-input" readonly />
+          </div>
+          <div class="col-md-6">
+            <label class="am-label" for="productId">Product ID</label>
+            <div class="d-flex gap-2">
+              <input id="productId" name="productId" type="text" class="form-control am-input" style="max-width:100px" readonly />
+              <input id="productName" name="productName" type="text" class="form-control am-input" readonly />
+            </div>
           </div>
           <div class="col-md-3">
-            <label class="am-label" for="originalProductId">Original Prod</label>
-            <input id="originalProductId" name="originalProductId" type="text" class="form-control am-input" readonly />
-          </div>
-          <div class="col-md-3">
-            <label class="am-label" for="dormantProductId">Dormant Prod</label>
-            <input id="dormantProductId" name="dormantProductId" type="text" class="form-control am-input" readonly />
-          </div>
-          <div class="col-md-3">
-            <label class="am-label" for="balance">Balance</label>
-            <input id="balance" name="balance" type="text" class="form-control am-input text-end" readonly />
+            <label class="am-label" for="availableBalance">Available Balance</label>
+            <input id="availableBalance" name="availableBalance" type="text" class="form-control am-input text-end" readonly />
           </div>
         </div>
         <div class="row g-2 mb-2">
           <div class="col-md-3">
-            <label class="am-label" for="fixedAmount">Fixed Amount</label>
-            <input id="fixedAmount" name="fixedAmount" type="text" class="form-control am-input text-end" readonly />
-          </div>
-          <div class="col-md-3">
-            <label class="am-label" for="lastCreditDate">Last Credit</label>
+            <label class="am-label" for="lastCreditDate">Last Credit Date</label>
             <input id="lastCreditDate" name="lastCreditDate" type="text" class="form-control am-input" readonly />
           </div>
           <div class="col-md-3">
-            <label class="am-label" for="lastDebitDate">Last Debit</label>
-            <input id="lastDebitDate" name="lastDebitDate" type="text" class="form-control am-input" readonly />
-          </div>
-          <div class="col-md-3">
-            <label class="am-label" for="fixedAmountId">Fixed Amt ID</label>
-            <input id="fixedAmountId" name="fixedAmountId" type="text" class="form-control am-input" readonly />
+            <label class="am-label" for="fixedAmount">Fixed Amount</label>
+            <input id="fixedAmount" name="fixedAmount" type="text" class="form-control am-input text-end" readonly />
           </div>
         </div>
       </div>
@@ -111,4 +102,4 @@
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-<script src="~/js/modules/accountsmaintenance/account-activation.js"></script>
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-activation.js"></script>

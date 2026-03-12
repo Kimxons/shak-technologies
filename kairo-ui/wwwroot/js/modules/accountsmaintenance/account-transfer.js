@@ -43,6 +43,57 @@ window.AccountTransferModule = (function () {
         return isNaN(n) ? '0.00' : n.toFixed(2);
     }
 
+    function normalizeTransferDetails(result) {
+        // Normalise payloads coming from AccountManagementApi.
+        // SPs commonly return:
+        //  - Details.Details01 = BTS / account summary
+        //  - Details.Details02 = transfer specific fields
+        //  - or a flat Details array / object
+        const root = result?.Details || result?.details || result?.data || null;
+        if (!root) return null;
+
+        // Case 1: Details01 / Details02 pattern (two result sets)
+        const d1 = root.Details01 || root.details01;
+        const d2 = root.Details02 || root.details02;
+        if (d1 || d2) {
+            const p1 = Array.isArray(d1) ? d1[0] : d1;
+            const p2 = Array.isArray(d2) ? d2[0] : d2;
+            return { ...(p1 || {}), ...(p2 || {}) };
+        }
+
+        // Case 2: Details is an array of rows – merge into one object
+        if (Array.isArray(root)) {
+            const merged = root.reduce((acc, row) => {
+                if (row && typeof row === 'object') {
+                    return { ...acc, ...row };
+                }
+                return acc;
+            }, {});
+            return Object.keys(merged).length > 0 ? merged : null;
+        }
+
+        // Case 3: Flatten nested objects (e.g. AccountSummary) into a single object
+        if (root && typeof root === 'object') {
+            const flat = {};
+            for (const [k, v] of Object.entries(root)) {
+                if (Array.isArray(v) && v.length && typeof v[0] === 'object') {
+                    Object.assign(flat, v[0]);
+                } else if (v && typeof v === 'object' && !Array.isArray(v)) {
+                    Object.assign(flat, v);
+                }
+            }
+
+            // Scalar values override nested merges
+            for (const [k, v] of Object.entries(root)) {
+                if (v === null || typeof v !== 'object') flat[k] = v;
+            }
+
+            return Object.keys(flat).length > 0 ? flat : root;
+        }
+
+        return null;
+    }
+
     // ── Mode Management ────────────────────────────────────────
     function setMode(editing) {
         const fields = ['branchId', 'productId', 'retainAccountId', 'reason', 'remarks'];
@@ -100,8 +151,11 @@ window.AccountTransferModule = (function () {
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
-                const data = result.Details?.[0] || result.data?.Details?.[0] || result.data || result.Details;
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            console.log('[AccountTransfer] API result isOk:', isOk, 'raw Details:', result?.Details);
+            if (isOk) {
+                const data = normalizeTransferDetails(result);
+                console.log('[AccountTransfer] Normalized data:', data);
                 if (data) {
                     state.transferData = data;
                     populateForm(data);
@@ -111,7 +165,7 @@ window.AccountTransferModule = (function () {
                     clearForm();
                 }
             } else {
-                showMsg(result?.message || 'Failed to load transfer details', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Failed to load transfer details', 'error');
             }
         } catch (err) {
             showMsg('Error loading transfer details: ' + err.message, 'error');
@@ -119,24 +173,69 @@ window.AccountTransferModule = (function () {
     }
 
     function populateForm(data) {
-        setVal('branchId', data.ToBranchID || data.BranchID || '');
-        setVal('branchName', data.ToBranchName || data.BranchName || '');
-        setVal('productId', data.ToProductID || data.ProductID || '');
-        setVal('productName', data.ToProductName || data.ProductName || '');
+        console.log('[AccountTransfer] populateForm keys:', Object.keys(data));
+
+        const ps = window.AccountMaintenanceState || {};
+
+        // Identification / destination
+        setVal('branchId',
+            data.ToBranchID ||
+            data.NewBranchID ||
+            data.BranchID ||
+            data.OurBranchID ||
+            data.branchId ||
+            ps.OurBranchID ||
+            ''
+        );
+
+        setVal('branchName',
+            data.ToBranchName ||
+            data.NewBranchName ||
+            data.BranchName ||
+            data.BranchDescription ||
+            ps.BranchName ||
+            data.Description ||
+            ''
+        );
+
+        setVal('productId',
+            data.ToProductID ||
+            data.NewProductID ||
+            data.ProductID ||
+            data.productId ||
+            ps.ProductID ||
+            ''
+        );
+
+        setVal('productName',
+            data.ToProductName ||
+            data.NewProductName ||
+            data.ProductName ||
+            data.ProductTypeName ||
+            ps.ProductName ||
+            data.Description ||
+            ''
+        );
 
         const retain = el('retainAccountId');
         if (retain) retain.checked = data.RetainAccountID === 'Y' || data.RetainAccountID === true;
 
-        setVal('reason', data.ReasonID || data.Reason || '');
-        setVal('remarks', data.Remarks || '');
+        // Reason / narrative
+        setVal('reason', data.TransferReasonID || data.ReasonID || data.Reason || '');
+        setVal('remarks', data.Remarks || data.TransferReason || data.Narration || data.Description || '');
 
-        setVal('balance', formatAmount(data.Balance));
-        setVal('creditInterestPayable', formatAmount(data.InterestPayable || data.CreditInterestPayable));
-        setVal('debitInterestReceivable', formatAmount(data.InterestReceivable || data.DebitInterestReceivable));
-        setVal('penalInterestReceivable', formatAmount(data.PenaltyReceivable || data.PenalInterestReceivable));
-        setVal('transferCharges', formatAmount(data.TransferCharge || data.TransferCharges));
+        // Financial fields — prefer AccountSummary values (already merged)
+        setVal('balance', formatAmount(data.Balance ?? data.ClearBalance));
+        setVal('creditInterestPayable', formatAmount(data.InterestPayable ?? data.CreditInterestPayable ?? 0));
+        setVal('debitInterestReceivable', formatAmount(data.InterestReceivable ?? data.DebitInterestReceivable ?? 0));
+        setVal('penalInterestReceivable', formatAmount(data.PenaltyReceivable ?? data.PenalInterestReceivable ?? 0));
+        setVal('transferCharges', formatAmount(data.TransferCharge ?? data.TransferCharges ?? 0));
 
         calculateNetPayable();
+
+        console.log('[AccountTransfer] Form populated — balance:', el('balance')?.value,
+            'branch:', el('branchId')?.value, 'product:', el('productId')?.value,
+            'reason:', el('reason')?.value, 'remarks:', el('remarks')?.value);
     }
 
     function clearForm() {
@@ -176,12 +275,13 @@ window.AccountTransferModule = (function () {
 
         try {
             const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
-            if (result && result.success) {
-                showMsg(result.message || 'Account transfer saved successfully', 'success');
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Account transfer saved successfully', 'success');
                 loadData();
                 return true;
             } else {
-                showMsg(result?.message || 'Save failed', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Save failed', 'error');
                 return false;
             }
         } catch (err) {
@@ -231,8 +331,24 @@ window.AccountTransferModule = (function () {
         setMode(false);
         wireLookups();
 
-        // Populate basic info from parent if available
+        // Populate basic info from parent if available (mirrors legacy behaviour)
         const ctx = getContext();
+        const ps = window.AccountMaintenanceState || {};
+
+        // Branch / product descriptions like legacy desktop
+        if (ctx.OurBranchID) {
+            setVal('branchId', ctx.OurBranchID);
+        }
+        if (ps.BranchName) {
+            setVal('branchName', ps.BranchName);
+        }
+        if (ps.ProductID) {
+            setVal('productId', ps.ProductID);
+        }
+        if (ps.ProductName) {
+            setVal('productName', ps.ProductName);
+        }
+
         if (ctx.AccountID && ctx.OurBranchID) {
             loadData();
         }
@@ -256,6 +372,7 @@ window.AccountTransferModule = (function () {
     return {
         init: init,
         save: handleSave,
+        add: () => { clearForm(); setMode(true); },
         edit: () => setMode(true),
         cancel: async () => {
             const ok = await AppCore.showConfirmation('Cancel', 'Are you sure you want to cancel your changes?');

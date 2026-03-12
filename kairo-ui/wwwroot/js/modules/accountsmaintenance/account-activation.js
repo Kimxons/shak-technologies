@@ -1,4 +1,4 @@
-/**
+    /**
  * Account Activation Module
  * Refactored to use AppCore.invokeControllerAsync and align with IApiService pattern.
  */
@@ -40,6 +40,21 @@ window.AccountActivationModule = (function () {
             e.textContent = (v == null) ? '-' : v;
     };
 
+    /** Case-insensitive property getter — tries exact match first, then case-insensitive */
+    function getField(obj, ...names) {
+        if (!obj) return '';
+        for (const n of names) {
+            if (obj[n] !== undefined && obj[n] !== null) return obj[n];
+        }
+        const keys = Object.keys(obj);
+        for (const n of names) {
+            const lc = n.toLowerCase();
+            const k = keys.find(k => k.toLowerCase() === lc);
+            if (k !== undefined && obj[k] !== undefined && obj[k] !== null) return obj[k];
+        }
+        return '';
+    }
+
     function showMsg(msg, type) {
         const t = window.showSystemToast || window.parent?.showSystemToast;
         if (t) t(msg, { variant: type === 'error' ? 'danger' : type });
@@ -48,6 +63,9 @@ window.AccountActivationModule = (function () {
 
     function formatDate(ds) {
         if (!ds) return '-';
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(ds);
+        }
         try {
             const d = new Date(ds);
             return isNaN(d.getTime()) ? ds : d.toLocaleDateString();
@@ -114,15 +132,44 @@ window.AccountActivationModule = (function () {
                 OperatorID: ctx.OperatorID
             });
 
-            if (result && result.success) {
-                let details = null;
-                const d = result.Details || result.data;
-                if (d?.Details01?.[0]) details = d.Details01[0];
-                else if (d?.Details02?.[0]) details = d.Details02[0];
-                else if (Array.isArray(d) && d[0]) details = d[0];
-                else if (d && typeof d === 'object' && !d.Details01) details = d;
+            const isOk = result && (result.success || result.Success
+                || result.ResponseCode === '00' || result.responseCode === '00');
+            console.log('[AccountActivation] API isOk:', isOk, 'raw result:', JSON.stringify(result).substring(0, 500));
+            if (isOk) {
+                const d = result.Details || result.details || result.data;
+                console.log('[AccountActivation] Details type:', typeof d, Array.isArray(d) ? '(array)' : '',
+                    d ? Object.keys(d) : 'null');
 
-                if (details) {
+                // SP returns two result sets: Details01 = BTS, Details02 = activation fields
+                // Merge both into a single flat object so populateForm can read all fields
+                let details = null;
+
+                if (d?.Details01 || d?.Details02 || d?.details01 || d?.details02) {
+                    const bts = Array.isArray(d.Details01 || d.details01) ? (d.Details01 || d.details01)[0] : (d.Details01 || d.details01);
+                    const act = Array.isArray(d.Details02 || d.details02) ? (d.Details02 || d.details02)[0] : (d.Details02 || d.details02);
+                    details = { ...(bts || {}), ...(act || {}) };
+                } else if (Array.isArray(d) && d.length > 0) {
+                    details = d.reduce((acc, row) => ({ ...acc, ...(typeof row === 'object' ? row : {}) }), {});
+                } else if (d && typeof d === 'object') {
+                    // Flatten any nested sub-objects (e.g. AccountSummary pattern)
+                    const flat = {};
+                    for (const [k, v] of Object.entries(d)) {
+                        if (Array.isArray(v) && v.length > 0 && typeof v[0] === 'object') {
+                            Object.assign(flat, v[0]);
+                        } else if (v && typeof v === 'object' && !Array.isArray(v)) {
+                            Object.assign(flat, v);
+                        }
+                    }
+                    // Scalar values (including those from top-level d) override nested merges
+                    for (const [k, v] of Object.entries(d)) {
+                        if (v === null || typeof v !== 'object') flat[k] = v;
+                    }
+                    details = Object.keys(flat).length > 0 ? flat : d;
+                }
+
+                console.log('[AccountActivation] Normalized details:', details);
+
+                if (details && Object.keys(details).length > 0) {
                     state.currentActivationData = details;
                     populateForm(details);
                     setMode(false);
@@ -130,7 +177,7 @@ window.AccountActivationModule = (function () {
                     showMsg('No activation data found for this account', 'warning');
                 }
             } else {
-                showMsg(result?.message || 'Failed to load activation data', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Failed to load activation data', 'error');
             }
         } catch (err) {
             showMsg('Error loading activation data: ' + err.message, 'error');
@@ -138,24 +185,33 @@ window.AccountActivationModule = (function () {
     }
 
     function populateForm(data) {
-        setVal('branchId', data.OurBranchID || '');
-        setVal('branchName', data.BranchName || '');
-        setVal('accountId', data.AccountID || '');
-        setVal('accountName', data.AccountName || '');
-        setVal('instructedBy', data.InstructedBy || '');
-        setVal('comments', data.Comments || '');
+        console.log('[AccountActivation] populateForm keys:', Object.keys(data));
+        console.log('[AccountActivation] Raw Comments value:', data.Comments, '| comments:', data.comments);
+        console.log('[AccountActivation] Raw InstructedBy value:', data.InstructedBy, '| instructedBy:', data.instructedBy);
 
-        // BTS fields
-        setVal('dormantDate', formatDate(data.DormantDate));
-        setVal('originalProductId', data.ProductID || data.OriginalProductID || '-');
-        setVal('dormantProductId', data.DormantProductID || '-');
-        setVal('balance', formatMoney(data.Balance ?? data.AvailableBalance));
-        setVal('fixedAmount', formatMoney(data.CreditAmount ?? data.FixedAmount ?? data.FreezedAmount));
-        setVal('lastCreditDate', formatDate(data.LastCreditToDate || data.LastCreditDate));
-        setVal('lastDebitDate', formatDate(data.LastDebitDate));
-        setVal('fixedAmountId', data.FixedAmountID || '-');
+        // Account Identification
+        setVal('branchId', getField(data, 'OurBranchID', 'ourBranchID', 'BranchID', 'branchId'));
+        setVal('branchName', getField(data, 'BranchName', 'branchName'));
+        setVal('accountId', getField(data, 'AccountID', 'accountID', 'accountId'));
+        setVal('accountName', getField(data, 'AccountName', 'accountName', 'AccountTitle'));
 
-        state.currentUpdateCount = data.UpdateCount || 0;
+        // Activation Details
+        setVal('instructedBy', getField(data, 'InstructedBy', 'instructedBy'));
+        setVal('comments', getField(data, 'Comments', 'comments', 'Remarks', 'remarks'));
+
+        // Behind The Scene — matching legacy fields from p_GetAccountActivation
+        setVal('createdOn', formatDate(getField(data, 'CreatedOn', 'createdOn', 'CreatedDate', 'createdDate')));
+        setVal('productId', getField(data, 'ProductID', 'productID', 'productId'));
+        setVal('productName', getField(data, 'productName', 'ProductName'));
+        setVal('availableBalance', formatMoney(getField(data, 'Balance', 'balance', 'AvailableBalance', 'ClearBalance') || 0));
+        setVal('lastCreditDate', formatDate(getField(data, 'LastCreditTrxDate', 'lastCreditTrxDate', 'LastCreditDate', 'lastCreditDate')));
+        setVal('fixedAmount', formatMoney(getField(data, 'CreditAmount', 'creditAmount', 'FixedAmount', 'fixedAmount') || 0));
+
+        state.currentUpdateCount = getField(data, 'UpdateCount', 'updateCount') || 0;
+
+        console.log('[AccountActivation] Form populated — branch:', el('branchId')?.value,
+            'balance:', el('availableBalance')?.value, 'product:', el('productId')?.value,
+            'instructedBy:', el('instructedBy')?.value, 'comments:', el('comments')?.value);
     }
 
     // ── Save ───────────────────────────────────────────────────
@@ -191,12 +247,13 @@ window.AccountActivationModule = (function () {
 
         try {
             const result = await AppCore.invokeControllerAsync(API.UPDATE, payload);
-            if (result && result.success) {
-                showMsg(result.message || 'Account activation saved successfully', 'success');
+            const isOk = result && (result.success || result.Success || result.ResponseCode === '00');
+            if (isOk) {
+                showMsg(result.message || result.ResponseMessage || 'Account activation saved successfully', 'success');
                 loadData();
                 return true;
             } else {
-                showMsg(result?.message || 'Save failed', 'error');
+                showMsg(result?.message || result?.ResponseMessage || 'Save failed', 'error');
                 return false;
             }
         } catch (err) {

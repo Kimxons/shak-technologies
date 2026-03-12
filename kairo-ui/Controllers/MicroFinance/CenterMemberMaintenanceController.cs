@@ -41,148 +41,111 @@ namespace kairo_ui.Controllers.MicroFinance
                 return RedirectToAction("Index", "Login");
             }
 
+            // Fetch session values for authenticated user
+            var userName = HttpContext.Session.GetString("user_name");
+            var branchCode = HttpContext.Session.GetString("branch_code");
+            ViewBag.UserName = userName;
+            ViewBag.BranchCode = branchCode;
+
             _logger.LogInformation("Center Member Maintenance loaded successfully");
             return PartialView("~/Views/MicroFinance/CenterMemberMaintenance.cshtml");
         }
 
         // ═════════════════════════════════════════════════════════════════
-        // OLD API - Generic endpoint for OldAPI calls
+        // SUBMODULE PARTIAL VIEWS (loaded inline via fetch)
+        // ═════════════════════════════════════════════════════════════════
+
+        [HttpGet]
+        [Route("CenterMemberScheme")]
+        public IActionResult CenterMemberScheme()
+        {
+            if (!_authService.IsAuthenticated()) return Unauthorized();
+            return PartialView("~/Views/MicroFinance/DataEntry/CenterMemberScheme/CenterMemberScheme.cshtml");
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // DEDICATED ENDPOINTS
         // ═════════════════════════════════════════════════════════════════
 
         [HttpPost]
-        [Route("old-api")]
-        public async Task<IActionResult> PostOldApi([FromBody] CenterMemberMaintenanceOldApiRequest request)
+        [Route("get-group-members")]
+        public async Task<IActionResult> GetGroupMembers([FromBody] JsonElement requestData)
         {
             try
             {
                 if (!_authService.IsAuthenticated())
-                {
-                    _logger.LogWarning("Unauthenticated Center Member Maintenance OldAPI attempt");
-                    return Unauthorized(new
-                    {
-                        Success = false,
-                        ErrorMessage = "User is not authenticated"
-                    });
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.FormId))
-                {
-                    return BadRequest(new
-                    {
-                        Success = false,
-                        ErrorMessage = "FormId and request data are required"
-                    });
-                }
-
-                var envelope = BuildOldApiEnvelope(request.FormId!, request.RequestData);
-
-                _logger.LogInformation("Center Member Maintenance OldAPI request for {FormId}: {Request}",
-                    request.FormId, JsonSerializer.Serialize(envelope));
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
                 var response = await _oldApiService.CreateAsync<JsonElement>(
-                    MicroFinanceApiName, "OldAPI", envelope);
-
+                    MicroFinanceApiName, OldApiDBConstants.GET_GROUP_MEMBERS, requestData);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing Center Member Maintenance OldAPI request");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    ErrorMessage = $"Error processing request: {ex.Message}"
-                });
+                _logger.LogError(ex, "Error fetching group members");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
-        // ═════════════════════════════════════════════════════════════════
-        // HELPERS
-        // ═════════════════════════════════════════════════════════════════
-
-        private object BuildOldApiEnvelope(string formId, JsonElement requestData)
+        [HttpPost]
+        [Route("save-group-member")]
+        public async Task<IActionResult> SaveGroupMember([FromBody] JsonElement requestData)
         {
-            var cleanFormId = formId.StartsWith("dbo.", StringComparison.OrdinalIgnoreCase)
-                ? formId
-                : $"dbo.{formId}";
-
-            var requestDictionary = DeserializeRequestData(requestData);
-            EnsureDefaults(requestDictionary);
-
-            return new
+            try
             {
-                RequestID = cleanFormId,
-                FormId = cleanFormId,
-                RequestData = requestDictionary,
-                RequestTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss",
-                    System.Globalization.CultureInfo.InvariantCulture),
-                AppName = ResolveOldApiAppName(),
-                Checksum = string.Empty
-            };
-        }
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-        private Dictionary<string, object?> DeserializeRequestData(JsonElement requestData)
-        {
-            if (requestData.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
-            {
-                return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    MicroFinanceApiName, OldApiDBConstants.ADD_EDIT_GROUP_MEMBERS, requestData);
+                return Ok(response);
             }
-
-            var dictionary = JsonSerializer.Deserialize<Dictionary<string, object?>>(
-                requestData.GetRawText(), new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-
-            return new Dictionary<string, object?>(dictionary, StringComparer.OrdinalIgnoreCase);
-        }
-
-        private void EnsureDefaults(IDictionary<string, object?> requestData)
-        {
-            SetIfMissing(requestData, "OperatorID",
-                ResolveSessionValue("user_name", "user_id") ?? "web_portal");
-            SetIfMissing(requestData, "OurBranchID",
-                ResolveSessionValue("branch_code", "branch_id") ?? string.Empty);
-            SetIfMissing(requestData, "BankID",
-                ResolveSessionValue("bank_id", "bank_code") ?? "00");
-        }
-
-        private static void SetIfMissing(IDictionary<string, object?> requestData, string key, string value)
-        {
-            if (!requestData.TryGetValue(key, out var existing) ||
-                string.IsNullOrWhiteSpace(Convert.ToString(existing)))
+            catch (Exception ex)
             {
-                requestData[key] = value;
+                _logger.LogError(ex, "Error saving group member");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
-        private string ResolveOldApiAppName()
+        [HttpPost]
+        [Route("delete-group-member")]
+        public async Task<IActionResult> DeleteGroupMember([FromBody] JsonElement requestData)
         {
-            return _config["ApiSettings:OldApiAppName"]
-                ?? _config["ApiSettings:AppName"]
-                ?? "PROJECT_KAIRO";
-        }
-
-        private string? ResolveSessionValue(params string[] keys)
-        {
-            foreach (var key in keys)
+            try
             {
-                var value = HttpContext.Session.GetString(key);
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return value;
-                }
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    MicroFinanceApiName, OldApiDBConstants.DELETE_GROUP_MEMBERS, requestData);
+                return Ok(response);
             }
-            return null;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting group member");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
         }
-    }
 
-    // ═════════════════════════════════════════════════════════════════
-    // DTOs
-    // ═════════════════════════════════════════════════════════════════
+        [HttpPost]
+        [Route("get-group-product-details")]
+        public async Task<IActionResult> GetGroupProductDetails([FromBody] JsonElement requestData)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-    public class CenterMemberMaintenanceOldApiRequest
-    {
-        public string? FormId { get; set; }
-        public JsonElement RequestData { get; set; }
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    MicroFinanceApiName, OldApiDBConstants.GET_GROUP_PRODUCT_DETAILS, requestData);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching group product details");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
     }
 }

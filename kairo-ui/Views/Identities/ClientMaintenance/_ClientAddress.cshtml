@@ -7,9 +7,13 @@
     var regionOptions = ViewData["AddressRegionOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var subCityOptions = ViewData["AddressSubCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var languageOptions = ViewData["AddressLanguageOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
 }
 
-<div class="form-card" data-section="client-address" data-cm-tab="address">
+<div class="form-card" data-section="client-address" data-cm-tab="address" data-address-host="tab">
     <div class="section-header" data-section-toggle>
         <span class="section-header__title"><i class="bi bi-geo-alt"></i>Address</span>
         <button id="btn_toggleClientAddress" type="button" class="section-toggle-btn" aria-label="Toggle Address" aria-expanded="true">
@@ -19,7 +23,7 @@
     <div class="section-content" data-section-content>
         <form id="frm_clientAddress" data-address-form autocomplete="off" novalidate>
             <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdAddress" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="moduleIdAddress" value="@moduleId" />
 
             <h5 class="mb-4">Physical &amp; Mailing Addresses</h5>
 
@@ -42,8 +46,8 @@
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="addressCity" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="ddl_addressCountry" id="lbl_addressCountry">Country</label><select id="ddl_addressCountry" name="addressCountry" data-address-field="CountryID" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="addressCity" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="ddl_addressRegion" id="lbl_addressRegion">Region</label><select id="ddl_addressRegion" name="addressRegion" data-address-field="Region" class="bs-select" asp-items="@(regionOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="ddl_addressSubCity" id="lbl_addressSubCity">Sub-City / Zone</label><select id="ddl_addressSubCity" name="addressSubCity" data-address-field="SubCityZone" class="bs-select" asp-items="@(subCityOptions.Skip(1))"><option value="">Select...</option></select></div>
             </div>
@@ -78,6 +82,7 @@
             <button id="btn_clearClientAddress" type="button" class="btn btn-sm btn-outline-secondary" data-address-action="clear">Clear</button>
         </div>
 
+
         <div class="section-header py-1 mb-2 bg-light border">
             <span class="small fw-bold px-2">ADDRESSES</span>
         </div>
@@ -97,6 +102,18 @@
             </table>
         </div>
     </div>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 </div>
 
-<script src="~/js/modules/identities/client-maintenance/client-address.js"></script>
+<script>
+    // Store Statement View parameters from controller
+    window.ClientAddressState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: false
+    };
+</script>
+
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/_clientAddress.js" asp-append-version="true"></script>

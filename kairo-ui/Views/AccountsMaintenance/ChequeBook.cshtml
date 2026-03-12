@@ -4,6 +4,66 @@
     var bookTypeOptions = ViewData["BookTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
+<style>
+    .submodule-cheque-book .cheque-tab-shell {
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.45);
+        background: rgba(var(--bs-primary-rgb), 0.08);
+        padding: 0;
+    }
+
+    .submodule-cheque-book .cheque-tab-strip {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        padding: 0 8px;
+        background: linear-gradient(180deg, rgba(var(--bs-primary-rgb), 0.10) 0%, rgba(var(--bs-primary-rgb), 0.16) 100%);
+        border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.45);
+    }
+
+    .submodule-cheque-book .cheque-tab-strip .de-tab {
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.45);
+        border-bottom: none;
+        background: linear-gradient(180deg, rgba(var(--bs-primary-rgb), 0.04) 0%, rgba(var(--bs-primary-rgb), 0.14) 100%);
+        color: var(--theme-text-main, #1f2937);
+        padding: 6px 12px;
+        margin-top: 6px;
+        font-size: 0.95rem;
+        line-height: 1;
+        border-radius: 4px 4px 0 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .submodule-cheque-book .cheque-tab-strip .de-tab.is-active {
+        background: #ffffff;
+        color: var(--bs-primary);
+        position: relative;
+        top: 1px;
+        font-weight: 600;
+    }
+
+    .submodule-cheque-book .cheque-tab-panel-wrap {
+        background: rgba(var(--bs-primary-rgb), 0.06);
+        padding: 10px;
+    }
+
+    .submodule-cheque-book .cheque-tab-panel-wrap .table-responsive {
+        background: #ffffff;
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.30);
+        max-height: 250px;
+    }
+
+    .submodule-cheque-book .cheque-tab-panel-wrap table thead.sticky-top {
+        background: rgba(var(--bs-primary-rgb), 0.08) !important;
+    }
+
+    .submodule-cheque-book .cheque-tab-panel-wrap table thead th {
+        color: var(--theme-text-main, #334155);
+        font-weight: 500;
+        border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.25);
+        white-space: nowrap;
+    }
+</style>
+
 <!-- ChequeBook Submodule -->
 <div class="form-content submodule-cheque-book" role="region" aria-label="Cheque Book form">
     <div class="form-card" data-main-form>
@@ -74,11 +134,11 @@
                 <div class="form-row">
                     <div class="col">
                         <label class="label-blue" for="chequeStart">Cheque Start</label>
-                        <input id="chequeStart" type="number" class="bs-input-text form-control" />
+                        <input id="chequeStart" type="text" class="bs-input-text form-control" />
                     </div>
                     <div class="col">
                         <label class="label-blue" for="chequeEnd">Cheque End</label>
-                        <input id="chequeEnd" type="number" class="bs-input-text form-control" readonly />
+                        <input id="chequeEnd" type="text" class="bs-input-text form-control" readonly />
                     </div>
                 </div>
             </div>
@@ -88,49 +148,51 @@
         <div class="form-section" data-section="cheque-tabs">
             <div class="section-header">
                 <span class="section-header__title"><i class="bi bi-journal-bookmark me-2"></i>Cheque Management</span>
-                <div class="de-tabs ms-auto" role="tablist">
-                    <button class="de-tab is-active" type="button" role="tab" data-tab="books" aria-selected="true">Cheque Books</button>
-                    <button class="de-tab" type="button" role="tab" data-tab="requests" aria-selected="false">Cheque Requests</button>
-                </div>
             </div>
             <div class="section-content">
-                <!-- Cheque Books Tab -->
-                <div class="de-tab-panel" data-panel="books">
-                    <div class="table-responsive" style="max-height: 250px;">
-                        <table class="table table-sm table-hover align-middle mb-0" id="chequeBookGrid">
-                            <thead class="sticky-top bg-white">
-                                <tr>
-                                    <th>Start No</th>
-                                    <th>End No</th>
-                                    <th>Prefix</th>
-                                    <th>Leaves</th>
-                                    <th>Issue Date</th>
-                                    <th>Paid</th>
-                                    <th>Stopped</th>
-                                    <th>Returned</th>
-                                </tr>
-                            </thead>
-                            <tbody id="chequeBookTableBody"></tbody>
-                        </table>
+                <div class="cheque-tab-shell">
+                    <div class="cheque-tab-strip" role="tablist" aria-label="Cheque management tabs">
+                        <button class="de-tab is-active" type="button" role="tab" data-tab="books" aria-selected="true">Cheque Books</button>
+                        <button class="de-tab" type="button" role="tab" data-tab="requests" aria-selected="false">Cheque Requests</button>
                     </div>
-                </div>
-                <!-- Cheque Requests Tab -->
-                <div class="de-tab-panel d-none" data-panel="requests">
-                    <div class="table-responsive" style="max-height: 250px;">
-                        <table class="table table-sm table-hover align-middle mb-0" id="chequeRequestGrid">
-                            <thead class="sticky-top bg-white">
-                                <tr>
-                                    <th>Leaves</th>
-                                    <th>Start No</th>
-                                    <th>End No</th>
-                                    <th>Issue Date</th>
-                                    <th>Approved By</th>
-                                    <th>Approved On</th>
-                                    <th>Dispatched By</th>
-                                </tr>
-                            </thead>
-                            <tbody id="chequeRequestTableBody"></tbody>
-                        </table>
+                    <div class="cheque-tab-panel-wrap">
+                        <div class="de-tab-panel" data-panel="books">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0" id="chequeBookGrid">
+                                    <thead class="sticky-top bg-white">
+                                        <tr>
+                                            <th>Start</th>
+                                            <th>End</th>
+                                            <th>ChequePrefix</th>
+                                            <th>Leaves</th>
+                                            <th>Issue Date</th>
+                                            <th>Paid</th>
+                                            <th>Stopped</th>
+                                            <th>Returned</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="chequeBookTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="de-tab-panel d-none" data-panel="requests">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0" id="chequeRequestGrid">
+                                    <thead class="sticky-top bg-white">
+                                        <tr>
+                                            <th>Leaves</th>
+                                            <th>Start</th>
+                                            <th>End</th>
+                                            <th>Issue Date</th>
+                                            <th>Approved By</th>
+                                            <th>Approved On</th>
+                                            <th>Dispatched By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="chequeRequestTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -192,8 +254,16 @@
                 <div class="behind-scene">
                     <div class="behind-scene-grid">
                         <div class="behind-scene-item">
-                            <label>Currency</label>
+                            <label>Currency ID</label>
                             <span class="behind-scene-value" id="currencyId">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Created By</label>
+                            <span class="behind-scene-value" id="MakerID">-</span>
+                        </div>
+                        <div class="behind-scene-item">
+                            <label>Created On</label>
+                            <span class="behind-scene-value" id="MakerDT">-</span>
                         </div>
                         <div class="behind-scene-item">
                             <label>Approved By</label>
@@ -213,17 +283,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="audit-section mt-3">
-                    <div class="audit-block">
-                        <div class="audit-item"><label>Created By</label><span class="audit-value" id="MakerID">-</span></div>
-                        <div class="audit-item"><label>Created On</label><span class="audit-value" id="MakerDT">-</span></div>
-                    </div>
-                    <div class="audit-block border-start px-3">
-                        <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifierID">-</span></div>
-                        <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifierDT">-</span></div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -232,4 +291,4 @@
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 
-<script src="~/js/modules/accountsmaintenance/account-cheque-book.js"></script>
+<script src="~/js/modules/accountsmaintenance/account-cheque-book.js" asp-append-version="true"></script>

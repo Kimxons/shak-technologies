@@ -21,7 +21,7 @@ namespace kairo_ui.Services
         /// <summary>
         /// Fetches a collection of items from the specified endpoint
         /// </summary>
-        Task<IEnumerable<T>> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
+        Task<T> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams);
 
         /// <summary>
         /// Fetches a single item from the specified endpoint
@@ -72,6 +72,7 @@ namespace kairo_ui.Services
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNamingPolicy = null
+            
         };
 
         public ApiService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ILogger<ApiService> logger)
@@ -83,10 +84,58 @@ namespace kairo_ui.Services
             //_apiBaseUrl = configuration?.GetValue<string>("ApiSettings:BaseUrl") ?? "http://localhost:5001/api";
         }
 
+        ///// <summary>
+        ///// Fetches a collection of items from the specified endpoint
+        ///// </summary>
+        //public async Task<IEnumerable<T>> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
+        //{
+        //    var fullUrl = $"{endpoint}";
+        //    try
+        //    {
+        //        _httpClient = _httpClientFactory.CreateClient(apiName);
+        //        QueryBuilder qbuilder = [];
+        //        foreach (KeyValuePair<string, object> q in qparams)
+        //        {
+        //            qbuilder.Append(new KeyValuePair<string, string>(q.Key, Convert.ToString(q.Value)!));
+        //        }
+        //        fullUrl += qbuilder.ToQueryString();
+        //        _logger.LogInformation("API GET Request: {Endpoint} | URL: {FullUrl}", endpoint, fullUrl);
+
+        //        var startTime = DateTime.UtcNow;
+        //        var response = await _httpClient.GetAsync(fullUrl);
+        //        var duration = DateTime.UtcNow - startTime;
+
+        //        _logger.LogInformation("API GET Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
+        //            endpoint, (int)response.StatusCode, duration.TotalMilliseconds);
+
+        //        if (!response.IsSuccessStatusCode)
+        //        {
+        //            var errorContent = await response.Content.ReadAsStringAsync();
+        //            _logger.LogError("API GET Error: {Endpoint} | Status: {StatusCode} | Error: {ErrorContent}",
+        //                endpoint, (int)response.StatusCode, errorContent);
+        //            throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
+        //        }
+
+        //        var json = await response.Content.ReadAsStringAsync();
+        //        var result = JsonSerializer.Deserialize<IEnumerable<T>>(json, _jsonSerializerOptions) ?? Enumerable.Empty<T>();
+        //        var itemCount = (result as List<T>)?.Count ?? 0;
+
+        //        _logger.LogInformation("API GET Success: {Endpoint} | Items: {ItemCount} | Response Size: {ResponseSize} bytes",
+        //            endpoint, itemCount, json.Length);
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "API GET Exception: {Endpoint} | Error: {ErrorMessage} | URL: {FullUrl}",
+        //            endpoint, ex.Message, fullUrl);
+        //        throw new Exception($"Failed to fetch {endpoint}: {ex.Message}", ex);
+        //    }
+        //}
+
         /// <summary>
         /// Fetches a collection of items from the specified endpoint
         /// </summary>
-        public async Task<IEnumerable<T>> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
+        public async Task<T> GetAsync<T>(string apiName, string endpoint, params IEnumerable<KeyValuePair<string, object>> qparams)
         {
             var fullUrl = $"{endpoint}";
             try
@@ -116,11 +165,11 @@ namespace kairo_ui.Services
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<IEnumerable<T>>(json, _jsonSerializerOptions) ?? Enumerable.Empty<T>();
-                var itemCount = (result as List<T>)?.Count ?? 0;
+                var result = JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions);
+                //var itemCount = (result as List<T>)?.Count ?? 0;
 
                 _logger.LogInformation("API GET Success: {Endpoint} | Items: {ItemCount} | Response Size: {ResponseSize} bytes",
-                    endpoint, itemCount, json.Length);
+                    endpoint, 0, json.Length);
                 return result;
             }
             catch (Exception ex)
@@ -287,10 +336,15 @@ namespace kairo_ui.Services
 
                 _logger.LogInformation("API POST Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
                     endpoint, (int)response.StatusCode, duration.TotalMilliseconds);
-
-                response.EnsureSuccessStatusCode();
-
                 var responseJson = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("API POST Error: {Endpoint} | Status: {StatusCode} | Body: {ResponseBody}",
+                        endpoint, (int)response.StatusCode, responseJson);
+                    throw new HttpRequestException($"API returned {(int)response.StatusCode}: {responseJson}");
+                }
+
                 var result = JsonSerializer.Deserialize<T>(responseJson, _jsonSerializerOptions);
 
                 _logger.LogInformation("API POST Success: {Endpoint} | Response Size: {ResponseSize} bytes | Response: {ResponseData}",

@@ -4,6 +4,7 @@ using kairo_ui.Models.Identities.ClientMaintenance;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -16,13 +17,15 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         private readonly IAuthService _authService;
         private readonly ICommonUtilitiesService _commonUtilities;
         private readonly IApiCachedService _apiCachedService;
+        private readonly IApiService _apiService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<ClientDocumentsController> _logger;
 
-        public ClientDocumentsController(IAuthService authService, ICommonUtilitiesService commonUtilities, IApiCachedService apiCachedService, IHttpClientFactory httpClientFactory, ILogger<ClientDocumentsController> logger)
+        public ClientDocumentsController(IAuthService authService, ICommonUtilitiesService commonUtilities, IApiService apiService, IApiCachedService apiCachedService, IHttpClientFactory httpClientFactory, ILogger<ClientDocumentsController> logger)
         {
             _authService = authService;
             _commonUtilities = commonUtilities;
+            _apiService = apiService;
             _apiCachedService = apiCachedService;
             _httpClientFactory = httpClientFactory;
             _logger = logger;
@@ -77,22 +80,24 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
                 _logger.LogInformation("client-maintenance.documents.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
+                //var client = _httpClientFactory.CreateClient("ClientDocumentApi");
                 var imageId = ResolvePayloadLong(requestData, "ImageID", "ImageId", "ID", "imageId", "TempImageID", "tempImageId");
                 var requestKey = ResolveRequestKey(requestData);
-                HttpResponseMessage response;
-
+                //HttpResponseMessage response;
+                object? response;
                 if (!string.IsNullOrWhiteSpace(requestData.ClientID))
                 {
                     if (imageId.HasValue)
                     {
                         var endpoint = string.Format(ApiEndpoints.GET_IMAGE_BY_ID, imageId.Value);
-                        response = await client.GetAsync(endpoint);
+                        //response = await client.GetAsync(endpoint);
+                        response = await _apiService.GetSingleAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                     else
                     {
                         var endpoint = string.Format(ApiEndpoints.GET_IMAGES_BY_CLIENT, requestData.ClientID);
-                        response = await client.GetAsync(endpoint);
+                        //response = await client.GetAsync(endpoint);
+                        response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                 }
                 else if (!string.IsNullOrWhiteSpace(requestKey))
@@ -100,15 +105,18 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                     if (imageId.HasValue)
                     {
                         var endpoint = string.Format(ApiEndpoints.GET_TEMP_IMAGE_BY_ID, imageId.Value);
-                        response = await client.GetAsync(endpoint);
+                        //response = await client.GetAsync(endpoint);
+                        response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                     else
                     {
-                        var endpoint = string.Format(ApiEndpoints.GET_TEMP_IMAGES_BY_CLIENT, requestKey);
-                        var endpointWithQuery = string.IsNullOrWhiteSpace(requestKey)
-                            ? endpoint
-                            : $"{endpoint}?requestId={Uri.EscapeDataString(requestKey)}";
-                        response = await client.GetAsync(endpointWithQuery);
+                        var endpoint = string.Format(ApiEndpoints.GET_TEMP_IMAGES_BY_CLIENT, string.Empty, requestKey);
+                        //var endpointWithQuery = string.IsNullOrWhiteSpace(requestKey)
+                        //    ? endpoint
+                        //    : $"{endpoint}?requestId={Uri.EscapeDataString(requestKey)}";
+                        //response = await client.GetAsync(endpointWithQuery);
+                        //response = await client.GetAsync(endpoint);
+                        response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                 }
                 else
@@ -116,8 +124,9 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                     return BadRequest(new { Success = false, ErrorMessage = "ClientID or RequestID is required" });
                 }
 
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                //var payload = await ReadClientDocumentApiResponseAsync(response);
+                //return StatusCode((int)response.StatusCode, payload);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {

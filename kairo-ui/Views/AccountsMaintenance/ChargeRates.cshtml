@@ -1,9 +1,11 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // No layout - this is a partial view loaded dynamically
     // Migrated from: public/modules/account-maintenance/DataEntry/account-charge-rates.html
-    var ceilingAmountTypeOptions = ViewData["CeilingAmountTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var calculationMethodOptions = ViewData["CalculationMethodOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var ceilingAmountTypeOptions = ViewData["CeilingAmountTypeOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
+    var calculationMethodOptions = ViewData["CalculationMethodOptions"] as IEnumerable<SelectListItem> ??
+Enumerable.Empty<SelectListItem>();
 }
 
 <!-- ChargeRates Submodule - Original HTML Preserved -->
@@ -13,7 +15,8 @@
         <div class="form-section" data-section="charge-selection">
             <div class="section-header" data-section-toggle>
                 <span class="section-header__title"><i class="bi bi-currency-dollar"></i> Charge Selection</span>
-                <button type="button" class="section-toggle-btn" aria-label="Toggle Charge Selection" aria-expanded="true">
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Charge Selection"
+                        aria-expanded="true">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
@@ -22,9 +25,12 @@
                     <div class="col-md-12">
                         <label class="label-blue am-label">Charge ID / Name</label>
                         <div class="kairo-account-control" data-kairo-account-control>
-                            <input id="chargeId" name="ChargeID" type="text" class="kairo-account-control__id form-control am-input" placeholder="Charge ID" />
-                            <input id="chargeName" name="ChargeName" type="text" class="kairo-account-control__name form-control am-input" placeholder="Charge Name" readonly />
-                            <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="Charge" title="Lookup Charge"><i class="bi bi-search"></i></button>
+                            <input id="chargeId" name="ChargeID" type="text"
+                                   class="kairo-account-control__id form-control am-input" placeholder="Charge ID" />
+                            <input id="chargeName" name="ChargeName" type="text"
+                                class="kairo-account-control__name form-control am-input" placeholder="Charge Name" />
+                                <button type="button" class="btn-lookup kairo-account-control__lookup" data-lookup="ChargeID"
+                                    title="Lookup Charge"><i class="bi bi-search"></i></button>
                         </div>
                     </div>
                 </div>
@@ -46,7 +52,8 @@
         <div class="form-section mt-3" data-section="charge-settings">
             <div class="section-header" data-section-toggle>
                 <span class="section-header__title"><i class="bi bi-sliders"></i> Charge Settings</span>
-                <button type="button" class="section-toggle-btn" aria-label="Toggle Charge Settings" aria-expanded="true">
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Charge Settings"
+                        aria-expanded="true">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
@@ -130,7 +137,9 @@
                             </tr>
                         </thead>
                         <tbody id="chargeSettingsBody">
-                            <tr><td colspan="6" class="text-center text-muted">No records to display.</td></tr>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No records to display.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -141,7 +150,8 @@
         <div class="form-section mt-3" data-section="behind-scene">
             <div class="section-header" data-section-toggle>
                 <span class="section-header__title"><i class="bi bi-gear"></i> Behind the Scene</span>
-                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene"
+                        aria-expanded="true">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
@@ -186,26 +196,9 @@
     </div>
 </div>
 
-    <div class="am-message-panel" role="alert" aria-live="polite">
-      <i class="bi bi-info-circle"></i>
-      <span></span>
-    </div>
-
-    <div class="loading-overlay" id="loadingOverlay" hidden>
-      <div class="loading-spinner">
-        <i class="bi bi-arrow-repeat"></i>
-        <span>Loading charge rates...</span>
-      </div>
-    </div>
-  </div>
+<div class="am-message-panel" role="alert" aria-live="polite">
+    <i class="bi bi-info-circle"></i>
+    <span></span>
+</div>
 
 <script src="~/js/modules/accountsmaintenance/account-charge-rates.js"></script>
-<script>
-  // Auto-initialize on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.AccountChargeRatesModule?.init());
-  } else {
-    window.AccountChargeRatesModule?.init();
-  }
-  console.log('✅ Account Charge Rates view loaded');
-</script>

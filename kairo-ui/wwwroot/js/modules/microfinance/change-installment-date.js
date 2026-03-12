@@ -50,8 +50,8 @@
         const e = window.Environment || {};
         const bankID = e.defaultBankId || e.defaultBankID || e.bankID || e.bankId ||
                        sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
-        const ourBranchID = e.branchID || e.branchId ||
-                            sessionStorage.getItem('BranchID') || localStorage.getItem('BranchID') || '0101';
+        const ourBranchID = e.OurBranchID || e.branchID || e.branchId ||
+                            sessionStorage.getItem('BranchID') || localStorage.getItem('BranchID') || '0603';
         const operatorID = e.operatorID || e.operatorId ||
                            sessionStorage.getItem('OperatorID') || localStorage.getItem('OperatorID') || 'CSADM';
         return { bankID, ourBranchID, operatorID };
@@ -394,38 +394,59 @@
     }
 
     // =========================================================================
-    // View Handlers (ID validation via OldAPI)
+    // View Handlers — background search via SearchModal/Search (same as search button)
     // =========================================================================
+    async function backgroundSearch(tableID, advFilterString, whereStmt, moduleID) {
+        const appCore = getAppCore();
+        if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
+            throw new Error('AppCore is not available');
+        }
+
+        const { ourBranchID } = getEnv();
+        const response = await appCore.invokeControllerAsync('SearchModal/Search', {
+            TableID: tableID,
+            WhereStmt: whereStmt || '',
+            AdvFilterString: advFilterString || '',
+            SearchKey: '',
+            ModuleID: String(moduleID || DEFAULT_SEARCH_MODULE_ID),
+            PageSize: 20,
+            RefID: '',
+            PrevOrNext: 1,
+            OurBranchID: ourBranchID
+        });
+
+        let results = [];
+        if (response?.success && response?.data) {
+            const d = response.data;
+            if (Array.isArray(d)) {
+                results = d;
+            } else if (d.Details) {
+                results = Array.isArray(d.Details) ? d.Details : [d.Details];
+            } else if (d.details?.SearchResults) {
+                results = Array.isArray(d.details.SearchResults) ? d.details.SearchResults : [];
+            } else if (d.Records) {
+                results = Array.isArray(d.Records) ? d.Records : [];
+            }
+        }
+        return results;
+    }
+
     async function handleViewBranch() {
         const branchId = document.getElementById('BranchId').value.trim();
         if (!branchId) { showWarning('Please enter a Branch ID'); return; }
 
         try {
-            showInfo('Loading branch details...');
-            const result = await invokeChangeInstDateController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: branchId,
-                    ControlTypeID: 'BranchID',
-                    ID: branchId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: '',
-                    LanguageID: 'en'
-                }
-            });
+            const config = searchDialogConfig['branch'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(branchId).replace(/'/g, "''");
+            const whereStmt = `OurBranchID='${safeId}'`;
 
-            const details = result?.Details || result?.data?.Details || [];
-            const branch = Array.isArray(details) ? details[0] : details;
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
 
-            if (branch && (branch.BranchName || branch.Description)) {
-                document.getElementById('BranchName').value = branch.BranchName || branch.Description || '';
-                parentContext.branchId = branchId;
-                currentBranch = branch;
-                clearCenterFields();
-                clearSchemeFields();
-                showSuccess(`Branch '${branch.BranchName || branch.Description}' loaded`);
+            if (results.length > 0) {
+                mapSelectedData('branch', results[0]);
             } else {
+                document.getElementById('BranchName').value = '';
                 showWarning('Branch not found');
             }
         } catch (error) {
@@ -438,32 +459,21 @@
         const centerId = document.getElementById('CenterId').value.trim();
         if (!centerId) { showWarning('Please enter a Center ID'); return; }
 
+        const branchId = parentContext.branchId || document.getElementById('BranchId')?.value?.trim();
+        if (!branchId) { showWarning('Please select a Branch first'); return; }
+
         try {
-            showInfo('Loading center details...');
-            const result = await invokeChangeInstDateController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: parentContext.branchId || '0101',
-                    ControlTypeID: 'GroupID',
-                    ID: centerId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: '',
-                    LanguageID: 'en'
-                }
-            });
+            const config = searchDialogConfig['center'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(centerId).replace(/'/g, "''");
+            const whereStmt = `GroupID='${safeId}'`;
 
-            const details = result?.Details || result?.data?.Details || [];
-            const center = Array.isArray(details) ? details[0] : details;
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
 
-            if (center && (center.GroupName || center.Description)) {
-                document.getElementById('CenterName').value = center.GroupName || center.Description || '';
-                parentContext.centerId = centerId;
-                parentContext.centerName = center.GroupName || center.Description || '';
-                currentCenter = center;
-                clearSchemeFields();
-                showSuccess(`Center '${center.GroupName || center.Description}' loaded`);
+            if (results.length > 0) {
+                mapSelectedData('center', results[0]);
             } else {
+                document.getElementById('CenterName').value = '';
                 showWarning('Center not found');
             }
         } catch (error) {
@@ -477,29 +487,17 @@
         if (!schemeId) { showWarning('Please enter a Scheme ID'); return; }
 
         try {
-            showInfo('Loading scheme details...');
-            const result = await invokeChangeInstDateController('old-api', {
-                FormId: 'p_GetIDDescription',
-                RequestData: {
-                    OurBranchID: parentContext.branchId || '0101',
-                    ControlTypeID: 'GroupDefaultSchemeID',
-                    ID: schemeId,
-                    BankID: getEnv().bankID,
-                    TypeID: '',
-                    AdvanceFilter: "SchemeTypeID = 'P'",
-                    LanguageID: 'en'
-                }
-            });
+            const config = searchDialogConfig['scheme'];
+            const advFilter = config.getAdvFilterString();
+            const safeId = String(schemeId).replace(/'/g, "''");
+            const whereStmt = `LoanSchemeID='${safeId}'`;
 
-            const details = result?.Details || result?.data?.Details || [];
-            const scheme = Array.isArray(details) ? details[0] : details;
+            const results = await backgroundSearch(config.tableID, advFilter, whereStmt, config.moduleIDOverride);
 
-            if (scheme && (scheme.Description || scheme.SchemeName)) {
-                document.getElementById('SchemeName').value = scheme.Description || scheme.SchemeName || '';
-                parentContext.schemeId = schemeId;
-                currentScheme = scheme;
-                showSuccess(`Scheme '${scheme.Description || scheme.SchemeName}' loaded`);
+            if (results.length > 0) {
+                mapSelectedData('scheme', results[0]);
             } else {
+                document.getElementById('SchemeName').value = '';
                 showWarning('Scheme not found');
             }
         } catch (error) {
@@ -570,19 +568,31 @@
         };
 
         try {
-            const result = await invokeChangeInstDateController('old-api', {
-                FormId: 'p_GetGroupLoanInstDateChange',
-                RequestData: requestData
-            });
+            // Use dedicated endpoint (same pattern as center-loan-scheme)
+            const result = await invokeChangeInstDateController('generate-installments', requestData);
 
-            console.log('[ChangeInstallmentDate] Generate result:', result);
+            const root = result?.data ?? result;
 
-            const data = result?.Details || result?.data?.Details || result?.data || [];
+            // Check for API error status
+            const status = String(root?.Status ?? '').trim();
+            if (status && status !== '0' && status !== '200') {
+                const message = String(root?.Message ?? '').trim();
+                showError(message || `Request failed (Status ${status})`);
+                setSaveButtonState(false);
+                return;
+            }
+
+            const data = root?.Details01;
             installmentsData = Array.isArray(data) ? data : [];
 
             renderInstallmentsTable(installmentsData);
             setSaveButtonState(installmentsData.length > 0);
-            showSuccess(`Generated ${installmentsData.length} installment(s)`);
+
+            if (installmentsData.length > 0) {
+                showSuccess(`Generated ${installmentsData.length} installment(s)`);
+            } else {
+                showWarning('No installments generated');
+            }
         } catch (error) {
             console.error('[ChangeInstallmentDate] Error generating installments:', error);
             showError('Error generating installments');
@@ -614,14 +624,67 @@
     // =========================================================================
     // Save Handler
     // =========================================================================
-    function handleSave() {
-        if (!currentCenter || !currentScheme) {
+    async function handleSave() {
+        const centerId = document.getElementById('CenterId').value.trim();
+        const schemeId = document.getElementById('SchemeId').value.trim();
+
+        if (!centerId || !schemeId) {
             showWarning('Please fill required fields');
             return;
         }
 
-        // TODO: Implement save via OldAPI when stored procedure is available
-        showWarning('Save functionality - API integration pending');
+        if (installmentsData.length === 0) {
+            showWarning('No installments to save. Please generate first.');
+            return;
+        }
+
+        // Use AppCore confirmation dialog
+        const appCore = getAppCore();
+        if (appCore && typeof appCore.showConfirmation === 'function') {
+            const confirmed = await appCore.showConfirmation(
+                'Save Changes',
+                `Are you sure you want to save the installment date changes for ${installmentsData.length} installment(s)?`
+            );
+            if (!confirmed) return;
+        }
+
+        try {
+            showInfo('Saving installment date changes...');
+            const { ourBranchID, operatorID } = getEnv();
+            const branchId = document.getElementById('BranchId').value.trim();
+            const centerId = document.getElementById('CenterId').value.trim();
+            const schemeId = document.getElementById('SchemeId').value.trim();
+            const mode = document.querySelector('input[name="ChangeMode"]:checked')?.value;
+            const installmentDate = document.getElementById('InstallmentDate').value;
+            const dayOfWeek = document.getElementById('DayOfWeek').value;
+
+            const dayOfWeekMap = {
+                'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
+                'Thursday': 4, 'Friday': 5, 'Saturday': 6
+            };
+
+            const result = await invokeChangeInstDateController('change-installment-date', {
+                OurBranchID: branchId || ourBranchID,
+                GroupID: centerId,
+                LoanSchemeID: schemeId,
+                HoliDayDate: mode === 'holiday' ? installmentDate : null,
+                DayOfWeek: mode === 'meeting' ? dayOfWeekMap[dayOfWeek] : null,
+                OperatorID: operatorID
+            });
+
+            const root = result?.data ?? result;
+            const status = String(root?.Status ?? root?.status ?? '').trim();
+            if (status && status !== '0' && status !== '200') {
+                showError(root?.Message || root?.message || 'Failed to save changes');
+                return;
+            }
+
+            showSuccess('Installment date changes saved successfully');
+            setSaveButtonState(false);
+        } catch (error) {
+            console.error('[ChangeInstallmentDate] Save error:', error);
+            showError('Error saving installment date changes');
+        }
     }
 
     // =========================================================================
@@ -687,6 +750,9 @@
     // =========================================================================
     function formatDate(dateStr) {
         if (!dateStr) return null;
+        if (window.GlobalUtils?.formatDate) {
+            return window.GlobalUtils.formatDate(dateStr);
+        }
         try {
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return dateStr;

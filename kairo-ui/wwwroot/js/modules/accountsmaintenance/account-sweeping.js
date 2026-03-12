@@ -130,6 +130,10 @@ window.AccountSweepingModule = (function () {
 
     function formatDateForInput(d) {
         if (!d) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(d);
+            if (parsed) return parsed;
+        }
         try {
             const date = new Date(d);
             if (isNaN(date.getTime())) return '';

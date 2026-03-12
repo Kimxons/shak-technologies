@@ -31,8 +31,163 @@ function loadScriptOnce(src) {
     return promise;
 }
 
+function getPhotoSignatureAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getPhotoSignatureClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getPhotoSignatureSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getPhotoSignatureParentContext() {
+    const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getPhotoSignatureSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toPhotoSignatureString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function firstNonEmptyPhotoSignatureString(...values) {
+    for (const value of values) {
+        const normalized = toPhotoSignatureString(value);
+        if (normalized) {
+            return normalized;
+        }
+    }
+
+    return '';
+}
+
+function getPhotoSignatureViewState() {
+    return window.ClientPhotoSignatureState || {};
+}
+
+function resolvePhotoSignatureContext(requestData, fallbackModuleId) {
+    const viewState = getPhotoSignatureViewState();
+    const parentContext = getPhotoSignatureParentContext() || {};
+    const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+
+    const moduleId = firstNonEmptyPhotoSignatureString(
+        requestData?.ModuleID,
+        fallbackModuleId,
+        maintenanceCore?.moduleId,
+        parentContext.moduleId,
+        viewState.ModuleID
+    );
+
+    const clientId = firstNonEmptyPhotoSignatureString(
+        requestData?.ClientID,
+        maintenanceCore?.getClientId?.(),
+        maintenanceCore?.clientId,
+        parentContext.clientId,
+        viewState.ClientID
+    );
+
+    const requestId = firstNonEmptyPhotoSignatureString(
+        requestData?.RequestID,
+        maintenanceCore?.getRequestId?.(),
+        maintenanceCore?.requestId,
+        parentContext.requestId,
+        viewState.RequestID
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId,
+        AutoLoad: Boolean(viewState.AutoLoad),
+        IsStandalone: Boolean(viewState.IsStandalone)
+    };
+}
+
+function shouldAutoLoadStandalonePhotoSignature(context) {
+    return Boolean(context?.IsStandalone && (context?.ClientID || context?.RequestID));
+}
+
 function invokeClientMaintenancePhotoSignature(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_PHOTO_SIGNATURE_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_PHOTO_SIGNATURE_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getPhotoSignatureAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_PHOTO_SIGNATURE_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Photo/Signature controller invocation is not available.'));
+}
+
+function showPhotoSignatureToast(message, type = 'info') {
+    const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+    if (maintenanceCore?.showToast) {
+        maintenanceCore.showToast(message, type);
+        return;
+    }
+
+    if (window.NotificationService?.showToast) {
+        window.NotificationService.showToast(message, type, 4000);
+        return;
+    }
+
+    console.log(`[${type}] ${message}`);
+}
+
+function getPhotoSignatureResponseCode(response) {
+    return toPhotoSignatureString(response?.ResponseCode ?? response?.responseCode);
+}
+
+function getPhotoSignatureResponseMessage(response, fallbackMessage) {
+    return response?.ResponseMessage ??
+        response?.responseMessage ??
+        response?.Message ??
+        response?.message ??
+        response?.ErrorMessage ??
+        response?.errorMessage ??
+        fallbackMessage;
+}
+
+function isPhotoSignatureResponseSuccess(response) {
+    const successFlag = response?.Success ?? response?.success;
+    if (typeof successFlag === 'boolean') {
+        return successFlag;
+    }
+
+    const responseCode = getPhotoSignatureResponseCode(response).toUpperCase();
+    if (responseCode) {
+        return responseCode === '000' || responseCode === '00' || responseCode === 'SUCCESS';
+    }
+
+    return true;
 }
 
 function normalizeTempImageResponse(raw) {
@@ -47,6 +202,11 @@ function normalizeTempImageResponse(raw) {
 function createControllerTempImageService() {
     return {
         async uploadTempImage(imageData) {
+            const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+            if (!maintenanceCore?.invokeControllerMultipart) {
+                throw new Error('Photo/Signature upload is not available in this context.');
+            }
+
             const formData = new FormData();
             formData.append('RequestData.ImageTypeID', imageData.ImageTypeID || '');
             formData.append('RequestData.ImageID', imageData.ImageID || '');
@@ -59,12 +219,13 @@ function createControllerTempImageService() {
             formData.append('RequestData.CopyToClientImage', imageData.CopyToClientImage || '');
             formData.append('RequestData.CreatedBy', imageData.CreatedBy || '');
             formData.append('RequestData.CreatedOn', imageData.CreatedOn || '');
+            formData.append('RequestData.RequestID', imageData.RequestID || '');
 
             if (imageData.File instanceof File) {
                 formData.append('RequestData.File', imageData.File, imageData.File.name);
             }
 
-            const json = await window.ClientMaintenanceCore.invokeControllerMultipart(
+            const json = await maintenanceCore.invokeControllerMultipart(
                 CM_PHOTO_SIGNATURE_BASE,
                 'upload-temp-image',
                 formData,
@@ -80,7 +241,12 @@ function createControllerTempImageService() {
         },
 
         async getTempImage(tempImageId) {
-            const json = await window.ClientMaintenanceCore.invokeControllerGet(
+            const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+            if (!maintenanceCore?.invokeControllerGet) {
+                throw new Error('Photo/Signature image preview is not available in this context.');
+            }
+
+            const json = await maintenanceCore.invokeControllerGet(
                 CM_PHOTO_SIGNATURE_BASE,
                 `get-temp-image/${encodeURIComponent(tempImageId)}`,
                 {}
@@ -95,7 +261,12 @@ function createControllerTempImageService() {
         },
 
         async downloadTempImage(tempImageId) {
-            return await window.ClientMaintenanceCore.invokeControllerDownload(
+            const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+            if (!maintenanceCore?.invokeControllerDownload) {
+                throw new Error('Photo/Signature download is not available in this context.');
+            }
+
+            return await maintenanceCore.invokeControllerDownload(
                 CM_PHOTO_SIGNATURE_BASE,
                 `download-temp-image/${encodeURIComponent(tempImageId)}`,
                 {}
@@ -103,7 +274,12 @@ function createControllerTempImageService() {
         },
 
         async deleteTempImage(tempImageId) {
-            const json = await window.ClientMaintenanceCore.invokeControllerDelete(
+            const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+            if (!maintenanceCore?.invokeControllerDelete) {
+                throw new Error('Photo/Signature delete is not available in this context.');
+            }
+
+            const json = await maintenanceCore.invokeControllerDelete(
                 CM_PHOTO_SIGNATURE_BASE,
                 `delete-temp-image/${encodeURIComponent(tempImageId)}`,
                 {}
@@ -132,6 +308,81 @@ function getTempImageService() {
     };
 }
 
+function closePhotoSignatureView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientPhotoSignature' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientPhotoSignature' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientPhotoSignature' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientPhotoSignature' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    }
+}
+
+function bindPhotoSignatureActionPanel(tabRoot) {
+    if (!tabRoot) return;
+
+    const actionScope =
+        tabRoot.closest('.window') ||
+        tabRoot.closest('[data-cm-layout="client-photo-signature"]') ||
+        tabRoot.parentElement ||
+        tabRoot;
+
+    if (!actionScope || actionScope.dataset.cmPhotoSignatureActionDelegated === 'true') return;
+    actionScope.dataset.cmPhotoSignatureActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof tabRoot._cmRefreshData === 'function') {
+            await tabRoot._cmRefreshData();
+        }
+    };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closePhotoSignatureView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closePhotoSignatureView();
+    });
+}
+
 window.ClientMaintenancePhotoSignatureService = {
     get: (requestData) => invokeClientMaintenancePhotoSignature('get', requestData),
     create: (requestData) => invokeClientMaintenancePhotoSignature('create', requestData),
@@ -139,33 +390,62 @@ window.ClientMaintenancePhotoSignatureService = {
     delete: (requestData) => invokeClientMaintenancePhotoSignature('delete', requestData)
 };
 
-window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId) {
-    bindPhotoSignatureCrud(tabRoot, moduleId);
-};
+window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, options = {}) {
+    if (!tabRoot || tabRoot.dataset.cmPhotoSignatureInitialized === 'true') return;
+    tabRoot.dataset.cmPhotoSignatureInitialized = 'true';
 
-function bindPhotoSignatureCrud(tabRoot, moduleId) {
-    if (!tabRoot) return;
-
+    const configuredModuleId = toPhotoSignatureString(moduleId || options?.moduleId || getPhotoSignatureViewState().ModuleID);
+    const initialContext = resolvePhotoSignatureContext(null, configuredModuleId);
     const state = {
         selectedFile: null,
         cameraStream: null,
         isCapturing: false,
         isValidated: false,
-        items: []
+        items: [],
+        lastContext: { ...initialContext },
+        initialLoadApplied: false,
+        autoLoadInFlight: false,
+        isStandalone: Boolean(
+            options?.isStandalone ??
+            getPhotoSignatureViewState().IsStandalone ??
+            tabRoot.closest('[data-photosignature-host="standalone"]')
+        )
     };
 
     const form = tabRoot.querySelector('[data-photo-signature-form]') || tabRoot;
     const table = tabRoot.querySelector('[data-table="photo-signature"]');
     const uploadBtn = form.querySelector('[data-photo-action="upload"]');
 
-    const showToast = (message, level = 'info') => {
-        window.ClientMaintenanceCore.showToast(message, level);
-    };
+    const canEditPhotoSignature = () => state.isStandalone;
 
     const setUploadEnabled = (enabled) => {
         if (uploadBtn) {
-            uploadBtn.disabled = !enabled;
+            uploadBtn.disabled = !canEditPhotoSignature() || !enabled;
         }
+    };
+
+    const applyWorkflowPhotoSignatureReadOnlyState = () => {
+        if (state.isStandalone) {
+            return;
+        }
+
+        const imageTypeField = form.querySelector('#imageType');
+        if (imageTypeField) {
+            imageTypeField.disabled = true;
+        }
+
+        const photoFileInput = form.querySelector('#photoFileInput');
+        if (photoFileInput) {
+            photoFileInput.disabled = true;
+        }
+
+        form.querySelectorAll('[data-photo-action]').forEach((button) => {
+            button.disabled = true;
+        });
+
+        table?.querySelectorAll('button[data-action]').forEach((button) => {
+            button.disabled = true;
+        });
     };
 
     const getValidationNodes = () => ({
@@ -215,12 +495,17 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
     };
 
     const validateImageViaController = async (file, imageTypeId) => {
+        const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+        if (!maintenanceCore?.invokeControllerMultipart) {
+            throw new Error('Photo/Signature validation is not available in this context.');
+        }
+
         const formData = new FormData();
         const fileName = file?.name || `image_${Date.now()}.png`;
         formData.append('file', file, fileName);
         formData.append('imageTypeId', imageTypeId || '');
 
-        const response = await window.ClientMaintenanceCore.invokeControllerMultipart(
+        const response = await maintenanceCore.invokeControllerMultipart(
             CM_PHOTO_SIGNATURE_BASE,
             'validate-image',
             formData,
@@ -273,8 +558,8 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         state.selectedFile = null;
         state.isValidated = false;
         stopCamera();
-        const fileInput = form.querySelector('#photoFileInput');
-        if (fileInput) fileInput.value = '';
+        const photoFileInput = form.querySelector('#photoFileInput');
+        if (photoFileInput) photoFileInput.value = '';
         hideValidationOverlay();
         setUploadEnabled(false);
         setPreview('');
@@ -296,7 +581,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
 
             if (!validationResult?.success) {
                 hideValidationOverlay();
-                showToast(validationResult?.message || 'Validation failed. Upload disabled.', 'warning');
+                showPhotoSignatureToast(validationResult?.message || 'Validation failed. Upload disabled.', 'warning');
                 state.isValidated = false;
                 setUploadEnabled(false);
                 return false;
@@ -308,7 +593,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             if (imageTypeId === 'P') {
                 if (!validationResult.data?.has_face) {
                     hideValidationOverlay();
-                    showToast('No face detected. Please capture a clear photo showing a face.', 'error');
+                    showPhotoSignatureToast('No face detected. Please capture a clear photo showing a face.', 'error');
                     state.isValidated = false;
                     setUploadEnabled(false);
                     return false;
@@ -319,7 +604,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             } else if (imageTypeId === 'S') {
                 if (!validationResult.data?.has_signature) {
                     hideValidationOverlay();
-                    showToast('No signature detected. Please capture a clear signature.', 'error');
+                    showPhotoSignatureToast('No signature detected. Please capture a clear signature.', 'error');
                     state.isValidated = false;
                     setUploadEnabled(false);
                     return false;
@@ -346,121 +631,180 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         } catch (error) {
             console.error('[ClientPhotoSignature] Validation error:', error);
             hideValidationOverlay();
-            showToast('Validation service unavailable. Upload disabled.', 'warning');
+            showPhotoSignatureToast('Validation service unavailable. Upload disabled.', 'warning');
             state.isValidated = false;
             setUploadEnabled(false);
             return false;
         }
     };
 
-    setUploadEnabled(false);
-    void ensureFileService();
+    const extractPhotoSignatureRows = (response) => {
+        const candidates = [
+            response?.Details,
+            response?.details,
+            response?.data?.Details,
+            response?.data?.details,
+            response?.Data,
+            response?.data,
+            response
+        ];
+
+        for (const candidate of candidates) {
+            if (Array.isArray(candidate)) {
+                return candidate;
+            }
+        }
+
+        return [];
+    };
+
+    const escapePhotoSignatureHtml = (value) => {
+        const text = String(value ?? '');
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
 
     const renderTable = (items) => {
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientPhotoSignatureBody');
         if (!tbody) return;
         tbody.innerHTML = '';
+        const rowActionDisabled = state.isStandalone ? '' : ' disabled';
 
         if (!items.length) {
             const empty = document.createElement('tr');
             empty.innerHTML = '<td colspan="4" class="text-center text-muted">No images uploaded yet.</td>';
             tbody.appendChild(empty);
+            applyWorkflowPhotoSignatureReadOnlyState();
             return;
         }
 
         items.forEach((item, index) => {
             const tr = document.createElement('tr');
             tr.dataset.index = String(index);
-            tr.dataset.payload = JSON.stringify(item);
 
             const typeLabel = item.ImageTypeDescription || item.ImageTypeID || item.imageTypeId || '';
             const description = item.Description || item.description || '';
             const createdOn = item.CreatedOn || item.createdOn || '';
+            const createdOnLabel = createdOn
+                ? (window.GlobalUtils?.formatDateTime
+                    ? window.GlobalUtils.formatDateTime(createdOn)
+                    : new Date(createdOn).toLocaleString())
+                : '';
 
             tr.innerHTML = `
-                <td class="ps-2">${typeLabel}</td>
-                <td>${description}</td>
-                <td>${createdOn ? new Date(createdOn).toLocaleString() : ''}</td>
+                <td class="ps-2">${escapePhotoSignatureHtml(typeLabel)}</td>
+                <td>${escapePhotoSignatureHtml(description)}</td>
+                <td>${escapePhotoSignatureHtml(createdOnLabel)}</td>
                 <td class="text-center">
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-primary" data-action="view"><i class="bi bi-eye"></i></button>
-                        <button type="button" class="btn btn-success" data-action="download"><i class="bi bi-download"></i></button>
-                        <button type="button" class="btn btn-danger" data-action="delete"><i class="bi bi-trash"></i></button>
+                        <button type="button" class="btn btn-primary" data-action="view"${rowActionDisabled}><i class="bi bi-eye"></i></button>
+                        <button type="button" class="btn btn-success" data-action="download"${rowActionDisabled}><i class="bi bi-download"></i></button>
+                        <button type="button" class="btn btn-danger" data-action="delete"${rowActionDisabled}><i class="bi bi-trash"></i></button>
                     </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+
+        applyWorkflowPhotoSignatureReadOnlyState();
     };
 
-    const refreshTable = async (requestData) => {
-        const clientId = requestData?.ClientID || window.ClientMaintenanceCore.getSelectedId?.() || '';
-        if (!clientId) {
+    const refreshTable = async (requestData = {}, refreshOptions = {}) => {
+        const context = resolvePhotoSignatureContext(requestData, configuredModuleId);
+        state.lastContext = { ...state.lastContext, ...context };
+
+        if (!context.ClientID && !context.RequestID) {
+            state.items = [];
             renderTable([]);
-            return;
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+            return [];
         }
+
         try {
             const response = await window.ClientMaintenancePhotoSignatureService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: clientId,
-                RequestID: requestData?.RequestID || window.ClientMaintenanceCore.requestId || ''
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID
             });
-            const rows = response?.Details || response?.data?.Details || response?.data || response || [];
+
+            const rows = extractPhotoSignatureRows(response);
             state.items = Array.isArray(rows) ? rows : [];
             renderTable(state.items);
+
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+
+            return state.items;
         } catch (error) {
-            window.ClientMaintenanceCore.showToast(`Photo/Signature load failed - ${error.message}`, 'error');
+            showPhotoSignatureToast(`Photo/Signature load failed - ${error.message}`, 'error');
+            return [];
         }
     };
 
     const uploadImage = async () => {
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
         const imageTypeId = getImageTypeId();
         if (!imageTypeId) {
-            showToast('Select an image type first.', 'warning');
+            showPhotoSignatureToast('Select an image type first.', 'warning');
             return;
         }
         if (!state.selectedFile) {
-            showToast('Select an image first.', 'warning');
+            showPhotoSignatureToast('Select an image first.', 'warning');
             return;
         }
         if (!state.isValidated) {
-            showToast('Image has not been validated. Please select or capture a valid image.', 'error');
+            showPhotoSignatureToast('Image has not been validated. Please select or capture a valid image.', 'error');
             return;
         }
 
-        const clientId = window.ClientMaintenanceCore.clientId || '';
-        const moduleValue = moduleId || window.ClientMaintenanceCore.moduleId || '';
+        const context = resolvePhotoSignatureContext(state.lastContext, configuredModuleId);
+        if (!context.ClientID && !context.RequestID) {
+            showPhotoSignatureToast('No client context is available for Photo/Signature upload.', 'warning');
+            return;
+        }
 
+        const moduleValue = context.ModuleID;
         const TempImageService = getTempImageService();
         if (TempImageService?.uploadTempImage) {
             try {
                 const result = await TempImageService.uploadTempImage({
-                    RequestID: '',
+                    RequestID: context.RequestID || '',
                     ImageTypeID: imageTypeId,
                     File: state.selectedFile,
                     Description: state.selectedFile.name,
-                    ClientID: clientId,
+                    ClientID: context.ClientID,
                     TempClientID: '',
                     ModuleID: moduleValue,
                     OurBranchID: window.Environment?.OurBranchID || '',
                     CreatedBy: window.Environment?.UserID || window.Environment?.UserId || ''
                 });
                 if (result?.success) {
-                    showToast('Image uploaded successfully.', 'success');
+                    showPhotoSignatureToast('Image uploaded successfully.', 'success');
                     clearForm();
-                    await refreshTable();
+                    await refreshTable(state.lastContext, { markInitialLoad: state.initialLoadApplied });
                     return;
                 }
-                showToast(result?.message || 'Upload failed.', 'error');
+                showPhotoSignatureToast(result?.message || 'Upload failed.', 'error');
             } catch (error) {
-                showToast(`Upload failed - ${error.message}`, 'error');
+                showPhotoSignatureToast(`Upload failed - ${error.message}`, 'error');
             }
             return;
         }
 
         const payload = {
             ModuleID: moduleValue,
-            ClientID: clientId,
+            ClientID: context.ClientID,
+            RequestID: context.RequestID,
             Payload: {
                 ImageTypeID: imageTypeId,
                 File: state.selectedFile,
@@ -470,23 +814,66 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
 
         try {
             const response = await window.ClientMaintenancePhotoSignatureService.create(payload);
-            const success = response?.Success ?? response?.success ?? true;
-            if (!success) {
-                const error = response?.ErrorMessage || response?.errorMessage || 'Upload failed';
-                showToast(error, 'error');
+            if (!isPhotoSignatureResponseSuccess(response)) {
+                showPhotoSignatureToast(getPhotoSignatureResponseMessage(response, 'Upload failed'), 'error');
                 return;
             }
-            showToast('Image uploaded successfully.', 'success');
+            showPhotoSignatureToast('Image uploaded successfully.', 'success');
             clearForm();
-            await refreshTable();
+            await refreshTable(state.lastContext, { markInitialLoad: state.initialLoadApplied });
         } catch (error) {
-            showToast(`Upload failed - ${error.message}`, 'error');
+            showPhotoSignatureToast(`Upload failed - ${error.message}`, 'error');
         }
     };
 
+    const bindStandaloneBootstrap = () => {
+        if (!state.isStandalone) {
+            return;
+        }
+
+        if (typeof tabRoot._cmMaybeAutoLoadPhotoSignature === 'function') {
+            void tabRoot._cmMaybeAutoLoadPhotoSignature(initialContext);
+        }
+
+        if (tabRoot.dataset.cmPhotoSignatureParentContextBound === 'true') {
+            return;
+        }
+
+        tabRoot.dataset.cmPhotoSignatureParentContextBound = 'true';
+        window.addEventListener('message', (event) => {
+            const data = event?.data;
+            if (!data || typeof data !== 'object') return;
+            if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+            const parentData = data.data || {};
+            const nextContext = resolvePhotoSignatureContext({
+                ModuleID: parentData.moduleId,
+                ClientID: parentData.clientId,
+                RequestID: parentData.requestId
+            }, configuredModuleId);
+
+            if (typeof tabRoot._cmMaybeAutoLoadPhotoSignature === 'function') {
+                void tabRoot._cmMaybeAutoLoadPhotoSignature(nextContext);
+                return;
+            }
+
+            if (typeof tabRoot._cmLoadData === 'function') {
+                void tabRoot._cmLoadData(nextContext);
+            }
+        });
+    };
+
+    setUploadEnabled(false);
+    void ensureFileService();
+    applyWorkflowPhotoSignatureReadOnlyState();
+
     form.querySelector('[data-photo-action="file"]')?.addEventListener('click', () => {
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
         if (!getImageTypeId()) {
-            showToast('Select an image type first.', 'warning');
+            showPhotoSignatureToast('Select an image type first.', 'warning');
             return;
         }
         form.querySelector('#photoFileInput')?.click();
@@ -500,11 +887,11 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         if (fileService?.validateFileType) {
             const validation = fileService.validateFileType(file, ['image/*']);
             if (!validation.valid) {
-                showToast(validation.message, 'warning');
+                showPhotoSignatureToast(validation.message, 'warning');
                 return;
             }
         } else if (!file.type.startsWith('image/')) {
-            showToast('Please select an image file.', 'warning');
+            showPhotoSignatureToast('Please select an image file.', 'warning');
             return;
         }
 
@@ -525,7 +912,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             setPreview(dataUrl);
             await validateSelectedImage();
         } catch (error) {
-            showToast(error.message || 'Unable to preview selected file.', 'error');
+            showPhotoSignatureToast(error.message || 'Unable to preview selected file.', 'error');
         }
     });
 
@@ -538,12 +925,16 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
     });
 
     form.querySelector('[data-photo-action="capture"]')?.addEventListener('click', async () => {
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
         if (!getImageTypeId()) {
-            showToast('Select an image type first.', 'warning');
+            showPhotoSignatureToast('Select an image type first.', 'warning');
             return;
         }
         if (!navigator.mediaDevices?.getUserMedia) {
-            showToast('Camera not available in this browser.', 'warning');
+            showPhotoSignatureToast('Camera not available in this browser.', 'warning');
             return;
         }
         try {
@@ -562,12 +953,16 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
             const cancelBtn = form.querySelector('[data-photo-action="cancel-snapshot"]');
             if (snapshotBtn) snapshotBtn.disabled = false;
             if (cancelBtn) cancelBtn.disabled = false;
-        } catch (error) {
-            showToast('Unable to access camera.', 'error');
+        } catch (_error) {
+            showPhotoSignatureToast('Unable to access camera.', 'error');
         }
     });
 
     form.querySelector('[data-photo-action="snapshot"]')?.addEventListener('click', () => {
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
         const video = form.querySelector('#photoCameraVideo');
         const canvas = form.querySelector('#photoCameraCanvas');
         if (!video || !canvas) return;
@@ -588,14 +983,26 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
     });
 
     form.querySelector('[data-photo-action="cancel-snapshot"]')?.addEventListener('click', () => {
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
         stopCamera();
     });
 
     form.querySelector('[data-photo-action="upload"]')?.addEventListener('click', () => {
-        uploadImage();
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
+        void uploadImage();
     });
 
     form.querySelector('[data-photo-action="clear"]')?.addEventListener('click', () => {
+        if (!canEditPhotoSignature()) {
+            return;
+        }
+
         clearForm();
     });
 
@@ -606,13 +1013,24 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         const item = state.items[index];
         if (!item) return;
 
+        if (!canEditPhotoSignature() && event.target.closest('button')) {
+            return;
+        }
+
         if (event.target.closest('[data-action="delete"]')) {
+            const context = resolvePhotoSignatureContext(state.lastContext, configuredModuleId);
             window.ClientMaintenancePhotoSignatureService.delete({
-                ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-                ClientID: window.ClientMaintenanceCore.clientId || '',
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID,
                 Payload: { ID: item.ID ?? item.ImageID ?? item.TempImageID ?? null }
-            }).then(() => refreshTable()).catch((error) => {
-                window.ClientMaintenanceCore.showToast(`Delete failed - ${error.message}`, 'error');
+            }).then((response) => {
+                if (!isPhotoSignatureResponseSuccess(response)) {
+                    throw new Error(getPhotoSignatureResponseMessage(response, 'Delete failed'));
+                }
+                return refreshTable(state.lastContext, { markInitialLoad: state.initialLoadApplied });
+            }).catch((error) => {
+                showPhotoSignatureToast(`Delete failed - ${error.message}`, 'error');
             });
             return;
         }
@@ -627,6 +1045,8 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
                         const dataUrl = imageData.startsWith('data:') ? imageData : `data:image/png;base64,${imageData}`;
                         window.open(dataUrl, '_blank');
                     }
+                }).catch((error) => {
+                    showPhotoSignatureToast(`Preview failed - ${error.message}`, 'error');
                 });
             }
             return;
@@ -646,7 +1066,7 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
                     document.body.removeChild(anchor);
                     URL.revokeObjectURL(objectUrl);
                 }).catch((error) => {
-                    window.ClientMaintenanceCore.showToast(`Download failed - ${error.message}`, 'error');
+                    showPhotoSignatureToast(`Download failed - ${error.message}`, 'error');
                 });
             }
             return;
@@ -661,6 +1081,53 @@ function bindPhotoSignatureCrud(tabRoot, moduleId) {
         }
     });
 
-    tabRoot._cmLoadData = (requestData) => refreshTable(requestData);
-    window.ClientMaintenanceCore.registerTabLoadFunction('PhotoSignature', (requestData) => refreshTable(requestData));
+    tabRoot._cmLoadData = (requestData, refreshOptions = {}) => refreshTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmMaybeAutoLoadPhotoSignature = (requestData) => {
+        const context = resolvePhotoSignatureContext(requestData, configuredModuleId);
+        if (state.initialLoadApplied || state.autoLoadInFlight || !shouldAutoLoadStandalonePhotoSignature(context)) {
+            return Promise.resolve([]);
+        }
+
+        state.autoLoadInFlight = true;
+        return refreshTable(context, { markInitialLoad: true }).finally(() => {
+            state.autoLoadInFlight = false;
+        });
+    };
+    tabRoot._cmSetEditMode = () => {
+        setUploadEnabled(Boolean(state.isValidated));
+        applyWorkflowPhotoSignatureReadOnlyState();
+    };
+
+    const maintenanceCore = getPhotoSignatureClientMaintenanceCore();
+    if (maintenanceCore?.registerTabLoadFunction) {
+        maintenanceCore.registerTabLoadFunction('PhotoSignature', (requestData) => refreshTable(requestData));
+    }
+
+    bindPhotoSignatureActionPanel(tabRoot);
+    bindStandaloneBootstrap();
+
+    if (!state.isStandalone && (initialContext.ClientID || initialContext.RequestID)) {
+        void refreshTable(initialContext, { markInitialLoad: true });
+    }
+};
+
+function autoInitializeStandalonePhotoSignatureView() {
+    const standaloneRoot = document.querySelector('[data-photosignature-host="standalone"]');
+    if (!standaloneRoot || typeof window.initClientMaintenancePhotoSignatureTab !== 'function') return;
+
+    const viewState = getPhotoSignatureViewState();
+    window.initClientMaintenancePhotoSignatureTab(standaloneRoot, viewState.ModuleID || '', { isStandalone: true });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandalonePhotoSignatureView);
+} else {
+    autoInitializeStandalonePhotoSignatureView();
 }

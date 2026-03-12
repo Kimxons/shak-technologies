@@ -1,7 +1,119 @@
 const CM_INTRODUCER_BASE = 'Identities/ClientMaintenance/Introducer';
 
+function getIntroducerAppCore() {
+    const win = window;
+    return win.AppCore ||
+        (win.parent && win.parent !== win && win.parent.AppCore) ||
+        (win.top && win.top !== win && win.top.AppCore) ||
+        null;
+}
+
+function getIntroducerClientMaintenanceCore() {
+    const win = window;
+    return win.ClientMaintenanceCore ||
+        (win.parent && win.parent !== win && win.parent.ClientMaintenanceCore) ||
+        (win.top && win.top !== win && win.top.ClientMaintenanceCore) ||
+        null;
+}
+
+function getIntroducerSidebarManager() {
+    const win = window;
+    try {
+        return (win.parent && win.parent !== win && win.parent.SidebarManager) ||
+            (win.top && win.top !== win && win.top.SidebarManager) ||
+            null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getIntroducerParentContext() {
+    const maintenanceCore = getIntroducerClientMaintenanceCore();
+    if (maintenanceCore?.getParentContext) {
+        return maintenanceCore.getParentContext();
+    }
+
+    const sidebarManager = getIntroducerSidebarManager();
+    if (sidebarManager?.getParentContext) {
+        return sidebarManager.getParentContext();
+    }
+
+    return null;
+}
+
+function toIntroducerString(value) {
+    return value === undefined || value === null ? '' : String(value).trim();
+}
+
+function firstNonEmptyIntroducerString(...values) {
+    for (const value of values) {
+        const normalized = toIntroducerString(value);
+        if (normalized) {
+            return normalized;
+        }
+    }
+
+    return '';
+}
+
+function getIntroducerViewState() {
+    return window.ClientIntroducerState || {};
+}
+
+function resolveIntroducerContext(requestData, fallbackModuleId) {
+    const viewState = getIntroducerViewState();
+    const parentContext = getIntroducerParentContext() || {};
+    const maintenanceCore = getIntroducerClientMaintenanceCore();
+
+    const moduleId = firstNonEmptyIntroducerString(
+        requestData?.ModuleID,
+        fallbackModuleId,
+        maintenanceCore?.moduleId,
+        parentContext.moduleId,
+        viewState.ModuleID
+    );
+
+    const clientId = firstNonEmptyIntroducerString(
+        requestData?.ClientID,
+        maintenanceCore?.getClientId?.(),
+        maintenanceCore?.clientId,
+        parentContext.clientId,
+        viewState.ClientID
+    );
+
+    const requestId = firstNonEmptyIntroducerString(
+        requestData?.RequestID,
+        maintenanceCore?.getRequestId?.(),
+        maintenanceCore?.requestId,
+        parentContext.requestId,
+        viewState.RequestID
+    );
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId,
+        AutoLoad: Boolean(viewState.AutoLoad),
+        IsStandalone: Boolean(viewState.IsStandalone)
+    };
+}
+
+function shouldAutoLoadStandaloneIntroducer(context) {
+    return Boolean(context?.IsStandalone && (context?.ClientID || context?.RequestID));
+}
+
 function invokeClientMaintenanceIntroducer(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_INTRODUCER_BASE, action, 'POST', requestData || {});
+    const maintenanceCore = getIntroducerClientMaintenanceCore();
+    if (maintenanceCore?.invokeControllerMethod) {
+        return maintenanceCore.invokeControllerMethod(CM_INTRODUCER_BASE, action, 'POST', requestData || {});
+    }
+
+    const appCore = getIntroducerAppCore();
+    if (appCore?.invokeControllerByMethodAsync) {
+        return appCore.invokeControllerByMethodAsync(`${CM_INTRODUCER_BASE}/${action}`, 'POST', requestData || {});
+    }
+
+    return Promise.reject(new Error('Introducer controller invocation is not available.'));
 }
 
 window.ClientMaintenanceIntroducerService = {
@@ -11,18 +123,181 @@ window.ClientMaintenanceIntroducerService = {
     delete: (requestData) => invokeClientMaintenanceIntroducer('delete', requestData)
 };
 
-window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
+function showIntroducerToast(message, type = 'info') {
+    const maintenanceCore = getIntroducerClientMaintenanceCore();
+    if (maintenanceCore?.showToast) {
+        maintenanceCore.showToast(message, type);
+        return;
+    }
+
+    if (window.NotificationService?.showToast) {
+        window.NotificationService.showToast(message, type, 4000);
+        return;
+    }
+
+    console.log(`[${type}] ${message}`);
+}
+
+async function requestIntroducerConfirmation(title, message) {
+    const appCore = getIntroducerAppCore();
+    if (appCore?.showConfirmation) {
+        return Boolean(await appCore.showConfirmation(title, message));
+    }
+
+    return window.confirm(message);
+}
+
+function getIntroducerResponseCode(response) {
+    return toIntroducerString(response?.ResponseCode ?? response?.responseCode);
+}
+
+function getIntroducerResponseMessage(response, fallbackMessage) {
+    return response?.ResponseMessage ??
+        response?.responseMessage ??
+        response?.Message ??
+        response?.message ??
+        response?.ErrorMessage ??
+        response?.errorMessage ??
+        fallbackMessage;
+}
+
+function isIntroducerResponseSuccess(response) {
+    const successFlag = response?.Success ?? response?.success;
+    if (typeof successFlag === 'boolean') {
+        return successFlag;
+    }
+
+    const responseCode = getIntroducerResponseCode(response).toUpperCase();
+    if (responseCode) {
+        return responseCode === '000' || responseCode === '00' || responseCode === 'SUCCESS';
+    }
+
+    return true;
+}
+
+function isIntroducerNoDataResponse(response) {
+    const responseCode = getIntroducerResponseCode(response).toUpperCase();
+    const responseMessage = toIntroducerString(getIntroducerResponseMessage(response, ''));
+    return responseCode === 'DBEX000020' || /do not exist/i.test(responseMessage);
+}
+
+function getIntroducerSearchModal() {
+    const appCore = getIntroducerAppCore();
+    if (!appCore || !window.SearchModal) {
+        return null;
+    }
+
+    if (!window._clientMaintenanceIntroducerSearchModal) {
+        window._clientMaintenanceIntroducerSearchModal = new window.SearchModal(appCore);
+    }
+
+    return window._clientMaintenanceIntroducerSearchModal;
+}
+
+function closeIntroducerView() {
+    const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
+    let handled = false;
+
+    try {
+        if (parentWindowRef?.SidebarManager?.closeChildForm) {
+            parentWindowRef.SidebarManager.closeChildForm();
+            handled = true;
+        }
+    } catch (_error) {
+    }
+
+    if (!handled) {
+        try {
+            parentWindowRef?.postMessage({ type: 'submoduleClose', source: 'ClientIntroducer' }, '*');
+            handled = Boolean(parentWindowRef);
+        } catch (_error) {
+        }
+    }
+
+    try { parentWindowRef?.postMessage({ action: 'submoduleClosed', source: 'ClientIntroducer' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'accountMaintenanceChildClose', source: 'ClientIntroducer' }, '*'); } catch (_error) { }
+    try { parentWindowRef?.postMessage({ type: 'CLOSE_DATAENTRY', source: 'ClientIntroducer' }, '*'); } catch (_error) { }
+
+    if (!handled) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.close();
+        }
+    }
+}
+
+function bindIntroducerActionPanel(tabRoot) {
     if (!tabRoot) return;
 
+    const actionScope =
+        tabRoot.closest('.window') ||
+        tabRoot.closest('[data-cm-layout="client-introducer"]') ||
+        tabRoot.parentElement ||
+        tabRoot;
+
+    if (!actionScope || actionScope.dataset.cmIntroducerActionDelegated === 'true') return;
+    actionScope.dataset.cmIntroducerActionDelegated = 'true';
+
+    const handleRefresh = async (event) => {
+        event.preventDefault();
+        if (typeof tabRoot._cmRefreshData === 'function') {
+            await tabRoot._cmRefreshData();
+        }
+    };
+
+    actionScope.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton || !actionScope.contains(actionButton)) return;
+
+        const action = String(actionButton.getAttribute('data-action') || '').toLowerCase();
+        if (action === 'refresh') {
+            await handleRefresh(event);
+            return;
+        }
+
+        if (action === 'close') {
+            event.preventDefault();
+            closeIntroducerView();
+        }
+    });
+
+    actionScope.addEventListener('kairo:titlebar:refresh', handleRefresh);
+    actionScope.addEventListener('kairo:titlebar:close', (event) => {
+        event.preventDefault();
+        closeIntroducerView();
+    });
+}
+
+window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
+    if (!tabRoot || tabRoot.dataset.cmIntroducerInitialized === 'true') return;
+    tabRoot.dataset.cmIntroducerInitialized = 'true';
+
+    const configuredModuleId = toIntroducerString(moduleId || getIntroducerViewState().ModuleID);
+    const initialContext = resolveIntroducerContext(null, configuredModuleId);
     const state = {
         introducers: [],
         selectedIntroducer: null,
-        mode: 'view'
+        mode: 'view',
+        lastContext: { ...initialContext },
+        initialLoadApplied: false,
+        autoLoadInFlight: false
     };
 
     const form = tabRoot.querySelector('[data-introducer-form]');
     const table = tabRoot.querySelector('[data-table="introducers"]');
     const tbody = table?.querySelector('[data-introducers-body]');
+
+    const setFieldValue = (id, value) => {
+        const field = form?.querySelector(`#${id}`);
+        if (!field) return;
+        field.value = value || '';
+    };
+
+    const getFieldValue = (id) => {
+        const field = form?.querySelector(`#${id}`);
+        return field?.value || '';
+    };
 
     const renderTable = (introducers) => {
         if (!tbody) return;
@@ -38,7 +313,7 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
 
         introducers.forEach((introducer, index) => {
             const tr = document.createElement('tr');
-            tr.dataset.introducerIndex = index;
+            tr.dataset.introducerIndex = String(index);
             tr.style.cursor = 'pointer';
 
             const introducerCode = introducer?.IntroducerID || introducer?.IntroducerCode || '';
@@ -60,22 +335,13 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
                 </td>
             `;
 
-            tr.addEventListener('click', (e) => {
-                if (e.target.closest('[data-introducer-action="select"]')) return;
+            tr.addEventListener('click', (event) => {
+                if (event.target.closest('[data-introducer-action="select"]')) return;
                 selectIntroducer(introducers[index], tr);
             });
 
             tbody.appendChild(tr);
         });
-    };
-
-    const selectIntroducer = (introducer, rowElement) => {
-        tbody?.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
-        rowElement?.classList.add('table-active');
-
-        state.selectedIntroducer = introducer;
-        populateForm(introducer);
-        setFormState('view');
     };
 
     const populateForm = (introducer) => {
@@ -92,18 +358,21 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
     };
 
     const clearForm = () => {
-        form?.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(field => {
+        form?.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach((field) => {
             field.value = '';
         });
         setFieldValue('hdn_introducerId', '');
         state.selectedIntroducer = null;
-        tbody?.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
+        tbody?.querySelectorAll('tr').forEach((row) => row.classList.remove('table-active'));
     };
 
-    const setFieldValue = (id, value) => {
-        const field = form?.querySelector(`#${id}`);
-        if (!field) return;
-        field.value = value || '';
+    const selectIntroducer = (introducer, rowElement) => {
+        tbody?.querySelectorAll('tr').forEach((row) => row.classList.remove('table-active'));
+        rowElement?.classList.add('table-active');
+
+        state.selectedIntroducer = introducer;
+        populateForm(introducer);
+        setFormState('view');
     };
 
     const getFormData = () => {
@@ -119,11 +388,6 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
         };
     };
 
-    const getFieldValue = (id) => {
-        const field = form?.querySelector(`#${id}`);
-        return field?.value || '';
-    };
-
     const validateForm = () => {
         const errors = [];
 
@@ -132,7 +396,7 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
         }
 
         if (errors.length > 0) {
-            window.ClientMaintenanceCore?.showToast(errors.join(', '), 'error');
+            showIntroducerToast(errors.join(', '), 'error');
             return false;
         }
 
@@ -149,42 +413,32 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
         const clearBtn = tabRoot.querySelector('[data-introducer-action="clear"]');
 
         const fields = form?.querySelectorAll('input:not([type="hidden"]), select, textarea');
+        const isEditing = mode === 'add' || mode === 'edit';
+        const hasSelection = Boolean(state.selectedIntroducer);
 
-        if (mode === 'view') {
-            fields?.forEach(f => f.disabled = true);
-            if (newBtn) newBtn.disabled = false;
-            if (alterBtn) alterBtn.disabled = !state.selectedIntroducer;
-            if (removeBtn) removeBtn.disabled = !state.selectedIntroducer;
-            if (updateBtn) updateBtn.disabled = true;
-            if (clearBtn) clearBtn.disabled = false;
-        } else if (mode === 'add' || mode === 'edit') {
-            fields?.forEach(f => f.disabled = false);
-            if (newBtn) newBtn.disabled = true;
-            if (alterBtn) alterBtn.disabled = true;
-            if (removeBtn) removeBtn.disabled = true;
-            if (updateBtn) updateBtn.disabled = false;
-            if (clearBtn) clearBtn.disabled = false;
-        }
-    };
+        fields?.forEach((field) => {
+            field.disabled = !isEditing;
+            if (field.matches('input:not([type="checkbox"]), textarea')) {
+                field.readOnly = !isEditing;
+            }
+        });
 
-    const refreshTable = async (requestData) => {
-        try {
-            const response = await window.ClientMaintenanceIntroducerService.get({
-                ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                ClientID: requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '',
-                RequestID: requestData?.RequestID || window.ClientMaintenanceCore?.requestId || ''
-            });
+        ['#txt_introducerCode', '#txt_introducerName'].forEach((selector) => {
+            const field = form?.querySelector(selector);
+            if (field) {
+                field.readOnly = true;
+            }
+        });
 
-            const introducers = extractIntroducers(response);
-            state.introducers = introducers;
-            renderTable(introducers);
-            setFormState('view');
-        } catch (error) {
-            console.error('Introducer load failed:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Failed to load introducer details - ${error.message}`, 'error');
-            state.introducers = [];
-            renderTable([]);
-        }
+        tabRoot.querySelectorAll('[data-introducer-action="lookup-introducer"]').forEach((button) => {
+            button.disabled = !isEditing;
+        });
+
+        if (newBtn) newBtn.disabled = hasSelection || isEditing;
+        if (alterBtn) alterBtn.disabled = !hasSelection || isEditing;
+        if (removeBtn) removeBtn.disabled = !hasSelection || isEditing;
+        if (updateBtn) updateBtn.disabled = !isEditing;
+        if (clearBtn) clearBtn.disabled = !isEditing;
     };
 
     const extractIntroducers = (response) => {
@@ -204,52 +458,131 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
         return [];
     };
 
+    const refreshTable = async (requestData = {}, refreshOptions = {}) => {
+        const context = resolveIntroducerContext(requestData, configuredModuleId);
+        state.lastContext = { ...state.lastContext, ...context };
+
+        clearForm();
+        setFormState('view');
+
+        if (!context.ClientID && !context.RequestID) {
+            state.introducers = [];
+            renderTable([]);
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+            return [];
+        }
+
+        try {
+            const response = await window.ClientMaintenanceIntroducerService.get({
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID
+            });
+
+            if (!isIntroducerResponseSuccess(response) && !isIntroducerNoDataResponse(response)) {
+                throw new Error(getIntroducerResponseMessage(response, 'Unable to load introducer details.'));
+            }
+
+            const introducers = isIntroducerNoDataResponse(response) ? [] : extractIntroducers(response);
+            state.introducers = introducers;
+            renderTable(introducers);
+
+            if (refreshOptions.markInitialLoad) {
+                state.initialLoadApplied = true;
+            }
+
+            return introducers;
+        } catch (error) {
+            console.error('Introducer load failed:', error);
+            showIntroducerToast(`Failed to load introducer details - ${error.message}`, 'error');
+            state.introducers = [];
+            renderTable([]);
+            return [];
+        }
+    };
+
+    const bindStandaloneBootstrap = () => {
+        if (typeof tabRoot._cmMaybeAutoLoadIntroducer === 'function') {
+            void tabRoot._cmMaybeAutoLoadIntroducer(initialContext);
+        }
+
+        if (tabRoot.dataset.cmIntroducerParentContextBound === 'true') {
+            return;
+        }
+
+        tabRoot.dataset.cmIntroducerParentContextBound = 'true';
+        window.addEventListener('message', (event) => {
+            const data = event?.data;
+            if (!data || typeof data !== 'object') return;
+            if (data.type !== 'parentContext' && data.action !== 'parentContextLoaded') return;
+
+            const parentData = data.data || {};
+            const nextContext = resolveIntroducerContext({
+                ModuleID: parentData.moduleId,
+                ClientID: parentData.clientId,
+                RequestID: parentData.requestId
+            }, configuredModuleId);
+
+            if (typeof tabRoot._cmMaybeAutoLoadIntroducer === 'function') {
+                void tabRoot._cmMaybeAutoLoadIntroducer(nextContext);
+                return;
+            }
+
+            if (typeof tabRoot._cmLoadData === 'function') {
+                void tabRoot._cmLoadData(nextContext);
+            }
+        });
+    };
+
     const handleNew = () => {
         clearForm();
         setFormState('add');
-        window.ClientMaintenanceCore?.showToast('Enter new introducer details', 'info');
+        showIntroducerToast('Enter new introducer details', 'info');
     };
 
     const handleAlter = () => {
         if (!state.selectedIntroducer) {
-            window.ClientMaintenanceCore?.showToast('Please select an introducer to edit', 'warning');
+            showIntroducerToast('Please select an introducer to edit', 'warning');
             return;
         }
+
         setFormState('edit');
     };
 
     const handleRemove = async () => {
         if (!state.selectedIntroducer) {
-            window.ClientMaintenanceCore?.showToast('Please select an introducer to remove', 'warning');
+            showIntroducerToast('Please select an introducer to remove', 'warning');
             return;
         }
 
-        const confirmed = await window.ClientMaintenanceCore?.showDialog(
+        const confirmed = await requestIntroducerConfirmation(
             'Delete Introducer',
-            'Are you sure you want to delete this introducer?',
-            'YesNo'
+            'Are you sure you want to delete this introducer?'
         );
 
         if (!confirmed) return;
 
         try {
+            const context = resolveIntroducerContext(state.lastContext, configuredModuleId);
             const response = await window.ClientMaintenanceIntroducerService.delete({
-                ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                ClientID: window.ClientMaintenanceCore?.clientId || '',
-                RequestID: window.ClientMaintenanceCore?.requestId || '',
+                ModuleID: context.ModuleID,
+                ClientID: context.ClientID,
+                RequestID: context.RequestID,
                 ID: state.selectedIntroducer.ID || state.selectedIntroducer.IntroducerDetailID
             });
 
-            if (response?.ResponseCode === '00' || response?.responseCode === '00') {
-                window.ClientMaintenanceCore?.showToast('Introducer deleted successfully', 'success');
+            if (isIntroducerResponseSuccess(response)) {
+                showIntroducerToast('Introducer deleted successfully', 'success');
                 clearForm();
                 await refreshTable({});
             } else {
-                window.ClientMaintenanceCore?.showToast(response?.ResponseMessage || response?.message || 'Delete failed', 'error');
+                showIntroducerToast(getIntroducerResponseMessage(response, 'Delete failed'), 'error');
             }
         } catch (error) {
             console.error('Delete introducer error:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Delete failed - ${error.message}`, 'error');
+            showIntroducerToast(`Delete failed - ${error.message}`, 'error');
         }
     };
 
@@ -257,42 +590,40 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
         if (!validateForm()) return;
 
         const formData = getFormData();
+        const context = resolveIntroducerContext(state.lastContext, configuredModuleId);
 
         try {
             let response;
 
             if (state.mode === 'add') {
                 response = await window.ClientMaintenanceIntroducerService.create({
-                    ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                    ClientID: window.ClientMaintenanceCore?.clientId || '',
-                    RequestID: window.ClientMaintenanceCore?.requestId || '',
+                    ModuleID: context.ModuleID,
+                    ClientID: context.ClientID,
+                    RequestID: context.RequestID,
                     ...formData
                 });
             } else if (state.mode === 'edit') {
                 response = await window.ClientMaintenanceIntroducerService.update({
-                    ModuleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
-                    ClientID: window.ClientMaintenanceCore?.clientId || '',
-                    RequestID: window.ClientMaintenanceCore?.requestId || '',
+                    ModuleID: context.ModuleID,
+                    ClientID: context.ClientID,
+                    RequestID: context.RequestID,
                     ...formData
                 });
             }
 
-            if (response?.ResponseCode === '00' || response?.responseCode === '00') {
-                window.ClientMaintenanceCore?.showToast(
+            if (isIntroducerResponseSuccess(response)) {
+                showIntroducerToast(
                     `Introducer ${state.mode === 'add' ? 'created' : 'updated'} successfully`,
                     'success'
                 );
                 clearForm();
                 await refreshTable({});
             } else {
-                window.ClientMaintenanceCore?.showToast(
-                    response?.ResponseMessage || response?.message || 'Update failed',
-                    'error'
-                );
+                showIntroducerToast(getIntroducerResponseMessage(response, 'Update failed'), 'error');
             }
         } catch (error) {
             console.error('Update introducer error:', error);
-            window.ClientMaintenanceCore?.showToast?.(`Update failed - ${error.message}`, 'error');
+            showIntroducerToast(`Update failed - ${error.message}`, 'error');
         }
     };
 
@@ -303,47 +634,71 @@ window.initClientMaintenanceIntroducer = function (tabRoot, moduleId) {
 
     const handleLookupIntroducer = () => {
         if (state.mode === 'view') {
-            window.ClientMaintenanceCore?.showToast('Click "New" or "Alter" to search for introducers', 'info');
+            showIntroducerToast('Click "New" or "Alter" to search for introducers', 'info');
             return;
         }
 
-        window.ClientMaintenanceCore?.openSearchModal({
-            searchType: 'Client',
-            title: 'Search Introducer',
+        const searchModal = getIntroducerSearchModal();
+        if (!searchModal) {
+            return;
+        }
+
+        searchModal.open({
+            tableID: 'ClientID',
+            moduleID: configuredModuleId || '0',
             onSelect: (selected) => {
-                if (selected) {
-                    setFieldValue('txt_introducerCode', selected.ClientID || selected.Code || selected.ID);
-                    setFieldValue('txt_introducerName', selected.ClientName || selected.Name);
-                }
+                if (!selected) return;
+
+                setFieldValue('txt_introducerCode', selected.ClientID || selected.Code || selected.ID);
+                setFieldValue('txt_introducerName', selected.ClientName || selected.Name);
             }
         });
     };
 
-    // Event Listeners
     tabRoot.querySelector('[data-introducer-action="new"]')?.addEventListener('click', handleNew);
     tabRoot.querySelector('[data-introducer-action="alter"]')?.addEventListener('click', handleAlter);
     tabRoot.querySelector('[data-introducer-action="remove"]')?.addEventListener('click', handleRemove);
     tabRoot.querySelector('[data-introducer-action="update"]')?.addEventListener('click', handleUpdate);
-    tabRoot. querySelector('[data-introducer-action="clear"]')?.addEventListener('click', handleClear);
+    tabRoot.querySelector('[data-introducer-action="clear"]')?.addEventListener('click', handleClear);
     tabRoot.querySelector('[data-introducer-action="lookup-introducer"]')?.addEventListener('click', handleLookupIntroducer);
 
-    tbody?.addEventListener('click', (e) => {
-        const selectBtn = e.target.closest('[data-introducer-action="select"]');
-        if (selectBtn) {
-            const index = parseInt(selectBtn.dataset.introducerIndex);
-            if (!isNaN(index) && state.introducers[index]) {
-                const row = selectBtn.closest('tr');
-                selectIntroducer(state.introducers[index], row);
-            }
-        }
+    tbody?.addEventListener('click', (event) => {
+        const selectBtn = event.target.closest('[data-introducer-action="select"]');
+        if (!selectBtn) return;
+
+        const index = parseInt(selectBtn.dataset.introducerIndex, 10);
+        if (Number.isNaN(index) || !state.introducers[index]) return;
+
+        const row = selectBtn.closest('tr');
+        selectIntroducer(state.introducers[index], row);
     });
 
-    // Register load function for external calls
-    tabRoot._cmLoadData = (requestData) => refreshTable(requestData);
+    tabRoot._cmLoadData = (requestData, refreshOptions = {}) => refreshTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshTable(requestData, {
+        markInitialLoad: !state.initialLoadApplied,
+        ...refreshOptions
+    });
+    tabRoot._cmMaybeAutoLoadIntroducer = (requestData) => {
+        const context = resolveIntroducerContext(requestData, configuredModuleId);
+        if (state.initialLoadApplied || state.autoLoadInFlight || !shouldAutoLoadStandaloneIntroducer(context)) {
+            return Promise.resolve([]);
+        }
 
-    // Initial state
+        state.autoLoadInFlight = true;
+        return refreshTable(context, { markInitialLoad: true }).finally(() => {
+            state.autoLoadInFlight = false;
+        });
+    };
+    tabRoot._cmSetEditMode = () => {
+        setFormState(state.mode);
+    };
+
+    bindIntroducerActionPanel(tabRoot);
     setFormState('view');
-    refreshTable({});
+    bindStandaloneBootstrap();
 };
 
 function escapeHtml(value) {
@@ -354,4 +709,18 @@ function escapeHtml(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function autoInitializeStandaloneIntroducerView() {
+    const moduleRoot = document.querySelector('[data-section="client-introducer"]');
+    if (!moduleRoot || typeof window.initClientMaintenanceIntroducer !== 'function') return;
+
+    const moduleId = document.getElementById('moduleIdIntroducer')?.value || '';
+    window.initClientMaintenanceIntroducer(moduleRoot, moduleId);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoInitializeStandaloneIntroducerView);
+} else {
+    autoInitializeStandaloneIntroducerView();
 }

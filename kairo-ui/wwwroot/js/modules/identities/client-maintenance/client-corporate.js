@@ -102,6 +102,32 @@ window.initClientMaintenanceCorporateTab = function (tabRoot, moduleId) {
     initCorporateValidation();
     initCorporateGlLookup(tabRoot, moduleId);
     initCorporateUserLookup(tabRoot, moduleId);
+    
+    // Initialize all form fields as readonly until edit mode
+    tabRoot.querySelectorAll('input, select, textarea').forEach((field) => {
+        if (field.type !== 'button' && field.type !== 'submit') {
+            field.readOnly = true;
+            if (field.tagName === 'SELECT') {
+                field.disabled = true;
+            }
+        }
+    });
+
+    // Edit mode handler - called from main client maintenance view
+    tabRoot._cmSetEditMode = (isEditMode) => {
+        tabRoot.querySelectorAll('input, select, textarea, button[data-corporate-action]').forEach((field) => {
+            if (field.type === 'button' || field.type === 'submit') {
+                // Enable/disable action buttons (lookup buttons)
+                if (field.dataset.corporateAction?.includes('lookup')) {
+                    field.disabled = !isEditMode;
+                }
+            } else if (field.tagName === 'SELECT') {
+                field.disabled = !isEditMode;
+            } else if (field.type !== 'hidden') {
+                field.readOnly = !isEditMode;
+            }
+        });
+    };
 };
 
 function initCorporateGlLookup(tabRoot, moduleId) {

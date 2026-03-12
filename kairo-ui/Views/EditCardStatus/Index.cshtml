@@ -1,0 +1,531 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Edit Card Status";
+    Layout = "_ApplicationLayout";
+
+    var stageOptions = ViewData["StageOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<style>
+    /* Edit Card Status styles - specific */
+
+    #editCardStatusModule {
+        --ecs-gap: 10px;
+        --ecs-section-padding: 12px;
+        --ecs-surface: #f4f7fb;
+        --ecs-section-surface: #ffffff;
+    }
+
+    #editCardStatusModule .main-container {
+        background: var(--ecs-surface);
+    }
+
+    #editCardStatusModule .form-card {
+        border-radius: 0;
+        box-shadow: none !important;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        gap: var(--ecs-gap);
+        font-size: 12px;
+    }
+
+    #editCardStatusModule .form-content {
+        padding-right: 0;
+    }
+
+    #editCardStatusModule .form-section {
+        box-shadow: none !important;
+        border: 1px solid var(--am-border-light, #e2e8f0);
+        border-radius: 0;
+        overflow: hidden;
+        margin-bottom: 0;
+        background: var(--ecs-section-surface);
+    }
+
+    #editCardStatusModule .form-section .section-header {
+        gap: 8px;
+    }
+
+    #editCardStatusModule .form-section .section-header::before {
+        content: none !important;
+        display: none !important;
+    }
+
+    #editCardStatusModule .form-section .section-content {
+        padding: var(--ecs-section-padding);
+    }
+
+    #editCardStatusModule .stage-form-row {
+        align-items: end;
+    }
+
+    #editCardStatusModule .stage-field-card {
+        border: 1px solid #dbe4ee;
+        border-radius: 8px;
+        padding: 12px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    #editCardStatusModule .stage-form-row .label-blue {
+        margin-bottom: 6px;
+        display: inline-block;
+    }
+
+    #editCardStatusModule .stage-form-row .form-select,
+    #editCardStatusModule .stage-form-row .form-control {
+        height: 38px;
+        font-size: 12px;
+    }
+
+    #editCardStatusModule .stage-hint {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #4f647a;
+    }
+
+    #editCardStatusModule .card-table {
+        border: 0;
+        border-radius: 0;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    #editCardStatusModule .card-table table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    #editCardStatusModule .card-table thead th {
+        color: #35557d !important;
+        font-weight: 600;
+        font-size: 11px;
+        padding: 10px 8px;
+        border: 1px solid #bcc6d2;
+        white-space: nowrap;
+        background: #eef3f8 !important;
+        vertical-align: middle;
+        text-align: left;
+    }
+
+    #editCardStatusModule .card-table thead th.col-select {
+        width: 34px;
+        min-width: 34px;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-tracking {
+        width: 84px;
+        min-width: 84px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-card-id {
+        width: 110px;
+        min-width: 110px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-card-name {
+        width: 176px;
+        min-width: 176px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-provider {
+        width: 100px;
+        min-width: 100px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-branch,
+    #editCardStatusModule .card-table thead th.col-approved,
+    #editCardStatusModule .card-table thead th.col-active {
+        white-space: normal;
+        line-height: 1.15;
+    }
+
+    #editCardStatusModule .card-table thead th.col-branch {
+        width: 64px;
+        min-width: 64px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-account {
+        width: 132px;
+        min-width: 132px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-status {
+        width: 112px;
+        min-width: 112px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-approved,
+    #editCardStatusModule .card-table thead th.col-active,
+    #editCardStatusModule .card-table thead th.col-collected {
+        width: 80px;
+        min-width: 80px;
+    }
+
+    #editCardStatusModule .card-table thead th.col-approved {
+        width: 86px;
+        min-width: 86px;
+    }
+
+    #editCardStatusModule .card-table tbody tr:hover {
+        background-color: #e7f3ff;
+    }
+
+    #editCardStatusModule .card-table tbody td {
+        font-size: 11px;
+        padding: 8px;
+        border-bottom: 1px solid #d4dbe4;
+        vertical-align: middle;
+    }
+
+    #editCardStatusModule .record-count-badge {
+        margin-left: auto;
+        background: #ffffff;
+        border: 1px solid #c9d5e2;
+        color: #35557d;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 3px 10px;
+        line-height: 1;
+    }
+
+    #editCardStatusModule .form-section--bts .section-content {
+        background: #f8fafc;
+    }
+
+    #editCardStatusModule .form-section--bts .bs-input-text {
+        background: #ffffff;
+    }
+
+    #editCardStatusModule .table-empty td {
+        color: #6c757d;
+        text-align: center;
+        padding: 40px 12px;
+    }
+
+    #editCardStatusModule .table-empty i {
+        font-size: 36px;
+        display: block;
+        margin-bottom: 8px;
+        opacity: 0.35;
+    }
+
+    #editCardStatusModule .action-panel {
+        min-height: calc(100vh - var(--title-bar-height) - 8px);
+    }
+
+    #editCardStatusModule .action-panel .btn-action {
+        height: 54px;
+        min-height: 54px;
+    }
+
+    #editCardStatusModule .action-panel .btn-action i {
+        font-size: 18px;
+    }
+
+    #editCardStatusModule .action-panel .btn-action span {
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    #editCardStatusModule .am-message-panel {
+        top: 74px;
+        right: 20px;
+        left: auto;
+        transform: translateY(-10px) scale(0.98);
+        min-width: 320px;
+        max-width: min(520px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(148, 163, 184, 0.32);
+        border-left-width: 0;
+        border-radius: 12px;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+        backdrop-filter: blur(8px);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    #editCardStatusModule .am-message-panel::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 12px 0 0 12px;
+        background: #3b82f6;
+    }
+
+    #editCardStatusModule .am-message-panel.show {
+        transform: translateY(0) scale(1);
+    }
+
+    #editCardStatusModule .am-message-panel__icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #2563eb;
+        background: rgba(37, 99, 235, 0.12);
+        flex-shrink: 0;
+    }
+
+    #editCardStatusModule .am-message-panel.success {
+        background: linear-gradient(180deg, #f4fff7 0%, #eafff2 100%) !important;
+        color: #14532d !important;
+    }
+
+    #editCardStatusModule .am-message-panel.success::before {
+        background: #16a34a;
+    }
+
+    #editCardStatusModule .am-message-panel.success .am-message-panel__icon {
+        color: #16a34a;
+        background: rgba(22, 163, 74, 0.14);
+    }
+
+    #editCardStatusModule .am-message-panel.error {
+        background: linear-gradient(180deg, #fff7f7 0%, #ffecec 100%) !important;
+        color: #7f1d1d !important;
+    }
+
+    #editCardStatusModule .am-message-panel.error::before {
+        background: #dc2626;
+    }
+
+    #editCardStatusModule .am-message-panel.error .am-message-panel__icon {
+        color: #dc2626;
+        background: rgba(220, 38, 38, 0.14);
+    }
+
+    #editCardStatusModule .am-message-panel.warning {
+        background: linear-gradient(180deg, #fffdf4 0%, #fff7e8 100%) !important;
+        color: #78350f !important;
+    }
+
+    #editCardStatusModule .am-message-panel.warning::before {
+        background: #d97706;
+    }
+
+    #editCardStatusModule .am-message-panel.warning .am-message-panel__icon {
+        color: #d97706;
+        background: rgba(217, 119, 6, 0.14);
+    }
+
+    @@media (max-width: 992px) {
+        #editCardStatusModule .form-card {
+            padding: 10px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        #editCardStatusModule .am-message-panel {
+            right: 10px;
+            left: 10px;
+            max-width: none;
+            min-width: 0;
+        }
+
+        #editCardStatusModule .form-section--bts .section-content {
+            padding: 10px 12px;
+        }
+    }
+</style>
+
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div id="editCardStatusModule"
+     data-operator-id="@(Context.Session.GetString("user_id") ?? Context.Session.GetString("user_name") ?? string.Empty)"
+     data-branch-id="@(Context.Session.GetString("branch_code") ?? Context.Session.GetString("branch_id") ?? string.Empty)"
+     data-bank-id="@(Context.Session.GetString("bank_id") ?? Context.Session.GetString("bank_code") ?? "00")"
+     data-module-id="20" data-close-mode="window">
+    <div class="window">
+        <main class="main-container">
+            <div class="form-content form-content-without-leftbar" role="region" aria-label="Edit Card Status form">
+                <div class="form-card" data-main-form>
+                    <div id="statusMsg" class="status-msg hidden" role="status" aria-live="polite">
+                        <span class="status-text"></span>
+                    </div>
+
+                    <div class="form-section" data-section="stage-selection">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-funnel"></i>Stage Selection</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Stage Selection"
+                                    aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="row g-3 stage-form-row">
+                                <div class="col-12">
+                                    <div class="stage-field-card">
+                                        <label class="label-blue" for="stageFilter">Stage</label>
+                                        <select id="stageFilter" class="form-select" aria-label="Card stage filter">
+                                            <option value="">-- Select Stage --</option>
+                                            @foreach (var option in stageOptions)
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(option.Value))
+                                                {
+                                                    <option value="@option.Value">@option.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                        <div class="stage-hint">Select a stage, then click <strong>View</strong> to load
+                                            Card Status List.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section" data-section="card-status-list">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-table"></i>Card Status List</span>
+                                <span class="record-count-badge" id="recordCount">0 records</span>
+                                <button type="button" class="section-toggle-btn" aria-label="Toggle Card Status List"
+                                        aria-expanded="true">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="section-content p-0" data-section-content>
+                                <div class="card-table table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-select"><input id="selectAllCards" type="checkbox"
+                                                                                  class="form-check-input" aria-label="Select all" /></th>
+                                                    <th class="col-tracking">TrackingID</th>
+                                                    <th class="col-card-id">Card ID</th>
+                                                    <th class="col-card-name">CardName</th>
+                                                    <th class="col-provider">Card Provider</th>
+                                                    <th class="col-branch">Branch ID</th>
+                                                    <th class="col-account">Account ID</th>
+                                                    <th class="col-status">Card Status</th>
+                                                    <th class="text-center col-approved">Is Approved</th>
+                                                    <th class="text-center col-active">Is Active</th>
+                                                    <th class="text-center col-collected">Collected</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="cardStatusGrid">
+                                                <tr class="table-empty">
+                                                    <td colspan="11">
+                                                        <i class="bi bi-credit-card-2-back" aria-hidden="true"></i>
+                                                        <span>No records to display. Select a stage and click View.</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section form-section--bts" data-section="audit">
+                                <div class="section-header" data-section-toggle>
+                                    <span class="section-header__title"><i class="bi bi-clock-history"></i>Behind The
+                                        Scene</span>
+                                        <button type="button" class="section-toggle-btn" aria-label="Toggle audit trail"
+                                                aria-expanded="true">
+                                            <i class="bi bi-chevron-up"></i>
+                                        </button>
+                                    </div>
+                                    <div class="section-content" data-section-content>
+                                        <div class="form-row four-col">
+                                            <div class="col">
+                                                <label for="createdBy">Created By</label>
+                                                <input type="text" id="createdBy" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="createdOn">Created On</label>
+                                                <input type="text" id="createdOn" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="approvedBy">Approved By</label>
+                                                <input type="text" id="approvedBy" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="approvedOn">Approved On</label>
+                                                <input type="text" id="approvedOn" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                        </div>
+                                        <div class="form-row four-col">
+                                            <div class="col">
+                                                <label for="exportedBy">Exported By</label>
+                                                <input type="text" id="exportedBy" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="exportedOn">Exported On</label>
+                                                <input type="text" id="exportedOn" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="activatedBy">Activated By</label>
+                                                <input type="text" id="activatedBy" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="activatedOn">Activated On</label>
+                                                <input type="text" id="activatedOn" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                        </div>
+                                        <div class="form-row four-col">
+                                            <div class="col">
+                                                <label for="disbursedBy">Disbursed By</label>
+                                                <input type="text" id="disbursedBy" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col">
+                                                <label for="disbursedOn">Disbursed On</label>
+                                                <input type="text" id="disbursedOn" class="bs-input-text" readonly value="-" />
+                                            </div>
+                                            <div class="col"></div>
+                                            <div class="col"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside class="action-panel" aria-label="Form actions">
+                            <div class="d-flex flex-column gap-2 mt-auto">
+                                <button class="btn-action btn-view" type="button" data-action="view">
+                                    <i class="bi bi-eye"></i><span>View</span>
+                                </button>
+                                <button class="btn-action btn-edit" type="button" data-action="edit" disabled>
+                                    <i class="bi bi-pencil"></i><span>Edit</span>
+                                </button>
+                                <button class="btn-action btn-save" type="button" data-action="approve" disabled>
+                                    <i class="bi bi-check-circle"></i><span>Approve</span>
+                                </button>
+                                <button class="btn-action btn-cancel" type="button" data-action="cancel">
+                                    <i class="bi bi-x-lg"></i><span>Cancel</span>
+                                </button>
+                            </div>
+                        </aside>
+                    </main>
+
+                    <footer class="de-status-bar" id="editCardStatusBar" role="status" aria-live="polite">Ready</footer>
+
+                    <div class="de-loading-overlay" id="loadingOverlay" hidden>
+                        <div class="de-loading-spinner">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>Loading...</span>
+                        </div>
+                    </div>
+
+                    <div class="am-message-panel" id="amMessagePanel" role="alert" aria-live="polite" hidden>
+                        <i class="bi bi-info-circle-fill am-message-panel__icon" id="messagePanelIcon" aria-hidden="true"></i>
+                        <span id="messagePanelText"></span>
+                        <button type="button" class="am-message-panel__close" id="messagePanelClose" aria-label="Close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            @section Scripts {
+                <script src="~/js/services/shared/serviceLoader.js" asp-append-version="true"></script>
+                <script src="~/js/modules/accounts/edit-card-status.js?v=20260309e"></script>
+            }

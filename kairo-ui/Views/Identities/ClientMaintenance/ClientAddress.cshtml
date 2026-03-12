@@ -1,0 +1,134 @@
+@using CBS.Entities.SystemCore
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Client Address";
+    Layout = "_ApplicationLayout";
+    var addressTypeOptions = ViewData["AddressTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["AddressCountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var cityOptions = ViewData["AddressCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var regionOptions = ViewData["AddressRegionOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var subCityOptions = ViewData["AddressSubCityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var languageOptions = ViewData["AddressLanguageOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
+    var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
+    var requestId = ViewData["RequestId"]?.ToString() ?? string.Empty;
+    var autoLoad = (ViewData["AutoLoad"]?.ToString() ?? "false").ToLowerInvariant();
+}
+
+<!-- ClientPortfolio Submodule -->
+<div class="window de-window" data-ktb-window data-address-host="standalone">
+    <div data-kairo-titlebar data-title="Client Address" data-icon="bi-geo-alt"></div>
+    <main class="main-container main-container--with-panel">
+        <div class="form-content" role="region">
+            <div class="form-card" data-section="client-address" data-main-form>
+                <div class="section-header" data-section-toggle>
+                    <span class="section-header__title"><i class="bi bi-geo-alt"></i>Address</span>
+                    <button id="btn_toggleClientAddress" type="button" class="section-toggle-btn" aria-label="Toggle Address" aria-expanded="true">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="section-content" data-section-content>
+                    <form id="frm_clientAddress" data-address-form autocomplete="off" novalidate>
+                        <!-- Hidden fields for page context -->
+                        <input type="hidden" id="moduleIdAddress" value="@moduleId" />
+
+                        <h5 class="mb-4">Physical &amp; Mailing Addresses</h5>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="ddl_addressType" id="lbl_addressType">Address Type</label>
+                                <select id="ddl_addressType" name="addressType" data-address-field="AddressTypeID" class="bs-select" asp-items="@(addressTypeOptions.Skip(1))">
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="chk_addressIsMailing" id="lbl_addressIsMailing">Mailing Address?</label>
+                                <div class="bs-field bs-inline pt-1">
+                                    <input type="checkbox" class="bs-checkbox" id="chk_addressIsMailing" name="addressIsMailing" data-address-field="IsMailingAddress" />
+                                    <label class="bs-label" for="chk_addressIsMailing">Use for Mailing</label>
+                                </div>
+                            </div>
+                            <div class="col"><label class="label-blue" for="txt_addressLine1" id="lbl_addressLine1">Address 1</label><input id="txt_addressLine1" name="addressLine1" data-address-field="Address1" class="bs-input-text" /></div>
+                            <div class="col"><label for="txt_addressLine2" id="lbl_addressLine2">Address 2</label><input id="txt_addressLine2" name="addressLine2" data-address-field="Address2" class="bs-input-text" /></div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col"><label class="label-blue" for="ddl_addressCountry" id="lbl_addressCountry">Country</label><select id="ddl_addressCountry" name="addressCountry" data-address-field="CountryID" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="addressCity" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label class="label-blue" for="ddl_addressRegion" id="lbl_addressRegion">Region</label><select id="ddl_addressRegion" name="addressRegion" data-address-field="Region" class="bs-select" asp-items="@(regionOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label class="label-blue" for="ddl_addressSubCity" id="lbl_addressSubCity">Sub-City / Zone</label><select id="ddl_addressSubCity" name="addressSubCity" data-address-field="SubCityZone" class="bs-select" asp-items="@(subCityOptions.Skip(1))"><option value="">Select...</option></select></div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col"><label class="label-blue" for="txt_addressWereda" id="lbl_addressWereda">Wereda</label><input id="txt_addressWereda" name="addressWereda" data-address-field="Wereda" class="bs-input-text" /></div>
+                            <div class="col"><label class="label-blue" for="txt_addressKebele" id="lbl_addressKebele">Kebele</label><input id="txt_addressKebele" name="addressKebele" data-address-field="Kebele" class="bs-input-text" /></div>
+                            <div class="col"><label class="label-blue" for="txt_addressHouseNo" id="lbl_addressHouseNo">House Number</label><input id="txt_addressHouseNo" name="addressHouseNo" data-address-field="HouseNumber" class="bs-input-text" /></div>
+                            <div class="col"><label for="txt_addressZipCode" id="lbl_addressZipCode">Zip Code</label><input id="txt_addressZipCode" name="addressZipCode" data-address-field="ZipCode" class="bs-input-text" /></div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col"><label for="ddl_addressLanguage" id="lbl_addressLanguage">Language</label><select id="ddl_addressLanguage" name="addressLanguage" data-address-field="Language" class="bs-select" asp-items="@(languageOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label for="txt_addressLandMark" id="lbl_addressLandMark">Landmark</label><input id="txt_addressLandMark" name="addressLandMark" data-address-field="LandMark" class="bs-input-text" /></div>
+                            <div class="col"><label for="txt_addressPhoneWork" id="lbl_addressPhoneWork">Phone (Work)</label><input id="txt_addressPhoneWork" name="addressPhoneWork" data-address-field="PhoneWork" class="bs-input-text" maxlength="15" /></div>
+                            <div class="col"><label for="txt_addressPhoneHome" id="lbl_addressPhoneHome">Phone (Home)</label><input id="txt_addressPhoneHome" name="addressPhoneHome" data-address-field="PhoneHome" class="bs-input-text" maxlength="15" /></div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col"><label for="txt_addressMobile" id="lbl_addressMobile">Mobile</label><input id="txt_addressMobile" name="addressMobile" data-address-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+                            <div class="col"><label for="txt_addressEmail" id="lbl_addressEmail">Email</label><input id="txt_addressEmail" name="addressEmail" data-address-field="Email" class="bs-input-text" /></div>
+                            <div class="col"></div>
+                            <div class="col"></div>
+                        </div>
+                    </form>
+
+                    <div class="d-flex justify-content-center gap-2 my-4">
+                        <button id="btn_newClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="new"><i class="bi bi-plus-lg me-1"></i>New</button>
+                        <button id="btn_alterClientAddress" type="button" class="btn btn-sm btn-outline-primary" data-address-action="alter" disabled><i class="bi bi-pencil-square me-1"></i>Alter</button>
+                        <button id="btn_deleteClientAddress" type="button" class="btn btn-sm btn-outline-danger" data-address-action="remove" disabled><i class="bi bi-trash me-1"></i>Remove</button>
+                        <button id="btn_updateClientAddress" type="button" class="btn btn-sm btn-primary" data-address-action="update" disabled><i class="bi bi-check2-circle me-1"></i>Update</button>
+                        <button id="btn_clearClientAddress" type="button" class="btn btn-sm btn-outline-secondary" data-address-action="clear" disabled>Clear</button>
+                    </div>
+
+
+                    <div class="section-header py-1 mb-2 bg-light border">
+                        <span class="small fw-bold px-2">ADDRESSES</span>
+                    </div>
+                    <div class="table-responsive border rounded bg-white mb-4">
+                        <table class="table table-sm table-hover mb-0" data-table="addresses">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-2">Type</th>
+                                    <th>Address</th>
+                                    <th>City</th>
+                                    <th>Region</th>
+                                    <th>Mobile</th>
+                                    <th class="text-center">Mailing</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl_clientAddressBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <aside class="action-panel">
+            <div class="d-flex flex-column gap-2 mt-auto">
+                <button class="btn-action" type="button" data-action="refresh"><i class="bi bi-arrow-clockwise"></i><span>Refresh</span></button>
+                <button class="btn-action btn-cancel" type="button" data-action="close"><i class="bi bi-x-lg"></i><span>Close</span></button>
+            </div>
+        </aside>
+    </main>
+    <footer class="de-status-bar" role="status">Ready</footer>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
+</div>
+<script>
+    window.ClientAddressState = {
+        ModuleID: '@moduleId',
+        ClientID: '@clientId',
+        RequestID: '@requestId',
+        AutoLoad: '@autoLoad' === 'true',
+        IsStandalone: true
+    };
+</script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/standalone-submodule-context.js" asp-append-version="true"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/client-address.js" asp-append-version="true"></script>

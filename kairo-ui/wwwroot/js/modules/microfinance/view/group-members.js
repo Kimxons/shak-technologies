@@ -217,7 +217,7 @@
                 <td>${member.ClientName || member.Name || ''}</td>
                 <td>${member.GroupID || ''}</td>
                 <td>${member.GroupName || ''}</td>
-                <td>${member.JoinDate ? new Date(member.JoinDate).toLocaleDateString() : ''}</td>
+                <td>${member.JoinDate ? (window.GlobalUtils?.formatDate ? window.GlobalUtils.formatDate(member.JoinDate) : new Date(member.JoinDate).toLocaleDateString()) : ''}</td>
                 <td>${member.LoanAccountID || member.LoanAcID || ''}</td>
                 <td>${member.LoanBalance || member.LoanOSBalance || '0'}</td>
                 <td>${member.SavingsAccountID || member.SavingsAcID || ''}</td>
@@ -233,6 +233,34 @@
         const tbody = document.getElementById('membersTableBody');
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="10" class="text-start">No records to display.</td></tr>';
+        }
+    };
+
+    const closeSubmodule = () => {
+        try {
+            const parent = window.parent;
+
+            if (typeof parent.closeChildForm === 'function') {
+                parent.closeChildForm();
+                return;
+            }
+
+            if (typeof parent.closeFrame === 'function') {
+                parent.closeFrame();
+                return;
+            }
+
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe], iframe[src*="GroupMembers"]');
+                if (iframe) {
+                    iframe.src = 'about:blank';
+                    return;
+                }
+            }
+
+            parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
+        } catch (error) {
+            console.error('[Group Members View] Error closing submodule:', error);
         }
     };
 
@@ -293,9 +321,7 @@
             cancelBtn.addEventListener('click', handleCancelClick);
         }
 
-        document.getElementById('btnClose')?.addEventListener('click', () => {
-            window.parent?.postMessage?.({ type: 'kairo-dataentry-close' }, '*');
-        });
+        document.getElementById('btnClose')?.addEventListener('click', closeSubmodule);
         document.getElementById('btnRefresh')?.addEventListener('click', () => window.location.reload());
 
         document.querySelectorAll('[data-section-toggle]').forEach(header => {

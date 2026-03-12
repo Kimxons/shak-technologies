@@ -61,6 +61,35 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             return PartialView("~/Views/Identities/ClientMaintenance/_ClientPhotoSignature.cshtml");
         }
 
+        [HttpGet]
+        [Route("ClientPhotoSignature")]
+        public async Task<IActionResult> ClientPhotoSignature(string? moduleId = null, string? clientId = null, string? requestId = null)
+        {
+            if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
+
+            ViewData["ModuleId"] = moduleId ?? string.Empty;
+            ViewData["ClientId"] = clientId ?? string.Empty;
+            ViewData["RequestId"] = requestId ?? string.Empty;
+            ViewData["AutoLoad"] = (!string.IsNullOrWhiteSpace(clientId) || !string.IsNullOrWhiteSpace(requestId)).ToString().ToLower();
+
+            try
+            {
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "ImageTypeID"
+                });
+
+                dropdownOptions.TryGetValue("ImageTypeID", out var imageTypeOptions);
+                ViewData["ImageTypeOptions"] = imageTypeOptions ?? Enumerable.Empty<SelectListItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading standalone Photo & Signature dropdown options");
+            }
+
+            return View("~/Views/Identities/ClientMaintenance/ClientPhotoSignature.cshtml");
+        }
+
         [HttpPost, Route("get")]
         public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
         {
@@ -82,16 +111,18 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 }
                 else if (!string.IsNullOrWhiteSpace(requestKey))
                 {
-                    endpoint = string.Format(ApiEndpoints.GET_IMAGE_ACCOUNT_PREAPPROVALS_BY_CLIENT, requestKey);
+                    endpoint = string.Format(ApiEndpoints.GET_IMAGE_ACCOUNT_PREAPPROVALS_BY_CLIENT, string.Empty, requestKey);
                 }
                 else
                 {
                     return BadRequest(new { Success = false, ErrorMessage = "ClientID or RequestID is required" });
                 }
 
-                var response = await client.GetAsync(endpoint);
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                //var response = await client.GetAsync(endpoint);
+                //var payload = await ReadClientDocumentApiResponseAsync(response);
+                //return StatusCode((int)response.StatusCode, payload);
+                var response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {
@@ -657,26 +688,26 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                     case JsonValueKind.False:
                         return false;
                     case JsonValueKind.String:
-                    {
-                        var text = value.GetString();
-                        if (bool.TryParse(text, out var boolResult))
                         {
-                            return boolResult;
+                            var text = value.GetString();
+                            if (bool.TryParse(text, out var boolResult))
+                            {
+                                return boolResult;
+                            }
+                            if (int.TryParse(text, out var intResult))
+                            {
+                                return intResult > 0;
+                            }
+                            break;
                         }
-                        if (int.TryParse(text, out var intResult))
-                        {
-                            return intResult > 0;
-                        }
-                        break;
-                    }
                     case JsonValueKind.Number:
-                    {
-                        if (value.TryGetInt32(out var intResult))
                         {
-                            return intResult > 0;
+                            if (value.TryGetInt32(out var intResult))
+                            {
+                                return intResult > 0;
+                            }
+                            break;
                         }
-                        break;
-                    }
                 }
             }
 

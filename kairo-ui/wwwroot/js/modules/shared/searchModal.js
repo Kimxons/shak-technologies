@@ -176,6 +176,27 @@
             this.attachRowClickHandlers();
         }
 
+        resetSearchForm(pageSize) {
+            const form = document.getElementById('search-modal-form');
+            form?.querySelectorAll('input[data-field]').forEach((input) => {
+                input.value = '';
+            });
+
+            form?.querySelectorAll('select[data-field]').forEach((select) => {
+                select.value = 'like';
+            });
+
+            const pageSizeDropdown = document.getElementById('search-page-size');
+            if (pageSizeDropdown) {
+                const normalizedPageSize = String(pageSize || 20);
+                pageSizeDropdown.value = normalizedPageSize;
+
+                if (pageSizeDropdown.value !== normalizedPageSize) {
+                    pageSizeDropdown.value = '20';
+                }
+            }
+        }
+
         /**
          * Open the search modal
          */
@@ -186,24 +207,31 @@
                 }
 
                 if (!this.appCore) {
-                     this.appCore = window.AppCore;
+                    this.appCore = window.AppCore;
                 }
 
                 // Check if reload is needed (different TableID or not initialized)
-                const shouldReload = !this.isInitialized || 
-                                   (this.currentConfig && this.currentConfig.tableID !== config.tableID);
+                const shouldReload = !this.isInitialized ||
+                    (this.currentConfig && this.currentConfig.tableID !== config.tableID);
 
                 this.currentConfig = config;
+
+                // Always reset pagination state so each open starts fresh
+                this.refID = '';
+                this.prevOrNext = 0;
+                this.currentResults = [];
+                this.selectedRow = null;
+                this.currentPage = 0;
 
                 // Load modal if needed
                 if (shouldReload) {
                     // Start fresh if reloading for a new table
                     if (this.isInitialized) {
-                         // Reset state but keep the instance structure
-                         this.currentResults = [];
-                         this.selectedRow = null; 
-                         this.currentPage = 0;
-                         // Note: loadModal will replace the DOM element
+                        // Reset state but keep the instance structure
+                        this.currentResults = [];
+                        this.selectedRow = null;
+                        this.currentPage = 0;
+                        // Note: loadModal will replace the DOM element
                     }
 
                     await this.loadModal(config.tableID, {
@@ -225,7 +253,12 @@
 
                     const advInput = document.getElementById('search-adv-filter');
                     if (advInput) advInput.value = config.advFilterString || '';
+
+                    const moduleInput = document.getElementById('search-module-id');
+                    if (moduleInput) moduleInput.value = config.moduleID || '100';
                 }
+
+                this.resetSearchForm(config.pageSize);
 
                 // Show modal
                 if (this.modalElement) {
@@ -235,8 +268,8 @@
 
                 // Auto-search if searchKey OR whereStmt provided (ensures filtered lookups show results immediately)
                 //if (config.searchKey || config.whereStmt) {
-                    //console.log('[SearchModal] Auto-triggering search...');
-                    setTimeout(() => this.executeSearch(), 300);
+                //console.log('[SearchModal] Auto-triggering search...');
+                setTimeout(() => this.executeSearch(), 300);
                 //}
 
             } catch (error) {
@@ -291,24 +324,12 @@
 
                 console.log('[SearchModal] Search response:', response);
 
-                // Extract results
-                let results = [];
-                if (response?.success && response?.data) {
-                    if (Array.isArray(response.data)) {
-                        results = response.data;
-                    } else if (response.data.Details) {
-                        results = Array.isArray(response.data.Details) ? response.data.Details : [response.data.Details];
-                    } else if (response.data.details) {
-                        results = Array.isArray(response.data.details.SearchResults) ? response.data.details.SearchResults : [response.data.details.SearchResults];
-                    } else if (response.data.Records) {
-                        results = Array.isArray(response.data.Records) ? response.data.Records : [];
-                    }
-                }
+                const results = this.extractResults(response);
 
                 if (results && results.length > 0) {
                     this.currentResults = results;
                     this.currentPage = 0;
-                    
+
                     // Extract the last value of KeyForNavigation from results for next pagination
                     const keyField = document.getElementById('search-key-for-nav')?.value;
                     if (keyField && results.length > 0) {
@@ -316,7 +337,7 @@
                         this.refID = lastRow[keyField] || '';
                         console.log('[SearchModal] Updated RefID:', this.refID);
                     }
-                    
+
                     this.renderResults(results);
                     this.showState('results');
                 } else {
@@ -355,6 +376,48 @@
 
             /*return JSON.stringify(filters);*/
             return filters;
+        }
+
+        extractResults(response) {
+            if (!response?.success || !response?.data) {
+                return [];
+            }
+
+            const data = response.data;
+
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (Array.isArray(data.Details)) {
+                return data.Details;
+            }
+
+            if (data.Details && typeof data.Details === 'object') {
+                return [data.Details];
+            }
+
+            if (Array.isArray(data.details)) {
+                return data.details;
+            }
+
+            if (Array.isArray(data.details?.SearchResults)) {
+                return data.details.SearchResults;
+            }
+
+            if (data.details?.SearchResults && typeof data.details.SearchResults === 'object') {
+                return [data.details.SearchResults];
+            }
+
+            if (Array.isArray(data.Records)) {
+                return data.Records;
+            }
+
+            if (Array.isArray(data.records)) {
+                return data.records;
+            }
+
+            return [];
         }
 
         /**

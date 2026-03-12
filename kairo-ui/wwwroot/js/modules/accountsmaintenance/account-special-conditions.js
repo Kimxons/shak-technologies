@@ -1,15 +1,15 @@
-/**
+﻿/**
  * Account Special Conditions Module
  * Migrated from: public/modules/account-maintenance/DataEntry/account-special-conditions.js
  *
  * Parent wires via updateActionPanelForSubmodule:
- *   ADD → setMode('ADD'), EDIT → setMode('EDIT'), VIEW → setMode('VIEW') (via loadData),
- *   DELETE → deleteData(), SAVE → saveData(), CANCEL → cancelChanges(), CLOSE → closeSubmodule()
+ *   ADD ΓåÆ setMode('ADD'), EDIT ΓåÆ setMode('EDIT'), VIEW ΓåÆ setMode('VIEW') (via loadData),
+ *   DELETE ΓåÆ deleteData(), SAVE ΓåÆ saveData(), CANCEL ΓåÆ cancelChanges(), CLOSE ΓåÆ closeSubmodule()
  */
 window.AccountSpecialConditionsModule = (function () {
     'use strict';
 
-    /* ── State ─────────────────────────────────────────────── */
+    /* ΓöÇΓöÇ State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     const state = {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
         conditions: [],
@@ -18,14 +18,14 @@ window.AccountSpecialConditionsModule = (function () {
         operatorID: null
     };
 
-    /* ── API Routes ─────────────────────────────────────────── */
-    /* ── API Routes (Standard MVC Controller Routes) ────────── */
+    /* ΓöÇΓöÇ API Routes ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+    /* ΓöÇΓöÇ API Routes (Standard MVC Controller Routes) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     const API = {
         GET: 'AccountsMaintenance/api/get-account-special-conditions',
         UPDATE: 'AccountsMaintenance/api/update-account-special-condition'
     };
 
-    /* ── Context ────────────────────────────────────────────── */
+    /* ΓöÇΓöÇ Context ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function getContext() {
         const ps = window.AccountMaintenanceState;
         return {
@@ -35,7 +35,7 @@ window.AccountSpecialConditionsModule = (function () {
         };
     }
 
-    /* ── UI Helpers ──────────────────────────────────────────── */
+    /* ΓöÇΓöÇ UI Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function el(id) { return document.getElementById(id); }
     function val(id) { const e = el(id); return e ? e.value : ''; }
     function setVal(id, v) {
@@ -126,7 +126,7 @@ window.AccountSpecialConditionsModule = (function () {
         return div.innerHTML;
     }
 
-    /* ── Mode Management (button states via parent IDs) ──────── */
+    /* ΓöÇΓöÇ Mode Management (button states via parent IDs) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function setMode(mode) {
         state.editMode = mode;
         const isEditing = (mode === 'EDIT');
@@ -155,10 +155,10 @@ window.AccountSpecialConditionsModule = (function () {
             state.modifiedConditions.clear();
         }
 
-        console.log('[SpecialConditions] Mode →', mode);
+        console.log('[SpecialConditions] Mode ΓåÆ', mode);
     }
 
-    /* ── Collapsible Sections ────────────────────────────────── */
+    /* ΓöÇΓöÇ Collapsible Sections ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function wireSectionToggles() {
         document.querySelectorAll('[data-section-toggle]').forEach(function (header) {
             if (header._wiredSpCond) return;
@@ -181,7 +181,7 @@ window.AccountSpecialConditionsModule = (function () {
         });
     }
 
-    /* ── Search Bar ──────────────────────────────────────────── */
+    /* ΓöÇΓöÇ Search Bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function wireSearch() {
         const searchInput = el('searchInput');
         const clearBtn = el('clearSearch');
@@ -211,7 +211,7 @@ window.AccountSpecialConditionsModule = (function () {
         });
     }
 
-    /* ── Render Grid ─────────────────────────────────────────── */
+    /* ΓöÇΓöÇ Render Grid ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function renderGrid() {
         const tbody = document.querySelector('#conditionsGrid tbody');
         const countSpan = el('recordCount');
@@ -261,7 +261,7 @@ window.AccountSpecialConditionsModule = (function () {
         if (state.conditions.length > 0) bindAudit(state.conditions[0]);
     }
 
-    /* ── Bind Audit Data ─────────────────────────────────────── */
+    /* ΓöÇΓöÇ Bind Audit Data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function bindAudit(doc) {
         setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
         setVal('MakerDT', fmtDateTime(doc.CreatedOn || doc.MakerDt || doc.MakerDT));
@@ -272,7 +272,7 @@ window.AccountSpecialConditionsModule = (function () {
         state.operatorID = doc.OperatorID || doc.OperatorId || '';
     }
 
-    /* ── Load / Navigate ─────────────────────────────────────── */
+    /* ΓöÇΓöÇ Load / Navigate ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     async function navigate() {
         const ctx = getContext();
         if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
@@ -309,7 +309,7 @@ window.AccountSpecialConditionsModule = (function () {
         }
     }
 
-    /* ── Save ────────────────────────────────────────────────── */
+    /* ΓöÇΓöÇ Save ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     async function saveData() {
         if (state.modifiedConditions.size === 0) {
             showMsg('No changes to save.', 'warning');
@@ -363,7 +363,7 @@ window.AccountSpecialConditionsModule = (function () {
         showMsg('Delete not supported for Special Conditions. Uncheck "Apply" instead.', 'info');
     }
 
-    /* ── Public API ──────────────────────────────────────────── */
+    /* ΓöÇΓöÇ Public API ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
     function confirmAdd() { showMsg('Direct addition not allowed. Modify existing defaults.', 'warning'); }
     function confirmEdit() { if (state.conditions.length > 0) setMode('EDIT'); else showMsg('No internal data.', 'warning'); }
     function confirmCancel() { cancelChanges(); }

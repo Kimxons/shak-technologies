@@ -1,6 +1,5 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // Migrated from: account-notification.html
     var frequencyOptions = ViewData["FrequencyOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
@@ -18,7 +17,7 @@
         <div class="form-row two-col">
           <div class="col">
             <label class="label-blue" for="frequency">Notification Frequency</label>
-            <select id="frequency" name="frequency" class="bs-select">
+            <select id="frequency" name="frequency" class="bs-select" disabled>
               <option value="">--Select--</option>
               @foreach (var option in frequencyOptions)
               {
@@ -28,13 +27,13 @@
           </div>
           <div class="col">
             <label class="label-blue" for="dayOfMonth">No. of Days</label>
-            <input id="dayOfMonth" name="dayOfMonth" type="number" min="1" max="365" class="bs-input-text" />
+            <input id="dayOfMonth" name="dayOfMonth" type="number" min="1" max="365" class="bs-input-text" disabled />
           </div>
         </div>
         <div class="form-row two-col">
           <div class="col">
             <label class="label-blue" for="executionDate">Execution Date</label>
-            <input id="executionDate" name="executionDate" type="date" class="bs-input-text" />
+            <input id="executionDate" name="executionDate" type="date" class="bs-input-text" disabled />
           </div>
         </div>
       </form>
@@ -54,13 +53,14 @@
       <table class="table table-sm table-bordered table-hover" id="notificationsTable">
         <thead class="table-light">
           <tr>
+            <th style="width:40px;"><input type="checkbox" id="selectAll" aria-label="Select all" disabled /></th>
             <th>Notification ID</th>
             <th>Notification Type</th>
             <th>Notification Message</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="table__empty"><td colspan="3">No records to display.</td></tr>
+          <tr class="table__empty"><td colspan="4">No records to display.</td></tr>
         </tbody>
       </table>
     </div>
@@ -87,4 +87,8 @@
   </div>
 </div>
 
-<script src="~/js/modules/accountsmaintenance/account-notification.js" asp-append-version="true"></script>
+<div id="loadingOverlay" hidden style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.6);z-index:10;">
+  <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+</div>
+
+<script type="text/javascript" src="~/js/modules/accountsmaintenance/account-notification.js"></script>

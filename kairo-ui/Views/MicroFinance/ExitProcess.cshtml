@@ -3,6 +3,11 @@
     Layout = "_ApplicationLayout";
 }
 
+<script type="text/javascript">
+    window.Environment = window.Environment || {};
+    window.Environment.branch_code = '@(ViewBag.BranchCode ?? "")';
+</script>
+
 <!-- Toast Container -->
 <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
@@ -26,16 +31,12 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <!-- Row 1: Branch / Center / Group -->
+                        <!-- Hidden: Branch from session -->
+                        <input type="hidden" id="BranchId" />
+                        <input type="hidden" id="BranchName" />
+
+                        <!-- Row 1: Center / Group / Client -->
                         <div class="row g-2 mb-2">
-                            <div class="col-12 col-lg-4">
-                                <label class="label-blue" for="BranchId">Branch ID</label>
-                                <div class="kairo-branch-control" data-kairo-control>
-                                    <input type="text" id="BranchId" class="kairo-branch-control__id" aria-label="Branch ID" placeholder="Branch ID">
-                                    <input type="text" id="BranchName" class="kairo-branch-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
-                                    <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="branch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
                             <div class="col-12 col-lg-4">
                                 <label class="label-blue" for="CenterId">Center ID</label>
                                 <div class="kairo-control" data-kairo-control>
@@ -52,10 +53,6 @@
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="group" aria-label="Search Group"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Row 2: Client / Exit Reason / Exit Date -->
-                        <div class="row g-2">
                             <div class="col-12 col-lg-4">
                                 <label class="label-blue" for="ClientId">Client ID</label>
                                 <div class="kairo-control" data-kairo-control>
@@ -64,6 +61,10 @@
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-ep-lookup="client" aria-label="Search Client"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Row 2: Exit Reason / Exit Date -->
+                        <div class="row g-2">
                             <div class="col-12 col-lg-4">
                                 <label class="label-blue" for="ExitReason">Exit Reason</label>
                                 <select id="ExitReason" class="form-select">
@@ -105,41 +106,38 @@
                         <div class="tab-content" id="exitDetailsTabContent">
                             <!-- Exit Details Tab -->
                             <div class="tab-pane fade show active" id="exitDetailsPane" role="tabpanel" aria-labelledby="exitDetailsTab">
-                                <div class="form-row four-col">
-                                    <div class="col">
-                                        <label class="label-blue" for="TotalRecoverable">Total Recoverable</label>
-                                        <input type="number" id="TotalRecoverable" class="form-control" placeholder="0.00" step="any">
+                                <div class="audit-section">
+                                    <div class="audit-item">
+                                        <label>Total Recoverable</label>
+                                        <span class="audit-value" id="TotalRecoverable">-</span>
                                     </div>
-                                    <div class="col">
-                                        <label class="label-blue" for="TotalPayable">Total Payable</label>
-                                        <input type="number" id="TotalPayable" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Total Payable</label>
+                                        <span class="audit-value" id="TotalPayable">-</span>
                                     </div>
-                                    <div class="col">
-                                        <label class="label-blue" for="ForfeitSavings">Forfeit Savings</label>
-                                        <input type="number" id="ForfeitSavings" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Forfeit Savings</label>
+                                        <span class="audit-value" id="ForfeitSavings">-</span>
                                     </div>
-                                    <div class="col">
-                                        <label class="label-blue" for="ForfeitCollateral">Forfeit Collateral</label>
-                                        <input type="number" id="ForfeitCollateral" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Forfeit Collateral</label>
+                                        <span class="audit-value" id="ForfeitCollateral">-</span>
                                     </div>
-                                </div>
-
-                                <div class="form-row four-col">
-                                    <div class="col">
-                                        <label class="label-blue" for="ChargeOffLoss">Charge-Off Loss</label>
-                                        <input type="number" id="ChargeOffLoss" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Charge-Off Loss</label>
+                                        <span class="audit-value" id="ChargeOffLoss">-</span>
                                     </div>
-                                    <div class="col">
-                                        <label class="label-blue" for="ChargeOffInsurance">Charge-Off Insurance</label>
-                                        <input type="number" id="ChargeOffInsurance" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Charge-Off Insurance</label>
+                                        <span class="audit-value" id="ChargeOffInsurance">-</span>
                                     </div>
-                                    <div class="col">
-                                        <label class="label-blue" for="NetPayable">Net Payable</label>
-                                        <input type="number" id="NetPayable" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Net Payable</label>
+                                        <span class="audit-value" id="NetPayable">-</span>
                                     </div>
-                                    <div class="col">
-                                        <label class="label-blue" for="NetReceivable">Net Receivable</label>
-                                        <input type="number" id="NetReceivable" class="form-control" placeholder="0.00" step="any">
+                                    <div class="audit-item">
+                                        <label>Net Receivable</label>
+                                        <span class="audit-value" id="NetReceivable">-</span>
                                     </div>
                                 </div>
 
@@ -201,52 +199,43 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="form-row four-col">
-                            <div class="col">
-                                <label class="label-blue" for="PrimaryCollateral">Primary Collateral</label>
-                                <input type="number" id="PrimaryCollateral" class="form-control" placeholder="0.00" step="any">
+                        <div class="audit-section">
+                            <div class="audit-item">
+                                <label>Primary Collateral</label>
+                                <span class="audit-value" id="PrimaryCollateral">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue" for="LoanBalance">Loan Balance</label>
-                                <input type="number" id="LoanBalance" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Loan Balance</label>
+                                <span class="audit-value" id="LoanBalance">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue" for="CreditInterest">Credit Interest</label>
-                                <input type="number" id="CreditInterest" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Credit Interest</label>
+                                <span class="audit-value" id="CreditInterest">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue" for="DebitInterest">Debit Interest</label>
-                                <input type="number" id="DebitInterest" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Debit Interest</label>
+                                <span class="audit-value" id="DebitInterest">-</span>
                             </div>
-                        </div>
-
-                        <div class="form-row four-col">
-                            <div class="col">
-                                <label class="label-blue" for="Tax">Tax</label>
-                                <input type="number" id="Tax" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Tax</label>
+                                <span class="audit-value" id="Tax">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue" for="Others">Others</label>
-                                <input type="number" id="Others" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Others</label>
+                                <span class="audit-value" id="Others">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue" for="SecondaryCollateral">Secondary Collateral</label>
-                                <input type="number" id="SecondaryCollateral" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Secondary Collateral</label>
+                                <span class="audit-value" id="SecondaryCollateral">-</span>
                             </div>
-                            <div class="col">
-                                <label class="label-blue" for="NetBalance">Net Balance</label>
-                                <input type="number" id="NetBalance" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Net Balance</label>
+                                <span class="audit-value" id="NetBalance">-</span>
                             </div>
-                        </div>
-
-                        <div class="form-row four-col">
-                            <div class="col">
-                                <label class="label-blue" for="AdditionalCollateral">Additional Collateral</label>
-                                <input type="number" id="AdditionalCollateral" class="form-control" placeholder="0.00" step="any">
+                            <div class="audit-item">
+                                <label>Additional Collateral</label>
+                                <span class="audit-value" id="AdditionalCollateral">-</span>
                             </div>
-                            <div class="col"></div>
-                            <div class="col"></div>
-                            <div class="col"></div>
                         </div>
                     </div>
                 </div>
@@ -260,10 +249,10 @@
             </div>
 
             <div class="action-buttons">
-                <button class="btn-action underline" id="btnView" type="button" data-ep-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
-                <button class="btn-action" id="btnAdd" type="button" data-ep-action="add" title="Add" hidden><i class="bi bi-plus-circle me-1"></i>Add</button>
-                <button class="btn-action" id="btnSave" type="button" data-ep-action="save" title="Save"><i class="bi bi-floppy me-1"></i>Save</button>
-                <button class="btn-action btn-cancel" id="btnCancel" type="button" data-ep-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <button class="btn-action btn-view" id="btnView" type="button" data-ep-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action btn-add" id="btnAdd" type="button" data-ep-action="add" disabled><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action btn-save" id="btnSave" type="button" data-ep-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btnCancel" type="button" data-ep-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
             </div>
         </div>
     </div>
@@ -303,6 +292,6 @@
 }
 
 @section Scripts {
-    <script src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
-    <script src="@Url.Content("~/js/modules/microfinance/exit-process.js")" asp-append-version="true"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/js/modules/microfinance/exit-process.js")" asp-append-version="true"></script>
 }

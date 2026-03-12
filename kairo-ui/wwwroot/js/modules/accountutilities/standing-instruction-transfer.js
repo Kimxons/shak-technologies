@@ -52,12 +52,12 @@
             whereStmt: ''
         },
         'StandingInstructionID': {
-            tableID: 'AccountID',
+            tableID: 'InstructionID',
             displayField: 'txt_standingInstructionName',
             valueField: 'txt_standingInstructionId',
             displayColumn: 'AccountName',
-            valueColumn: 'AccountID',
-            whereStmt: ''
+            valueColumn: 'SIID',
+            advFilter: true
         },
         'TransferCurrencyID': {
             tableID: 'CurrencyID',
@@ -115,6 +115,9 @@
         // Start in VIEW mode
         setMode('VIEW');
 
+        // Wire signatory print button
+        wireSignatoryPrint();
+
         // Auto-load if entityId is provided
         const autoLoad = document.getElementById('entityId_sit')?.value;
         if (autoLoad) {
@@ -130,24 +133,21 @@
 
     async function loadDropdowns() {
         try {
-            // Load all dropdowns in parallel
-            const [siTypeOpts, amountInOpts, chargeRecOpts, freqOpts, acctTypeOpts] = await Promise.all([
+            // Load all dropdowns in parallel (Amount In is hardcoded in the view)
+            const [siTypeOpts, chargeRecOpts, freqOpts, acctTypeOpts] = await Promise.all([
                 fetchDropdownOptions('SITypeID').catch(() => []),
-                fetchDropdownOptions('AmountInID').catch(() => []),
-                fetchDropdownOptions('ChargeRecoveryID').catch(() => []),
-                fetchDropdownOptions('TransferFrequencyID').catch(() => []),
-                fetchDropdownOptions('BeneficiaryAccountTypeID').catch(() => [])
+                fetchDropdownOptions('SIChargeTypeID').catch(() => []),
+                fetchDropdownOptions('TrfFrequencyID').catch(() => []),
+                fetchDropdownOptions('AccountTypeID').catch(() => [])
             ]);
 
             populateSelect('ddl_siType', siTypeOpts, '--Select--');
-            populateSelect('ddl_amountIn', amountInOpts, '--Select--');
             populateSelect('ddl_chargeRecovery', chargeRecOpts, '--Select--');
             populateSelect('ddl_transferFrequency', freqOpts, '--Select--');
             populateSelect('ddl_beneficiaryAccountType', acctTypeOpts, '--Select--');
 
             console.log('✅ [SIT] Dropdowns loaded:', {
                 siType: siTypeOpts.length,
-                amountIn: amountInOpts.length,
                 chargeRecovery: chargeRecOpts.length,
                 transferFrequency: freqOpts.length,
                 beneficiaryAccountType: acctTypeOpts.length
@@ -157,8 +157,9 @@
         }
     }
 
-    async function fetchDropdownOptions(codeId) {
-        const url = `/AccountUtilities/StandingInstructionTransfer/get-dropdown-options?codeId=${encodeURIComponent(codeId)}`;
+    async function fetchDropdownOptions(codeId, valueField) {
+        let url = `/AccountUtilities/StandingInstructionTransfer/get-dropdown-options?codeId=${encodeURIComponent(codeId)}`;
+        if (valueField) url += `&valueField=${encodeURIComponent(valueField)}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();
@@ -260,10 +261,14 @@
         // Create fresh instance per lookup to avoid stale state
         const modal = new SearchModal(window.AppCore);
 
+        // Build AdvFilterString for branch-scoped searches (e.g. InstructionID)
+        const advFilter = config.advFilter ? `OurBranchID = '${state.branchId}'` : '';
+
         modal.open({
             tableID: config.tableID,
             moduleID: state.moduleId,
             whereStmt: config.whereStmt || '',
+            advFilterString: advFilter,
             ourbranchId: state.branchId,
             onSelect: (row) => {
                 console.log('[Lookup] Selected:', lookupKey, row);
@@ -279,6 +284,14 @@
                 }
 
                 state.isDirty = true;
+
+                // When Account ID is selected, show Signature/Photo popup
+                if (lookupKey === 'AccountID') {
+                    const selectedAccountId = row[config.valueColumn] || Object.values(row)[0] || '';
+                    if (selectedAccountId) {
+                        showSignatoryPopup(selectedAccountId);
+                    }
+                }
             }
         }).catch(err => {
             console.error('[SIT] SearchModal open failed for', lookupKey, err);
@@ -730,13 +743,21 @@
             }
         });
 
-        // Lookup buttons: Account ID search always active; others only in EDIT/NEW
+        // Lookup buttons: ALL search icons only active in EDIT/NEW mode
         form?.querySelectorAll('.btn-lookup').forEach(btn => {
-            const lookupKey = btn.getAttribute('data-lookup');
-            if (lookupKey === 'AccountID') {
-                btn.disabled = false; // Always active — needed to find/view records
+            btn.disabled = !isEditing;
+        });
+
+        // SID fields: disabled in NEW mode (can't add an existing SID),
+        // but enabled in VIEW mode so user can search/load a record
+        form?.querySelectorAll('[data-si-field]').forEach(el => {
+            if (mode === 'NEW') {
+                el.disabled = true;
+                el.readOnly = true;
             } else {
-                btn.disabled = !isEditing; // Others only when adding/editing
+                // VIEW & EDIT — SID lookup is accessible to load/navigate records
+                el.disabled = false;
+                el.readOnly = el.tagName !== 'BUTTON';
             }
         });
 
@@ -809,11 +830,253 @@
 
     function formatDateForInput(dateString) {
         if (!dateString) return '';
+        if (window.GlobalUtils?.parseDateInput) {
+            const parsed = window.GlobalUtils.parseDateInput(dateString);
+            if (parsed) return parsed;
+        }
         try {
             return new Date(dateString).toISOString().split('T')[0];
         } catch {
             return '';
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SIGNATURE / PHOTO POPUP
+    // ═══════════════════════════════════════════════════════════════════
+
+    async function showSignatoryPopup(accountId) {
+        console.log('[SIT] Showing signatory popup for AccountID:', accountId);
+
+        // Reset popup content
+        resetSignatoryPopup();
+        setSignatoryStatus('Loading signatories...', 'info');
+
+        // Show the modal
+        const modalEl = document.getElementById('signatoryModal');
+        if (!modalEl) {
+            console.error('[SIT] signatoryModal element not found');
+            return;
+        }
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+
+        try {
+            // Step 1: Fetch account signatories
+            const response = await AppCore.invokeControllerAsync(
+                'AccountUtilities/StandingInstructionTransfer/get-signatories',
+                {
+                    OurBranchID: state.branchId,
+                    AccountID: accountId,
+                    OperatorID: state.operatorId
+                }
+            );
+
+            console.log('[SIT] Signatories response:', response);
+
+            if (!response?.success) {
+                setSignatoryStatus(response?.message || 'Failed to load signatories', 'warning');
+                return;
+            }
+
+            // Extract rows from various response shapes
+            let rows = [];
+            const d = response.data;
+            if (Array.isArray(d?.Details)) rows = d.Details;
+            else if (Array.isArray(d?.data?.Details)) rows = d.data.Details;
+            else if (Array.isArray(d?.data)) rows = d.data;
+            else if (Array.isArray(d)) rows = d;
+
+            if (rows.length === 0) {
+                setSignatoryStatus('Signature / Photo is Not Available [No:' + accountId + ']', 'warning');
+                return;
+            }
+
+            console.log('[SIT] Signatory rows:', rows.length);
+
+            // Step 2: Use the first signatory to fetch images
+            const firstRow = rows[0];
+            const signID = firstRow.SignID || firstRow.SignatoryID || firstRow.signatoryId || 0;
+            const photoID = firstRow.PhotoID || firstRow.photoId || 0;
+            const documentID = firstRow.DocumentID || firstRow.documentId || 0;
+
+            await fetchAndDisplayImages(signID, photoID, documentID, firstRow);
+
+        } catch (err) {
+            console.error('[SIT] Signatory popup error:', err);
+            setSignatoryStatus('Error loading signatories: ' + err.message, 'danger');
+        }
+    }
+
+    async function fetchAndDisplayImages(signID, photoID, documentID, rowData) {
+        console.log('[SIT] Fetching signatory images:', { signID, photoID, documentID });
+
+        try {
+            const response = await AppCore.invokeControllerAsync(
+                'AccountUtilities/StandingInstructionTransfer/get-signatory-image',
+                {
+                    SignID: signID,
+                    PhotoID: photoID,
+                    DocumentID: documentID
+                }
+            );
+
+            console.log('[SIT] Image response:', response);
+
+            if (!response?.success) {
+                setSignatoryStatus('No images available', 'info');
+                updateAuditFromRow(rowData);
+                return;
+            }
+
+            // Extract image records
+            let imageRecords = [];
+            const d = response.data;
+            if (Array.isArray(d?.Details)) imageRecords = d.Details;
+            else if (Array.isArray(d?.data?.Details)) imageRecords = d.data.Details;
+            else if (Array.isArray(d?.data)) imageRecords = d.data;
+            else if (Array.isArray(d)) imageRecords = d;
+            else if (d && typeof d === 'object') imageRecords = [d];
+
+            console.log('[SIT] Image records:', imageRecords.length);
+
+            // Separate signature vs photo by ImageTypeID: 'S' = Signature, 'P' = Photo
+            let signatureData = null;
+            let photoData = null;
+
+            imageRecords.forEach(record => {
+                const imgType = String(
+                    record.ImageTypeID || record.sType || record.Type || record.type || ''
+                ).toUpperCase().trim();
+
+                if (imgType === 'S' || imgType === 'SIGNATURE') {
+                    signatureData = record;
+                } else if (imgType === 'P' || imgType === 'PHOTO') {
+                    photoData = record;
+                }
+            });
+
+            // If no explicit type separation, try first two records as signature / photo
+            if (!signatureData && !photoData && imageRecords.length >= 2) {
+                signatureData = imageRecords[0];
+                photoData = imageRecords[1];
+            } else if (!signatureData && !photoData && imageRecords.length === 1) {
+                signatureData = imageRecords[0];
+            }
+
+            // Render images
+            renderImage('signatureImageContainer', signatureData, 'Signature');
+            renderImage('photoImageContainer', photoData, 'Photo');
+
+            // Update audit info
+            updateSignatureAudit(signatureData);
+            updatePhotoAudit(photoData);
+
+            setSignatoryStatus('', 'hide');
+
+        } catch (err) {
+            console.error('[SIT] Image fetch error:', err);
+            setSignatoryStatus('Failed to load images', 'warning');
+            updateAuditFromRow(rowData);
+        }
+    }
+
+    function renderImage(containerId, record, altText) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        if (!record) {
+            container.innerHTML = '<span class="text-muted">No ' + altText.toLowerCase() + ' available</span>';
+            return;
+        }
+
+        // Get base64 image data — field names vary by SP
+        const imgData = record.sImage || record.simage || record.SImage ||
+                        record.Image || record.ImageData || record.Base64 ||
+                        record.SignatureImage || record.PhotoImage ||
+                        record.Picture || record.Photo || record.Document || '';
+
+        if (!imgData) {
+            container.innerHTML = '<span class="text-muted">No ' + altText.toLowerCase() + ' available</span>';
+            return;
+        }
+
+        // Detect MIME type from base64 header
+        let mimeType = 'image/png';
+        if (imgData.charAt(0) === '/') mimeType = 'image/jpeg';
+        else if (imgData.charAt(0) === 'i') mimeType = 'image/png';
+        else if (imgData.charAt(0) === 'R') mimeType = 'image/gif';
+
+        const src = imgData.indexOf('data:') === 0
+            ? imgData
+            : 'data:' + mimeType + ';base64,' + imgData;
+
+        container.innerHTML = '<img src="' + src + '" alt="' + altText +
+            '" style="max-width:100%; max-height:100%; object-fit:contain;" />';
+    }
+
+    function updateSignatureAudit(record) {
+        const setText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val || '-';
+        };
+        if (!record) return;
+        setText('sigScannedBy', record.ScannedBy || record.CreatedBy);
+        setText('sigScannedOn', record.ScannedOn || record.CreatedOn);
+        setText('sigSupervisedBy', record.SupervisedBy);
+        setText('sigSupervisedOn', record.SupervisedOn);
+    }
+
+    function updatePhotoAudit(record) {
+        const setText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val || '-';
+        };
+        if (!record) return;
+        setText('photoScannedBy', record.ScannedBy || record.CreatedBy);
+        setText('photoScannedOn', record.ScannedOn || record.CreatedOn);
+        setText('photoSupervisedBy', record.SupervisedBy);
+        setText('photoSupervisedOn', record.SupervisedOn);
+    }
+
+    function updateAuditFromRow(rowData) {
+        if (!rowData) return;
+        updateSignatureAudit(rowData);
+        updatePhotoAudit(rowData);
+    }
+
+    function resetSignatoryPopup() {
+        const ids = ['signatureImageContainer', 'photoImageContainer'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '<span class="text-muted">Loading...</span>';
+        });
+        ['sigScannedBy', 'sigScannedOn', 'sigSupervisedBy', 'sigSupervisedOn',
+         'photoScannedBy', 'photoScannedOn', 'photoSupervisedBy', 'photoSupervisedOn'
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '-';
+        });
+        setSignatoryStatus('', 'hide');
+    }
+
+    function setSignatoryStatus(message, type) {
+        const el = document.getElementById('signatoryStatus');
+        if (!el) return;
+        if (!message || type === 'hide') {
+            el.style.display = 'none';
+            return;
+        }
+        el.style.display = 'block';
+        el.className = 'alert alert-' + (type || 'info') + ' py-1 px-2 mb-3 small';
+        el.textContent = message;
+    }
+
+    // Wire the print button inside signatory modal
+    function wireSignatoryPrint() {
+        document.getElementById('btnSignatoryPrint')?.addEventListener('click', () => {
+            window.print();
+        });
     }
 
     // ═══════════════════════════════════════════════════════════════════

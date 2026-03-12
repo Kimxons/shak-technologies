@@ -96,6 +96,62 @@ function invokeClientMaintenanceController(action, requestData) {
     return invokeController(CLIENT_MAINTENANCE_CONTROLLER_BASE, action, requestData);
 }
 
+function syncClientMaintenanceDateInput(input) {
+    if (!input || !input._flatpickr) return;
+
+    const isDisabled = Boolean(input.disabled || input.readOnly);
+    try {
+        input._flatpickr.set('clickOpens', !isDisabled);
+        input._flatpickr.set('allowInput', !isDisabled);
+        if (isDisabled) input._flatpickr.close();
+    } catch (error) {
+        console.warn('[ClientMaintenance] Failed to sync flatpickr state:', error);
+    }
+}
+
+function initializeClientMaintenanceDatePickers(scopeRoot = document) {
+    if (!scopeRoot || typeof window.flatpickr !== 'function') return;
+
+    const dateInputs = Array.from(scopeRoot.querySelectorAll('input[type="date"]')).filter((input) => {
+        return !input.hasAttribute('data-no-flatpickr');
+    });
+
+    dateInputs.forEach((input) => {
+        if (input._flatpickr) {
+            syncClientMaintenanceDateInput(input);
+            return;
+        }
+
+        try {
+            window.flatpickr(input, {
+                dateFormat: 'Y-m-d',
+                disableMobile: true,
+                monthSelectorType: 'dropdown',
+                clickOpens: !(input.disabled || input.readOnly),
+                allowInput: !(input.disabled || input.readOnly),
+                onReady: (_selectedDates, _dateStr, instance) => {
+                    syncClientMaintenanceDateInput(instance.input);
+                },
+                onOpen: (_selectedDates, _dateStr, instance) => {
+                    if (instance.input.disabled || instance.input.readOnly) {
+                        instance.close();
+                    }
+                }
+            });
+        } catch (error) {
+            console.warn('[ClientMaintenance] Failed to initialize flatpickr:', error);
+        }
+    });
+}
+
+function syncClientMaintenanceFlatpickrInScope(scopeRoot = document) {
+    if (!scopeRoot) return;
+
+    scopeRoot.querySelectorAll('input').forEach((input) => {
+        syncClientMaintenanceDateInput(input);
+    });
+}
+
 window.ClientMaintenanceCore = {
     getAppCore,
     invokeController,
@@ -108,10 +164,17 @@ window.ClientMaintenanceCore = {
     invokeClientMaintenanceController,
     moduleId: null,
     clientId: null,
+    clientName: null,
     requestId: null,
     useRequestId: false,
     workflowId: null,
     workflowStageRequestId: 0,
+    isMainWorkflowLocked: false,
+    isEditMode: false,
+    canEditCurrent: false,
+    shellState: 'idle',
+    hasLoadedRecord: false,
+    _shellLoadingDepth: 0,
     // Registry to track loaded tabs and their load functions
     _loadedTabsRegistry: new Map(),
 
@@ -170,15 +233,69 @@ window.ClientMaintenanceCore = {
        * Get the full context for submodules (includes clientId, requestId, moduleId)
        */
     getParentContext() {
+        const mainClientNameInput = document.getElementById('txt_mainClientName');
+        const clientName = String(this.clientName || mainClientNameInput?.value || '').trim();
         return {
             moduleId: this.moduleId || '',
             clientId: this.clientId || '',
+            clientName,
             requestId: this.requestId || '',
             useRequestId: this.useRequestId,
             selectedId: this.getSelectedId()
         };
     }
 };
+
+function getClientMaintenanceShellLoadingElements() {
+    const shell = document.querySelector('[data-client-maintenance]');
+    if (!shell) return {};
+
+    return {
+        shell,
+        overlay: shell.querySelector('[data-cm-shell-loading-overlay]'),
+        text: shell.querySelector('[data-cm-shell-loading-text]')
+    };
+}
+
+function setClientMaintenanceShellLoading(isLoading, message) {
+    const { shell, overlay, text } = getClientMaintenanceShellLoadingElements();
+    if (!shell || !overlay) return;
+
+    if (text && message) {
+        text.textContent = String(message);
+    }
+
+    overlay.hidden = !isLoading;
+    shell.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+}
+
+function beginClientMaintenanceShellLoading(message = 'Loading...') {
+    if (!window.ClientMaintenanceCore) return;
+
+    const nextDepth = Number(window.ClientMaintenanceCore._shellLoadingDepth || 0) + 1;
+    window.ClientMaintenanceCore._shellLoadingDepth = nextDepth;
+    setClientMaintenanceShellLoading(true, message);
+}
+
+function endClientMaintenanceShellLoading() {
+    if (!window.ClientMaintenanceCore) return;
+
+    const nextDepth = Math.max(0, Number(window.ClientMaintenanceCore._shellLoadingDepth || 0) - 1);
+    window.ClientMaintenanceCore._shellLoadingDepth = nextDepth;
+
+    if (nextDepth === 0) {
+        setClientMaintenanceShellLoading(false);
+    }
+}
+
+async function withClientMaintenanceShellLoading(work, message = 'Loading...') {
+    beginClientMaintenanceShellLoading(message);
+    try {
+        return await work();
+    } finally {
+        endClientMaintenanceShellLoading();
+    }
+}
 
 const ClientMaintenanceService = {
     validateClient(requestData) {
@@ -215,9 +332,10 @@ const clientMaintenanceTabCatalog = [
     { key: 'Products', pane: 'dv_tabClientProducts', route: 'Products/Index', initFn: 'initClientMaintenanceProductsTab' },
     { key: 'PhotoSignature', pane: 'dv_tabClientPhotoSignature', route: 'PhotoSignature/Index', initFn: 'initClientMaintenancePhotoSignatureTab' },
     { key: 'Documents', pane: 'dv_tabClientDocuments', route: 'Documents/Index', initFn: 'initClientMaintenanceDocumentsTab' },
+    { key: 'IdentityTypes', pane: 'dv_tabClientIdentityTypes', route: 'IdentityTypes/Index', initFn: 'initClientMaintenanceIdentityTypesTab' },
     { key: 'Submit', pane: 'dv_tabClientSubmit', route: 'Submit/Index', initFn: 'initClientMaintenanceSubmitTab' }
 ];
-
+//{ key: 'Submit', pane: 'dv_tabClientSubmit', route: 'Submit/Index', initFn: 'initClientMaintenanceSubmitTab' }
 const clientMaintenanceStageAliases = {
     'personal': 'Personal',
     'personal detail': 'Personal',
@@ -235,6 +353,8 @@ const clientMaintenanceStageAliases = {
     'photo and signature': 'PhotoSignature',
     'photo signature': 'PhotoSignature',
     'documents': 'Documents',
+    'identity types': 'IdentityTypes',
+    'client identity types': 'IdentityTypes',
     'submit': 'Submit',
     'submission': 'Submit'
 };
@@ -255,14 +375,15 @@ const clientMaintenanceTabServiceMap = {
     Products: 'ClientMaintenanceProductsService',
     PhotoSignature: 'ClientMaintenancePhotoSignatureService',
     Documents: 'ClientMaintenanceDocumentsService',
+    IdentityTypes: 'ClientMaintenanceIdentityTypesService',
     Submit: 'ClientMaintenanceSubmitService'
 };
 
 const clientMaintenanceTabScriptMap = {
     Personal: '/js/modules/identities/client-maintenance/client-personal.js',
     Corporate: '/js/modules/identities/client-maintenance/client-corporate.js',
-    Address: '/js/modules/identities/client-maintenance/client-address.js',
-    Relations: '/js/modules/identities/client-maintenance/client-relations.js',
+    Address: '/js/modules/identities/client-maintenance/_clientAddress.js',
+    Relations: '/js/modules/identities/client-maintenance/_clientRelations.js',
     Employment: '/js/modules/identities/client-maintenance/client-employment.js',
     Offers: '/js/modules/identities/client-maintenance/client-offers.js',
     GroupDetail: '/js/modules/identities/client-maintenance/client-group-detail.js',
@@ -270,6 +391,7 @@ const clientMaintenanceTabScriptMap = {
     Products: '/js/modules/identities/client-maintenance/client-products.js',
     PhotoSignature: '/js/modules/identities/client-maintenance/client-photo-signature.js',
     Documents: '/js/modules/identities/client-maintenance/client-documents.js',
+    IdentityTypes: '/js/modules/identities/client-maintenance/client-identity-types.js',
     Submit: '/js/modules/identities/client-maintenance/client-submit.js'
 };
 
@@ -308,20 +430,20 @@ async function ensureTabScriptLoaded(config) {
     const normalizedPath = scriptPath.toLowerCase();
     const scriptUrl = resolveTabScriptUrl(scriptPath);
 
-    console.log(scriptUrl);
-    console.log(normalizedPath);
-    console.log(loadedTabScriptSet);
+    //console.log(scriptUrl);
+    //console.log(normalizedPath);
+    //console.log(loadedTabScriptSet);
     if (loadedTabScriptSet.has(normalizedPath)) {
         let isExistingScript = Array.from(document.scripts || []).find((script) => {
             const src = String(script?.src || '').toLowerCase();
             return src.includes(normalizedPath);
         });
-        console.log(isExistingScript);
+        //console.log(isExistingScript);
         if (isExistingScript)
             return;
     }
 
-    console.log(tabScriptLoadPromiseMap);
+    //console.log(tabScriptLoadPromiseMap);
     if (tabScriptLoadPromiseMap.has(normalizedPath)) {
         await tabScriptLoadPromiseMap.get(normalizedPath);
         return;
@@ -368,12 +490,14 @@ window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName
             if (!key) return;
             payload[key] = element.type === 'checkbox' ? element.checked : element.value;
         });
-
-        return {
-            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            ClientID: window.ClientMaintenanceCore.clientId || '',
-            Payload: payload
-        };
+        payload["ModuleID"] = moduleId || window.ClientMaintenanceCore.moduleId || '';
+        payload["ClientID"] = window.ClientMaintenanceCore.clientId || '';
+        return payload;
+        //return {
+        //    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+        //    ClientID: window.ClientMaintenanceCore.clientId || '',
+        //    Payload: payload
+        //};
     };
 
     tabRoot.querySelectorAll('[data-cm-action]').forEach((button) => {
@@ -594,6 +718,20 @@ function markTabAsCompleted(tabKey) {
 }
 
 /**
+ * Unlock all workflow tabs (allow navigation to any tab)
+ */
+function unlockAllWorkflowTabs() {
+    const navTabs = document.getElementById('nav_clientMaintenanceTabs');
+    if (!navTabs) return;
+
+    const tabs = navTabs.querySelectorAll('.nav-link');
+    tabs.forEach((tab) => {
+        tab.style.pointerEvents = '';
+        tab.classList.remove('disabled-tab');
+    });
+}
+
+/**
  * Clears all completed states from tabs
  */
 function clearAllTabCompletions() {
@@ -607,15 +745,24 @@ function clearAllTabCompletions() {
 function buildTabRequest() {
     const moduleId = window.ClientMaintenanceCore.moduleId || '';
     const requestId = window.ClientMaintenanceCore.requestId || '';
-    const selectedId = window.ClientMaintenanceCore.getSelectedId();
-    const effectiveClientId = window.ClientMaintenanceCore.clientId || selectedId;
+    const clientId = window.ClientMaintenanceCore.clientId || '';
+    const useRequestId = window.ClientMaintenanceCore.useRequestId;
 
-    if (!effectiveClientId && !requestId) return null;
+    // When working with ApplicationID/RequestID (useRequestId=true):
+    // - Pass the application ID to RequestID parameter
+    // - Pass the linked client ID (if any) to ClientID parameter
+    // When working with ClientID (useRequestId=false):
+    // - Pass client ID to ClientID parameter
+    // - Pass request ID (if any) to RequestID parameter
+    const effectiveClientId = clientId || '';
+    const effectiveRequestId = requestId || '';
+
+    if (!effectiveClientId && !effectiveRequestId) return null;
 
     return {
         ModuleID: moduleId,
         ClientID: effectiveClientId,
-        RequestID: requestId
+        RequestID: effectiveRequestId
     };
 }
 
@@ -851,9 +998,10 @@ async function autoLoadTabData(config, pane) {
     const service = serviceName ? window[serviceName] : null;
     if (!service || typeof service.get !== 'function') return;
 
+    console.log(serviceName);
     try {
         const response = await service.get(requestData);
-
+        console.log(response);
         // Get explicit field map for this tab if available
         const fieldMapKey = getFieldMapKeyForTab(config.key);
         const fieldMap = fieldMapKey ? window[fieldMapKey] : undefined;
@@ -882,14 +1030,20 @@ function getFieldMapKeyForTab(tabKey) {
 async function preloadWorkflowTabs(stageTabs) {
     if (!Array.isArray(stageTabs) || stageTabs.length === 0) return;
 
-    for (const stageTab of stageTabs) {
-        try {
-            await loadTabPartial(stageTab, true);
-        } catch (error) {
-            console.error(`Failed to preload ${stageTab?.key || 'unknown'} tab:`, error);
-            window.ClientMaintenanceCore.showToast(`${stageTab?.key || 'Tab'} load failed - ${error.message}`, 'error');
-        }
-    }
+    // Load all tabs in parallel using Promise.allSettled so that failures in one tab
+    // don't prevent other tabs from loading
+    const loadPromises = stageTabs.map((stageTab) =>
+        loadTabPartial(stageTab, true)
+            .catch((error) => {
+                console.error(`Failed to preload ${stageTab?.key || 'unknown'} tab:`, error);
+                window.ClientMaintenanceCore.showToast(`${stageTab?.key || 'Tab'} load failed - ${error.message}`, 'error');
+                // Don't rethrow - let other tabs continue loading
+                return null;
+            })
+    );
+
+    // Wait for all load operations to complete (successful or failed)
+    await Promise.all(loadPromises);
 }
 
 async function loadWorkflowStagesForClientType(clientTypeId) {
@@ -900,6 +1054,10 @@ async function loadWorkflowStagesForClientType(clientTypeId) {
     clearAllTabCompletions();
 
     if (!normalizedType) {
+        if (window.ClientMaintenanceCore.getSelectedId && window.ClientMaintenanceCore.getSelectedId() && clientMaintenanceStageTabs.length > 0) {
+            console.warn('[ClientMaintenance] Client type empty while a record is selected; keeping existing workflow stages.');
+            return;
+        }
         clientMaintenanceStageTabs = [];
         window.ClientMaintenanceCore.workflowId = null;
         renderWorkflowStageTabs([], 'Select a client type to load workflow stages.');
@@ -950,10 +1108,21 @@ async function loadWorkflowStagesForClientType(clientTypeId) {
         updateTabNavigationButtons();
 
         if (window.ClientMaintenanceCore.getSelectedId()) {
+            // Load all partial views with record selected
             await preloadWorkflowTabs(stageTabs);
         } else {
-            /*await loadTabPartial(stageTabs[0]);*/
-            stageTabs.forEach((tab) => loadTabPartial(tab, true));
+            // No record selected - load partials in parallel but don't load data
+            const loadPartialPromises = stageTabs.map((tab) =>
+                loadTabPartial(tab, true)
+                    .catch((error) => {
+                        console.error(`Failed to load ${tab?.key || 'unknown'} tab HTML:`, error);
+                        window.ClientMaintenanceCore.showToast(`${tab?.key || 'Tab'} load failed - ${error.message}`, 'error');
+                        // Continue loading other tabs even if this one fails
+                        return null;
+                    })
+            );
+            // Wait for all partial loads to complete
+            await Promise.all(loadPartialPromises);
         }
     } catch (error) {
         if (requestId !== window.ClientMaintenanceCore.workflowStageRequestId) return;
@@ -1019,7 +1188,7 @@ function setSelectValueWithFallback(selectElement, value, fallbackText) {
     selectElement.value = normalized;
 }
 
-function applyBasicDetailsToMain(row) {
+async function applyBasicDetailsToMain(row) {
     const shell = document.querySelector('[data-client-maintenance]');
     if (!shell) return;
 
@@ -1030,16 +1199,25 @@ function applyBasicDetailsToMain(row) {
     const clientTypeSelect = shell.querySelector('#ddl_mainClientType');
     const clientGroupSelect = shell.querySelector('#ddl_mainClientGroup');
 
-    setSelectValueWithFallback(clientTypeSelect, clientType, clientType);
-    setSelectValueWithFallback(clientGroupSelect, clientGroup, clientGroupLabel);
-
     const normalizedType = clientType == null ? '' : String(clientType).trim();
+    const normalizedGroup = clientGroup == null ? '' : String(clientGroup).trim();
+
+    if (normalizedType) {
+        setSelectValueWithFallback(clientTypeSelect, normalizedType, normalizedType);
+    }
+
+    if (normalizedGroup) {
+        setSelectValueWithFallback(clientGroupSelect, normalizedGroup, clientGroupLabel);
+    }
+
     const activeWorkflowType = window.ClientMaintenanceCore.workflowId == null
         ? ''
         : String(window.ClientMaintenanceCore.workflowId).trim();
+    const currentType = clientTypeSelect ? String(clientTypeSelect.value || '').trim() : '';
+    const effectiveType = normalizedType || currentType || activeWorkflowType;
 
-    if (!normalizedType || normalizedType !== activeWorkflowType || clientMaintenanceStageTabs.length === 0) {
-        loadWorkflowStagesForClientType(normalizedType);
+    if (effectiveType && (effectiveType !== activeWorkflowType || clientMaintenanceStageTabs.length === 0)) {
+        await loadWorkflowStagesForClientType(effectiveType);
     }
 }
 
@@ -1100,6 +1278,25 @@ function pickFirstNonEmpty(values) {
     return '';
 }
 
+function isPendingWorkflowStatus(row) {
+    if (!row || typeof row !== 'object') return false;
+
+    const candidates = [
+        row?.WFClientStatusID,
+        row?.ClientStatusID,
+        row?.ClientStatus,
+        row?.ClientStatusDescription,
+        row?.Status
+    ];
+
+    return candidates.some((value) => {
+        if (value == null) return false;
+        const text = String(value).trim().toLowerCase();
+        if (!text) return false;
+        return text === 'p' || text === 'pending' || text.includes('pending');
+    });
+}
+
 function formatAuditDate(value) {
     if (value == null) return '';
 
@@ -1109,6 +1306,10 @@ function formatAuditDate(value) {
     const date = new Date(text);
     if (Number.isNaN(date.getTime())) {
         return text;
+    }
+
+    if (window.GlobalUtils?.formatDateTime) {
+        return window.GlobalUtils.formatDateTime(date);
     }
 
     return date.toLocaleString('en-GB', {
@@ -1233,6 +1434,52 @@ async function loadAllTabsData() {
     await Promise.all(loadPromises);
 }
 
+function buildRecentActivityAccessedFields({ selectionMode, clientId, requestId } = {}) {
+    const mode = String(selectionMode || '').toLowerCase();
+    const resolvedClientId = String(clientId || '').trim();
+    const resolvedRequestId = String(requestId || '').trim();
+
+    if (mode === 'request' && resolvedRequestId) {
+        return `ApplicationID:${resolvedRequestId}`;
+    }
+
+    if (resolvedClientId) {
+        return `ClientID:${resolvedClientId}`;
+    }
+
+    if (resolvedRequestId) {
+        return `ApplicationID:${resolvedRequestId}`;
+    }
+
+    return '';
+}
+
+async function addRecentActivityAndRefreshSidebar(accessedFields) {
+    const trimmedFields = String(accessedFields || '').trim();
+    if (!trimmedFields) return;
+
+    try {
+        const moduleId = window.ClientMaintenanceCore?.moduleId || '1000';
+        const response = await invokeController('SideBar', 'AddRecentActivity', {
+            ModuleID: moduleId,
+            AccessedFields: trimmedFields
+        });
+
+        const responseCode = response?.ResponseCode || response?.responseCode || '';
+        const success = response?.Success === true || response?.success === true || responseCode === '00';
+
+        if (!success) {
+            const message = response?.ErrorMessage || response?.ResponseMessage || response?.responseMessage || response?.message || 'Failed to add recent activity';
+            console.warn('[Client Maintenance] Recent activity not tracked:', message);
+            return;
+        }
+
+        await loadSidebar(moduleId);
+    } catch (error) {
+        console.warn('[Client Maintenance] Error tracking recent activity:', error);
+    }
+}
+
 async function loadClientBasicDetails(selectionContext) {
     const context = typeof selectionContext === 'string'
         ? { clientId: selectionContext }
@@ -1240,6 +1487,14 @@ async function loadClientBasicDetails(selectionContext) {
 
     const clientId = String(context.clientId || context.ClientID || '').trim();
     const requestId = String(context.requestId || context.RequestID || '').trim();
+    const direction = context.direction ?? null;  // -1=previous, 1=next, 0=current, null=not specified
+    const selectionMode = context.selectionMode || (window.ClientMaintenanceCore.useRequestId ? 'request' : 'client');
+    const lockClientId = selectionMode === 'request';
+    const lockRequestId = selectionMode === 'client';
+
+    if (window.ClientMaintenanceCore) {
+        window.ClientMaintenanceCore.canEditCurrent = false;
+    }
 
     if (!clientId && !requestId) return;
 
@@ -1256,6 +1511,10 @@ async function loadClientBasicDetails(selectionContext) {
             requestData.RequestID = requestId;
         }
 
+        if (direction !== null && direction !== undefined) {
+            requestData.Direction = direction;
+        }
+
         const response = await window.ClientMaintenanceService.getBasic(requestData);
 
         const success = response?.Success ?? response?.success ?? true;
@@ -1266,16 +1525,37 @@ async function loadClientBasicDetails(selectionContext) {
         }
 
         const row = normalizeSingleRow(response);
+        const hasLoadedRow = Boolean(row);
         if (row) {
-            applyBasicDetailsToMain(row);
+            await applyBasicDetailsToMain(row);
             applyBasicDetailsToPersonal(row);
             applyBasicDetailsToBehindScene(row);
+
+            if (window.ClientMaintenanceCore) {
+                const isPending = isPendingWorkflowStatus(row);
+                window.ClientMaintenanceCore.canEditCurrent = window.ClientMaintenanceCore.useRequestId && isPending;
+                window.ClientMaintenanceCore.shellState = 'loaded';
+                window.ClientMaintenanceCore.hasLoadedRecord = true;
+            }
 
             // Keep parent context aligned with IDs resolved from get-basic.
             const resolvedClientId = String(row?.ClientID || row?.ClientId || clientId).trim();
             const resolvedRequestId = String(row?.RequestID || row?.RequestId || requestId).trim();
+            const resolvedClientName = String(pickFirstNonEmpty([
+                row?.Name,
+                row?.ClientName,
+                row?.ClientFullName,
+                row?.FullName,
+                row?.ApplicantName
+            ]) || '').trim();
 
-            if (resolvedClientId) {
+            const mainClientNameInput = document.getElementById('txt_mainClientName');
+            if (mainClientNameInput && resolvedClientName) {
+                mainClientNameInput.value = resolvedClientName;
+            }
+            window.ClientMaintenanceCore.clientName = resolvedClientName;
+
+            if (resolvedClientId && !lockClientId) {
                 window.ClientMaintenanceCore.clientId = resolvedClientId;
                 const mainClientIdInput = document.getElementById('txt_mainClientId');
                 if (mainClientIdInput && !String(mainClientIdInput.value || '').trim()) {
@@ -1283,20 +1563,49 @@ async function loadClientBasicDetails(selectionContext) {
                 }
             }
 
-            if (resolvedRequestId) {
+            if (resolvedRequestId && !lockRequestId) {
                 window.ClientMaintenanceCore.requestId = resolvedRequestId;
                 const mainApplicationIdInput = document.getElementById('txt_mainApplicationId');
                 if (mainApplicationIdInput && !String(mainApplicationIdInput.value || '').trim()) {
                     mainApplicationIdInput.value = resolvedRequestId;
                 }
             }
+
+            const accessedFields = buildRecentActivityAccessedFields({
+                selectionMode,
+                clientId: resolvedClientId,
+                requestId: resolvedRequestId
+            });
+            console.log(accessedFields);
+            if (accessedFields) {
+                await addRecentActivityAndRefreshSidebar(accessedFields);
+            }
         } else {
             resetBehindSceneFields();
+            if (window.ClientMaintenanceCore) {
+                window.ClientMaintenanceCore.canEditCurrent = false;
+                window.ClientMaintenanceCore.shellState = 'idle';
+                window.ClientMaintenanceCore.hasLoadedRecord = false;
+            }
         }
 
+        setClientLoadedState(hasLoadedRow);
+
         // Load all tab data after basic details are loaded
-        await loadAllTabsData();
+        // If tab data loading fails, just show error message but keep workflow visible
+        try {
+            await loadAllTabsData();
+        } catch (error) {
+            window.ClientMaintenanceCore.showToast(`Failed to load some tab data - ${error.message}`, 'error');
+            console.error('[ClientMaintenance] Error loading tab data:', error);
+            // Continue - don't fail the whole operation, just show the error
+        } finally {
+            setClientEditMode(false);
+        }
     } catch (error) {
+        if (window.ClientMaintenanceCore) {
+            window.ClientMaintenanceCore.canEditCurrent = false;
+        }
         window.ClientMaintenanceCore.showToast(`Failed to load client - ${error.message}`, 'error');
     }
 }
@@ -1316,8 +1625,71 @@ function initMainClientSearch(shell) {
     const appCore = getAppCore();
     if (!appCore || !window.SearchModal) return;
 
+    let isClientBlurLookupInProgress = false;
+
+    const loadClientFromTypedId = async () => {
+        if (window.ClientMaintenanceCore?.isMainWorkflowLocked) return;
+
+        const typedClientId = String(clientIdInput?.value || '').trim();
+        if (!typedClientId) {
+            if (clientNameInput) clientNameInput.value = '';
+            return;
+        }
+
+        const activeClientId = String(window.ClientMaintenanceCore?.clientId || '').trim();
+        const activeClientName = String(clientNameInput?.value || '').trim();
+        if (typedClientId === activeClientId && activeClientName) {
+            return;
+        }
+
+        if (isClientBlurLookupInProgress) return;
+        isClientBlurLookupInProgress = true;
+
+        try {
+            if (clientNameInput) clientNameInput.value = '';
+            if (applicationIdInput) applicationIdInput.value = '';
+            if (applicationNameInput) applicationNameInput.value = '';
+
+            window.ClientMaintenanceCore.requestId = '';
+            window.ClientMaintenanceCore.useRequestId = false;
+            window.ClientMaintenanceCore.clientId = typedClientId;
+
+            await withClientMaintenanceShellLoading(async () => {
+                await loadClientBasicDetails({ clientId: typedClientId, selectionMode: 'client' });
+            }, 'Loading client details...');
+
+            const resolvedName = String(clientNameInput?.value || '').trim();
+            if (!resolvedName) {
+                return;
+            }
+
+            enableCancelButton();
+            setMainWorkflowLocked(true);
+
+            if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+                window.SidebarManager.setMainRecordLoaded(true, typedClientId);
+                console.log('[Client Maintenance] Notified sidebar of loaded client:', typedClientId);
+            }
+        } catch (error) {
+            window.ClientMaintenanceCore.showToast(`Failed to load client details - ${error.message}`, 'error');
+            console.error('[Client Maintenance] Error loading client details from Client ID blur:', error);
+        } finally {
+            isClientBlurLookupInProgress = false;
+        }
+    };
+
+    clientIdInput?.addEventListener('blur', async (event) => {
+        const relatedTarget = event.relatedTarget;
+        if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-main-client-search]')) {
+            return;
+        }
+
+        await loadClientFromTypedId();
+    });
+
     clientSearchBtn?.addEventListener('click', (event) => {
         event.preventDefault();
+        if (window.ClientMaintenanceCore?.isMainWorkflowLocked) return;
         let searchModal = new window.SearchModal(appCore);
 
         searchModal.open({
@@ -1330,32 +1702,45 @@ function initMainClientSearch(shell) {
             ],
             autoSearch: false,
             onSelect: async (record) => {
-                const selectedClientId = record?.ClientID || '';
-                const selectedClientName = record?.Name || '';
-                const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
-                const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
-                const selectedClientGroupLabel = record?.ClientGroupName || record?.ClientGroupDescription || selectedClientGroup;
+                try {
+                    await withClientMaintenanceShellLoading(async () => {
+                        const selectedClientId = record?.ClientID || '';
+                        const selectedClientName = record?.Name || '';
+                        const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
+                        const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
+                        const selectedClientGroupLabel = record?.ClientGroupName || record?.ClientGroupDescription || selectedClientGroup;
 
-                if (clientIdInput) clientIdInput.value = selectedClientId;
-                if (clientNameInput) clientNameInput.value = selectedClientName;
-                setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
-                setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
+                        if (clientIdInput) clientIdInput.value = selectedClientId;
+                        if (clientNameInput) clientNameInput.value = selectedClientName;
+                        setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
+                        setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
 
-                window.ClientMaintenanceCore.requestId = '';
-                window.ClientMaintenanceCore.useRequestId = false;
-                window.ClientMaintenanceCore.clientId = selectedClientId || '';
+                        window.ClientMaintenanceCore.requestId = '';
+                        window.ClientMaintenanceCore.useRequestId = false;
+                        window.ClientMaintenanceCore.clientId = selectedClientId || '';
 
-                await loadWorkflowStagesForClientType(selectedClientType);
+                        await loadWorkflowStagesForClientType(selectedClientType);
 
-                if (applicationIdInput) applicationIdInput.value = '';
-                if (applicationNameInput) applicationNameInput.value = '';
-                enableCancelButton();
-                await loadClientBasicDetails({ clientId: selectedClientId });
+                        if (applicationIdInput) applicationIdInput.value = '';
+                        if (applicationNameInput) applicationNameInput.value = '';
+                        enableCancelButton();
+                        setMainWorkflowLocked(true);
 
-                // Notify sidebar that main client record is loaded
-                if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
-                    window.SidebarManager.setMainRecordLoaded(true, selectedClientId);
-                    console.log('[Client Maintenance] Notified sidebar of loaded client:', selectedClientId);
+                        try {
+                            await loadClientBasicDetails({ clientId: selectedClientId, selectionMode: 'client' });
+                        } catch (error) {
+                            window.ClientMaintenanceCore.showToast(`Failed to load client details - ${error.message}`, 'error');
+                            console.error('[Client Maintenance] Error loading client details:', error);
+                        }
+
+                        if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+                            window.SidebarManager.setMainRecordLoaded(true, selectedClientId);
+                            console.log('[Client Maintenance] Notified sidebar of loaded client:', selectedClientId);
+                        }
+                    }, 'Loading client workflow...');
+                } catch (error) {
+                    window.ClientMaintenanceCore.showToast(`Error during client selection: ${error.message}`, 'error');
+                    console.error('[Client Maintenance] Error in client selection:', error);
                 }
             }
         });
@@ -1363,6 +1748,7 @@ function initMainClientSearch(shell) {
 
     applicationSearchBtn?.addEventListener('click', (event) => {
         event.preventDefault();
+        if (window.ClientMaintenanceCore?.isMainWorkflowLocked) return;
         let searchModal = new window.SearchModal(appCore);
 
         searchModal.open({
@@ -1375,43 +1761,48 @@ function initMainClientSearch(shell) {
             ],
             autoSearch: false,
             onSelect: async (record) => {
-                const selectedRequestId = record?.ClientID || '';
-                const selectedName = record?.Name || '';
-                const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
-                const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
-                const selectedClientGroupLabel = record?.ClientGroupName || record?.ClientGroupDescription || selectedClientGroup;
-                const selectedClientId = record?.RealClientID || record?.ExistingClientID || '';
+                try {
+                    await withClientMaintenanceShellLoading(async () => {
+                        const selectedRequestId = record?.ClientID || '';
+                        const selectedName = record?.Name || '';
+                        const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
+                        const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
+                        const selectedClientGroupLabel = record?.ClientGroupName || record?.ClientGroupDescription || selectedClientGroup;
 
-                if (applicationIdInput) applicationIdInput.value = selectedRequestId;
-                if (applicationNameInput) applicationNameInput.value = selectedName;
+                        if (applicationIdInput) applicationIdInput.value = selectedRequestId;
+                        if (applicationNameInput) applicationNameInput.value = selectedName;
 
-                window.ClientMaintenanceCore.requestId = selectedRequestId;
-                window.ClientMaintenanceCore.useRequestId = true;
-                window.ClientMaintenanceCore.clientId = selectedClientId || '';
+                        window.ClientMaintenanceCore.requestId = selectedRequestId;
+                        window.ClientMaintenanceCore.useRequestId = true;
+                        window.ClientMaintenanceCore.clientId = '';
 
-                setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
-                setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
-                await loadWorkflowStagesForClientType(selectedClientType);
+                        setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
+                        setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
+                        await loadWorkflowStagesForClientType(selectedClientType);
 
-                enableCancelButton();
-                if (selectedClientId) {
-                    if (clientIdInput) clientIdInput.value = selectedClientId;
-                    if (clientNameInput && !clientNameInput.value) clientNameInput.value = selectedName;
-                } else {
-                    if (clientIdInput) clientIdInput.value = '';
-                }
+                        enableCancelButton();
+                        setMainWorkflowLocked(true);
+                        if (clientIdInput) clientIdInput.value = '';
 
-                // Always invoke get-basic for application selection so Behind The Scene
-                // binds even when only RequestID is available.
-                await loadClientBasicDetails({
-                    clientId: selectedClientId,
-                    requestId: selectedRequestId
-                });
+                        try {
+                            await loadClientBasicDetails({
+                                clientId: null,
+                                requestId: selectedRequestId,
+                                selectionMode: 'request'
+                            });
+                        } catch (error) {
+                            window.ClientMaintenanceCore.showToast(`Failed to load application details - ${error.message}`, 'error');
+                            console.error('[Client Maintenance] Error loading application details:', error);
+                        }
 
-                // Notify sidebar that main client record is loaded
-                if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
-                    window.SidebarManager.setMainRecordLoaded(true, selectedClientId || selectedRequestId);
-                    console.log('[Client Maintenance] Notified sidebar of loaded application:', selectedRequestId);
+                        if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+                            window.SidebarManager.setMainRecordLoaded(false, null);
+                            console.log('[Client Maintenance] Submodules locked for application selection:', selectedRequestId);
+                        }
+                    }, 'Loading application workflow...');
+                } catch (error) {
+                    window.ClientMaintenanceCore.showToast(`Error during application selection: ${error.message}`, 'error');
+                    console.error('[Client Maintenance] Error in application selection:', error);
                 }
             }
         });
@@ -1419,6 +1810,7 @@ function initMainClientSearch(shell) {
 
     // Add Enter and F2 key handlers for Client ID search
     clientIdInput?.addEventListener('keydown', (event) => {
+        if (window.ClientMaintenanceCore?.isMainWorkflowLocked) return;
         if (event.key === 'Enter' || event.key === 'F2') {
             event.preventDefault();
             clientSearchBtn?.click();
@@ -1427,6 +1819,7 @@ function initMainClientSearch(shell) {
 
     // Add Enter and F2 key handlers for Application ID search
     applicationIdInput?.addEventListener('keydown', (event) => {
+        if (window.ClientMaintenanceCore?.isMainWorkflowLocked) return;
         if (event.key === 'Enter' || event.key === 'F2') {
             event.preventDefault();
             applicationSearchBtn?.click();
@@ -1440,15 +1833,24 @@ async function loadTabPartial(config, forceDataRefresh = false) {
 
     if (pane.dataset.loaded === 'true') {
         if (forceDataRefresh) {
-            await ensureTabScriptLoaded(config);
+            try {
+                await ensureTabScriptLoaded(config);
 
-            const initializer = window[config.initFn];
-            if (typeof pane._cmLoadData !== 'function' && typeof initializer === 'function') {
-                initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+                const initializer = window[config.initFn];
+                if (typeof pane._cmLoadData !== 'function' && typeof initializer === 'function') {
+                    initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+                }
+
+                await autoLoadTabData(config, pane);
+            } catch (error) {
+                console.error(`Error refreshing ${config.key} tab:`, error);
+                window.ClientMaintenanceCore.showToast(`${config.key} tab refresh failed - ${error.message}`, 'error');
+                // Continue - don't prevent other tabs from loading
             }
-
-            await autoLoadTabData(config, pane);
         }
+
+        initializeClientMaintenanceDatePickers(pane);
+        applyTabEditMode(pane, window.ClientMaintenanceCore?.isEditMode);
         return;
     }
 
@@ -1465,16 +1867,25 @@ async function loadTabPartial(config, forceDataRefresh = false) {
     pane.innerHTML = await response.text();
     pane.dataset.loaded = 'true';
 
-    await ensureTabScriptLoaded(config);
+    try {
+        await ensureTabScriptLoaded(config);
 
-    const initializer = window[config.initFn];
-    if (typeof initializer === 'function') {
-        initializer(pane, window.ClientMaintenanceCore.moduleId || '');
-    } else {
-        console.warn(`[ClientMaintenance] Initializer not found for ${config.key}: ${config.initFn}`);
+        const initializer = window[config.initFn];
+        if (typeof initializer === 'function') {
+            initializer(pane, window.ClientMaintenanceCore.moduleId || '');
+        } else {
+            console.warn(`[ClientMaintenance] Initializer not found for ${config.key}: ${config.initFn}`);
+        }
+
+        await autoLoadTabData(config, pane);
+    } catch (error) {
+        console.error(`Error initializing ${config.key} tab after loading HTML:`, error);
+        window.ClientMaintenanceCore.showToast(`${config.key} tab initialization failed - ${error.message}`, 'error');
+        // Continue - tab HTML is already loaded, just data/initialization failed
     }
 
-    await autoLoadTabData(config, pane);
+    initializeClientMaintenanceDatePickers(pane);
+    applyTabEditMode(pane, window.ClientMaintenanceCore?.isEditMode);
 }
 
 async function loadSidebar(moduleId) {
@@ -1519,6 +1930,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!shell) return;
 
     window.ClientMaintenanceCore.moduleId = shell.getAttribute('data-module-id') || '';
+    window.ClientMaintenanceCore.shellState = 'idle';
+    window.ClientMaintenanceCore.hasLoadedRecord = false;
 
     ensureBehindSceneVisible();
     initSectionToggles();
@@ -1538,15 +1951,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize main client search
     initMainClientSearch(shell);
+    initializeClientMaintenanceDatePickers(shell);
 
     const clientTypeSelect = shell.querySelector('#ddl_mainClientType');
     if (clientTypeSelect) {
         clientTypeSelect.addEventListener('change', async () => {
-            await loadWorkflowStagesForClientType(clientTypeSelect.value);
+            await withClientMaintenanceShellLoading(async () => {
+                await loadWorkflowStagesForClientType(clientTypeSelect.value);
+            }, 'Loading workflow stages...');
         });
 
         if (clientTypeSelect.value) {
-            await loadWorkflowStagesForClientType(clientTypeSelect.value);
+            await withClientMaintenanceShellLoading(async () => {
+                await loadWorkflowStagesForClientType(clientTypeSelect.value);
+            }, 'Loading workflow stages...');
         } else {
             renderWorkflowStageTabs([], 'Select a client type to load workflow stages.');
         }
@@ -1559,7 +1977,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!config) return;
 
         try {
+            // Load the tab partial view
             await loadTabPartial(config);
+
+            // Track recent activity when a workflow step/tab is accessed
+            const clientId = window.ClientMaintenanceCore?.clientId || '';
+            const requestId = window.ClientMaintenanceCore?.requestId || '';
+            const tabLabel = config?.label || config?.key || 'Unknown';
+
+            if (clientId || requestId) {
+                // Build accessed fields with tab context
+                let accessedFields = '';
+                if (requestId) {
+                    accessedFields = `ApplicationID:${requestId}`;
+                } else if (clientId) {
+                    accessedFields = `ClientID:${clientId}`;
+                }
+
+                if (accessedFields) {
+                    try {
+                        const moduleId = window.ClientMaintenanceCore?.moduleId || '1000';
+                        await invokeController('SideBar', 'AddRecentActivity', {
+                            ModuleID: moduleId,
+                            AccessedFields: `${accessedFields} [${tabLabel}]`
+                        });
+                    } catch (error) {
+                        console.warn('[Client Maintenance] Error tracking tab access:', error);
+                    }
+                }
+            }
         } catch (error) {
             window.ClientMaintenanceCore.showToast(error.message, 'error');
         }
@@ -1581,6 +2027,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btn_cmCancel')?.addEventListener('click', (event) => {
         event.preventDefault();
         resetClientMaintenance();
+    });
+
+    document.querySelector('[data-action-btn="new"]')?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        await beginNewClientMaintenance();
+    });
+
+    // Edit button handler - enables edit mode for all partial views
+    document.querySelector('[data-action-btn="edit"]')?.addEventListener('click', (event) => {
+        event.preventDefault();
+        setClientEditMode(true);
+        // Disable Edit button after clicking it
+        const editBtn = document.querySelector('[data-action-btn="edit"]');
+        if (editBtn) editBtn.disabled = true;
+    });
+
+    // Wire up action panel record navigation buttons (Prev/Next client navigation)
+    document.querySelector('[data-record-nav="prev"]')?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        if (window.ClientMaintenanceCore?.clientId) {
+            await withClientMaintenanceShellLoading(async () => {
+                await loadClientBasicDetails({
+                    clientId: window.ClientMaintenanceCore.clientId,
+                    requestId: window.ClientMaintenanceCore.requestId,
+                    direction: -1
+                });
+            }, 'Loading client details...');
+        }
+    });
+
+    document.querySelector('[data-record-nav="next"]')?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        if (window.ClientMaintenanceCore?.clientId) {
+            await withClientMaintenanceShellLoading(async () => {
+                await loadClientBasicDetails({
+                    clientId: window.ClientMaintenanceCore.clientId,
+                    requestId: window.ClientMaintenanceCore.requestId,
+                    direction: 1
+                });
+            }, 'Loading client details...');
+        }
     });
 
     // Initialize horizontal tab scrolling
@@ -1691,18 +2178,379 @@ function navigateToPreviousTab() {
 }
 
 /**
- * Navigate to next tab
+ * Get all mandatory/required fields from a tab pane
+ * Returns array of {field, label} objects for required fields
  */
-function navigateToNextTab() {
+function getTabMandatoryFields(pane) {
+    if (!pane) return [];
+
+    const mandatoryFields = [];
+    const form = pane.querySelector('form') || pane;
+
+    // Get all elements with required attribute
+    const requiredElements = form.querySelectorAll('[required]');
+
+    requiredElements.forEach((element) => {
+        const label = form.querySelector(`label[for="${element.id}"]`)?.textContent?.trim() || element.name || element.id;
+        mandatoryFields.push({
+            field: element,
+            name: element.name || element.id,
+            id: element.id,
+            label: label.replace('*', '').trim(),
+            tagName: element.tagName.toLowerCase(),
+            type: element.type?.toLowerCase() || ''
+        });
+    });
+
+    return mandatoryFields;
+}
+
+/**
+ * Check if a field has a valid value
+ */
+/**
+ * Check if a field has a valid value
+ * For selects, ensures a real value is selected (not default placeholder)
+ */
+function isFieldValueValid(field) {
+    if (!field) return false;
+
+    const tagName = field.tagName?.toLowerCase() || '';
+    const type = field.type?.toLowerCase() || '';
+
+    if (type === 'checkbox' || type === 'radio') {
+        return field.checked;
+    }
+
+    if (tagName === 'select') {
+        const value = String(field.value || '').trim();
+
+        // Empty value is invalid
+        if (!value) return false;
+
+        // Get the currently selected option
+        const selectedOption = field.options[field.selectedIndex];
+        if (!selectedOption) return false;
+
+        // Check if selected option's text is a placeholder (contains "Select", "Choose", etc.)
+        const optionText = String(selectedOption.text || '').trim().toLowerCase();
+        const placeholderPatterns = ['select', 'choose', 'pick', 'option', '---', '...'];
+        const isPlaceholder = placeholderPatterns.some(pattern => optionText.includes(pattern));
+
+        // For required selects, reject placeholder options even if they have a value
+        if (isPlaceholder && field.hasAttribute('required')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // For text, number, date, etc.
+    const value = String(field.value || '').trim();
+    return value.length > 0;
+}
+
+/**
+ * Validate all mandatory fields in a tab
+ * Returns { isValid: boolean, emptyFields: [] }
+ */
+function validateTabMandatoryFields(pane, tabKey) {
+    const mandatoryFields = getTabMandatoryFields(pane);
+    const emptyFields = [];
+
+    mandatoryFields.forEach((fieldInfo) => {
+        if (!isFieldValueValid(fieldInfo.field)) {
+            emptyFields.push(fieldInfo);
+        }
+    });
+
+    const result = {
+        isValid: emptyFields.length === 0,
+        emptyFields: emptyFields,
+        mandatoryCount: mandatoryFields.length,
+        filledCount: mandatoryFields.length - emptyFields.length
+    };
+
+    return result;
+}
+
+/**
+ * Get form data from the current tab pane
+ */
+function getTabDataFromPane(pane) {
+    const payload = {};
+
+    if (!pane) return payload;
+
+    const fields = pane.querySelectorAll('input, select, textarea');
+    fields.forEach((element) => {
+        const key = element.name || element.id;
+        if (!key || key.startsWith('_')) return; // Skip internal fields
+
+        const type = element.type?.toLowerCase() || '';
+        if (type === 'hidden' || type === 'button' || type === 'submit') return;
+
+        if (type === 'checkbox') {
+            payload[key] = element.checked;
+        } else if (type === 'radio') {
+            // Only add checked radio buttons
+            const otherRadios = pane.querySelectorAll(`input[type="radio"][name="${key}"]`);
+            if (element.checked || !payload[key]) {
+                payload[key] = element.value || (element.checked ? true : false);
+            }
+        } else {
+            payload[key] = element.value || '';
+        }
+    });
+
+    return payload;
+}
+
+/**
+ * Detect if a tab pane has existing loaded data
+ */
+function detectTabHasExistingData(pane) {
+    if (!pane) return false;
+
+    // Check for data-cm-loaded marker
+    if (pane.querySelector('[data-cm-loaded]')) return true;
+
+    // Check if there are any filled form fields (indicates data was loaded)
+    const fields = pane.querySelectorAll('input:not([type="hidden"]), textarea, select');
+    let filledCount = 0;
+
+    fields.forEach((field) => {
+        const type = field.type?.toLowerCase() || '';
+        if (type === 'checkbox' || type === 'radio') {
+            if (field.checked) filledCount++;
+        } else if (field.value && String(field.value).trim()) {
+            filledCount++;
+        }
+    });
+
+    return filledCount > 0;
+}
+
+/**
+ * Lock/unlock remaining tabs during workflow (Add mode)
+ */
+function lockRemainingWorkflowTabs(currentTabIndex, isLocked) {
+    const navTabs = document.getElementById('nav_clientMaintenanceTabs');
+    if (!navTabs) return;
+
+    const tabs = Array.from(navTabs.querySelectorAll('.nav-link'));
+    tabs.forEach((tab, index) => {
+        if (index <= currentTabIndex) {
+            tab.style.pointerEvents = '';
+            tab.classList.remove('disabled-tab');
+        } else {
+            tab.style.pointerEvents = isLocked ? 'none' : '';
+            if (isLocked) {
+                tab.classList.add('disabled-tab');
+            } else {
+                tab.classList.remove('disabled-tab');
+            }
+        }
+    });
+}
+
+/**
+ * Build a request object for tab actions (create/update)
+ */
+function buildTabActionRequest(tabKey, payload) {
+    const moduleId = window.ClientMaintenanceCore?.moduleId || '';
+    const clientId = window.ClientMaintenanceCore?.clientId || '';
+    const requestId = window.ClientMaintenanceCore?.requestId || '';
+
+    payload.ModuleID = moduleId;
+    payload.ClientID = clientId;
+    payload.RequestID = requestId;
+
+    return payload;
+    //return {
+    //    ModuleID: moduleId,
+    //    ClientID: clientId,
+    //    RequestID: requestId,
+    //    Payload: payload || {}
+    //};
+}
+
+/**
+ * Invoke a tab service action (create or update)
+ * Returns { success: boolean, response: object, errorMessage: string }
+ */
+async function invokeTabAction(tabKey, action, requestData) {
+    const serviceKey = `ClientMaintenance${tabKey}Service`;
+    const service = window[serviceKey];
+    console.log(tabKey);
+    if (!service || typeof service[action] !== 'function') {
+        return {
+            success: false,
+            response: null,
+            errorMessage: `Service or action not found for ${tabKey}.${action}`
+        };
+    }
+
+    try {
+        const response = await service[action](requestData);
+
+        // Check for success marker in response
+        const isSuccess = response?.Success === true ||
+            response?.success === true ||
+            response?.ResponseCode === '00' ||
+            response?.responseCode === '00';
+
+        if (!isSuccess) {
+            const errorMsg = response?.ErrorMessage ||
+                response?.errorMessage ||
+                response?.ResponseMessage ||
+                response?.responseMessage ||
+                `${action} operation failed`;
+
+            return {
+                success: false,
+                response: response,
+                errorMessage: errorMsg
+            };
+        }
+
+        return {
+            success: true,
+            response: response,
+            errorMessage: null
+        };
+    } catch (error) {
+        return {
+            success: false,
+            response: null,
+            errorMessage: error?.message || 'Network or service error'
+        };
+    }
+}
+
+/**
+ * Process workflow step: validate → save → navigate
+ * This is called when Next button is clicked
+ */
+async function processTabWorkflowStep(tabKey, pane, tabIndex) {
+    if (!pane || !tabKey) return false;
+
+    // Step 1: Validate mandatory fields
+    const validation = validateTabMandatoryFields(pane, tabKey);
+    if (!validation.isValid) {
+        const emptyLabels = validation.emptyFields.map(f => f.label).join(', ');
+        window.ClientMaintenanceCore.showToast(
+            `${tabKey}: Please fill in required fields: ${emptyLabels}`,
+            'warning'
+        );
+        // Optionally, focus on first empty field
+        if (validation.emptyFields.length > 0) {
+            validation.emptyFields[0].field?.focus?.();
+        }
+        return false; // Don't navigate
+    }
+
+    // Step 1.5: Call tab-specific validation if available (e.g., age validation)
+    if (typeof pane._cmValidate === 'function') {
+        const customValidationResult = pane._cmValidate();
+        if (customValidationResult === false) {
+            return false; // Don't navigate, error panel should be shown by _cmValidate
+        }
+    }
+
+    // Step 2: Check if we're in Add or Edit mode, or if this tab has existing data
+    const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
+    const hasExistingData = detectTabHasExistingData(pane);
+    const action = (isAddMode || !hasExistingData) ? 'create' : 'update';
+
+    // Step 3: Collect form data
+    const payload = getTabDataFromPane(pane);
+    const requestData = buildTabActionRequest(tabKey, payload);
+
+    // Step 4: Invoke the action
+    window.ClientMaintenanceCore.showToast(`${tabKey}: Saving...`, 'info');
+    const result = await invokeTabAction(tabKey, action, requestData);
+
+    // Step 5: Handle response
+    if (!result.success) {
+        window.ClientMaintenanceCore.showToast(
+            `${tabKey}: ${result.errorMessage}`,
+            'error'
+        );
+        return false; // Don't navigate
+    }
+
+    // Step 6: On success, display confirmation message
+    window.ClientMaintenanceCore.showToast(
+        `${tabKey}: ${action === 'create' ? 'Created' : 'Updated'} successfully`,
+        'success'
+    );
+
+    // Mark this tab as completed
+    markTabAsCompleted(tabKey);
+
+    // Step 7: Lock remaining tabs if in Add workflow (until all tabs complete)
+    if (isAddMode) {
+        lockRemainingWorkflowTabs(tabIndex, true);
+    }
+
+    return true; // Allow navigation
+}
+
+/**
+ * Navigate to next tab with validation and save
+ * Enhanced to validate mandatory fields and invoke save/create operations
+ * Only allows navigation on successful response
+ */
+async function navigateToNextTab() {
     const currentIndex = getCurrentTabIndex();
     const tabs = Array.from(document.querySelectorAll('#nav_clientMaintenanceTabs .nav-link'));
 
-    if (currentIndex >= tabs.length - 1) return;
+    // Check if on last tab
+    if (currentIndex >= tabs.length - 1) {
+        window.ClientMaintenanceCore.showToast('You are on the last step. Click Submit to complete the workflow.', 'info');
+        return;
+    }
 
-    const nextTab = tabs[currentIndex + 1];
-    if (nextTab) {
-        const bsTab = new bootstrap.Tab(nextTab);
-        bsTab.show();
+    // Get current tab info
+    const currentTab = tabs[currentIndex];
+    if (!currentTab) return;
+
+    const tabKey = currentTab.getAttribute('data-cm-tab-key');
+    const tabPaneSelector = currentTab.getAttribute('data-bs-target');
+    const pane = tabPaneSelector ? document.querySelector(tabPaneSelector) : null;
+
+    if (!pane || !tabKey) {
+        window.ClientMaintenanceCore.showToast('Unable to determine current tab. Please try again.', 'error');
+        return;
+    }
+
+    // Check if we're in a workflow mode (Add or Edit)
+    const isInWorkflow = window.ClientMaintenanceCore?.shellState === 'add' ||
+        window.ClientMaintenanceCore?.isEditMode === true;
+
+    if (!isInWorkflow) {
+        // Not in workflow mode - just navigate without validation
+        const nextTab = tabs[currentIndex + 1];
+        if (nextTab) {
+            const bsTab = new bootstrap.Tab(nextTab);
+            bsTab.show();
+        }
+        return;
+    }
+
+    // In workflow mode - validate and save before navigating
+    const canNavigate = await processTabWorkflowStep(tabKey, pane, currentIndex);
+
+    if (canNavigate) {
+        // Navigate to next tab
+        const nextTab = tabs[currentIndex + 1];
+        if (nextTab) {
+            const bsTab = new bootstrap.Tab(nextTab);
+            bsTab.show();
+            // Give the tab time to show, then update button states
+            setTimeout(() => updateTabNavigationButtons(), 100);
+        }
     }
 }
 
@@ -1723,6 +2571,31 @@ function updateTabNavigationButtons() {
     if (nextBtn) {
         nextBtn.disabled = currentIndex >= tabs.length - 1 || tabs.length === 0;
     }
+}
+
+function activateWorkflowTabAt(index) {
+    const tabs = Array.from(document.querySelectorAll('#nav_clientMaintenanceTabs .nav-link'));
+    if (index < 0 || index >= tabs.length) return false;
+
+    const tab = tabs[index];
+    if (!tab) return false;
+
+    if (tab.classList.contains('active')) {
+        updateTabNavigationButtons();
+        return true;
+    }
+
+    if (window.bootstrap?.Tab) {
+        new window.bootstrap.Tab(tab).show();
+    } else {
+        tab.click();
+    }
+
+    return true;
+}
+
+function activateFirstWorkflowTab() {
+    return activateWorkflowTabAt(0);
 }
 
 /**
@@ -1794,6 +2667,184 @@ async function saveCurrentTabData() {
     }
 }
 
+function storeControlState(control) {
+    if (!control) return;
+    if (control.dataset.cmPrevDisabled === undefined) {
+        control.dataset.cmPrevDisabled = control.disabled ? 'true' : 'false';
+    }
+    if (typeof control.readOnly === 'boolean' && control.dataset.cmPrevReadOnly === undefined) {
+        control.dataset.cmPrevReadOnly = control.readOnly ? 'true' : 'false';
+    }
+}
+
+function restoreControlState(control) {
+    if (!control) return;
+    if (control.dataset.cmPrevDisabled !== undefined) {
+        control.disabled = control.dataset.cmPrevDisabled === 'true';
+        delete control.dataset.cmPrevDisabled;
+    }
+    if (typeof control.readOnly === 'boolean' && control.dataset.cmPrevReadOnly !== undefined) {
+        control.readOnly = control.dataset.cmPrevReadOnly === 'true';
+        delete control.dataset.cmPrevReadOnly;
+    }
+}
+
+function toggleFormControl(control, isEditMode) {
+    if (!control) return;
+    const tag = String(control.tagName || '').toLowerCase();
+    const type = String(control.type || '').toLowerCase();
+
+    if (type === 'hidden') return;
+
+    if (isEditMode) {
+        restoreControlState(control);
+        syncClientMaintenanceDateInput(control);
+        return;
+    }
+
+    storeControlState(control);
+
+    if (tag === 'select' || type === 'checkbox' || type === 'radio' || type === 'file' || type === 'date') {
+        control.disabled = true;
+        syncClientMaintenanceDateInput(control);
+        return;
+    }
+
+    if (type === 'button' || type === 'submit' || type === 'reset') {
+        control.disabled = true;
+        syncClientMaintenanceDateInput(control);
+        return;
+    }
+
+    if (typeof control.readOnly === 'boolean') {
+        control.readOnly = true;
+    } else {
+        control.disabled = true;
+    }
+
+    syncClientMaintenanceDateInput(control);
+}
+
+function toggleButtonControl(button, isEditMode) {
+    if (!button) return;
+    if (button.classList.contains('section-toggle-btn')) return;
+
+    if (isEditMode) {
+        restoreControlState(button);
+        return;
+    }
+
+    storeControlState(button);
+    button.disabled = true;
+}
+
+function ensureTabEditObserver(tabRoot) {
+    if (!tabRoot || tabRoot._cmEditObserver) return;
+
+    tabRoot._cmEditObserver = new MutationObserver((mutations) => {
+        if (window.ClientMaintenanceCore?.isEditMode) return;
+
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (!(node instanceof HTMLElement)) return;
+
+                if (node.matches('input, select, textarea')) {
+                    toggleFormControl(node, false);
+                }
+
+                if (node.matches('button')) {
+                    toggleButtonControl(node, false);
+                }
+
+                node.querySelectorAll('input, select, textarea').forEach((field) => {
+                    toggleFormControl(field, false);
+                });
+
+                syncClientMaintenanceFlatpickrInScope(node);
+
+                node.querySelectorAll('button').forEach((button) => {
+                    toggleButtonControl(button, false);
+                });
+            });
+        });
+    });
+
+    tabRoot._cmEditObserver.observe(tabRoot, { childList: true, subtree: true });
+}
+
+function applyTabEditMode(tabRoot, isEditMode) {
+    if (!tabRoot) return;
+
+    ensureTabEditObserver(tabRoot);
+
+    tabRoot.querySelectorAll('input, select, textarea').forEach((field) => {
+        toggleFormControl(field, isEditMode);
+    });
+
+    tabRoot.querySelectorAll('button').forEach((button) => {
+        toggleButtonControl(button, isEditMode);
+    });
+
+    if (typeof tabRoot._cmSetEditMode === 'function') {
+        tabRoot._cmSetEditMode(isEditMode);
+    }
+
+    initializeClientMaintenanceDatePickers(tabRoot);
+    syncClientMaintenanceFlatpickrInScope(tabRoot);
+}
+
+/**
+ * Set client maintenance edit mode
+ * When enabled, partial view fields become editable and grid action buttons are enabled
+ */
+function setClientEditMode(isEditMode, options = {}) {
+    const editMode = Boolean(isEditMode);
+    if (window.ClientMaintenanceCore) {
+        window.ClientMaintenanceCore.isEditMode = editMode;
+    }
+
+    const stageTabs = Array.isArray(clientMaintenanceStageTabs) ? clientMaintenanceStageTabs : [];
+    stageTabs.forEach((config) => {
+        const pane = document.getElementById(config.pane);
+        if (pane) {
+            applyTabEditMode(pane, editMode);
+        }
+    });
+
+    if (editMode && options.showToast !== false && window.ClientMaintenanceCore?.showToast) {
+        const toastMessage = options.toastMessage || 'Edit mode enabled - you can now modify records';
+        window.ClientMaintenanceCore.showToast(toastMessage, 'info');
+    }
+}
+
+/**
+ * Enable grid selection with action buttons
+ * Called by partial view modules when a row is selected in edit mode
+ */
+function enableGridRowActions(tabRoot, hasSelection) {
+    if (!tabRoot) return;
+
+    const canEnable = Boolean(window.ClientMaintenanceCore?.isEditMode);
+    const enableActions = Boolean(hasSelection) && canEnable;
+
+    const actionTargets = new Set(['update', 'alter', 'remove', 'delete', 'clear']);
+    const buttons = tabRoot.querySelectorAll('button');
+
+    buttons.forEach((button) => {
+        const actionKeys = Object.keys(button.dataset || {}).filter((key) => key.toLowerCase().endsWith('action'));
+        if (actionKeys.length === 0) return;
+        const hasMatch = actionKeys.some((key) => actionTargets.has(String(button.dataset[key] || '').toLowerCase()));
+        if (hasMatch) {
+            button.disabled = !enableActions;
+        }
+    });
+}
+
+if (window.ClientMaintenanceCore) {
+    window.ClientMaintenanceCore.setClientEditMode = setClientEditMode;
+    window.ClientMaintenanceCore.enableGridRowActions = enableGridRowActions;
+}
+
 /**
  * Enable cancel button when client or application data is loaded
  */
@@ -1801,16 +2852,139 @@ function enableCancelButton() {
     setClientLoadedState(true);
 }
 
+async function beginNewClientMaintenance() {
+    const shell = document.querySelector('[data-client-maintenance]');
+    if (!shell || !window.ClientMaintenanceCore) return;
+
+    const clientTypeSelect = shell.querySelector('#ddl_mainClientType');
+    const selectedClientType = String(clientTypeSelect?.value || '').trim();
+
+    if (!selectedClientType) {
+        window.ClientMaintenanceCore.showToast('Choose a client type before clicking Add.', 'warning');
+        clientTypeSelect?.focus();
+        return;
+    }
+
+    await withClientMaintenanceShellLoading(async () => {
+        await loadWorkflowStagesForClientType(selectedClientType);
+    }, 'Loading workflow stages...');
+
+    if (!Array.isArray(clientMaintenanceStageTabs) || clientMaintenanceStageTabs.length === 0) {
+        window.ClientMaintenanceCore.showToast('No workflow stages are available for the selected client type.', 'warning');
+        clientTypeSelect?.focus();
+        return;
+    }
+
+    const clientIdInput = document.getElementById('txt_mainClientId');
+    const clientNameInput = document.getElementById('txt_mainClientName');
+    const applicationIdInput = document.getElementById('txt_mainApplicationId');
+    const applicationNameInput = document.getElementById('txt_mainApplicationName');
+
+    if (clientIdInput) clientIdInput.value = '';
+    if (clientNameInput) clientNameInput.value = '';
+    if (applicationIdInput) applicationIdInput.value = '';
+    if (applicationNameInput) applicationNameInput.value = '';
+
+    window.ClientMaintenanceCore.clientId = null;
+    window.ClientMaintenanceCore.clientName = null;
+    window.ClientMaintenanceCore.requestId = null;
+    window.ClientMaintenanceCore.useRequestId = false;
+    window.ClientMaintenanceCore.canEditCurrent = false;
+    window.ClientMaintenanceCore.hasLoadedRecord = false;
+    window.ClientMaintenanceCore.shellState = 'add';
+
+    resetBehindSceneFields();
+    setMainWorkflowLocked(true);
+    setClientEditMode(true, { showToast: false });
+    activateFirstWorkflowTab();
+    // Lock remaining tabs during Add workflow - only first tab is accessible initially
+    lockRemainingWorkflowTabs(0, true);
+    setClientLoadedState(false);
+    updateSaveButtonState();
+    updateTabNavigationButtons();
+
+    if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+        window.SidebarManager.setMainRecordLoaded(false, null);
+    }
+}
+
+function setMainWorkflowLocked(isLocked) {
+    const shell = document.querySelector('[data-client-maintenance]');
+    if (!shell || !window.ClientMaintenanceCore) return;
+
+    window.ClientMaintenanceCore.isMainWorkflowLocked = Boolean(isLocked);
+
+    const textInputs = [
+        '#txt_mainClientId',
+        '#txt_mainClientName',
+        '#txt_mainApplicationId',
+        '#txt_mainApplicationName'
+    ];
+
+    const selects = [
+        '#ddl_mainClientType',
+        '#ddl_mainClientGroup'
+    ];
+
+    textInputs.forEach((selector) => {
+        const field = shell.querySelector(selector);
+        if (field) {
+            field.readOnly = isLocked;
+        }
+    });
+
+    selects.forEach((selector) => {
+        const field = shell.querySelector(selector);
+        if (field) {
+            field.disabled = isLocked;
+        }
+    });
+
+    shell.querySelectorAll('[data-main-client-search], [data-main-application-search]').forEach((button) => {
+        button.disabled = isLocked;
+    });
+}
+
 function setClientLoadedState(isLoaded) {
+    if (window.ClientMaintenanceCore) {
+        window.ClientMaintenanceCore.hasLoadedRecord = Boolean(isLoaded);
+        if (isLoaded) {
+            window.ClientMaintenanceCore.shellState = 'loaded';
+        } else if (window.ClientMaintenanceCore.shellState !== 'add') {
+            window.ClientMaintenanceCore.shellState = 'idle';
+        }
+    }
+
+    // Action buttons
+    const viewBtn = document.querySelector('[data-action-btn="view"]');
+    const addBtn = document.querySelector('[data-action-btn="new"]');
+    const editBtn = document.querySelector('[data-action-btn="edit"]');
+
+    // Submission buttons
     const cancelBtn = document.getElementById('btn_cmCancel');
     const clearBtn = document.getElementById('btn_cmClear') || document.querySelector('[data-submit-action="clear"]');
     const recordPrevBtn = document.querySelector('[data-record-nav="prev"]');
     const recordNextBtn = document.querySelector('[data-record-nav="next"]');
+    const hasLoadedRecord = Boolean(window.ClientMaintenanceCore?.hasLoadedRecord);
+    const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
+    const hasActiveWorkflow = isAddMode || hasLoadedRecord;
 
-    if (cancelBtn) cancelBtn.disabled = !isLoaded;
-    if (clearBtn) clearBtn.disabled = !isLoaded;
-    if (recordPrevBtn) recordPrevBtn.disabled = !isLoaded;
-    if (recordNextBtn) recordNextBtn.disabled = !isLoaded;
+    // When a record is loaded/fetched/viewed:
+    // - View and Add buttons are disabled (can't view/add another while editing)
+    // - Edit and Cancel buttons are enabled (can edit current or cancel)
+    // When no record is loaded:
+    // - View and Add buttons are enabled (can search for record or add new)
+    // - Edit and Cancel buttons are disabled (nothing to edit)
+
+    if (viewBtn) viewBtn.disabled = hasActiveWorkflow;
+    if (addBtn) addBtn.disabled = hasActiveWorkflow;
+    const allowEdit = hasLoadedRecord && window.ClientMaintenanceCore?.useRequestId && window.ClientMaintenanceCore?.canEditCurrent;
+    if (editBtn) editBtn.disabled = !allowEdit;
+
+    if (cancelBtn) cancelBtn.disabled = !hasActiveWorkflow;
+    if (clearBtn) clearBtn.disabled = !hasLoadedRecord;
+    if (recordPrevBtn) recordPrevBtn.disabled = !hasLoadedRecord;
+    if (recordNextBtn) recordNextBtn.disabled = !hasLoadedRecord;
 }
 
 /**
@@ -1848,11 +3022,17 @@ async function resetClientMaintenance() {
         if (clientTypeSelect) clientTypeSelect.value = '';
         if (clientGroupSelect) clientGroupSelect.value = '';
 
+        setMainWorkflowLocked(false);
+
         // Clear CoreData
         window.ClientMaintenanceCore.clientId = null;
+        window.ClientMaintenanceCore.clientName = null;
         window.ClientMaintenanceCore.requestId = null;
         window.ClientMaintenanceCore.useRequestId = false;
         window.ClientMaintenanceCore.workflowId = null;
+        window.ClientMaintenanceCore.canEditCurrent = false;
+        window.ClientMaintenanceCore.shellState = 'idle';
+        window.ClientMaintenanceCore.hasLoadedRecord = false;
 
         // Clear all tab content
         const tabContentWrapper = document.getElementById('dv_clientMaintenanceTabContent');
@@ -1870,7 +3050,11 @@ async function resetClientMaintenance() {
         window.ClientMaintenanceCore.clearTabRegistry();
         clientMaintenanceStageTabs = [];
         clearAllTabCompletions();
+        unlockAllWorkflowTabs();
         resetBehindSceneFields();
+
+        // Exit edit mode for all partial views
+        setClientEditMode(false);
 
         // Reset action buttons to disabled state
         setClientLoadedState(false);

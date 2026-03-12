@@ -1,0 +1,353 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Direct Debit Maintenance";
+    Layout = "_ApplicationLayout";
+
+    var directDebitTypeOptions = ViewData["DirectDebitTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var transferFrequencyOptions = ViewData["TransferFrequencyOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var chargeRecoveryOptions = ViewData["ChargeRecoveryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<form id="frm_directDebitMaintenance" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="window">
+    <!-- Main Container -->
+    <main class="main-container main-container--with-panel" aria-label="Direct Debit Maintenance form">
+        <div class="form-content" role="region" aria-label="Form fields">
+            <div class="form-card" data-main-form>
+                
+                <!-- Debit Type Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-credit-card-2-front"></i> Debit Type</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="ddl_directDebitType">Direct Debit Type</label>
+                                <select id="ddl_directDebitType" name="directDebitType" class="bs-select">
+                                    <option value="">--Select--</option>
+                                    @foreach (var opt in directDebitTypeOptions)
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Details Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-building"></i> Account Details</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_branchId">Branch ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_branchId" name="branchId" class="kairo-control__id" aria-label="Branch ID">
+                                    <input type="text" id="txt_branchName" class="kairo-control__name" aria-label="Branch Name" placeholder="Branch Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchBranch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_accountId">Account ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_accountId" name="accountId" class="kairo-control__id" aria-label="Account ID">
+                                    <input type="text" id="txt_accountName" class="kairo-control__name" aria-label="Account Name" placeholder="Account Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchAccount" aria-label="Search Account"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_directDebitInstructionId">Direct Debit Instruction ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_directDebitInstructionId" name="directDebitInstructionId" class="kairo-control__id" aria-label="Instruction ID">
+                                    <input type="text" id="txt_directDebitInstructionName" class="kairo-control__name" aria-label="Instruction Description" placeholder="Description" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchDDInstruction" aria-label="Search Instruction"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_referenceNo">Reference No.</label>
+                                <input type="text" id="txt_referenceNo" name="referenceNo" class="bs-input-text">
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_transactionCurrencyId">Transaction Currency</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_transactionCurrencyId" name="transactionCurrencyId" class="kairo-control__id" aria-label="Currency ID">
+                                    <input type="text" id="txt_transactionCurrencyName" class="kairo-control__name" aria-label="Currency Description" placeholder="Description" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchCurrency" aria-label="Search Currency"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_fixedAmount">Fixed Amount</label>
+                                <input type="number" id="txt_fixedAmount" name="fixedAmount" class="bs-input-text" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_effectiveDate">Effective Date</label>
+                                <input type="date" id="txt_effectiveDate" name="effectiveDate" class="bs-input-text">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="ddl_transferFrequency">Transfer Frequency</label>
+                                <select id="ddl_transferFrequency" name="transferFrequency" class="bs-select">
+                                    <option value="">--Select--</option>
+                                    @foreach (var opt in transferFrequencyOptions)
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_noOfExecution">No. of Executions</label>
+                                <input type="number" id="txt_noOfExecution" name="noOfExecution" class="bs-input-text" value="1">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_firstExecutionDate">First Execution Date</label>
+                                <input type="date" id="txt_firstExecutionDate" name="firstExecutionDate" class="bs-input-text">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_lastExecutionDate">Last Execution Date</label>
+                                <input type="date" id="txt_lastExecutionDate" name="lastExecutionDate" class="bs-input-text">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_valueDate">Value Date</label>
+                                <input type="date" id="txt_valueDate" name="valueDate" class="bs-input-text">
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_standingInstructionStatus">Standing Instruction Status</label>
+                                <input type="text" id="txt_standingInstructionStatus" name="standingInstructionStatus" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="ddl_chargeRecovery">Charge Recovery</label>
+                                <select id="ddl_chargeRecovery" name="chargeRecovery" class="bs-select">
+                                    <option value="">--Select--</option>
+                                    @foreach (var opt in chargeRecoveryOptions)
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Contra Details Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-arrow-left-right"></i> Contra Details</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_bankId">Contra Bank ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_bankId" name="bankId" class="kairo-control__id" aria-label="Bank ID">
+                                    <input type="text" id="txt_bankName" class="kairo-control__name" aria-label="Bank Name" placeholder="Bank Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchContraBank" aria-label="Search Bank"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_contraBranchId">Contra Branch ID</label>
+                                <div class="kairo-control" data-kairo-control>
+                                    <input type="text" id="txt_contraBranchId" name="contraBranchId" class="kairo-control__id" aria-label="Branch ID">
+                                    <input type="text" id="txt_contraBranchName" class="kairo-control__name" aria-label="Contra Branch Name" placeholder="Branch Name" readonly>
+                                    <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchContraBranch" aria-label="Search Branch"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="txt_contraAccountId">Contra Account ID</label>
+                                <input type="text" id="txt_contraAccountId" name="contraAccountId" class="bs-input-text">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="txt_originatorCode">Originator Code</label>
+                                <input type="text" id="txt_originatorCode" name="originatorCode" class="bs-input-text">
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="col">
+                                <label class="label-gray" for="txt_originatorRef">Originator Reference</label>
+                                <input type="text" id="txt_originatorRef" name="originatorRef" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-gray" for="txt_policyNumber1">Policy Number 1</label>
+                                <input type="text" id="txt_policyNumber1" name="policyNumber1" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-gray" for="txt_policyNumber2">Policy Number 2</label>
+                                <input type="text" id="txt_policyNumber2" name="policyNumber2" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-gray" for="txt_returnCode">Return Code</label>
+                                <input type="text" id="txt_returnCode" name="returnCode" class="bs-input-text" value="00" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col">
+                                <label class="label-gray" for="txt_remarks">Remarks</label>
+                                <textarea id="txt_remarks" name="remarks" class="bs-textarea" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="false">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content hidden>
+                        <div class="audit-section audit-section--summary">
+                            <div class="audit-cell">
+                                <span class="audit-label">Next Execution Date</span>
+                                <span class="audit-value" id="spn_nextExecutionDate">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Last Run Date</span>
+                                <span class="audit-value" id="spn_lastRunDate">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Last Run Status</span>
+                                <span class="audit-value" id="spn_lastRunStatus">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Times Failed</span>
+                                <span class="audit-value" id="spn_noOfTimesFailed">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Stopped Reason</span>
+                                <span class="audit-value" id="spn_stoppedReason">-</span>
+                            </div>
+                        </div>
+                        <div class="audit-section audit-section--summary">
+                            <div class="audit-cell">
+                                <span class="audit-label">Created By</span>
+                                <span class="audit-value" id="spn_createdBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Created On</span>
+                                <span class="audit-value" id="spn_createdOn">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Modified By</span>
+                                <span class="audit-value" id="spn_modifiedBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Modified On</span>
+                                <span class="audit-value" id="spn_modifiedOn">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Stopped By</span>
+                                <span class="audit-value" id="spn_stoppedBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Stopped On</span>
+                                <span class="audit-value" id="spn_stoppedOn">-</span>
+                            </div>
+                        </div>
+                        <div class="audit-section audit-section--summary">
+                            <div class="audit-cell">
+                                <span class="audit-label">Supervised By</span>
+                                <span class="audit-value" id="spn_supervisedBy">-</span>
+                            </div>
+                            <div class="audit-cell">
+                                <span class="audit-label">Supervised On</span>
+                                <span class="audit-value" id="spn_supervisedOn">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Action Panel (right rail) -->
+        <aside class="action-panel" aria-label="Form actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_view" type="button" data-action="view" title="View">
+                    <i class="bi bi-eye me-1"></i>View
+                </button>
+                <button class="btn-action" id="btn_add" type="button" data-action="add" title="Add">
+                    <i class="bi bi-plus-circle me-1"></i>Add
+                </button>
+                <button class="btn-action" id="btn_edit" type="button" data-action="edit" title="Edit">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </button>
+                <button class="btn-action" id="btn_delete" type="button" data-action="delete" title="Delete">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                <button class="btn-action" id="btn_save" type="button" data-action="save" title="Save">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+                <button class="btn-action btn-cancel" id="btn_cancel" type="button" data-action="cancel" title="Cancel">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <hr class="my-2" />
+                <button class="btn-action" id="btn_stop" type="button" data-action="stop" title="Stop">
+                    <i class="bi bi-stop-circle me-1"></i>Stop
+                </button>
+                <button class="btn-action" id="btn_print" type="button" data-action="print" title="Print">
+                    <i class="bi bi-printer me-1"></i>Print
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Message Panel -->
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span class="message-text"></span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="dv_loadingOverlay" hidden>
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/modules/accountutilities/direct-debit-maintenance.js"></script>
+}

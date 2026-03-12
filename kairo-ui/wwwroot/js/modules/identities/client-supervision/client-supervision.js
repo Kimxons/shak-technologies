@@ -66,7 +66,8 @@ class ClientSupervisionController {
         this.photoSignatures = [];
         this.lastMessageKey = null;
         this.lastMessageAt = 0;
-    this.moduleId = (document.getElementById('moduleId')?.value || '10587').toString();
+	this.moduleId = (document.getElementById('moduleId')?.value || '10587').toString();
+    this.isInitialLoad = true;
 
         this.elements = {
             messagePanel: document.getElementById('dv_messagePanel'),
@@ -168,9 +169,59 @@ class ClientSupervisionController {
         this.initializeSearchModal();
         this.initializeLookups();
         this.loadBranches();
-        if (this.elements.clientDetailsSection) {
-            this.elements.clientDetailsSection.style.display = 'none';
+        // Keep client details section visible on load so all three sections show
+    }
+
+    getSessionBranchId() {
+        try {
+            const appCore = getAppCore();
+            const authSession = typeof window.getAuthSession === 'function' ? (window.getAuthSession() || {}) : {};
+
+            const firstOf = (...values) => values.find(v => {
+                if (v === undefined || v === null) return false;
+                const s = String(v).trim();
+                return s !== '';
+            });
+
+            const branchId = firstOf(
+                authSession.branchId,
+                authSession.OurBranchID,
+                authSession.BranchID,
+                authSession.branch_code,
+                authSession.branch_id,
+                appCore?.user?.OurBranchID,
+                appCore?.user?.branchId,
+                appCore?.session?.OurBranchID,
+                appCore?.session?.branch_code,
+                appCore?.session?.branch_id,
+                appCore?.getUser?.()?.OurBranchID,
+                sessionStorage.getItem('currentBranchID'),
+                sessionStorage.getItem('OurBranchID'),
+                sessionStorage.getItem('BranchID'),
+                sessionStorage.getItem('branch_code'),
+                sessionStorage.getItem('branch_id'),
+                localStorage.getItem('OurBranchID'),
+                localStorage.getItem('BranchID'),
+                localStorage.getItem('branch_code'),
+                localStorage.getItem('branch_id')
+            );
+
+            return branchId ? String(branchId) : '';
+        } catch (e) {
+            return '';
         }
+    }
+
+    buildPendingSupervisionRequest(branchList) {
+        const normalizedBranchList = String(branchList || '').trim();
+        const firstSelectedBranch = normalizedBranchList.split(',').map(item => item.trim()).find(Boolean) || '';
+        const sessionBranchId = this.getSessionBranchId();
+
+        return {
+            OurBranchID: firstSelectedBranch || sessionBranchId || '',
+            MainModuleID: '',
+            BranchList: normalizedBranchList
+        };
     }
 
     initializeEventListeners() {
@@ -256,10 +307,61 @@ class ClientSupervisionController {
 
             this.elements.branchCheckboxList.innerHTML = '';
             const branchItems = Array.isArray(branches) ? branches : [];
-            branchItems.forEach((branch, index) => {
+
+            const allBranchIds = branchItems
+                .map(branch => branch.SubCodeID || branch.BranchID || branch.OurBranchID || branch.BranchCode || '')
+                .filter(id => id && String(id).trim() !== '');
+
+            const sessionBranchId = this.getSessionBranchId();
+
+            let allSupervisions = [];
+            if (allBranchIds.length) {
+                try {
+                    const pendingResponse = await ClientSupervisionService.getPendingSupervisions(
+                        this.buildPendingSupervisionRequest(allBranchIds.join(','))
+                    );
+                    const items = this.extractDetails(pendingResponse);
+                    allSupervisions = (Array.isArray(items) ? items : [])
+                        .filter(item => item && (item.ClientID || item.clientid || item.Searchkey || item.SearchKey));
+                } catch (err) {
+                    console.warn('[ClientSupervision] Error pre-loading pending supervisions on init:', err);
+                }
+            }
+
+            // Determine which branch to select initially
+            let branchToSelect = sessionBranchId || (allBranchIds[0] || '');
+
+            if (allSupervisions.length) {
+                const branchesWithData = new Set(
+                    allSupervisions
+                        .map(it => (it.OurBranchID || it.BranchID || '').toString().trim())
+                        .filter(id => id)
+                );
+
+                const firstWithData = branchItems.find(b => {
+                    const id = (b.SubCodeID || b.BranchID || b.OurBranchID || b.BranchCode || '').toString().trim();
+                    return id && branchesWithData.has(id);
+                });
+
+                if (firstWithData) {
+                    branchToSelect = (firstWithData.SubCodeID || firstWithData.BranchID || firstWithData.OurBranchID || firstWithData.BranchCode || '').toString().trim();
+                }
+            }
+
+            // Set initial supervision list for the selected branch (if any)
+            if (branchToSelect && allSupervisions.length) {
+                this.supervisionList = allSupervisions.filter(it => {
+                    const id = (it.OurBranchID || it.BranchID || '').toString().trim();
+                    return id === branchToSelect;
+                });
+            } else {
+                this.supervisionList = [];
+            }
+
+            branchItems.forEach((branch) => {
                 const branchId = branch.SubCodeID || branch.BranchID || branch.OurBranchID || branch.BranchCode || '';
                 const branchName = branch.Description || branch.BranchName || branchId;
-                const selected = index === 0;
+                const selected = branchId && branchId.toString().trim() === branchToSelect;
                 this.addBranchOption(branchId, branchName, selected);
             });
 
@@ -268,6 +370,7 @@ class ClientSupervisionController {
             }
 
             this.updateSelectedBranches();
+            this.isInitialLoad = false;
         } catch (error) {
             console.error('[ClientSupervision] Error loading branches:', error);
             this.showMessage('Error loading branches', 'warning');
@@ -340,7 +443,12 @@ class ClientSupervisionController {
             this.elements.selectAllBranches.checked = all.length > 0 && checked.length === all.length;
         }
 
-        this.loadSupervisionList();
+        // On initial load, render using already-fetched data to avoid duplicate calls
+        if (this.isInitialLoad) {
+            this.renderSupervisionTable();
+        } else {
+            this.loadSupervisionList();
+        }
     }
 
     async loadSupervisionList() {
@@ -352,10 +460,9 @@ class ClientSupervisionController {
 
         try {
             const branchList = this.selectedBranches.map((item) => item.id).join(',');
-            const response = await ClientSupervisionService.getPendingSupervisions({
-                MainModuleID: '',
-                BranchList: branchList
-            });
+            const response = await ClientSupervisionService.getPendingSupervisions(
+                this.buildPendingSupervisionRequest(branchList)
+            );
 
             const items = this.extractDetails(response);
             this.supervisionList = (Array.isArray(items) ? items : [])
@@ -367,6 +474,113 @@ class ClientSupervisionController {
             this.supervisionList = [];
             this.renderSupervisionTable();
             this.showMessage('Error loading supervision list', 'danger');
+        }
+    }
+
+    normalizeSupervisionItem(item) {
+        if (!item) return null;
+
+        return {
+            ...item,
+            ClientID: item.ClientID || item.clientid || item.Searchkey || item.SearchKey || '',
+            ClientTypeID: item.ClientTypeID || item.clientTypeID || '',
+            AccountID: item.AccountID || item.accountID || '',
+            Name: item.Name || item.ClientName || item.name || '',
+            Status: item.Status || item.status || '',
+            SearchKey: item.SearchKey || item.Searchkey || '',
+            OurBranchID: item.OurBranchID || item.BranchID || '',
+            Inputter: item.Inputter || item.inputter || ''
+        };
+    }
+
+    async getPendingSupervisionCandidates(forceReload = false) {
+        if (!this.selectedBranches || !this.selectedBranches.length) {
+            return [];
+        }
+
+        if (forceReload || !Array.isArray(this.supervisionList) || this.supervisionList.length === 0) {
+            await this.loadSupervisionList();
+        }
+
+        return (Array.isArray(this.supervisionList) ? this.supervisionList : [])
+            .map(item => this.normalizeSupervisionItem(item))
+            .filter(item => item && item.ClientID);
+    }
+
+    async selectPendingSupervisionClient(item) {
+        const normalized = this.normalizeSupervisionItem(item);
+        if (!normalized?.ClientID) {
+            this.showMessage('Client not found in pending supervisions', 'warning');
+            return;
+        }
+
+        this.currentClient = normalized;
+        this.elements.clientIdSearch.value = normalized.ClientID;
+        this.updateActionButtons();
+
+        const rows = this.elements.supervisionTableBody?.querySelectorAll('tr') || [];
+        rows.forEach((row, index) => {
+            const radio = row.querySelector('.supervision-radio');
+            if (radio) {
+                const supervisionItem = this.normalizeSupervisionItem(this.supervisionList[index]);
+                radio.checked = supervisionItem?.ClientID === normalized.ClientID;
+            }
+        });
+
+        await this.loadClientDetails(normalized.ClientID);
+    }
+
+    async showPendingClientPicker(items, title = 'Select Pending Supervision Client') {
+        const candidates = (Array.isArray(items) ? items : [])
+            .map(item => this.normalizeSupervisionItem(item))
+            .filter(item => item?.ClientID);
+
+        if (!candidates.length) {
+            if (typeof Swal === 'undefined' || typeof Swal.fire !== 'function') {
+                this.showMessage('No pending supervision clients found', 'info');
+                return;
+            }
+
+            await Swal.fire({
+                title,
+                html: '<div class="text-muted py-3"><i class="bi bi-inbox"></i> No pending supervision clients found</div>',
+                icon: 'info',
+                confirmButtonText: 'Close'
+            });
+            return;
+        }
+
+        const options = candidates
+            .map((item, index) => {
+                const label = `${item.ClientID} - ${item.Name || 'Unnamed Client'}${item.OurBranchID ? ` (${item.OurBranchID})` : ''}`;
+                return `<option value="${index}">${this.escapeHtml(label)}</option>`;
+            })
+            .join('');
+
+        if (typeof Swal === 'undefined' || typeof Swal.fire !== 'function') {
+            await this.selectPendingSupervisionClient(candidates[0]);
+            return;
+        }
+
+        const result = await Swal.fire({
+            title,
+            html: `<select id="pending-supervision-client-picker" class="swal2-select" size="10" style="display:block;width:100%;max-width:100%;height:16rem;">${options}</select>`,
+            showCancelButton: true,
+            confirmButtonText: 'Load Client',
+            cancelButtonText: 'Cancel',
+            focusConfirm: false,
+            preConfirm: () => {
+                const select = document.getElementById('pending-supervision-client-picker');
+                return select ? select.value : '';
+            }
+        });
+
+        if (!result.isConfirmed) return;
+
+        const selectedIndex = Number(result.value);
+        const selectedItem = Number.isInteger(selectedIndex) ? candidates[selectedIndex] : null;
+        if (selectedItem) {
+            await this.selectPendingSupervisionClient(selectedItem);
         }
     }
 
@@ -414,44 +628,56 @@ class ClientSupervisionController {
     }
 
     async openClientSearch() {
-        if (!this.searchModal) {
-            this.searchClient();
+        if (!this.selectedBranches || this.selectedBranches.length === 0) {
+            this.showMessage('Please select at least one branch first', 'warning');
             return;
         }
 
-        const currentClientId = this.elements.clientIdSearch.value || '';
-        this.searchModal.open({
-            title: 'Find Client - Pending Supervision',
-            tableID: 'ClientID',
-                        moduleID: this.moduleId,
-            searchFields: [
-                { name: 'ClientID', label: 'Client ID', column: 'ClientID', value: currentClientId },
-                { name: 'Name', label: 'Client Name', column: 'Name' }
-            ],
-            autoSearch: true,
-            onSelect: async (record) => {
-                const clientId = record.ClientID || '';
-                this.elements.clientIdSearch.value = clientId;
-                await this.loadClientDetails(clientId);
-            }
-        });
+        const currentClientId = (this.elements.clientIdSearch.value || '').trim();
+        if (currentClientId) {
+            await this.searchClient();
+            return;
+        }
+
+        const candidates = await this.getPendingSupervisionCandidates(true);
+        if (candidates.length === 1) {
+            await this.selectPendingSupervisionClient(candidates[0]);
+            return;
+        }
+
+        await this.showPendingClientPicker(candidates, 'Pending Supervision Clients');
     }
 
     async searchClient() {
+        if (!this.selectedBranches || this.selectedBranches.length === 0) {
+            this.showMessage('Please select at least one branch first', 'warning');
+            return;
+        }
+
         const query = (this.elements.clientIdSearch.value || '').trim().toLowerCase();
         if (!query) {
+            await this.openClientSearch();
             return;
         }
 
-        const matched = this.supervisionList.find((item) => String(item.ClientID || item.clientid || '').toLowerCase().includes(query));
-        if (!matched) {
-            this.showMessage('Client not found in pending supervisions', 'warning');
+        const candidates = await this.getPendingSupervisionCandidates(true);
+        const matches = candidates.filter((item) => {
+            const clientId = String(item.ClientID || '').toLowerCase();
+            const name = String(item.Name || '').toLowerCase();
+            return clientId.includes(query) || name.includes(query);
+        });
+
+        if (!matches.length) {
+            await this.showPendingClientPicker([], 'Matching Pending Supervision Clients');
             return;
         }
 
-        this.currentClient = matched;
-        this.updateActionButtons();
-        await this.loadClientDetails(matched.ClientID || matched.clientid || '');
+        if (matches.length === 1) {
+            await this.selectPendingSupervisionClient(matches[0]);
+            return;
+        }
+
+        await this.showPendingClientPicker(matches, 'Matching Pending Supervision Clients');
     }
 
     async loadClientDetails(clientId) {
@@ -750,9 +976,39 @@ class ClientSupervisionController {
     }
 
     async handleView() {
-        if (!this.currentClient) return;
-        const clientId = this.currentClient.ClientID || this.currentClient.clientid || this.currentClient.Searchkey || '';
-        await this.loadClientDetails(clientId);
+        // Refresh pending supervisions for the selected branches (or session branch)
+        try {
+            let branchList = '';
+            if (this.selectedBranches && this.selectedBranches.length) {
+                branchList = this.selectedBranches.map(b => b.id).join(',');
+            } else {
+                const sessionBranch = this.getSessionBranchId();
+                if (sessionBranch) branchList = sessionBranch;
+            }
+
+            if (branchList) {
+                const resp = await ClientSupervisionService.getPendingSupervisions(
+                    this.buildPendingSupervisionRequest(branchList)
+                );
+                const items = this.extractDetails(resp);
+                this.supervisionList = Array.isArray(items) ? items : [];
+                this.renderSupervisionTable();
+            }
+
+            if (!this.currentClient && this.supervisionList.length) {
+                this.currentClient = this.supervisionList[0];
+                // mark first radio as checked
+                const firstRowRadio = this.elements.supervisionTableBody.querySelector('.supervision-radio');
+                if (firstRowRadio) firstRowRadio.checked = true;
+            }
+
+            const clientId = this.currentClient ? (this.currentClient.ClientID || this.currentClient.clientid || this.currentClient.Searchkey || '') : '';
+            if (clientId) await this.loadClientDetails(clientId);
+            else this.showMessage('No pending supervision client selected', 'warning');
+        } catch (err) {
+            console.error('[ClientSupervision] Error refreshing pending supervisions on view:', err);
+            this.showMessage('Error loading pending supervisions', 'danger');
+        }
     }
 
     async handleApprove() {
@@ -773,8 +1029,11 @@ class ClientSupervisionController {
         if (!result.isConfirmed) return;
 
         try {
+            const branchId = this.currentClient.OurBranchID || this.currentClient.BranchID || this.selectedBranches?.[0]?.id || this.getSessionBranchId() || '';
             const response = await ClientSupervisionService.approveSupervision({
+                OurBranchID: branchId,
                 ClientID: clientId,
+                ApprovedBy: this.currentClient.ApprovedBy || undefined,
                 strSearchKey: this.currentClient.SearchKey || this.currentClient.Searchkey || clientId
             });
 
@@ -857,10 +1116,36 @@ class ClientSupervisionController {
 
         this.lastMessageKey = messageKey;
         this.lastMessageAt = now;
-        this.elements.messageText.textContent = message;
-        this.elements.messagePanel.className = `am-message-panel am-message-panel--${type}`;
-        this.elements.messagePanel.style.display = 'block';
-        setTimeout(() => { this.elements.messagePanel.style.display = 'none'; }, 4500);
+
+        // Use SweetAlert2 toast-style notifications instead of the inline message panel
+        if (typeof Swal === 'undefined' || typeof Swal.mixin !== 'function') {
+            // Fallback to console if SweetAlert is not available
+            if (type === 'danger' || type === 'error') {
+                console.error('[ClientSupervision]', message);
+            } else if (type === 'warning') {
+                console.warn('[ClientSupervision]', message);
+            } else {
+                console.log('[ClientSupervision]', message);
+            }
+            return;
+        }
+
+        const iconType = (type === 'danger' || type === 'error')
+            ? 'error'
+            : (type === 'warning' ? 'warning' : (type === 'success' ? 'success' : 'info'));
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: iconType,
+            title: message
+        });
     }
 
     populateSelect(selectElement, options) {
@@ -875,10 +1160,34 @@ class ClientSupervisionController {
     }
 
     extractDetails(response) {
-        const payload = response?.Details || response?.data?.Details || response?.data || response || [];
-        if (Array.isArray(payload)) return payload;
-        if (Array.isArray(payload?.Details)) return payload.Details;
-        return payload ? [payload] : [];
+        const unwrap = (value) => {
+            if (value == null || value === '') return [];
+
+            if (Array.isArray(value)) {
+                if (value.length === 1) {
+                    const first = value[0];
+                    const nested = first?.Details ?? first?.details;
+                    const responseCode = first?.ResponseCode ?? first?.responseCode;
+
+                    if (nested !== undefined && responseCode !== undefined) {
+                        return unwrap(nested);
+                    }
+                }
+
+                return value;
+            }
+
+            if (typeof value === 'object') {
+                if (value.Details !== undefined) return unwrap(value.Details);
+                if (value.details !== undefined) return unwrap(value.details);
+                if (value.data !== undefined) return unwrap(value.data);
+                return [value];
+            }
+
+            return [value];
+        };
+
+        return unwrap(response);
     }
 
     isSuccess(response) {
