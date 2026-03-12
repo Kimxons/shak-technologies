@@ -272,8 +272,31 @@ namespace kairo_ui.Services
         public const string DELETE_ACCOUNT_CARD = "p_DeleteElectronicCard";
 
 
+    
+
+
+
+    
+        // ═══════════════════════════════════════════════════════════════════
+        // EXIT TYPES MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_EXIT_TYPES = "p_GetExitTypes";
+        public const string ADD_EDIT_EXIT_TYPES = "p_AddEditExitTypes";
+        public const string DELETE_EXIT_TYPES = "p_DeleteExitTypes";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTER ATTENDANCE MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_ATTENDANCE = "p_GetGroupAttendance";
+        public const string ADD_EDIT_GROUP_ATTENDANCE = "p_AddEditGroupAttendance";
+        public const string DELETE_GROUP_ATTENDANCE = "p_DeleteGroupAttendance";
+        public const string VALIDATE_ID_DESCRIPTION = "p_GetIDDescription";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CENTER LOAN / DISBURSEMENT REVERSAL
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_GROUP_LOAN_REVERSALS = "p_GetGroupLoanReversals";
+        public const string ADD_LOAN_REVERSAL_TRX = "p_AddLoanReversalTrx";
+
     }
-
-
-
 }
