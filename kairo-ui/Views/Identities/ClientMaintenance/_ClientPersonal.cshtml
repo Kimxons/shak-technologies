@@ -69,12 +69,12 @@
                 <div class="col"><label for="dt_personalIssueDate" id="lbl_personalIssueDate">Issue Date</label><input id="dt_personalIssueDate" name="IDIssueDate" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" /></div>
                 <div class="col"><label for="txt_personalIssuedBy" id="lbl_personalIssuedBy">Issued By</label><input id="txt_personalIssuedBy" name="IssuedBy" class="bs-input-text" /></div>
                 <div class="col"><label for="dt_personalExpiryDate" id="lbl_personalExpiryDate">Expiry Date</label><input id="dt_personalExpiryDate" name="IDExpiryDate" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" /></div>
-                <div class="col"><label for="ddl_personalLiteracyLevel" id="lbl_personalLiteracyLevel">Literacy Level</label><select id="ddl_personalLiteracyLevel" name="LiteracyLevel" class="bs-select" asp-items="@(literacyLevelOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="ddl_personalLiteracyLevel" id="lbl_personalLiteracyLevel">Literacy Level</label><select id="ddl_personalLiteracyLevel" name="LiteracyLevelID" class="bs-select" asp-items="@(literacyLevelOptions.Skip(1))"><option value="">Select...</option></select></div>
             </div>
 
             <!-- ROW 5: Marital Status, House Members, Children, Dependents -->
             <div class="form-row four-col">
-                <div class="col"><label for="ddl_personalMaritalStatus" id="lbl_personalMaritalStatus">Marital Status</label><select id="ddl_personalMaritalStatus" name="MaritalStatus" class="bs-select" asp-items="@(maritalStatusOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="ddl_personalMaritalStatus" id="lbl_personalMaritalStatus">Marital Status</label><select id="ddl_personalMaritalStatus" name="MaritalStatusID" class="bs-select" asp-items="@(maritalStatusOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col"><label class="label-blue" for="txt_personalHouseMembers" id="lbl_personalHouseMembers">No. Of House Members</label><input id="txt_personalHouseMembers" name="NumberOfHouseMembers" class="bs-input-text" type="number" min="0" required /></div>
                 <div class="col"><label for="txt_personalChildren" id="lbl_personalChildren">No. Of Children</label><input id="txt_personalChildren" name="NumberOfChildren" class="bs-input-text" type="number" min="0" /></div>
                 <div class="col"><label for="txt_personalDependents" id="lbl_personalDependents">No. Of Dependents</label><input id="txt_personalDependents" name="NumberOfDependents" class="bs-input-text" type="number" min="0" /></div>
@@ -83,7 +83,7 @@
             <!-- ROW 6: Mother Name, Blood Group, Can Donate Blood -->
             <div class="form-row four-col">
                 <div class="col"><label class="label-blue" for="txt_personalMotherName" id="lbl_personalMotherName">Mother Name</label><input id="txt_personalMotherName" name="MotherName" class="bs-input-text" maxlength="100" required /></div>
-                <div class="col"><label for="ddl_personalBloodGroup" id="lbl_personalBloodGroup">Blood Group</label><select id="ddl_personalBloodGroup" name="BloodGroup" class="bs-select" asp-items="@(bloodGroupOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="ddl_personalBloodGroup" id="lbl_personalBloodGroup">Blood Group</label><select id="ddl_personalBloodGroup" name="BloodGroupID" class="bs-select" asp-items="@(bloodGroupOptions.Skip(1))"><option value="">Select...</option></select></div>
                 <div class="col">
                     <div class="bs-field bs-inline">
                         <label class="bs-label" for="chk_personalCanDonateBlood">Can Donate Blood</label>
@@ -97,8 +97,8 @@
                 <div class="col span-2">
                     <label class="label-blue" for="txt_personalOpenedBy" id="lbl_personalOpenedBy">Opened By</label>
                     <div class="kairo-user-control" data-kairo-user-control>
-                        <input id="txt_personalOpenedBy" name="CreatedBy" class="bs-input-text uppercase" readonly />
-                        <input id="txt_personalOpenedByName" class="bs-input-text" placeholder="User Name" readonly />
+                        <input id="txt_personalOpenedBy" name="OpenedBy" class="bs-input-text uppercase" readonly />
+                        <input id="txt_personalOpenedByName" class="bs-input-text" name="OpenedByName" placeholder="User Name" readonly />
                         <button type="button" class="btn-lookup kairo-user-control__lookup" data-personal-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
                     </div>
                 </div>

@@ -425,8 +425,10 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 function initDocumentsSearchModal(tabRoot, moduleId) {
     if (!tabRoot) return;
     
+    const receivedByField = tabRoot.querySelector('[data-document-field="ReceivedBy"]');
+    const receivedByNameField = tabRoot.querySelector('#txt_documentReceivedByName');
     const searchBtn = tabRoot.querySelector('[data-document-action="lookup-receiver"]');
-    if (!searchBtn) return;
+    if (!searchBtn || !receivedByField || !receivedByNameField) return;
 
     const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
     if (!appCore) {
@@ -445,10 +447,62 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
         console.warn('[Documents] SearchModal not available');
         return;
     }
+
+    const setReceivedByFields = (record, fallbackId = '') => {
+        const receiverId = record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || fallbackId;
+        const receiverName = record?.ClientName || record?.Name || record?.UserName || record?.FullName || '';
+
+        receivedByField.value = receiverId;
+        receivedByNameField.value = receiverName;
+    };
+
+    let receiverLookupInFlight = false;
+
+    const autoLoadReceivedByNameFromId = async () => {
+        const typedOperatorId = String(receivedByField.value || '').trim();
+        if (!typedOperatorId) {
+            receivedByNameField.value = '';
+            return;
+        }
+
+        if (receivedByField.readOnly || receivedByField.disabled || receiverLookupInFlight) {
+            return;
+        }
+
+        const lookupIdDescription = window.ClientMaintenanceCore?.lookupIdDescription;
+        if (typeof lookupIdDescription !== 'function') {
+            return;
+        }
+
+        receiverLookupInFlight = true;
+        try {
+            const result = await lookupIdDescription({
+                controlTypeId: 'OperatorID',
+                id: typedOperatorId,
+                bankId: '00',
+                typeId: '',
+                advanceFilter: '',
+                moduleId: String(moduleId || window.ClientMaintenanceCore?.moduleId || ''),
+                descriptionFieldCandidates: ['ClientName', 'Name', 'UserName', 'FullName']
+            });
+
+            const record = result?.record;
+            if (!record) {
+                receivedByNameField.value = '';
+                return;
+            }
+
+            setReceivedByFields(record, typedOperatorId);
+        } catch (error) {
+            console.warn('[Documents] Failed to auto-load receiver name from ID:', error);
+        } finally {
+            receiverLookupInFlight = false;
+        }
+    };
     
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const currentValue = tabRoot.querySelector('[data-document-field="ReceivedBy"]')?.value || '';
+        const currentValue = receivedByField.value || '';
         
         searchModal.open({
             title: 'Find User for Document Receiver',
@@ -460,18 +514,24 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
             ],
             autoSearch: false,
             onSelect: (record) => {
-                // Populate the received by field with the selected operator ID
-                const receivedByField = tabRoot.querySelector('[data-document-field="ReceivedBy"]');
-                if (receivedByField) {
-                    receivedByField.value = record.OperatorID || record.LoginID || record.UserID || '';
-                }
-                
-                // Also update the display name if available
-                const receivedByNameField = tabRoot.querySelector('#txt_documentReceivedByName');
-                if (receivedByNameField) {
-                    receivedByNameField.value = record.ClientName || record.Name || record.UserName || '';
-                }
+                setReceivedByFields(record);
             }
         });
+    });
+
+    receivedByField.addEventListener('blur', (e) => {
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-document-action="lookup-receiver"]')) {
+            return;
+        }
+
+        void autoLoadReceivedByNameFromId();
+    });
+
+    receivedByField.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+            e.preventDefault();
+            searchBtn.click();
+        }
     });
 }

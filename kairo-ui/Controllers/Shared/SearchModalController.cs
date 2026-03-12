@@ -198,6 +198,105 @@ namespace kairo_ui.Controllers.Shared
         }
 
         /// <summary>
+        /// Resolve an entered ID into its display description/name.
+        /// POST: /SearchModal/GetIDDescription
+        /// </summary>
+        [HttpPost]
+        [Route("GetIDDescription")]
+        public async Task<IActionResult> GetIDDescription([FromBody] SearchIdDescriptionRequestDto request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    _logger.LogWarning("[SearchModal] Null GetIDDescription request payload");
+                    return BadRequest(new { success = false, message = "Invalid request payload" });
+                }
+
+                if (!_authService.IsAuthenticated())
+                {
+                    _logger.LogWarning("[SearchModal] Unauthenticated GetIDDescription attempt");
+                    return Unauthorized(new { success = false, message = "User not authenticated" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.ControlTypeID) || string.IsNullOrWhiteSpace(request.ID))
+                {
+                    return BadRequest(new { success = false, message = "ControlTypeID and ID are required" });
+                }
+
+                request.OurBranchID = string.IsNullOrWhiteSpace(request.OurBranchID)
+                    ? HttpContext.Session.GetString("OurBranchID") ?? HttpContext.Session.GetString("branch_code") ?? string.Empty
+                    : request.OurBranchID;
+
+                request.LanguageID = string.IsNullOrWhiteSpace(request.LanguageID)
+                    ? HttpContext.Session.GetString("LanguageID") ?? "en"
+                    : request.LanguageID;
+
+                request.BankID = string.IsNullOrWhiteSpace(request.BankID) ? "00" : request.BankID;
+                request.TypeID ??= string.Empty;
+                request.AdvanceFilter ??= string.Empty;
+                request.ModuleID ??= "100";
+
+                var apiRequestData = new
+                {
+                    ControlTypeID = request.ControlTypeID,
+                    ID = request.ID,
+                    BankID = request.BankID,
+                    TypeID = request.TypeID,
+                    AdvanceFilter = request.AdvanceFilter,
+                    LanguageID = request.LanguageID,
+                    OurBranchID = request.OurBranchID,
+                    ModuleID = request.ModuleID
+                };
+
+                _logger.LogInformation(
+                    "[SearchModal] GetIDDescription request - ControlTypeID: {ControlTypeID}, ID: {ID}, Branch: {Branch}",
+                    request.ControlTypeID,
+                    request.ID,
+                    request.OurBranchID
+                );
+
+                var response = await _apiService.CreateAsync<JsonElement>("SystemCoreApi", ApiEndpoints.GET_ID_DESCRIPTION, apiRequestData);
+
+                var responseCode = string.Empty;
+                var responseMessage = string.Empty;
+
+                if (response.ValueKind == JsonValueKind.Object)
+                {
+                    if (response.TryGetProperty("ResponseCode", out var responseCodeEl))
+                    {
+                        responseCode = responseCodeEl.GetString() ?? string.Empty;
+                    }
+
+                    if (response.TryGetProperty("ResponseMessage", out var responseMessageEl))
+                    {
+                        responseMessage = responseMessageEl.GetString() ?? string.Empty;
+                    }
+                }
+
+                var isSuccess = string.Equals(responseCode, "00", StringComparison.OrdinalIgnoreCase);
+                return Ok(new
+                {
+                    success = isSuccess,
+                    data = response,
+                    message = string.IsNullOrWhiteSpace(responseMessage)
+                        ? (isSuccess ? "Lookup completed successfully" : "Lookup returned no matching record")
+                        : responseMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SearchModal] GetIDDescription error");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "GetIDDescription failed",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Get search configuration from SystemCoreApi
         /// Calls api/v1/Shared/GetSystemSearch endpoint
         /// </summary>

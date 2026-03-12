@@ -127,7 +127,7 @@ namespace kairo_ui.Services
             }
         }
 
-        private string? ResolveSessionValue(params string[] keys)
+        public string? ResolveSessionValue(params string[] keys)
         {
             var session = _httpContextAccessor?.HttpContext?.Session;
             if (session == null)
@@ -145,6 +145,21 @@ namespace kairo_ui.Services
             }
 
             return null;
+        }
+
+        public Dictionary<string, object> EnrichDefaults(Dictionary<string, object> requestData, params KeyValuePair<string, object>[] defaultValues)
+        {
+
+            void SetIfEmpty(string key, object value)
+            {
+                if (!requestData.ContainsKey(key) || requestData[key] == null || (requestData[key] is string s && string.IsNullOrWhiteSpace(s)))
+                    requestData[key] = value;
+            }
+            foreach (var kvp in defaultValues)
+            {
+                SetIfEmpty(kvp.Key, kvp.Value);
+            }
+            return requestData;
         }
         ///// <summary>
         ///// Ensures default values are set on the request data object.
@@ -249,5 +264,7 @@ namespace kairo_ui.Services
 
         //    return null;
         //}
+
+
     }
 }

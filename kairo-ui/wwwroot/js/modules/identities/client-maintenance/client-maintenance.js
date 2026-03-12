@@ -60,7 +60,18 @@ function invokeControllerMethod(basePath, action, method, requestData, options) 
         }
 
         const endpoint = `${basePath}/${action}`;
-        appCore.invokeControllerByMethodAsync(endpoint, method || 'POST', requestData || {}, options || {})
+        const effectiveOptions = options ? { ...options } : {};
+        const isClientMaintenanceRoute = String(basePath || '').toLowerCase().startsWith(CLIENT_MAINTENANCE_CONTROLLER_BASE.toLowerCase());
+        const hasFormBody = effectiveOptions.body instanceof FormData;
+        const effectiveRequestData = isClientMaintenanceRoute && !hasFormBody
+            ? enrichClientMaintenanceRequestData(requestData)
+            : (requestData || {});
+
+        if (isClientMaintenanceRoute && hasFormBody) {
+            effectiveOptions.body = enrichClientMaintenanceRequestData(effectiveOptions.body);
+        }
+
+        appCore.invokeControllerByMethodAsync(endpoint, method || 'POST', effectiveRequestData || {}, effectiveOptions)
             .then(resolve)
             .catch(reject);
     });
@@ -152,6 +163,241 @@ function syncClientMaintenanceFlatpickrInScope(scopeRoot = document) {
     });
 }
 
+function getClientMaintenanceClientTypeId() {
+    const shell = document.querySelector('[data-client-maintenance]');
+    const selectedClientType = String(shell?.querySelector('#ddl_mainClientType')?.value || '').trim();
+    if (selectedClientType) {
+        return selectedClientType;
+    }
+
+    const workflowType = window.ClientMaintenanceCore?.workflowId;
+    return workflowType == null ? '' : String(workflowType).trim();
+}
+
+function buildClientMaintenanceRequestContext(options = {}) {
+    const requireSelection = Boolean(options.requireSelection);
+    const moduleId = window.ClientMaintenanceCore?.moduleId || '';
+    const clientId = window.ClientMaintenanceCore?.clientId || '';
+    const requestId = window.ClientMaintenanceCore?.requestId || '';
+    const clientTypeId = getClientMaintenanceClientTypeId();
+
+    if (requireSelection && !clientId && !requestId) {
+        return null;
+    }
+
+    const context = {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId
+    };
+
+    if (clientTypeId) {
+        context.ClientTypeID = clientTypeId;
+    }
+
+    return context;
+}
+
+function enrichClientMaintenanceFormData(formData, clientTypeId) {
+    if (!(formData instanceof FormData) || !clientTypeId) {
+        return formData;
+    }
+
+    ['ClientTypeID', 'RequestData.ClientTypeID'].forEach((key) => {
+        const existingValue = formData.get(key);
+        if (existingValue == null || String(existingValue).trim() === '') {
+            formData.set(key, clientTypeId);
+        }
+    });
+
+    return formData;
+}
+
+function enrichClientMaintenanceRequestData(requestData) {
+    const clientTypeId = getClientMaintenanceClientTypeId();
+    if (!clientTypeId) {
+        return requestData || {};
+    }
+
+    if (requestData instanceof FormData) {
+        return enrichClientMaintenanceFormData(requestData, clientTypeId);
+    }
+
+    const payload = requestData && typeof requestData === 'object'
+        ? { ...requestData }
+        : {};
+
+    if (payload.ClientTypeID == null || String(payload.ClientTypeID).trim() === '') {
+        payload.ClientTypeID = clientTypeId;
+    }
+
+    return payload;
+}
+
+function normalizeLookupRows(candidate) {
+    if (candidate == null) return [];
+
+    if (Array.isArray(candidate)) {
+        return candidate.filter((item) => item != null);
+    }
+
+    if (typeof candidate === 'string') {
+        const text = candidate.trim();
+        if (!text) return [];
+        try {
+            const parsed = JSON.parse(text);
+            return normalizeLookupRows(parsed);
+        } catch (_) {
+            return [];
+        }
+    }
+
+    if (typeof candidate === 'object') {
+        if (candidate.Details != null) return normalizeLookupRows(candidate.Details);
+        if (candidate.Details01 != null) return normalizeLookupRows(candidate.Details01);
+        if (candidate.details != null) return normalizeLookupRows(candidate.details);
+        if (candidate.SearchResults != null) return normalizeLookupRows(candidate.SearchResults);
+        if (candidate.Records != null) return normalizeLookupRows(candidate.Records);
+        return [candidate];
+    }
+
+    return [];
+}
+
+function getLookupRowsFromIdDescriptionResponse(response) {
+    const payload = response?.data ?? response?.Data ?? response?.raw ?? response;
+    const candidates = [
+        payload,
+        payload?.data,
+        payload?.Data,
+        payload?.details,
+        payload?.Details,
+        payload?.Details01
+    ];
+
+    for (const candidate of candidates) {
+        const rows = normalizeLookupRows(candidate);
+        if (rows.length) return rows;
+    }
+
+    return [];
+}
+
+function getIdDescriptionResponseCode(response) {
+    const payload = response?.data ?? response?.Data ?? response?.raw ?? response;
+    const candidates = [
+        payload?.ResponseCode,
+        payload?.responseCode,
+        payload?.data?.ResponseCode,
+        payload?.data?.responseCode
+    ];
+
+    for (const candidate of candidates) {
+        const value = String(candidate ?? '').trim();
+        if (value) return value;
+    }
+
+    return '';
+}
+
+function getIdDescriptionMessage(response, fallback = '') {
+    const payload = response?.data ?? response?.Data ?? response?.raw ?? response;
+    const candidates = [
+        response?.message,
+        response?.Message,
+        payload?.ResponseMessage,
+        payload?.responseMessage,
+        payload?.data?.ResponseMessage,
+        payload?.data?.responseMessage
+    ];
+
+    for (const candidate of candidates) {
+        const value = String(candidate ?? '').trim();
+        if (value) return value;
+    }
+
+    return fallback;
+}
+
+function getLookupRecordValue(record, candidates) {
+    if (!record || typeof record !== 'object' || !Array.isArray(candidates) || !candidates.length) {
+        return '';
+    }
+
+    const lookup = buildDataLookup(record);
+    const value = getLookupValue(lookup, candidates);
+    return String(value ?? '').trim();
+}
+
+async function lookupClientMaintenanceIdDescription(options = {}) {
+    const appCore = getAppCore();
+    if (!appCore || typeof appCore.invokeControllerAsync !== 'function') {
+        return {
+            success: false,
+            record: null,
+            description: '',
+            message: 'AppCore.invokeControllerAsync is not available'
+        };
+    }
+
+    const controlTypeId = String(options.controlTypeId || options.tableID || options.tableId || '').trim();
+    const idValue = String(options.id || '').trim();
+
+    if (!controlTypeId || !idValue) {
+        return {
+            success: false,
+            record: null,
+            description: '',
+            message: 'ControlTypeID and ID are required'
+        };
+    }
+
+    const requestPayload = {
+        ControlTypeID: controlTypeId,
+        ID: idValue,
+        BankID: String(options.bankId ?? options.BankID ?? '00'),
+        TypeID: String(options.typeId ?? options.TypeID ?? ''),
+        AdvanceFilter: String(options.advanceFilter ?? options.AdvanceFilter ?? ''),
+        LanguageID: String(options.languageId ?? options.LanguageID ?? ''),
+        ModuleID: String(options.moduleId ?? options.ModuleID ?? window.ClientMaintenanceCore?.moduleId ?? ''),
+        OurBranchID: String(
+            options.ourBranchId ??
+            options.OurBranchID ??
+            window.Environment?.ourBranchId ??
+            window.Environment?.ourBranchID ??
+            ''
+        )
+    };
+
+    const response = await appCore.invokeControllerAsync('SearchModal/GetIDDescription', requestPayload);
+    const explicitSuccess = response?.success ?? response?.Success;
+    const responseCode = getIdDescriptionResponseCode(response);
+
+    if (explicitSuccess === false || (responseCode && responseCode !== '00')) {
+        return {
+            success: false,
+            record: null,
+            description: '',
+            response,
+            message: getIdDescriptionMessage(response, 'Lookup returned no matching record')
+        };
+    }
+
+    const rows = getLookupRowsFromIdDescriptionResponse(response);
+    const record = rows[0] || null;
+    const descriptionCandidates = Array.isArray(options.descriptionFieldCandidates) && options.descriptionFieldCandidates.length
+        ? options.descriptionFieldCandidates
+        : ['Description', 'Name', 'ClientName', 'AccountName', 'BranchName', 'BankName', 'UserName', 'FullName'];
+
+    return {
+        success: Boolean(record),
+        record,
+        description: getLookupRecordValue(record, descriptionCandidates),
+        response,
+        message: getIdDescriptionMessage(response, '')
+    };
+}
+
 window.ClientMaintenanceCore = {
     getAppCore,
     invokeController,
@@ -161,6 +407,7 @@ window.ClientMaintenanceCore = {
     invokeControllerDelete,
     invokeControllerMultipart,
     invokeControllerDownload,
+    lookupIdDescription: lookupClientMaintenanceIdDescription,
     invokeClientMaintenanceController,
     moduleId: null,
     clientId: null,
@@ -230,7 +477,7 @@ window.ClientMaintenanceCore = {
         return this.requestId || '';
     },
     /**
-       * Get the full context for submodules (includes clientId, requestId, moduleId)
+       * Get the full context for submodules (includes clientId, requestId, moduleId, clientTypeId)
        */
     getParentContext() {
         const mainClientNameInput = document.getElementById('txt_mainClientName');
@@ -240,6 +487,7 @@ window.ClientMaintenanceCore = {
             clientId: this.clientId || '',
             clientName,
             requestId: this.requestId || '',
+            clientTypeId: getClientMaintenanceClientTypeId(),
             useRequestId: this.useRequestId,
             selectedId: this.getSelectedId()
         };
@@ -492,6 +740,7 @@ window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName
         });
         payload["ModuleID"] = moduleId || window.ClientMaintenanceCore.moduleId || '';
         payload["ClientID"] = window.ClientMaintenanceCore.clientId || '';
+        payload["ClientTypeID"] = getClientMaintenanceClientTypeId();
         return payload;
         //return {
         //    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
@@ -743,9 +992,12 @@ function clearAllTabCompletions() {
 }
 
 function buildTabRequest() {
-    const moduleId = window.ClientMaintenanceCore.moduleId || '';
-    const requestId = window.ClientMaintenanceCore.requestId || '';
-    const clientId = window.ClientMaintenanceCore.clientId || '';
+    const requestContext = buildClientMaintenanceRequestContext({ requireSelection: true });
+    if (!requestContext) return null;
+
+    const moduleId = requestContext.ModuleID || '';
+    const requestId = requestContext.RequestID || '';
+    const clientId = requestContext.ClientID || '';
     const useRequestId = window.ClientMaintenanceCore.useRequestId;
 
     // When working with ApplicationID/RequestID (useRequestId=true):
@@ -757,12 +1009,11 @@ function buildTabRequest() {
     const effectiveClientId = clientId || '';
     const effectiveRequestId = requestId || '';
 
-    if (!effectiveClientId && !effectiveRequestId) return null;
-
     return {
         ModuleID: moduleId,
         ClientID: effectiveClientId,
-        RequestID: effectiveRequestId
+        RequestID: effectiveRequestId,
+        ClientTypeID: requestContext.ClientTypeID || ''
     };
 }
 
@@ -1854,8 +2105,16 @@ async function loadTabPartial(config, forceDataRefresh = false) {
         return;
     }
 
-    const moduleId = encodeURIComponent(window.ClientMaintenanceCore.moduleId || '');
-    const response = await fetch(`${config.route}?moduleId=${moduleId}`, {
+    const query = new URLSearchParams({
+        moduleId: window.ClientMaintenanceCore.moduleId || ''
+    });
+
+    const clientTypeId = getClientMaintenanceClientTypeId();
+    if (clientTypeId) {
+        query.set('ClientTypeID', clientTypeId);
+    }
+
+    const response = await fetch(`${config.route}?${query.toString()}`, {
         method: 'GET',
         credentials: 'same-origin'
     });
@@ -1979,6 +2238,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             // Load the tab partial view
             await loadTabPartial(config);
+
+            // After loading, check if this tab has existing data (was previously saved)
+            // If yes and not in edit mode, we should prepare for edit/update operations
+            const pane = document.getElementById(paneId);
+            if (pane && detectTabHasExistingData(pane)) {
+                // This tab has been previously saved and has data loaded
+                // Ensure edit mode is enabled for this tab so the next save uses UPDATE action
+                // Note: The global isEditMode flag controls the mode across all tabs
+                // For tabs with existing data, we want them to use UPDATE action when navigating next
+                
+                // If this tab has the "is-completed" class, it means it was previously saved
+                // We should ensure edit mode applies to it
+                const tabButton = event.target;
+                if (tabButton?.classList.contains('is-completed')) {
+                    // Tab was previously saved - ensure edit mode is active for proper update handling
+                    if (!window.ClientMaintenanceCore?.isEditMode) {
+                        // Don't force global edit mode here as that would affect all tabs
+                        // Instead, the processTabWorkflowStep will detect existing data and use UPDATE
+                        // But we want to make sure the user understands they can edit this saved tab
+                    }
+                }
+            }
 
             // Track recent activity when a workflow step/tab is accessed
             const clientId = window.ClientMaintenanceCore?.clientId || '';
@@ -2172,6 +2453,19 @@ function navigateToPreviousTab() {
     const tabs = Array.from(document.querySelectorAll('#nav_clientMaintenanceTabs .nav-link'));
     const prevTab = tabs[currentIndex - 1];
     if (prevTab) {
+        // When navigating back, clear the completed/disabled state from current tab and all subsequent tabs
+        // This allows them to be edited/revisited without being locked
+        tabs.forEach((tab, index) => {
+            if (index >= currentIndex) {
+                // Remove the "is-completed" marker from the current tab onwards
+                tab.classList.remove('is-completed');
+                // Remove the "disabled-tab" visual indicator
+                tab.classList.remove('disabled-tab');
+                // Restore pointer events (allow clicking)
+                tab.style.pointerEvents = '';
+            }
+        });
+
         const bsTab = new bootstrap.Tab(prevTab);
         bsTab.show();
     }
@@ -2340,7 +2634,11 @@ function lockRemainingWorkflowTabs(currentTabIndex, isLocked) {
 
     const tabs = Array.from(navTabs.querySelectorAll('.nav-link'));
     tabs.forEach((tab, index) => {
-        if (index <= currentTabIndex) {
+        // Allow access to:
+        // 1. All completed tabs (index <= currentTabIndex)
+        // 2. The immediately next tab (index == currentTabIndex + 1) - this is the workflow's next step
+        // Lock only tabs beyond the next step to prevent skipping
+        if (index <= currentTabIndex + 1) {
             tab.style.pointerEvents = '';
             tab.classList.remove('disabled-tab');
         } else {
@@ -2459,9 +2757,20 @@ async function processTabWorkflowStep(tabKey, pane, tabIndex) {
     }
 
     // Step 2: Check if we're in Add or Edit mode, or if this tab has existing data
+    // A tab can have existing data if:
+    // 1. We're in Edit mode for an existing client
+    // 2. We're navigating back to a previously saved workflow step
+    // 3. The tab was already loaded with data from the server
     const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
     const hasExistingData = detectTabHasExistingData(pane);
-    const action = (isAddMode || !hasExistingData) ? 'create' : 'update';
+    
+    // Determine action: use 'create' only for new tabs in add workflow
+    // If a tab has existing data (from previous save or loaded from server), use 'update'
+    // This is critical for workflow where user navigates back and forth between steps
+    const action = hasExistingData ? 'update' : (isAddMode ? 'create' : 'update');
+
+    // Log the action determination for debugging workflow issues
+    console.log(`[ClientMaintenance] Tab: ${tabKey}, IsAddMode: ${isAddMode}, HasExistingData: ${hasExistingData}, Action: ${action}`);
 
     // Step 3: Collect form data
     const payload = getTabDataFromPane(pane);

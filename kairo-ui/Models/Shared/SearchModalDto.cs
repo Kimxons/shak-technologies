@@ -46,6 +46,21 @@ namespace kairo_ui.Models.Shared
     }
 
     /// <summary>
+    /// Request DTO for resolving an ID into a display description via Shared/GetIDDescription
+    /// </summary>
+    public class SearchIdDescriptionRequestDto
+    {
+        public string? ControlTypeID { get; set; }
+        public string? ID { get; set; }
+        public string? BankID { get; set; } = "00";
+        public string? TypeID { get; set; } = string.Empty;
+        public string? AdvanceFilter { get; set; } = string.Empty;
+        public string? LanguageID { get; set; } = string.Empty;
+        public string? ModuleID { get; set; } = "100";
+        public string? OurBranchID { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// View model for search modal Index view
     /// </summary>
     public class SearchModalViewModel

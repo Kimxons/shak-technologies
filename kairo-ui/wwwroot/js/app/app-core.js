@@ -809,6 +809,100 @@
         }
     }
 
+
+    function showInlineAlert(message, variant) {
+        // Target the persistent container at the top of form-content
+        const container = document.getElementsByClassName('alert-container');
+
+        if (!container) {
+            // Fallback for submodules or cases where the main container is missing
+            if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+                window.AppCore.showNotification(message, variant);
+            } else {
+                console.log(`[${variant.toUpperCase()}] ${message}`);
+            }
+            return;
+        }
+
+        // Remove existing alerts to prevent stacking multiple banners
+        container.innerHTML = '';
+
+        const alertDiv = document.createElement('div');
+        const alertClass = variant === 'success' ? 'alert-success' :
+            variant === 'error' ? 'alert-danger' :
+                variant === 'warning' ? 'alert-warning' : 'alert-info';
+
+        const iconClass = variant === 'success' ? 'bi-check-circle' :
+            variant === 'error' ? 'bi-exclamation-octagon' :
+                variant === 'warning' ? 'bi-exclamation-triangle' : 'bi-info-circle';
+
+        alertDiv.className = `alert ${alertClass} fade show kairo-inline-alert`;
+        alertDiv.role = 'alert';
+        alertDiv.style.marginTop = '8px';
+        alertDiv.style.marginBottom = '8px';
+        alertDiv.style.padding = '0.35rem 0.75rem'; // Narrow strip style
+        alertDiv.style.display = 'flex';
+        alertDiv.style.alignItems = 'center';
+        alertDiv.style.borderWidth = '1px';
+        alertDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+        alertDiv.style.minHeight = 'auto';
+
+        alertDiv.innerHTML = `
+            <i class="bi ${iconClass} me-2" style="font-size: 1.1rem;"></i>
+            <div style="font-weight: 600; font-size: 13px; line-height: 1.2; flex: 1;">${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.5rem; font-size: 0.65rem; margin: 0;"></button>
+        `;
+
+        // Insert into container
+        container.appendChild(alertDiv);
+
+        // AUTO-DISMISS REMOVED: Banner stays until user clicks 'X'.
+    }
+
+    // Helper notification functions to resolve ReferenceErrors
+    function showSystemToast(message, options = {}) {
+        const variant = options && options.variant ? options.variant : 'info';
+
+        if (options.useInlineAlert) {
+            // Check if we already have this same message displayed to avoid duplicate banners
+            const container = document.getElementsByClassName('alert-container');
+            if (container && container.innerText.includes(message)) {
+                console.log(`[Notification] Skipping duplicate alert: ${message}`);
+                return;
+            }
+            showInlineAlert(message, variant);
+            return; // Explicitly return to prevent the bubble from also appearing
+        }
+
+        if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+            window.AppCore.showNotification(message, variant);
+            return;
+        }
+
+        // 3. Fallback: Try global toastr if available
+        if (window.toastr && typeof window.toastr[variant] === 'function') {
+            window.toastr[variant](message);
+            return;
+        }
+
+        // 4. Last resort - Centralized NotificationService (Client 360 style)
+        if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
+            window.NotificationService.showToast(message, variant);
+            return;
+        }
+
+        // 4. Final Fallback to console
+        console.log(`[${variant.toUpperCase()}] ${message}`);
+
+        // rudimentary fallback
+        if (variant === 'error') {
+            alert(`Error: ${message}`);
+        }
+    }
+
+    function showErrorMessage(message, options = {}) {
+        showSystemToast(message, { ...options, variant: 'error' });
+    }
     /**
      * Check if user is authenticated
      * @returns {boolean} True if user appears to be authenticated
