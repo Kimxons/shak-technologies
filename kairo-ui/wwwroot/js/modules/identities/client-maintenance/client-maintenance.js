@@ -2634,11 +2634,9 @@ function lockRemainingWorkflowTabs(currentTabIndex, isLocked) {
 
     const tabs = Array.from(navTabs.querySelectorAll('.nav-link'));
     tabs.forEach((tab, index) => {
-        // Allow access to:
-        // 1. All completed tabs (index <= currentTabIndex)
-        // 2. The immediately next tab (index == currentTabIndex + 1) - this is the workflow's next step
-        // Lock only tabs beyond the next step to prevent skipping
-        if (index <= currentTabIndex + 1) {
+        // Allow access only up to the currently unlocked stage index.
+        // Anything beyond remains disabled until the previous stage is saved successfully.
+        if (index <= currentTabIndex) {
             tab.style.pointerEvents = '';
             tab.classList.remove('disabled-tab');
         } else {
@@ -2800,7 +2798,8 @@ async function processTabWorkflowStep(tabKey, pane, tabIndex) {
 
     // Step 7: Lock remaining tabs if in Add workflow (until all tabs complete)
     if (isAddMode) {
-        lockRemainingWorkflowTabs(tabIndex, true);
+        // Unlock exactly the next stage only after current stage saves successfully.
+        lockRemainingWorkflowTabs(tabIndex + 1, true);
     }
 
     return true; // Allow navigation

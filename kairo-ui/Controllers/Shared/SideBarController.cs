@@ -165,13 +165,11 @@ namespace kairo_ui.Controllers.Shared
 
                 var requestData = new
                 {
-                    RequestData = new
-                    {
-                        OurBranchID = branchId,
-                        LoggedInOperator = operatorId,
-                        ModuleID = moduleId,
-                        AccessedFields = accessedFields
-                    }
+                    OurBranchID = branchId,
+                    LoggedInOperator = operatorId,
+                    ModuleID = moduleId,
+                    AccessedFields = accessedFields
+                    
                 };
 
                 _logger.LogInformation("[SideBar] AddRecentActivity for ModuleID: {ModuleID}, AccessedFields: {AccessedFields}", moduleId, accessedFields);
