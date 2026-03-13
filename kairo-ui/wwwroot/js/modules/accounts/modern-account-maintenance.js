@@ -2019,7 +2019,7 @@
                         'Address2': ['Address2'],
                         'PhoneHome': ['Phone1', 'PhoneHome'],   // API may return Phone1 or PhoneHome
                         'PhoneWork': ['Phone2', 'PhoneWork'],   // API may return Phone2 or PhoneWork
-                        'FaxNo': ['Fax'],
+                        'Fax': ['Fax'],
                         'Mobile': ['Mobile', 'MobileNo'],
                         'EmailID': ['Email', 'EmailID'],
                         'ContactPerson': ['ContactPerson']
@@ -2135,16 +2135,40 @@
 
                 // Unpack nested AccountDetails if present (common in Kairo responses like the one provided)
                 if (account.AccountDetails) {
-                    // Flatten the response by merging sub-objects
+                    // Parse FinancialSummary if it's a JSON string
+                    let financialSummary = {};
+                    if (account.FinancialSummary) {
+                        try {
+                            financialSummary = typeof account.FinancialSummary === 'string' 
+                                ? JSON.parse(account.FinancialSummary) 
+                                : account.FinancialSummary;
+                        } catch (e) {
+                            console.warn('[AccountMaintenance] Failed to parse FinancialSummary:', e);
+                        }
+                    }
+
+                    // Filter out empty/null values from Supervision to avoid overwriting valid AccountDetails fields
+                    let supervisionData = {};
+                    if (account.Supervision) {
+                        Object.entries(account.Supervision).forEach(([key, value]) => {
+                            if (value !== null && value !== undefined && value !== '' && value !== 0) {
+                                supervisionData[key] = value;
+                            }
+                        });
+                    }
+
+                    // Flatten the response by merging sub-objects (AccountDetails takes priority, then FinancialSummary, then non-empty Supervision)
                     account = {
                         ...account,
                         ...account.AccountDetails,
-                        ...(account.FinancialSummary || {}),
-                        ...(account.Supervision || {})
+                        ...financialSummary,
+                        ...supervisionData
                     };
                 }
 
                 if (account) {
+                    console.log('[AccountMaintenance] Parsed account data:', account);
+                    
                     // Update Global State
                     window.AccountMaintenanceState.AccountID = account.AccountID || accountId;
                     window.AccountMaintenanceState.AccountName = account.AccountName || account.AccountTitle || '';
@@ -2168,12 +2192,17 @@
                         'AccountTypeName': 'AccountClassName',
                         'PhoneHome': 'Phone1',
                         'PhoneWork': 'Phone2',
-                        'Fax': 'FaxNo', // If needed
-                        // Audit Trail field mappings (UI ID -> API field name)
-                        'CreatedBy': 'MakerID',
-                        'CreatedOn': 'MakerDT',
-                        'ModifiedBy': 'CheckerID',
-                        'ModifiedOn': 'CheckerDT',
+                        // Note: Fax uses same name in UI and API - no mapping needed
+                        // Financial Summary field mappings (handling case differences)
+                        'UnclearBalance': 'UnClearBalance', // UI uses "Unclear", API uses "UnClear"
+                        'OpenDate': 'OpenedDate', // UI uses "OpenDate", API uses "OpenedDate"
+                        'CreditRate': 'InterestRate', // Map to InterestRate from AccountDetails
+                        'DebitRate': 'DebitIntRate',
+                        'PenaltyRate': 'PenaltyIntRate',
+                        'PendingCharges': 'PendingCharges', // If present in future
+                        // Audit Trail field mappings - API uses direct field names
+                        // CreatedBy, CreatedOn, ModifiedBy, ModifiedOn are direct matches
+                        // Only add fallback mappings if needed
                         'SupervisedBy': 'SupervisorID',
                         'SupervisedOn': 'SupervisorDT'
                     };
@@ -2187,27 +2216,47 @@
                         // Skip if no field identifier or is the search trigger
                         if (!fieldName || fieldName === 'AccountID') return;
 
-                        // 1. Direct case-insensitive match
-                        let key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                        let key = null;
 
-                        // 2. Mapped match (UI field name -> API field name)
-                        if (!key && fieldMap[fieldName]) {
-                            // Find the actual key in data using the mapped name
+                        // 1. Check if form field has a mapping to a different API field name
+                        if (fieldMap[fieldName]) {
                             key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
                         }
 
-                        // 2b. Also check data-field attribute for mapping  
+                        // 2. Direct case-insensitive match
+                        if (!key) {
+                            key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                        }
+
+                        // 3. Also check data-field attribute for mapping  
                         if (!key && el.dataset.field && fieldMap[el.id]) {
                             key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[el.id].toLowerCase());
                         }
 
-                        // 3. Fallback for specific variations if needed
+                        // 4. Fallback for specific variations if needed
                         if (!key && fieldName.endsWith('ID')) {
-                            // e.g. CurrencyID -> CurrencyId
                             key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
                         }
 
-                        if (key && account[key] !== null && account[key] !== undefined) {
+                        // 5. Special fallback for CreatedOn (try MakerDT, CreatedOn, etc.)
+                        if (!key && fieldName === 'CreatedOn') {
+                            key = Object.keys(account).find(k => k.toLowerCase() === 'makerdt')
+                                || Object.keys(account).find(k => k.toLowerCase() === 'createdon');
+                        }
+
+                        // 6. Special fallback for ModifiedOn (try CheckerDT, ModifiedOn, etc.)
+                        if (!key && fieldName === 'ModifiedOn') {
+                            key = Object.keys(account).find(k => k.toLowerCase() === 'checkerdt')
+                                || Object.keys(account).find(k => k.toLowerCase() === 'modifiedon');
+                        }
+
+                        // 7. Special fallback for PendingCharges (try PendingCharges, PendingCharge, etc.)
+                        if (!key && fieldName === 'PendingCharges') {
+                            key = Object.keys(account).find(k => k.toLowerCase() === 'pendingcharges')
+                                || Object.keys(account).find(k => k.toLowerCase() === 'pendingcharge');
+                        }
+
+                        if (key && account[key] !== null && account[key] !== undefined && account[key] !== '') {
                             if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
                                 if (el.type === 'checkbox') {
                                     el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
@@ -2238,16 +2287,66 @@
                             } else {
                                 // Handle display spans (Account Snapshot, Audit Trail)
                                 // Format numeric balance fields with proper number formatting
-                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
-                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
+                                const numericFields = [
+                                    'ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
+                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance',
+                                    'CreditInterest', 'DebitInterest', 'DepositBalance',
+                                    'UnSupervisedCredits', 'UnSupervisedDebits', 'PendingCharges',
+                                    'CreditRate', 'DebitRate', 'PenaltyRate', 'InterestRate'
+                                ];
                                 const fieldId = el.id || '';
-                                if (numericFields.includes(fieldId) && !isNaN(parseFloat(account[key]))) {
-                                    // Format as number with 2 decimal places and comma separators
-                                    const num = parseFloat(account[key]);
-                                    el.textContent = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                
+                                if (numericFields.includes(fieldId)) {
+                                    const value = parseFloat(account[key]);
+                                    if (!isNaN(value)) {
+                                        el.textContent = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                    } else {
+                                        el.textContent = '0.00';
+                                    }
+                                } else if (fieldId.toLowerCase().includes('date') || fieldId.toLowerCase().includes('on')) {
+                                    // Format date fields
+                                    const dateValue = account[key];
+                                    if (dateValue && dateValue !== '-') {
+                                        try {
+                                            const date = new Date(dateValue);
+                                            if (!isNaN(date.getTime())) {
+                                                el.textContent = date.toLocaleDateString('en-US', { 
+                                                    year: 'numeric', 
+                                                    month: 'short', 
+                                                    day: 'numeric' 
+                                                });
+                                            } else {
+                                                el.textContent = dateValue;
+                                            }
+                                        } catch (e) {
+                                            el.textContent = dateValue;
+                                        }
+                                    } else {
+                                        el.textContent = '-';
+                                    }
                                 } else {
+                                    // Regular text field
                                     el.textContent = account[key];
                                 }
+                            }
+                        } else {
+                            // Field wasn't matched or value is null/empty - log for debugging
+                            if (el.tagName !== 'INPUT' && el.tagName !== 'SELECT' && el.tagName !== 'TEXTAREA') {
+                                console.warn(`[AccountMaintenance] No data found or value is empty for field: ${fieldName} (ID: ${el.id})`);
+                            }
+                            // For numeric fields, show 0.00 if missing
+                            const numericFields = [
+                                'ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
+                                'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance',
+                                'CreditInterest', 'DebitInterest', 'DepositBalance',
+                                'UnSupervisedCredits', 'UnSupervisedDebits', 'PendingCharges',
+                                'CreditRate', 'DebitRate', 'PenaltyRate', 'InterestRate'
+                            ];
+                            const fieldId = el.id || '';
+                            if (numericFields.includes(fieldId)) {
+                                el.textContent = '0.00';
+                            } else if (fieldId.toLowerCase().includes('date') || fieldId.toLowerCase().includes('on')) {
+                                el.textContent = '-';
                             }
                         }
                     });
@@ -2312,7 +2411,7 @@
             // Address
             'Address1', 'Address2', 'CityID', 'CountryID',
             // Contact
-            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
+            'PhoneHome', 'PhoneWork', 'Fax', 'Mobile', 'EmailID', 'ContactPerson',
             // Operating
             'OperatingModeID', 'OperatingInstructions',
             // Classification
@@ -2325,7 +2424,18 @@
             const el = document.getElementById(fieldId);
             if (el) {
                 formData[fieldId] = el.value || '';
+            } else {
+                console.warn(`[AccountMaintenance] collectAccountFormData: Element not found for field: ${fieldId}`);
             }
+        });
+
+        // Debug: Log collected contact fields
+        console.log('[AccountMaintenance] Collected contact fields:', {
+            PhoneHome: formData.PhoneHome,
+            PhoneWork: formData.PhoneWork,
+            Fax: formData.Fax,
+            Mobile: formData.Mobile,
+            EmailID: formData.EmailID
         });
 
         // Handle checkbox separately
@@ -2338,24 +2448,45 @@
         formData.OurBranchID = formData.BranchID || '';
         formData.Phone1 = formData.PhoneHome || '';
         formData.Phone2 = formData.PhoneWork || '';
+        // Note: Fax field is already collected correctly - database uses 'Fax'
 
         // Map AccountName to Name for database (t_AccountCustomer expects Name column)
         formData.Name = formData.AccountName || '';
 
-        // Add ModifiedBy/CreatedBy from session (required for update/create)
-        const operatorId = sessionStorage.getItem('UserId') ||
+        // Get OperatorID from sessionStorage - this is the logged-in user
+        const operatorId = sessionStorage.getItem('user_name') ||
+            sessionStorage.getItem('UserName') ||
+            sessionStorage.getItem('user_id') ||
+            sessionStorage.getItem('UserId') ||
             sessionStorage.getItem('UserID') ||
             sessionStorage.getItem('OperatorID') ||
             sessionStorage.getItem('operatorId') ||
             window.AccountMaintenanceState.OperatorID || '';
-        formData.ModifiedBy = operatorId;
-        formData.CreatedBy = operatorId;
 
-        // Add OpenedBy and OpenedDate for account creation (not nullable)
+        // Set OperatorID, CreatedBy, and ModifiedBy to the same value
+        formData.OperatorID = operatorId;
+        formData.CreatedBy = operatorId;
+        formData.ModifiedBy = operatorId;
         formData.OpenedBy = operatorId;
+
+        // Add OpenedDate for account creation (not nullable)
         formData.OpenedDate = window.GlobalUtils?.getCurrentDate
             ? window.GlobalUtils.getCurrentDate()
             : new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+        // Explicitly ensure Fax field is included (even if empty)
+        const faxElement = document.getElementById('Fax');
+        if (faxElement) {
+            formData.Fax = faxElement.value || '';
+            console.log('[AccountMaintenance] Fax element found, value:', faxElement.value);
+        } else {
+            formData.Fax = '';
+            console.warn('[AccountMaintenance] Fax element NOT found in DOM!');
+        }
+
+        // Final debug: Log complete formData before return
+        console.log('[AccountMaintenance] Final formData keys:', Object.keys(formData));
+        console.log('[AccountMaintenance] formData.Fax =', formData.Fax);
 
         return formData;
     }
@@ -2408,6 +2539,10 @@
         showPageLoader(true, 'Creating account...');
 
         try {
+            // Debug: Log the full payload before sending
+            console.log('[AccountMaintenance] createAccount payload:', JSON.stringify(formData, null, 2));
+            console.log('[AccountMaintenance] Fax value in payload:', formData.Fax);
+
             const response = await fetch('/AccountsMaintenance/create-account', {
                 method: 'POST',
                 headers: {
@@ -2475,6 +2610,10 @@
         showPageLoader(true, 'Updating account...');
 
         try {
+            // Debug: Log the full payload before sending
+            console.log('[AccountMaintenance] updateAccount payload:', JSON.stringify(formData, null, 2));
+            console.log('[AccountMaintenance] Fax value in payload:', formData.Fax);
+
             const response = await fetch('/AccountsMaintenance/update-account', {
                 method: 'POST',
                 headers: {
@@ -2546,7 +2685,7 @@
         const fieldsToClear = [
             'AccountID', 'ClientID', 'ProductID', 'AccountName', 'ShortName',
             'Address1', 'Address2', 'CityID', 'CountryID',
-            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
+            'PhoneHome', 'PhoneWork', 'Fax', 'Mobile', 'EmailID', 'ContactPerson',
             'OperatingModeID', 'OperatingInstructions',
             'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID', 'LiquidationAccountName',
             'SalesOfficerID', 'SalesOfficerName', 'PassbookSerialID', 'PassbookSerialName',
@@ -2781,7 +2920,7 @@
         const editableFields = [
             'AccountName', 'ShortName',
             'Address1', 'Address2', 'CityID', 'CountryID',
-            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
+            'PhoneHome', 'PhoneWork', 'Fax', 'Mobile', 'EmailID', 'ContactPerson',
             'OperatingModeID', 'OperatingInstructions',
             'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID',
             'SalesOfficerID', 'PassbookSerialID', 'ExemptPassBook'
