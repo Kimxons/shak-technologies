@@ -50,7 +50,7 @@
                 <div class="col"><label class="label-blue" for="ddl_personalGender" id="lbl_personalGender">Gender</label><select id="ddl_personalGender" name="GenderID" class="bs-select" asp-items="@(genderOptions.Skip(1))"><option value="">Select gender</option></select></div>
                 <div class="col"><label class="label-blue" for="dt_personalDob" id="lbl_personalDob">Date Of Birth</label><input id="dt_personalDob" name="DateOfBirth" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" required /></div>
                 <div class="col"><label for="txt_personalAge" id="lbl_personalAge">Age</label><input id="txt_personalAge" name="Age" class="bs-input-text" placeholder="Auto" readonly /></div>
-                <div class="col"><label for="txt_personalAgeAsOn" id="lbl_personalAgeAsOn">Age As On</label><input id="txt_personalAgeAsOn" name="AgeAsOn" class="bs-input-text" placeholder="Derived" readonly /></div>
+                <div class="col"><label for="txt_personalAgeAsOn" id="lbl_personalAgeAsOn">Age As On</label><input id="txt_personalAgeAsOn" name="AgeAsOn" class="bs-input-text" placeholder="Derived" data-type="date" data-date-format="dd-MMM-yyyy" readonly /></div>
             </div>
 
             <!-- ROW 3: Nationality, Resident Status, ID Type, ID Number -->
@@ -102,7 +102,7 @@
                         <button type="button" class="btn-lookup kairo-user-control__lookup" data-personal-action="lookup-opened-by" aria-label="User Lookup"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
-                <div class="col"><label for="dt_personalOpenedOn" id="lbl_personalOpenedOn">Opened On</label><input id="dt_personalOpenedOn" name="OpenedOn" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy hh:mm:ss" data-type="datetime" data-date-format="dd-MMM-yyyy HH:mm:ss" readonly /></div>
+                <div class="col"><label for="dt_personalOpenedOn" id="lbl_personalOpenedOn">Opened On</label><input id="dt_personalOpenedOn" name="OpenedDate" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy hh:mm:ss" data-type="datetime" data-date-format="dd-MMM-yyyy HH:mm:ss" readonly /></div>
                 <div class="col"><label class="label-blue" for="ddl_personalRelationshipManager" id="lbl_personalRelationshipManager">Relationship Manager</label><select id="ddl_personalRelationshipManager" name="RelationshipManagerID" class="bs-select" required asp-items="@(relationshipManagerOptions.Skip(1))"><option value="">Select an option</option></select></div>
             </div>
         </form>

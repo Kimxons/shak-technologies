@@ -493,6 +493,7 @@ window.ClientMaintenanceCore = {
     shellState: 'idle',
     hasLoadedRecord: false,
     singleStageEditLockActive: false,
+    recentActivityTrackedClientId: null,
     _shellLoadingDepth: 0,
     // Registry to track loaded tabs and their load functions
     _loadedTabsRegistry: new Map(),
@@ -802,6 +803,11 @@ let clientMaintenanceStageTabs = [];
 const addWorkflowPersistedStepMap = new Map();
 let addWorkflowBasicDetailsPersisted = false;
 
+// Tracks whether each tab has existing server data in edit mode.
+// true = data found on load (use update), false = no data found (use create).
+// Untracked entries default to update to preserve backward-compat for custom-load tabs.
+const editModeExistingStepMap = new Map();
+
 function normalizeAddWorkflowStepKey(tabKey) {
     return String(tabKey || '').trim().toLowerCase();
 }
@@ -821,6 +827,24 @@ function hasAddWorkflowStepPersisted(tabKey) {
     const key = normalizeAddWorkflowStepKey(tabKey);
     if (!key) return false;
     return addWorkflowPersistedStepMap.get(key) === true;
+}
+
+function markEditModeStepExists(tabKey, exists) {
+    const key = normalizeAddWorkflowStepKey(tabKey);
+    if (!key) return;
+    editModeExistingStepMap.set(key, exists === true);
+}
+
+function hasEditModeStepExists(tabKey) {
+    const key = normalizeAddWorkflowStepKey(tabKey);
+    if (!key) return true;
+    const val = editModeExistingStepMap.get(key);
+    // Unknown entries default to true so untracked tabs keep using update (safe).
+    return val !== false;
+}
+
+function clearEditModeExistingSteps() {
+    editModeExistingStepMap.clear();
 }
 
 window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName) {
@@ -1353,6 +1377,10 @@ async function autoLoadTabData(config, pane) {
         const fieldMapKey = getFieldMapKeyForTab(config.key);
         const fieldMap = fieldMapKey ? window[fieldMapKey] : undefined;
 
+        // Track whether this tab has existing server data for edit-mode create/update decisions.
+        const row = normalizeSingleRow(response);
+        markEditModeStepExists(config.key, row != null);
+
         applyResponseDataToPane(pane, response, fieldMap);
     } catch (error) {
         window.ClientMaintenanceCore.showToast(`${config.key} load failed - ${error.message}`, 'error');
@@ -1512,6 +1540,33 @@ function initSectionToggles() {
 function setFieldValue(root, selector, value) {
     const field = root?.querySelector(selector);
     if (!field) return;
+
+    const normalizedValue = value == null ? '' : String(value).trim();
+    if (field._flatpickr) {
+        if (!normalizedValue) {
+            field._flatpickr.clear();
+        } else {
+            field._flatpickr.setDate(normalizedValue, true);
+        }
+        return;
+    }
+
+    const dataType = String(field.getAttribute('data-type') || '').toLowerCase();
+    if (!normalizedValue) {
+        field.value = '';
+        return;
+    }
+
+    if (dataType === 'datetime' && window.GlobalUtils?.formatDateTime) {
+        field.value = window.GlobalUtils.formatDateTime(normalizedValue);
+        return;
+    }
+
+    if (dataType === 'date' && window.GlobalUtils?.formatDate) {
+        field.value = window.GlobalUtils.formatDate(normalizedValue);
+        return;
+    }
+
     field.value = value ?? '';
 }
 
@@ -1594,7 +1649,7 @@ function applyBasicDetailsToPersonal(row) {
         ['#txt_personalMotherName', row?.MotherName],
         ['#ddl_personalBloodGroup', row?.BloodGroup],
         ['#txt_personalOpenedBy', row?.CreatedBy],
-        ['#dt_personalOpenedOn', row?.OpenedOn],
+        ['#dt_personalOpenedOn', row?.OpenedOn ?? row?.OpenedDate],
         ['#ddl_personalRelationshipManager', row?.RelationshipManagerID]
     ];
 
@@ -1784,21 +1839,13 @@ async function loadAllTabsData() {
 function buildRecentActivityAccessedFields({ selectionMode, clientId, requestId } = {}) {
     const mode = String(selectionMode || '').toLowerCase();
     const resolvedClientId = String(clientId || '').trim();
-    const resolvedRequestId = String(requestId || '').trim();
 
-    if (mode === 'request' && resolvedRequestId) {
-        return `ApplicationID:${resolvedRequestId}`;
+    // Track recent activity only when the user selected by ClientID (not Request/Application flows).
+    if (mode !== 'client' || !resolvedClientId) {
+        return '';
     }
 
-    if (resolvedClientId) {
-        return `ClientID:${resolvedClientId}`;
-    }
-
-    if (resolvedRequestId) {
-        return `ApplicationID:${resolvedRequestId}`;
-    }
-
-    return '';
+    return `ClientID:${resolvedClientId}`;
 }
 
 async function addRecentActivityAndRefreshSidebar(accessedFields) {
@@ -1923,9 +1970,12 @@ async function loadClientBasicDetails(selectionContext) {
                 clientId: resolvedClientId,
                 requestId: resolvedRequestId
             });
-            console.log(accessedFields);
-            if (accessedFields) {
+            const trackedClientId = String(window.ClientMaintenanceCore?.recentActivityTrackedClientId || '').trim();
+            if (accessedFields && trackedClientId !== resolvedClientId) {
                 await addRecentActivityAndRefreshSidebar(accessedFields);
+                if (window.ClientMaintenanceCore) {
+                    window.ClientMaintenanceCore.recentActivityTrackedClientId = resolvedClientId;
+                }
             }
         } else {
             resetBehindSceneFields();
@@ -2122,6 +2172,7 @@ function initMainClientSearch(shell) {
                         window.ClientMaintenanceCore.requestId = selectedRequestId;
                         window.ClientMaintenanceCore.useRequestId = true;
                         window.ClientMaintenanceCore.clientId = '';
+                        window.ClientMaintenanceCore.recentActivityTrackedClientId = null;
 
                         setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
                         setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
@@ -2357,32 +2408,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Track recent activity when a workflow step/tab is accessed
-            const clientId = window.ClientMaintenanceCore?.clientId || '';
-            const requestId = window.ClientMaintenanceCore?.requestId || '';
-            const tabLabel = config?.label || config?.key || 'Unknown';
-
-            if (clientId || requestId) {
-                // Build accessed fields with tab context
-                let accessedFields = '';
-                if (requestId) {
-                    accessedFields = `ApplicationID:${requestId}`;
-                } else if (clientId) {
-                    accessedFields = `ClientID:${clientId}`;
-                }
-
-                if (accessedFields) {
-                    try {
-                        const moduleId = window.ClientMaintenanceCore?.moduleId || '1000';
-                        await invokeController('SideBar', 'AddRecentActivity', {
-                            ModuleID: moduleId,
-                            AccessedFields: `${accessedFields} [${tabLabel}]`
-                        });
-                    } catch (error) {
-                        console.warn('[Client Maintenance] Error tracking tab access:', error);
-                    }
-                }
-            }
+            // Recent activity is tracked when a ClientID record is initially loaded.
+            // Do not track on every tab switch (Next/Previous) to avoid duplicate entries.
         } catch (error) {
             window.ClientMaintenanceCore.showToast(error.message, 'error');
         }
@@ -3141,12 +3168,13 @@ async function processTabWorkflowStep(tabKey, pane, tabIndex) {
     }
 
     const isPersistedStep = hasAddWorkflowStepPersisted(tabKey);
+    const isEditExistingStep = hasEditModeStepExists(tabKey);
     const action = isAddMode
         ? (isPersistedStep ? 'update' : 'create')
-        : 'update';
+        : (isEditExistingStep ? 'update' : 'create');
 
     // Log the action determination for debugging workflow issues
-    console.log(`[ClientMaintenance] Tab: ${tabKey}, IsAddMode: ${isAddMode}, IsPersistedStep: ${isPersistedStep}, Action: ${action}`);
+    console.log(`[ClientMaintenance] Tab: ${tabKey}, IsAddMode: ${isAddMode}, IsPersistedStep: ${isPersistedStep}, IsEditExistingStep: ${isEditExistingStep}, Action: ${action}`);
 
     // Step 4: Invoke the action
     window.ClientMaintenanceCore.showToast(`${tabKey}: Saving...`, 'info');
@@ -3163,6 +3191,9 @@ async function processTabWorkflowStep(tabKey, pane, tabIndex) {
 
     if (isAddMode && action === 'create') {
         markAddWorkflowStepPersisted(tabKey);
+    } else if (!isAddMode && action === 'create') {
+        // In edit mode a successful create means the step now has server data.
+        markEditModeStepExists(tabKey, true);
     }
 
     // Step 6: On success, display confirmation message
@@ -3582,11 +3613,13 @@ async function beginNewClientMaintenance() {
     window.ClientMaintenanceCore.clientName = null;
     window.ClientMaintenanceCore.requestId = null;
     window.ClientMaintenanceCore.useRequestId = false;
+    window.ClientMaintenanceCore.recentActivityTrackedClientId = null;
     window.ClientMaintenanceCore.canEditCurrent = false;
     window.ClientMaintenanceCore.hasLoadedRecord = false;
     window.ClientMaintenanceCore.shellState = 'add';
     window.ClientMaintenanceCore.singleStageEditLockActive = false;
     clearAddWorkflowPersistedSteps();
+    clearEditModeExistingSteps();
 
     resetBehindSceneFields();
     setMainWorkflowLocked(true);
@@ -3724,12 +3757,14 @@ async function resetClientMaintenance() {
         window.ClientMaintenanceCore.clientName = null;
         window.ClientMaintenanceCore.requestId = null;
         window.ClientMaintenanceCore.useRequestId = false;
+        window.ClientMaintenanceCore.recentActivityTrackedClientId = null;
         window.ClientMaintenanceCore.workflowId = null;
         window.ClientMaintenanceCore.canEditCurrent = false;
         window.ClientMaintenanceCore.shellState = 'idle';
         window.ClientMaintenanceCore.hasLoadedRecord = false;
         window.ClientMaintenanceCore.singleStageEditLockActive = false;
         clearAddWorkflowPersistedSteps();
+        clearEditModeExistingSteps();
 
         // Clear all tab content
         const tabContentWrapper = document.getElementById('dv_clientMaintenanceTabContent');
