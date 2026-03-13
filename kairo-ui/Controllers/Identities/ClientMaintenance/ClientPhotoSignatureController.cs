@@ -127,7 +127,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error on operation: client-maintenance.photosignature.get");
-                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+                //return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+                return StatusCode(500, new ResponseDetail<object> { Details = ex.ToString(), ResponseCode = "UIEX500", ResponseMessage = ex.Message });
             }
         }
 

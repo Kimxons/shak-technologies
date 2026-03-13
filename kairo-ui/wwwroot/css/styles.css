@@ -4376,27 +4376,27 @@ x .audit-item input {
     font-weight: 600;
 }
 
-.action-panel .btn-action.btn-clear:hover:not(:disabled),
-.action-panel .btn-action[data-action="clear"]:hover:not(:disabled) {
-    background: #dfeaf5;
-    border-color: #9fb4c8;
-    color: #24415f;
-}
+    .action-panel .btn-action.btn-clear:hover:not(:disabled),
+    .action-panel .btn-action[data-action="clear"]:hover:not(:disabled) {
+        background: #dfeaf5;
+        border-color: #9fb4c8;
+        color: #24415f;
+    }
 
-.action-panel .btn-action.btn-clear:focus-visible,
-.action-panel .btn-action[data-action="clear"]:focus-visible {
-    box-shadow: 0 0 0 2px rgba(83, 122, 158, 0.35);
-}
+    .action-panel .btn-action.btn-clear:focus-visible,
+    .action-panel .btn-action[data-action="clear"]:focus-visible {
+        box-shadow: 0 0 0 2px rgba(83, 122, 158, 0.35);
+    }
 
 .btn-action:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-    .btn-action.underline {
-        text-decoration: underline;
-        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
-    }
+.btn-action.underline {
+    text-decoration: underline;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
+}
 
 /* Action button color mapping - all use theme primary for unified default */
 .action-buttons .btn-action:nth-child(1),
@@ -72674,12 +72674,4 @@ body[data-page="loan-insurance"] .lins-nominees__row .form-select {
     body[data-page="loan-insurance"] .lins-nominees__cell:nth-child(4) {
         grid-column: 2;
     }
-}
-/* Ensure the persistent alert stays at the top of the form content area */
-.alert-container {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: inherit;
-    width: 100%;
 }

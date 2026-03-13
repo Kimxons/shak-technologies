@@ -202,7 +202,7 @@ function bindRelationsActionPanel(tabRoot) {
     });
 }
 
-window.initClientMaintenanceRelations = function (tabRoot, moduleId) {
+window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations = function (tabRoot, moduleId) {
     if (!tabRoot || tabRoot.dataset.cmRelationsInitialized === 'true') return;
     tabRoot.dataset.cmRelationsInitialized = 'true';
 
