@@ -1,0 +1,51 @@
+Test Case ID,Test Case Description,Category,Priority,Preconditions,Test Steps,Expected Result,Actual Result,Status,Tested By,Test Date,Remarks
+TC_AM_ECS_001,Verify Edit Card Status screen loads successfully,Functional,P1,"User is logged in and has access to Edit Card Status","1. Navigate to Start > Accounts Maintenance > Edit Card Status
+2. Wait for the screen to finish loading
+3. Observe Stage Selection, Card Status List, Behind The Scene, status bar, and action panel","The screen loads without script errors. Stage dropdown, card grid, audit fields, and action buttons are visible. Status bar shows Ready.",,Not Executed,,,"Derived from EditCardStatus Index.cshtml and edit-card-status.js."
+TC_AM_ECS_002,Verify legacy Edit Card Status route opens the migrated screen,Integration,P2,"User is logged in","1. Open /MoneaSys/EditCardStatus?ModuleID=<valid module id>
+2. Observe the rendered page","The legacy route resolves to the current Edit Card Status screen and the screen remains usable.",,Not Executed,,,
+TC_AM_ECS_003,Verify stage dropdown is populated from server-provided options,UI,P1,"Edit Card Status screen is open","1. Open the Stage dropdown","Available stage options are shown from the ViewData stage list and the default option remains -- Select Stage --.",,Not Executed,,,
+TC_AM_ECS_004,Verify initial empty-state and audit state before View,UI,P2,"Edit Card Status screen is open","1. Observe the grid before selecting any stage
+2. Observe the Behind The Scene fields","The grid shows the initial no-details prompt. Audit fields display -. No row is selected.",,Not Executed,,,
+TC_AM_ECS_005,Verify View with no stage selected shows validation prompt,Validation,P1,"No stage is selected","1. Click View","The screen warns the user to select stage and click View to load. No records are requested for display.",,Not Executed,,,
+TC_AM_ECS_006,Verify changing stage resets the current loaded grid state,Functional,P2,"Records are already loaded for one stage","1. Change the Stage dropdown to a different stage","Current selection is cleared and the grid returns to the no-details prompt until View is clicked for the new stage.",,Not Executed,,,
+TC_AM_ECS_007,Verify View loads cards for the selected stage,Functional,P1,"A valid stage with available card records exists","1. Select a valid stage
+2. Click View","Cards load into the grid, record count updates, KPI totals update, and the first row becomes selected automatically.",,Not Executed,,,
+TC_AM_ECS_008,Verify response code 1011 is shown as no-details state,Functional,P2,"Selected stage has no records or backend returns response code 1011","1. Select a stage with no records
+2. Click View","The grid shows No details Found [No:1011]. Status bar reflects the same state. No stale records remain in the grid.",,Not Executed,,,
+TC_AM_ECS_009,Verify row click changes current selected card,Functional,P1,"Card records are loaded","1. Click a different row in the card grid","The clicked row becomes the current selection and the selection highlight moves to that row only.",,Not Executed,,,
+TC_AM_ECS_010,Verify row selection updates Behind The Scene audit fields,Functional,P1,"Card records are loaded","1. Click any loaded row
+2. Observe Created By, Created On, Approved By, Approved On, Exported By, Exported On, Activated By, Activated On, Disbursed By, and Disbursed On","Behind The Scene values refresh to the selected card record's audit information.",,Not Executed,,,
+TC_AM_ECS_011,Verify Select All behaves as single-selection helper,UI,P2,"Card records are loaded","1. Check Select All
+2. Observe the current selection
+3. Uncheck Select All","Checking Select All results in a selected row state for the current record set. Unchecking clears the selected row and resets audit fields.",,Not Executed,,,"This screen supports single-row workflow selection rather than bulk approval."
+TC_AM_ECS_012,Verify View after records are already loaded refreshes Behind The Scene for the selected row,Functional,P3,"Card records are loaded and one row is selected","1. Select a row
+2. Click View again without changing stage","The selected row remains the focus for audit display and the status bar indicates the viewed card.",,Not Executed,,,
+TC_AM_ECS_013,Verify Edit action shows informational guidance instead of editing,Functional,P3,"A row is selected","1. Click Edit","The screen informs the user that edit mode is not defined for this workflow and instructs the user to use Approve for the selected card.",,Not Executed,,,
+TC_AM_ECS_014,Verify Approve is blocked when no row is selected,Validation,P1,"Records are loaded but no row is selected","1. Clear the current selection
+2. Click Approve","The user is warned to select a card first and no approval request is sent.",,Not Executed,,,
+TC_AM_ECS_015,Verify approval is blocked for invalid TrackingCardID,Validation,P1,"A selected row has missing, zero, or invalid TrackingCardID","1. Select a row with invalid TrackingCardID
+2. Click Approve","Approval is blocked and the user is warned that the selected card has invalid TrackingCardID.",,Not Executed,,,"Use controlled test data or a mocked response if needed."
+TC_AM_ECS_016,Verify approval confirmation can be cancelled,Functional,P2,"A valid row is selected","1. Click Approve
+2. Choose Cancel in the confirmation dialog","No approval request is sent and the status bar indicates the approval was cancelled.",,Not Executed,,,
+TC_AM_ECS_017,Verify successful approval of selected card status,Functional,P1,"A valid row is selected and backend service is available","1. Select a valid card row
+2. Click Approve
+3. Confirm the action in the confirmation dialog","Approval succeeds. A success message is displayed and the grid reloads for the current stage.",,Not Executed,,,
+TC_AM_ECS_018,Verify approval payload carries required legacy update fields,Business,P2,"A valid row is selected and backend request tracing is available","1. Approve a selected record
+2. Inspect the request or audit output","The approval request includes TrackingCardID, BranchID, AccountID, ModifiedBy, ModifiedOn, ApprovedBy, ApprovalDate, IsApproved, CardStatus set to APPROVED, and UpdateCount.",,Not Executed,,,"Derived from buildApprovedCardPayload in the JavaScript."
+TC_AM_ECS_019,Verify cancel action clears the selected row only,Functional,P2,"Card records are loaded and a row is selected","1. Click Cancel","The selected row is cleared. Loaded records remain in the grid. Behind The Scene fields reset to -.",,Not Executed,,,
+TC_AM_ECS_020,Verify refresh action reloads records for the current stage,Functional,P2,"A stage is selected","1. Click the header Refresh action","The screen reloads card status for the current stage and remains responsive.",,Not Executed,,,
+TC_AM_ECS_021,Verify close action exits the screen cleanly in the host container,UI,P3,"Edit Card Status screen is open in its supported host","1. Click Close","The screen closes cleanly using the appropriate host close behavior without JavaScript errors.",,Not Executed,,,
+TC_AM_ECS_022,Verify expired or missing authentication blocks direct access,Integration,P2,"User session is expired or unauthenticated","1. Open the Edit Card Status route directly without a valid session","The user is redirected to login or blocked from viewing protected data.",,Not Executed,,,
+TC_AM_ECS_023,Verify stagewise card retrieval failure is handled gracefully,Integration,P1,"Backend dependency is unavailable or times out","1. Select a stage
+2. Click View while the dependency is unavailable","The grid shows a graceful failure state, status bar indicates an error searching cards, and the user sees an error message.",,Not Executed,,,
+TC_AM_ECS_024,Verify approval failure is handled gracefully,Integration,P1,"A valid row is selected but the approval dependency is unavailable or returns failure","1. Click Approve
+2. Confirm the action while the dependency is unavailable or returns an error","The approval fails gracefully, an error message is shown, and the grid remains usable.",,Not Executed,,,
+TC_AM_ECS_025,Verify KPI counters match the loaded records,Business,P2,"Loaded records contain a mix of approved, active, and collected values","1. Load card records for a stage
+2. Count approved, active, and collected values in the grid
+3. Compare counts with KPI badges","Total, Approved, Active, and Collected KPI values match the loaded records.",,Not Executed,,,
+TC_AM_ECS_026,Verify message panel can be dismissed manually,UI,P4,"A success, warning, or error message is visible","1. Trigger any visible message
+2. Click the message panel close button","The message panel closes immediately without affecting the current grid state.",,Not Executed,,,
+TC_AM_ECS_027,Verify responsive layout keeps grid, audit section, and action buttons usable on smaller screens,UI,P3,"Edit Card Status screen is available on desktop and smaller viewport widths","1. Open the screen on desktop width
+2. Reduce the viewport to tablet width
+3. Verify grid, audit section, and action buttons","The layout remains usable, the message panel repositions correctly, and core actions remain accessible.",,Not Executed,,,

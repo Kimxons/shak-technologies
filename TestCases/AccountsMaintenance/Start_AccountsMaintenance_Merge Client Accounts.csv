@@ -1,0 +1,73 @@
+Test Case ID,Test Case Description,Category,Priority,Preconditions,Test Steps,Expected Result,Actual Result,Status,Tested By,Test Date,Remarks
+TC_AM_MCA_001,Verify Merge Client Accounts screen loads successfully,Functional,P1,"User is logged in and has access to Accounts Maintenance > Merge Client Accounts","1. Navigate to Start > Accounts Maintenance > Merge Client Accounts
+2. Wait for the screen to finish loading
+3. Observe the branch section, source grid, target grid, merge summary, status bar, and action panel","The screen loads without script errors. Branch Selection, Source Client, Target Client, Merge Summary, and action buttons are visible. Status bar shows Ready.",,Not Executed,,,"Derived from MergeClientAccounts Index.cshtml and merge-client-accounts.js."
+TC_AM_MCA_002,Verify legacy Merge Client Accounts route opens the migrated screen,Integration,P2,"User is logged in","1. Open /AccountCustomers/frmMergeClientAccounts.aspx?ModuleID=<valid module id>
+2. Observe the rendered page","The legacy route resolves to the current Merge Client Accounts screen and the screen remains fully usable.",,Not Executed,,,
+TC_AM_MCA_003,Verify initial control state on first load,UI,P2,"Merge Client Accounts screen is open","1. Observe button states immediately after the screen loads
+2. Observe the source and target account grids
+3. Observe the merge summary strip","View is enabled. Merge is disabled. Clear is disabled until form state exists. Cancel is disabled until source account selection exists. Both grids show empty-state prompts. Selected count is 0 and total balance is 0.00.",,Not Executed,,,
+TC_AM_MCA_004,Verify branch lookup through the branch search modal,Functional,P1,"Merge Client Accounts screen is open","1. Click the Branch Search button
+2. Search for a valid branch in the modal
+3. Select the branch","The selected Branch ID and Branch Name populate on the screen. The screen remains responsive and ready for source and target client selection.",,Not Executed,,,
+TC_AM_MCA_005,Verify manual branch resolution by entering Branch ID and pressing Enter,Functional,P2,"Merge Client Accounts screen is open","1. Type a valid Branch ID into the Branch ID field
+2. Press Enter","The system resolves the branch using background search and populates Branch Name.",,Not Executed,,,
+TC_AM_MCA_006,Verify invalid Branch ID is rejected,Validation,P1,"Merge Client Accounts screen is open","1. Enter an invalid Branch ID
+2. Press Enter","A warning indicates that the branch was not found. Branch context is not populated incorrectly.",,Not Executed,,,
+TC_AM_MCA_007,Verify source client lookup is blocked when branch is missing,Validation,P1,"No branch is selected","1. Leave Branch ID empty
+2. Click the Source Client Search button","The lookup is blocked and the user is warned that Branch ID is required before searching for clients.",,Not Executed,,,
+TC_AM_MCA_008,Verify target client lookup is blocked when branch is missing,Validation,P1,"No branch is selected","1. Leave Branch ID empty
+2. Click the Target Client Search button","The lookup is blocked and the user is warned that Branch ID is required before searching for clients.",,Not Executed,,,
+TC_AM_MCA_009,Verify source client selection through the search modal,Functional,P1,"A valid branch is selected","1. Click the Source Client Search button
+2. Search for a valid client
+3. Select the client","Source Client ID and Client Name populate. Source account grid is reset and awaits View.",,Not Executed,,,
+TC_AM_MCA_010,Verify target client selection through the search modal,Functional,P1,"A valid branch is selected","1. Click the Target Client Search button
+2. Search for a valid client
+3. Select the client","Target Client ID and Client Name populate. Target account grid is reset and awaits View.",,Not Executed,,,
+TC_AM_MCA_011,Verify manual client resolution by Client ID for source client,Functional,P2,"A valid branch is selected","1. Type a valid Client ID in the From Client/Account ID field
+2. Press Enter","The system resolves the client and populates the source client name.",,Not Executed,,,
+TC_AM_MCA_012,Verify manual client resolution by Account ID for source client,Functional,P1,"A valid branch is selected and the account belongs to a client in the selected branch","1. Type a valid Account ID in the From Client/Account ID field
+2. Press Enter","The system resolves the owning client using the Account ID and populates source client details.",,Not Executed,,,"Covers the account-based fallback search path in the JavaScript."
+TC_AM_MCA_013,Verify same client cannot be used as both source and target,Validation,P1,"A valid branch is selected","1. Select Client A as source
+2. Attempt to select Client A again as target","The action is blocked and the user is warned that source and target clients must be different.",,Not Executed,,,
+TC_AM_MCA_014,Verify View is blocked when Branch ID is missing,Validation,P1,"Source and target client IDs may or may not be filled","1. Clear the Branch ID field
+2. Click View","The user is warned that Branch ID is required and no account lookup is performed.",,Not Executed,,,
+TC_AM_MCA_015,Verify View is blocked when source or target client input is missing,Validation,P1,"A valid branch is selected","1. Leave either source or target client field empty
+2. Click View","The user is warned that source and target Client or Account IDs are required and no account grids are loaded.",,Not Executed,,,
+TC_AM_MCA_016,Verify View is blocked when source and target are the same client,Validation,P1,"A valid branch is selected","1. Enter the same client ID in source and target fields
+2. Click View","The user is warned that source and target clients must be different. No account data is loaded.",,Not Executed,,,
+TC_AM_MCA_017,Verify View loads source and target account grids,Functional,P1,"A valid branch is selected and different valid source and target clients are provided","1. Enter or select valid source and target clients
+2. Click View","The source and target account grids load matching records. Branch and client display values stay populated. An informational message shows the loaded account counts.",,Not Executed,,,
+TC_AM_MCA_018,Verify source account row selection updates selected count and balance,Functional,P1,"Source accounts are loaded","1. Select one source account checkbox
+2. Observe the merge summary","Selected count increases by one and total balance equals the selected account clear balance.",,Not Executed,,,
+TC_AM_MCA_019,Verify clicking a source row toggles account selection,UI,P2,"Source accounts are loaded","1. Click a source account row outside the checkbox
+2. Click the same row again","The row toggles selection on first click and clears it on second click. The checkbox state and summary values stay synchronized.",,Not Executed,,,
+TC_AM_MCA_020,Verify Select All selects and clears all source accounts,Functional,P2,"Multiple source accounts are loaded","1. Check Select All
+2. Observe the grid and merge summary
+3. Uncheck Select All","All source accounts are selected when checked and cleared when unchecked. Selected count and total balance update correctly.",,Not Executed,,,
+TC_AM_MCA_021,Verify Merge button enables only when merge prerequisites are satisfied,Validation,P1,"Merge Client Accounts screen is open","1. Load valid source and target clients
+2. Observe Merge button before selecting accounts
+3. Select at least one source account
+4. Observe Merge button again","Merge stays disabled until source client, target client, different client IDs, and at least one selected source account are present. Merge enables only after all prerequisites are satisfied.",,Not Executed,,,
+TC_AM_MCA_022,Verify Cancel clears only current source-account selection,Functional,P2,"Source accounts are loaded and one or more source accounts are selected","1. Select one or more source accounts
+2. Click Cancel","Only the account selection is cleared. Branch, source client, target client, and loaded grids remain available.",,Not Executed,,,
+TC_AM_MCA_023,Verify Clear resets the working form state,Functional,P1,"Branch and client data and optionally loaded accounts exist on the screen","1. Populate branch, source client, and target client fields
+2. Load accounts if available
+3. Click Clear","Source and target client fields clear. Source and target account grids reset to empty-state messages. Selected count returns to 0 and balance returns to 0.00.",,Not Executed,,,
+TC_AM_MCA_024,Verify Merge is blocked when no source accounts are selected,Validation,P1,"Valid branch, source client, and target client are loaded but no source account is selected","1. Click Merge","The user is warned to select at least one source account. No merge request is submitted.",,Not Executed,,,
+TC_AM_MCA_025,Verify merge confirmation can be cancelled,Functional,P2,"Valid merge prerequisites are satisfied","1. Select one or more source accounts
+2. Click Merge
+3. Choose Cancel in the confirmation dialog","The merge request is not submitted. Existing selection and loaded data remain unchanged.",,Not Executed,,,
+TC_AM_MCA_026,Verify successful merge of selected source accounts,Functional,P1,"Valid merge prerequisites are satisfied and backend service is available","1. Select one or more source accounts
+2. Click Merge
+3. Confirm the action in the confirmation dialog","The merge request succeeds. A success message is shown. The screen refreshes account data by calling View again.",,Not Executed,,,
+TC_AM_MCA_027,Verify merge submits only selected source account IDs,Business,P1,"Source client has multiple accounts and only a subset is selected","1. Load multiple source accounts
+2. Select only a subset of the source accounts
+3. Complete the merge
+4. Validate using logs, audit data, or post-merge state","Only the selected source Account IDs are included in the merge request. Unselected source accounts are excluded.",,Not Executed,,,"Business rule derived from selectedAccountIds joined into the selectedAccount payload."
+TC_AM_MCA_028,Verify branch, client, view, or merge errors are handled gracefully when backend dependency is unavailable,Integration,P1,"Legacy dependency is unavailable, timing out, or inaccessible","1. Attempt Branch lookup, Client lookup, View, or Merge while the dependency is unavailable
+2. Observe the screen response","The screen shows a warning or error message, keeps the UI responsive, and does not leave the user in a broken state.",,Not Executed,,,
+TC_AM_MCA_029,Verify close action exits the screen cleanly,UI,P3,"Merge Client Accounts screen is open in its supported host window","1. Click a close action from the screen header if available","The screen closes or exits cleanly according to host behavior without JavaScript errors.",,Not Executed,,,"Include only if the screen is hosted with a visible close control in the target environment."
+TC_AM_MCA_030,Verify responsive layout keeps action panel and grids usable on narrower screens,UI,P3,"Merge Client Accounts screen is available on desktop and smaller viewport widths","1. Open the screen on desktop width
+2. Reduce the viewport to tablet width
+3. Verify the grids, summary section, and action panel","The layout remains usable. The action panel no longer overlaps content and the grids and summary remain readable.",,Not Executed,,,
