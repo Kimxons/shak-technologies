@@ -661,6 +661,43 @@ function initRelationsSearchModal(tabRoot, moduleId) {
         console.warn('[Relations] SearchModal not available');
         return;
     }
+
+    const clientNameField = tabRoot.querySelector('#txt_relationClientName');
+    const lookupIdDescription = window.ClientMaintenanceCore?.lookupIdDescription;
+    let relationLookupInFlight = false;
+
+    const autoLoadRelatedClientNameFromId = async (relatedClientId) => {
+        const typedClientId = String(relatedClientId || '').trim();
+        if (!typedClientId) {
+            if (clientNameField) clientNameField.value = '';
+            return;
+        }
+
+        if (relationLookupInFlight || typeof lookupIdDescription !== 'function') {
+            return;
+        }
+
+        relationLookupInFlight = true;
+        try {
+            const result = await lookupIdDescription({
+                controlTypeId: 'ClientID',
+                id: typedClientId,
+                bankId: '00',
+                typeId: '',
+                advanceFilter: '',
+                moduleId: String(moduleId || window.ClientMaintenanceCore?.moduleId || ''),
+                descriptionFieldCandidates: ['Name', 'ClientName', 'FullName']
+            });
+
+            if (clientNameField) {
+                clientNameField.value = result?.description || '';
+            }
+        } catch (error) {
+            console.warn('[Relations] Failed to auto-load related client name from ID:', error);
+        } finally {
+            relationLookupInFlight = false;
+        }
+    };
     
     const openSearchModal = () => {
         const currentValue = tabRoot.querySelector('[data-relation-field="RelatedClientID"]')?.value || '';
@@ -711,10 +748,19 @@ function initRelationsSearchModal(tabRoot, moduleId) {
     const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
     if (clientIdField) {
         clientIdField.addEventListener('blur', async (e) => {
-            const value = e.target.value?.trim();
-            if (value) {
-                await hydrateRelationFormFromRelatedClientId(tabRoot, value);
+            const relatedTarget = e.relatedTarget;
+            if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-relation-action="lookup"]')) {
+                return;
             }
+
+            const value = e.target.value?.trim();
+            if (!value) {
+                if (clientNameField) clientNameField.value = '';
+                return;
+            }
+
+            await autoLoadRelatedClientNameFromId(value);
+            await hydrateRelationFormFromRelatedClientId(tabRoot, value);
         });
         
         clientIdField.addEventListener('keydown', (e) => {

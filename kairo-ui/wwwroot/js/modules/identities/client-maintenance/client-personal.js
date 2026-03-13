@@ -361,6 +361,7 @@ window.initClientMaintenancePersonalTab = function (tabRoot, moduleId) {
     tabRoot._cmSetEditMode = (isEditMode) => {
         const idTypeSelect = tabRoot.querySelector('#ddl_personalIdType');
         const idNumberInput = tabRoot.querySelector('#txt_personalIdNumber');
+        const openedByNameInput = tabRoot.querySelector('#txt_personalOpenedByName');
         
         tabRoot.querySelectorAll('input, select, textarea, button[data-personal-action]').forEach((field) => {
             if (field.type === 'button' || field.type === 'submit') {
@@ -380,6 +381,11 @@ window.initClientMaintenancePersonalTab = function (tabRoot, moduleId) {
             const hasIdType = Boolean(idTypeSelect?.value);
             idNumberInput.disabled = !hasIdType;
             idNumberInput.readOnly = false;
+        }
+
+        // Opened By name should never be editable in any mode.
+        if (openedByNameInput) {
+            openedByNameInput.readOnly = true;
         }
     };
     
@@ -406,8 +412,13 @@ window.initClientMaintenancePersonalTab = function (tabRoot, moduleId) {
 function initPersonalUserLookup(tabRoot, moduleId) {
     if (!tabRoot) return;
 
+    const idField = tabRoot.querySelector('#txt_personalOpenedBy');
+    const nameField = tabRoot.querySelector('#txt_personalOpenedByName');
     const searchBtn = tabRoot.querySelector('[data-personal-action="lookup-opened-by"]');
-    if (!searchBtn) return;
+    if (!searchBtn || !idField || !nameField) return;
+
+    // Name field is display-only by design.
+    nameField.readOnly = true;
 
     const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
     if (!appCore || !window.SearchModal) {
@@ -421,28 +432,109 @@ function initPersonalUserLookup(tabRoot, moduleId) {
         window._personalOpenedBySearchModal = searchModal;
     }
 
-    searchBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const currentValue = tabRoot.querySelector('#txt_personalOpenedBy')?.value || '';
+    const getUserId = (record) => {
+        return String(record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || '').trim();
+    };
+
+    const getUserName = (record) => {
+        return String(record?.ClientName || record?.Name || record?.UserName || record?.FullName || '').trim();
+    };
+
+    const setOpenedByFields = (record) => {
+        if (!record) return;
+
+        const userId = getUserId(record);
+        const userName = getUserName(record);
+
+        idField.value = userId;
+        nameField.value = userName;
+    };
+
+    let openedByLookupInFlight = false;
+
+    const autoLoadOpenedByNameFromId = async () => {
+        const typedOperatorId = String(idField.value || '').trim();
+        if (!typedOperatorId) {
+            nameField.value = '';
+            return;
+        }
+
+        if (idField.readOnly || idField.disabled || openedByLookupInFlight) {
+            return;
+        }
+
+        const lookupIdDescription = window.ClientMaintenanceCore?.lookupIdDescription;
+        if (typeof lookupIdDescription !== 'function') {
+            return;
+        }
+
+        openedByLookupInFlight = true;
+
+        try {
+            const result = await lookupIdDescription({
+                controlTypeId: 'OperatorID',
+                id: typedOperatorId,
+                bankId: '00',
+                typeId: '',
+                advanceFilter: '',
+                moduleId: String(moduleId || window.ClientMaintenanceCore?.moduleId || ''),
+                descriptionFieldCandidates: ['ClientName', 'Name', 'UserName', 'FullName']
+            });
+
+            const record = result?.record;
+            if (!record) {
+                nameField.value = '';
+                return;
+            }
+
+            setOpenedByFields(record);
+
+            if (!String(idField.value || '').trim()) {
+                idField.value = typedOperatorId;
+            }
+        } catch (error) {
+            console.warn('[Personal] Failed to auto-load Opened By name from ID:', error);
+        } finally {
+            openedByLookupInFlight = false;
+        }
+    };
+
+    const openUserSearch = () => {
+        if (searchBtn.disabled || idField.readOnly || idField.disabled) return;
 
         searchModal.open({
             title: 'Find User',
             tableID: 'OperatorID',
             moduleID: moduleId || window.ClientMaintenanceCore?.moduleId || '',
             searchFields: [
-                { name: 'OperatorID', label: 'Operator ID', column: 'OperatorID', value: currentValue },
+                { name: 'OperatorID', label: 'Operator ID', column: 'OperatorID', value: idField.value || '' },
                 { name: 'ClientName', label: 'User Name', column: 'ClientName' }
             ],
             autoSearch: false,
             onSelect: (record) => {
-                const userId = record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || '';
-                const userName = record?.ClientName || record?.Name || record?.UserName || record?.FullName || '';
-
-                const idField = tabRoot.querySelector('#txt_personalOpenedBy');
-                const nameField = tabRoot.querySelector('#txt_personalOpenedByName');
-                if (idField) idField.value = userId;
-                if (nameField) nameField.value = userName;
+                setOpenedByFields(record);
             }
         });
+    };
+
+    searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openUserSearch();
+    });
+
+    idField.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+            e.preventDefault();
+            openUserSearch();
+        }
+    });
+
+    idField.addEventListener('blur', (e) => {
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-personal-action="lookup-opened-by"]')) {
+            return;
+        }
+
+        void autoLoadOpenedByNameFromId();
     });
 }
