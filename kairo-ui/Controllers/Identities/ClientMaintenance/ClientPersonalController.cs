@@ -121,6 +121,11 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                     requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
                 }
 
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                }
                 if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
                 {
                     requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
@@ -157,6 +162,24 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
+                {
+                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OpenedDate"]?.ToString()))
+                {
+                    requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                }
                 if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
                 {
                     requestData["ModifiedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
