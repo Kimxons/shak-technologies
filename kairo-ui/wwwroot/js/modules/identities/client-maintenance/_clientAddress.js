@@ -113,23 +113,25 @@ function resolveAddressContext(requestData, fallbackModuleId) {
     const moduleId = firstNonEmptyString(
         requestData?.ModuleID,
         fallbackModuleId,
-        viewState.ModuleID,
         maintenanceCore?.moduleId,
-        parentContext.moduleId
+        parentContext.moduleId,
+        viewState.ModuleID
     );
 
     const clientId = firstNonEmptyString(
         requestData?.ClientID,
-        viewState.ClientID,
+        maintenanceCore?.getClientId?.(),
         maintenanceCore?.clientId,
-        parentContext.clientId
+        parentContext.clientId,
+        viewState.ClientID
     );
 
     const requestId = firstNonEmptyString(
         requestData?.RequestID,
-        viewState.RequestID,
+        maintenanceCore?.getRequestId?.(),
         maintenanceCore?.requestId,
-        parentContext.requestId
+        parentContext.requestId,
+        viewState.RequestID
     );
 
     return {
@@ -143,12 +145,7 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 }
 
 function shouldAutoLoadStandaloneAddress(context) {
-    return Boolean(
-        context?.IsStandalone &&
-        context?.ClientID &&
-        context?.ModuleID &&
-        context.ModuleID !== '1000'
-    );
+    return Boolean(context?.IsStandalone && (context?.ClientID || context?.RequestID));
 }
 
 function parseAddressCandidate(candidate) {
@@ -343,7 +340,8 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         ),
         lastContext: { ...initialContext },
         initialLoadApplied: false,
-        autoLoadInFlight: false
+        autoLoadInFlight: false,
+        workflowSavePendingNavigation: false
     };
 
     state.lastContext.IsStandalone = state.isStandalone;
@@ -361,6 +359,25 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
     };
 
     const canEditAddresses = () => state.isStandalone || Boolean(getAddressClientMaintenanceCore()?.isEditMode);
+
+    const hasAddressRows = () => Array.isArray(state.rows) && state.rows.length > 0;
+
+    const isTruthyAddressFlag = (value) => {
+        if (value === true) return true;
+        if (typeof value === 'number') return value !== 0;
+
+        const text = toTrimmedString(value).toLowerCase();
+        return text === 'true' || text === '1' || text === 'yes' || text === 'y';
+    };
+
+    const hasMailingAddressRow = () => {
+        if (!hasAddressRows()) return false;
+        return state.rows.some((row) => isTruthyAddressFlag(row?.IsMailingAddress));
+    };
+
+    const clearWorkflowSavePendingNavigation = () => {
+        state.workflowSavePendingNavigation = false;
+    };
 
     const setLoading = (show) => {
         if (loadingOverlay) {
@@ -472,6 +489,126 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         };
     });
 
+    const normalizeSingleAddressRow = (response) => {
+        const candidates = [
+            response?.Details?.[0],
+            response?.Details,
+            response?.data?.Details?.[0],
+            response?.data?.Details,
+            response?.data?.[0]?.Details?.[0],
+            response?.data?.[0]?.Details,
+            response?.data,
+            response
+        ];
+
+        for (const candidate of candidates) {
+            if (!candidate) continue;
+            if (Array.isArray(candidate)) {
+                if (candidate.length > 0 && typeof candidate[0] === 'object') {
+                    return candidate[0];
+                }
+                continue;
+            }
+
+            if (typeof candidate === 'object') {
+                return candidate;
+            }
+        }
+
+        return null;
+    };
+
+    const getAddressRecordIdentity = (candidate) => toTrimmedString(
+        candidate?.RecordID ??
+        candidate?.ID ??
+        candidate?.AddressID ??
+        candidate?.AddressId ??
+        ''
+    );
+
+    const syncAddressContextFromResponse = (response, requestData) => {
+        const row = normalizeSingleAddressRow(response) || {};
+        const maintenanceCore = getAddressClientMaintenanceCore();
+        const viewState = getAddressViewState();
+
+        const resolvedModuleId = firstNonEmptyString(
+            row?.ModuleID,
+            row?.ModuleId,
+            requestData?.ModuleID,
+            state.lastContext?.ModuleID,
+            configuredModuleId
+        );
+
+        const resolvedClientId = firstNonEmptyString(
+            row?.ClientID,
+            row?.ClientId,
+            requestData?.ClientID,
+            state.lastContext?.ClientID
+        );
+
+        const resolvedRequestId = firstNonEmptyString(
+            row?.RequestID,
+            row?.RequestId,
+            row?.ApplicationID,
+            row?.ApplicationId,
+            requestData?.RequestID,
+            requestData?.ApplicationID,
+            state.lastContext?.RequestID
+        );
+
+        const nextContext = {
+            ...state.lastContext,
+            ModuleID: resolvedModuleId || state.lastContext?.ModuleID || '',
+            ClientID: resolvedClientId || state.lastContext?.ClientID || '',
+            RequestID: resolvedRequestId || state.lastContext?.RequestID || '',
+            ApplicationID: resolvedRequestId || state.lastContext?.ApplicationID || '',
+            IsStandalone: state.isStandalone
+        };
+
+        state.lastContext = nextContext;
+
+        if (resolvedModuleId && maintenanceCore) {
+            maintenanceCore.moduleId = resolvedModuleId;
+        }
+
+        if (resolvedClientId) {
+            if (maintenanceCore) {
+                maintenanceCore.clientId = resolvedClientId;
+            }
+
+            const mainClientIdInput = document.getElementById('txt_mainClientId');
+            if (mainClientIdInput) {
+                mainClientIdInput.value = resolvedClientId;
+            }
+        }
+
+        if (resolvedRequestId) {
+            if (maintenanceCore) {
+                maintenanceCore.requestId = resolvedRequestId;
+            }
+
+            const mainApplicationIdInput = document.getElementById('txt_mainApplicationId');
+            if (mainApplicationIdInput) {
+                mainApplicationIdInput.value = resolvedRequestId;
+            }
+        }
+
+        if (viewState && typeof viewState === 'object') {
+            if (resolvedModuleId) {
+                viewState.ModuleID = resolvedModuleId;
+            }
+            if (resolvedClientId) {
+                viewState.ClientID = resolvedClientId;
+            }
+            if (resolvedRequestId) {
+                viewState.RequestID = resolvedRequestId;
+                viewState.ApplicationID = resolvedRequestId;
+            }
+        }
+
+        return nextContext;
+    };
+
     const renderAddressTable = (rows) => {
         state.rows = Array.isArray(rows) ? rows : [];
         if (!tbody) return;
@@ -577,6 +714,8 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
     };
 
     const refreshAddressTable = async (requestData, refreshOptions = {}) => {
+        clearWorkflowSavePendingNavigation();
+
         const context = resolveAddressContext(requestData, configuredModuleId);
         context.IsStandalone = state.isStandalone;
         state.lastContext = { ...state.lastContext, ...context };
@@ -607,6 +746,17 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
             const rows = isNoDataResponse(response) ? [] : normalizeAddressRows(extractList(response));
             renderAddressTable(rows);
+
+            const selectedRecordIdentity = toTrimmedString(refreshOptions.selectRecordIdentity);
+            if (selectedRecordIdentity && tbody) {
+                const selectedIndex = rows.findIndex((entry) => getAddressRecordIdentity(entry) === selectedRecordIdentity);
+                if (selectedIndex >= 0) {
+                    const rowElement = tbody.querySelector(`tr[data-index="${selectedIndex}"]`);
+                    if (rowElement) {
+                        selectAddressRow(rowElement, rows[selectedIndex]);
+                    }
+                }
+            }
 
             return rows;
         } catch (error) {
@@ -664,6 +814,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
         const actionLabel = mode === 'create' ? 'create' : (mode === 'update' ? 'update' : 'delete');
 
+        clearWorkflowSavePendingNavigation();
         setLoading(true);
         try {
             const response = await actionHandler(request);
@@ -671,9 +822,21 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
                 throw new Error(getResponseMessage(response, `Address ${actionLabel} failed.`));
             }
 
+            const nextContext = syncAddressContextFromResponse(response, request);
+            const persistedRecordIdentity = getAddressRecordIdentity(normalizeSingleAddressRow(response)) ||
+                getAddressRecordIdentity(request) ||
+                getAddressRecordIdentity(state.selectedRecord);
+
             showAddressToast(`Address ${actionLabel} completed`, 'success');
             state.mode = 'view';
-            await refreshAddressTable(state.lastContext, { markInitialLoad: state.initialLoadApplied });
+            await refreshAddressTable(nextContext, {
+                markInitialLoad: state.initialLoadApplied,
+                selectRecordIdentity: persistedRecordIdentity
+            });
+
+            if (mode === 'create' || mode === 'update') {
+                state.workflowSavePendingNavigation = true;
+            }
         } catch (error) {
             showAddressToast(`Address ${actionLabel} failed - ${error.message}`, 'error');
         } finally {
@@ -693,6 +856,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         buttons.new.addEventListener('click', () => {
             if (!canEditAddresses()) return;
 
+            clearWorkflowSavePendingNavigation();
             clearTableSelection();
             resetFormFields();
             state.selectedRecord = null;
@@ -709,6 +873,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
                 return;
             }
 
+            clearWorkflowSavePendingNavigation();
             state.mode = 'update';
             setFieldsEnabled(true);
             applyActionState();
@@ -717,6 +882,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
     if (buttons.clear) {
         buttons.clear.addEventListener('click', () => {
+            clearWorkflowSavePendingNavigation();
             resetViewState();
         });
     }
@@ -735,6 +901,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
             if (!confirmed) return;
 
+            clearWorkflowSavePendingNavigation();
             state.mode = 'delete';
             await submitCurrentMode('delete');
         });
@@ -753,6 +920,37 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
     tabRoot._cmLoadData = (requestData) => refreshAddressTable(requestData);
     tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshAddressTable(requestData, refreshOptions);
+    tabRoot._cmHasWorkflowData = () => hasAddressRows();
+    tabRoot._cmHandleWorkflowStep = () => {
+        if (state.mode === 'create' || state.mode === 'update') {
+            showAddressToast('Address: click Update to save the current address before proceeding.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        if (!hasAddressRows()) {
+            showAddressToast('Address: add and save at least one address before clicking Next.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        if (!hasMailingAddressRow()) {
+            showAddressToast('Address: at least one saved address must be marked as Mailing Address before clicking Next.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        return {
+            handled: true,
+            canNavigate: true,
+            markPersisted: true
+        };
+    };
+    tabRoot._cmConsumeWorkflowPersistedState = () => {
+        if (!state.workflowSavePendingNavigation) {
+            return { persisted: false };
+        }
+
+        state.workflowSavePendingNavigation = false;
+        return { persisted: true };
+    };
     tabRoot._cmMaybeAutoLoadAddress = (requestData) => {
         const context = resolveAddressContext(requestData, configuredModuleId);
         context.IsStandalone = state.isStandalone;

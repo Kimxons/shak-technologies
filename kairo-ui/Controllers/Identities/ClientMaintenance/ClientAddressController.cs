@@ -39,7 +39,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpGet]
         [Route("ClientAddress")]
-        public async Task<IActionResult> ClientAddress(string? moduleId = null, string? clientId = null, string? requestId = null)  
+        public async Task<IActionResult> ClientAddress(string? moduleId = null, string? clientId = null, string? requestId = null)
         {
             if (!_authService.IsAuthenticated()) return RedirectToAction("Index", "Login");
 
@@ -106,9 +106,18 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             if (requestData == null) return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+
+                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
+                {
+                    requestData["RequestID"] = HttpContext!.Connection.Id;
+                }
+
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
-                _logger.LogInformation("client-maintenance.address.create request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_ADDRESS, requestData);
+                Dictionary<string, object> requestDataEnriched = JsonSerializer.Deserialize<Dictionary<string, object>>(requestData)!;
+                requestDataEnriched = _commonUtilities.EnrichDefaults(requestDataEnriched, new KeyValuePair<string, object>("BankID", _commonUtilities.ResolveSessionValue("bank_id", "bank_code") ?? "00"));
+
+                _logger.LogInformation("client-maintenance.address.create request: {Request}", JsonSerializer.Serialize(requestDataEnriched));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_ADDRESS, requestDataEnriched);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -126,8 +135,12 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
-                _logger.LogInformation("client-maintenance.address.update request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_ADDRESS, requestData);
+
+                Dictionary<string, object> requestDataEnriched = JsonSerializer.Deserialize<Dictionary<string, object>>(requestData)!;
+                requestDataEnriched = _commonUtilities.EnrichDefaults(requestDataEnriched, new KeyValuePair<string, object>("BankID", _commonUtilities.ResolveSessionValue("bank_id", "bank_code") ?? "00"));
+
+                _logger.LogInformation("client-maintenance.address.update request: {Request}", JsonSerializer.Serialize(requestDataEnriched));
+                var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_ADDRESS, requestDataEnriched);
                 return Ok(response);
             }
             catch (Exception ex)
