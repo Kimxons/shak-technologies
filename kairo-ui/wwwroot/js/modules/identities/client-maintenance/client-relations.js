@@ -444,6 +444,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
             RelationID: row.RelationID ?? '',
             RelationTypeID: row.RelationTypeID ?? row.RelationType ?? '',
             IdentificationTypeID: row.IdentificationTypeID ?? '',
+            IdentificationNumber: row.IdentificationNumber ?? row.IdentificationNo ?? '',
             IdentificationNo: row.IdentificationNo ?? row.IdentificationNumber ?? '',
             RelationRefNo: row.RelationRefNo ?? 1,
             SharePercent: row.SharePercent ?? '',
@@ -471,7 +472,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
 
             const relationLabel = getSelectLabel('[data-relation-field="RelationID"]', entry.RelationID) || entry.RelationID || '';
             const name = entry.Name || [entry.FirstName, entry.MiddleName, entry.LastName].filter(Boolean).join(' ') || '';
-            const idLabel = entry.IdentificationNo || '';
+            const idLabel = entry.IdentificationNumber || entry.IdentificationNo || '';
 
             tr.innerHTML = `
                 <td class="ps-2">${name}</td>
@@ -500,6 +501,12 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
             if (!key) return;
             payload[key] = readFieldValue(field);
         });
+
+        const identificationNumber = toRelationsString(payload.IdentificationNumber ?? payload.IdentificationNo);
+        if (identificationNumber) {
+            payload.IdentificationNumber = identificationNumber;
+            payload.IdentificationNo = identificationNumber;
+        }
 
         if (state.selectedRecord) {
             const selectedId = state.selectedRecord.ID ?? state.selectedRecord.ClientToRelationID;
@@ -540,7 +547,10 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             const key = field.dataset.relationField;
             if (!key) return;
-            const value = payload[key];
+            const fallbackKey = key === 'IdentificationNumber'
+                ? 'IdentificationNo'
+                : (key === 'IdentificationNo' ? 'IdentificationNumber' : '');
+            const value = payload[key] ?? (fallbackKey ? payload[fallbackKey] : undefined);
 
             if (field.type === 'checkbox') {
                 field.checked = Boolean(value);
