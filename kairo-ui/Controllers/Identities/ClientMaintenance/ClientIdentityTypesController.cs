@@ -71,9 +71,16 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
-                _logger.LogInformation("client-maintenance.identitytypes.get request: {Request}", JsonSerializer.Serialize(requestData));
-                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_IDENTITY_TYPE, requestData);
+                // p_GetClientIdentityType only accepts: ClientID, OperatorID, IdentityTypeID
+                var getRequest = new
+                {
+                    ClientID = requestData["ClientID"]?.ToString() ?? string.Empty,
+                    OperatorID = requestData["OperatorID"]?.ToString() ?? _commonUtilities.ResolveSessionValue("user_name", "user_id") ?? string.Empty,
+                    IdentityTypeID = requestData["IdentityTypeID"]?.ToString() ?? string.Empty
+                };
+                
+                _logger.LogInformation("client-maintenance.identitytypes.get request: {Request}", JsonSerializer.Serialize(getRequest));
+                var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.GET_CLIENT_IDENTITY_TYPE, getRequest);
                 return Ok(response);
             }
             catch (Exception ex)

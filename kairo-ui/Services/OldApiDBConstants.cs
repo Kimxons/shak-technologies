@@ -226,7 +226,17 @@ namespace kairo_ui.Services
         public const string GET_SP_CONDITION_CLASS_COMBO = "p_GetSpConditionCalssCombo"; // Note: Typo in DB
         public const string USER_RIGHTS = "p_UserRights";
 
+
+
         // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE 
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_CUSTOMER="p_GetAccountCustomers";
+
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════════════
+
         // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
