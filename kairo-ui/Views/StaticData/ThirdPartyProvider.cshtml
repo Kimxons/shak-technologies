@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Third Party Service Providers";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <main class="main-container main-container--with-panel" aria-label="Third Party Provider form">
+        <div class="form-content" role="region" aria-label="Third Party Provider details">
+            <div class="form-card" data-main-form>
+                <form id="third-party-provider-form" autocomplete="off" novalidate>
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-boxes"></i> Third Party Service Provider</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="alert alert-danger d-none" role="alert" data-inline-alert hidden>
+                                <div class="d-flex align-items-center justify-content-between gap-3">
+                                    <span data-inline-alert-text></span>
+                                    <button type="button" class="btn-close" aria-label="Close" data-inline-alert-close></button>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_serviceProviderId">Service Provider</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_serviceProviderId" class="kairo-control__id" data-always-enabled aria-label="Service provider id">
+                                        <input type="text" id="txt_serviceProviderSummary" class="kairo-control__name" placeholder="Loaded provider" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchProvider" data-always-enabled aria-label="Load provider"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_providerDescription">Description</label>
+                                    <input type="text" id="txt_providerDescription" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_providerAccountId">Account ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_providerAccountId" class="kairo-control__id" aria-label="Account id">
+                                        <input type="text" id="txt_providerAccountName" class="kairo-control__name" placeholder="Account Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchProviderAccount" aria-label="Search account"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_webService">Web Service</label>
+                                    <input type="text" id="txt_webService" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col cp-toggle-check">
+                                    <label class="label-blue" for="chk_liveValidation">Is Live Validation</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chk_liveValidation">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_validationMethod">Validation Method</label>
+                                    <input type="text" id="txt_validationMethod" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_postingMethod">Posting Method</label>
+                                    <input type="text" id="txt_postingMethod" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_exportFormat">Export Format</label>
+                                    <input type="text" id="txt_exportFormat" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col cp-toggle-check">
+                                    <label class="label-blue" for="chk_isExport">Is Export</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chk_isExport">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_currencyId">Currency ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_currencyId" class="kairo-control__id" aria-label="Currency id">
+                                        <input type="text" id="txt_currencyName" class="kairo-control__name" placeholder="Currency Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchCurrency" aria-label="Search currency"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content hidden>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell"><span class="audit-label">Created By</span><span class="audit-value" id="spn_providerCreatedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Created On</span><span class="audit-value" id="spn_providerCreatedOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Supervised By</span><span class="audit-value" id="spn_providerSupervisedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Supervised On</span><span class="audit-value" id="spn_providerSupervisedOn">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside class="action-panel" aria-label="Third Party Provider actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_providerView" type="button"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btn_providerAdd" type="button"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" id="btn_providerEdit" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" id="btn_providerDelete" type="button"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action" id="btn_providerSave" type="button"><i class="bi bi-save me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btn_providerCancel" type="button"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span class="message-text"></span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/staticDataCore.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/thirdPartyProviderStaticDataService.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/third-party-provider.js" asp-append-version="true"></script>
+}

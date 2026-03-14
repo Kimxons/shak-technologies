@@ -1,0 +1,153 @@
+@{
+    ViewData["Title"] = "Insurance Policy";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <main class="main-container main-container--with-panel" aria-label="Insurance Policy form">
+        <div class="form-content" role="region" aria-label="Insurance Policy details">
+            <div class="form-card" data-main-form>
+                <form id="insurance-policy-form" autocomplete="off" novalidate>
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-file-text"></i> Insurance Policy Information</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="alert alert-danger d-none" role="alert" data-inline-alert hidden>
+                                <div class="d-flex align-items-center justify-content-between gap-3">
+                                    <span data-inline-alert-text></span>
+                                    <button type="button" class="btn-close" aria-label="Close" data-inline-alert-close></button>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_policyNo">Policy No</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_policyNo" class="kairo-control__id" data-always-enabled aria-label="Policy No">
+                                        <input type="text" id="txt_policySummary" class="kairo-control__name" placeholder="Loaded policy" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchPolicy" data-always-enabled aria-label="Load policy"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_policyDate">Policy Date</label>
+                                    <input type="date" id="txt_policyDate" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_insuranceCode">Insurance Code</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_insuranceCode" class="kairo-control__id" aria-label="Insurance code">
+                                        <input type="text" id="txt_insuranceCodeDesc" class="kairo-control__name" placeholder="Code Description" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchInsuranceCode" aria-label="Search insurance code"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_companyId">Insurance Company ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_companyId" class="kairo-control__id" aria-label="Insurance company id">
+                                        <input type="text" id="txt_companyName" class="kairo-control__name" placeholder="Company Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchCompany" aria-label="Search insurance company"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_address">Address</label>
+                                    <input type="text" id="txt_address" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="ddl_city">City</label>
+                                    <select id="ddl_city" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_phone">Phone</label>
+                                    <input type="text" id="txt_phone" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="ddl_country">Country</label>
+                                    <select id="ddl_country" class="bs-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_agentName">Agent Name</label>
+                                    <input type="text" id="txt_agentName" class="bs-input-text">
+                                </div>
+                                <div class="col cp-toggle-check">
+                                    <label class="label-blue" for="chk_policyActive">Is Active</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chk_policyActive">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content hidden>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell"><span class="audit-label">Created By</span><span class="audit-value" id="spn_policyCreatedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Created On</span><span class="audit-value" id="spn_policyCreatedOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified By</span><span class="audit-value" id="spn_policyModifiedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified On</span><span class="audit-value" id="spn_policyModifiedOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Supervised By</span><span class="audit-value" id="spn_policySupervisedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Supervised On</span><span class="audit-value" id="spn_policySupervisedOn">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside class="action-panel" aria-label="Insurance Policy actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_policyView" type="button"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btn_policyAdd" type="button"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" id="btn_policyEdit" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" id="btn_policyDelete" type="button"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action" id="btn_policySave" type="button"><i class="bi bi-save me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btn_policyCancel" type="button"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span class="message-text"></span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/lookupService.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/staticDataCore.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/insuranceCodeStaticDataService.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/insurancePolicyStaticDataService.js" asp-append-version="true"></script>
+    <script src="~/js/services/search/insuranceSearchServices.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/insurance-policy.js" asp-append-version="true"></script>
+}
