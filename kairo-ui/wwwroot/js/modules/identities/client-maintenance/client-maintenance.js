@@ -112,6 +112,99 @@ function invokeClientMaintenanceController(action, requestData) {
     return invokeController(CLIENT_MAINTENANCE_CONTROLLER_BASE, action, requestData);
 }
 
+const CLIENT_MAINTENANCE_MONTH_MAP = {
+    jan: 0,
+    january: 0,
+    feb: 1,
+    february: 1,
+    mar: 2,
+    march: 2,
+    apr: 3,
+    april: 3,
+    may: 4,
+    jun: 5,
+    june: 5,
+    jul: 6,
+    july: 6,
+    aug: 7,
+    august: 7,
+    sep: 8,
+    sept: 8,
+    september: 8,
+    oct: 9,
+    october: 9,
+    nov: 10,
+    november: 10,
+    dec: 11,
+    december: 11
+};
+
+const CLIENT_MAINTENANCE_SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const CLIENT_MAINTENANCE_RESPONSE_META_KEYS = new Set([
+    'responsecode',
+    'responsemessage',
+    'success',
+    'errormessage',
+    'error',
+    'message',
+    'status',
+    'statuscode',
+    'details',
+    'details01',
+    'data',
+    'records',
+    'searchresults'
+]);
+
+function formatClientMaintenanceIsoDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatClientMaintenanceDisplayDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = CLIENT_MAINTENANCE_SHORT_MONTHS[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function parseClientMaintenanceDateValue(value) {
+    if (value == null || value === '') return null;
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    const text = String(value).trim();
+    if (!text) return null;
+
+    let match = text.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (match) {
+        return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+
+    match = text.match(/^(\d{1,2})[-\/\s.,]+([a-z]{3,})[-\/\s.,]+(\d{4})$/i);
+    if (match) {
+        const month = CLIENT_MAINTENANCE_MONTH_MAP[String(match[2]).toLowerCase()];
+        if (month !== undefined) {
+            return new Date(Number(match[3]), month, Number(match[1]));
+        }
+    }
+
+    match = text.match(/^(\d{1,2})[-\/\s.,]+(\d{1,2})[-\/\s.,]+(\d{4})$/);
+    if (match) {
+        return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    }
+
+    const nativeDate = new Date(text);
+    return Number.isNaN(nativeDate.getTime()) ? null : nativeDate;
+}
+
 function syncClientMaintenanceDateInput(input) {
     if (!input || !input._flatpickr) return;
 
@@ -119,6 +212,10 @@ function syncClientMaintenanceDateInput(input) {
     try {
         input._flatpickr.set('clickOpens', !isDisabled);
         input._flatpickr.set('allowInput', !isDisabled);
+        if (input._flatpickr.altInput) {
+            input._flatpickr.altInput.disabled = isDisabled;
+            input._flatpickr.altInput.readOnly = isDisabled;
+        }
         if (isDisabled) input._flatpickr.close();
     } catch (error) {
         console.warn('[ClientMaintenance] Failed to sync flatpickr state:', error);
@@ -141,11 +238,31 @@ function initializeClientMaintenanceDatePickers(scopeRoot = document) {
         try {
             window.flatpickr(input, {
                 dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd-M-Y',
+                altInputClass: input.className || 'form-control',
+                parseDate: parseClientMaintenanceDateValue,
+                formatDate: (date, format) => {
+                    if (format === 'Y-m-d') {
+                        return formatClientMaintenanceIsoDate(date);
+                    }
+
+                    return formatClientMaintenanceDisplayDate(date);
+                },
                 disableMobile: true,
                 monthSelectorType: 'dropdown',
+                minDate: input.getAttribute('min') || undefined,
+                maxDate: input.getAttribute('max') || undefined,
                 clickOpens: !(input.disabled || input.readOnly),
                 allowInput: !(input.disabled || input.readOnly),
                 onReady: (_selectedDates, _dateStr, instance) => {
+                    if (instance?.altInput) {
+                        instance.altInput.placeholder = input.getAttribute('placeholder') || 'dd-MMM-yyyy';
+                        instance.altInput.readOnly = Boolean(input.readOnly);
+                        instance.altInput.disabled = Boolean(input.disabled);
+                        if (input.getAttribute('aria-label')) instance.altInput.setAttribute('aria-label', input.getAttribute('aria-label'));
+                        if (input.getAttribute('aria-describedby')) instance.altInput.setAttribute('aria-describedby', input.getAttribute('aria-describedby'));
+                    }
                     syncClientMaintenanceDateInput(instance.input);
                 },
                 onOpen: (_selectedDates, _dateStr, instance) => {
@@ -898,44 +1015,126 @@ window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName
 };
 
 function normalizeSingleRow(response) {
-    const candidates = [
-        response?.Details?.[0],
-        response?.Details,
-        response?.data?.Details?.[0],
-        response?.data?.Details,
-        response?.data?.[0]?.Details?.[0],
-        response?.data?.[0]?.Details,
-        response?.data,
-        response
-    ];
-
-    for (const candidate of candidates) {
-        if (!candidate) continue;
-        if (Array.isArray(candidate)) {
-            if (candidate.length > 0 && typeof candidate[0] === 'object') return candidate[0];
-            continue;
-        }
-        if (typeof candidate === 'object') {
-            return candidate;
-        }
-    }
-
-    return null;
+    return extractSingleDataRow(response);
 }
 
 function normalizeDetailsArray(response) {
-    const candidates = [
-        response?.Details,
-        response?.data?.Details,
-        response?.data?.[0]?.Details,
-        response?.data
-    ];
+    return extractDetailsArray(response);
+}
 
-    for (const candidate of candidates) {
-        if (Array.isArray(candidate)) return candidate;
+function parseResponseCandidate(candidate) {
+    if (typeof candidate !== 'string') return candidate;
+
+    const text = candidate.trim();
+    if (!text) return null;
+
+    try {
+        return JSON.parse(text);
+    } catch (_) {
+        return candidate;
+    }
+}
+
+function isMeaningfulResponseValue(value) {
+    if (value == null) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return true;
+}
+
+function isMeaningfulDataObject(candidate) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+        return false;
     }
 
-    return [];
+    return Object.entries(candidate).some(([key, value]) => {
+        const normalizedKey = normalizeDataKey(key);
+        if (!normalizedKey || CLIENT_MAINTENANCE_RESPONSE_META_KEYS.has(normalizedKey)) {
+            return false;
+        }
+
+        return isMeaningfulResponseValue(value);
+    });
+}
+
+function getNestedResponseCandidates(candidate) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+        return [];
+    }
+
+    return [
+        candidate.Details,
+        candidate.details,
+        candidate.Details01,
+        candidate.details01,
+        candidate.Data,
+        candidate.data,
+        candidate.Records,
+        candidate.records,
+        candidate.SearchResults,
+        candidate.searchResults
+    ];
+}
+
+function extractSingleDataRow(candidate, depth = 0) {
+    if (depth > 5 || candidate == null) {
+        return null;
+    }
+
+    const parsedCandidate = parseResponseCandidate(candidate);
+    if (parsedCandidate == null) {
+        return null;
+    }
+
+    if (Array.isArray(parsedCandidate)) {
+        for (const item of parsedCandidate) {
+            const row = extractSingleDataRow(item, depth + 1);
+            if (row) return row;
+        }
+        return null;
+    }
+
+    if (typeof parsedCandidate !== 'object') {
+        return null;
+    }
+
+    for (const nested of getNestedResponseCandidates(parsedCandidate)) {
+        const row = extractSingleDataRow(nested, depth + 1);
+        if (row) return row;
+    }
+
+    return isMeaningfulDataObject(parsedCandidate) ? parsedCandidate : null;
+}
+
+function extractDetailsArray(candidate, depth = 0) {
+    if (depth > 5 || candidate == null) {
+        return [];
+    }
+
+    const parsedCandidate = parseResponseCandidate(candidate);
+    if (parsedCandidate == null) {
+        return [];
+    }
+
+    if (Array.isArray(parsedCandidate)) {
+        return parsedCandidate
+            .map((item) => extractSingleDataRow(item, depth + 1))
+            .filter((item) => item != null);
+    }
+
+    if (typeof parsedCandidate !== 'object') {
+        return [];
+    }
+
+    for (const nested of getNestedResponseCandidates(parsedCandidate)) {
+        const rows = extractDetailsArray(nested, depth + 1);
+        if (rows.length > 0) {
+            return rows;
+        }
+    }
+
+    return isMeaningfulDataObject(parsedCandidate) ? [parsedCandidate] : [];
 }
 
 function normalizeStageName(name) {
@@ -1261,6 +1460,7 @@ function applyResponseDataToPane(pane, response, explicitFieldMap) {
     if (!pane) return;
 
     const row = normalizeSingleRow(response);
+    pane.setAttribute('data-cm-loaded', row ? 'true' : 'false');
     resetPaneFormFields(pane);
     if (!row) return;
 
@@ -1383,6 +1583,9 @@ async function autoLoadTabData(config, pane) {
 
         applyResponseDataToPane(pane, response, fieldMap);
     } catch (error) {
+        if (pane) {
+            pane.setAttribute('data-cm-loaded', 'false');
+        }
         window.ClientMaintenanceCore.showToast(`${config.key} load failed - ${error.message}`, 'error');
     }
 }
@@ -2153,14 +2356,14 @@ function initMainClientSearch(shell) {
             tableID: 'WFClientID',
             moduleID: window.ClientMaintenanceCore.moduleId || '',
             searchFields: [
-                { name: 'ClientID', label: 'Application ID', column: 'ClientID', value: applicationIdInput?.value || '' },
+                { name: 'RequestID', label: 'Application ID', column: 'ApplicationID', value: applicationIdInput?.value || '' },
                 { name: 'Name', label: 'Client Name', column: 'Name' }
             ],
             autoSearch: false,
             onSelect: async (record) => {
                 try {
                     await withClientMaintenanceShellLoading(async () => {
-                        const selectedRequestId = record?.ClientID || '';
+                        const selectedRequestId = record?.ApplicationID || record?.ClientID || '';
                         const selectedName = record?.Name || '';
                         const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
                         const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
@@ -2394,7 +2597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Ensure edit mode is enabled for this tab so the next save uses UPDATE action
                 // Note: The global isEditMode flag controls the mode across all tabs
                 // For tabs with existing data, we want them to use UPDATE action when navigating next
-                
+
                 // If this tab has the "is-completed" class, it means it was previously saved
                 // We should ensure edit mode applies to it
                 const tabButton = event.target;
@@ -2758,8 +2961,10 @@ function getTabDataFromPane(pane) {
 function detectTabHasExistingData(pane) {
     if (!pane) return false;
 
-    // Check for data-cm-loaded marker
-    if (pane.querySelector('[data-cm-loaded]')) return true;
+    const explicitLoadedState = getPaneLoadedState(pane);
+    if (explicitLoadedState != null) {
+        return explicitLoadedState;
+    }
 
     // Check if there are any filled form fields (indicates data was loaded)
     const fields = pane.querySelectorAll('input:not([type="hidden"]), textarea, select');
@@ -2767,14 +2972,44 @@ function detectTabHasExistingData(pane) {
 
     fields.forEach((field) => {
         const type = field.type?.toLowerCase() || '';
-        if (type === 'checkbox' || type === 'radio') {
+        if (type === 'radio') {
+            return;
+        }
+
+        if (type === 'checkbox') {
             if (field.checked) filledCount++;
-        } else if (field.value && String(field.value).trim()) {
+            return;
+        }
+
+        if (field.tagName.toLowerCase() === 'select') {
+            if (field.value && String(field.value).trim()) {
+                filledCount++;
+            }
+            return;
+        }
+
+        if (field.value && String(field.value).trim()) {
             filledCount++;
         }
     });
 
     return filledCount > 0;
+}
+
+function getPaneLoadedState(pane) {
+    if (!pane) return null;
+
+    const ownMarker = pane.getAttribute('data-cm-loaded');
+    if (ownMarker === 'true') return true;
+    if (ownMarker === 'false') return false;
+
+    const nestedTrueMarker = pane.querySelector('[data-cm-loaded="true"]');
+    if (nestedTrueMarker) return true;
+
+    const nestedFalseMarker = pane.querySelector('[data-cm-loaded="false"]');
+    if (nestedFalseMarker) return false;
+
+    return null;
 }
 
 /**
@@ -3338,8 +3573,9 @@ async function saveCurrentTabData() {
     }
 
     // Check if tab has loaded data (look for _cmLoadData or data indicators)
-    const hasLoadedData = tabPane.querySelector('[data-cm-loaded]') !== null ||
-        tabPane.querySelectorAll('input[value], select option:selected, textarea').length > 0;
+    const explicitLoadedState = getPaneLoadedState(tabPane);
+    const hasLoadedData = explicitLoadedState === true ||
+        (explicitLoadedState == null && tabPane.querySelectorAll('input[value], select option:selected, textarea').length > 0);
 
     try {
         // Build request
