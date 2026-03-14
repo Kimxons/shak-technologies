@@ -104,12 +104,12 @@
       
       let codes = await trySearchWithTableIds(tableIdCandidates, baseRequestData, 'InsuranceCodeSearch');
 
-      // Fallback to StaticDataService
-      if (codes.length === 0 && window.StaticDataService?.getInsuranceCode) {
-        console.log('[InsuranceCodeSearch] Falling back to StaticDataService.getInsuranceCode');
+      const insuranceCodeService = window.InsuranceCodeStaticDataService || window.StaticDataService;
+      if (codes.length === 0 && insuranceCodeService?.getInsuranceCode) {
+        console.log('[InsuranceCodeSearch] Falling back to InsuranceCodeStaticDataService.getInsuranceCode');
         try {
-          const svcResponse = await window.StaticDataService.getInsuranceCode('');
-          console.log('[InsuranceCodeSearch] StaticDataService response:', svcResponse);
+          const svcResponse = await insuranceCodeService.getInsuranceCode('');
+          console.log('[InsuranceCodeSearch] InsuranceCodeStaticDataService response:', svcResponse);
           
           if (svcResponse?.success) {
             const svcPayload = svcResponse?.data || svcResponse?.Details;
@@ -136,7 +136,7 @@
             }
           }
         } catch (err) {
-          console.warn('[InsuranceCodeSearch] StaticDataService fallback failed:', err.message);
+          console.warn('[InsuranceCodeSearch] InsuranceCodeStaticDataService fallback failed:', err.message);
         }
       }
 
@@ -621,16 +621,16 @@
       
       let policies = await trySearchWithTableIds(tableIdCandidates, baseRequestData, 'InsurancePolicySearch');
 
-      // Fallback to StaticDataService
-      if (policies.length === 0 && window.StaticDataService?.getInsurancePolicy) {
-        console.log('[InsurancePolicySearch] Falling back to StaticDataService.getInsurancePolicy');
+      const insurancePolicyService = window.InsurancePolicyStaticDataService || window.StaticDataService;
+      if (policies.length === 0 && insurancePolicyService?.getInsurancePolicy) {
+        console.log('[InsurancePolicySearch] Falling back to InsurancePolicyStaticDataService.getInsurancePolicy');
         const policyParams = ['%', '', null, '*'];
         
         for (const param of policyParams) {
           try {
-            console.log(`[InsurancePolicySearch] Trying StaticDataService with param: "${param}"`);
-            const svcResponse = await window.StaticDataService.getInsurancePolicy(param);
-            console.log('[InsurancePolicySearch] StaticDataService response:', svcResponse);
+            console.log(`[InsurancePolicySearch] Trying InsurancePolicyStaticDataService with param: "${param}"`);
+            const svcResponse = await insurancePolicyService.getInsurancePolicy(param);
+            console.log('[InsurancePolicySearch] InsurancePolicyStaticDataService response:', svcResponse);
             
             if (svcResponse?.success) {
               const svcPayload = svcResponse?.data || svcResponse?.Details;
@@ -643,7 +643,7 @@
               }
             }
           } catch (err) {
-            console.warn(`[InsurancePolicySearch] StaticDataService failed with param "${param}":`, err.message);
+            console.warn(`[InsurancePolicySearch] InsurancePolicyStaticDataService failed with param "${param}":`, err.message);
           }
         }
         
