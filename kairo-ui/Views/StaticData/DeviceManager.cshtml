@@ -1,0 +1,172 @@
+@{
+    ViewData["Title"] = "Device Maintenance";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <main class="main-container main-container--with-panel" aria-label="Device Maintenance form">
+        <div class="form-content" role="region" aria-label="Device details">
+            <div class="form-card" data-main-form>
+                <form id="device-manager-form" autocomplete="off" novalidate>
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-gear"></i> Device Details</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="alert alert-danger d-none" role="alert" data-inline-alert hidden>
+                                <div class="d-flex align-items-center justify-content-between gap-3">
+                                    <span data-inline-alert-text></span>
+                                    <button type="button" class="btn-close" aria-label="Close" data-inline-alert-close></button>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_deviceBranchId">Branch ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_deviceBranchId" class="kairo-control__id" data-always-enabled aria-label="Branch id">
+                                        <input type="text" id="txt_deviceBranchName" class="kairo-control__name" placeholder="Branch Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchDeviceBranch" data-always-enabled aria-label="Search branch"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_deviceId">Device ID</label>
+                                    <input type="text" id="txt_deviceId" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_deviceDescription">Device Description</label>
+                                    <input type="text" id="txt_deviceDescription" class="bs-input-text">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_deviceBankId">Bank ID</label>
+                                    <input type="text" id="txt_deviceBankId" class="bs-input-text">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_settlementGlId">Settlement GL</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_settlementGlId" class="kairo-control__id" aria-label="Settlement GL id">
+                                        <input type="text" id="txt_settlementGlName" class="kairo-control__name" placeholder="Settlement GL Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchSettlementGl" aria-label="Search settlement GL"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_receivableDeviceGlId">Receivable GL</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_receivableDeviceGlId" class="kairo-control__id" aria-label="Receivable GL id">
+                                        <input type="text" id="txt_receivableDeviceGlName" class="kairo-control__name" placeholder="Receivable GL Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchReceivableDeviceGl" aria-label="Search receivable GL"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col cp-toggle-check">
+                                    <label class="label-blue" for="chk_deviceActive">Is Active</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chk_deviceActive">
+                                    </div>
+                                </div>
+                                <div class="col cp-toggle-check">
+                                    <label class="label-blue" for="chk_deviceLocal">Is Local</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chk_deviceLocal">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-table"></i> Device List</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="dm-toolbar" role="toolbar" aria-label="Device list actions">
+                                <button type="button" class="cm-shell__action" id="btn_deviceNew"><i class="bi bi-plus-circle"></i> New</button>
+                                <button type="button" class="cm-shell__action" id="btn_deviceAlter"><i class="bi bi-pencil-square"></i> Alter</button>
+                                <button type="button" class="cm-shell__action" id="btn_deviceRemove"><i class="bi bi-trash"></i> Remove</button>
+                                <button type="button" class="cm-shell__action" id="btn_deviceUpdate"><i class="bi bi-arrow-repeat"></i> Update</button>
+                                <button type="button" class="cm-shell__action" id="btn_deviceClear"><i class="bi bi-x-circle"></i> Clear</button>
+                            </div>
+
+                            <div class="dm-grid">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Device ID</th>
+                                                <th>Branch ID</th>
+                                                <th>Settlement GL</th>
+                                                <th>Receivable GL</th>
+                                                <th>Active</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbl_deviceRows">
+                                            <tr><td colspan="6" class="text-center py-3 text-muted">No records to display.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content hidden>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell"><span class="audit-label">Created By</span><span class="audit-value" id="spn_deviceCreatedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Created On</span><span class="audit-value" id="spn_deviceCreatedOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified By</span><span class="audit-value" id="spn_deviceModifiedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified On</span><span class="audit-value" id="spn_deviceModifiedOn">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside class="action-panel" aria-label="Device actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_deviceView" type="button"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btn_deviceEdit" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" id="btn_deviceSave" type="button"><i class="bi bi-save me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btn_deviceCancel" type="button"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                <button class="btn-action" id="btn_deviceBack" type="button"><i class="bi bi-arrow-left-circle me-1"></i>Back</button>
+            </div>
+        </aside>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span class="message-text"></span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/staticDataCore.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/deviceManagerStaticDataService.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/device-manager.js" asp-append-version="true"></script>
+}
