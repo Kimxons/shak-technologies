@@ -224,7 +224,7 @@ window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations
     // Initialize DOB date picker
     const dobInput = tabRoot.querySelector('#dt_relationDob');
     if (dobInput && window.flatpickr) {
-        const monthMap = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+        const monthMap = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
         const parseDOBDate = (dateStr) => {
             if (!dateStr) return null;
             const textMonthRegex = /^(\d{1,2})[-\/\s.,]+([a-z]{3,}?)[-\/\s.,]+(\d{4})$/i;
@@ -239,7 +239,7 @@ window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations
             try {
                 const nativeDate = new Date(dateStr);
                 if (!isNaN(nativeDate.getTime())) return nativeDate;
-            } catch (_) {}
+            } catch (_) { }
             return null;
         };
         const formatDOBDate = (date) => {
@@ -255,7 +255,7 @@ window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations
             parseDate: parseDOBDate,
             formatDate: formatDOBDate,
             maxDate: new Date(),
-            onReady: function(selectedDates, dateStr, instance) {
+            onReady: function (selectedDates, dateStr, instance) {
                 if (dobInput.disabled || dobInput.readOnly) instance.close();
             }
         });
@@ -372,7 +372,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     const refreshRelationsTable = async (requestData) => {
         const clientId = requestData?.ClientID || getRelationsClientMaintenanceCore()?.clientId || '';
         const requestIdVal = requestData?.RequestID || getRelationsClientMaintenanceCore()?.requestId || '';
-        
+
         if (!clientId && !requestIdVal) {
             renderRelationsTable([]);
             return;
@@ -470,7 +470,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         if (!relatedClientId) return false;
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
         if (!tbody) return false;
-        
+
         const rows = tbody.querySelectorAll('tr[data-payload]');
         for (const row of rows) {
             const existingPayload = JSON.parse(row.dataset.payload || '{}');
@@ -485,7 +485,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     const calculateTotalShare = (excludeCurrentEdit = false) => {
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
         if (!tbody) return 0;
-        
+
         const rows = tbody.querySelectorAll('tr[data-payload]');
         let total = 0;
         for (const row of rows) {
@@ -596,7 +596,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
                     showRelationsToast('Select a relation to remove.', 'warning');
                     return;
                 }
-                
+
                 const confirmed = await requestRelationsConfirmation(
                     'Confirm Remove',
                     'Are you sure you want to remove this relation?'
@@ -631,7 +631,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             if (mode === 'add' || mode === 'edit') {
                 const currentTotal = calculateTotalShare(mode === 'edit');
                 const newTotal = currentTotal + sharePercent;
-                
+
                 if (newTotal > 100) {
                     showRelationsToast(
                         `Total share percentage cannot exceed 100%. Current total: ${currentTotal.toFixed(2)}%, Attempting to add: ${sharePercent.toFixed(2)}%`,
@@ -687,36 +687,46 @@ function enableRelationsGridRowActions(tabRoot, hasSelection) {
 
 async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) {
     if (!relatedClientId) return;
-    
+
     try {
         const maintenanceCore = getRelationsClientMaintenanceCore();
         if (typeof maintenanceCore?.invokeControllerMethod !== 'function') return;
 
         const response = await maintenanceCore.invokeControllerMethod(
-            'Identities/ClientMaintenance/ClientIndividual',
-            'get',
+            'Identities/ClientMaintenance/Personal/get',
             'POST',
             {
                 ModuleID: maintenanceCore.moduleId || '',
                 ClientID: relatedClientId
             }
         );
-        
+
         if (!response?.Success && !response?.success) return;
-        
+
         const clientData = response?.Data || response?.data || response?.Payload || {};
-        
+
         const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
         const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
         const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
         const genderField = tabRoot.querySelector('[data-relation-field="GenderID"]');
         const clientNameField = tabRoot.querySelector('#txt_relationClientName');
-        
+
+
+        const identificationTypeField = tabRoot.querySelector('[data-relation-field="IdentificationTypeiD"]');
+        const identificationNoField = tabRoot.querySelector('[data-relation-field="IdentificationNo"]');
+        const dobField = tabRoot.querySelector('[data-relation-field="DateOfBirth"]');
+        const mobileField = tabRoot.querySelector('[data-relation-field="Mobile"]');
+
         if (firstNameField && clientData.FirstName) firstNameField.value = clientData.FirstName;
         if (middleNameField && clientData.MiddleName) middleNameField.value = clientData.MiddleName;
         if (lastNameField && clientData.LastName) lastNameField.value = clientData.LastName;
         if (genderField && clientData.GenderID) genderField.value = clientData.GenderID;
-        
+
+        if (identificationTypeField && clientData.IdentificationTypeiD) identificationTypeField.value = clientData.IdentificationTypeiD;
+        if (identificationNoField && clientData.IdentificationNo) identificationNoField.value = clientData.IdentificationNo;
+        if (dobField && clientData.DateOfBirth) dobField.value = clientData.DateOfBirth;
+        if (mobileField && clientData.Mobile) mobileField.value = clientData.Mobile;
+
         if (clientNameField) {
             const name = [clientData.FirstName, clientData.MiddleName, clientData.LastName]
                 .filter(Boolean).join(' ') || clientData.Name || '';
@@ -729,7 +739,7 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
 
 function initRelationsSearchModal(tabRoot, moduleId) {
     if (!tabRoot) return;
-    
+
     const searchBtn = tabRoot.querySelector('[data-relation-action="lookup"]');
     if (!searchBtn) return;
 
@@ -738,13 +748,13 @@ function initRelationsSearchModal(tabRoot, moduleId) {
         console.warn('[Relations] AppCore not available for SearchModal');
         return;
     }
-    
+
     let searchModal = window._relationsSearchModal;
     if (!searchModal && window.SearchModal) {
         searchModal = new window.SearchModal(appCore);
         window._relationsSearchModal = searchModal;
     }
-    
+
     if (!searchModal) {
         console.warn('[Relations] SearchModal not available');
         return;
@@ -786,10 +796,10 @@ function initRelationsSearchModal(tabRoot, moduleId) {
             relationLookupInFlight = false;
         }
     };
-    
+
     const openSearchModal = () => {
         const currentValue = tabRoot.querySelector('[data-relation-field="RelatedClientID"]')?.value || '';
-        
+
         searchModal.open({
             title: 'Find Related Client',
             tableID: 'ClientID',
@@ -809,30 +819,31 @@ function initRelationsSearchModal(tabRoot, moduleId) {
                 if (clientNameField) {
                     clientNameField.value = record.Name || '';
                 }
-                
+
                 const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
                 const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
                 const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
                 const genderField = tabRoot.querySelector('[data-relation-field="GenderID"]');
-                
+
                 if (firstNameField) firstNameField.value = record.FirstName || '';
                 if (middleNameField) middleNameField.value = record.MiddleName || '';
                 if (lastNameField) lastNameField.value = record.LastName || '';
                 if (genderField) genderField.value = record.GenderID || '';
 
                 const selectedId = record.ClientID || '';
+                console.log(selectedId);
                 if (selectedId) {
                     await hydrateRelationFormFromRelatedClientId(tabRoot, selectedId);
                 }
             }
         });
     };
-    
+
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
         openSearchModal();
     });
-    
+
     const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
     if (clientIdField) {
         clientIdField.addEventListener('blur', async (e) => {
@@ -850,7 +861,7 @@ function initRelationsSearchModal(tabRoot, moduleId) {
             await autoLoadRelatedClientNameFromId(value);
             await hydrateRelationFormFromRelatedClientId(tabRoot, value);
         });
-        
+
         clientIdField.addEventListener('keydown', (e) => {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -863,7 +874,7 @@ function initRelationsSearchModal(tabRoot, moduleId) {
 async function refreshRelationsTableStandalone(tabRoot, state) {
     if (!tabRoot) return;
     const context = resolveRelationsContext({}, state.ModuleID);
-    
+
     const requestData = {
         ModuleID: context.ModuleID,
         ClientID: context.ClientID,
@@ -886,10 +897,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (viewState.AutoLoad && viewState.ClientID) {
             setTimeout(() => {
                 if (moduleRoot._cmLoadData) {
-                    moduleRoot._cmLoadData({ 
-                        ClientID: viewState.ClientID, 
+                    moduleRoot._cmLoadData({
+                        ClientID: viewState.ClientID,
                         RequestID: viewState.RequestID,
-                        ModuleID: moduleId 
+                        ModuleID: moduleId
                     });
                 }
             }, 100);
