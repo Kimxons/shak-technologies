@@ -221,6 +221,46 @@ window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations
     bindRelationsCrudStandalone(tabRoot, moduleId);
     initRelationsSearchModal(tabRoot, moduleId);
 
+    // Initialize DOB date picker
+    const dobInput = tabRoot.querySelector('#dt_relationDob');
+    if (dobInput && window.flatpickr) {
+        const monthMap = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+        const parseDOBDate = (dateStr) => {
+            if (!dateStr) return null;
+            const textMonthRegex = /^(\d{1,2})[-\/\s.,]+([a-z]{3,}?)[-\/\s.,]+(\d{4})$/i;
+            let match = dateStr.match(textMonthRegex);
+            if (match) {
+                const day = parseInt(match[1], 10);
+                const monthStr = match[2].toLowerCase().substring(0, 3);
+                const month = monthMap[monthStr];
+                const year = parseInt(match[3], 10);
+                if (!isNaN(day) && month !== undefined && !isNaN(year)) return new Date(year, month, day);
+            }
+            try {
+                const nativeDate = new Date(dateStr);
+                if (!isNaN(nativeDate.getTime())) return nativeDate;
+            } catch (_) {}
+            return null;
+        };
+        const formatDOBDate = (date) => {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
+        };
+        window.flatpickr(dobInput, {
+            dateFormat: 'd-M-Y',
+            mode: 'single',
+            clickOpens: true,
+            allowInput: true,
+            parseDate: parseDOBDate,
+            formatDate: formatDOBDate,
+            maxDate: new Date(),
+            onReady: function(selectedDates, dateStr, instance) {
+                if (dobInput.disabled || dobInput.readOnly) instance.close();
+            }
+        });
+    }
+
     tabRoot._cmRefreshData = async () => {
         await refreshRelationsTableStandalone(tabRoot, state);
     };
@@ -232,7 +272,8 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     const state = {
         enabled: false,
         editing: null,
-        mode: 'view'
+        mode: 'view',
+        rows: []
     };
 
     const form = tabRoot.querySelector('[data-relations-form]') || tabRoot;
@@ -280,7 +321,9 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         RelationID: row.RelationID ?? '',
         RelationTypeID: row.RelationTypeID ?? row.RelationType ?? '',
         IdentificationTypeID: row.IdentificationTypeID ?? '',
+        IdentificationNumber: row.IdentificationNumber ?? row.IdentificationNo ?? '',
         IdentificationNo: row.IdentificationNo ?? row.IdentificationNumber ?? '',
+        DateOfBirth: row.DateOfBirth ?? row.DOB ?? '',
         RelationRefNo: row.RelationRefNo ?? 1,
         SharePercent: row.SharePercent ?? '',
         Name: row.Name ?? '',
@@ -300,18 +343,19 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     };
 
     const renderRelationsTable = (rows) => {
+        state.rows = Array.isArray(rows) ? rows : [];
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        (rows || []).forEach((entry, index) => {
+        state.rows.forEach((entry, index) => {
             const tr = document.createElement('tr');
             tr.dataset.index = String(index);
             tr.dataset.payload = JSON.stringify(entry);
 
             const relationLabel = getSelectLabel('[data-relation-field="RelationID"]', entry.RelationID) || entry.RelationID || '';
             const name = entry.Name || [entry.FirstName, entry.MiddleName, entry.LastName].filter(Boolean).join(' ') || '';
-            const idLabel = entry.IdentificationNo || '';
+            const idLabel = entry.IdentificationNumber || entry.IdentificationNo || '';
 
             tr.innerHTML = `
                 <td class="ps-2">${name}</td>
@@ -319,6 +363,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
                 <td>${idLabel}</td>
                 <td>${entry.SharePercent ?? ''}</td>
                 <td>${entry.Mobile ?? ''}</td>
+                <td>${entry.DateOfBirth ?? ''}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -340,7 +385,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             });
             const rows = normalizeRelationRows(extractList(response));
             renderRelationsTable(rows);
-            setMode(rows.length > 0 ? 'edit' : 'view');
+            setMode('view');
         } catch (error) {
             showRelationsToast(`Relations load failed - ${error.message}`, 'error');
         }
@@ -350,6 +395,8 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             if (field.type === 'checkbox') {
                 field.checked = false;
+            } else if (field._flatpickr) {
+                field._flatpickr.clear();
             } else {
                 field.value = '';
             }
@@ -375,6 +422,12 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             payload[key] = readFieldValue(field);
         });
 
+        const identificationNumber = toRelationsString(payload.IdentificationNumber ?? payload.IdentificationNo);
+        if (identificationNumber) {
+            payload.IdentificationNumber = identificationNumber;
+            payload.IdentificationNo = identificationNumber;
+        }
+
         if (state.editing) {
             payload.ID = state.editing.ID || state.editing.ClientToRelationID || null;
             payload.ClientToRelationID = state.editing.ClientToRelationID || state.editing.ID || null;
@@ -394,9 +447,19 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             const key = field.dataset.relationField;
             if (!key) return;
-            const value = payload[key];
+            const fallbackKey = key === 'IdentificationNumber'
+                ? 'IdentificationNo'
+                : (key === 'IdentificationNo' ? 'IdentificationNumber' : '');
+            const value = payload[key] ?? (fallbackKey ? payload[fallbackKey] : undefined);
             if (field.type === 'checkbox') {
                 field.checked = Boolean(value);
+            } else if (key === 'DateOfBirth') {
+                // Use flatpickr API if available, otherwise fall back to raw value
+                if (field._flatpickr) {
+                    field._flatpickr.setDate(value || '', false);
+                } else {
+                    field.value = value ?? '';
+                }
             } else {
                 field.value = value ?? '';
             }
@@ -437,6 +500,27 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     setFieldsEnabled(false);
     tabRoot._cmLoadData = (requestData) => refreshRelationsTable(requestData);
 
+    const hasRelationsRows = () => Array.isArray(state.rows) && state.rows.length > 0;
+
+    tabRoot._cmHasWorkflowData = () => hasRelationsRows();
+    tabRoot._cmHandleWorkflowStep = () => {
+        if (state.mode === 'add' || state.mode === 'edit') {
+            showRelationsToast('Relations: click Update to save the current relation before proceeding.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        if (!hasRelationsRows()) {
+            showRelationsToast('Relations: add and save at least one relation before clicking Next.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        return {
+            handled: true,
+            canNavigate: true,
+            markPersisted: true
+        };
+    };
+
     const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
     if (newBtn) newBtn.disabled = false;
 
@@ -451,7 +535,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
-        setMode('edit');
+        setMode('view');
         setFieldsEnabled(false);
         enableRelationsGridRowActions(tabRoot, true);
     });
@@ -579,7 +663,11 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
                 setMode('view');
                 const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
                 if (newBtn) newBtn.disabled = false;
-                await refreshRelationsTable({ ClientID: context.ClientID, RequestID: context.RequestID });
+                await refreshRelationsTable({
+                    ModuleID: request.ModuleID,
+                    ClientID: request.ClientID,
+                    RequestID: request.RequestID
+                });
             } catch (error) {
                 showRelationsToast(`Relations ${actionLabel} failed - ${error.message}`, 'error');
             }

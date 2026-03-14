@@ -254,8 +254,9 @@ namespace kairo_ui.Controllers.Shared
                 {
                     if (response?.Details != null)
                     {
-                        _logger.LogInformation($"[SideBar] Successfully fetched recent activities");
-                        return (List<RecentActivityItem>)response.Details;
+                        var recentActivities = DeserializeRecentActivities(response.Details);
+                        _logger.LogInformation("[SideBar] Successfully fetched {Count} recent activities", recentActivities.Count);
+                        return recentActivities;
                     }
                 }
 
@@ -266,6 +267,35 @@ namespace kairo_ui.Controllers.Shared
             {
                 _logger.LogError(ex, "[SideBar] Error fetching recent activities from SystemCore API");
                 throw;
+            }
+        }
+
+        private List<RecentActivityItem> DeserializeRecentActivities(object details)
+        {
+            try
+            {
+                if (details is List<RecentActivityItem> typedList)
+                {
+                    return typedList;
+                }
+
+                if (details is JsonElement jsonElement)
+                {
+                    if (jsonElement.ValueKind == JsonValueKind.Array)
+                    {
+                        return JsonSerializer.Deserialize<List<RecentActivityItem>>(jsonElement.GetRawText(), JsonOptions) ?? new List<RecentActivityItem>();
+                    }
+
+                    _logger.LogWarning("[SideBar] Recent activities details returned unexpected JSON kind: {JsonKind}", jsonElement.ValueKind);
+                }
+
+                var detailsJson = JsonSerializer.Serialize(details, JsonOptions);
+                return JsonSerializer.Deserialize<List<RecentActivityItem>>(detailsJson, JsonOptions) ?? new List<RecentActivityItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[SideBar] Failed to deserialize recent activities details");
+                return new List<RecentActivityItem>();
             }
         }
     }

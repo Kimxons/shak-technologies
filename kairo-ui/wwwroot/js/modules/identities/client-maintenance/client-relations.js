@@ -310,6 +310,46 @@ window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations
     bindRelationsActionPanel(tabRoot);
     initRelationsSearchModal(tabRoot, configuredModuleId);
     bindStandaloneRelationsBootstrap(tabRoot, configuredModuleId, options);
+
+    // Initialize DOB date picker
+    const dobInput = tabRoot.querySelector('#dt_relationDob');
+    if (dobInput && window.flatpickr) {
+        const monthMap = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+        const parseDOBDate = (dateStr) => {
+            if (!dateStr) return null;
+            const textMonthRegex = /^(\d{1,2})[-\/\s.,]+([a-z]{3,}?)[-\/\s.,]+(\d{4})$/i;
+            let match = dateStr.match(textMonthRegex);
+            if (match) {
+                const day = parseInt(match[1], 10);
+                const monthStr = match[2].toLowerCase().substring(0, 3);
+                const month = monthMap[monthStr];
+                const year = parseInt(match[3], 10);
+                if (!isNaN(day) && month !== undefined && !isNaN(year)) return new Date(year, month, day);
+            }
+            try {
+                const nativeDate = new Date(dateStr);
+                if (!isNaN(nativeDate.getTime())) return nativeDate;
+            } catch (_) {}
+            return null;
+        };
+        const formatDOBDate = (date) => {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
+        };
+        window.flatpickr(dobInput, {
+            dateFormat: 'd-M-Y',
+            mode: 'single',
+            clickOpens: true,
+            allowInput: true,
+            parseDate: parseDOBDate,
+            formatDate: formatDOBDate,
+            maxDate: new Date(),
+            onReady: function(selectedDates, dateStr, instance) {
+                if (dobInput.disabled || dobInput.readOnly) instance.close();
+            }
+        });
+    }
 };
 
 function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
@@ -379,6 +419,11 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
                 return;
             }
 
+            if (field._flatpickr) {
+                field._flatpickr.clear();
+                return;
+            }
+
             field.value = '';
         });
 
@@ -444,7 +489,9 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
             RelationID: row.RelationID ?? '',
             RelationTypeID: row.RelationTypeID ?? row.RelationType ?? '',
             IdentificationTypeID: row.IdentificationTypeID ?? '',
+            IdentificationNumber: row.IdentificationNumber ?? row.IdentificationNo ?? '',
             IdentificationNo: row.IdentificationNo ?? row.IdentificationNumber ?? '',
+            DateOfBirth: row.DateOfBirth ?? row.DOB ?? '',
             RelationRefNo: row.RelationRefNo ?? 1,
             SharePercent: row.SharePercent ?? '',
             Name: row.Name ?? '',
@@ -471,7 +518,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
 
             const relationLabel = getSelectLabel('[data-relation-field="RelationID"]', entry.RelationID) || entry.RelationID || '';
             const name = entry.Name || [entry.FirstName, entry.MiddleName, entry.LastName].filter(Boolean).join(' ') || '';
-            const idLabel = entry.IdentificationNo || '';
+            const idLabel = entry.IdentificationNumber || entry.IdentificationNo || '';
 
             tr.innerHTML = `
                 <td class="ps-2">${name}</td>
@@ -479,6 +526,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
                 <td>${idLabel}</td>
                 <td>${entry.SharePercent ?? ''}</td>
                 <td>${entry.Mobile ?? ''}</td>
+                <td>${entry.DateOfBirth ?? ''}</td>
             `;
 
             tbody.appendChild(tr);
@@ -500,6 +548,12 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
             if (!key) return;
             payload[key] = readFieldValue(field);
         });
+
+        const identificationNumber = toRelationsString(payload.IdentificationNumber ?? payload.IdentificationNo);
+        if (identificationNumber) {
+            payload.IdentificationNumber = identificationNumber;
+            payload.IdentificationNo = identificationNumber;
+        }
 
         if (state.selectedRecord) {
             const selectedId = state.selectedRecord.ID ?? state.selectedRecord.ClientToRelationID;
@@ -540,10 +594,19 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             const key = field.dataset.relationField;
             if (!key) return;
-            const value = payload[key];
+            const fallbackKey = key === 'IdentificationNumber'
+                ? 'IdentificationNo'
+                : (key === 'IdentificationNo' ? 'IdentificationNumber' : '');
+            const value = payload[key] ?? (fallbackKey ? payload[fallbackKey] : undefined);
 
             if (field.type === 'checkbox') {
                 field.checked = Boolean(value);
+            } else if (key === 'DateOfBirth') {
+                if (field._flatpickr) {
+                    field._flatpickr.setDate(value || '', false);
+                } else {
+                    field.value = value ?? '';
+                }
             } else {
                 field.value = value ?? '';
             }

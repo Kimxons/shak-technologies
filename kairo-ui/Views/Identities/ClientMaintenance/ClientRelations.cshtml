@@ -6,6 +6,7 @@
     var relationTypeOptions = ViewData["RelationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationTitleOptions = ViewData["RelationTitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationGenderOptions = ViewData["RelationGenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationIdentificationTypeOptions = ViewData["RelationIdentificationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationOptions = ViewData["RelationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var moduleId = ViewData["ModuleId"]?.ToString() ?? string.Empty;
     var clientId = ViewData["ClientId"]?.ToString() ?? string.Empty;
@@ -56,9 +57,16 @@
 
                         <div class="form-row four-col">
                             <div class="col"><label for="ddl_relationGender" id="lbl_relationGender">Gender</label><select id="ddl_relationGender" name="relationGender" data-relation-field="GenderID" class="bs-select" asp-items="@(relationGenderOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label for="ddl_relationIdentificationType" id="lbl_relationIdentificationType">Identification Type</label><select id="ddl_relationIdentificationType" name="relationIdentificationType" data-relation-field="IdentificationTypeID" class="bs-select" asp-items="@(relationIdentificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
+                            <div class="col"><label for="txt_relationIdentificationNumber" id="lbl_relationIdentificationNumber">Identification Number</label><input id="txt_relationIdentificationNumber" name="relationIdentificationNumber" data-relation-field="IdentificationNumber" class="bs-input-text" maxlength="50" /></div>
                             <div class="col"><label class="label-blue" for="ddl_relation" id="lbl_relation">Relation</label><select id="ddl_relation" name="relation" data-relation-field="RelationID" class="bs-select" asp-items="@(relationOptions.Skip(1))"><option value="">Select...</option></select></div>
+                        </div>
+
+                        <div class="form-row four-col">
                             <div class="col"><label for="txt_relationShare" id="lbl_relationShare">Share %</label><input id="txt_relationShare" name="relationShare" data-relation-field="SharePercent" class="bs-input-text" type="number" min="0" max="100" step="0.01" /></div>
                             <div class="col"><label for="txt_relationMobile" id="lbl_relationMobile">Mobile</label><input id="txt_relationMobile" name="relationMobile" data-relation-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+                            <div class="col"><label for="dt_relationDob" id="lbl_relationDob">Date Of Birth</label><input id="dt_relationDob" name="relationDateOfBirth" data-relation-field="DateOfBirth" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" /></div>
+                            <div class="col"></div>
                         </div>
                     </form>
 
@@ -82,6 +90,7 @@
                                     <th>ID Type/No</th>
                                     <th>Share (%)</th>
                                     <th>Mobile</th>
+                                    <th>Date Of Birth</th>
                                 </tr>
                             </thead>
                             <tbody id="tbl_clientRelationsBody"></tbody>

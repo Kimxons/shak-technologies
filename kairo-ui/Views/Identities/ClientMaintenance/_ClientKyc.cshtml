@@ -52,13 +52,13 @@
             <div class="mt-4 pt-3 border-top">
                 <div class="form-row two-col align-items-center">
                     <div class="col"><label class="mb-0 fw-semibold">Politically Exposed Person</label></div>
-                    <div class="col">
+                    <div class="col-8">
                         <div class="kyc-radio-group" role="radiogroup" aria-label="Politically Exposed Person">
-                            <label class="kyc-radio-option" for="rad_pepYes">
+                            <label class="d-flex align-items-center gap-2" for="rad_pepYes">
                                 <input class="bs-radio" type="radio" name="IsPEP" id="rad_pepYes" value="Y" />
                                 <span>Yes</span>
                             </label>
-                            <label class="kyc-radio-option" for="rad_pepNo">
+                            <label class="d-flex align-items-center gap-2" for="rad_pepNo">
                                 <input class="bs-radio" type="radio" name="IsPEP" id="rad_pepNo" value="N" />
                                 <span>No</span>
                             </label>
@@ -79,13 +79,13 @@
             <div class="mt-4 pt-3 border-top">
                 <div class="form-row two-col align-items-center">
                     <div class="col"><label class="mb-0 fw-semibold">US Person</label></div>
-                    <div class="col">
+                    <div class="col-8">
                         <div class="kyc-radio-group" role="radiogroup" aria-label="US Person">
-                            <label class="kyc-radio-option" for="rad_usPersonYes">
+                            <label class="d-flex align-items-center gap-2" for="rad_usPersonYes">
                                 <input class="bs-radio" type="radio" name="IsUSPerson" id="rad_usPersonYes" value="Y" />
                                 <span>Yes</span>
                             </label>
-                            <label class="kyc-radio-option" for="rad_usPersonNo">
+                            <label class="d-flex align-items-center gap-2" for="rad_usPersonNo">
                                 <input class="bs-radio" type="radio" name="IsUSPerson" id="rad_usPersonNo" value="N" />
                                 <span>No</span>
                             </label>
@@ -104,13 +104,13 @@
             <div class="mt-4 pt-3 border-top">
                 <div class="form-row two-col align-items-center">
                     <div class="col"><label class="mb-0 fw-semibold">Data Cleansed</label></div>
-                    <div class="col">
+                    <div class="col-8">
                         <div class="kyc-radio-group" role="radiogroup" aria-label="Data Cleansed">
-                            <label class="kyc-radio-option" for="rad_dataCleansedYes">
+                            <label class="d-flex align-items-center gap-2" for="rad_dataCleansedYes">
                                 <input class="bs-radio" type="radio" name="IsDataCleansed" id="rad_dataCleansedYes" value="Y" />
                                 <span>Yes</span>
                             </label>
-                            <label class="kyc-radio-option" for="rad_dataCleansedNo">
+                            <label class="d-flex align-items-center gap-2" for="rad_dataCleansedNo">
                                 <input class="bs-radio" type="radio" name="IsDataCleansed" id="rad_dataCleansedNo" value="N" />
                                 <span>No</span>
                             </label>
@@ -130,7 +130,7 @@
         flex-wrap: wrap;
     }
 
-    [data-cm-tab="kyc"] .kyc-radio-option {
+    [data-cm-tab="kyc"] .d-flex align-items-center gap-2 {
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
@@ -141,7 +141,7 @@
         line-height: 1;
     }
 
-    [data-cm-tab="kyc"] .kyc-radio-option .bs-radio {
+    [data-cm-tab="kyc"] .d-flex align-items-center gap-2 .bs-radio {
         margin: 0;
     }
 </style>
