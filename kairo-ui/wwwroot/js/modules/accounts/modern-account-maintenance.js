@@ -2019,7 +2019,7 @@
                         'Address2': ['Address2'],
                         'PhoneHome': ['Phone1', 'PhoneHome'],   // API may return Phone1 or PhoneHome
                         'PhoneWork': ['Phone2', 'PhoneWork'],   // API may return Phone2 or PhoneWork
-                        'Fax': ['Fax'],
+                        'FaxNo': ['Fax', 'FaxNo'],              // Form uses FaxNo, API returns Fax
                         'Mobile': ['Mobile', 'MobileNo'],
                         'EmailID': ['Email', 'EmailID'],
                         'ContactPerson': ['ContactPerson']
@@ -2192,7 +2192,7 @@
                         'AccountTypeName': 'AccountClassName',
                         'PhoneHome': 'Phone1',
                         'PhoneWork': 'Phone2',
-                        // Note: Fax uses same name in UI and API - no mapping needed
+                        'FaxNo': 'Fax', // UI uses FaxNo, API uses Fax
                         // Financial Summary field mappings (handling case differences)
                         'UnclearBalance': 'UnClearBalance', // UI uses "Unclear", API uses "UnClear"
                         'OpenDate': 'OpenedDate', // UI uses "OpenDate", API uses "OpenedDate"
@@ -2410,8 +2410,8 @@
             'AccountName', 'ShortName',
             // Address
             'Address1', 'Address2', 'CityID', 'CountryID',
-            // Contact
-            'PhoneHome', 'PhoneWork', 'Fax', 'Mobile', 'EmailID', 'ContactPerson',
+            // Contact (Note: HTML uses FaxNo, we map to Fax for API)
+            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
             // Operating
             'OperatingModeID', 'OperatingInstructions',
             // Classification
@@ -2433,7 +2433,7 @@
         console.log('[AccountMaintenance] Collected contact fields:', {
             PhoneHome: formData.PhoneHome,
             PhoneWork: formData.PhoneWork,
-            Fax: formData.Fax,
+            FaxNo: formData.FaxNo,
             Mobile: formData.Mobile,
             EmailID: formData.EmailID
         });
@@ -2448,7 +2448,7 @@
         formData.OurBranchID = formData.BranchID || '';
         formData.Phone1 = formData.PhoneHome || '';
         formData.Phone2 = formData.PhoneWork || '';
-        // Note: Fax field is already collected correctly - database uses 'Fax'
+        // Note: FaxNo is collected above and mapped to Fax below
 
         // Map AccountName to Name for database (t_AccountCustomer expects Name column)
         formData.Name = formData.AccountName || '';
@@ -2474,15 +2474,17 @@
             ? window.GlobalUtils.getCurrentDate()
             : new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
-        // Explicitly ensure Fax field is included (even if empty)
-        const faxElement = document.getElementById('Fax');
+        // Map FaxNo (UI field ID) to Fax (API field name)
+        const faxElement = document.getElementById('FaxNo');
         if (faxElement) {
             formData.Fax = faxElement.value || '';
-            console.log('[AccountMaintenance] Fax element found, value:', faxElement.value);
+            console.log('[AccountMaintenance] FaxNo element found, value:', faxElement.value);
         } else {
-            formData.Fax = '';
-            console.warn('[AccountMaintenance] Fax element NOT found in DOM!');
+            // Fallback: check if already collected as FaxNo
+            formData.Fax = formData.FaxNo || '';
         }
+        // Remove FaxNo if it exists (API expects Fax)
+        delete formData.FaxNo;
 
         // Final debug: Log complete formData before return
         console.log('[AccountMaintenance] Final formData keys:', Object.keys(formData));
@@ -2685,7 +2687,7 @@
         const fieldsToClear = [
             'AccountID', 'ClientID', 'ProductID', 'AccountName', 'ShortName',
             'Address1', 'Address2', 'CityID', 'CountryID',
-            'PhoneHome', 'PhoneWork', 'Fax', 'Mobile', 'EmailID', 'ContactPerson',
+            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
             'OperatingModeID', 'OperatingInstructions',
             'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID', 'LiquidationAccountName',
             'SalesOfficerID', 'SalesOfficerName', 'PassbookSerialID', 'PassbookSerialName',
@@ -2920,7 +2922,7 @@
         const editableFields = [
             'AccountName', 'ShortName',
             'Address1', 'Address2', 'CityID', 'CountryID',
-            'PhoneHome', 'PhoneWork', 'Fax', 'Mobile', 'EmailID', 'ContactPerson',
+            'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
             'OperatingModeID', 'OperatingInstructions',
             'AccountClassID', 'AccountOfficerID', 'LiquidationAccountID',
             'SalesOfficerID', 'PassbookSerialID', 'ExemptPassBook'
