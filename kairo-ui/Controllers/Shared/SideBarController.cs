@@ -189,6 +189,80 @@ namespace kairo_ui.Controllers.Shared
             }
         }
 
+        [HttpGet("GetRecentActivities")]
+        public async Task<IActionResult> GetRecentActivities([FromQuery] string moduleId)
+        {
+            if (!_authService.IsAuthenticated())
+            {
+                return Unauthorized(new { Success = false, ErrorMessage = "User not authenticated" });
+            }
+
+            try
+            {
+                var branchId = HttpContext.Session.GetString("branch_code") ?? string.Empty;
+                var operatorId = HttpContext.Session.GetString("user_name") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(operatorId))
+                {
+                    return BadRequest(new { Success = false, ErrorMessage = "Operator or branch is missing" });
+                }
+
+                var requestData = new
+                {
+                    OurBranchID = branchId,
+                    LoggedInOperator = operatorId,
+                    ModuleID = moduleId ?? string.Empty
+                };
+
+                _logger.LogInformation("[SideBar] GetRecentActivities for ModuleID: {ModuleID}", moduleId);
+
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>(
+                    "SystemCoreApi",
+                    ApiEndpoints.GET_RECENT_ACTIVITIES,
+                    requestData
+                );
+
+                _logger.LogInformation("[SideBar] GetRecentActivities raw response: {@Response}", response);
+
+                // Extract activities array from response - handle various formats
+                var activities = new List<object>();
+                if (response?.Details != null)
+                {
+                    if (response.Details is System.Text.Json.JsonElement jsonElement)
+                    {
+                        // Try to find Activities array in the response
+                        if (jsonElement.TryGetProperty("Activities", out var activitiesElement) || 
+                            jsonElement.TryGetProperty("activities", out activitiesElement) ||
+                            jsonElement.TryGetProperty("Data", out activitiesElement) ||
+                            jsonElement.TryGetProperty("data", out activitiesElement))
+                        {
+                            if (activitiesElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                            {
+                                activities = System.Text.Json.JsonSerializer.Deserialize<List<object>>(activitiesElement.GetRawText()) ?? new List<object>();
+                            }
+                        }
+                        else if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        {
+                            // Details itself is an array
+                            activities = System.Text.Json.JsonSerializer.Deserialize<List<object>>(jsonElement.GetRawText()) ?? new List<object>();
+                        }
+                    }
+                    else if (response.Details is IEnumerable<object> enumerable)
+                    {
+                        activities = enumerable.ToList();
+                    }
+                }
+
+                _logger.LogInformation("[SideBar] GetRecentActivities returning {Count} activities", activities.Count);
+                return Ok(new { Success = true, Activities = activities });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SideBar] Error getting recent activities");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
         /// <summary>
         /// Fetches role resources from the API (same as Dashboard)
         /// </summary>
