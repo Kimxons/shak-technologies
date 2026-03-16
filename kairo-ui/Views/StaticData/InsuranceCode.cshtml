@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Insurance Code";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <main class="main-container main-container--with-panel" aria-label="Insurance Code form">
+        <div class="form-content" role="region" aria-label="Insurance Code details">
+            <div class="form-card" data-main-form>
+                <form id="insurance-code-form" autocomplete="off" novalidate>
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-shield-lock"></i> Insurance Code Details</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="alert alert-danger d-none" role="alert" data-inline-alert hidden>
+                                <div class="d-flex align-items-center justify-content-between gap-3">
+                                    <span data-inline-alert-text></span>
+                                    <button type="button" class="btn-close" aria-label="Close" data-inline-alert-close></button>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_insuranceCode">Insurance Code</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="txt_insuranceCode" class="kairo-control__id" data-always-enabled aria-label="Insurance Code">
+                                        <input type="text" id="txt_description" class="kairo-control__name" aria-label="Description" placeholder="Description">
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btn_searchInsuranceCode" data-always-enabled aria-label="Search insurance code"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col cp-toggle-check">
+                                    <label class="label-blue" for="chk_isActive">Is Active</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="chk_isActive">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content hidden>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell"><span class="audit-label">Created By</span><span class="audit-value" id="spn_createdBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Created On</span><span class="audit-value" id="spn_createdOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified By</span><span class="audit-value" id="spn_modifiedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified On</span><span class="audit-value" id="spn_modifiedOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Supervised By</span><span class="audit-value" id="spn_supervisedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Supervised On</span><span class="audit-value" id="spn_supervisedOn">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside class="action-panel" aria-label="Insurance Code actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_view" type="button"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btn_add" type="button"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action" id="btn_edit" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" id="btn_delete" type="button"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action" id="btn_save" type="button"><i class="bi bi-save me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btn_cancel" type="button"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </main>
+
+    <div class="am-message-panel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle"></i>
+        <span class="message-text"></span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/staticDataCore.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/insuranceCodeStaticDataService.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/insurance-code.js" asp-append-version="true"></script>
+}

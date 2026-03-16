@@ -2,25 +2,35 @@ const CM_EMPLOYMENT_BASE = 'Identities/ClientMaintenance/Employment';
 
 // Explicit field mapping for Employment tab: API response key => form field ID/name
 const EMPLOYMENT_FIELD_MAP = {
-    'OccupationID': 'sel_employmentOccupation',
-    'DesignationID': 'sel_employmentDesignation',
-    'CompanyTypeID': 'sel_employmentCompanyType',
-    'BusinessOwnershipID': 'sel_employmentOwnership',
-    'BusinessLineID': 'sel_employmentBusinessLine',
+    'OccupationID': 'ddl_employmentOccupation',
+    'Occupation': 'ddl_employmentOccupation',
+    'DesignationID': 'ddl_employmentDesignation',
+    'Designation': 'ddl_employmentDesignation',
+    'CompanyTypeID': 'ddl_employmentCompanyType',
+    'CompanyType': 'ddl_employmentCompanyType',
+    'EmployerName': 'txt_employmentCompanyName',
+    'EmployerCode': 'ddl_employmentCompanyCode',
+    'BusinessOwnershipID': 'ddl_employmentBusinessOwnership',
+    'BusinessOwnership': 'ddl_employmentBusinessOwnership',
+    'BusinessLineID': 'ddl_employmentBusinessLine',
+    'BusinessLine': 'ddl_employmentBusinessLine',
     'WorkingSince': 'dt_employmentWorkingSince',
     'MonthlyIncome': 'txt_employmentMonthlyIncome',
+    'AverageMonthlyIncome': 'txt_employmentMonthlyIncome',
     'AnnualIncome': 'txt_employmentAnnualIncome',
+    'AverageAnnualIncome': 'txt_employmentAnnualIncome',
     'OtherIncome': 'txt_employmentOtherIncome',
     'TotalIncome': 'txt_employmentTotalIncome',
     'RentExpenses': 'txt_employmentRentExpenses',
+    'RentExpense': 'txt_employmentRentExpenses',
     'OtherExpenses': 'txt_employmentOtherExpenses',
     'TotalExpenses': 'txt_employmentTotalExpenses',
     'NetSavings': 'txt_employmentNetSavings',
-    'IncomeType': 'rad_incomeType',
-    'IncomeTypeSalaried': 'rad_incomeSalaried',
-    'IncomeTypeSelfEmployed': 'rad_incomeSelf',
+    'WorkPermitNo': 'txt_employmentWorkPermit',
     'BusinessStartedYear': 'txt_employmentBusinessStartedYear',
-    'NumberOfEmployees': 'txt_employmentNumberOfEmployees'
+    'NumberOfEmployees': 'txt_employmentNumberOfEmployees',
+    'EmploymentComments': 'txa_employmentComments',
+    'IsSalaried': 'IsSalaried'
 };
 
 function invokeClientMaintenanceEmployment(action, requestData) {
@@ -56,6 +66,7 @@ function initEmploymentValidation() {
 
     if (salaryRadio) salaryRadio.addEventListener('change', toggleSelfEmployed);
     if (selfRadio) selfRadio.addEventListener('change', toggleSelfEmployed);
+    toggleSelfEmployed();
 
     // Working Since - not future
     const workingSinceInput = document.getElementById('dt_employmentWorkingSince');
@@ -127,6 +138,31 @@ function initEmploymentValidation() {
     }
 }
 
+function syncEmploymentDateFieldEditState(dateInput, isEditMode) {
+    if (!dateInput) return;
+
+    dateInput.disabled = !isEditMode;
+    dateInput.readOnly = !isEditMode;
+
+    if (!dateInput._flatpickr) return;
+
+    try {
+        dateInput._flatpickr.set('clickOpens', isEditMode);
+        dateInput._flatpickr.set('allowInput', isEditMode);
+
+        if (dateInput._flatpickr.altInput) {
+            dateInput._flatpickr.altInput.disabled = !isEditMode;
+            dateInput._flatpickr.altInput.readOnly = !isEditMode;
+        }
+
+        if (!isEditMode) {
+            dateInput._flatpickr.close();
+        }
+    } catch (error) {
+        console.warn('[ClientMaintenanceEmployment] Failed to sync date input state:', error);
+    }
+}
+
 window.initClientMaintenanceEmploymentTab = function (tabRoot, moduleId) {
     bindClientMaintenanceCrud(tabRoot, moduleId, window.ClientMaintenanceEmploymentService, 'employment');
     initEmploymentValidation();
@@ -155,5 +191,13 @@ window.initClientMaintenanceEmploymentTab = function (tabRoot, moduleId) {
                 field.readOnly = !isEditMode;
             }
         });
+
+        tabRoot.querySelectorAll('input').forEach((field) => {
+            if (!field._flatpickr) return;
+            syncEmploymentDateFieldEditState(field, isEditMode);
+        });
+
+        const workingSinceInput = tabRoot.querySelector('#dt_employmentWorkingSince');
+        syncEmploymentDateFieldEditState(workingSinceInput, isEditMode);
     };
 };

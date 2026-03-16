@@ -5,6 +5,7 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
@@ -63,7 +64,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] System.Text.Json.Nodes.JsonNode requestData)
+        public async Task<IActionResult> Get([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -84,7 +85,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("create")]
-        public async Task<IActionResult> Create([FromBody] System.Text.Json.Nodes.JsonNode requestData)
+        public async Task<IActionResult> Create([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -92,6 +93,23 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+
+                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
+                {
+                    requestData["RequestID"] = HttpContext!.Connection.Id;
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
+                {
+                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
+                {
+                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                }
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.identitytypes.create request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.ADD_EDIT_CLIENT_IDENTITY_TYPES, requestData);
@@ -105,7 +123,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("update")]
-        public async Task<IActionResult> Update([FromBody] System.Text.Json.Nodes.JsonNode requestData)
+        public async Task<IActionResult> Update([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -113,6 +131,32 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+
+                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
+                {
+                    requestData["RequestID"] = HttpContext!.Connection.Id;
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
+                {
+                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
+                {
+                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                }
+                if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
+                {
+                    requestData["ModifiedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+
+                if (string.IsNullOrEmpty(requestData["ModifiedOn"]?.ToString()))
+                {
+                    requestData["ModifiedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.identitytypes.update request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _oldApiService.CreateAsync<JsonElement>(OldApiName, OldApiDBConstants.ADD_EDIT_CLIENT_IDENTITY_TYPES, requestData);
@@ -126,7 +170,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("delete")]
-        public async Task<IActionResult> Delete([FromBody] System.Text.Json.Nodes.JsonNode requestData)
+        public async Task<IActionResult> Delete([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });

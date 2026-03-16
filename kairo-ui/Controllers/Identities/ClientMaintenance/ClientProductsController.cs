@@ -61,6 +61,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             if (requestData == null) return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.products.create request: {Request}", JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_PRODUCTS_SERVICES, requestData);

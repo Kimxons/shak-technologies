@@ -120,6 +120,7 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 
     const clientId = firstNonEmptyString(
         requestData?.ClientID,
+        maintenanceCore?.getClientId?.(),
         maintenanceCore?.clientId,
         parentContext.clientId,
         viewState.ClientID
@@ -127,6 +128,7 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 
     const requestId = firstNonEmptyString(
         requestData?.RequestID,
+        maintenanceCore?.getRequestId?.(),
         maintenanceCore?.requestId,
         parentContext.requestId,
         viewState.RequestID
@@ -143,12 +145,7 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 }
 
 function shouldAutoLoadStandaloneAddress(context) {
-    return Boolean(
-        context?.IsStandalone &&
-        context?.ClientID &&
-        context?.ModuleID &&
-        context.ModuleID !== '1000'
-    );
+    return Boolean(context?.IsStandalone && (context?.ClientID || context?.RequestID));
 }
 
 function parseAddressCandidate(candidate) {

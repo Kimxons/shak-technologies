@@ -1,85 +1,16 @@
 (function (global) {
-  const CoreApi = global.CoreApi;
-  const Environment = global.Environment || {};
+  const core = global.StaticDataCore;
 
-  if (!CoreApi) {
+  if (!core) {
     console.error(
-      "CoreApi is not loaded. Ensure services/shared/coreApi.js is included before staticDataService.js."
+      "StaticDataCore is not loaded. Ensure services/static-data/staticDataCore.js is included before staticDataService.js."
     );
     return;
   }
 
-  // Resolve the OldAPI endpoint - prefer relative path for proxy, or use configured base URL
-  function resolveOldApiEndpoint() {
-    // If using local proxy, use relative path
-    if (Environment.useLocalOldApiProxy === true) {
-      return '/api/OldAPI';
-    }
-    
-    // Try to get base URL from Environment
-    const baseUrl = (
-      Environment.baseUrlCommon ||
-      Environment.baseUrlSystemCodes ||
-      ''
-    ).toString().replace(/\/+$/g, '');
-    
-    // If base URL is configured, use it; otherwise use relative path
-    return baseUrl ? `${baseUrl}/api/OldAPI` : '/api/OldAPI';
-  }
-
-  const APP_NAME = "PROJECT_KAIRO";
-
-  // OldAPI samples commonly show: MM/DD/YYYY HH:mm:ss
-  function formatLegacyRequestTime(d = new Date()) {
-    const pad2 = (n) => String(n).padStart(2, "0");
-    const mm = pad2(d.getMonth() + 1);
-    const dd = pad2(d.getDate());
-    const yyyy = d.getFullYear();
-    const hh = pad2(d.getHours());
-    const mi = pad2(d.getMinutes());
-    const ss = pad2(d.getSeconds());
-    return `${mm}/${dd}/${yyyy} ${hh}:${mi}:${ss}`;
-  }
-
-  /**
-   * Generic helper for Static Data screens that talk to OldAPI.
-   * @param {string} formID Backend form/procedure ID (e.g. "dbo.p_SomeProc")
-   * @param {object} requestData Payload
-   * @param {string|null} appName Optional AppName override
-   */
-  function postOldApi(formID, requestData = {}, appName = null) {
-    const envelope = CoreApi.makeRequestEnvelope(formID, requestData, appName);
-
-    // Some procedures expect these legacy fields to be present/consistent.
-    envelope.RequestID = formID;
-    envelope.FormID = formID;
-    envelope.FormId = formID;
-    envelope.RequestTime = formatLegacyRequestTime();
-
-    // Use dynamic endpoint resolution
-    const endpoint = resolveOldApiEndpoint();
-    return CoreApi.post(endpoint, envelope);
-  }
-
+  const APP_NAME = core.APP_NAME;
+  const postOldApi = core.postOldApi;
   const svc = (global.StaticDataService = global.StaticDataService || {});
-
-  // Base helper
-  svc.postOldApi = postOldApi;
-
-  // ============================
-  // Insurance Policy
-  // ============================
-  svc.getInsurancePolicy = function getInsurancePolicy(PolicyNo) {
-    return postOldApi("dbo.P_GetInsurancePolicy", { PolicyNo }, APP_NAME);
-  };
-
-  svc.addEditInsurancePolicy = function addEditInsurancePolicy(payload) {
-    return postOldApi("dbo.P_AddEditInsurancePolicy", payload || {}, APP_NAME);
-  };
-
-  svc.deleteInsurancePolicy = function deleteInsurancePolicy(PolicyNo) {
-    return postOldApi("dbo.P_DeleteInsurancePolicy", { PolicyNo }, APP_NAME);
-  };
 
   // ============================
   // Contact Person
@@ -155,36 +86,6 @@
   };
 
   // ============================
-  // Third Party Provider
-  // ============================
-  svc.getThirdPartyProvider = function getThirdPartyProvider(requestData) {
-    return postOldApi("dbo.p_GetThirdPartyProvider", requestData || {}, APP_NAME);
-  };
-
-  svc.addEditThirdPartyProvider = function addEditThirdPartyProvider(payload) {
-    return postOldApi("dbo.p_AddEditThirdPartyProvider", payload || {}, APP_NAME);
-  };
-
-  svc.deleteThirdPartyProvider = function deleteThirdPartyProvider(payload) {
-    return postOldApi("dbo.p_DeleteThirdPartyProvider", payload || {}, APP_NAME);
-  };
-
-  // ============================
-  // Device Maintenance
-  // ============================
-  svc.getDevice = function getDevice(payload) {
-    return postOldApi("dbo.p_GetDevice", payload || {}, APP_NAME);
-  };
-
-  svc.addEditDevice = function addEditDevice(payload) {
-    return postOldApi("dbo.p_AddEditDevice", payload || {}, APP_NAME);
-  };
-
-  svc.deleteDevice = function deleteDevice(payload) {
-    return postOldApi("dbo.p_DeleteDevice", payload || {}, APP_NAME);
-  };
-
-  // ============================
   // Custodian
   // ============================
   svc.getCustodian = function getCustodian(CustodianID, Direction = 0) {
@@ -201,31 +102,6 @@ svc.addEditCustodian = function addEditCustodian(payload) {
   svc.deleteCustodian = function deleteCustodian(CustodianID) {
     return postOldApi("dbo.P_DeleteCustodian", { CustodianID }, APP_NAME);
   };
-  // ============================
-  // Insurance Code
-  // ============================
-  /**
-   * Fetch Insurance Code details by InsuranceCode
-   * @param {string} InsuranceCode
-   * @returns {Promise}
-   */
-  svc.getInsuranceCode = function getInsuranceCode(InsuranceCode) {
-    // IMPORTANT:
-    // Some deployments require @InsuranceCode to always be supplied.
-    // NOTE: CoreApi envelope builders may drop null/undefined keys.
-    // Always pass a string value to ensure the parameter is supplied.
-    const code = InsuranceCode == null ? "" : String(InsuranceCode);
-    return postOldApi("dbo.P_GetInsuranceCode", { InsuranceCode: code }, APP_NAME);
-  };
-
-  svc.addEditInsuranceCode = function addEditInsuranceCode(payload) {
-    return postOldApi("dbo.P_AddEditInsuranceCode", payload || {}, APP_NAME);
-  };
-
-  svc.deleteInsuranceCode = function deleteInsuranceCode(InsuranceCode) {
-    return postOldApi("dbo.P_DeleteInsuranceCode", { InsuranceCode }, APP_NAME);
-  };
-
   // ============================
   // Transaction Descriptions
   // ============================
@@ -347,27 +223,6 @@ svc.addEditCustodian = function addEditCustodian(payload) {
    */
   svc.getSystemCodes = function getSystemCodes(payload) {
     return postOldApi("dbo.p_v1_GetSystemCodes", payload || {}, APP_NAME);
-  };
-
-  // ============================
-  // Breft Bins
-  // ============================
-  /**
-   * Fetch Breft Bin record
-   * @param {Object} payload - { BinID }
-   * @returns {Promise}
-   */
-  svc.getBreftBins = function getBreftBins(payload) {
-    return postOldApi("dbo.p_GetBreftBins", payload || {}, APP_NAME);
-  };
-
-  /**
-   * Add or Edit Breft Bin record
-   * @param {Object} payload - { OurBranchID, Bin, PayableGLID, ReceivableGLID, OperatorID }
-   * @returns {Promise}
-   */
-  svc.addEditBreftBins = function addEditBreftBins(payload) {
-    return postOldApi("dbo.p_AddEditBreftBins", payload || {}, APP_NAME);
   };
 
 })(window);
