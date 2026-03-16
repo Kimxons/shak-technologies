@@ -1,3 +1,4 @@
+using CBS.Entities.SystemCore;
 using kairo_ui.Models.MicroFinance;
 using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,17 +14,20 @@ namespace kairo_ui.Controllers.MicroFinance
 
         private readonly IAuthService _authService;
         private readonly IOldApiService _oldApiService;
+        private readonly IApiCachedService _apiCachedService;
         private readonly IConfiguration _config;
         private readonly ILogger<MicroFinanceController> _logger;
 
         public MicroFinanceController(
             IAuthService authService,
             IOldApiService oldApiService,
+            IApiCachedService apiCachedService,
             IConfiguration configuration,
             ILogger<MicroFinanceController> logger)
         {
             _authService = authService;
             _oldApiService = oldApiService;
+            _apiCachedService = apiCachedService;
             _config = configuration;
             _logger = logger;
         }
@@ -98,8 +102,7 @@ namespace kairo_ui.Controllers.MicroFinance
 
         [Route("Index")]
         public IActionResult Index()
-        {
-            return RedirectToAction(nameof(GroupLoanScheme));
+        {            return RedirectToAction(nameof(GroupLoanScheme));
         }
 
         [Route("DataEntry/CenterLoanMenu")]
@@ -238,7 +241,7 @@ namespace kairo_ui.Controllers.MicroFinance
         }
 
         [Route("GroupLoanScheme")]
-        public IActionResult GroupLoanScheme()
+        public async Task<IActionResult> GroupLoanScheme()
         {
             try
             {
@@ -247,6 +250,30 @@ namespace kairo_ui.Controllers.MicroFinance
                     _logger.LogWarning("Unauthenticated access attempt to Microfinance Group Loan Scheme");
                     return RedirectToAction("Index", "Login");
                 }
+
+                var systemCodes = await _apiCachedService.GetMultipleSystemCodeOptionsAsync(new[]
+                {
+                    "SavingPaymentTypeID",
+                    "SavingsTypeID",
+                    "PrimaryCollateralID",
+                    "SecondaryCollateralID",
+                    "AdditionalCollateralID"
+                });
+
+                systemCodes.TryGetValue("SavingPaymentTypeID", out var slRecoveryTypeOptions);
+                ViewData["SLRecoveryTypeOptions"] = slRecoveryTypeOptions ?? new List<SystemCodeDetail>();
+
+                systemCodes.TryGetValue("SavingsTypeID", out var savingsCollectionTypeOptions);
+                ViewData["SavingsCollectionTypeOptions"] = savingsCollectionTypeOptions ?? new List<SystemCodeDetail>();
+
+                systemCodes.TryGetValue("PrimaryCollateralID", out var primaryCollateralOptions);
+                ViewData["PrimaryCollateralOptions"] = primaryCollateralOptions ?? new List<SystemCodeDetail>();
+
+                systemCodes.TryGetValue("SecondaryCollateralID", out var secondaryCollateralOptions);
+                ViewData["SecondaryCollateralOptions"] = secondaryCollateralOptions ?? new List<SystemCodeDetail>();
+
+                systemCodes.TryGetValue("AdditionalCollateralID", out var additionalCollateralOptions);
+                ViewData["AdditionalCollateralOptions"] = additionalCollateralOptions ?? new List<SystemCodeDetail>();
 
                 _logger.LogInformation("Microfinance Group Loan Scheme loaded successfully");
                 return PartialView("~/Views/MicroFinance/GroupLoanScheme.cshtml");

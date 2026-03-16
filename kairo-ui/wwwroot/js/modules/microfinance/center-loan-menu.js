@@ -1,6 +1,6 @@
 /**
  * Center Loan Menu - Migrated JS Module
- * Uses invokeCenterLoanController (AppCore pattern) — no GroupService dependency.
+ * Uses invokeCenterLoanController (AppCore pattern) ï¿½ no GroupService dependency.
  */
 (function () {
     'use strict';
@@ -494,7 +494,7 @@
         isEditMode = false;
         setFormMode('add');
         toggleSavingsFields(false);
-        showInfo('Add mode — fill in the menu details and save.');
+        showInfo('Add mode ï¿½ fill in the menu details and save.');
     }
 
     function handleEdit() {
@@ -503,7 +503,7 @@
         isAddMode  = false;
         setFormMode('edit');
         toggleSavingsFields(document.getElementById('MenuCollectSavingWithInstallment')?.checked || false);
-        showInfo('Edit mode — make your changes and save.');
+        showInfo('Edit mode ï¿½ make your changes and save.');
     }
 
     async function handleDelete() {
@@ -557,7 +557,7 @@
         const formattedDate = effectiveDate && !effectiveDate.includes('T')
             ? effectiveDate + 'T00:00:00' : effectiveDate;
 
-        // Only send fields the SP accepts — no extra audit columns beyond what it expects
+        // Only send fields the SP accepts ï¿½ no extra audit columns beyond what it expects
         const requestData = {
             BankID:                 bankID,
             LoanSchemeID:           parentSchemeId,
@@ -680,11 +680,21 @@
     // =========================================================================
     function closeChildForm() {
         try {
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ action: 'submoduleClosed', source: 'Center Loan Menu' }, '*');
-            } else {
-                window.close();
+            const parent = window.parent;
+
+            // Primary: parent has closeChildForm (MVC standard)
+            if (typeof parent.closeChildForm === 'function') {
+                parent.closeChildForm();
+                return;
             }
+
+            // Fallback: set iframe src to about:blank
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe]');
+                if (iframe) { iframe.src = 'about:blank'; return; }
+            }
+
+            window.close();
         } catch { window.close(); }
     }
 
@@ -749,7 +759,7 @@
     // Init
     // =========================================================================
     function initialize() {
-        console.log('[CenterLoanMenu] Initializing — SchemeID:', parentSchemeId);
+        console.log('[CenterLoanMenu] Initializing ï¿½ SchemeID:', parentSchemeId);
         initSectionToggles();
         initEventListeners();
         setFormMode('default');

@@ -31,21 +31,6 @@
 <input type="hidden" id="parentSchemeId" value="@schemeId" />
 
 <div class="window">
-    <div class="am-header" role="banner">
-        <div class="am-header__left">
-            <i class="bi bi-box-seam am-header__icon" aria-hidden="true"></i>
-            <span class="am-header__title">Group Loan Scheme Products</span>
-        </div>
-        <div class="am-header__right">
-            <button class="am-btn" type="button" data-window-action="refresh" title="Refresh" aria-label="Refresh">
-                <i class="bi bi-arrow-clockwise"></i>
-            </button>
-            <button class="am-btn am-btn--close" type="button" data-window-action="close" title="Close" aria-label="Close">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-    </div>
-
     <main class="main-container" aria-label="Group Loan Scheme Products">
         <div class="form-content">
             <div class="form-card" data-main-form>
@@ -129,6 +114,9 @@
                 </button>
                 <button type="button" class="btn-action btn-cancel" id="btnCancel" data-clp-action="cancel" title="Cancel">
                     <i class="bi bi-x-circle me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn-action" data-window-action="close" title="Close">
+                    <i class="bi bi-box-arrow-right me-1"></i>Close
                 </button>
             </div>
         </div>

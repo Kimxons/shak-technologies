@@ -1,6 +1,6 @@
 /**
  * Group Loan Scheme Products - Migrated JS Module
- * Uses invokeCenterLoanController (AppCore pattern) — no GroupService dependency.
+ * Uses invokeCenterLoanController (AppCore pattern) ï¿½ no GroupService dependency.
  */
 (function () {
     'use strict';
@@ -229,7 +229,7 @@
 
         setBtn('btnSave', false);
         setBtn('btnEdit', true);
-        showInfo('Edit mode — check/uncheck products then Save.');
+        showInfo('Edit mode ï¿½ check/uncheck products then Save.');
     }
 
     async function handleSave() {
@@ -422,9 +422,21 @@
 
     function closeChildForm() {
         try {
-            if (window.parent && window.parent !== window)
-                window.parent.postMessage({ action: 'submoduleClosed', source: 'GroupLoanSchemeProducts' }, '*');
-            else window.close();
+            const parent = window.parent;
+
+            // Primary: parent has closeChildForm (MVC standard)
+            if (typeof parent.closeChildForm === 'function') {
+                parent.closeChildForm();
+                return;
+            }
+
+            // Fallback: set iframe src to about:blank
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe]');
+                if (iframe) { iframe.src = 'about:blank'; return; }
+            }
+
+            window.close();
         } catch { window.close(); }
     }
 
@@ -475,7 +487,7 @@
     // Init
     // =========================================================================
     function initialize() {
-        console.log('[GroupLoanSchemeProducts] Initializing — SchemeID:', parentSchemeId);
+        console.log('[GroupLoanSchemeProducts] Initializing ï¿½ SchemeID:', parentSchemeId);
         initSectionToggles();
         initEventListeners();
         loadProducts();
