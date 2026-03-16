@@ -3000,7 +3000,25 @@ function getTabDataFromPane(pane) {
         if (!key || key.startsWith('_')) return; // Skip internal fields
 
         const type = element.type?.toLowerCase() || '';
-        if (type === 'hidden' || type === 'button' || type === 'submit') return;
+        if ((type === 'hidden' && !element._flatpickr) || type === 'button' || type === 'submit') return;
+
+        if (element._flatpickr) {
+            const selectedDate = element._flatpickr.selectedDates?.[0];
+            if (selectedDate instanceof Date && !Number.isNaN(selectedDate.getTime())) {
+                payload[key] = formatClientMaintenanceIsoDate(selectedDate);
+                return;
+            }
+
+            const rawValue = String(element.value || element._flatpickr.altInput?.value || '').trim();
+            if (!rawValue) {
+                payload[key] = '';
+                return;
+            }
+
+            const parsedDate = parseClientMaintenanceDateValue(rawValue);
+            payload[key] = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : rawValue;
+            return;
+        }
 
         if (type === 'checkbox') {
             payload[key] = element.checked;
@@ -3347,6 +3365,29 @@ async function invokeTabAction(tabKey, action, requestData) {
  */
 async function processTabWorkflowStep(tabKey, pane, tabIndex) {
     if (!pane || !tabKey) return false;
+
+    // Special validation for Relations tab: share percent must total 100%
+    if (tabKey === 'Relations') {
+        const tbody = pane.querySelector('table tbody') || pane.querySelector('#tbl_clientRelationsBody');
+        if (tbody) {
+            const rows = tbody.querySelectorAll('tr[data-payload]');
+            let totalShare = 0;
+            rows.forEach((row) => {
+                try {
+                    const payload = JSON.parse(row.dataset.payload || '{}');
+                    const share = parseFloat(payload.SharePercent) || 0;
+                    totalShare += share;
+                } catch (_error) { }
+            });
+            if (totalShare !== 100) {
+                window.ClientMaintenanceCore.showToast(
+                    `Relations: Share percentage must total 100% (Current: ${totalShare.toFixed(2)}%)`,
+                    'warning'
+                );
+                return false;
+            }
+        }
+    }
 
     const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
     const isFirstWorkflowStep = Number(tabIndex) === 0;

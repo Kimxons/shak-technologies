@@ -127,6 +127,79 @@ function getRelationsViewState() {
     return window.ClientRelationsState || {};
 }
 
+function parseRelationsCandidate(candidate) {
+    if (candidate === null || candidate === undefined || candidate === '') {
+        return null;
+    }
+
+    if (typeof candidate === 'string') {
+        try {
+            return JSON.parse(candidate);
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    return candidate;
+}
+
+function extractRelationsList(response) {
+    if (!response) return [];
+
+    const candidates = [
+        response?.Details,
+        response?.data?.Details,
+        response?.data?.[0]?.Details,
+        response?.Details?.[0]?.Details,
+        response?.Data,
+        response?.data,
+        response
+    ];
+
+    for (const candidate of candidates) {
+        const parsed = parseRelationsCandidate(candidate);
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+    }
+
+    return [];
+}
+
+function getRelationsResponseCode(response) {
+    return toRelationsString(response?.ResponseCode ?? response?.responseCode);
+}
+
+function getRelationsResponseMessage(response, fallbackMessage) {
+    return response?.ResponseMessage ??
+        response?.responseMessage ??
+        response?.Message ??
+        response?.message ??
+        response?.ErrorMessage ??
+        response?.errorMessage ??
+        fallbackMessage;
+}
+
+function isRelationsResponseSuccess(response) {
+    const successFlag = response?.Success ?? response?.success;
+    if (typeof successFlag === 'boolean') {
+        return successFlag;
+    }
+
+    const responseCode = getRelationsResponseCode(response).toUpperCase();
+    if (responseCode) {
+        return responseCode === '000' || responseCode === '00' || responseCode === 'SUCCESS';
+    }
+
+    return true;
+}
+
+function isRelationsNoDataResponse(response) {
+    const responseCode = getRelationsResponseCode(response).toUpperCase();
+    const responseMessage = toRelationsString(getRelationsResponseMessage(response, ''));
+    return responseCode === 'DBEX000020' || /do not exist/i.test(responseMessage);
+}
+
 function closeRelationsView() {
     const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
     let handled = false;
@@ -434,10 +507,10 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         }
 
         const context = resolveRelationsContext({}, moduleId);
-        Payload.ModuleID = context.ModuleID;
-        Payload.ClientID = context.ClientID;
-        Payload.RequestID = context.RequestID;
-        return Payload;
+        payload.ModuleID = context.ModuleID;
+        payload.ClientID = context.ClientID;
+        payload.RequestID = context.RequestID;
+        return payload;
         //return {
         //    ModuleID: context.ModuleID,
         //    ClientID: context.ClientID,
@@ -697,18 +770,28 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         if (typeof maintenanceCore?.invokeControllerMethod !== 'function') return;
 
         const response = await maintenanceCore.invokeControllerMethod(
-            'Identities/ClientMaintenance/Personal/get',
+            'Identities/ClientMaintenance/Personal',
+            'get',
             'POST',
             {
                 ModuleID: maintenanceCore.moduleId || '',
-                ClientID: relatedClientId
+                ClientID: relatedClientId,
+                RequestID: maintenanceCore.requestId || ''
             }
         );
 
-        if (!response?.Success && !response?.success) return;
+        if (!isRelationsResponseSuccess(response) && !isRelationsNoDataResponse(response)) return;
 
-        const clientData = response?.Data || response?.data || response?.Payload || {};
+        const personalRows = extractRelationsList(response);
+        const clientData = (Array.isArray(personalRows) && personalRows.length > 0)
+            ? (personalRows[0] || {})
+            : (response?.Data || response?.data || response?.Payload || response || {});
 
+        if (!clientData || typeof clientData !== 'object') return;
+
+        const formatDate = window.GlobalUtils?.formatDate;
+
+        const titleField = tabRoot.querySelector('[data-relation-field="TitleID"]');
         const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
         const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
         const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
@@ -716,7 +799,7 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         const clientNameField = tabRoot.querySelector('#txt_relationClientName');
 
 
-        const identificationTypeField = tabRoot.querySelector('[data-relation-field="IdentificationTypeiD"]');
+        const identificationTypeField = tabRoot.querySelector('[data-relation-field="IdentificationTypeID"]');
         const identificationNoField = tabRoot.querySelector('[data-relation-field="IdentificationNo"]');
         const dobField = tabRoot.querySelector('[data-relation-field="DateOfBirth"]');
         const mobileField = tabRoot.querySelector('[data-relation-field="Mobile"]');
@@ -726,16 +809,38 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         if (lastNameField && clientData.LastName) lastNameField.value = clientData.LastName;
         if (genderField && clientData.GenderID) genderField.value = clientData.GenderID;
 
-        if (identificationTypeField && clientData.IdentificationTypeiD) identificationTypeField.value = clientData.IdentificationTypeiD;
-        if (identificationNoField && clientData.IdentificationNo) identificationNoField.value = clientData.IdentificationNo;
-        if (dobField && clientData.DateOfBirth) dobField.value = clientData.DateOfBirth;
-        if (mobileField && clientData.Mobile) mobileField.value = clientData.Mobile;
+        const title = clientData.TitleID ?? '';
+        const identificationType = clientData.IdentificationTypeID ?? clientData.IdentificationTypeiD ?? '';
+        const identificationNo = clientData.IdentificationNo ?? clientData.PassportNo ?? '';
+        const dateOfBirth = clientData.DateOfBirth ?? clientData.DOB ?? '';
+        const mobile = clientData.Mobile ?? clientData.Phone1 ?? '';
+
+        if (titleField && title) titleField.value = title;
+        if (identificationTypeField && identificationType) identificationTypeField.value = identificationType;
+        if (identificationNoField) identificationNoField.value = identificationNo || '';
+        if (dobField) {
+            if (dateOfBirth && typeof formatDate === 'function') {
+                dobField.value = formatDate(dateOfBirth);
+            } else {
+                dobField.value = dateOfBirth || '';
+            }
+        }
+        if (mobileField) mobileField.value = mobile || '';
 
         if (clientNameField) {
             const name = [clientData.FirstName, clientData.MiddleName, clientData.LastName]
-                .filter(Boolean).join(' ') || clientData.Name || '';
+                .filter(Boolean).join(' ') || clientData.Name || clientData.ClientName || '';
             clientNameField.value = name;
         }
+
+        // Lock fetched personal fields so user cannot change them
+        const fieldsToDisbale = [titleField, firstNameField, middleNameField, lastNameField, genderField, identificationTypeField, identificationNoField, dobField];
+        fieldsToDisbale.forEach((field) => {
+            if (field) {
+                field.disabled = true;
+                field.readOnly = true;
+            }
+        });
     } catch (error) {
         console.warn('[Relations] Failed to hydrate from related client ID:', error);
     }

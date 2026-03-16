@@ -66,7 +66,7 @@ namespace kairo_ui.Controllers.Dashboard
                 // This is cached for 4 hours with high priority
                 try
                 {
-                    var bankSettings = await _apiCachedService.GetSystemBankSettingsAsync();
+                    var bankSettings = await _apiCachedService.GetSystemBankSettingsAsync(true);
                     if (bankSettings != null)
                     {
                         // Update session/viewmodel with bank settings if needed
