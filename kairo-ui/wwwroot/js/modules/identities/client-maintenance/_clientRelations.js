@@ -434,12 +434,16 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         }
 
         const context = resolveRelationsContext({}, moduleId);
-        return {
-            ModuleID: context.ModuleID,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            Payload: payload
-        };
+        Payload.ModuleID = context.ModuleID;
+        Payload.ClientID = context.ClientID;
+        Payload.RequestID = context.RequestID;
+        return Payload;
+        //return {
+        //    ModuleID: context.ModuleID,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    Payload: payload
+        //};
     };
 
     const applyRowPayload = (payload) => {

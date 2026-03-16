@@ -3583,18 +3583,22 @@ async function saveCurrentTabData() {
         const selectedId = window.ClientMaintenanceCore.getSelectedId();
         const requestId = window.ClientMaintenanceCore.requestId || '';
 
-        const request = {
-            ModuleID: moduleId,
-            ClientID: selectedId,
-            RequestID: requestId,
-            Payload: {}
-        };
+        //const request = {
+        //    ModuleID: moduleId,
+        //    ClientID: selectedId,
+        //    RequestID: requestId,
+        //    Payload: {}
+        //};
+        const request = {};
+        request.ModuleID = moduleId;
+        request.ClientID = selectedId;
+        request.RequestID = requestId;
 
         // Collect form data from tab
         tabPane.querySelectorAll('input, select, textarea').forEach((element) => {
             const key = element.name || element.id;
             if (!key) return;
-            request.Payload[key] = element.type === 'checkbox' ? element.checked : element.value;
+            request[key] = element.type === 'checkbox' ? element.checked : element.value;
         });
 
         // Determine if we should call create or update

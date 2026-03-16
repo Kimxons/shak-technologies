@@ -118,7 +118,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         // Get client ID and request ID from parent context
         const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
         const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
-        
+
         // Need at least one identifier (ClientID or RequestID) to fetch documents
         if (!clientId && !requestId) {
             renderDocumentsTable([]);
@@ -187,13 +187,19 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 
         const requestId = window.ClientMaintenanceCore.requestId || '';
 
-        return {
-            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            ClientID: window.ClientMaintenanceCore.clientId || '',
-            RequestID: requestId,
-            ApplicationID: requestId,
-            Payload: payload
-        };
+        payload.ModuleID = moduleId || window.ClientMaintenanceCore.moduleId || '';
+        payload.ClientID = window.ClientMaintenanceCore.clientId || '';
+        payload.RequestID = requestId;
+        payload.ApplicationID = requestId;
+
+        return payload;
+        //return {
+        //    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
+        //    ClientID: window.ClientMaintenanceCore.clientId || '',
+        //    RequestID: requestId,
+        //    ApplicationID: requestId,
+        //    Payload: payload
+        //};
     };
 
     const fetchSingleDocumentDetails = async (rowPayload) => {
@@ -363,7 +369,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                     window.ClientMaintenanceCore.showToast('Select a document to remove.', 'warning');
                     return;
                 }
-                
+
                 const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
                 let confirmed = false;
                 if (!appCore || !appCore.showConfirmation) {
@@ -424,7 +430,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
  */
 function initDocumentsSearchModal(tabRoot, moduleId) {
     if (!tabRoot) return;
-    
+
     const receivedByField = tabRoot.querySelector('[data-document-field="ReceivedBy"]');
     const receivedByNameField = tabRoot.querySelector('#txt_documentReceivedByName');
     const searchBtn = tabRoot.querySelector('[data-document-action="lookup-receiver"]');
@@ -435,14 +441,14 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
         console.warn('[Documents] AppCore not available for SearchModal');
         return;
     }
-    
+
     // Get or create SearchModal instance
     let searchModal = window._documentsSearchModal;
     if (!searchModal && window.SearchModal) {
         searchModal = new window.SearchModal(appCore);
         window._documentsSearchModal = searchModal;
     }
-    
+
     if (!searchModal) {
         console.warn('[Documents] SearchModal not available');
         return;
@@ -499,11 +505,11 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
             receiverLookupInFlight = false;
         }
     };
-    
+
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
         const currentValue = receivedByField.value || '';
-        
+
         searchModal.open({
             title: 'Find User for Document Receiver',
             tableID: 'OperatorID',
