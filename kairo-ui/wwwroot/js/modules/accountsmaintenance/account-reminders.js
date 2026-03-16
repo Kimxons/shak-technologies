@@ -493,13 +493,46 @@ window.AccountRemindersModule = (function () {
         const input = el(inputId);
         if (!input || input.disabled) return;
 
+        const openFlatpickr = () => {
+            const instance = input._flatpickr;
+            if (!instance || typeof instance.open !== 'function') return false;
+
+            const focusTarget = instance.altInput || input;
+            if (focusTarget?.disabled) return false;
+
+            try {
+                focusTarget.focus();
+                instance.open();
+                return true;
+            } catch (_) {
+                return false;
+            }
+        };
+
+        if (openFlatpickr()) return;
+
+        if (window.KairoDatePickers?.init) {
+            try {
+                window.KairoDatePickers.init();
+            } catch (_) {
+                // Fall through to anchored native picker.
+            }
+            if (openFlatpickr()) return;
+        }
+
+        const rect = input.getBoundingClientRect();
         const picker = document.createElement('input');
         picker.type = 'date';
         picker.value = toIsoDateValue(input.value);
+        picker.tabIndex = -1;
+        picker.setAttribute('aria-hidden', 'true');
         picker.style.position = 'fixed';
-        picker.style.left = '-9999px';
+        picker.style.top = `${Math.max(rect.top, 0)}px`;
+        picker.style.left = `${Math.max(rect.left, 0)}px`;
+        picker.style.width = `${Math.max(rect.width, 32)}px`;
+        picker.style.height = `${Math.max(rect.height, 32)}px`;
         picker.style.opacity = '0';
-        picker.style.pointerEvents = 'none';
+        picker.style.zIndex = '2147483647';
         document.body.appendChild(picker);
 
         const cleanup = () => {
@@ -519,10 +552,26 @@ window.AccountRemindersModule = (function () {
 
         picker.addEventListener('change', onChange);
         picker.addEventListener('blur', cleanup);
-        picker.click();
+
+        try {
+            picker.focus({ preventScroll: true });
+        } catch (_) {
+            picker.focus();
+        }
 
         if (typeof picker.showPicker === 'function') {
-            try { picker.showPicker(); } catch (_) { }
+            try {
+                picker.showPicker();
+                return;
+            } catch (_) {
+                // Fall through to click.
+            }
+        }
+
+        try {
+            picker.click();
+        } catch (_) {
+            cleanup();
         }
     }
 

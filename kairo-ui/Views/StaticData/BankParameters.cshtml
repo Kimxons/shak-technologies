@@ -1,0 +1,152 @@
+@{
+    ViewData["Title"] = "Bank Settings";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <main class="main-container main-container--with-panel" aria-label="Bank settings form">
+        <div class="form-content" role="region" aria-label="Bank settings details">
+            <div class="form-card" data-main-form>
+                <form id="bank-parameters-form" autocomplete="off" novalidate>
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-bank2"></i> Bank Settings</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="alert alert-danger d-none" role="alert" data-inline-alert hidden>
+                                <div class="d-flex align-items-center justify-content-between gap-3">
+                                    <span data-inline-alert-text></span>
+                                    <button type="button" class="btn-close" aria-label="Close" data-inline-alert-close></button>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_bankId">Bank ID</label>
+                                    <input type="text" id="txt_bankId" class="form-control" readonly>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_shortName">Short Name</label>
+                                    <input type="text" id="txt_shortName" class="form-control" maxlength="30">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col col--full">
+                                    <label class="label-blue" for="txt_bankName">Bank Name</label>
+                                    <input type="text" id="txt_bankName" class="form-control" maxlength="150">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_address1">Address 1</label>
+                                    <input type="text" id="txt_address1" class="form-control" maxlength="150">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_address2">Address 2</label>
+                                    <input type="text" id="txt_address2" class="form-control" maxlength="150">
+                                </div>
+                            </div>
+
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_cityId">City ID</label>
+                                    <input type="text" id="txt_cityId" class="form-control" maxlength="20">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_countryId">Country ID</label>
+                                    <input type="text" id="txt_countryId" class="form-control" maxlength="20">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_zipCode">Zip Code</label>
+                                    <input type="text" id="txt_zipCode" class="form-control" maxlength="20">
+                                </div>
+                            </div>
+
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_phone1">Phone 1</label>
+                                    <input type="text" id="txt_phone1" class="form-control" maxlength="30">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_phone2">Phone 2</label>
+                                    <input type="text" id="txt_phone2" class="form-control" maxlength="30">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_mobile">Mobile</label>
+                                    <input type="text" id="txt_mobile" class="form-control" maxlength="30">
+                                </div>
+                            </div>
+
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_fax">Fax</label>
+                                    <input type="text" id="txt_fax" class="form-control" maxlength="30">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_email">Email</label>
+                                    <input type="email" id="txt_email" class="form-control" maxlength="120">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_bankRegNumber">Registration No.</label>
+                                    <input type="text" id="txt_bankRegNumber" class="form-control" maxlength="50">
+                                </div>
+                            </div>
+
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue" for="txt_auditedDate">Audited Date</label>
+                                    <input type="date" id="txt_auditedDate" class="form-control">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="txt_maximumLoanCycle">Maximum Loan Cycle</label>
+                                    <input type="number" id="txt_maximumLoanCycle" class="form-control" min="0" max="255">
+                                </div>
+                                <div class="col d-flex align-items-end">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="chk_isMicroFinance">
+                                        <label class="form-check-label" for="chk_isMicroFinance">Microfinance Enabled</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content hidden>
+                            <div class="audit-section audit-section--summary">
+                                <div class="audit-cell"><span class="audit-label">Created By</span><span class="audit-value" id="spn_createdBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Created On</span><span class="audit-value" id="spn_createdOn">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified By</span><span class="audit-value" id="spn_modifiedBy">-</span></div>
+                                <div class="audit-cell"><span class="audit-label">Modified On</span><span class="audit-value" id="spn_modifiedOn">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside class="action-panel" aria-label="Bank settings actions">
+            <div class="action-buttons">
+                <button class="btn-action" id="btn_bankView" type="button"><i class="bi bi-eye me-1"></i>Refresh</button>
+                <button class="btn-action" id="btn_bankEdit" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action" id="btn_bankSave" type="button"><i class="bi bi-save me-1"></i>Save</button>
+                <button class="btn-action btn-cancel" id="btn_bankCancel" type="button"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </main>
+</div>
+
+@section Scripts {
+    <script src="~/js/modules/static-data/bank-parameters.js" asp-append-version="true"></script>
+}
