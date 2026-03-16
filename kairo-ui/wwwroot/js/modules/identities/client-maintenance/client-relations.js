@@ -578,14 +578,21 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
 
         const recordId = state.selectedRecord?.ClientToRelationID ?? state.selectedRecord?.ID ?? null;
 
-        return {
-            ModuleID: context.ModuleID,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            ApplicationID: context.ApplicationID || null,
-            RecordID: recordId,
-            Payload: payload
-        };
+        Payload.ModuleID = context.ModuleID;
+        Payload.ClientID = context.ClientID;
+        Payload.RequestID = context.RequestID;
+        Payload.ApplicationID = context.ApplicationID || null;
+        Payload.RecordID = recordId;
+
+        return Payload;
+        //return {
+        //    ModuleID: context.ModuleID,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    ApplicationID: context.ApplicationID || null,
+        //    RecordID: recordId,
+        //    Payload: payload
+        //};
     };
 
     const applyRowPayload = (payload) => {
