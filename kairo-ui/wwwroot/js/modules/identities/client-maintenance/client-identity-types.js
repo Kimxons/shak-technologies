@@ -239,6 +239,17 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
         if (auditFields.SupervisedOn) auditFields.SupervisedOn.textContent = data.SupervisedOn || '-';
     };
 
+    const getOperatorId = () => {
+        try {
+            return sessionStorage.getItem('OperatorID') ||
+                   sessionStorage.getItem('UserId') ||
+                   sessionStorage.getItem('UserID') ||
+                   '';
+        } catch (_e) {
+            return '';
+        }
+    };
+
     const refreshTable = async (requestData) => {
         const context = resolveIdentityContext(requestData, moduleId);
         if (!context.ClientID && !context.RequestID) {
@@ -246,12 +257,19 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
             return;
         }
 
+        // API expects only: ClientID, OperatorID, IdentityTypeID
+        const apiParams = {
+            ClientID: context.ClientID || context.RequestID || '',
+            OperatorID: getOperatorId(),
+            IdentityTypeID: requestData?.IdentityTypeID || ''
+        };
+
         setLoading(true);
         try {
-            const response = await window.ClientMaintenanceIdentityTypesService.get(context);
+            const response = await window.ClientMaintenanceIdentityTypesService.get(apiParams);
             
-            // Handle different response structures
-            let details = response?.Details || response?.data?.Details || response?.Data || response?.data || [];
+            // Handle different response structures - API returns data in Details01
+            let details = response?.Details01 || response?.Details || response?.data?.Details01 || response?.data?.Details || response?.Data || response?.data || [];
             if (typeof details === 'string') {
                 try { details = JSON.parse(details); } catch(e) { details = []; }
             }
@@ -264,7 +282,7 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
             } else {
                 tableBody.innerHTML = details.map((rec, index) => `
                     <tr data-index="${index}" style="cursor:pointer;">
-                        <td class="ps-2">${escapeHtmlIT(rec.IdentityTypeName || rec.IdentityTypeID)}</td>
+                        <td class="ps-2">${escapeHtmlIT(rec.Description || rec.IdentityTypeName || rec.IdentityTypeID)}</td>
                         <td>${escapeHtmlIT(rec.IdentificationNo)}</td>
                         <td>${escapeHtmlIT(rec.Format)}</td>
                     </tr>
@@ -282,7 +300,7 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
                         
                         fields.ClientIdentityTypeID.value = state.selectedRecordId;
                         fields.IdentityTypeID.value = record.IdentityTypeID || '';
-                        fields.IdentityTypeName.value = record.IdentityTypeName || '';
+                        fields.IdentityTypeName.value = record.Description || record.IdentityTypeName || '';
                         fields.Format.value = record.Format || '';
                         fields.IdentificationNo.value = record.IdentificationNo || '';
                         fields.SerialNo.value = record.SerialNo || '';
@@ -380,11 +398,18 @@ window.initClientMaintenanceIdentityTypesTab = function (tabRoot, moduleId) {
             
             // ClientIdentityTypeID is in the form as a hidden field
             const context = resolveIdentityContext({}, moduleId);
-            const requestData = {
-                ...context,
-                RecordID: state.mode === 'edit' ? state.selectedRecordId : null,
-                Payload: payload
-            };
+            // const requestData = {
+            //     ...context,
+            //     RecordID: state.mode === 'edit' ? state.selectedRecordId : null,
+            //     Payload: payload
+            // };
+
+
+
+
+              const requestData = Object.assign({}, context,                ...context,
+                payload);
+            
 
             setLoading(true);
             try {
