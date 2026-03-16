@@ -228,21 +228,212 @@
     }
 
     // ============================================================================
+    // SIDEBAR FUNCTIONS (same approach as Client Maintenance)
+    // ============================================================================
+    
+    const MODULE_ID = '1300'; // Account Maintenance module ID
+    
+    /**
+     * Load the entire sidebar via AJAX (same as Client Maintenance)
+     * This fetches server-rendered HTML from /SideBar/Index which includes
+     * properly formatted recent activities with names
+     */
+    async function loadSidebar() {
+        const sidebarContainer = document.getElementById('sidebarContainer');
+        if (!sidebarContainer) {
+            console.warn('[AccountMaintenance] sidebarContainer not found, falling back to loadRecentActivities');
+            await loadRecentActivities();
+            return;
+        }
+        
+        try {
+            console.log('[AccountMaintenance] Loading sidebar via /SideBar/Index');
+            const params = new URLSearchParams({
+                ModuleID: MODULE_ID,
+                OurBranchID: ''
+            });
+            
+            const response = await fetch(`/SideBar/Index?${params.toString()}`, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'text/html'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load sidebar (${response.status})`);
+            }
+            
+            const html = await response.text();
+            sidebarContainer.innerHTML = html;
+            
+            console.log('[AccountMaintenance] Sidebar loaded successfully');
+            
+            // Re-wire sidebar event handlers after loading new HTML
+            wireSidebarAfterLoad();
+            
+            // Initialize sidebar manager if available
+            if (window.SidebarManager && typeof window.SidebarManager.init === 'function') {
+                window.SidebarManager.init();
+            }
+        } catch (error) {
+            console.error('[AccountMaintenance] Error loading sidebar:', error);
+            // Fallback to client-side recent activities loading
+            await loadRecentActivities();
+        }
+    }
+    
+    /**
+     * Wire sidebar event handlers after dynamic load
+     */
+    function wireSidebarAfterLoad() {
+        // Wire sidebar toggle (for new dynamically loaded sidebar)
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('main-sidebar');
+        
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.onclick = function() {
+                sidebar.classList.toggle('collapsed');
+                const mainContainer = document.querySelector('.main-container');
+                if (mainContainer) mainContainer.classList.toggle('sidebar-collapsed');
+            };
+        }
+        
+        // Wire data-child-form items (submodule items from _SideBarPartial)
+        document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form]').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
+                }
+
+                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                const childKey = this.getAttribute('data-child-form');
+                if (childKey === 'blocking-unblocking') {
+                    showBlockingConfirmation();
+                } else if (childKey) {
+                    openChildForm(childKey);
+                }
+            });
+        });
+
+        // Wire data-submodule items (legacy hardcoded items if still present)
+        document.querySelectorAll('.sidebar-item[data-submodule], .sidebar-item--enhanced[data-submodule]').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
+                }
+
+                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                const submoduleName = this.getAttribute('data-submodule');
+                if (submoduleName) {
+                    loadSubmoduleView(submoduleName);
+                }
+            });
+        });
+        
+        // Wire recent activities click handlers
+        const recentContainer = document.querySelector('[data-recent-activities-container]');
+        if (recentContainer) {
+            recentContainer.querySelectorAll('[data-accessedfields]').forEach(item => {
+                item.addEventListener('click', async function() {
+                    const accessedFields = this.getAttribute('data-accessedfields') || '';
+                    // Parse AccountID from accessedFields (format: "AccountID:xxxx")
+                    const match = accessedFields.match(/AccountID[:\s]*([^\s,;]+)/i);
+                    if (match) {
+                        const accountId = match[1];
+                        const accountIdInput = document.getElementById('AccountID');
+                        if (accountIdInput) accountIdInput.value = accountId;
+                        currentMode = 'VIEW';
+                        await loadAccountDetails(accountId);
+                        updateButtonStates();
+                    }
+                });
+            });
+        }
+        
+        // Re-wire nav section toggles
+        document.querySelectorAll('[data-nav-section] .nav-header').forEach(header => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function(e) {
+                if (e.target.closest('.nav-arrow')) return;
+                const section = this.closest('[data-nav-section]');
+                if (section) {
+                    const items = section.querySelector('.nav-items');
+                    const arrow = section.querySelector('.nav-arrow');
+                    if (items) {
+                        const isHidden = items.hasAttribute('hidden');
+                        if (isHidden) {
+                            items.removeAttribute('hidden');
+                            items.classList.add('is-visible');
+                            if (arrow) arrow.setAttribute('aria-expanded', 'true');
+                        } else {
+                            items.setAttribute('hidden', '');
+                            items.classList.remove('is-visible');
+                            if (arrow) arrow.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Re-wire nav arrow buttons
+        document.querySelectorAll('[data-nav-section] .nav-arrow').forEach(arrow => {
+            arrow.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const section = this.closest('[data-nav-section]');
+                if (section) {
+                    const items = section.querySelector('.nav-items');
+                    if (items) {
+                        const isHidden = items.hasAttribute('hidden');
+                        if (isHidden) {
+                            items.removeAttribute('hidden');
+                            items.classList.add('is-visible');
+                            this.setAttribute('aria-expanded', 'true');
+                        } else {
+                            items.setAttribute('hidden', '');
+                            items.classList.remove('is-visible');
+                            this.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    // ============================================================================
     // RECENT ACTIVITIES FUNCTIONS
     // ============================================================================
     
     /**
      * Track recent activity and refresh the sidebar
+     * Uses same approach as Client Maintenance - call loadSidebar() to refresh
      * @param {string} accountId - The account ID to track
      * @param {string} accountName - The account name for display
      */
     async function addRecentActivityAndRefreshSidebar(accountId, accountName) {
         if (!accountId) return;
         
-        const accessedFields = `AccountID:${accountId}`;
-        const moduleId = '2003'; // Account Maintenance module ID
+        // Get BranchID from state or input field
+        // The SQL function f_GetActivityNarration expects: BranchID:xxxx,AccountID:yyyy
+        // So it can call f_GetAccountName(@PARAM1, @PARAM2) where @PARAM1=BranchID, @PARAM2=AccountID
+        const branchId = window.AccountMaintenanceState?.OurBranchID || 
+                         document.getElementById('BranchID')?.value || '';
         
-        console.log('[AccountMaintenance] Adding recent activity:', { accountId, accessedFields, moduleId });
+        // Format: BranchID:xxxx,AccountID:yyyy (same as modules 1300, 1600, 1800, 4000, 4300)
+        const accessedFields = `BranchID:${branchId},AccountID:${accountId}`;
+        
+        console.log('[AccountMaintenance] Adding recent activity:', { branchId, accountId, accountName, accessedFields, moduleId: MODULE_ID });
         
         try {
             const response = await fetch('/SideBar/AddRecentActivity', {
@@ -252,8 +443,9 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
-                    ModuleID: moduleId,
-                    AccessedFields: accessedFields
+                    ModuleID: MODULE_ID,
+                    AccessedFields: accessedFields,
+                    Narration: accountName || '' // Fallback if SP doesn't populate it
                 })
             });
             
@@ -261,10 +453,13 @@
             console.log('[AccountMaintenance] AddRecentActivity response:', result);
             
             if (response.ok) {
-                const success = result.ResponseCode === '00' || result.Success === true || result.success === true;
+                const success = result.ResponseCode === '00' || result.responseCode === '00' || 
+                                result.Success === true || result.success === true;
+                
                 if (success) {
-                    console.log('[AccountMaintenance] Recent activity tracked successfully, refreshing list');
-                    await loadRecentActivities();
+                    console.log('[AccountMaintenance] Recent activity tracked successfully, reloading sidebar...');
+                    // Reload the entire sidebar (same as Client Maintenance)
+                    await loadSidebar();
                 } else {
                     console.warn('[AccountMaintenance] Recent activity tracking failed:', result);
                 }
@@ -277,33 +472,139 @@
     }
     
     /**
-     * Load and render recent activities in the sidebar
+     * Render recent activities in the sidebar
+     * @param {Array} activities - Array of activity objects
      */
-    async function loadRecentActivities() {
-        const container = document.querySelector('[data-recent-activities-container]');
+    function renderRecentActivities(activities) {
+        // Try multiple possible selectors for the container
+        let container = document.querySelector('[data-recent-activities-container]');
         if (!container) {
-            console.warn('[AccountMaintenance] Recent activities container not found');
+            container = document.getElementById('nav-recent');
+        }
+        
+        if (!container) {
+            console.warn('[AccountMaintenance] Recent activities container not found for rendering');
             return;
         }
         
-        const moduleId = '2003'; // Account Maintenance module ID
+        console.log('[AccountMaintenance] renderRecentActivities called with', 
+            Array.isArray(activities) ? activities.length : 0, 'activities');
+        
+        if (!Array.isArray(activities) || activities.length === 0) {
+            container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">No recent activities</div>';
+            return;
+        }
+        
+        console.log('[AccountMaintenance] Rendering', activities.length, 'recent activities');
+        
+        // Remove hidden attribute so activities are visible
+        container.removeAttribute('hidden');
+        container.classList.add('is-visible');
+        container.style.pointerEvents = 'auto';
+        
+        // Also expand the parent nav-section
+        const parentSection = container.closest('[data-nav-section]');
+        if (parentSection) {
+            parentSection.classList.add('is-open', 'expanded');
+            const toggle = parentSection.querySelector('.nav-arrow, .nav-arrow--card');
+            if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        }
+        
+        container.innerHTML = activities.map(activity => {
+            // Parse AccessedFields if it's in "AccountID:xxxx" format
+            let accountId = '';
+            
+            if (activity.AccessedFields) {
+                const match = activity.AccessedFields.match(/AccountID[:\s]*([^\s,;]+)/i);
+                if (match) accountId = match[1];
+            }
+            
+            // Fallback to direct properties
+            accountId = accountId || activity.AccountID || activity.RecordID || activity.Key || '';
+            
+            // Get account name from Narration field (where we store it)
+            const accountName = activity.Narration || activity.AccountName || activity.Description || '';
+            
+            // Match exact HTML structure from _SideBarPartial.cshtml (same as Client Maintenance)
+            return `
+                <div class="sidebar-item sidebar-item--static sidebar-item--enhanced" 
+                     style="cursor:pointer;" 
+                     data-recent-account="${accountId}"
+                     data-accessedfields="AccountID:${accountId}"
+                     data-activity-key="AccountID"
+                     data-activity-value="${accountId}">
+                    <div class="sidebar-item__content">
+                        <i class="bi bi-file-earmark-text sidebar-item__icon"></i>
+                        <div class="sidebar-item__text">
+                            <div class="sidebar-item__title">${accountId}</div>
+                            ${accountName ? `<div class="sidebar-item__description"><i class="bi bi-geo-alt me-1"></i>${accountName}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Wire click handlers for recent activities
+        container.querySelectorAll('[data-recent-account]').forEach(item => {
+            item.addEventListener('click', async function() {
+                const accountId = this.getAttribute('data-recent-account');
+                if (accountId) {
+                    const accountIdInput = document.getElementById('AccountID');
+                    if (accountIdInput) accountIdInput.value = accountId;
+                    currentMode = 'VIEW';
+                    await loadAccountDetails(accountId);
+                    updateButtonStates();
+                }
+            });
+        });
+    }
+    
+    /**
+     * Load and render recent activities in the sidebar
+     */
+    async function loadRecentActivities() {
+        console.log('[AccountMaintenance] loadRecentActivities() called');
+        
+        // Try multiple possible selectors for the container
+        let container = document.querySelector('[data-recent-activities-container]');
+        if (!container) {
+            container = document.getElementById('nav-recent');
+        }
+        
+        if (!container) {
+            console.warn('[AccountMaintenance] Recent activities container not found in DOM. Available nav-items:', 
+                document.querySelectorAll('.nav-items').length);
+            return;
+        }
+        
+        console.log('[AccountMaintenance] Found recent activities container:', container.id || container.className);
+        
+        const moduleId = '1300'; // Account Maintenance module ID
+        const url = `/SideBar/GetRecentActivities?moduleId=${moduleId}`;
+        
+        console.log('[AccountMaintenance] Fetching recent activities from:', url);
         
         try {
-            const response = await fetch(`/SideBar/GetRecentActivities?moduleId=${moduleId}`, {
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             
+            console.log('[AccountMaintenance] GetRecentActivities response status:', response.status);
+            
             if (!response.ok) {
-                console.warn('[AccountMaintenance] Recent activities API returned:', response.status);
+                console.warn('[AccountMaintenance] Recent activities API returned error:', response.status);
+                container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">Failed to load activities</div>';
                 return;
             }
             
             const result = await response.json();
             console.log('[AccountMaintenance] Recent activities response:', result);
             
-            // Handle various response formats
-            let activities = result.Activities || result.activities || result.Data || result.data || result.Details || [];
+            // Handle various response formats - API returns lowercase 'details'
+            let activities = result.Activities || result.activities || 
+                             result.Data || result.data || 
+                             result.Details || result.details || [];
             
             // If activities is a JSON string, parse it
             if (typeof activities === 'string') {
@@ -314,57 +615,17 @@
                 }
             }
             
-            if (!Array.isArray(activities) || activities.length === 0) {
-                container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">No recent activities</div>';
-                return;
-            }
+            console.log('[AccountMaintenance] Parsed activities:', activities, 'Count:', Array.isArray(activities) ? activities.length : 0);
             
-            container.innerHTML = activities.map(activity => {
-                // Parse AccessedFields if it's in "AccountID:xxxx" format
-                let accountId = '';
-                let accountName = '';
-                
-                if (activity.AccessedFields) {
-                    const match = activity.AccessedFields.match(/AccountID[:\s]*([^\s,;]+)/i);
-                    if (match) accountId = match[1];
-                }
-                
-                // Fallback to direct properties
-                accountId = accountId || activity.AccountID || activity.RecordID || activity.Key || '';
-                accountName = activity.AccountName || activity.Description || activity.Name || accountId;
-                
-                const accessedOn = activity.AccessedOn || activity.LastAccessed || activity.CreatedOn || '';
-                const formattedDate = accessedOn && window.GlobalUtils?.formatDateTime 
-                    ? window.GlobalUtils.formatDateTime(accessedOn) 
-                    : accessedOn;
-                
-                return `
-                    <div class="sidebar-item sidebar-item--enhanced" data-recent-account="${accountId}" style="cursor: pointer;">
-                        <div class="sidebar-item__content">
-                            <span class="sidebar-item__icon"><i class="bi bi-credit-card-2-front"></i></span>
-                            <span class="sidebar-item__label">${accountId}</span>
-                        </div>
-                        <span class="sidebar-item__badge" title="${formattedDate}">${accountName}</span>
-                    </div>
-                `;
-            }).join('');
-            
-            // Wire click handlers for recent activities
-            container.querySelectorAll('[data-recent-account]').forEach(item => {
-                item.addEventListener('click', async function() {
-                    const accountId = this.getAttribute('data-recent-account');
-                    if (accountId) {
-                        const accountIdInput = document.getElementById('AccountID');
-                        if (accountIdInput) accountIdInput.value = accountId;
-                        currentMode = 'VIEW';
-                        await loadAccountDetails(accountId);
-                        updateButtonStates();
-                    }
-                });
-            });
+            // Use shared render function
+            renderRecentActivities(activities);
             
         } catch (error) {
-            console.warn('[AccountMaintenance] Error loading recent activities:', error);
+            console.error('[AccountMaintenance] Error loading recent activities:', error);
+            const container = document.querySelector('[data-recent-activities-container]');
+            if (container) {
+                container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">Error loading activities</div>';
+            }
         }
     }
 
@@ -1683,20 +1944,27 @@
         }
     }
 
-    function init() {
+    async function init() {
+        console.log('[AccountMaintenance] Initializing module...');
         wireNavSections();
         wireSidebarToggle();
-        wireSidebar();
         wireBlockingConfirmation();
         wireLookups();
         wireActionButtons();
         wireManualInputListeners();
 
-        // Load recent activities on page load
-        loadRecentActivities();
+        // Load entire sidebar via AJAX (same as Client Maintenance)
+        // This includes submodules AND recent activities with proper Narration
+        console.log('[AccountMaintenance] Loading sidebar...');
+        try {
+            await loadSidebar();
+        } catch (err) {
+            console.warn('[AccountMaintenance] Failed to load sidebar on init:', err);
+        }
 
         // Hide initial loader
         showPageLoader(false);
+        console.log('[AccountMaintenance] Initialization complete');
     }
 
     // Expose core functions to be called from submodules
@@ -2554,10 +2822,12 @@
                     });
 
                     // Track recent activity for quick access later
-                    const trackedAccountId = window.AccountMaintenanceState.recentActivityTrackedAccountId || '';
-                    if (trackedAccountId !== (account.AccountID || accountId)) {
-                        await addRecentActivityAndRefreshSidebar(account.AccountID || accountId, account.AccountName || '');
-                        window.AccountMaintenanceState.recentActivityTrackedAccountId = account.AccountID || accountId;
+                    const finalAccountId = account.AccountID || accountId;
+                    console.log('[AccountMaintenance] About to track recent activity for:', finalAccountId);
+                    try {
+                        await addRecentActivityAndRefreshSidebar(finalAccountId, account.AccountName || '');
+                    } catch (err) {
+                        console.warn('[AccountMaintenance] Failed to track recent activity:', err);
                     }
 
                     // Update button states after successful load
@@ -3249,7 +3519,12 @@
         });
     }
 
-    init();
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
 })();
 

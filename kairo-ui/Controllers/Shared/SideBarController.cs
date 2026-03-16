@@ -156,7 +156,11 @@ namespace kairo_ui.Controllers.Shared
             {
                 var branchId = HttpContext.Session.GetString("branch_code") ?? request.OurBranchID ?? string.Empty;
                 var operatorId = HttpContext.Session.GetString("user_name") ?? request.LoggedInOperator ?? string.Empty;
-                var moduleId = request.ModuleID?.Trim() ?? string.Empty;
+                var moduleIdStr = request.ModuleID?.Trim() ?? string.Empty;
+                
+                // Parse moduleId as int - API expects number
+                int moduleId = 0;
+                int.TryParse(moduleIdStr, out moduleId);
 
                 if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(operatorId))
                 {
@@ -168,11 +172,12 @@ namespace kairo_ui.Controllers.Shared
                     OurBranchID = branchId,
                     LoggedInOperator = operatorId,
                     ModuleID = moduleId,
-                    AccessedFields = accessedFields
-                    
+                    AccessedFields = accessedFields,
+                    Narration = request.Narration ?? string.Empty
                 };
 
-                _logger.LogInformation("[SideBar] AddRecentActivity for ModuleID: {ModuleID}, AccessedFields: {AccessedFields}", moduleId, accessedFields);
+                _logger.LogInformation("[SideBar] AddRecentActivity for ModuleID: {ModuleID}, AccessedFields: {AccessedFields}, Narration: {Narration}", 
+                    moduleId, accessedFields, request.Narration);
 
                 var response = await _apiService.CreateAsync<ResponseDetail<object>>(
                     "SystemCoreApi",
@@ -207,14 +212,18 @@ namespace kairo_ui.Controllers.Shared
                     return BadRequest(new { Success = false, ErrorMessage = "Operator or branch is missing" });
                 }
 
+                // Parse moduleId as int - API expects number
+                int moduleIdInt = 0;
+                int.TryParse(moduleId, out moduleIdInt);
+
                 var requestData = new
                 {
                     OurBranchID = branchId,
                     LoggedInOperator = operatorId,
-                    ModuleID = moduleId ?? string.Empty
+                    ModuleID = moduleIdInt
                 };
 
-                _logger.LogInformation("[SideBar] GetRecentActivities for ModuleID: {ModuleID}", moduleId);
+                _logger.LogInformation("[SideBar] GetRecentActivities for ModuleID: {ModuleID}", moduleIdInt);
 
                 var response = await _apiService.CreateAsync<ResponseDetail<object>>(
                     "SystemCoreApi",
