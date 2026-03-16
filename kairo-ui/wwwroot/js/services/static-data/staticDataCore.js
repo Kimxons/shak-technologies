@@ -15,6 +15,7 @@
     }
 
     const baseUrl = (
+      Environment.baseUrlOldApi ||
       Environment.baseUrlCommon ||
       Environment.baseUrlSystemCodes ||
       ''
