@@ -1,7 +1,24 @@
 const CM_DOCUMENTS_BASE = 'Identities/ClientMaintenance/Documents';
 
 function invokeClientMaintenanceDocuments(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_DOCUMENTS_BASE, action, 'POST', requestData || {});
+    // For FormData payloads, pass options to prevent JSON content-type header
+    // This allows the multipart/form-data header with boundary to be set by the browser
+    if (requestData instanceof FormData) {
+        return window.ClientMaintenanceCore.invokeControllerMethod(
+            CM_DOCUMENTS_BASE,
+            action,
+            'POST',
+            requestData,
+            { skipJsonHeader: true }
+        );
+    }
+    // For regular object payloads, use standard JSON submission
+    return window.ClientMaintenanceCore.invokeControllerMethod(
+        CM_DOCUMENTS_BASE,
+        action,
+        'POST',
+        requestData || {}
+    );
 }
 
 window.ClientMaintenanceDocumentsService = {
@@ -146,6 +163,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 field.checked = false;
             } else if (field.type === 'file') {
                 field.value = '';
+            } else if (field._flatpickr) {
+                field._flatpickr.clear();
             } else {
                 field.value = '';
             }
@@ -167,6 +186,49 @@ function bindDocumentsCrud(tabRoot, moduleId) {
     };
 
     const buildPayload = () => {
+        // Check if we have file uploads - if so use FormData, otherwise use plain object
+        const hasFileUpload = Array.from(form.querySelectorAll('[data-document-field][type="file"]'))
+            .some(field => field.files && field.files[0]);
+
+        if (hasFileUpload) {
+            // Use FormData for multipart/form-data submission
+            const formData = new FormData();
+            form.querySelectorAll('[data-document-field]').forEach((field) => {
+                const key = field.dataset.documentField;
+                if (!key) return;
+                
+                if (field.type === 'file') {
+                    if (field.files && field.files[0]) {
+                        formData.append(key, field.files[0]);
+                    }
+                } else if (field.type === 'checkbox') {
+                    formData.append(key, field.checked ? '1' : '0');
+                } else {
+                    formData.append(key, field.value ?? '');
+                }
+            });
+
+            const selectedImageId = state.editing?.ImageID ?? state.editing?.ID ?? null;
+            const selectedTempImageId = state.editing?.TempImageID ?? null;
+
+            if (selectedImageId !== null && selectedImageId !== undefined && selectedImageId !== '') {
+                formData.append('ImageID', selectedImageId);
+            }
+
+            if (selectedTempImageId !== null && selectedTempImageId !== undefined && selectedTempImageId !== '') {
+                formData.append('TempImageID', selectedTempImageId);
+            }
+
+            const requestId = window.ClientMaintenanceCore.requestId || '';
+            formData.append('ModuleID', moduleId || window.ClientMaintenanceCore.moduleId || '');
+            formData.append('ClientID', window.ClientMaintenanceCore.clientId || '');
+            formData.append('RequestID', requestId);
+            formData.append('ApplicationID', requestId);
+            
+            return formData;
+        }
+        
+        // Regular object payload for non-file operations
         const payload = {};
         form.querySelectorAll('[data-document-field]').forEach((field) => {
             const key = field.dataset.documentField;
@@ -193,13 +255,6 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         payload.ApplicationID = requestId;
 
         return payload;
-        //return {
-        //    ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-        //    ClientID: window.ClientMaintenanceCore.clientId || '',
-        //    RequestID: requestId,
-        //    ApplicationID: requestId,
-        //    Payload: payload
-        //};
     };
 
     const fetchSingleDocumentDetails = async (rowPayload) => {
