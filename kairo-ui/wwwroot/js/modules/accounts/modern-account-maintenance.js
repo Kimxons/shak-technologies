@@ -2146,24 +2146,10 @@
                             console.warn('[AccountMaintenance] Failed to parse FinancialSummary:', e);
                         }
                     }
-
-                    // Filter out empty/null values from Supervision to avoid overwriting valid AccountDetails fields
-                    let supervisionData = {};
-                    if (account.Supervision) {
-                        Object.entries(account.Supervision).forEach(([key, value]) => {
-                            if (value !== null && value !== undefined && value !== '' && value !== 0) {
-                                supervisionData[key] = value;
-                            }
-                        });
-                    }
-
-                    // Flatten the response by merging sub-objects (AccountDetails takes priority, then FinancialSummary, then non-empty Supervision)
-                    account = {
-                        ...account,
-                        ...account.AccountDetails,
-                        ...financialSummary,
-                        ...supervisionData
-                    };
+                    
+                    // Merge AccountDetails, FinancialSummary, and Supervision into account
+                    const supervision = account.Supervision || {};
+                    account = { ...account.AccountDetails, ...financialSummary, ...supervision };
                 }
 
                 if (account) {
@@ -2172,184 +2158,124 @@
                     // Update Global State
                     window.AccountMaintenanceState.AccountID = account.AccountID || accountId;
                     window.AccountMaintenanceState.AccountName = account.AccountName || account.AccountTitle || '';
-                    window.AccountMaintenanceState.ProductID = account.ProductID || '';
-                    window.AccountMaintenanceState.ProductName = account.ProductName || account.Product || '';
-                    window.AccountMaintenanceState.ClientID = account.ClientID || '';
-                    // Handle fallback or explicit BranchID + description
-                    window.AccountMaintenanceState.OurBranchID = account.OurBranchID || account.BranchID || window.AccountMaintenanceState.OurBranchID || '';
-                    window.AccountMaintenanceState.BranchName = account.BranchName || account.BranchDescription || '';
-                    window.AccountMaintenanceState.CurrencyID = account.CurrencyID || '';
-                    window.AccountMaintenanceState.isAccountLoaded = true;
+                            window.AccountMaintenanceState.ProductID = account.ProductID || '';
+                            window.AccountMaintenanceState.ProductName = account.ProductName || account.Product || '';
+                            window.AccountMaintenanceState.ClientID = account.ClientID || '';
+                            // Handle fallback or explicit BranchID + description
+                            window.AccountMaintenanceState.OurBranchID = account.OurBranchID || account.BranchID || window.AccountMaintenanceState.OurBranchID || '';
+                            window.AccountMaintenanceState.BranchName = account.BranchName || account.BranchDescription || '';
+                            window.AccountMaintenanceState.CurrencyID = account.CurrencyID || '';
+                            window.AccountMaintenanceState.isAccountLoaded = true;
 
-                    // Comprehensive field mapping for UI elements matching API properties
-                    const fieldMap = {
-                        'BranchID': 'OurBranchID',
-                        'AccountTitle': 'AccountName',
-                        'Product': 'ProductName',
-                        'SalesOfficerID': 'AccountOfficerID', // UI ID -> JSON Property
-                        'SalesOfficerName': 'AccountOfficerName',
-                        'AccountTypeID': 'AccountClassID',
-                        'AccountTypeName': 'AccountClassName',
-                        'PhoneHome': 'Phone1',
-                        'PhoneWork': 'Phone2',
-                        'FaxNo': 'Fax', // UI uses FaxNo, API uses Fax
-                        // Financial Summary field mappings (handling case differences)
-                        'UnclearBalance': 'UnClearBalance', // UI uses "Unclear", API uses "UnClear"
-                        'OpenDate': 'OpenedDate', // UI uses "OpenDate", API uses "OpenedDate"
-                        'CreditRate': 'InterestRate', // Map to InterestRate from AccountDetails
-                        'DebitRate': 'DebitIntRate',
-                        'PenaltyRate': 'PenaltyIntRate',
-                        'PendingCharges': 'PendingCharges', // If present in future
-                        // Audit Trail field mappings - API uses direct field names
-                        // CreatedBy, CreatedOn, ModifiedBy, ModifiedOn are direct matches
-                        // Only add fallback mappings if needed
-                        'SupervisedBy': 'SupervisorID',
-                        'SupervisedOn': 'SupervisorDT'
-                    };
+                            // Comprehensive field mapping for UI elements matching API properties
+                            const fieldMap = {
+                                'BranchID': 'OurBranchID',
+                                'AccountTitle': 'AccountName',
+                                'Product': 'ProductName',
+                                'SalesOfficerID': 'AccountOfficerID', // UI ID -> JSON Property
+                                'SalesOfficerName': 'AccountOfficerName',
+                                'AccountTypeID': 'AccountClassID',
+                                'AccountTypeName': 'AccountClassName',
+                                'PhoneHome': 'Phone1',
+                                'PhoneWork': 'Phone2',
+                                'FaxNo': 'Fax', // UI uses FaxNo, API uses Fax
+                                // Financial Summary field mappings (handling case differences)
+                                'UnclearBalance': 'UnClearBalance', // UI uses "Unclear", API uses "UnClear"
+                                'OpenDate': 'OpenedDate', // UI uses "OpenDate", API uses "OpenedDate"
+                                'CreditRate': 'InterestRate', // Map to InterestRate from AccountDetails
+                                'DebitRate': 'DebitIntRate',
+                                'PenaltyRate': 'PenaltyIntRate',
+                                'PendingCharges': 'PendingCharges', // If present in future
+                                // Audit Trail field mappings - API uses direct field names
+                                // CreatedBy, CreatedOn, ModifiedBy, ModifiedOn are direct matches
+                                // Only add fallback mappings if needed
+                                'SupervisedBy': 'SupervisorID',
+                                'SupervisedOn': 'SupervisorDT'
+                            };
 
-                    // Populate Form Fields (Inputs, Selects, and Display Spans)
-                    const elements = document.querySelectorAll('input:not([type="hidden"]), select, textarea, .behind-scene-value, .audit-value');
+                            // Populate Form Fields (Inputs, Selects, and Display Spans)
+                            const elements = document.querySelectorAll('input:not([type="hidden"]), select, textarea, .behind-scene-value, .audit-value');
 
-                    elements.forEach(el => {
-                        // Use element ID first, then fallback to data-field attribute
-                        const fieldName = el.id || el.dataset.field;
-                        // Skip if no field identifier or is the search trigger
-                        if (!fieldName || fieldName === 'AccountID') return;
+                            elements.forEach(el => {
+                                // Use element ID first, then fallback to data-field attribute
+                                const fieldName = el.id || el.dataset.field;
+                                // Skip if no field identifier or is the search trigger
+                                if (!fieldName || fieldName === 'AccountID') return;
 
-                        let key = null;
+                                let key = null;
 
-                        // 1. Check if form field has a mapping to a different API field name
-                        if (fieldMap[fieldName]) {
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
-                        }
-
-                        // 2. Direct case-insensitive match
-                        if (!key) {
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
-                        }
-
-                        // 3. Also check data-field attribute for mapping  
-                        if (!key && el.dataset.field && fieldMap[el.id]) {
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[el.id].toLowerCase());
-                        }
-
-                        // 4. Fallback for specific variations if needed
-                        if (!key && fieldName.endsWith('ID')) {
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
-                        }
-
-                        // 5. Special fallback for CreatedOn (try MakerDT, CreatedOn, etc.)
-                        if (!key && fieldName === 'CreatedOn') {
-                            key = Object.keys(account).find(k => k.toLowerCase() === 'makerdt')
-                                || Object.keys(account).find(k => k.toLowerCase() === 'createdon');
-                        }
-
-                        // 6. Special fallback for ModifiedOn (try CheckerDT, ModifiedOn, etc.)
-                        if (!key && fieldName === 'ModifiedOn') {
-                            key = Object.keys(account).find(k => k.toLowerCase() === 'checkerdt')
-                                || Object.keys(account).find(k => k.toLowerCase() === 'modifiedon');
-                        }
-
-                        // 7. Special fallback for PendingCharges (try PendingCharges, PendingCharge, etc.)
-                        if (!key && fieldName === 'PendingCharges') {
-                            key = Object.keys(account).find(k => k.toLowerCase() === 'pendingcharges')
-                                || Object.keys(account).find(k => k.toLowerCase() === 'pendingcharge');
-                        }
-
-                        if (key && account[key] !== null && account[key] !== undefined && account[key] !== '') {
-                            if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
-                                if (el.type === 'checkbox') {
-                                    el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
-                                } else if (el.tagName === 'SELECT') {
-                                    // For SELECT elements, ensure the option exists before setting
-                                    const value = String(account[key]);
-                                    const optionExists = Array.from(el.options).some(opt => opt.value === value);
-
-                                    if (!optionExists && value) {
-                                        // Try to find a corresponding Name field for the label
-                                        const nameKey = key.replace(/ID$/i, 'Name');
-                                        const label = account[nameKey] || value;
-
-                                        // Add the missing option
-                                        const newOption = document.createElement('option');
-                                        newOption.value = value;
-                                        newOption.textContent = label;
-                                        el.appendChild(newOption);
-                                        console.log(`[AccountMaintenance] Added missing option to ${fieldName}: ${value} (${label})`);
-                                    }
-
-                                    el.value = value;
-                                } else {
-                                    el.value = account[key];
+                                // 1. Check if form field has a mapping to a different API field name
+                                if (fieldMap[fieldName]) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
                                 }
-                                // Dispatch change events for inputs
-                                el.dispatchEvent(new Event('change', { bubbles: true }));
-                            } else {
-                                // Handle display spans (Account Snapshot, Audit Trail)
-                                // Format numeric balance fields with proper number formatting
-                                const numericFields = [
-                                    'ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
-                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance',
-                                    'CreditInterest', 'DebitInterest', 'DepositBalance',
-                                    'UnSupervisedCredits', 'UnSupervisedDebits', 'PendingCharges',
-                                    'CreditRate', 'DebitRate', 'PenaltyRate', 'InterestRate'
-                                ];
-                                const fieldId = el.id || '';
-                                
-                                if (numericFields.includes(fieldId)) {
-                                    const value = parseFloat(account[key]);
-                                    if (!isNaN(value)) {
-                                        el.textContent = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                    } else {
-                                        el.textContent = '0.00';
-                                    }
-                                } else if (fieldId.toLowerCase().includes('date') || fieldId.toLowerCase().includes('on')) {
-                                    // Format date fields
-                                    const dateValue = account[key];
-                                    if (dateValue && dateValue !== '-') {
-                                        try {
-                                            const date = new Date(dateValue);
-                                            if (!isNaN(date.getTime())) {
-                                                el.textContent = date.toLocaleDateString('en-US', { 
-                                                    year: 'numeric', 
-                                                    month: 'short', 
-                                                    day: 'numeric' 
-                                                });
-                                            } else {
-                                                el.textContent = dateValue;
+
+                                // 2. Direct case-insensitive match
+                                if (!key) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                                }
+
+                                // 3. Also check data-field attribute for mapping  
+                                if (!key && el.dataset.field && fieldMap[el.id]) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[el.id].toLowerCase());
+                                }
+
+                                // 4. Fallback for specific variations if needed
+                                if (!key && fieldName.endsWith('ID')) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                                }
+
+                                // 5. Special fallback for CreatedOn (try MakerDT, CreatedOn, etc.)
+                                if (!key && fieldName === 'CreatedOn') {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === 'makerdt')
+                                        || Object.keys(account).find(k => k.toLowerCase() === 'createdon');
+                                }
+
+                                // 6. Special fallback for ModifiedOn (try CheckerDT, ModifiedOn, etc.)
+                                if (!key && fieldName === 'ModifiedOn') {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === 'checkerdt')
+                                        || Object.keys(account).find(k => k.toLowerCase() === 'modifiedon');
+                                }
+
+                                // 7. Special fallback for PendingCharges (try PendingCharges, PendingCharge, etc.)
+                                if (!key && fieldName === 'PendingCharges') {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === 'pendingcharges')
+                                        || Object.keys(account).find(k => k.toLowerCase() === 'pendingcharge');
+                                }
+
+                                if (key && account[key] !== null && account[key] !== undefined && account[key] !== '') {
+                                    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                                        if (el.type === 'checkbox') {
+                                            el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
+                                        } else if (el.tagName === 'SELECT') {
+                                            // For SELECT elements, ensure the option exists before setting
+                                            const value = String(account[key]);
+                                            const optionExists = Array.from(el.options).some(opt => opt.value === value);
+
+                                            if (!optionExists && value) {
+                                                // Try to find a corresponding Name field for the label
+                                                const nameKey = key.replace(/ID$/i, 'Name');
+                                                const label = account[nameKey] || value;
+
+                                                // Add the missing option
+                                                const newOption = document.createElement('option');
+                                                newOption.value = value;
+                                                newOption.textContent = label;
+                                                el.appendChild(newOption);
+                                                console.log(`[AccountMaintenance] Added missing option to ${fieldName}: ${value} (${label})`);
                                             }
-                                        } catch (e) {
-                                            el.textContent = dateValue;
+                                            el.value = value;
+                                        } else {
+                                            el.value = account[key];
                                         }
                                     } else {
-                                        el.textContent = '-';
+                                        // For spans or divs (display only)
+                                        el.textContent = account[key];
                                     }
-                                } else {
-                                    // Regular text field
-                                    el.textContent = account[key];
                                 }
-                            }
-                        } else {
-                            // Field wasn't matched or value is null/empty - log for debugging
-                            if (el.tagName !== 'INPUT' && el.tagName !== 'SELECT' && el.tagName !== 'TEXTAREA') {
-                                console.warn(`[AccountMaintenance] No data found or value is empty for field: ${fieldName} (ID: ${el.id})`);
-                            }
-                            // For numeric fields, show 0.00 if missing
-                            const numericFields = [
-                                'ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
-                                'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance',
-                                'CreditInterest', 'DebitInterest', 'DepositBalance',
-                                'UnSupervisedCredits', 'UnSupervisedDebits', 'PendingCharges',
-                                'CreditRate', 'DebitRate', 'PenaltyRate', 'InterestRate'
-                            ];
-                            const fieldId = el.id || '';
-                            if (numericFields.includes(fieldId)) {
-                                el.textContent = '0.00';
-                            } else if (fieldId.toLowerCase().includes('date') || fieldId.toLowerCase().includes('on')) {
-                                el.textContent = '-';
-                            }
-                        }
-                    });
+                            });
+
+                            // Patch SalesOfficerName and LiquidationAccountName if missing
+                            await patchOfficerAndLiquidationNames(account);
 
                     // Populate ClientID input if not already set
                     if (account.ClientID) {
@@ -2388,6 +2314,59 @@
             showErrorMessage('Error loading account details: ' + error.message, { useInlineAlert: true });
         } finally {
             showPageLoader(false);
+        }
+    }
+
+    /**
+     * Helper to patch SalesOfficerName and LiquidationAccountName if missing
+     * Fetches the name from the lookup endpoint using the ID
+     * @param {Object} account - The account data object
+     */
+    async function patchOfficerAndLiquidationNames(account) {
+        // Patch SalesOfficerName
+        const salesOfficerId = account.SalesOfficerID || account.AccountOfficerID;
+        const salesOfficerName = account.SalesOfficerName || account.AccountOfficerName;
+        
+        if (salesOfficerId && (!salesOfficerName || salesOfficerName === 'null' || salesOfficerName === '')) {
+            try {
+                const resp = await fetch(`/AccountsMaintenance/get-officer-details?officerId=${encodeURIComponent(salesOfficerId)}`, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (resp.ok) {
+                    const result = await resp.json();
+                    const officer = result.data || result;
+                    if (officer && (officer.OfficerName || officer.Name)) {
+                        const nameInput = document.getElementById('SalesOfficerName');
+                        if (nameInput) nameInput.value = officer.OfficerName || officer.Name;
+                    }
+                }
+            } catch (e) {
+                console.warn('[AccountMaintenance] Failed to fetch SalesOfficerName:', e);
+            }
+        }
+        
+        // Patch LiquidationAccountName
+        if (account.LiquidationAccountID && (!account.LiquidationAccountName || account.LiquidationAccountName === 'null' || account.LiquidationAccountName === '')) {
+            try {
+                const resp = await fetch(`/AccountsMaintenance/get-account?AccountID=${encodeURIComponent(account.LiquidationAccountID)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ AccountID: account.LiquidationAccountID })
+                });
+                if (resp.ok) {
+                    const result = await resp.json();
+                    const data = result.data || result;
+                    let acc = data.Details || data;
+                    if (acc.AccountDetails) acc = acc.AccountDetails;
+                    if (acc && (acc.AccountName || acc.Name)) {
+                        const nameInput = document.getElementById('LiquidationAccountName');
+                        if (nameInput) nameInput.value = acc.AccountName || acc.Name;
+                    }
+                }
+            } catch (e) {
+                console.warn('[AccountMaintenance] Failed to fetch LiquidationAccountName:', e);
+            }
         }
     }
 
