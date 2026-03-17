@@ -552,16 +552,36 @@
             });
 
             if (resp?.success) {
-                showMessage('Saved successfully.', 'success');
                 setMode(MODES.VIEW);
                 // Reload the record so UpdateCount is refreshed for subsequent edits
                 await handleSearch();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Saved!',
+                        text: 'Loan Analysis saved successfully.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    showMessage('Saved successfully.', 'success');
+                }
             } else {
-                showMessage(resp?.message || 'Failed to save.', 'danger');
+                const errMsg = resp?.message || 'Failed to save.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Save Failed', text: errMsg });
+                } else {
+                    showMessage(errMsg, 'danger');
+                }
             }
         } catch (err) {
             console.error('[LoanAnalysis] Save error:', err);
-            showMessage(err?.message || 'Failed to save.', 'danger');
+            const errMsg = err?.message || 'Failed to save.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Save Error', text: errMsg });
+            } else {
+                showMessage(errMsg, 'danger');
+            }
         } finally {
             state.isBusy = false;
         }
@@ -602,15 +622,35 @@
             });
 
             if (resp?.success) {
-                showMessage('Deleted successfully.', 'success');
                 clearFormData();
                 setMode(MODES.VIEW);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Loan Analysis deleted successfully.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    showMessage('Deleted successfully.', 'success');
+                }
             } else {
-                showMessage(resp?.message || 'Failed to delete.', 'danger');
+                const errMsg = resp?.message || 'Failed to delete.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Delete Failed', text: errMsg });
+                } else {
+                    showMessage(errMsg, 'danger');
+                }
             }
         } catch (err) {
             console.error('[LoanAnalysis] Delete error:', err);
-            showMessage(err?.message || 'Failed to delete.', 'danger');
+            const errMsg = err?.message || 'Failed to delete.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Delete Error', text: errMsg });
+            } else {
+                showMessage(errMsg, 'danger');
+            }
         } finally {
             state.isBusy = false;
         }
@@ -856,9 +896,15 @@
             });
         }
 
-        const okBtn   = qs('#btnSearchOk');   if (okBtn)   okBtn.addEventListener('click', selectAndClose);
-        const prevBtn = qs('#btnSearchPrev'); if (prevBtn) prevBtn.addEventListener('click', () => navigateSearchResults(-1));
-        const nextBtn = qs('#btnSearchNext'); if (nextBtn) nextBtn.addEventListener('click', () => navigateSearchResults(1));
+        const okBtn     = qs('#btnSearchOk');             if (okBtn)     okBtn.addEventListener('click', selectAndClose);
+        const refreshBtn = qs('#btnSearchRefreshLoanAnalysis'); if (refreshBtn) refreshBtn.addEventListener('click', () => performSearch());
+        const resetBtn  = qs('#btnSearchResetLoanAnalysis');
+        if (resetBtn) resetBtn.addEventListener('click', () => {
+            setVal('searchLoanAnalysisId', '');
+            setVal('searchDescription', '');
+            const typeEl = qs('#searchAnalysisTypeId'); if (typeEl) typeEl.value = '';
+            clearSearchResults();
+        });
     }
 
     // ─── Mode Buttons ────────────────────────────────────────────────────

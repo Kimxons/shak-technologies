@@ -256,7 +256,7 @@ namespace kairo_ui.Controllers.StaticData
                     savePayload
                 );
 
-                if (IsSuccess(result))
+                if (IsSuccessOrEmpty(result))
                     return Ok(new { success = true, data = result, message = "Saved successfully" });
 
                 return Ok(new
@@ -304,7 +304,7 @@ namespace kairo_ui.Controllers.StaticData
                     deletePayload
                 );
 
-                if (IsSuccess(result))
+                if (IsSuccessOrEmpty(result))
                     return Ok(new { success = true, data = result, message = "Deleted successfully" });
 
                 return Ok(new
@@ -342,6 +342,23 @@ namespace kairo_ui.Controllers.StaticData
             if (result.ValueKind != JsonValueKind.Object) return false;
             var code = GetString(result, "ResponseCode");
             return code == "00" || code == "000" || code == "0";
+        }
+
+        /// <summary>
+        /// Like IsSuccess but also returns true when the SP returned no result set
+        /// (DML-only procs: p_AddEditLoanAnalysis, p_DeleteLoanAnalysis).
+        /// An empty {"Details":[]} with no ResponseCode means the operation succeeded.
+        /// An explicit non-zero ResponseCode (e.g. "01") still indicates failure.
+        /// </summary>
+        private static bool IsSuccessOrEmpty(JsonElement result)
+        {
+            if (result.ValueKind != JsonValueKind.Object) return false;
+            var code = GetString(result, "ResponseCode");
+            // Explicit success codes
+            if (code == "00" || code == "000" || code == "0") return true;
+            // No ResponseCode → SP returned empty result set (DML-only success)
+            if (string.IsNullOrEmpty(code)) return true;
+            return false;
         }
 
         private static bool HasRows(JsonElement result)
