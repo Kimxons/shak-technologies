@@ -547,6 +547,148 @@
     // =========================================================================
     // Form Actions
     // =========================================================================
+
+    /**
+     * Blur-resolve: type an ID and press Tab to auto-search & populate the name.
+     * Uses the same SearchModal/Search backend the popup search uses.
+     */
+    /**
+     * Call SearchModal/Search directly via fetch for blur-resolve.
+     * Avoids AppCore callback wrapping issues.
+     */
+    async function invokeSearchApi(requestData) {
+        const resp = await fetch('/SearchModal/Search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(requestData)
+        });
+        if (!resp.ok) throw new Error(`Search request failed (${resp.status})`);
+        return resp.json();
+    }
+
+    /**
+     * Generic blur-resolve for any lookup field.
+     * @param {string} lookupType  – key in searchDialogConfig
+     * @param {string} typedValue  – the ID the user typed
+     */
+    async function resolveFieldByBlur(lookupType, typedValue) {
+        const config = searchDialogConfig[lookupType];
+        if (!config) return;
+
+        const idField   = document.getElementById(config.targetId);
+        const nameField = document.getElementById(config.targetName);
+        if (!typedValue) {
+            if (nameField) nameField.value = '';
+            return;
+        }
+
+        const advFilterString = typeof config.getAdvFilterString === 'function'
+            ? config.getAdvFilterString()
+            : (config.advFilterString || '');
+
+        try {
+            const result = await invokeSearchApi({
+                TableID: config.tableID,
+                SearchKey: typedValue,
+                AdvFilterString: advFilterString,
+                ModuleID: String(config.moduleIDOverride || DEFAULT_SEARCH_MODULE_ID),
+                PrevOrNext: 1,
+                PageSize: 50,
+                WhereStmt: '',
+                RefID: ''
+            });
+
+            console.log(`[CenterLoanScheme] blur search result for ${lookupType}:`, result);
+
+            if (!result?.success) {
+                if (nameField) nameField.value = '';
+                showWarning(`No match found for "${typedValue}"`);
+                return;
+            }
+
+            // Unwrap rows: response shape is { success, data: { details: { SearchResults: [...] } } }
+            const responseData = result?.data ?? {};
+            const searchDetails = responseData?.details ?? responseData?.Details ?? {};
+            const rows = searchDetails?.SearchResults ?? responseData?.Details ?? responseData?.Details01 ?? [];
+            const rowsArr = Array.isArray(rows) ? rows : [];
+
+            // Build list of ID column candidates for matching
+            const idColumn = config.searchFields?.[0]?.column || config.tableID;
+            const normalise = (v) => String(v || '').trim().toUpperCase();
+
+            const match = rowsArr.find(row => {
+                // Try the primary ID column
+                if (normalise(row[idColumn]) === normalise(typedValue)) return true;
+                // Try all keys that end with "ID" (covers varying column names)
+                for (const key of Object.keys(row)) {
+                    if (key.toUpperCase().endsWith('ID') && normalise(row[key]) === normalise(typedValue)) return true;
+                }
+                return false;
+            });
+
+            if (match) {
+                // Populate ID (normalised casing from server)
+                const resolvedId = match[idColumn] || getRecordValue(match, idColumn);
+                if (idField && resolvedId) idField.value = String(resolvedId).trim();
+
+                // Populate name
+                if (nameField) {
+                    nameField.value = getRecordValue(match, 'Description', 'Name', 'ProductName', 'GroupProductName', 'AdvanceTypeName', 'WFAdvTypeName');
+                }
+
+                // Special: loan-product also populates InstallmentFrequency
+                if (lookupType === 'loan-product') {
+                    setFieldValue('InstallmentFrequency', extractInstallmentFrequency(match));
+                }
+            } else {
+                if (nameField) nameField.value = '';
+                showWarning(`No match found for "${typedValue}"`);
+            }
+        } catch (err) {
+            console.error(`[CenterLoanScheme] blur resolve error for ${lookupType}:`, err);
+            if (nameField) nameField.value = '';
+        }
+    }
+
+    /**
+     * Wire blur events on all kairo-control ID fields so typing + Tab resolves the name.
+     */
+    function wireBlurLookups() {
+        // Map: input element id → lookup type in searchDialogConfig
+        const blurMap = {
+            'LoanProductId':              'loan-product',
+            'AdvanceTypeId':              'advance-type',
+            'CenterCollectionProductId':  'collection-product',
+            'DepositProductIdPrimary':    'deposit-product-primary',
+            'DepositProductIdSecondary':  'deposit-product-secondary',
+            'DepositProductIdAdditional': 'deposit-product-additional'
+        };
+
+        Object.entries(blurMap).forEach(([inputId, lookupType]) => {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.addEventListener('blur', () => {
+                // Only resolve in add/edit modes (when user is typing)
+                if (!isAddMode && !isEditMode) return;
+                const val = el.value.trim();
+                resolveFieldByBlur(lookupType, val);
+            });
+        });
+
+        // SchemeId blur → trigger full view (same as clicking View button)
+        const schemeIdEl = document.getElementById('SchemeId');
+        if (schemeIdEl) {
+            schemeIdEl.addEventListener('blur', () => {
+                const val = schemeIdEl.value.trim();
+                if (!val) return;
+                // Only auto-view if not currently in add/edit mode
+                if (isAddMode || isEditMode) return;
+                handleView();
+            });
+        }
+    }
+
     async function handleView() {
         const schemeId = document.getElementById('SchemeId')?.value?.trim();
         
@@ -851,8 +993,8 @@
 
             // Keep SchemeId always enabled for search functionality (in default/view modes)
             if (input.id === 'SchemeId') {
-                // In edit mode, disable SchemeId; in default/view/add modes, keep enabled for search
-                input.disabled = (mode === 'edit');
+                // In add/edit mode, disable SchemeId (key field); in default/view modes, keep enabled for search
+                input.disabled = (mode === 'edit' || mode === 'add');
                 return;
             }
             
@@ -918,6 +1060,9 @@
 
         // Keep dependent savings fields synced after mode changes.
         updateSavingsCollectionFieldsState(isViewLikeMode);
+
+        // Keep collateral sections in sync with checkbox states after mode changes.
+        updateCollateralSectionsVisibility();
     }
 
     function updateActionButtons(mode) {
@@ -979,8 +1124,8 @@
             return false;
         }
 
-        if (isAddMode && !/^\d+$/.test(schemeId)) {
-            showError('Scheme ID must be an integer value in Add mode');
+        if (isAddMode && !/^[a-zA-Z0-9]+$/.test(schemeId)) {
+            showError('Scheme ID must contain only letters and numbers');
             document.getElementById('SchemeId')?.focus();
             return false;
         }
@@ -1106,9 +1251,9 @@
         setFieldValue('DepositProductNamePrimary', data.DepositProductNamePrimary);
         setFieldValue('SavingToLoanRatio', data.SavingToLoanRatio);
         setFieldValue('SLRecoveryType', data.SLRecoveryType);
-        setCheckboxValue('CollectSavingWithInstallment', data.CollectSavingWithInst);
-        setFieldValue('SavingsCollectionType', data.SavingsTypeID);
-        setFieldValue('SavingsValue', data.SavingsAmount);
+        setCheckboxValue('CollectSavingWithInstallment', data.CollectSavingWithInstallment);
+        setFieldValue('SavingsCollectionType', data.SavingsCollectionType);
+        setFieldValue('SavingsValue', data.SavingsValue);
 
         // Secondary Collateral Details
         setFieldValue('SecondaryCollateral', data.SecondaryCollateral);
@@ -1255,26 +1400,17 @@
         }
         
         const isChecked = toBoolean(value);
+        console.log(`[DEBUG setCheckboxValue] ${fieldId}: raw value =`, value, `=> isChecked =`, isChecked, `| element:`, field, `| field.type =`, field.type);
         
-        // Direct property assignment is the most reliable way
         field.checked = isChecked;
         
-        // Force the visual state by directly manipulating the element
         if (isChecked) {
             field.setAttribute('checked', 'checked');
         } else {
             field.removeAttribute('checked');
         }
         
-        // Add/remove visual indicator class for checked state in view mode
-        const formCheck = field.closest('.form-check');
-        if (formCheck) {
-            if (isChecked) {
-                formCheck.classList.add('is-checked-view');
-            } else {
-                formCheck.classList.remove('is-checked-view');
-            }
-        }
+        console.log(`[DEBUG setCheckboxValue] ${fieldId}: AFTER set => field.checked =`, field.checked);
    }
 
     function formatDateTime(value) {
@@ -1534,12 +1670,12 @@
         });
     }
 
-    function wireSchemeIdIntegerConstraint() {
+    function wireSchemeIdAlphanumericConstraint() {
         const schemeIdInput = document.getElementById('SchemeId');
         if (!schemeIdInput) return;
 
         schemeIdInput.addEventListener('input', () => {
-            const sanitized = String(schemeIdInput.value || '').replace(/\D+/g, '');
+            const sanitized = String(schemeIdInput.value || '').replace(/[^a-zA-Z0-9]/g, '');
             if (schemeIdInput.value !== sanitized) {
                 schemeIdInput.value = sanitized;
             }
@@ -1564,6 +1700,21 @@
 
         updateCollateralSectionsVisibility();
         updateSavingsCollectionFieldsState(true);
+    }
+
+    function wireNumericFieldConstraints() {
+        // Decimal fields: allow digits and one decimal point
+        const decimalFields = ['SavingToLoanRatio', 'SavingsValue'];
+        decimalFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                let raw = el.value.replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length > 2) raw = parts[0] + '.' + parts.slice(1).join('');
+                el.value = raw;
+            });
+        });
     }
 
     function wireSidebarItems() {
@@ -1640,8 +1791,10 @@
     document.addEventListener('DOMContentLoaded', async () => {
         wireLookupButtons();
         wireActionButtons();
-        wireSchemeIdIntegerConstraint();
+        wireSchemeIdAlphanumericConstraint();
+        wireNumericFieldConstraints();
         wireConditionalFieldHandlers();
+        wireBlurLookups();
         wireSidebarItems();
         setFormMode('default');
 

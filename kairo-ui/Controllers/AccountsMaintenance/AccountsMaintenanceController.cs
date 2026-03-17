@@ -154,11 +154,11 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
                     "SignatoryTypeID",
-                    "MandatesID"
+                        "AgentMandateID"
                 });
 
                 dropdownOptions.TryGetValue("SignatoryTypeID", out var signatoryTypeOptions);
-                dropdownOptions.TryGetValue("MandatesID", out var mandatesOptions);
+                    dropdownOptions.TryGetValue("AgentMandateID", out var mandatesOptions);
 
                 ViewData["SignatoryTypeOptions"] = signatoryTypeOptions ?? Enumerable.Empty<SelectListItem>();
                 ViewData["MandatesOptions"] = mandatesOptions ?? Enumerable.Empty<SelectListItem>();
@@ -1037,6 +1037,32 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding account freeze");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/update-account-freeze")]
+        public async Task<IActionResult> UpdateAccountFreeze([FromBody] AddAccountFreezeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_FREEZE,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account freeze");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -2683,6 +2709,37 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         // ============================================================================
 
         [HttpPost]
+        [Route("api/get-next-tracking-card-id")]
+        public async Task<IActionResult> GetNextTrackingCardId([FromBody] GenericAccountRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_NEXT_TRACKING_CARD_ID,
+                    new
+                    {
+                        BankID      = HttpContext.Session.GetString("bank_id") ?? "00",
+                        OurBranchID = request.OurBranchID,
+                        AccountID   = request.AccountID
+                    }
+                );
+
+                return Ok(new { Success = true, data = response });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting next tracking card ID");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/get-account-card")]
         public async Task<IActionResult> GetAccountCard([FromBody] GenericAccountRequest request)
         {
@@ -3775,6 +3832,9 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public int? ModuleID { get; set; }
         public int? Direction { get; set; }      // 0=First, 1=Next, -1=Previous
         public string? SignatoryID { get; set; }  // Current signatory ID for navigation
+        public bool? IncludeAgentMandate { get; set; }
+        public bool? IncludeClosed { get; set; }
+        public int? RequestedReferenceID { get; set; }
     }
 
     public class AddAccountSignatoriesRequest
@@ -3784,11 +3844,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? SearchID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? OperatedBy { get; set; }
+        public string? OperatedOn { get; set; }
+        public string? SupervisedBy { get; set; }
         public string? BankID { get; set; }
         public int? ModuleID { get; set; }
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructionID { get; set; }
+        public int? UpdateCount { get; set; }
         public string? SignatoriesXml { get; set; }  // XML format: <ListOfSignatory><Signatory>...</Signatory></ListOfSignatory>
+        public object? DetailRecords { get; set; }
     }
 
     public class EditAccountSignatoriesRequest
@@ -3882,11 +3947,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class AddAccountFreezeRequest
     {
         public string? AccountID { get; set; }
+        public string? FreezedValue { get; set; }
+        public string? FreezedReason { get; set; }
         public string? FreezeAmount { get; set; }
         public string? FreezeReason { get; set; }
         public string? FreezeDate { get; set; }
+        public string? FreezedDate { get; set; }
+        public string? EffectiveDate { get; set; }
         public string? OurBranchID { get; set; }
+        public string? BranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? MakerID { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ReferenceID { get; set; }
     }
 
     public class ReleaseAccountFreezeRequest

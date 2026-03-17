@@ -112,6 +112,110 @@
         return new window.SearchModal(appCoreCompat);
     }
 
+    // =========================================================================
+    // Blur-resolve: type an ID and press Tab to auto-search & populate fields
+    // =========================================================================
+    async function invokeSearchApi(requestData) {
+        const resp = await fetch('/SearchModal/Search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(requestData)
+        });
+        if (!resp.ok) throw new Error(`Search request failed (${resp.status})`);
+        return resp.json();
+    }
+
+    /**
+     * Generic blur-resolve for loan-cycle / loan-level fields.
+     * @param {string} lookupType  – key in searchDialogConfig ('loan-cycle' | 'loan-level')
+     * @param {string} typedValue  – the number the user typed
+     */
+    async function resolveMenuFieldByBlur(lookupType, typedValue) {
+        const config = searchDialogConfig[lookupType];
+        if (!config || !typedValue) return;
+
+        const advFilterString = typeof config.getAdvFilterString === 'function'
+            ? config.getAdvFilterString()
+            : (config.advFilterString || '');
+
+        try {
+            const result = await invokeSearchApi({
+                TableID: config.tableID,
+                SearchKey: typedValue,
+                AdvFilterString: advFilterString,
+                ModuleID: String(config.moduleIDOverride || DEFAULT_MODULE_ID),
+                PrevOrNext: 1,
+                PageSize: 50,
+                WhereStmt: '',
+                RefID: ''
+            });
+
+            if (!result?.success) {
+                showWarning(`No match found for "${typedValue}"`);
+                return;
+            }
+
+            // Unwrap rows: { success, data: { details: { SearchResults: [...] } } }
+            const responseData = result?.data ?? {};
+            const searchDetails = responseData?.details ?? responseData?.Details ?? {};
+            const rows = searchDetails?.SearchResults ?? responseData?.Details ?? responseData?.Details01 ?? [];
+            const rowsArr = Array.isArray(rows) ? rows : [];
+
+            const normalise = v => String(v || '').trim();
+
+            // Match by the appropriate key
+            const matchKey = lookupType === 'loan-cycle' ? 'LoanCycleNo' : 'LoanLevelNo';
+            const match = rowsArr.find(row => {
+                if (normalise(row[matchKey]) === normalise(typedValue)) return true;
+                // Fallback: case-insensitive key scan
+                for (const k of Object.keys(row)) {
+                    if (k.toLowerCase() === matchKey.toLowerCase() && normalise(row[k]) === normalise(typedValue)) return true;
+                }
+                return false;
+            });
+
+            if (match) {
+                // Populate related fields just like mapLookupSelection does
+                if (lookupType === 'loan-cycle') {
+                    const levelNo = match.LoanLevelNo || match.loanLevelNo || '';
+                    const effDate = match.EffectiveDate || match.effectiveDate || '';
+                    if (levelNo) setVal('LoanLevelNo', levelNo);
+                    if (effDate) setVal('EffectiveDate', formatDateForInput(effDate));
+                    showInfo(`Loan Cycle ${typedValue} resolved`);
+                } else if (lookupType === 'loan-level') {
+                    const effDate = match.EffectiveDate || match.effectiveDate || '';
+                    if (effDate) setVal('EffectiveDate', formatDateForInput(effDate));
+                    showInfo(`Loan Level ${typedValue} resolved`);
+                }
+            } else {
+                showWarning(`No match found for "${typedValue}"`);
+            }
+        } catch (err) {
+            console.error(`[CenterLoanMenu] blur resolve error for ${lookupType}:`, err);
+        }
+    }
+
+    /**
+     * Wire blur events on lookup ID fields so typing + Tab resolves related fields.
+     */
+    function wireBlurLookups() {
+        const blurMap = {
+            'LoanCycleNo': 'loan-cycle',
+            'LoanLevelNo': 'loan-level'
+        };
+
+        Object.entries(blurMap).forEach(([inputId, lookupType]) => {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.addEventListener('blur', () => {
+                const val = el.value.trim();
+                if (!val) return;
+                resolveMenuFieldByBlur(lookupType, val);
+            });
+        });
+    }
+
     function openSearchDialog(lookupType) {
         const config = searchDialogConfig[lookupType];
         if (!config) { showWarning(`Unknown lookup: ${lookupType}`); return; }
@@ -244,6 +348,17 @@
     const showWarning = m => showToast(m, 'warning');
     const showInfo    = m => showToast(m, 'info');
 
+    function formatAmount(value) {
+        const num = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : value;
+        if (isNaN(num)) return '';
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function unformatAmount(value) {
+        if (!value) return 0;
+        return parseFloat(String(value).replace(/,/g, '')) || 0;
+    }
+
     // =========================================================================
     // Form Mode
     // =========================================================================
@@ -252,7 +367,7 @@
         const allInputs = document.querySelectorAll('.form-card input:not([readonly]), .form-card select');
         allInputs.forEach(el => {
             if (keyFields.includes(el.id)) {
-                el.disabled = (mode === 'edit');
+                el.disabled = (mode === 'edit' || mode === 'add');
             } else {
                 el.disabled = ['default', 'view-with-data', 'view-no-data'].includes(mode);
             }
@@ -304,8 +419,8 @@
                 break;
         }
 
-        // Ensure key lookup fields are always enabled in non-edit modes
-        if (mode !== 'edit') {
+        // Ensure key lookup fields are always enabled in view/default modes
+        if (mode !== 'edit' && mode !== 'add') {
             keyFields.forEach(id => {
                 const f = document.getElementById(id);
                 if (f) { f.disabled = false; f.removeAttribute('disabled'); }
@@ -347,18 +462,16 @@
             return;
         }
 
-        const { BankID, OurBranchID, OperatorID } = getContext();
+        const { BankID } = getContext();
         const formattedDate = effectiveDate && !effectiveDate.includes('T')
             ? effectiveDate + 'T00:00:00' : effectiveDate;
 
         const requestData = {
             BankID:         BankID,
-            OurBranchID:    OurBranchID,
             LoanSchemeID:   parentSchemeId,
             LoanCycleNo:    parseInt(loanCycleNo, 10) || 0,
             LoanLevelNo:    parseInt(loanLevelNo, 10) || 0,
-            EffectiveDate:  formattedDate,
-            OperatorID:     OperatorID
+            EffectiveDate:  formattedDate
         };
 
         try {
@@ -478,11 +591,13 @@
             'MenuLoanProductId','MenuCurrencyId','MenuTermExcludesGracePeriod','MenuLoanPeriod','MenuCalculationMethod',
             'MenuCreatedBy','MenuCreatedOn','MenuModifiedBy','MenuModifiedOn','MenuSupervisedBy','MenuSupervisedOn'
         ]);
+        const amountKeys = new Set(['MinimumLoanAmount','MaximumLoanAmount','DefaultLoanAmount','MenuSavingsValue']);
         Object.entries(vm).forEach(([key, value]) => {
             const el = document.getElementById(key);
             if (!el) return;
             if (spanKeys.has(key)) { el.textContent = value || '-'; }
             else if (el.type === 'checkbox') { el.checked = !!value; }
+            else if (amountKeys.has(key)) { el.value = value ? formatAmount(value) : ''; }
             else { el.value = value ?? ''; }
         });
         toggleSavingsFields(document.getElementById('MenuCollectSavingWithInstallment')?.checked || false);
@@ -601,24 +716,23 @@
             LoanCycleNo:            parseInt(loanCycleNo, 10) || 0,
             LoanLevelNo:            parseInt(loanLevelNo, 10) || 0,
             EffectiveDate:          formattedDate,
-            MinLoanAmount:          parseFloat(document.getElementById('MinimumLoanAmount')?.value) || 0,
-            MaxLoanAmount:          parseFloat(document.getElementById('MaximumLoanAmount')?.value) || 0,
-            DefaultLoanAmount:      parseFloat(document.getElementById('DefaultLoanAmount')?.value) || 0,
+            MinLoanAmount:          unformatAmount(document.getElementById('MinimumLoanAmount')?.value),
+            MaxLoanAmount:          unformatAmount(document.getElementById('MaximumLoanAmount')?.value),
+            DefaultLoanAmount:      unformatAmount(document.getElementById('DefaultLoanAmount')?.value),
             Term:                   parseInt(document.getElementById('Term')?.value, 10) || 0,
             InterestRateID:         document.getElementById('InterestMenuId')?.value || '',
             InstallmentGracePeriod: parseInt(document.getElementById('InstallmentGracePeriod')?.value, 10) || 0,
             MaxAdjustmentDays:      parseInt(document.getElementById('MaxAdjustmentDays')?.value, 10) || 0,
             SavingsTypeID:          document.getElementById('MenuSavingsCollectionType')?.value || '',
-            SavingsAmount:          parseFloat(document.getElementById('MenuSavingsValue')?.value) || 0,
+            SavingsAmount:          unformatAmount(document.getElementById('MenuSavingsValue')?.value),
             CollateralRatio:        parseFloat(document.getElementById('MenuSavingToLoanRatio')?.value) || 0,
             SLRecoveryType:         document.getElementById('MenuSLRecoveryType')?.value || null,
             CollectSavingWithInst:  document.getElementById('MenuCollectSavingWithInstallment')?.checked ? true : false,
             CreatedBy:   isAddMode ? OperatorID : (currentMenu?.MenuCreatedBy || ''),
             CreatedOn:   isAddMode ? now : (currentMenu?.MenuCreatedOn || ''),
-            ModifiedBy:  isEditMode ? OperatorID : (isAddMode ? null : (currentMenu?.MenuModifiedBy || null)),
-            ModifiedOn:  isEditMode ? now : (isAddMode ? null : (currentMenu?.MenuModifiedOn || null)),
+            ModifiedBy:  OperatorID,
+            ModifiedOn:  now,
             SupervisedBy: null,
-            SupervisedOn: null,
             UpdateCount: isAddMode ? 1 : (currentMenu?.UpdateCount || 0)
         };
 
@@ -794,15 +908,53 @@
         // Savings checkbox
         document.getElementById('MenuCollectSavingWithInstallment')
             ?.addEventListener('change', function () { toggleSavingsFields(this.checked); });
+
+        // Integer-only fields: strip non-digit characters on input
+        const integerFields = ['LoanCycleNo', 'LoanLevelNo', 'Term', 'InstallmentGracePeriod', 'MaxAdjustmentDays'];
+        integerFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => { el.value = el.value.replace(/[^0-9]/g, ''); });
+        });
+
+        // Decimal/amount fields: allow digits and one decimal point; format with commas on blur
+        const amountFields = ['MinimumLoanAmount', 'MaximumLoanAmount', 'DefaultLoanAmount', 'MenuSavingsValue'];
+        const decimalFields = ['MenuSavingToLoanRatio'];
+
+        [...amountFields, ...decimalFields].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                // Strip everything except digits and the first decimal point
+                let raw = el.value.replace(/[^0-9.]/g, '');
+                const parts = raw.split('.');
+                if (parts.length > 2) raw = parts[0] + '.' + parts.slice(1).join('');
+                el.value = raw;
+            });
+        });
+
+        // Format amount fields with commas on blur, strip commas on focus
+        amountFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('blur', () => {
+                const num = parseFloat(el.value);
+                if (!isNaN(num)) el.value = formatAmount(num);
+            });
+            el.addEventListener('focus', () => {
+                el.value = el.value.replace(/,/g, '');
+            });
+        });
     }
 
     // =========================================================================
     // Init
     // =========================================================================
     function initialize() {
-        console.log('[CenterLoanMenu] Initializing � SchemeID:', parentSchemeId);
+        console.log('[CenterLoanMenu] Initializing — SchemeID:', parentSchemeId);
         initSectionToggles();
         initEventListeners();
+        wireBlurLookups();
         setFormMode('default');
 
         // Always load interest menu combo on page load if scheme context is available

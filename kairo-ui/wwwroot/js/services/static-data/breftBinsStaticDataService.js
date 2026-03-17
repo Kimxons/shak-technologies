@@ -16,8 +16,21 @@
     return core.postOldApi('dbo.p_AddEditBreftBins', payload || {}, core.APP_NAME);
   };
 
+  breftBinsService.searchBreftBins = function searchBreftBins(params) {
+    return core.postOldApi('dbo.p_GetSearchResult', {
+      TableID: 'BinID',
+      SearchID: 'BinID',
+      SearchKey: params?.SearchKey || '',
+      WhereStmt: params?.WhereStmt || '',
+      AdvFilterString: '',
+      PrevOrNext: 1,
+      PageSize: params?.PageSize || 20
+    }, core.APP_NAME);
+  };
+
   Object.assign(svc, {
     getBreftBins: breftBinsService.getBreftBins,
-    addEditBreftBins: breftBinsService.addEditBreftBins
+    addEditBreftBins: breftBinsService.addEditBreftBins,
+    searchBreftBins: breftBinsService.searchBreftBins
   });
 })(window);

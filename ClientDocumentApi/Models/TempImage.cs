@@ -61,6 +61,12 @@ namespace ClientDocumentApi.Models
 
         public DateTime? DeletedOn { get; set; }
 
+
+        [StringLength(25)]
+        public string? SupervisedBy { get; set; }
+
+        public DateTime? SupervisedOn { get; set; }
+
         public byte? UpdateCount { get; set; }
 
         [StringLength(255)]

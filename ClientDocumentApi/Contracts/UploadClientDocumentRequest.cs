@@ -28,6 +28,8 @@ namespace ClientDocumentApi.Contracts
         public DateTime? CreatedOn { get; set; }
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedOn { get; set; }
+        public string? SupervisedBy { get; set; }
+        public DateTime? SupervisedOn { get; set; }
         public int? UpdateCount { get; set; }
         public long? ImageID { get; set; }
         public DateTime? DeletedOn { get; set; }
