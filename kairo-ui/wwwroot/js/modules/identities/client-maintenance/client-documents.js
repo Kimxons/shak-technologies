@@ -56,6 +56,27 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         if (clearBtn) clearBtn.disabled = !enabled;
     };
 
+    const syncDateFieldState = (field, enabled) => {
+        if (!field || !field._flatpickr) {
+            return;
+        }
+
+        const isDisabled = !enabled;
+        try {
+            field._flatpickr.set('clickOpens', enabled);
+            field._flatpickr.set('allowInput', enabled);
+            if (field._flatpickr.altInput) {
+                field._flatpickr.altInput.disabled = isDisabled;
+                field._flatpickr.altInput.readOnly = isDisabled;
+            }
+            if (isDisabled) {
+                field._flatpickr.close();
+            }
+        } catch (error) {
+            console.warn('[Documents] Failed to sync date field state:', error);
+        }
+    };
+
     const setFieldsEnabled = (enabled) => {
         const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
         const nextEnabled = allowEdit && enabled;
@@ -63,6 +84,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         state.enabled = nextEnabled;
         form.querySelectorAll('[data-document-field]').forEach((field) => {
             field.disabled = !nextEnabled;
+            syncDateFieldState(field, nextEnabled);
         });
         const lookupBtn = form.querySelector('[data-document-action="lookup-receiver"]');
         if (lookupBtn) lookupBtn.disabled = !nextEnabled;
@@ -183,6 +205,83 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             return field.files?.[0] || null;
         }
         return field.value ?? '';
+    };
+
+    const isSelectValueValid = (field) => {
+        const value = String(field?.value || '').trim();
+        if (!value) {
+            return false;
+        }
+
+        const selectedOption = field?.options?.[field.selectedIndex];
+        if (!selectedOption) {
+            return false;
+        }
+
+        const optionText = String(selectedOption.text || '').trim().toLowerCase();
+        const placeholderPatterns = ['select', 'choose', 'pick', 'option', '---', '...'];
+        return !placeholderPatterns.some((pattern) => optionText.includes(pattern));
+    };
+
+    const focusField = (field) => {
+        if (!field) {
+            return;
+        }
+
+        if (field._flatpickr?.altInput) {
+            field._flatpickr.altInput.focus();
+            return;
+        }
+
+        field.focus();
+    };
+
+    const validateRequiredFields = (mode) => {
+        const requiredFields = [
+            { key: 'DocumentID', label: 'Document ID' },
+            { key: 'DocumentTypeID', label: 'Document Type' },
+            { key: 'LocationID', label: 'Location' },
+            { key: 'ReceivedBy', label: 'Received By' },
+            { key: 'ReceivedDate', label: 'Received Date' }
+        ];
+
+        const missingFields = [];
+        const invalidElements = [];
+
+        requiredFields.forEach(({ key, label }) => {
+            const field = form.querySelector(`[data-document-field="${key}"]`);
+            if (!field) {
+                return;
+            }
+
+            const tagName = String(field.tagName || '').toLowerCase();
+            const value = String(field.value || '').trim();
+            const isValid = tagName === 'select' ? isSelectValueValid(field) : value.length > 0;
+
+            if (!isValid) {
+                missingFields.push(label);
+                invalidElements.push(field);
+            }
+        });
+
+        if (mode === 'add') {
+            const fileField = form.querySelector('[data-document-field="Image"]');
+            const hasFile = Boolean(fileField?.files?.length);
+            if (!hasFile) {
+                missingFields.push('Document File');
+                if (fileField) {
+                    invalidElements.push(fileField);
+                }
+            }
+        }
+
+        if (missingFields.length > 0) {
+            window.ClientMaintenanceCore.showToast(`Please fill in required fields: ${missingFields.join(', ')}`, 'warning');
+            focusField(invalidElements[0]);
+            return false;
+        }
+
+        return true;
     };
 
     const buildPayload = () => {
@@ -439,7 +538,6 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 setMode('delete');
             }
 
-            const request = buildPayload();
             const service = window.ClientMaintenanceDocumentsService;
             const mode = state.mode === 'view'
                 ? (state.editing ? 'edit' : 'add')
@@ -449,6 +547,12 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 window.ClientMaintenanceCore.showToast('Select a document first.', 'warning');
                 return;
             }
+
+            if ((mode === 'add' || mode === 'edit') && !validateRequiredFields(mode)) {
+                return;
+            }
+
+            const request = buildPayload();
 
             const handler = mode === 'delete'
                 ? service.delete

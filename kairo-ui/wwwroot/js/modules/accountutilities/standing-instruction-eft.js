@@ -17,11 +17,11 @@ window.SIEFTModule = (function () {
     };
 
     const API = {
-        GET:    '/AccountUtilities/api/get-si-eft',
-        CREATE: '/AccountUtilities/api/create-si-eft',
-        UPDATE: '/AccountUtilities/api/update-si-eft',
-        DELETE: '/AccountUtilities/api/delete-si-eft',
-        STOP:   '/AccountUtilities/api/stop-si-eft'
+        GET:    'AccountUtilities/api/get-si-eft',
+        CREATE: 'AccountUtilities/api/create-si-eft',
+        UPDATE: 'AccountUtilities/api/update-si-eft',
+        DELETE: 'AccountUtilities/api/delete-si-eft',
+        STOP:   'AccountUtilities/api/stop-si-eft'
     };
 
     /* ====================================================================
@@ -37,6 +37,7 @@ window.SIEFTModule = (function () {
         initSearchModals();
         loadDropdowns();
         setMode('VIEW');
+        loadData();
     }
 
     function getContext() {
@@ -111,30 +112,110 @@ window.SIEFTModule = (function () {
        DROPDOWN LOADING
        ==================================================================== */
     async function loadDropdowns() {
+        console.log('[SI-EFT] Loading dropdowns...');
         try {
-            const [freqOpts, amountInOpts] = await Promise.all([
+            const [freqOpts, amountInOpts, chargeRecOpts] = await Promise.all([
                 fetchDropdownOptions('TrfFrequencyID').catch(() => []),
-                fetchDropdownOptions('ChargingCurrencyID', 'ChargingCurrencyID').catch(() => [])
+                fetchDropdownOptions('ChargingCurrencyID', 'ChargingCurrencyID').catch(() => []),
+                fetchDropdownOptions('SIChargeTypeID').catch(() => [])
             ]);
+
+            console.log('[SI-EFT] Dropdown raw results:', {
+                transferFrequency: freqOpts,
+                amountIn: amountInOpts,
+                chargeRecovery: chargeRecOpts
+            });
 
             populateSelect('ddl_transferFrequency', freqOpts, '--Select--');
             populateSelect('ddl_amountIn', amountInOpts, '--Select--');
+            populateSelect('ddl_chargeRecovery', chargeRecOpts, '--Select--');
 
-            console.log('[SI-EFT] Dropdowns loaded:', {
+            // Load SI Type combo via MVC controller endpoint (converted from legacy p_getsitYPEcombo)
+            await loadSITypeCombo();
+
+            console.log('[SI-EFT] All dropdowns loaded:', {
                 transferFrequency: freqOpts.length,
-                amountIn: amountInOpts.length
+                amountIn: amountInOpts.length,
+                chargeRecovery: chargeRecOpts.length,
+                siType: document.getElementById('ddl_siType')?.options?.length - 1 || 0
             });
         } catch (err) {
             console.error('[SI-EFT] Failed to load dropdowns:', err);
         }
     }
 
+    /**
+     * Fetches SI Type combo options via MVC controller endpoint.
+     * Converted from legacy StandingInstructionEftService.getSITypeCombo()
+     * which called dbo.p_getsitYPEcombo via CoreApi.post to /api/OldAPI.
+     * Now routed through: JS → AppCore.invokeControllerAsync → AccountUtilities/api/get-si-type-combo → OldApiService → p_GetSITypeCombo
+     */
+    async function loadSITypeCombo() {
+        console.log('[SI-EFT] Fetching SI Type combo options...');
+        try {
+            const payload = {
+                BankID: state.branchId || '',
+                ModuleID: 1906
+            };
+            console.log('[SI-EFT] SI Type combo request payload:', payload);
+
+            const response = await AppCore.invokeControllerAsync('AccountUtilities/api/get-si-type-combo', payload);
+            console.log('[SI-EFT] SI Type combo raw response:', response);
+
+            if (response && response.success && response.data) {
+                const data = response.data;
+                console.log('[SI-EFT] SI Type combo data:', data);
+
+                // Parse the response — look for Details array structures
+                let rows = [];
+                if (data.Details) {
+                    const details = data.Details;
+                    if (details.Details01 && Array.isArray(details.Details01)) {
+                        rows = details.Details01;
+                    } else if (details.Details02 && Array.isArray(details.Details02)) {
+                        rows = details.Details02;
+                    } else if (Array.isArray(details)) {
+                        rows = details;
+                    }
+                } else if (Array.isArray(data)) {
+                    rows = data;
+                }
+                console.log('[SI-EFT] SI Type combo parsed rows:', rows);
+
+                // Map rows to { value, label } for populateSelect
+                const siTypeOpts = rows
+                    .map(row => ({
+                        value: row.SITypeID || row.SubCodeID || row.ID || '',
+                        label: row.SITypeDescription || row.Description || row.CodeDescription || row.Name || ''
+                    }))
+                    .filter(opt => opt.value);
+
+                console.log('[SI-EFT] SI Type options mapped:', siTypeOpts);
+
+                // Preserve any current selection before repopulating
+                const currentVal = document.getElementById('ddl_siType')?.value || '';
+                populateSelect('ddl_siType', siTypeOpts, '--Select--');
+                if (currentVal) {
+                    document.getElementById('ddl_siType').value = currentVal;
+                }
+
+                console.log('[SI-EFT] SI Type dropdown populated with', siTypeOpts.length, 'options');
+            } else {
+                console.warn('[SI-EFT] SI Type combo response empty or failed:', response);
+            }
+        } catch (err) {
+            console.error('[SI-EFT] Failed to load SI Type combo:', err);
+        }
+    }
+
     async function fetchDropdownOptions(codeId, valueField) {
         let url = `/AccountUtilities/get-dropdown-options?codeId=${encodeURIComponent(codeId)}`;
         if (valueField) url += `&valueField=${encodeURIComponent(valueField)}`;
+        console.log('[SI-EFT] Fetching dropdown options:', { codeId, valueField, url });
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const result = await response.json();
+        console.log('[SI-EFT] Dropdown response for', codeId, ':', result);
         if (!result.success) throw new Error(result.message || 'Failed to load options');
         return result.data || [];
     }
@@ -382,17 +463,17 @@ window.SIEFTModule = (function () {
                 OperatorID: state.operatorId
             };
 
-            const result = await apiPost(API.GET, payload);
-            console.log('[SI-EFT] Load response:', result);
+            const res = await AppCore.invokeControllerAsync(API.GET, payload);
+            console.log('[SI-EFT] Load response:', res);
 
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data;
+            if (res && res.Success && (res.Data || res.Details)) {
+                const data = res.Data || res.Details;
                 state.currentRecord = Array.isArray(data) ? data[0] : data;
                 populateForm(state.currentRecord);
                 snapshotForm();
                 showSuccess('Data loaded successfully');
             } else {
-                showMessage(result?.ResponseMessage || 'No record found', 'info');
+                showMessage(res?.ErrorMessage || 'No record found', 'info');
             }
         } catch (error) {
             console.error('[SI-EFT] Load error:', error);
@@ -413,15 +494,15 @@ window.SIEFTModule = (function () {
             formData.OperatorID = state.operatorId;
 
             const endpoint = state.currentMode === 'ADD' ? API.CREATE : API.UPDATE;
-            const result = await apiPost(endpoint, formData);
+            const res = await AppCore.invokeControllerAsync(endpoint, formData);
 
-            if (isSuccess(result)) {
+            if (res && res.Success) {
                 state.currentRecord = formData;
                 snapshotForm();
-                showSuccess(result?.ResponseMessage || 'Record saved successfully');
+                showSuccess(res?.ErrorMessage || 'Record saved successfully');
                 setMode('VIEW');
             } else {
-                showError(result?.ResponseMessage || 'Failed to save record');
+                showError(res?.ErrorMessage || 'Failed to save record');
             }
         } catch (error) {
             console.error('[SI-EFT] Save error:', error);
@@ -436,35 +517,42 @@ window.SIEFTModule = (function () {
             showMessage('No record to delete', 'warning');
             return;
         }
-        if (!confirm('Are you sure you want to delete this standing instruction?')) return;
 
-        console.log('[SI-EFT] Deleting record...');
-        showLoading(true);
+        AppCore.showConfirmation({
+            title: 'Confirm Delete',
+            message: 'Are you sure you want to delete this standing instruction?',
+            confirmButtonText: 'Delete',
+            confirmButtonClass: 'btn-danger',
+            onConfirm: async () => {
+                console.log('[SI-EFT] Deleting record...');
+                showLoading(true);
 
-        try {
-            const payload = {
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                StandingInstructionID: state.currentRecord.StandingInstructionID
-            };
+                try {
+                    const payload = {
+                        AccountID: state.accountId,
+                        OurBranchID: state.branchId,
+                        OperatorID: state.operatorId,
+                        StandingInstructionID: state.currentRecord.StandingInstructionID
+                    };
 
-            const result = await apiPost(API.DELETE, payload);
+                    const res = await AppCore.invokeControllerAsync(API.DELETE, payload);
 
-            if (isSuccess(result)) {
-                showSuccess(result?.ResponseMessage || 'Record deleted');
-                clearForm();
-                state.currentRecord = null;
-                setMode('VIEW');
-            } else {
-                showError(result?.ResponseMessage || 'Failed to delete record');
+                    if (res && res.Success) {
+                        showSuccess(res?.ErrorMessage || 'Record deleted');
+                        clearForm();
+                        state.currentRecord = null;
+                        setMode('VIEW');
+                    } else {
+                        showError(res?.ErrorMessage || 'Failed to delete record');
+                    }
+                } catch (error) {
+                    console.error('[SI-EFT] Delete error:', error);
+                    showError('Failed to delete: ' + error.message);
+                } finally {
+                    showLoading(false);
+                }
             }
-        } catch (error) {
-            console.error('[SI-EFT] Delete error:', error);
-            showError('Failed to delete: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
+        });
     }
 
     async function stopInstruction() {
@@ -472,35 +560,42 @@ window.SIEFTModule = (function () {
             showMessage('No record to stop', 'warning');
             return;
         }
-        if (!confirm('Are you sure you want to stop this standing instruction?')) return;
 
-        console.log('[SI-EFT] Stopping instruction...');
-        showLoading(true);
+        AppCore.showConfirmation({
+            title: 'Confirm Stop',
+            message: 'Are you sure you want to stop this standing instruction?',
+            confirmButtonText: 'Stop',
+            confirmButtonClass: 'btn-warning',
+            onConfirm: async () => {
+                console.log('[SI-EFT] Stopping instruction...');
+                showLoading(true);
 
-        try {
-            const payload = {
-                AccountID: state.accountId,
-                OurBranchID: state.branchId,
-                OperatorID: state.operatorId,
-                StandingInstructionID: state.currentRecord.StandingInstructionID
-            };
+                try {
+                    const payload = {
+                        AccountID: state.accountId,
+                        OurBranchID: state.branchId,
+                        OperatorID: state.operatorId,
+                        StandingInstructionID: state.currentRecord.StandingInstructionID
+                    };
 
-            const result = await apiPost(API.STOP, payload);
+                    const res = await AppCore.invokeControllerAsync(API.STOP, payload);
 
-            if (isSuccess(result)) {
-                const statusEl = document.getElementById('spn_standingInstructionStatus');
-                if (statusEl) statusEl.textContent = 'Stopped';
-                showSuccess(result?.ResponseMessage || 'Standing instruction stopped');
-                await loadData();
-            } else {
-                showError(result?.ResponseMessage || 'Failed to stop instruction');
+                    if (res && res.Success) {
+                        const statusEl = document.getElementById('spn_standingInstructionStatus');
+                        if (statusEl) statusEl.textContent = 'Stopped';
+                        showSuccess(res?.ErrorMessage || 'Standing instruction stopped');
+                        await loadData();
+                    } else {
+                        showError(res?.ErrorMessage || 'Failed to stop instruction');
+                    }
+                } catch (error) {
+                    console.error('[SI-EFT] Stop error:', error);
+                    showError('Failed to stop: ' + error.message);
+                } finally {
+                    showLoading(false);
+                }
             }
-        } catch (error) {
-            console.error('[SI-EFT] Stop error:', error);
-            showError('Failed to stop: ' + error.message);
-        } finally {
-            showLoading(false);
-        }
+        });
     }
 
     async function navigateRecord(direction) {
@@ -517,10 +612,10 @@ window.SIEFTModule = (function () {
                 DirectionType: direction > 0 ? 'NEXT' : 'PREV'
             };
 
-            const result = await apiPost(API.GET, payload);
+            const res = await AppCore.invokeControllerAsync(API.GET, payload);
 
-            if (isSuccess(result)) {
-                const data = result?.Details || result?.Data || result?.data;
+            if (res && res.Success && (res.Data || res.Details)) {
+                const data = res.Data || res.Details;
                 state.currentRecord = Array.isArray(data) ? data[0] : data;
                 populateForm(state.currentRecord);
                 snapshotForm();
@@ -626,20 +721,6 @@ window.SIEFTModule = (function () {
     /* ====================================================================
        UTILITIES
        ==================================================================== */
-    async function apiPost(url, payload) {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        return response.json();
-    }
-
-    function isSuccess(result) {
-        return result?.ResponseCode === '00' || result?.ResponseCode === 0 ||
-               result?.success === true || result?.Success === true;
-    }
-
     function formatDate(dateString) {
         if (!dateString || dateString === '-') return '-';
         try {

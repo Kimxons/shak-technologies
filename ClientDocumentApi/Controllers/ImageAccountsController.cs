@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Models;
 using ClientDocumentApi.Services;
@@ -20,7 +21,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPost]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> Upload([FromForm] InData<UploadImageAccountRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Upload([FromForm] InDataRequest<UploadImageAccountRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -240,7 +241,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpPut("{imageId:long}")]
-        public async Task<IActionResult> Update(long imageId, [FromBody] InData<UpdateImageAccountRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(long imageId, [FromBody] InDataRequest<UpdateImageAccountRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -287,7 +288,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPut("{imageId:long}/replace")]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> ReplaceImage(long imageId, [FromForm] InData<ReplaceImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ReplaceImage(long imageId, [FromForm] InDataRequest<ReplaceImageRequest> request, CancellationToken cancellationToken)
         {
             if (request.RequestData?.File == null || request.RequestData.File.Length == 0)
             {
