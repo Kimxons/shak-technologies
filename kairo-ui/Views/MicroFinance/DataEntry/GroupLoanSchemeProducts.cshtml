@@ -77,24 +77,22 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="label-blue">Created By</label>
-                                <input type="text" class="bs-input-text form-control" id="ClpCreatedBy" readonly />
+                        <div class="audit-section">
+                            <div class="audit-item">
+                                <label>Created By</label>
+                                <span class="audit-value" id="ClpCreatedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label class="label-blue">Supervised By</label>
-                                <input type="text" class="bs-input-text form-control" id="ClpSupervisedBy" readonly />
+                            <div class="audit-item">
+                                <label>Created On</label>
+                                <span class="audit-value" id="ClpCreatedOn">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="label-blue">Created On</label>
-                                <input type="text" class="bs-input-text form-control" id="ClpCreatedOn" readonly />
+                            <div class="audit-item">
+                                <label>Supervised By</label>
+                                <span class="audit-value" id="ClpSupervisedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label class="label-blue">Supervised On</label>
-                                <input type="text" class="bs-input-text form-control" id="ClpSupervisedOn" readonly />
+                            <div class="audit-item">
+                                <label>Supervised On</label>
+                                <span class="audit-value" id="ClpSupervisedOn">-</span>
                             </div>
                         </div>
                     </div>
@@ -106,16 +104,16 @@
         <!-- Action Panel -->
         <div class="action-panel" aria-label="Form actions">
             <div class="action-buttons">
-                <button type="button" class="btn-action" id="btnEdit" data-clp-action="edit" title="Edit">
+                <button type="button" class="btn-action btn-edit" id="btnEdit" data-clp-action="edit" title="Edit">
                     <i class="bi bi-pencil-square me-1"></i>Edit
                 </button>
-                <button type="button" class="btn-action" id="btnSave" data-clp-action="save" title="Save" disabled>
+                <button type="button" class="btn-action btn-save" id="btnSave" data-clp-action="save" title="Save" disabled>
                     <i class="bi bi-check-lg me-1"></i>Save
                 </button>
                 <button type="button" class="btn-action btn-cancel" id="btnCancel" data-clp-action="cancel" title="Cancel">
                     <i class="bi bi-x-circle me-1"></i>Cancel
                 </button>
-                <button type="button" class="btn-action" data-window-action="close" title="Close">
+                <button type="button" class="btn-action btn-cancel" data-window-action="close" title="Close">
                     <i class="bi bi-box-arrow-right me-1"></i>Close
                 </button>
             </div>
@@ -124,8 +122,5 @@
 </div>
 
 @section Scripts {
-    <script src="/js/environment.js"></script>
-    <script src="/js/services/shared/coreApi.js"></script>
-    <script src="/js/services/shared/serviceLoader.js"></script>
     <script src="/js/modules/microfinance/group-loan-scheme-products.js"></script>
 }

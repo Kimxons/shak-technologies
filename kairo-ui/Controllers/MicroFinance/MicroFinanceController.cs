@@ -106,10 +106,22 @@ namespace kairo_ui.Controllers.MicroFinance
         }
 
         [Route("DataEntry/CenterLoanMenu")]
-        public IActionResult CenterLoanMenu(string? schemeId = null, string? loanProductId = null)
+        public async Task<IActionResult> CenterLoanMenu(string? schemeId = null, string? loanProductId = null)
         {
             if (!_authService.IsAuthenticated())
                 return RedirectToAction("Index", "Login");
+
+            var systemCodes = await _apiCachedService.GetMultipleSystemCodeOptionsAsync(new[]
+            {
+                "SavingPaymentTypeID",
+                "SavingsTypeID"
+            });
+
+            systemCodes.TryGetValue("SavingPaymentTypeID", out var slRecoveryTypeOptions);
+            ViewData["SLRecoveryTypeOptions"] = slRecoveryTypeOptions ?? new List<SystemCodeDetail>();
+
+            systemCodes.TryGetValue("SavingsTypeID", out var savingsCollectionTypeOptions);
+            ViewData["SavingsCollectionTypeOptions"] = savingsCollectionTypeOptions ?? new List<SystemCodeDetail>();
 
             ViewData["SchemeId"] = schemeId ?? string.Empty;
             ViewData["LoanProductId"] = loanProductId ?? string.Empty;
@@ -253,12 +265,16 @@ namespace kairo_ui.Controllers.MicroFinance
 
                 var systemCodes = await _apiCachedService.GetMultipleSystemCodeOptionsAsync(new[]
                 {
+                    "LoanCycleTypeID",
                     "SavingPaymentTypeID",
                     "SavingsTypeID",
                     "PrimaryCollateralID",
                     "SecondaryCollateralID",
                     "AdditionalCollateralID"
                 });
+
+                systemCodes.TryGetValue("LoanCycleTypeID", out var loanCycleTypeOptions);
+                ViewData["LoanCycleTypeOptions"] = loanCycleTypeOptions ?? new List<SystemCodeDetail>();
 
                 systemCodes.TryGetValue("SavingPaymentTypeID", out var slRecoveryTypeOptions);
                 ViewData["SLRecoveryTypeOptions"] = slRecoveryTypeOptions ?? new List<SystemCodeDetail>();

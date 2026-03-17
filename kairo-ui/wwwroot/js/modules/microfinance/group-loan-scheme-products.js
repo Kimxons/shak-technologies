@@ -61,14 +61,35 @@
     }
 
     // =========================================================================
-    // Environment
+    // Context Helper (Client360 pattern: AuthService → sessionStorage → Environment fallback)
     // =========================================================================
-    function getEnv() {
-        const e = window.Environment || window.AppEnvironment || {};
+    function getContext() {
+        const session = window.AuthService?.getSession?.() || {};
         return {
-            bankID:     e.bankID     || e.bankId     || sessionStorage.getItem('BankID')     || '00',
-            ourBranchID: e.branchID  || e.branchId   || sessionStorage.getItem('BranchID')   || '',
-            operatorID: e.operatorID || e.operatorId || sessionStorage.getItem('OperatorID') || 'CSADM'
+            OperatorID:
+                session.operatorID ||
+                session.operatorId ||
+                session.OperatorID ||
+                window.sessionStorage?.getItem?.('operatorID') ||
+                window.Environment?.OperatorID ||
+                'web_portal',
+            OurBranchID:
+                session.branchID ||
+                session.branchId ||
+                session.OurBranchID ||
+                window.sessionStorage?.getItem?.('branchID') ||
+                window.Environment?.OurBranchID ||
+                '',
+            BankID:
+                session.bankID ||
+                session.bankId ||
+                session.BankID ||
+                session.BankId ||
+                window.sessionStorage?.getItem?.('BankID') ||
+                window.localStorage?.getItem?.('BankID') ||
+                window.Environment?.BankID ||
+                window.Environment?.bankID ||
+                '00'
         };
     }
 
@@ -113,8 +134,8 @@
             return;
         }
 
-        const { bankID, operatorID } = getEnv();
-        const requestData = { BankID: bankID, LoanSchemeID: parentSchemeId, OperatorID: operatorID };
+        const { BankID, OperatorID } = getContext();
+        const requestData = { BankID: BankID, LoanSchemeID: parentSchemeId, OperatorID: OperatorID };
 
         try {
             showInfo('Loading products...');
@@ -236,7 +257,7 @@
         if (!isEditMode) { showWarning('Please enter Edit mode first.'); return; }
         if (!parentSchemeId) { showError('No scheme ID available.'); return; }
 
-        const { bankID, operatorID } = getEnv();
+        const { BankID, OperatorID } = getContext();
         const allProducts = [];
 
         document.querySelectorAll('#productsTableBody tr').forEach((row, index) => {
@@ -265,11 +286,11 @@
 
         const now = new Date().toISOString().slice(0, 19);
         const requestData = {
-            BankID:        bankID,
+            BankID:        BankID,
             LoanSchemeID:  parentSchemeId,
-            CreatedBy:     operatorID,
+            CreatedBy:     OperatorID,
             CreatedOn:     now,
-            SupervisedBy:  operatorID,
+            SupervisedBy:  OperatorID,
             DetailRecord:  buildXml(allProducts)
         };
 
@@ -360,10 +381,15 @@
                 return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             } catch { return String(v); }
         };
-        setVal('ClpCreatedBy',    data.CreatedBy    || '');
-        setVal('ClpCreatedOn',    fmt(data.CreatedOn));
-        setVal('ClpSupervisedBy', data.SupervisedBy || '');
-        setVal('ClpSupervisedOn', fmt(data.SupervisedOn));
+        setAuditVal('ClpCreatedBy',    data.CreatedBy    || '');
+        setAuditVal('ClpCreatedOn',    fmt(data.CreatedOn));
+        setAuditVal('ClpSupervisedBy', data.SupervisedBy || '');
+        setAuditVal('ClpSupervisedOn', fmt(data.SupervisedOn));
+    }
+
+    function setAuditVal(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || '-';
     }
 
     // =========================================================================

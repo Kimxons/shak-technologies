@@ -1,8 +1,11 @@
+@using CBS.Entities.SystemCore
 @{
     ViewData["Title"] = "Center Loan Menu";
     Layout = "_ApplicationLayout";
     var schemeId = ViewData["SchemeId"]?.ToString() ?? string.Empty;
     var loanProductId = ViewData["LoanProductId"]?.ToString() ?? string.Empty;
+    var slRecoveryTypeOptions = ViewData["SLRecoveryTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var savingsCollectionTypeOptions = ViewData["SavingsCollectionTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
 }
 
 <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
@@ -116,8 +119,10 @@
                                 <label for="MenuSLRecoveryType">S/L Recovery Type</label>
                                 <select id="MenuSLRecoveryType" class="bs-select form-select">
                                     <option value="" selected>--Select--</option>
-                                    <option value="installment">Installment</option>
-                                    <option value="lumpsum">Lump Sum</option>
+                                    @foreach (var option in slRecoveryTypeOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                         </div>
@@ -134,8 +139,10 @@
                                 <label for="MenuSavingsCollectionType">Savings Collection Type</label>
                                 <select id="MenuSavingsCollectionType" class="bs-select form-select">
                                     <option value="" selected>--Select--</option>
-                                    <option value="fixed">Fixed</option>
-                                    <option value="percentage">Percentage</option>
+                                    @foreach (var option in savingsCollectionTypeOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col-6">
@@ -155,61 +162,50 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="MenuLoanProductId">Loan Product ID</label>
-                                <input id="MenuLoanProductId" type="text" class="bs-input-text form-control" readonly />
+                        <div class="audit-section">
+                            <div class="audit-item">
+                                <label>Loan Product ID</label>
+                                <span class="audit-value" id="MenuLoanProductId">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="MenuCurrencyId">Currency ID</label>
-                                <input id="MenuCurrencyId" type="text" class="bs-input-text form-control" readonly />
+                            <div class="audit-item">
+                                <label>Currency ID</label>
+                                <span class="audit-value" id="MenuCurrencyId">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="MenuTermExcludesGracePeriod">Term Excludes Grace Period</label>
-                                <input id="MenuTermExcludesGracePeriod" type="text" class="bs-input-text form-control" readonly />
+                            <div class="audit-item">
+                                <label>Term Excludes Grace Period</label>
+                                <span class="audit-value" id="MenuTermExcludesGracePeriod">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="MenuLoanPeriod">Loan Period</label>
-                                <input id="MenuLoanPeriod" type="text" class="bs-input-text form-control" readonly />
+                            <div class="audit-item">
+                                <label>Loan Period</label>
+                                <span class="audit-value" id="MenuLoanPeriod">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="MenuCalculationMethod">Calculation Method</label>
-                                <input id="MenuCalculationMethod" type="text" class="bs-input-text form-control" readonly />
+                            <div class="audit-item">
+                                <label>Calculation Method</label>
+                                <span class="audit-value" id="MenuCalculationMethod">-</span>
                             </div>
-                            <div class="col-6"></div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="MenuCreatedBy">Created By</label>
-                                <input type="text" id="MenuCreatedBy" class="bs-input-text form-control" readonly>
+                            <div class="audit-item">
+                                <label>Created By</label>
+                                <span class="audit-value" id="MenuCreatedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="MenuCreatedOn">Created On</label>
-                                <input type="text" id="MenuCreatedOn" class="bs-input-text form-control" readonly>
+                            <div class="audit-item">
+                                <label>Created On</label>
+                                <span class="audit-value" id="MenuCreatedOn">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="MenuModifiedBy">Modified By</label>
-                                <input type="text" id="MenuModifiedBy" class="bs-input-text form-control" readonly>
+                            <div class="audit-item">
+                                <label>Modified By</label>
+                                <span class="audit-value" id="MenuModifiedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="MenuModifiedOn">Modified On</label>
-                                <input type="text" id="MenuModifiedOn" class="bs-input-text form-control" readonly>
+                            <div class="audit-item">
+                                <label>Modified On</label>
+                                <span class="audit-value" id="MenuModifiedOn">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="MenuSupervisedBy">Supervised By</label>
-                                <input type="text" id="MenuSupervisedBy" class="bs-input-text form-control" readonly>
+                            <div class="audit-item">
+                                <label>Supervised By</label>
+                                <span class="audit-value" id="MenuSupervisedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="MenuSupervisedOn">Supervised On</label>
-                                <input type="text" id="MenuSupervisedOn" class="bs-input-text form-control" readonly>
+                            <div class="audit-item">
+                                <label>Supervised On</label>
+                                <span class="audit-value" id="MenuSupervisedOn">-</span>
                             </div>
                         </div>
                     </div>
@@ -222,10 +218,10 @@
         <div class="action-panel" aria-label="Form actions">
             <div class="action-buttons">
                 <button class="btn-action btn-view" type="button" data-mcs-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
-                <button class="btn-action" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                <button class="btn-action" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                <button class="btn-action" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
-                <button class="btn-action" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-add" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action btn-edit" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-delete" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action btn-save" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" data-mcs-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                 <button class="btn-action" type="button" data-window-action="close" title="Close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
             </div>
@@ -248,9 +244,44 @@
     </main>
 </div>
 
+@section Styles {
+    <style>
+        /* Loan Cycle Details – inputs fill their col-4 width */
+        [data-section="loan-cycle-details"] .kairo-control {
+            display: flex !important;
+            grid-template-columns: none !important;
+        }
+
+        [data-section="loan-cycle-details"] .kairo-control .kairo-control__id {
+            flex: 1 1 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            border-radius: 5px 0 0 5px !important;
+            border-right: none !important;
+        }
+
+        [data-section="loan-cycle-details"] .kairo-control .btn-lookup {
+            flex: 0 0 32px !important;
+            border-radius: 0 5px 5px 0 !important;
+        }
+
+        [data-section="loan-cycle-details"] #EffectiveDate {
+            width: 100% !important;
+        }
+
+        /* Tighter row spacing */
+        .form-card .section-content .row.g-3.mb-3 {
+            margin-bottom: 0.35rem !important;
+        }
+
+        .form-card .section-content .row.g-3 > [class*="col"] {
+            padding-top: 0.15rem !important;
+            padding-bottom: 0.15rem !important;
+        }
+    </style>
+}
+
 @section Scripts {
-    <script src="/js/environment.js"></script>
-    <script src="/js/services/shared/coreApi.js"></script>
-    <script src="/js/services/shared/serviceLoader.js"></script>
     <script src="/js/modules/microfinance/center-loan-menu.js"></script>
 }

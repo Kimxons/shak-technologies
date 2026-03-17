@@ -6,8 +6,9 @@
 (function() {
     'use strict';
 
-    const SEARCH_MODAL_PREFIX = (window.Environment?.searchModalPrefix || 'mfs').toString();
-    const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || window.Environment?.microfinanceModuleId || '5010');
+    const DEFAULT_SEARCH_MODULE_ID = String(
+        window.sessionStorage?.getItem?.('microfinanceModuleId') || '5010'
+    );
 
     function getAppCore() {
         const win = window;
@@ -54,17 +55,36 @@
     let lastFetchedSchemeId = ''; // Track last fetched scheme to avoid duplicate fetches
 
     // =========================================================================
-    // Environment Helper
+    // Context Helper (Client360 pattern: AuthService → sessionStorage → Environment fallback)
     // =========================================================================
-    function getEnv() {
-        const e = window.Environment || {};
-        const bankID = e.defaultBankId || e.defaultBankID || e.bankID || e.bankId || 
-                       sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
-        const ourBranchID = e.branchID || e.branchId || 
-                            sessionStorage.getItem('BranchID') || localStorage.getItem('BranchID') || '0325';
-        const operatorID = e.operatorID || e.operatorId || 
-                           sessionStorage.getItem('OperatorID') || localStorage.getItem('OperatorID') || 'CSADM';
-        return { bankID, ourBranchID, operatorID };
+    function getContext() {
+        const session = window.AuthService?.getSession?.() || {};
+        return {
+            OperatorID:
+                session.operatorID ||
+                session.operatorId ||
+                session.OperatorID ||
+                window.sessionStorage?.getItem?.('operatorID') ||
+                window.Environment?.OperatorID ||
+                'web_portal',
+            OurBranchID:
+                session.branchID ||
+                session.branchId ||
+                session.OurBranchID ||
+                window.sessionStorage?.getItem?.('branchID') ||
+                window.Environment?.OurBranchID ||
+                '',
+            BankID:
+                session.bankID ||
+                session.bankId ||
+                session.BankID ||
+                session.BankId ||
+                window.sessionStorage?.getItem?.('BankID') ||
+                window.localStorage?.getItem?.('BankID') ||
+                window.Environment?.BankID ||
+                window.Environment?.bankID ||
+                '00'
+        };
     }
 
     // =========================================================================
@@ -145,8 +165,8 @@
             title: 'Loan Scheme Search',
             targetId: 'SchemeId',
             targetName: 'Description',
-            tableID: 'GroupDefaultSchemeID',
-            moduleIDOverride: 5060,
+            tableID: 'LoanSchemeID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
             searchFields: [
                 { name: 'schemeId', label: 'Scheme ID', column: 'LoanSchemeID' },
                 { name: 'schemeName', label: 'Scheme Name', column: 'Description' }
@@ -157,14 +177,9 @@
                 { key: 'GroupProductID', label: 'Group Product ID' }
             ],
             getAdvFilterString: () => {
-                const groupProductId = document.getElementById('LoanProductId')?.value?.trim() || '';
-                if (groupProductId != '') {
-                    return `GroupProductID ='${groupProductId.replace(/'/g, "''")}' AND SchemeTypeID = 'P'`;
-                }
-                else {
-                    return `SchemeTypeID = 'P'`;
- }
-                
+                const { BankID } = getContext();
+                const safeBankId = String(BankID || '').replace(/'/g, "''");
+                return `BankID ='${safeBankId}'`;
             }
         },
         'loan-product': {
@@ -174,8 +189,8 @@
             tableID: 'schemeproductid',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
             getAdvFilterString: () => {
-                const { bankID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                const { BankID } = getContext();
+                const safeBankId = String(BankID || '').replace(/'/g, "''");
                 return `BankID ='${safeBankId}' AND ProductTypeID in ('LN')`;
             },
             searchFields: [
@@ -195,8 +210,8 @@
             tableID: 'WFAdvTypeID',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
             getAdvFilterString: () => {
-                const { bankID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                const { BankID } = getContext();
+                const safeBankId = String(BankID || '').replace(/'/g, "''");
                 return `BankID='${safeBankId}' AND ModuleID='LN'`;
             },
             searchFields: [
@@ -279,8 +294,8 @@
     };
 
     function buildDepositProductAdvFilter(collateralType) {
-        const { bankID } = getEnv();
-        const safeBankId = String(bankID || '').replace(/'/g, "''");
+        const { BankID } = getContext();
+        const safeBankId = String(BankID || '').replace(/'/g, "''");
         let collateralValue = '';
 
         if (collateralType === 'primary') {
@@ -631,7 +646,7 @@
             return;
         }
 
-        const { bankID } = getEnv();
+        const { BankID } = getContext();
         const schemeId = currentScheme.SchemeId || currentScheme.LoanSchemeID || '';
         const newRecord = currentScheme.UpdateCount || currentScheme.NewRecord || 0;
 
@@ -641,7 +656,7 @@
         }
 
         const requestData = {
-            BankID: bankID,
+            BankID: BankID,
             LoanSchemeID: schemeId,
             NewRecord: newRecord
         };
@@ -694,12 +709,12 @@
         const formData = collectFormData();
         
         // Build request data for API
-        const { bankID, operatorID } = getEnv();
+        const { BankID, OperatorID } = getContext();
         // Format date for SQL smalldatetime: YYYY-MM-DDTHH:mm:ss
         const now = new Date().toISOString().slice(0, 19);
         
         const requestData = {
-            BankID: bankID,
+            BankID: BankID,
             LoanSchemeID: formData.SchemeId,
             Description: formData.Description,
             WFAdvTypeID: formData.AdvanceTypeId || '',
@@ -721,9 +736,9 @@
             SLRecoveryType: formData.SLRecoveryType || '',
             CollectSavingWithInst: formData.CollectSavingWithInstallment ? 1 : 0,
             SavingsTypeID: formData.SavingsCollectionType || '',
-            CreatedBy: isAddMode ? operatorID : (currentScheme?.CreatedBy || operatorID),
+            CreatedBy: isAddMode ? OperatorID : (currentScheme?.CreatedBy || OperatorID),
             CreatedOn: isAddMode ? now : (formatDateForApi(currentScheme?.CreatedOn) || now),
-            ModifiedBy: operatorID,
+            ModifiedBy: OperatorID,
             ModifiedOn: now,
             SupervisedBy: '',
             GroupCollectionProductID: formData.CenterCollectionProductId || '',
@@ -1314,13 +1329,13 @@
     }
 
     async function loadSchemeData(schemeId, direction = 0) {
-        const { bankID, ourBranchID, operatorID } = getEnv();
+        const { BankID, OurBranchID, OperatorID } = getContext();
         
         const requestData = {
-            BankID: bankID,
-            OurBranchID: ourBranchID,
+            BankID: BankID,
+            OurBranchID: OurBranchID,
             LoanSchemeID: schemeId || '',
-            OperatorID: operatorID,
+            OperatorID: OperatorID,
             Direction: direction
         };
 
@@ -1445,13 +1460,13 @@
      * Fetch all loan schemes for navigation (on page load)
      */
     async function fetchAllSchemes() {
-        const { bankID, ourBranchID, operatorID } = getEnv();
+        const { BankID, OurBranchID, OperatorID } = getContext();
         
         const requestData = {
-            BankID: bankID,
-            OurBranchID: ourBranchID,
+            BankID: BankID,
+            OurBranchID: OurBranchID,
             LoanSchemeID: '',  // Empty to get all schemes
-            OperatorID: operatorID,
+            OperatorID: OperatorID,
             Direction: 0       // 0 for all/first
         };
 
@@ -1554,8 +1569,8 @@
     function wireSidebarItems() {
         document.querySelectorAll('.sidebar-item[data-child-form]').forEach(item => {
             item.addEventListener('click', function () {
-                if (!currentScheme) {
-                    showWarning('Please load a record before accessing this feature.');
+                if (!currentScheme && !document.getElementById('SchemeId')?.value?.trim()) {
+                    // showWarning('Please load a reeecord before accessing this feature.');
                     return;
                 }
                 const formName = this.dataset.childForm;
@@ -1622,12 +1637,15 @@
     }
     window.closeChildForm = closeChildForm;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         wireLookupButtons();
         wireActionButtons();
         wireSchemeIdIntegerConstraint();
         wireConditionalFieldHandlers();
         wireSidebarItems();
         setFormMode('default');
+
+        // Load the first scheme so sidebar items work immediately
+        await fetchAllSchemes();
     });
 })();

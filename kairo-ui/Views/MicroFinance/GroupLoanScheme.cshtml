@@ -4,6 +4,7 @@
     Layout = "_ApplicationLayout";
     var slRecoveryTypeOptions = ViewData["SLRecoveryTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
     var savingsCollectionTypeOptions = ViewData["SavingsCollectionTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var loanCycleTypeOptions = ViewData["LoanCycleTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
     var primaryCollateralOptions = ViewData["PrimaryCollateralOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
     var secondaryCollateralOptions = ViewData["SecondaryCollateralOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
     var additionalCollateralOptions = ViewData["AdditionalCollateralOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
@@ -137,8 +138,11 @@
                             <div class="col">
                                 <label>Group Cycle Type ID</label>
                                 <select id="GroupCycleTypeId" class="bs-select" aria-label="Group Cycle Type">
-                                    <option value="I">Individual</option>
-                                    <option value="G">Group</option>
+                                    <option value="" selected>--Select--</option>
+                                    @foreach (var option in loanCycleTypeOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col d-flex align-items-end">
@@ -393,10 +397,10 @@
 
             <div class="action-buttons">
                 <button class="btn-action btn-view" type="button" data-mcs-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
-                <button class="btn-action" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                <button class="btn-action" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                <button class="btn-action" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
-                <button class="btn-action" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-add" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action btn-edit" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-delete" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action btn-save" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" data-mcs-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
             </div>
         </div>
@@ -419,11 +423,5 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="@Url.Content("~/js/app/global-utils.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/environment.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
-
-    <script type="text/javascript" src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
     <script type="text/javascript" src="@Url.Content("~/js/modules/microfinance/center-loan-scheme.js")"></script>
 }
