@@ -1,0 +1,195 @@
+Test Case ID,Test Case Description,Category,Priority,Preconditions,Test Steps,Expected Result,Actual Result,Status,Tested By,Test Date,Remarks
+TC_CS_001,Verify Client Supervision module loads successfully,Functional,P1,User is authenticated and has access to Client Supervision (Module ID 7080),"1. Log in to KAIRO
+2. Navigate to Identities > Client Supervision
+3. Wait for the page to load completely",Page loads without errors. All sections (Client Supervision list and Client Details) are visible. No JavaScript errors in console.,,,Not Executed,,,
+TC_CS_002,Verify initial action button states on load,UI,P1,Client Supervision module is loaded,"1. Observe the action panel buttons on the right rail
+2. Note the state of View / Approve / Reject / Close buttons","View, Approve and Reject buttons are disabled. Close button is enabled. No client is selected.",,,Not Executed,,,
+TC_CS_003,Verify pending supervision table is empty on initial load,UI,P2,Client Supervision module is loaded and no branch filter applied,"1. Observe the supervision list table
+2. Check the record count label","Table shows 'No pending supervisions found' placeholder row. Record count shows '0 records'.",,,Not Executed,,,
+TC_CS_004,Verify dropdown data is populated from server (dropdowns in Client Details),Functional,P1,Client Supervision module is loaded,"1. Once a client is loaded in the detail tabs verify each dropdown
+2. Check Client Type / Title / Gender / Resident / Country / Literacy Level / ID Type / Marital Status / Address Type / Employment Status / Occupation dropdowns","All dropdowns contain options loaded from the server via ViewData. No dropdown shows empty (except the default placeholder option).",,,Not Executed,,,
+TC_CS_005,Verify module ID is correctly set to 7080,Integration,P2,Client Supervision module is loaded,"1. Inspect the hidden field #moduleId in the DOM (browser DevTools)
+2. Confirm its value","Hidden field #moduleId has value '7080'.",,,Not Executed,,,
+TC_CS_006,Verify branch filter button opens the dropdown panel,Functional,P1,Client Supervision module is loaded,"1. Click the Branch Filter button (btn_branchFilter)
+2. Observe the dropdown panel","Branch filter dropdown panel opens showing a list of available branches with checkboxes. 'Select All' checkbox is visible at the top.",,,Not Executed,,,
+TC_CS_007,Verify selecting a single branch in the filter,Functional,P1,Branch filter panel is open and branches are listed,"1. Check a single branch checkbox from the list
+2. Observe the filter button label","The selected branch name/code appears in the branch filter button label text (spn_branchFilterText). Checkbox remains checked.",,,Not Executed,,,
+TC_CS_008,Verify selecting multiple branches in the filter,Functional,P1,Branch filter panel is open,"1. Check two or more branch checkboxes
+2. Observe the filter button label","Filter button label updates to show multiple branches selected (e.g. 'Branch A, Branch B' or count summary).",,,Not Executed,,,
+TC_CS_009,Verify Select All branches checkbox,Functional,P2,Branch filter panel is open with multiple branches available,"1. Click the 'Select All' checkbox (chk_selectAllBranches)
+2. Observe all individual branch checkboxes","All branch checkboxes become checked. 'Select All' checkbox is checked.",,,Not Executed,,,
+TC_CS_010,Verify deselecting all branches via Select All,Functional,P2,All branches are selected in the filter,"1. Click the 'Select All' checkbox again to deselect
+2. Observe all individual branch checkboxes","All branch checkboxes become unchecked. 'Select All' checkbox is unchecked.",,,Not Executed,,,
+TC_CS_011,Verify branch filter panel closes when clicking outside,UI,P3,Branch filter panel is open,"1. Click anywhere outside the branch filter dropdown panel
+2. Observe the panel state","Branch filter panel closes.",,,Not Executed,,,
+TC_CS_012,Verify branch filter is applied when loading pending supervisions,Functional,P1,User has selected at least one branch in the filter,"1. Select a branch from the filter
+2. Click the View button
+3. Observe the supervision list table","API call is made with the selected branch(es) in OurBranchID / BranchList. Table is populated with pending supervisions for those branches.",,,Not Executed,,,
+TC_CS_013,Verify pending supervision list loads correctly with data,Functional,P1,"Branch filter has at least one branch selected, pending supervision records exist in the system","1. Select a valid branch
+2. Click View
+3. Observe the supervision table","Table rows appear with columns: radio button | Client ID | and other supervision columns. Record count label updates. Rows are selectable via radio button.",,,Not Executed,,,
+TC_CS_014,Verify radio button row selection in supervision table,Functional,P1,Pending supervision list has at least one record loaded,"1. Click the radio button in the first row of the table
+2. Observe action button states","Row is selected (radio checked). View / Approve / Reject buttons become enabled.",,,Not Executed,,,
+TC_CS_015,Verify only one row can be selected at a time (radio group),Functional,P2,Pending supervision list has at least two records,"1. Select the first row
+2. Select the second row
+3. Observe both rows","Second row radio is checked. First row radio is unchecked. Only one row is selected at a time.",,,Not Executed,,,
+TC_CS_016,Verify record count label updates after loading,Functional,P2,Branch selected; pending records exist,"1. Select a branch
+2. Click View
+3. Observe the spn_recordCount label","Label shows exact count matching the number of rows in the table e.g. '5 records'.",,,Not Executed,,,
+TC_CS_017,Verify empty state message when no pending supervisions exist,Functional,P2,"Valid branch selected, no pending supervision records for that branch","1. Select a branch with no pending supervisions
+2. Click View","Table shows 'No pending supervisions found' message. Record count shows '0 records'. Action buttons remain disabled.",,,Not Executed,,,
+TC_CS_018,Verify action buttons disable when no row is selected,UI,P2,Supervision table is loaded with records but no row selected,"1. Ensure no radio is checked
+2. Observe View / Approve / Reject button states","View / Approve / Reject buttons are disabled.",,,Not Executed,,,
+TC_CS_019,Verify action buttons enable when a row is selected,UI,P1,Supervision list has at least one record,"1. Click any row radio button
+2. Observe View / Approve / Reject button states","View / Approve / Reject buttons become enabled after a radio is selected.",,,Not Executed,,,
+TC_CS_020,Verify table row click (non-radio area) selects the row,Functional,P3,Supervision list has at least one record,"1. Click anywhere on a table row (not the radio button)
+2. Observe radio state and action buttons","Row radio is checked. Action buttons become enabled.",,,Not Executed,,,
+TC_CS_021,Verify Client ID search field is usable,Functional,P1,Client Supervision module is loaded,"1. Locate the Client ID search input (txt_clientIdSearch)
+2. Type a valid Client ID
+3. Press Enter or click the search button","Search is triggered for the typed Client ID.",,,Not Executed,,,
+TC_CS_022,Verify client search opens lookup/picker for matching pending clients,Functional,P1,At least one pending supervision client exists,"1. Click the search client button (btn_searchClient)
+2. Observe the result","A picker modal / inline results appear showing matching pending supervision clients.",,,Not Executed,,,
+TC_CS_023,Verify searching by partial Client ID returns matching results,Functional,P2,Pending supervision records exist,"1. Type part of a known Client ID in the search field
+2. Trigger search","Results are filtered to show only clients whose IDs contain the typed string.",,,Not Executed,,,
+TC_CS_024,Verify searching for a non-existent Client ID shows empty state,Functional,P2,Module is loaded,"1. Type a Client ID that does not exist in pending supervisions
+2. Trigger search","Empty state or 'No results found' message is shown. No crash.",,,Not Executed,,,
+TC_CS_025,Verify selecting a client from search results loads their details,Functional,P1,Search results are showing at least one client,"1. Click / select a client from the picker results
+2. Observe client details panel","Client details section dv_clientDetailsSection becomes visible. Client ID field (txt_clientId) is populated. Relevant tabs load data.",,,Not Executed,,,
+TC_CS_026,Verify searching with empty input shows appropriate handling,Validation,P3,Module is loaded,"1. Click search button without entering a Client ID
+2. Observe behaviour","Warning message is shown asking user to enter a Client ID, OR all pending clients are opened in picker. No unhandled error.",,,Not Executed,,,
+TC_CS_027,Verify selecting a client from the supervision table also loads client details,Functional,P1,Supervision list has at least one record,"1. Select a row radio button from the supervision table
+2. Click View button
+3. Observe client details section","Client details section is populated with data from that client (Personal / Corporate / Address / Employment tabs).",,,Not Executed,,,
+TC_CS_028,Verify Personal Details tab loads and populates fields for Individual client,Functional,P1,"A pending individual client is selected, View was clicked","1. Select an individual client from the supervision list
+2. Click View
+3. Navigate to Personal Details tab and inspect fields","Client Type, Title, First Name, Middle Name, Last Name, Date of Birth, Gender, Resident, Nationality, Literacy Level fields are populated with the client's data.",,,Not Executed,,,
+TC_CS_029,Verify Corporate Details tab loads and populates fields for Corporate client,Functional,P1,"A pending corporate client is selected, View was clicked","1. Select a corporate client from the supervision list
+2. Click View
+3. Navigate to Corporate Details tab","Corporate-specific fields (Company Name, Constitution, Line of Business, etc.) are populated accordingly.",,,Not Executed,,,
+TC_CS_030,Verify Address Details tab loads and populates correctly,Functional,P1,Client is selected and View clicked,"1. After loading client details click the Address tab
+2. Inspect address fields","Address fields (Address Type, Region, Zone, etc.) are populated from the API response.",,,Not Executed,,,
+TC_CS_031,Verify Employment Details tab loads and populates correctly,Functional,P1,Client is selected and View clicked,"1. After loading client details click the Employment tab
+2. Inspect employment fields","Employment fields (Employment Status, Occupation, Company Type, etc.) are populated.",,,Not Executed,,,
+TC_CS_032,Verify Photo / Signature tab loads images correctly,Functional,P2,Client is selected and View clicked and has photos/signatures on file,"1. Navigate to the Images/Photo-Signature tab
+2. Observe preview and table","Photo preview shows the client's photo. Signature preview shows the client's signature. Photo-signature table (tbl_photoSignatureBody) is populated.",,,Not Executed,,,
+TC_CS_033,Verify client details section shows no-photo placeholder when no image exists,Functional,P3,"Client is selected and View clicked, client has no photo","1. Navigate to Images tab
+2. Observe the photo preview area","A 'No Photo' placeholder text / icon is shown instead of a broken image.",,,Not Executed,,,
+TC_CS_034,Verify Client ID field in details section is read-only/populated from selection,UI,P2,Client details are loaded,"1. Inspect txt_clientId field
+2. Try to edit it","Field displays the loaded Client ID. Field is read-only and cannot be modified.",,,Not Executed,,,
+TC_CS_035,Verify all dropdowns in details tabs are read-only (not editable) in supervision view,UI,P2,Client details are loaded,"1. Try to change any dropdown value in the detail tabs (Client Type / Gender / etc.)
+2. Observe behaviour","Dropdowns are disabled or read-only — supervision is view-only and no editing is permitted.",,,Not Executed,,,
+TC_CS_036,Verify Approve button confirms with a SweetAlert modal,Functional,P1,A client is selected with a row radio and action buttons are enabled,"1. Select a pending client row
+2. Click the Approve button","A SweetAlert confirmation dialog appears with client ID and 'Yes, Approve' / Cancel buttons. No immediate action happens without confirmation.",,,Not Executed,,,
+TC_CS_037,Verify cancelling the Approve confirmation dialog takes no action,Functional,P1,Approve confirmation dialog is open,"1. Click Cancel on the Approve confirmation dialog
+2. Observe the supervision list","Dialog closes. The client remains in the pending list. No approval API call is made. Action buttons remain in their previous state.",,,Not Executed,,,
+TC_CS_038,Verify confirming Approve submits the approval to the backend,Functional,P1,Approve confirmation dialog is open with a valid pending client,"1. Click 'Yes, Approve' on the confirmation dialog
+2. Wait for the operation to complete","API call is made to Identities/ClientSupervision/approve-supervision with correct ClientID, OurBranchID and ApprovedBy. Success message is displayed.",,,Not Executed,,,
+TC_CS_039,Verify approved client is removed from the pending supervision list,Functional,P1,Approval was just confirmed and succeeded,"1. Observe the supervision table after successful approval
+2. Look for the just-approved client","The approved client no longer appears in the supervision list. Record count decrements by one.",,,Not Executed,,,
+TC_CS_040,Verify success message is shown after successful approval,UI,P1,Valid client approval was just completed,"1. Complete an approval
+2. Observe the message panel (dv_messagePanel)","Message panel shows 'Supervision approved successfully!' in green/success style.",,,Not Executed,,,
+TC_CS_041,Verify handling when Approve API call returns an error,Functional,P2,"Approve confirmation confirmed, but backend returns an error response","1. Simulate a backend error (e.g. network error or invalid session)
+2. Confirm approve on a client","Error message is shown in the message panel. The supervision list is NOT refreshed / client is NOT removed. No unhandled crash.",,,Not Executed,,,
+TC_CS_042,Verify Reject button opens the Reject modal,Functional,P1,A client row is selected and Reject button is enabled,"1. Select a pending client row
+2. Click the Reject button (btn_reject)","Reject modal (mdl_supervisionReject) opens. Reject remarks textarea (txa_supervisionRejectRemarks) is empty and focused.",,,Not Executed,,,
+TC_CS_043,Verify Reject modal remarks field is required — empty submission shows validation,Validation,P1,Reject modal is open,"1. Leave the remarks textarea empty
+2. Click Confirm Reject button (btn_confirmSupervisionReject)","Validation feedback is shown on the remarks field (form was-validated class applied). API call is NOT made.",,,Not Executed,,,
+TC_CS_044,Verify Reject modal closes without action when dismissed (X button),Functional,P2,Reject modal is open,"1. Click the Close / X button on the reject modal
+2. Observe the supervision list","Modal closes. No rejection is made. The client remains in the pending list.",,,Not Executed,,,
+TC_CS_045,Verify Reject confirm with valid remarks calls the reject API,Functional,P1,"Reject modal is open, remarks have been entered","1. Type rejection remarks in the textarea
+2. Click Confirm Reject button","API call is made to Identities/ClientSupervision/reject-supervision with ClientID, OurBranchID, Remarks. Success message is shown.",,,Not Executed,,,
+TC_CS_046,Verify rejected client is removed from the pending supervision list,Functional,P1,Rejection was just confirmed and succeeded,"1. Observe the supervision table after successful rejection
+2. Look for the just-rejected client","Rejected client no longer appears in the supervision list. Record count decrements.",,,Not Executed,,,
+TC_CS_047,Verify success message is shown after successful rejection,UI,P1,Rejection just completed successfully,"1. Complete a rejection
+2. Observe the message panel","Message panel shows success text for rejection in the appropriate style.",,,Not Executed,,,
+TC_CS_048,Verify remarks textarea is cleared every time the Reject modal is re-opened,Functional,P2,"Reject modal was previously used and closed, opened again","1. Open reject modal once
+2. Close it without submitting
+3. Open reject modal again
+4. Check the remarks field","Remarks textarea is empty when modal opens. Previous text is cleared.",,,Not Executed,,,
+TC_CS_049,Verify handling when Reject API call returns an error,Functional,P2,"Reject confirmed with remarks, backend returns error","1. Simulate a backend error
+2. Submit rejection","Error message is shown in the message panel. Client remains in the pending list. No crash.",,,Not Executed,,,
+TC_CS_050,Verify Close button clears the client details panel,Functional,P2,"Client details are loaded (client is selected and View was clicked), Close button is visible","1. Click the Close button (btn_close)
+2. Observe the client details section","Client details section clears / hides. No crash. Action buttons may reset.",,,Not Executed,,,
+TC_CS_051,Verify unauthenticated access to Client Supervision redirects to Login,Security,P1,User is NOT logged in OR session has expired,"1. Directly navigate to /Identities/ClientSupervision/Index without a valid session
+2. Observe the page","User is redirected to the Login page. Module content is not visible.",,,Not Executed,,,
+TC_CS_052,Verify XSRF / anti-forgery token is included in POST requests,Security,P2,Module is loaded and a valid client is selected,"1. Open browser DevTools Network tab
+2. Perform an Approve action
+3. Inspect the POST request headers / body","Request includes the XSRF-TOKEN or RequestVerificationToken header / payload. Request is not rejected by the server.",,,Not Executed,,,
+TC_CS_053,Verify message panel shows error on API call failure (network error),Functional,P2,"Module is loaded, network connectivity is disrupted or API endpoint is unreachable","1. Disable network or stop the backend API
+2. Attempt to load pending supervisions (View button)
+3. Observe message panel","An error message is shown in the message panel indicating failure. No unhandled JavaScript exception is thrown.",,,Not Executed,,,
+TC_CS_054,Verify API 500 error from approve endpoint is surfaced to the user,Functional,P2,"Client selected, Approve confirmed, backend returns HTTP 500","1. Confirm approval
+2. Backend returns 500
+3. Observe UI","Error message is shown to the user. Client does NOT disappear from the list. Module remains stable.",,,Not Executed,,,
+TC_CS_055,Verify API 401 Unauthorized response is handled gracefully,Security,P2,"Session expires after page load, Approve is attempted","1. Expire the session
+2. Click Approve and confirm
+3. Observe behaviour","User is either redirected to Login or an authentication error message is shown. No sensitive data is exposed.",,,Not Executed,,,
+TC_CS_056,Verify supervisor cannot approve their own client submission,Integration,P2,"Logged-in user is the same operator who submitted the client record (if business rule applies)","1. Log in as the operator who submitted a client
+2. Navigate to Client Supervision
+3. Locate the self-submitted client and try to Approve","If the business rule prevents self-approval the backend returns an appropriate error message which is displayed. The client remains pending.",,,Not Executed,,,
+TC_CS_057,Verify branch data in API calls matches the selected branch filter,Integration,P1,"At least one branch is selected in the filter, pending supervisions are loaded","1. Select branch '001' from filter
+2. Load supervisions
+3. Inspect the API request payload in DevTools","The OurBranchID and/or BranchList value in the request body matches the selected branch(es). Results are branch-scoped.",,,Not Executed,,,
+TC_CS_058,Verify operator ID is passed correctly to Approve API from session,Integration,P1,"Valid session with operator info, pending client is approved","1. Perform an approval
+2. Inspect the approve-supervision POST payload in DevTools","ApprovedBy field in the payload matches the logged-in operator's ID from the session.",,,Not Executed,,,
+TC_CS_059,Verify operator ID is passed correctly to Reject API from session,Integration,P1,"Valid session with operator info, rejection is performed","1. Perform a rejection
+2. Inspect the reject-supervision POST payload in DevTools","Rejection payload includes the correct OperatorID from the session.",,,Not Executed,,,
+TC_CS_060,Verify SupervisionController endpoint routes are correct,Integration,P2,Backend application is running,"1. Check that approve call hits POST /Identities/ClientSupervision/approve-supervision
+2. Check that reject call hits POST /Identities/ClientSupervision/reject-supervision
+3. Check that pending list call hits the get-pending-supervisions endpoint","All controller routes respond with HTTP 200 for authenticated calls. No 404 errors.",,,Not Executed,,,
+TC_CS_061,Verify client details load from multiple endpoints (Basic / Individual / Address / Employment / Images),Integration,P2,"Client selected, View clicked","1. Click View on a selected client
+2. Monitor Network tab in DevTools
+3. Count the API calls made","Separate calls are made to endpoints for Basic Details, Individual/Corporate Details, Address Details, Employment Details and Photo/Signature. All return 200.",,,Not Executed,,,
+TC_CS_062,Verify system handles partial data — client with no employment details,Functional,P3,"Pending client with no employment information, details loaded","1. Select a client known to have no employment data
+2. View the Employment tab","Employment tab shows empty fields or placeholder text. No JavaScript error. Other tabs are unaffected.",,,Not Executed,,,
+TC_CS_063,Verify system handles partial data — client with no address details,Functional,P3,Pending client with no address information,"1. Select a client with no address data
+2. View the Address tab","Address tab shows empty fields or placeholder text. No crash. Other tabs remain functional.",,,Not Executed,,,
+TC_CS_064,Verify image viewing works — clicking a photo-signature table row shows preview,Functional,P2,"Client with photos/signatures loaded in tbl_photoSignatureBody","1. Click a row in the photo-signature table
+2. Observe the preview boxes","Selected photo/signature is displayed in the preview box (img_photoPreview or img_signaturePreview).",,,Not Executed,,,
+TC_CS_065,Verify large number of pending clients renders without page freeze,Performance,P3,"50+ pending supervision records exist in the system for the selected branch","1. Select a branch with 50+ pending supervisions
+2. Click View
+3. Observe page responsiveness","Table renders within acceptable time (< 5 seconds). Page remains responsive. Scrolling works.",,,Not Executed,,,
+TC_CS_066,Verify record count is accurate after approving one record,Functional,P2,"5 pending clients loaded, one is approved","1. Note the record count (e.g. '5 records')
+2. Approve one client
+3. Note the new record count","Record count decrements to '4 records'. The table shows 4 rows.",,,Not Executed,,,
+TC_CS_067,Verify record count is accurate after rejecting one record,Functional,P2,"5 pending clients loaded, one is rejected","1. Note the record count
+2. Reject one client with valid remarks
+3. Note the new record count","Record count decrements by one. The rejected client is no longer in the table.",,,Not Executed,,,
+TC_CS_068,Verify page does not reload on Approve or Reject — only list refreshes,UI,P2,"Client Supervision page is loaded, actions are performed","1. Make note of any session/state (e.g. selected branch)
+2. Approve or reject a client","The page does NOT do a full browser reload. Only the supervision list (and client details) is refreshed via AJAX. Selected branch filter persists.",,,Not Executed,,,
+TC_CS_069,Verify message panel is visible and shows correct icon for success,UI,P2,A successful Approve or View operation has been performed,"1. Perform any operation that results in a success message
+2. Observe dv_messagePanel","Message panel is visible with a green/success icon and descriptive text.",,,Not Executed,,,
+TC_CS_070,Verify message panel shows correct icon and style for error messages,UI,P2,An operation that results in an error has been performed,"1. Trigger an error condition (e.g. approve without a selection — though button is disabled; or server error)
+2. Observe dv_messagePanel","Message panel shows an error/danger icon and red/danger colour styling.",,,Not Executed,,,
+TC_CS_071,Verify module is accessible from the Identities navigation menu / dashboard,Functional,P1,User is logged in and Module ID 7080 is assigned to the user,"1. Open the KAIRO dashboard
+2. Look for Client Supervision in the Identities section or navigation
+3. Click on it","Client Supervision module opens in the window/iframe. Page loads correctly.",,,Not Executed,,,
+TC_CS_072,Verify module title is correct in the window header / browser tab,UI,P3,Client Supervision module is loaded,"1. Check the page title or window header after the module loads","Title reads 'Client Supervision' or equivalent. Matches the module name in the navigation.",,,Not Executed,,,
+TC_CS_073,Verify keyboard accessibility — Tab key navigates through interactive elements,UI,P4,Client Supervision module is loaded,"1. Press Tab repeatedly from the top of the page
+2. Observe focus movement","Focus moves logically through branch filter button, search input, supervision table, and action buttons. No focus trapping outside modals.",,,Not Executed,,,
+TC_CS_074,Verify Approve confirmation dialog can be dismissed with Escape key,UI,P3,Approve confirmation (SweetAlert) dialog is open,"1. Press the Escape key
+2. Observe the dialog","Dialog closes without performing the approval. No error.",,,Not Executed,,,
+TC_CS_075,Verify reject modal can be dismissed with Escape key,UI,P3,Reject modal is open,"1. Press Escape key while the reject modal is open","Reject modal closes. No rejection is submitted.",,,Not Executed,,,
+TC_CS_076,Verify concurrent approval by two supervisors — second approval shows appropriate message,Integration,P3,"Two users are logged in simultaneously, both select the same pending client","1. User A selects a client
+2. User B selects the same client
+3. User A approves first
+4. User B then approves","User B sees an error or 'already processed' message. No application crash or duplicate approval.",,,Not Executed,,,
+TC_CS_077,Verify audit fields (CreatedBy / ModifiedBy / SupervisedBy) in client details are read-only,UI,P2,Client details are loaded for a pending supervision,"1. View the Behind The Scene audit fields in any detail tab
+2. Attempt to edit them","Fields are read-only spans or disabled inputs. Values are populated from the data but cannot be changed.",,,Not Executed,,,
+TC_CS_078,Verify dropdown options match the system code definitions in the backend,Integration,P2,Client details are loaded with dropdown fields visible,"1. Note the options in the Gender dropdown
+2. Compare with system codes for GenderID in the database","Options match the configured system codes; no stale / extra options appear.",,,Not Executed,,,
+TC_CS_079,Verify Client ID search is case-insensitive,Functional,P3,"Pending client with known Client ID exists (e.g. 'CLI001')","1. Type the Client ID in uppercase in search
+2. Type it in lowercase
+3. Compare results","Both searches return the same client. Search is case-insensitive.",,,Not Executed,,,
+TC_CS_080,Verify multiple sequential approvals work correctly (approve 3 clients one by one),Functional,P2,"3+ pending clients exist","1. Select client 1
+2. Approve it
+3. Select client 2
+4. Approve it
+5. Select client 3
+6. Approve it","Each approval succeeds independently. List refreshes after each. Total count decrements each time. No button state freezes.",,,Not Executed,,,
+TC_CS_081,Verify action buttons reset after all clients are approved (empty list),Functional,P2,Only one client remains pending,"1. Approve the last pending client
+2. Observe action button states and table","Table shows empty state. View / Approve / Reject buttons are disabled (no selection possible). Record count is 0.",,,Not Executed,,,
+TC_CS_082,Verify the module does not retain previous client details when a new client is selected,Functional,P2,"Client A details are loaded, user selects Client B","1. Load Client A by clicking View
+2. Select Client B from the supervision table
+3. Click View
+4. Inspect all detail fields","All fields are cleared and repopulated with Client B's data. No stale data from Client A is visible.",,,Not Executed,,,

@@ -281,6 +281,21 @@ namespace kairo_ui.Services
 
     
         // ═══════════════════════════════════════════════════════════════════
+        // LOAN ANALYSIS (StaticData/LoanAnalysis)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_LOAN_ANALYSIS = "dbo.p_GetLoanAnalysis";
+        public const string ADD_EDIT_LOAN_ANALYSIS = "dbo.p_AddEditLoanAnalysis";
+        public const string DELETE_LOAN_ANALYSIS = "dbo.p_DeleteLoanAnalysis";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // NGO MAINTENANCE (StaticData/NgoMaintenance)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_NGO = "dbo.p_GetNGO";
+        public const string ADD_EDIT_NGO = "dbo.p_AddEditNGO";
+        public const string DELETE_NGO = "dbo.p_DeleteNGO";
+        public const string SEARCH_NGO = "p_GetSearchResult";  // passes TableID = "NGO"
+
+        // ═══════════════════════════════════════════════════════════════════
         // EXIT TYPES MODULE
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_EXIT_TYPES = "p_GetExitTypes";
@@ -300,6 +315,32 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_GROUP_LOAN_REVERSALS = "p_GetGroupLoanReversals";
         public const string ADD_LOAN_REVERSAL_TRX = "p_AddLoanReversalTrx";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TRANSACTION DESCRIPTION (StaticData/TransactionDescription)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_TRX_DESCRIPTION = "dbo.p_GetTrxDescriptions";
+        public const string ADD_EDIT_TRX_DESCRIPTION = "dbo.p_AddEditTrxDescriptions";
+        public const string DELETE_TRX_DESCRIPTION = "dbo.p_DeleteTrxDescriptions";
+        public const string SEARCH_TRX_DESCRIPTION = "p_GetSearchResult";  // passes TableID = "TransactionDescription"
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MAINTAIN VENDORS (StaticData/MaintainVendors)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_VENDOR = "dbo.p_GetVendors";
+        public const string ADD_EDIT_VENDOR = "dbo.p_AddEditVendors";
+        public const string DELETE_VENDOR = "dbo.p_DeleteVendors";
+        public const string SEARCH_VENDOR = "p_GetSearchResult";  // passes TableID = "Vendors"
+        public const string GET_CONTACT_PERSON = "dbo.p_GetContactPerson";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CLIENT TYPE WORKFLOW (StaticData/ClientTypeWorkflow)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_CLIENT_TYPE_WORKFLOW = "dbo.p_GetClientTypeWorkFlow";
+        public const string EDIT_CLIENT_TYPE_WORKFLOW = "dbo.p_EditClientTypeWorkFlow";
+        public const string GET_CLIENT_TYPE_WORKFLOW_PENDING = "p_GetClientTypeWorkflowPending";
+
+
 
     }
 }

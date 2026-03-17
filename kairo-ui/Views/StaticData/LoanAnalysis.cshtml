@@ -1,0 +1,303 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Loan Analysis";
+    Layout = "_ApplicationLayout";
+
+    var operatorId = ViewData["OperatorId"]?.ToString() ?? string.Empty;
+    var branchCode = ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var bankId = ViewData["BankId"]?.ToString() ?? string.Empty;
+    var analysisTypeOptions = ViewData["AnalysisTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="window">
+    <form id="loan-analysis-form" autocomplete="off" novalidate>
+        <!-- Context hidden fields -->
+        <input type="hidden" id="moduleId_loanAnalysis" value="@ViewData["ModuleId"]" />
+        <input type="hidden" id="OperatorID" value="@operatorId" />
+        <input type="hidden" id="hdn_BranchCode" value="@branchCode" />
+        <input type="hidden" id="hdn_BankId" value="@bankId" />
+
+        <div class="main-container">
+            <section class="form-content" aria-label="Loan Analysis Content">
+                <div class="form-card">
+
+                    <!-- Loan Analysis Section -->
+                    <div class="form-section" data-section="loan-analysis">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-diagram-3"></i> Loan Analysis</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Loan Analysis" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="LoanAnalysisId">Loan Analysis ID</label>
+                                    <div class="kairo-control kairo-control--single">
+                                        <input type="text" id="LoanAnalysisId" name="LoanAnalysisId" class="kairo-control__id" aria-label="Loan Analysis ID" data-always-enabled />
+                                        <button type="button" id="btnLoanAnalysisLookup" class="btn-lookup kairo-control__lookup" aria-label="Search Loan Analysis" data-la-action="search" data-always-enabled>
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="NoOfSlabs">No Of Slabs</label>
+                                    <input type="text" class="bs-input-text" id="NoOfSlabs" name="NoOfSlabs" readonly />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="Description">Description</label>
+                                    <input type="text" class="bs-input-text" id="Description" name="Description" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="AnalysisTypeId">Analysis Type</label>
+                                    <select class="bs-select" id="AnalysisTypeId" name="AnalysisTypeId" asp-items="@analysisTypeOptions">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Details Section -->
+                    <div class="form-section" data-section="analysis-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-table"></i> Analysis Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Analysis Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row">
+                                <label class="label-blue" for="DetailDescription">Description</label>
+                                <input type="text" class="bs-input-text" id="DetailDescription" name="DetailDescription" />
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="FromValue">From Value</label>
+                                    <input type="text" class="bs-input-text" id="FromValue" name="FromValue" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="ToValue">To Value</label>
+                                    <input type="text" class="bs-input-text" id="ToValue" name="ToValue" />
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mb-3">
+                                <button type="button" class="btn-action" data-la-grid-action="new" disabled>
+                                    <i class="bi bi-plus me-1"></i>New
+                                </button>
+                                <button type="button" class="btn-action" data-la-grid-action="alter" disabled>
+                                    <i class="bi bi-pencil me-1"></i>Alter
+                                </button>
+                                <button type="button" class="btn-action" data-la-grid-action="remove" disabled>
+                                    <i class="bi bi-trash me-1"></i>Remove
+                                </button>
+                                <button type="button" class="btn-action" data-la-grid-action="update" disabled>
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Update
+                                </button>
+                                <button type="button" class="btn-action" data-la-grid-action="clear" disabled>
+                                    <i class="bi bi-x me-1"></i>Clear
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0" id="slabsTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Description</th>
+                                            <th scope="col">Analysis From</th>
+                                            <th scope="col">Analysis To</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="slabsTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Created By</label>
+                                        <span class="audit-value" id="CreatedBy" data-la-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Created On</label>
+                                        <span class="audit-value" id="CreatedOn" data-la-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Modified By</label>
+                                        <span class="audit-value" id="ModifiedBy" data-la-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Modified On</label>
+                                        <span class="audit-value" id="ModifiedOn" data-la-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Supervised By</label>
+                                        <span class="audit-value" id="SupervisedBy" data-la-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Supervised On</label>
+                                        <span class="audit-value" id="SupervisedOn" data-la-audit></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <aside class="action-panel" aria-label="Actions">
+                <div class="action-buttons">
+                    <button type="button" class="btn-action btn-view" data-shell-mode="View"><i class="bi bi-eye me-1"></i>View</button>
+                    <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus me-1"></i>Add</button>
+                    <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil me-1"></i>Edit</button>
+                    <button type="button" class="btn-action" data-la-action="delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button type="button" class="btn-action" data-la-action="save" disabled><i class="bi bi-check me-1"></i>Save</button>
+                    <button type="button" class="btn-action btn-cancel" data-la-action="cancel"><i class="bi bi-x me-1"></i>Cancel</button>
+                </div>
+            </aside>
+        </div>
+    </form>
+
+    <div class="am-message-panel" id="dv_messagePanel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle" id="icn_messageIcon"></i>
+        <span id="spn_messageText"></span>
+    </div>
+
+    <!-- Loan Analysis Search Modal -->
+    <div class="modal fade" id="loanAnalysisSearchModal" tabindex="-1" aria-labelledby="loanAnalysisSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="loanAnalysisSearchModalLabel">
+                        <i class="bi bi-search me-2"></i>Loan Analysis ID
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-filters mb-3">
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label mb-0">Loan Analysis ID</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="searchLoanAnalysisIdMode">
+                                    <option value="Like" selected>Like</option>
+                                    <option value="Equal">Equal</option>
+                                    <option value="StartsWith">Starts With</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="searchLoanAnalysisId" placeholder="" />
+                            </div>
+                        </div>
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label mb-0">Description</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="searchDescriptionMode">
+                                    <option value="Like" selected>Like</option>
+                                    <option value="Equal">Equal</option>
+                                    <option value="StartsWith">Starts With</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="searchDescription" placeholder="" />
+                            </div>
+                        </div>
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label mb-0">Analysis Type</label>
+                            </div>
+                            <div class="col-md-3"></div>
+                            <div class="col-md-6">
+                                <select class="form-select form-select-sm" id="searchAnalysisTypeId">
+                                    <option value="">--All--</option>
+                                    @foreach (var item in analysisTypeOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value)))
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-primary btn-sm" id="btnSearchLoanAnalysis">
+                                <i class="bi bi-search me-1"></i>Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="searchResultsTab" data-bs-toggle="tab" data-bs-target="#searchResultsPane" type="button" role="tab">
+                                Search Results
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="searchResultsPane" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover table-bordered mb-0" id="loanAnalysisSearchTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>LoanAnalysisID</th>
+                                            <th>Description</th>
+                                            <th>AnalysisTypeID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="loanAnalysisSearchResults"></tbody>
+                                </table>
+                            </div>
+                            <div id="loanAnalysisSearchEmpty" class="text-center text-muted py-3 d-none">No results found.</div>
+                            <div id="loanAnalysisSearchLoader" class="text-center py-3 d-none">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span class="ms-2">Searching...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSearchPrev" disabled>
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm px-4" id="btnSearchOk">OK</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSearchNext" disabled>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert2.min.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/loan-analysis.js" asp-append-version="true"></script>
+}
