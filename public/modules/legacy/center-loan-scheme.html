@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Center Loan Scheme</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../../assets/css/styles.css?v=20260201">
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="window">
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Left Sidebar -->
+            <div class="sidebar" id="main-sidebar">
+                <!-- SUBMODULES Header -->
+                <div class="sidebar-header">
+                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="sidebar-search">
+                    <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules">
+                    <i class="bi bi-search sidebar-search__icon"></i>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="sidebar-content">
+                    <!-- Data Entry Section -->
+                    <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
+                        <div class="nav-header nav-header--card" data-tooltip="Data Entry">
+                            <div class="nav-header__content">
+                                <i class="bi bi-pencil-square nav-header__icon"></i>
+                                <span class="nav-label nav-label--card">Data Entry</span>
+                            </div>
+                            <div class="nav-header__badge">
+                                <span class="nav-badge">2</span>
+                                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="false" aria-controls="nav-dataentry">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav-items nav-items--card" id="nav-dataentry" hidden>
+                            <div class="sidebar-item sidebar-item--enhanced" data-child-form="center-loan-menu" data-tooltip="Center Loan Menu">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-menu-button-wide sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Center Loan Menu</div>
+                                        <div class="sidebar-item__description">Manage loan menu settings</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="sidebar-item sidebar-item--enhanced" data-child-form="center-loan-scheme" data-tooltip="Center Loan Scheme">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-file-earmark-text sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Center Loan Scheme</div>
+                                        <div class="sidebar-item__description">Loan scheme configuration</div>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="sidebar-item sidebar-item--enhanced" data-child-form="products" data-tooltip="Products">
+                                <div class="sidebar-item__content">
+                                    <i class="bi bi-box-seam sidebar-item__icon"></i>
+                                    <div class="sidebar-item__text">
+                                        <div class="sidebar-item__title">Products</div>
+                                        <div class="sidebar-item__description">Manage loan products</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities Section -->
+                    <div class="nav-section nav-section--card" data-nav-section data-section-name="Recent Activities">
+                        <div class="nav-header nav-header--card" data-tooltip="Recent Activities">
+                            <div class="nav-header__content">
+                                <i class="bi bi-clock-history nav-header__icon"></i>
+                                <span class="nav-label nav-label--card">Recent Activities</span>
+                            </div>
+                            <div class="nav-header__badge">
+                                <span class="nav-badge">0</span>
+                                <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Recent Activities" aria-expanded="false" aria-controls="nav-recent">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav-items nav-items--card" id="nav-recent" hidden></div>
+                    </div>
+                </div><!-- End sidebar-content -->
+            </div>
+
+            <!-- Form Content -->
+            <div class="form-content">
+                <!-- Inline Child Form (hidden by default) -->
+                <div class="child-inline" data-child-inline hidden>
+                    <iframe class="child-iframe-inline" data-child-iframe title="DataEntry Submodule"></iframe>
+                </div>
+
+                <div class="form-card" data-main-form>
+                    <!-- Scheme Identification Section - Collapsible -->
+                    <div class="form-section" data-section="scheme-identification">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-card-heading"></i>Scheme Identification</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Scheme Identification" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue">Scheme ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="SchemeId" class="kairo-control__id" aria-label="Scheme ID" placeholder="ID">
+                                        <input type="text" id="Description" class="kairo-control__name" aria-label="Description" placeholder="Description" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="scheme" aria-label="Lookup Scheme"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Loan Product ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="LoanProductId" class="kairo-control__id" aria-label="Loan Product ID" placeholder="Product ID">
+                                        <input type="text" id="LoanProductName" class="kairo-control__name" aria-label="Loan Product Name" placeholder="Product Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="loan-product" aria-label="Lookup Loan Product"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Group Cycle Type ID</label>
+                                    <select id="GroupCycleTypeId" class="bs-select" aria-label="Group Cycle Type">
+                                        <option value="I">Individual</option>
+                                        <option value="G">Group</option>
+                                    </select>
+                                </div>
+                                <div class="col d-flex align-items-end">
+                                    <input type="checkbox" id="CycleWiseGroupLoanMenu">
+                                    <label for="CycleWiseGroupLoanMenu">Cycle Wise Group Loan Menu</label>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Installment Frequency</label>
+                                    <input type="text" id="InstallmentFrequency" class="bs-input-text" aria-label="Installment Frequency" disabled>
+                                </div>
+                                <div class="col d-flex align-items-end">
+                                    <input type="checkbox" id="LoanAmountRestricted">
+                                    <label for="LoanAmountRestricted">Loan Amount Restricted</label>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Advance Type ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="AdvanceTypeId" class="kairo-control__id" aria-label="Advance Type ID" placeholder="Type ID">
+                                        <input type="text" id="AdvanceTypeName" class="kairo-control__name" aria-label="Advance Type Name" placeholder="Type Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="advance-type" aria-label="Lookup Advance Type"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue">Center Collection Product ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="CenterCollectionProductId" class="kairo-control__id" aria-label="Center Collection Product ID" placeholder="Collection ID">
+                                        <input type="text" id="CenterCollectionProductName" class="kairo-control__name" aria-label="Center Collection Product Name" placeholder="Collection Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="collection-product" aria-label="Lookup Collection Product"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+
+                    <!-- Required Collateral Section - Collapsible -->
+                    <div class="form-section" data-section="required-collateral">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-shield-check"></i>Required Collateral</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Required Collateral" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row">
+                                <div class="col d-flex gap-4">
+                                    <div>
+                                        <input type="checkbox" id="PrimaryCollateralRequired">
+                                        <label for="PrimaryCollateralRequired">Primary Collateral</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" id="SecondaryCollateralRequired">
+                                        <label for="SecondaryCollateralRequired">Secondary Collateral</label>
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" id="AdditionalCollateralRequired">
+                                        <label for="AdditionalCollateralRequired">Additional Collateral</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Primary Collateral Details Section - Collapsible -->
+                    <div class="form-section" data-section="primary-collateral">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-1-circle"></i>Primary Collateral Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Primary Collateral Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Primary Collateral</label>
+                                    <select id="PrimaryCollateral" class="bs-select" aria-label="Primary Collateral">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>Deposit Product ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="DepositProductIdPrimary" class="kairo-control__id" aria-label="Deposit Product ID" placeholder="Product ID">
+                                        <input type="text" id="DepositProductNamePrimary" class="kairo-control__name" aria-label="Deposit Product Name" placeholder="Product Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="deposit-product-primary" aria-label="Lookup Deposit Product"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Saving To Loan Ratio</label>
+                                    <input type="text" id="SavingToLoanRatio" class="bs-input-text" aria-label="Saving To Loan Ratio">
+                                </div>
+                                <div class="col">
+                                    <label>S/L Recovery Type</label>
+                                    <select id="SLRecoveryType" class="bs-select" aria-label="S/L Recovery Type">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col d-flex align-items-end">
+                                    <input type="checkbox" id="CollectSavingWithInstallment">
+                                    <label for="CollectSavingWithInstallment">Collect Saving With Installment</label>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Savings Collection Type</label>
+                                    <select id="SavingsCollectionType" class="bs-select" aria-label="Savings Collection Type">
+                                        <option value="" selected>--Select--</option>
+                                        <option>Amount</option>
+                                        <option>Percentage/Installment</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>Savings Value</label>
+                                    <input type="text" id="SavingsValue" class="bs-input-text" aria-label="Savings Value">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Collateral Details Section - Collapsible -->
+                    <div class="form-section" data-section="secondary-collateral">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-2-circle"></i>Secondary Collateral Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Secondary Collateral Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Secondary Collateral</label>
+                                    <select id="SecondaryCollateral" class="bs-select" aria-label="Secondary Collateral">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>Deposit Product ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="DepositProductIdSecondary" class="kairo-control__id" aria-label="Deposit Product ID" placeholder="Product ID">
+                                        <input type="text" id="DepositProductNameSecondary" class="kairo-control__name" aria-label="Deposit Product Name" placeholder="Product Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="deposit-product-secondary" aria-label="Lookup Deposit Product"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Collateral Details Section - Collapsible -->
+                    <div class="form-section" data-section="additional-collateral">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-3-circle"></i>Additional Collateral Details</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Additional Collateral Details" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label>Additional Collateral</label>
+                                    <select id="AdditionalCollateral" class="bs-select" aria-label="Additional Collateral">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label>Deposit Product ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="DepositProductIdAdditional" class="kairo-control__id" aria-label="Deposit Product ID" placeholder="Product ID">
+                                        <input type="text" id="DepositProductNameAdditional" class="kairo-control__name" aria-label="Deposit Product Name" placeholder="Product Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="deposit-product-additional" aria-label="Lookup Deposit Product"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behind the Scene Section - Collapsible -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-gear"></i>Behind the Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind the Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <!-- Audit Trail -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label for="CreatedBy">Created By</label>
+                                    <input type="text" id="CreatedBy" class="bs-input-text" readonly aria-label="Created By">
+                                </div>
+                                <div class="col-6">
+                                    <label for="CreatedOn">Created On</label>
+                                    <input type="text" id="CreatedOn" class="bs-input-text" readonly aria-label="Created On">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label for="ModifiedBy">Modified By</label>
+                                    <input type="text" id="ModifiedBy" class="bs-input-text" readonly aria-label="Modified By">
+                                </div>
+                                <div class="col-6">
+                                    <label for="ModifiedOn">Modified On</label>
+                                    <input type="text" id="ModifiedOn" class="bs-input-text" readonly aria-label="Modified On">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label for="SupervisedBy">Supervised By</label>
+                                    <input type="text" id="SupervisedBy" class="bs-input-text" readonly aria-label="Supervised By">
+                                </div>
+                                <div class="col-6">
+                                    <label for="SupervisedOn">Supervised On</label>
+                                    <input type="text" id="SupervisedOn" class="bs-input-text" readonly aria-label="Supervised On">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Action Panel -->
+            <div class="action-panel">
+                <div class="nav-group">
+                    <button class="btn-nav green" aria-label="Previous Scheme"><i class="bi bi-chevron-left"></i></button>
+                    <span>Scheme</span>
+                    <button class="btn-nav green" aria-label="Next Scheme"><i class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-action btn-view" type="button" data-mcs-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                    <button class="btn-action" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                    <button class="btn-action" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn-action" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                    <button class="btn-action" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                    <button class="btn-action btn-cancel" type="button" data-mcs-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal fade cls-search-modal" id="searchModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 900px; width: 90%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="searchModalTitle">Search</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="searchModalFrame" title="Search" src="about:blank" style="width: 100%; height: 500px; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../assets/js/utils/global-utils.js"></script>
+    <script src="../../../assets/js/services/shared/serviceLoader.js"></script>
+    <script src="../../common/toast-messages/toast-messages.js"></script>
+    <script src="../../common/confirmationDialog/confirmation-dialog.js"></script>
+    <script src="center-loan-scheme.js"></script>
+</body>
+</html>

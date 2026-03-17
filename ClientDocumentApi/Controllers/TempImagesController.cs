@@ -21,7 +21,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPost]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> Upload([FromForm] InData<UploadTempImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Upload([FromForm] InDataRequest<UploadTempImageRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -165,7 +165,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpPut("{tempImageId:long}")]
-        public async Task<IActionResult> Update(long tempImageId, [FromBody] InData<UpdateTempImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(long tempImageId, [FromBody] InDataRequest<UpdateTempImageRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -208,7 +208,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPut("{tempImageId:long}/replace")]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> ReplaceImage(long tempImageId, [FromForm] InData<ReplaceImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ReplaceImage(long tempImageId, [FromForm] InDataRequest<ReplaceImageRequest> request, CancellationToken cancellationToken)
         {
             if (request.RequestData?.File == null || request.RequestData.File.Length == 0)
             {
@@ -251,7 +251,7 @@ namespace ClientDocumentApi.Controllers
         {
             try
             {
-                var entities = await _tempImageRepository.GetByTempClientIdAsync(tempClientId, cancellationToken);
+                var entities = await _tempImageRepository.GetByTempClientIdAsync(tempClientId!, cancellationToken);
 
                 if (entities == null)
                 {
@@ -516,7 +516,7 @@ namespace ClientDocumentApi.Controllers
         {
             try
             {
-                var entities = await _tempImageRepository.GetByAccountIdAsync(accountId, cancellationToken);
+                var entities = await _tempImageRepository.GetByAccountIdAsync(accountId!, cancellationToken);
 
                 // If no records found and requestId is available, try fetching by requestId
                 if ((entities == null || entities.Count == 0) && !string.IsNullOrWhiteSpace(requestId))

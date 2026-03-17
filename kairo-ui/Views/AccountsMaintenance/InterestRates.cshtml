@@ -1,11 +1,14 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: account-interest-rates.html
     var interestRateTypeOptions = ViewData["InterestRateTypeOptions"] as IEnumerable<SelectListItem> ??
 Enumerable.Empty<SelectListItem>();
 }
 
 <!-- InterestRates Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card" data-main-form id="interestRateForm">
   <!-- Rate Details Section -->
   <div class="form-section" data-section="rate-details">
@@ -207,6 +210,9 @@ Enumerable.Empty<SelectListItem>();
         </div>
     </div>
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-interest-rates.js"
         asp-append-version="true"></script>

@@ -14,6 +14,12 @@ namespace kairo_ui.Services
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
+        public const string GET_ACCOUNT_OFFICERS = "p_GetAccountOfficers";
+        public const string ADD_EDIT_ACCOUNT_OFFICERS = "p_AddEditAccountOfficers";
+        public const string ADD_EDIT_ACCOUNT_OFFICER_DETAIL = "p_AddEditAccountOfficerDetail";
+        public const string DELETE_ACCOUNT_OFFICERS = "p_DeleteAccountOfficers";
+        public const string RESIGN_ACCOUNT_OFFICERS = "p_ResignAccountOfficers";
+        public const string GET_SYSTEM_CODES_V1 = "dbo.p_v1_GetSystemCodes";
 
         // Branch
         public const string GET_BRANCH_LIST = "dbo.p_getBranchList";
@@ -226,7 +232,17 @@ namespace kairo_ui.Services
         public const string GET_SP_CONDITION_CLASS_COMBO = "p_GetSpConditionCalssCombo"; // Note: Typo in DB
         public const string USER_RIGHTS = "p_UserRights";
 
+
+
         // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE 
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_CUSTOMER="p_GetAccountCustomers";
+
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════════════
+
         // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
@@ -257,9 +273,10 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_SI_TYPES = "dbo.p_GetSITypes";
-        public const string ADD_EDIT_SI_TYPES = "dbo.p_AddEditSITypes";
-        public const string DELETE_SI_TYPES = "dbo.p_DeleteSITypes";
+        public const string GET_SI_TYPE_COMBO = "p_GetSITypeCombo";
+        public const string GET_SI_TYPES = "p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
+        public const string DELETE_SI_TYPES = "p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
         public const string GET_ACCOUNT_CLOSING_DETAILS = "p_GetAcClosingDetails";

@@ -1,4 +1,9 @@
+@{
+    Layout = "_ApplicationLayout";
+}
 <!-- FreezeRelease Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card" data-main-form>
   
   <!-- Account Identification Section -->
@@ -144,6 +149,9 @@
     </div>
   </div>
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "freezerelease" } })
+</main>
 
 <!-- Modals -->
 <!-- History Modal -->

@@ -30,7 +30,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPost]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> Upload([FromForm] InData<UploadImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Upload([FromForm] InDataRequest<UploadImageRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -83,7 +83,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpGet("client")]
-        public async Task<IActionResult> GetByClientId([FromQuery]string clientId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByClientId([FromQuery] string clientId, CancellationToken cancellationToken)
         {
             try
             {
@@ -196,7 +196,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpPut("{imageId:long}")]
-        public async Task<IActionResult> Update(long imageId, [FromBody] InData<UpdateImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(long imageId, [FromBody] InDataRequest<UpdateImageRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -238,7 +238,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPut("{imageId:long}/replace")]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> ReplaceImage(long imageId, [FromForm] InData<ReplaceImageRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ReplaceImage(long imageId, [FromForm] InDataRequest<ReplaceImageRequest> request, CancellationToken cancellationToken)
         {
             if (request.RequestData?.File == null || request.RequestData.File.Length == 0)
             {
@@ -280,7 +280,7 @@ namespace ClientDocumentApi.Controllers
         /// Approve images by ClientId - moves from temp tables to permanent tables
         /// </summary>
         [HttpPost("approve-by-client/{clientId}")]
-        public async Task<IActionResult> ApproveByClientId(string clientId, [FromBody] InData<ApprovalRequest>? request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ApproveByClientId(string clientId, [FromBody] InDataRequest<ApprovalRequest>? request, CancellationToken cancellationToken)
         {
             try
             {
@@ -399,7 +399,7 @@ namespace ClientDocumentApi.Controllers
         /// Reject images by ClientId - deletes from temp tables
         /// </summary>
         [HttpPost("reject-by-client/{clientId}")]
-        public async Task<IActionResult> RejectByClientId(string clientId, [FromBody] InData<RejectionRequest>? request, CancellationToken cancellationToken)
+        public async Task<IActionResult> RejectByClientId(string clientId, [FromBody] InDataRequest<RejectionRequest>? request, CancellationToken cancellationToken)
         {
             try
             {
@@ -456,7 +456,7 @@ namespace ClientDocumentApi.Controllers
         /// Approve specific images by IDs - moves from temp tables to permanent tables
         /// </summary>
         [HttpPost("approve-by-ids")]
-        public async Task<IActionResult> ApproveByIds([FromBody] InData<ApprovalByIdsRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ApproveByIds([FromBody] InDataRequest<ApprovalByIdsRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -577,7 +577,7 @@ namespace ClientDocumentApi.Controllers
         /// Reject specific images by IDs - deletes from temp tables
         /// </summary>
         [HttpPost("reject-by-ids")]
-        public async Task<IActionResult> RejectByIds([FromBody] InData<RejectionByIdsRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> RejectByIds([FromBody] InDataRequest<RejectionByIdsRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {

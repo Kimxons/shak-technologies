@@ -1,6 +1,13 @@
+@using CBS.Entities.SystemCore
 @{
     ViewData["Title"] = "Group Loan Scheme";
     Layout = "_ApplicationLayout";
+    var slRecoveryTypeOptions = ViewData["SLRecoveryTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var savingsCollectionTypeOptions = ViewData["SavingsCollectionTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var loanCycleTypeOptions = ViewData["LoanCycleTypeOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var primaryCollateralOptions = ViewData["PrimaryCollateralOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var secondaryCollateralOptions = ViewData["SecondaryCollateralOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
+    var additionalCollateralOptions = ViewData["AdditionalCollateralOptions"] as IEnumerable<SystemCodeDetail> ?? Enumerable.Empty<SystemCodeDetail>();
 }
 
 <!-- Toast Container -->
@@ -131,8 +138,11 @@
                             <div class="col">
                                 <label>Group Cycle Type ID</label>
                                 <select id="GroupCycleTypeId" class="bs-select" aria-label="Group Cycle Type">
-                                    <option value="I">Individual</option>
-                                    <option value="G">Group</option>
+                                    <option value="" selected>--Select--</option>
+                                    @foreach (var option in loanCycleTypeOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col d-flex align-items-end">
@@ -213,8 +223,10 @@
                                 <label>Primary Collateral</label>
                                 <select id="PrimaryCollateral" class="bs-select" aria-label="Primary Collateral">
                                     <option value="" selected>--Select--</option>
-                                    <option value="COMSAV">Compulsory Savings</option>
-                                    <option value="VOLSAV">Voluntary Savings</option>
+                                    @foreach (var option in primaryCollateralOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -236,8 +248,10 @@
                                 <label>S/L Recovery Type</label>
                                 <select id="SLRecoveryType" class="bs-select" aria-label="S/L Recovery Type">
                                     <option value="" selected>--Select--</option>
-                                    <option value="installment">Installment</option>
-                                    <option value="lumpsum">Lump Sum</option>
+                                    @foreach (var option in slRecoveryTypeOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                         </div>
@@ -255,8 +269,10 @@
                                 <label>Savings Collection Type</label>
                                 <select id="SavingsCollectionType" class="bs-select" aria-label="Savings Collection Type">
                                     <option value="" selected>--Select--</option>
-                                    <option value="fixed">Fixed</option>
-                                    <option value="percentage">Percentage</option>
+                                    @foreach (var option in savingsCollectionTypeOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -281,9 +297,10 @@
                                 <label>Secondary Collateral</label>
                                 <select id="SecondaryCollateral" class="bs-select" aria-label="Secondary Collateral">
                                     <option value="" selected>--Select--</option>
-                                    <option value="GRPSAV">Group Savings</option>
-                                    <option value="COMSAV">Compulsory Savings</option>
-                                    <option value="VOLSAV">Voluntary Savings</option>
+                                    @foreach (var option in secondaryCollateralOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -312,9 +329,10 @@
                                 <label>Additional Collateral</label>
                                 <select id="AdditionalCollateral" class="bs-select" aria-label="Additional Collateral">
                                     <option value="" selected>--Select--</option>
-                                    <option value="GRPSAV">Group Savings</option>
-                                    <option value="COMSAV">Compulsory Savings</option>
-                                    <option value="VOLSAV">Voluntary Savings</option>
+                                    @foreach (var option in additionalCollateralOptions)
+                                    {
+                                        <option value="@option.SubCodeID">@(option.CodeDescription ?? option.SubCodeID)</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col">
@@ -338,35 +356,30 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <!-- Audit Trail -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="CreatedBy">Created By</label>
-                                <input type="text" id="CreatedBy" class="bs-input-text" readonly aria-label="Created By">
+                        <div class="audit-section">
+                            <div class="audit-item">
+                                <label>Created By</label>
+                                <span class="audit-value" id="CreatedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="CreatedOn">Created On</label>
-                                <input type="text" id="CreatedOn" class="bs-input-text" readonly aria-label="Created On">
+                            <div class="audit-item">
+                                <label>Created On</label>
+                                <span class="audit-value" id="CreatedOn">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="ModifiedBy">Modified By</label>
-                                <input type="text" id="ModifiedBy" class="bs-input-text" readonly aria-label="Modified By">
+                            <div class="audit-item">
+                                <label>Modified By</label>
+                                <span class="audit-value" id="ModifiedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="ModifiedOn">Modified On</label>
-                                <input type="text" id="ModifiedOn" class="bs-input-text" readonly aria-label="Modified On">
+                            <div class="audit-item">
+                                <label>Modified On</label>
+                                <span class="audit-value" id="ModifiedOn">-</span>
                             </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label for="SupervisedBy">Supervised By</label>
-                                <input type="text" id="SupervisedBy" class="bs-input-text" readonly aria-label="Supervised By">
+                            <div class="audit-item">
+                                <label>Supervised By</label>
+                                <span class="audit-value" id="SupervisedBy">-</span>
                             </div>
-                            <div class="col-6">
-                                <label for="SupervisedOn">Supervised On</label>
-                                <input type="text" id="SupervisedOn" class="bs-input-text" readonly aria-label="Supervised On">
+                            <div class="audit-item">
+                                <label>Supervised On</label>
+                                <span class="audit-value" id="SupervisedOn">-</span>
                             </div>
                         </div>
                     </div>
@@ -384,10 +397,10 @@
 
             <div class="action-buttons">
                 <button class="btn-action btn-view" type="button" data-mcs-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
-                <button class="btn-action" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
-                <button class="btn-action" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
-                <button class="btn-action" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
-                <button class="btn-action" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button class="btn-action btn-add" type="button" data-mcs-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button class="btn-action btn-edit" type="button" data-mcs-action="edit" title="Edit" disabled><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button class="btn-action btn-delete" type="button" data-mcs-action="delete" title="Delete" disabled><i class="bi bi-trash me-1"></i>Delete</button>
+                <button class="btn-action btn-save" type="button" data-mcs-action="save" title="Save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" type="button" data-mcs-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
             </div>
         </div>
@@ -410,11 +423,5 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="@Url.Content("~/js/app/global-utils.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/environment.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
-
-    <script type="text/javascript" src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
     <script type="text/javascript" src="@Url.Content("~/js/modules/microfinance/center-loan-scheme.js")"></script>
 }

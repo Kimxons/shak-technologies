@@ -578,14 +578,21 @@ function bindRelationsCrudStandalone(tabRoot, moduleId, options = {}) {
 
         const recordId = state.selectedRecord?.ClientToRelationID ?? state.selectedRecord?.ID ?? null;
 
-        return {
-            ModuleID: context.ModuleID,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            ApplicationID: context.ApplicationID || null,
-            RecordID: recordId,
-            Payload: payload
-        };
+        Payload.ModuleID = context.ModuleID;
+        Payload.ClientID = context.ClientID;
+        Payload.RequestID = context.RequestID;
+        Payload.ApplicationID = context.ApplicationID || null;
+        Payload.RecordID = recordId;
+
+        return Payload;
+        //return {
+        //    ModuleID: context.ModuleID,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    ApplicationID: context.ApplicationID || null,
+        //    RecordID: recordId,
+        //    Payload: payload
+        //};
     };
 
     const applyRowPayload = (payload) => {
@@ -953,17 +960,26 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         if (typeof maintenanceCore?.invokeControllerMethod !== 'function') return;
 
         const response = await maintenanceCore.invokeControllerMethod(
-            'Identities/ClientMaintenance/Personal/get',
+            'Identities/ClientMaintenance/Personal',
+            'get',
             'POST',
             {
                 ModuleID: maintenanceCore.moduleId || '',
-                ClientID: relatedClientId
+                ClientID: relatedClientId,
+                RequestID: maintenanceCore.requestId || ''
             }
         );
 
-        if (!response?.Success && !response?.success) return;
+        if (!isRelationsResponseSuccess(response) && !isRelationsNoDataResponse(response)) return;
 
-        const clientData = response?.Data || response?.data || response?.Payload || {};
+        const personalRows = extractRelationsList(response);
+        const clientData = (Array.isArray(personalRows) && personalRows.length > 0)
+            ? (personalRows[0] || {})
+            : (response?.Data || response?.data || response?.Payload || response || {});
+
+        if (!clientData || typeof clientData !== 'object') return;
+
+        const formatDate = window.GlobalUtils?.formatDate;
 
         const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
         const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
@@ -971,7 +987,7 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         const genderField = tabRoot.querySelector('[data-relation-field="GenderID"]');
         const clientNameField = tabRoot.querySelector('#txt_relationClientName');
 
-        const identificationTypeField = tabRoot.querySelector('[data-relation-field="IdentificationTypeiD"]');
+        const identificationTypeField = tabRoot.querySelector('[data-relation-field="IdentificationTypeID"]');
         const identificationNoField = tabRoot.querySelector('[data-relation-field="IdentificationNo"]');
         const dobField = tabRoot.querySelector('[data-relation-field="DateOfBirth"]');
         const mobileField = tabRoot.querySelector('[data-relation-field="Mobile"]');
@@ -981,15 +997,26 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
         if (lastNameField && clientData.LastName) lastNameField.value = clientData.LastName;
         if (genderField && clientData.GenderID) genderField.value = clientData.GenderID;
 
-        if (identificationTypeField && clientData.IdentificationTypeiD) identificationTypeField.value = clientData.IdentificationTypeiD;
-        if (identificationNoField && clientData.IdentificationNo) identificationNoField.value = clientData.IdentificationNo;
-        if (dobField && clientData.DateOfBirth) dobField.value = clientData.DateOfBirth;
-        if (mobileField && clientData.Mobile) mobileField.value = clientData.Mobile;
+        const identificationType = clientData.IdentificationTypeID ?? clientData.IdentificationTypeiD ?? '';
+        const identificationNo = clientData.IdentificationNo ?? clientData.PassportNo ?? '';
+        const dateOfBirth = clientData.DateOfBirth ?? clientData.DOB ?? '';
+        const mobile = clientData.Mobile ?? clientData.Phone1 ?? '';
+
+        if (identificationTypeField && identificationType) identificationTypeField.value = identificationType;
+        if (identificationNoField) identificationNoField.value = identificationNo || '';
+        if (dobField) {
+            if (dateOfBirth && typeof formatDate === 'function') {
+                dobField.value = formatDate(dateOfBirth);
+            } else {
+                dobField.value = dateOfBirth || '';
+            }
+        }
+        if (mobileField) mobileField.value = mobile || '';
 
 
         if (clientNameField) {
             const name = [clientData.FirstName, clientData.MiddleName, clientData.LastName]
-                .filter(Boolean).join(' ') || clientData.Name || '';
+                .filter(Boolean).join(' ') || clientData.Name || clientData.ClientName || '';
             clientNameField.value = name;
         }
     } catch (error) {

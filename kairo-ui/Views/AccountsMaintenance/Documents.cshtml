@@ -1,13 +1,15 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: public/modules/account-maintenance/DataEntry/account-documents.html
-    // Rendered inside parent #submodule-container; parent provides window shell + action panel
     var documentClassOptions = ViewData["DocumentClassOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var documentTypeOptions = ViewData["DocumentTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var documentLocationOptions = ViewData["DocumentLocationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- Documents Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card">
 
     <!-- Document Details Section -->
@@ -125,6 +127,9 @@
     </div>
 
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "documents" } })
+</main>
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingOverlay" hidden>

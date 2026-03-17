@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Data;
 using ClientDocumentApi.Models;
@@ -5,15 +6,9 @@ using ClientDocumentApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.IdentityModel.Tokens;
-using System;
 using System.Data;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using static System.Net.Mime.MediaTypeNames;
-using ImageModel = ClientDocumentApi.Models.Image;
 
 namespace ClientDocumentApi.Controllers
 {
@@ -36,7 +31,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPost]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public Task<IActionResult> Upload([FromForm] InData<UploadClientDocumentRequest> request, CancellationToken cancellationToken)
+        public Task<IActionResult> Upload([FromForm] InDataRequest<UploadClientDocumentRequest> request, CancellationToken cancellationToken)
         {
             return UploadWithImageInternalAsync(request.RequestData!, cancellationToken);
         }
@@ -335,7 +330,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(long id, [FromBody] InData<UpdateClientDocumentRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(long id, [FromBody] InDataRequest<UpdateClientDocumentRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {

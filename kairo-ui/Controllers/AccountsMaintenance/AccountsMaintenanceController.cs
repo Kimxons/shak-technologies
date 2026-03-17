@@ -2,6 +2,7 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace kairo_ui.Controllers.AccountsMaintenance
 {
@@ -3169,23 +3170,43 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         /// </summary>
         [HttpPost]
         [Route("update-account")]
-        public async Task<IActionResult> UpdateAccount([FromBody] AccountUpdateRequest requestData)
+        public async Task<IActionResult> UpdateAccount([FromBody] JsonNode requestData)
         {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                if (!_authService.IsAuthenticated())
+                // Get OperatorID - prefer client value, fallback to server session
+                var operatorId = !string.IsNullOrEmpty(requestData["OperatorID"]?.ToString())
+                    ? requestData["OperatorID"]!.ToString()
+                    : _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                // Set OperatorID
+                requestData["OperatorID"] = operatorId;
+                
+                // Use client-provided ModifiedBy if valid, otherwise use OperatorID
+                if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
                 {
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+                    requestData["ModifiedBy"] = operatorId;
                 }
 
-                _logger.LogInformation("Update account request: {Request}", JsonSerializer.Serialize(requestData));
+                // Set OurBranchID if not provided
+                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
+                {
+                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                }
 
-                // Inject session data
-                requestData.UserID = HttpContext.Session.GetString("user_name");
-                requestData.OperatorID = HttpContext.Session.GetString("user_name");
-                requestData.BranchID = HttpContext.Session.GetString("branch_code");
-                requestData.BankID = "00";
+                // Set BankID
+                if (requestData["BankID"] == null)
+                {
+                    requestData["BankID"] = "00";
+                }
 
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString() ?? "AM");
+                _logger.LogInformation("account-maintenance.update request: {Request}", JsonSerializer.Serialize(requestData));
+                
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.EDIT_ACCOUNT,
@@ -3196,12 +3217,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating account");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    ErrorMessage = $"Error updating account: {ex.Message}"
-                });
+                _logger.LogError(ex, "Error on operation: account-maintenance.update");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
@@ -3210,23 +3227,55 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         /// </summary>
         [HttpPost]
         [Route("create-account")]
-        public async Task<IActionResult> CreateAccount([FromBody] AccountCreateRequest requestData)
+        public async Task<IActionResult> CreateAccount([FromBody] JsonNode requestData)
         {
+            if (!_authService.IsAuthenticated())
+                return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
+            if (requestData == null)
+                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                if (!_authService.IsAuthenticated())
+                // Get OperatorID - prefer client value, fallback to server session
+                var operatorId = !string.IsNullOrEmpty(requestData["OperatorID"]?.ToString())
+                    ? requestData["OperatorID"]!.ToString()
+                    : _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                // Set OperatorID, CreatedBy, and OpenedBy to OperatorID value
+                requestData["OperatorID"] = operatorId;
+                
+                // Use client-provided CreatedBy if valid, otherwise use OperatorID
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
                 {
-                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+                    requestData["CreatedBy"] = operatorId;
+                }
+                
+                // Use client-provided OpenedBy if valid, otherwise use OperatorID
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = operatorId;
                 }
 
-                _logger.LogInformation("Create account request: {Request}", JsonSerializer.Serialize(requestData));
+                // Set OurBranchID if not provided
+                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
+                {
+                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                }
 
-                // Inject session data
-                requestData.UserID = HttpContext.Session.GetString("user_name");
-                requestData.OperatorID = HttpContext.Session.GetString("user_name");
-                requestData.BranchID = HttpContext.Session.GetString("branch_code");
-                requestData.BankID = "00";
+                // Set BankID
+                if (requestData["BankID"] == null)
+                {
+                    requestData["BankID"] = "00";
+                }
 
+                // Set RequestID if empty
+                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
+                {
+                    requestData["RequestID"] = HttpContext!.Connection.Id;
+                }
+
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString() ?? "AM");
+                _logger.LogInformation("account-maintenance.create request: {Request}", JsonSerializer.Serialize(requestData));
+                
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.CREATE_ACCOUNT,
@@ -3237,12 +3286,8 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating account");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    ErrorMessage = $"Error creating account: {ex.Message}"
-                });
+                _logger.LogError(ex, "Error on operation: account-maintenance.create");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
 
@@ -3604,7 +3649,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? Phone1 { get; set; }  // API field name
         public string? PhoneWork { get; set; }
         public string? Phone2 { get; set; }  // API field name
-        public string? FaxNo { get; set; }
+        public string? Fax { get; set; }
         public string? Mobile { get; set; }
         public string? EmailID { get; set; }
         public string? ContactPerson { get; set; }
@@ -3661,7 +3706,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? Phone1 { get; set; }  // API field name
         public string? PhoneWork { get; set; }
         public string? Phone2 { get; set; }  // API field name
-        public string? FaxNo { get; set; }
+        public string? Fax { get; set; }
         public string? Mobile { get; set; }
         public string? EmailID { get; set; }
         public string? ContactPerson { get; set; }
