@@ -3,6 +3,10 @@
     Layout = "_ApplicationLayout";
 }
 
+<form id="frm_thirdPartyProviderAntiForgery" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <div class="window">
     <main class="main-container main-container--with-panel" aria-label="Third Party Provider form">
         <div class="form-content" role="region" aria-label="Third Party Provider details">
@@ -131,6 +135,39 @@
     <div class="am-message-panel" role="alert" aria-live="polite">
         <i class="bi bi-info-circle"></i>
         <span class="message-text"></span>
+    </div>
+</div>
+
+<div class="modal" id="thirdPartyProviderSearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Search Service Provider</h5>
+                <button type="button" class="btn-close" id="btn_closeProviderSearch" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row two-col">
+                    <div class="col">
+                        <label class="label-blue" for="txt_providerSearchKey">Search</label>
+                        <input type="text" id="txt_providerSearchKey" class="bs-input-text" placeholder="Enter service provider or description">
+                    </div>
+                    <div class="col d-flex align-items-end">
+                        <button type="button" class="btn-action" id="btn_runProviderSearch"><i class="bi bi-search me-1"></i>Search</button>
+                    </div>
+                </div>
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm table-hover" id="tbl_providerSearchResults">
+                        <thead>
+                            <tr>
+                                <th>Service Provider</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

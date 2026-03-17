@@ -116,6 +116,35 @@ window.AccountSignatoriesModule = (function () {
             .replace(/'/g, '&apos;');
     }
 
+    function getJsonHeaders() {
+        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        return {
+            'Content-Type': 'application/json',
+            ...(csrfToken && { RequestVerificationToken: csrfToken })
+        };
+    }
+
+    async function postJson(endpoint, payload) {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: getJsonHeaders(),
+            body: JSON.stringify(payload)
+        });
+
+        let result = null;
+        try {
+            result = await response.json();
+        } catch {
+            result = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(result?.ErrorMessage || result?.ResponseMessage || `HTTP ${response.status}`);
+        }
+
+        return result;
+    }
+
     function formatDate(value) {
         if (!value) return '-';
         if (window.GlobalUtils?.formatDate) {
@@ -239,14 +268,15 @@ window.AccountSignatoriesModule = (function () {
 
         const mand = document.getElementById('isMandatory');
         if (mand) {
-            const mv = fv(['IsMandatory', 'isMandatory', 'Mandatory']);
+            const mv = fv(['IsMandatory', 'isMandatory', 'Ismandatory', 'IsMendetory', 'Mandatory']);
             mand.checked = mv === true || mv === 1 || mv === '1' || mv === 'Y' || mv === 'Yes';
         }
 
         const menu = document.getElementById('mandatesDropdownMenu');
         if (menu) {
             menu.querySelectorAll('input[type="checkbox"]').forEach(cb => (cb.checked = false));
-            const vals = String(fv(['Mandates', 'MandateID', 'mandateID']) || '').split(',').map(v => v.trim()).filter(Boolean);
+            const fallbackMandate = state.loadMetadata?.AgentMandate || state.loadMetadata?.agentMandate || '';
+            const vals = String(fv(['AgentMandate', 'agentMandate', 'Mandates', 'MandateID', 'mandateID']) || fallbackMandate).split(',').map(v => v.trim()).filter(Boolean);
             vals.forEach(v => {
                 const cb = menu.querySelector(`input[type="checkbox"][value="${v}"]`);
                 if (cb) cb.checked = true;
@@ -284,6 +314,7 @@ window.AccountSignatoriesModule = (function () {
             SignatoryType: stTxt,
             ReferenceID: referenceID,
             Limit: gv('limit'),
+            AgentMandate: getSelectedMandates(),
             Mandates: getSelectedMandates(),
             IsMandatory: document.getElementById('isMandatory')?.checked || false,
             OpenedDate: openedDate,
@@ -374,7 +405,7 @@ window.AccountSignatoriesModule = (function () {
             const st = fv(row, ['SignatoryType', 'SignatoryTypeID', 'signatoryType']) || '-';
             const lim = fv(row, ['Limit', 'limit', 'GroupID']) || '-';
             const ref = fv(row, ['ReferenceID', 'referenceID', 'SequenceNo', 'SeqNo']) || '-';
-            const mv = fv(row, ['IsMandatory', 'isMandatory', 'Mandatory']);
+            const mv = fv(row, ['IsMandatory', 'isMandatory', 'Ismandatory', 'IsMendetory', 'Mandatory']);
             const mand = mv === true || mv === 1 || mv === '1' || mv === 'Y' || mv === 'Yes';
             const isN = row._isNew === true;
             const isM = row._isModified === true;
@@ -533,12 +564,8 @@ window.AccountSignatoriesModule = (function () {
 
         showLoader(true);
         try {
-            const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const headers = {
-                'Content-Type': 'application/json',
-                ...(csrfToken && { 'RequestVerificationToken': csrfToken })
-            };
-
+            let allRows = [];
+            let lastMetadata = null;
             const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
             const basePayload = {
                 SearchKey: searchKey,
@@ -546,15 +573,14 @@ window.AccountSignatoriesModule = (function () {
                 OurBranchID: state.context.OurBranchID,
                 AccountID: state.context.AccountID,
                 OperatorID: state.context.OperatorID,
-                ModuleID: 20
+                BankID: state.context.BankID || '00',
+                ModuleID: 20,
+                IncludeAgentMandate: true,
+                IncludeClosed: false
             };
 
             const firstPayload = { ...basePayload, Direction: 0, SignatoryID: '' };
-            const firstResp = await fetch('/AccountsMaintenance/api/get-account-signatories', {
-                method: 'POST', headers, body: JSON.stringify(firstPayload)
-            });
-            if (!firstResp.ok) throw new Error(`HTTP ${firstResp.status}`);
-            const firstResult = await firstResp.json();
+            const firstResult = await postJson('/AccountsMaintenance/api/get-account-signatories', firstPayload);
             console.log('[AccountSignatories] First response:', firstResult);
 
             const firstOk = firstResult?.ResponseCode === '00' || firstResult?.ResponseCode === 0 ||
@@ -567,11 +593,11 @@ window.AccountSignatoriesModule = (function () {
             }
 
             const parsed = parseSignatoriesResponse(firstResult);
-            let allRows = parsed.rows;
-            let lastMetadata = parsed.metadata || firstResult;
+            allRows = parsed.rows;
+            lastMetadata = parsed.metadata || firstResult;
 
             if (allRows.length === 0) {
-                allRows = await loadSignatoriesByNavigation(basePayload, headers, firstResult);
+                allRows = await loadSignatoriesByNavigation(basePayload, firstResult);
             }
 
             console.log(`[AccountSignatories] Finished loading ${allRows.length} signator(ies).`);
@@ -594,6 +620,7 @@ window.AccountSignatoriesModule = (function () {
         const rows = [];
         const seen = new Set();
         let metadata = null;
+        let sharedAgentMandate = null;
 
         const isStatusRow = item => item && typeof item === 'object' &&
             ((item.ResponseCode !== undefined) || (item.EventID !== undefined && item.SignatoryID === undefined && item.SignatoryName === undefined));
@@ -619,6 +646,10 @@ window.AccountSignatoriesModule = (function () {
                 metadata = obj.Metadata;
             }
 
+            if (sharedAgentMandate == null && obj.AgentMandate !== undefined && obj.AgentMandate !== null) {
+                sharedAgentMandate = obj.AgentMandate;
+            }
+
             if (Array.isArray(obj.AccountOperators)) pushRows(obj.AccountOperators);
             if (Array.isArray(obj.Signatories)) pushRows(obj.Signatories);
             if (Array.isArray(obj.SignatoryData)) pushRows(obj.SignatoryData);
@@ -642,10 +673,23 @@ window.AccountSignatoriesModule = (function () {
         scanObject(result?.data);
         scanObject(result?.Data);
 
+        if (sharedAgentMandate) {
+            rows.forEach(row => {
+                if (row.AgentMandate === undefined && row.Mandates === undefined && row.MandateID === undefined) {
+                    row.AgentMandate = sharedAgentMandate;
+                }
+            });
+
+            metadata = metadata || {};
+            if (metadata.AgentMandate === undefined) {
+                metadata.AgentMandate = sharedAgentMandate;
+            }
+        }
+
         return { rows, metadata };
     }
 
-    async function loadSignatoriesByNavigation(basePayload, headers, firstResult) {
+    async function loadSignatoriesByNavigation(basePayload, firstResult) {
         const allRows = [];
         const seedRecord = extractSingleRecord(firstResult);
         const seedId = seedRecord?.SignatoryID || seedRecord?.signatoryID || '';
@@ -659,11 +703,7 @@ window.AccountSignatoriesModule = (function () {
 
         for (let i = 0; i < MAX_ITERATIONS && currentID; i++) {
             const payload = { ...basePayload, Direction: 1, SignatoryID: currentID };
-            const resp = await fetch('/AccountsMaintenance/api/get-account-signatories', {
-                method: 'POST', headers, body: JSON.stringify(payload)
-            });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            const result = await resp.json();
+            const result = await postJson('/AccountsMaintenance/api/get-account-signatories', payload);
             const record = extractSingleRecord(result);
             if (!record) break;
 
@@ -773,50 +813,83 @@ window.AccountSignatoriesModule = (function () {
         sf('supervisedOn', bts.supervisedOn ? formatDate(bts.supervisedOn) : '-');
     }
 
-    async function ensureLegacySignatoryService() {
-        if (window.OtherAccountService?.addEditAccountOperatedBy || window.otherAccountService?.addEditAccountOperatedBy) {
-            return window.OtherAccountService || window.otherAccountService;
-        }
-
-        if (!window.ServiceLoader) {
-            throw new Error('ServiceLoader is not available to load the legacy signatory service.');
-        }
-
-        const servicePath = `${window.ServiceLoader.getBasePath()}services/account/OtherAccountService.js`;
-        await window.ServiceLoader.loadCore();
-        await window.ServiceLoader.loadScript(servicePath);
-        await window.ServiceLoader.waitForService('OtherAccountService', 5000);
-
-        const legacyService = window.OtherAccountService || window.otherAccountService;
-        if (!legacyService?.addEditAccountOperatedBy) {
-            throw new Error('Legacy signatory save service could not be initialized.');
-        }
-
-        return legacyService;
+    function buildSignatoriesApiPayload(detailRecords) {
+        const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
+        return {
+            AccountID: state.context.AccountID,
+            SearchKey: searchKey,
+            SearchID: searchKey,
+            OurBranchID: state.context.OurBranchID,
+            OperatorID: state.context.OperatorID || 'web_portal',
+            BankID: state.context.BankID || '00',
+            ModuleID: 20,
+            OperatingModeID: window.AccountMaintenanceState?.OperatingModeID || '',
+            OperatingInstructionID: window.AccountMaintenanceState?.OperatingInstructionID || '',
+            SignatoriesXml: detailRecords
+        };
     }
 
-    async function saveNewSignatoriesViaLegacyService(newPending, maxUpdateCount) {
-        const legacyService = await ensureLegacySignatoryService();
+    function buildAddSignatoriesApiPayload(signatories) {
+        const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
+        const maxUpdateCount = (state.signatories || []).reduce((max, sig) => {
+            const count = parseInt(sig?.UpdateCount ?? sig?.updateCount ?? 0, 10) || 0;
+            return Math.max(max, count);
+        }, 0);
+        const detailRecords = (signatories || []).map((sig, index) => {
+            const referenceId = sig.ReferenceID || sig.Sequence || sig.SeqNo || sig.SequenceNo || String(index + 1);
+            const mandateId = sig.AgentMandate || sig.agentMandate || sig.Mandates || sig.MandateID || sig.mandateID || '';
+            const limit = sig.Limit ?? sig.limit ?? '';
+            const groupId = sig.GroupID ?? sig.groupID ?? sig.groupId ?? '';
+            const isMandatory = sig.IsMandatory ?? sig.isMandatory ?? sig.Mandatory ?? sig.IsMendetory ?? false;
 
-        const detailRecords = buildXmlForSubset(newPending, 'N');
-        const requestData = {
-            OurBranchID: state.context.OurBranchID,
+            return {
+                ReferenceID: String(referenceId),
+                SignatoryID: sig.SignatoryID || sig.OperatorID || '',
+                SignatoryTypeID: sig.SignatoryTypeID || '',
+                Limit: limit,
+                GroupID: groupId,
+                AgentMandateID: mandateId,
+                IsMandatory: !!isMandatory
+            };
+        });
+
+        return {
             AccountID: state.context.AccountID,
+            SearchKey: searchKey,
+            SearchID: searchKey,
+            OurBranchID: state.context.OurBranchID,
+            OperatorID: state.context.OperatorID || 'web_portal',
             OperatedBy: state.context.OperatorID || 'web_portal',
             OperatedOn: new Date().toISOString(),
             SupervisedBy: '',
             UpdateCount: maxUpdateCount,
+            BankID: state.context.BankID || '00',
+            ModuleID: 20,
+            OperatingModeID: window.AccountMaintenanceState?.OperatingModeID || '',
+            OperatingInstructionID: window.AccountMaintenanceState?.OperatingInstructionID || '',
             DetailRecords: detailRecords
         };
+    }
 
-        console.log('[AccountSignatories] LEGACY ADD payload:', requestData);
-        const result = await legacyService.addEditAccountOperatedBy(requestData);
-        console.log('[AccountSignatories] LEGACY ADD response:', result);
-
-        const ok = result?.success === true || result?.Success === true || result?.code === '00' || result?.ResponseCode === '00';
-        if (!ok) {
-            throw new Error(result?.message || result?.ResponseMessage || 'Failed to add new signatories.');
+    async function saveSignatoriesBatch(endpoint, signatories, forceMark) {
+        if (!Array.isArray(signatories) || signatories.length === 0) {
+            return null;
         }
+
+        const isAddEndpoint = endpoint === '/AccountsMaintenance/api/add-account-signatories';
+        const detailRecords = isAddEndpoint ? null : buildXmlForSubset(signatories, forceMark);
+        const payload = isAddEndpoint
+            ? buildAddSignatoriesApiPayload(signatories)
+            : buildSignatoriesApiPayload(detailRecords);
+        console.log('[AccountSignatories] Saving batch:', { endpoint, count: signatories.length, payload });
+
+        const result = await postJson(endpoint, payload);
+        const ok = result?.success === true || result?.Success === true || result?.ResponseCode === '00' || result?.ResponseCode === 0;
+        if (!ok) {
+            throw new Error(result?.ErrorMessage || result?.ResponseMessage || result?.message || 'Failed to save signatories.');
+        }
+
+        return result;
     }
 
     async function saveAllChanges() {
@@ -828,83 +901,45 @@ window.AccountSignatoriesModule = (function () {
 
         showLoader(true);
         try {
-            const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
             const maxUC = state.signatories.reduce((m, s) => Math.max(m, parseInt(s.UpdateCount, 10) || 0), 0);
-            const parentState = window.AccountMaintenanceState || {};
-            const operatingModeID = parentState.OperatingModeID || parentState.OperatingMode || '';
-            const operatingInstructionID = parentState.OperatingInstructionID || parentState.OperatingInstructions || parentState.OperatingInstruction || '';
-            const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const headers = {
-                'Content-Type': 'application/json',
-                ...(csrfToken && { 'RequestVerificationToken': csrfToken })
-            };
-
-            const buildBasePayload = () => ({
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                OurBranchID: state.context.OurBranchID,
-                AccountID: state.context.AccountID,
-                BankID: state.context.BankID || '00',
-                OperatorID: state.context.OperatorID || 'web_portal',
-                OperatingModeID: operatingModeID,
-                OperatingInstructionID: operatingInstructionID,
-                OperatedBy: state.context.OperatorID || 'web_portal',
-                OperatedOn: new Date().toISOString(),
-                SupervisedBy: '',
-                UpdateCount: maxUC,
-                ModuleID: 20
+            const changedRows = state.signatories.filter(s => s._isNew || s._isModified || s._isDeleted);
+            console.log('[AccountSignatories] Pending changes summary:', {
+                mode: state.mode,
+                total: state.signatories.length,
+                changedRows: changedRows.length,
+                pendingChanges: state.pendingChanges.length
             });
 
-            const existingPending = state.signatories.filter(s => !s._isNew && (s._isModified || s._isDeleted));
-            const newPending = state.signatories.filter(s => s._isNew && !s._isDeleted);
+            if (changedRows.length === 0) {
+                showInfo('No changes to save.');
+                return;
+            }
 
-            let allOk = true;
-            let lastMessage = '';
+            const newRows = changedRows.filter(s => s._isNew && !s._isDeleted);
+            const existingRows = changedRows.filter(s => !s._isNew && (s._isModified || s._isDeleted));
 
-            // 1) Add new signatories.
-            // The dedicated MVC add endpoint is currently failing with APIEX96 transaction-count errors,
-            // so use the legacy save contract for inserts until the backend procedure is corrected.
-            if (newPending.length > 0) {
+            if (newRows.length > 0) {
                 try {
-                    await saveNewSignatoriesViaLegacyService(newPending, maxUC);
+                    await saveSignatoriesBatch('/AccountsMaintenance/api/add-account-signatories', newRows, 'N');
                 } catch (err) {
-                    allOk = false;
-                    lastMessage = err.message || 'Add failed.';
+                    if (String(err?.message || '').includes('Transaction count after EXECUTE')) {
+                        throw new Error('The add signatory stored procedure is failing in the backend with a transaction mismatch. Existing signatory edits can save, but new signatories need the AccountManagement add procedure fixed.');
+                    }
+                    throw err;
                 }
             }
 
-            // 2) Edit/Remove existing signatories (p_V8_EditBankSignatory)
-            if (existingPending.length > 0 && allOk) {
-                const editXml = buildXmlForSubset(existingPending);
-                const editPayload = { ...buildBasePayload(), DetailRecords: editXml, SignatoriesXml: editXml };
-                console.log('[AccountSignatories] EDIT payload:', editPayload);
-
-                const editResp = await fetch('/AccountsMaintenance/api/edit-account-signatories', {
-                    method: 'POST', headers, body: JSON.stringify(editPayload)
-                });
-                if (!editResp.ok) throw new Error(`Edit HTTP ${editResp.status}`);
-                const editResult = await editResp.json();
-                console.log('[AccountSignatories] EDIT response:', editResult);
-
-                const editOk = editResult?.ResponseCode === '00' || editResult?.ResponseCode === 0 ||
-                    editResult?.success === true || editResult?.Success === true;
-                if (!editOk) {
-                    allOk = false;
-                    lastMessage = editResult?.ResponseMessage || editResult?.message || 'Edit failed.';
-                }
+            if (existingRows.length > 0) {
+                await saveSignatoriesBatch('/AccountsMaintenance/api/edit-account-signatories', existingRows);
             }
 
-            if (allOk) {
-                state.pendingChanges = [];
-                showSuccess('Signatories saved successfully.');
-                await loadSignatories();
-                clearForm();
-                state.selectedRow = null;
-                state.mode = 'VIEW';
-                updateButtonStates();
-            } else {
-                showError(lastMessage || 'Save failed.');
-            }
+            state.pendingChanges = [];
+            showSuccess('Signatories saved successfully.');
+            await loadSignatories();
+            clearForm();
+            state.selectedRow = null;
+            state.mode = 'VIEW';
+            updateButtonStates();
         } catch (err) {
             console.error('[AccountSignatories] Save error:', err);
             showError('Save error: ' + err.message);
@@ -939,13 +974,24 @@ window.AccountSignatoriesModule = (function () {
             }
 
             const ref = sig.ReferenceID || sig.Sequence || sig.SeqNo || sig.SequenceNo || (i + 1).toString();
+            const mandates = sig.AgentMandate || sig.agentMandate || sig.Mandates || sig.MandateID || sig.mandateID || '';
+            const limit = sig.Limit ?? sig.limit ?? sig.GroupID ?? sig.groupID ?? sig.groupId ?? '';
             xml += '<dt_AccountOperatedBy>';
             xml += `<ReferenceID>${escapeXml(ref)}</ReferenceID>`;
             xml += `<SignatoryTypeID>${escapeXml(sig.SignatoryTypeID || '')}</SignatoryTypeID>`;
             xml += `<SignatoryID>${escapeXml(sig.SignatoryID || sig.OperatorID || '')}</SignatoryID>`;
             xml += `<SignatoryName>${escapeXml(sig.SignatoryName || sig.SignatoryID || '')}</SignatoryName>`;
             xml += `<ButtonMark>${bm}</ButtonMark>`;
-            if (bm !== 'R') xml += `<IsMendetory>${sig.IsMandatory ? 'true' : 'false'}</IsMendetory>`;
+            if (bm !== 'R') {
+                xml += `<Limit>${escapeXml(limit)}</Limit>`;
+                xml += `<GroupID>${escapeXml(limit)}</GroupID>`;
+                xml += `<IsMendetory>${sig.IsMandatory ? 'true' : 'false'}</IsMendetory>`;
+                xml += `<IsMandatory>${sig.IsMandatory ? 'true' : 'false'}</IsMandatory>`;
+                xml += `<Mandatory>${sig.IsMandatory ? 'true' : 'false'}</Mandatory>`;
+                xml += `<AgentMandate>${escapeXml(mandates)}</AgentMandate>`;
+                xml += `<Mandates>${escapeXml(mandates)}</Mandates>`;
+                xml += `<MandateID>${escapeXml(mandates)}</MandateID>`;
+            }
             xml += '</dt_AccountOperatedBy>';
         });
         return xml;
