@@ -205,6 +205,84 @@ function parseClientMaintenanceDateValue(value) {
     return Number.isNaN(nativeDate.getTime()) ? null : nativeDate;
 }
 
+function formatClientMaintenanceDisplayDateTime(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = CLIENT_MAINTENANCE_SHORT_MONTHS[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
+
+function setClientMaintenanceFieldValue(field, value) {
+    if (!field) return;
+
+    const normalizedValue = value == null ? '' : String(value).trim();
+
+    if (field._flatpickr) {
+        try {
+            if (!normalizedValue) {
+                field._flatpickr.clear();
+            } else {
+                const parsedDate = parseClientMaintenanceDateValue(normalizedValue);
+                field._flatpickr.setDate(parsedDate || normalizedValue, true);
+            }
+            return;
+        } catch (error) {
+            console.warn('[ClientMaintenance] Failed to set flatpickr value:', error);
+        }
+    }
+
+    if (!normalizedValue) {
+        field.value = '';
+        return;
+    }
+
+    const type = String(field.type || '').toLowerCase();
+    const dataType = String(field.getAttribute('data-type') || '').toLowerCase();
+    const parsedDate = parseClientMaintenanceDateValue(normalizedValue);
+
+    if (type === 'date') {
+        field.value = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : normalizedValue;
+        return;
+    }
+
+    if (dataType === 'datetime') {
+        if (parsedDate) {
+            field.value = formatClientMaintenanceDisplayDateTime(parsedDate);
+            return;
+        }
+
+        if (window.GlobalUtils?.formatDateTime) {
+            field.value = window.GlobalUtils.formatDateTime(normalizedValue);
+            return;
+        }
+
+        field.value = normalizedValue;
+        return;
+    }
+
+    if (dataType === 'date') {
+        if (parsedDate) {
+            field.value = formatClientMaintenanceDisplayDate(parsedDate);
+            return;
+        }
+
+        if (window.GlobalUtils?.formatDate) {
+            field.value = window.GlobalUtils.formatDate(normalizedValue);
+            return;
+        }
+
+        field.value = normalizedValue;
+        return;
+    }
+
+    field.value = value ?? '';
+}
+
 function syncClientMaintenanceDateInput(input) {
     if (!input || !input._flatpickr) return;
 
@@ -1431,6 +1509,15 @@ function resetPaneFormFields(pane) {
 
         if (type === 'hidden') return;
 
+        if (field._flatpickr) {
+            try {
+                field._flatpickr.clear();
+            } catch (_error) {
+                field.value = '';
+            }
+            return;
+        }
+
         if (type === 'radio') {
             const groupName = field.name || field.id || '';
             if (!groupName || resetRadioGroups.has(groupName)) return;
@@ -1547,7 +1634,7 @@ function applyResponseDataToPane(pane, response, explicitFieldMap) {
             return;
         }
 
-        field.value = value ?? '';
+        setClientMaintenanceFieldValue(field, value);
     });
 }
 
@@ -1744,33 +1831,7 @@ function setFieldValue(root, selector, value) {
     const field = root?.querySelector(selector);
     if (!field) return;
 
-    const normalizedValue = value == null ? '' : String(value).trim();
-    if (field._flatpickr) {
-        if (!normalizedValue) {
-            field._flatpickr.clear();
-        } else {
-            field._flatpickr.setDate(normalizedValue, true);
-        }
-        return;
-    }
-
-    const dataType = String(field.getAttribute('data-type') || '').toLowerCase();
-    if (!normalizedValue) {
-        field.value = '';
-        return;
-    }
-
-    if (dataType === 'datetime' && window.GlobalUtils?.formatDateTime) {
-        field.value = window.GlobalUtils.formatDateTime(normalizedValue);
-        return;
-    }
-
-    if (dataType === 'date' && window.GlobalUtils?.formatDate) {
-        field.value = window.GlobalUtils.formatDate(normalizedValue);
-        return;
-    }
-
-    field.value = value ?? '';
+    setClientMaintenanceFieldValue(field, value);
 }
 
 function setSelectValueWithFallback(selectElement, value, fallbackText) {
@@ -1837,22 +1898,24 @@ function applyBasicDetailsToPersonal(row) {
         ['#txt_personalLastName', row?.LastName],
         ['#ddl_personalGender', row?.GenderID],
         ['#dt_personalDob', row?.DateOfBirth],
+        ['#txt_personalAge', row?.Age],
+        ['#txt_personalAgeAsOn', row?.AgeAsOn],
         ['#ddl_personalNationality', row?.NationalityID],
         ['#ddl_personalResidentStatus', row?.ResidentID],
         ['#ddl_personalIdType', row?.IdentificationTypeID],
-        ['#txt_personalIdNumber', row?.NationalId || row?.IdentificationNo],
-        ['#dt_personalIssueDate', row?.IDIssueDate],
+        ['#txt_personalIdNumber', row?.IdentificationNo || row?.PassportNo || row?.NationalId],
+        ['#dt_personalIssueDate', row?.IDIssueDate || row?.PassportIssueDate || row?.IssueDate],
         ['#txt_personalIssuedBy', row?.IssuedBy],
-        ['#dt_personalExpiryDate', row?.IDExpiryDate],
-        ['#ddl_personalLiteracyLevel', row?.LiteracyLevel],
-        ['#ddl_personalMaritalStatus', row?.MaritalStatus],
+        ['#dt_personalExpiryDate', row?.IDExpiryDate || row?.PassportExpiryDate || row?.ExpiryDate],
+        ['#ddl_personalLiteracyLevel', row?.LiteracyLevelID || row?.LiteracyLevel],
+        ['#ddl_personalMaritalStatus', row?.MaritalStatusID || row?.MaritalStatus],
         ['#txt_personalHouseMembers', row?.NumberOfHouseMembers],
         ['#txt_personalChildren', row?.NumberOfChildren],
         ['#txt_personalDependents', row?.NumberOfDependents],
         ['#txt_personalMotherName', row?.MotherName],
-        ['#ddl_personalBloodGroup', row?.BloodGroup],
-        ['#txt_personalOpenedBy', row?.CreatedBy],
-        ['#dt_personalOpenedOn', row?.OpenedOn ?? row?.OpenedDate],
+        ['#ddl_personalBloodGroup', row?.BloodGroupID || row?.BloodGroup],
+        ['#txt_personalOpenedBy', row?.OpenedBy || row?.CreatedBy],
+        ['#dt_personalOpenedOn', row?.OpenedDate ?? row?.OpenedOn],
         ['#ddl_personalRelationshipManager', row?.RelationshipManagerID]
     ];
 
@@ -1865,7 +1928,7 @@ function applyBasicDetailsToPersonal(row) {
 
     const openedByName = personalPane.querySelector('#txt_personalOpenedByName');
     if (openedByName) {
-        openedByName.value = row?.CreatedByName || row?.OpenedByName || '';
+        openedByName.value = row?.OpenedByName || row?.CreatedByName || row?.openedByName || '';
     }
 }
 
@@ -2937,7 +3000,25 @@ function getTabDataFromPane(pane) {
         if (!key || key.startsWith('_')) return; // Skip internal fields
 
         const type = element.type?.toLowerCase() || '';
-        if (type === 'hidden' || type === 'button' || type === 'submit') return;
+        if ((type === 'hidden' && !element._flatpickr) || type === 'button' || type === 'submit') return;
+
+        if (element._flatpickr) {
+            const selectedDate = element._flatpickr.selectedDates?.[0];
+            if (selectedDate instanceof Date && !Number.isNaN(selectedDate.getTime())) {
+                payload[key] = formatClientMaintenanceIsoDate(selectedDate);
+                return;
+            }
+
+            const rawValue = String(element.value || element._flatpickr.altInput?.value || '').trim();
+            if (!rawValue) {
+                payload[key] = '';
+                return;
+            }
+
+            const parsedDate = parseClientMaintenanceDateValue(rawValue);
+            payload[key] = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : rawValue;
+            return;
+        }
 
         if (type === 'checkbox') {
             payload[key] = element.checked;
@@ -3284,6 +3365,29 @@ async function invokeTabAction(tabKey, action, requestData) {
  */
 async function processTabWorkflowStep(tabKey, pane, tabIndex) {
     if (!pane || !tabKey) return false;
+
+    // Special validation for Relations tab: share percent must total 100%
+    if (tabKey === 'Relations') {
+        const tbody = pane.querySelector('table tbody') || pane.querySelector('#tbl_clientRelationsBody');
+        if (tbody) {
+            const rows = tbody.querySelectorAll('tr[data-payload]');
+            let totalShare = 0;
+            rows.forEach((row) => {
+                try {
+                    const payload = JSON.parse(row.dataset.payload || '{}');
+                    const share = parseFloat(payload.SharePercent) || 0;
+                    totalShare += share;
+                } catch (_error) { }
+            });
+            if (totalShare !== 100) {
+                window.ClientMaintenanceCore.showToast(
+                    `Relations: Share percentage must total 100% (Current: ${totalShare.toFixed(2)}%)`,
+                    'warning'
+                );
+                return false;
+            }
+        }
+    }
 
     const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
     const isFirstWorkflowStep = Number(tabIndex) === 0;

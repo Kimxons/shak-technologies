@@ -14,6 +14,12 @@ namespace kairo_ui.Services
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
+        public const string GET_ACCOUNT_OFFICERS = "p_GetAccountOfficers";
+        public const string ADD_EDIT_ACCOUNT_OFFICERS = "p_AddEditAccountOfficers";
+        public const string ADD_EDIT_ACCOUNT_OFFICER_DETAIL = "p_AddEditAccountOfficerDetail";
+        public const string DELETE_ACCOUNT_OFFICERS = "p_DeleteAccountOfficers";
+        public const string RESIGN_ACCOUNT_OFFICERS = "p_ResignAccountOfficers";
+        public const string GET_SYSTEM_CODES_V1 = "dbo.p_v1_GetSystemCodes";
 
         // Branch
         public const string GET_BRANCH_LIST = "dbo.p_getBranchList";

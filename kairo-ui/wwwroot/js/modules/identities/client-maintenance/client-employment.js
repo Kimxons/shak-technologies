@@ -3,25 +3,33 @@ const CM_EMPLOYMENT_BASE = 'Identities/ClientMaintenance/Employment';
 // Explicit field mapping for Employment tab: API response key => form field ID/name
 const EMPLOYMENT_FIELD_MAP = {
     'OccupationID': 'ddl_employmentOccupation',
-    'Occupation': 'ddl_employmentOccupation',
+    //'Occupation': 'ddl_employmentOccupation',
+    //'Occupationdescription': 'ddl_employmentOccupation/*',
+    'OccupationDescription': 'ddl_employmentOccupation',
     'DesignationID': 'ddl_employmentDesignation',
-    'Designation': 'ddl_employmentDesignation',
+    //'Designation': 'ddl_employmentDesignation',
+    //'Designationdescription': 'ddl_employmentDesignation',c
+    'DesignationDescription': 'ddl_employmentDesignation',
     'CompanyTypeID': 'ddl_employmentCompanyType',
     'CompanyType': 'ddl_employmentCompanyType',
+    'Companytypedescription': 'ddl_employmentCompanyType',
+    'CompanyTypeDescription': 'ddl_employmentCompanyType',
     'EmployerName': 'txt_employmentCompanyName',
     'EmployerCode': 'ddl_employmentCompanyCode',
     'BusinessOwnershipID': 'ddl_employmentBusinessOwnership',
-    'BusinessOwnership': 'ddl_employmentBusinessOwnership',
+    //'BusinessOwnership': 'ddl_employmentBusinessOwnership',
     'BusinessLineID': 'ddl_employmentBusinessLine',
-    'BusinessLine': 'ddl_employmentBusinessLine',
+    //'BusinessLine': 'ddl_employmentBusinessLine',
     'WorkingSince': 'dt_employmentWorkingSince',
+    'Salary': 'txt_employmentMonthlyIncome',
     'MonthlyIncome': 'txt_employmentMonthlyIncome',
-    'AverageMonthlyIncome': 'txt_employmentMonthlyIncome',
+    //'AverageMonthlyIncome': 'txt_employmentMonthlyIncome',
+    'FamilyIncome': 'txt_employmentAnnualIncome',
     'AnnualIncome': 'txt_employmentAnnualIncome',
     'AverageAnnualIncome': 'txt_employmentAnnualIncome',
     'OtherIncome': 'txt_employmentOtherIncome',
     'TotalIncome': 'txt_employmentTotalIncome',
-    'RentExpenses': 'txt_employmentRentExpenses',
+    //'RentExpenses': 'txt_employmentRentExpenses',
     'RentExpense': 'txt_employmentRentExpenses',
     'OtherExpenses': 'txt_employmentOtherExpenses',
     'TotalExpenses': 'txt_employmentTotalExpenses',
@@ -29,9 +37,13 @@ const EMPLOYMENT_FIELD_MAP = {
     'WorkPermitNo': 'txt_employmentWorkPermit',
     'BusinessStartedYear': 'txt_employmentBusinessStartedYear',
     'NumberOfEmployees': 'txt_employmentNumberOfEmployees',
+    'NoOfEmployees': 'txt_employmentNumberOfEmployees',
     'EmploymentComments': 'txa_employmentComments',
+    'Comments': 'txa_employmentComments',
     'IsSalaried': 'IsSalaried'
 };
+
+window.EMPLOYMENT_FIELD_MAP = EMPLOYMENT_FIELD_MAP;
 
 function invokeClientMaintenanceEmployment(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_EMPLOYMENT_BASE, action, 'POST', requestData || {});

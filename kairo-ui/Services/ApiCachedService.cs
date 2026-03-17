@@ -550,12 +550,20 @@ namespace kairo_ui.Services
             try
             {
                 var requestId = _httpContext.HttpContext?.Connection.Id ?? Guid.NewGuid().ToString();
+                var session = _httpContext.HttpContext?.Session;
+                var branchCode = session?.GetString("branch_code") ?? string.Empty;
+                var operatorId = session?.GetString("user_name") ?? string.Empty;
                 var apiRequest = new
                 {
-                    RequestID = requestId
+                    RequestID = requestId,
+                    BankID = "00",
+                    OurBranchID = branchCode,
+                    OperatorID = operatorId
                 };
 
-                _logger.LogDebug("[ApiCachedService] API Request for system bank settings");
+                _logger.LogDebug("[ApiCachedService] API Request for system bank settings | BranchCode: {BranchCode} | OperatorId: {OperatorId}",
+                    branchCode,
+                    operatorId);
 
                 var response = await _apiService.CreateAsync<ResponseDetail<object>>(
              "SystemCoreApi",
@@ -564,11 +572,7 @@ namespace kairo_ui.Services
 
                 if (response?.ResponseCode == "00" && response.Details != null)
                 {
-                    var detailsJson = JsonSerializer.Serialize(response.Details);
-                    var settings = JsonSerializer.Deserialize<SystemBankSetting>(detailsJson, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    var settings = DeserializeSystemBankSettings(response.Details);
 
                     _logger.LogInformation("[ApiCachedService] Successfully fetched system bank settings from API - Bank: {BankName}",
                          settings?.BankName ?? "N/A");
@@ -584,6 +588,42 @@ namespace kairo_ui.Services
                 _logger.LogError(ex, "[ApiCachedService] Error fetching system bank settings from API");
                 throw;
             }
+        }
+
+        private static SystemBankSetting? DeserializeSystemBankSettings(object details)
+        {
+            if (details is null)
+            {
+                return null;
+            }
+
+            var serializerOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            if (details is JsonElement element)
+            {
+                if (element.ValueKind == JsonValueKind.Object &&
+                    element.TryGetProperty("SystemBankSettingData", out var nestedSettings))
+                {
+                    return JsonSerializer.Deserialize<SystemBankSetting>(nestedSettings.GetRawText(), serializerOptions);
+                }
+
+                return JsonSerializer.Deserialize<SystemBankSetting>(element.GetRawText(), serializerOptions);
+            }
+
+            var detailsJson = JsonSerializer.Serialize(details);
+            using var jsonDocument = JsonDocument.Parse(detailsJson);
+            var root = jsonDocument.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object &&
+                root.TryGetProperty("SystemBankSettingData", out var settingsData))
+            {
+                return JsonSerializer.Deserialize<SystemBankSetting>(settingsData.GetRawText(), serializerOptions);
+            }
+
+            return JsonSerializer.Deserialize<SystemBankSetting>(detailsJson, serializerOptions);
         }
 
         /// <summary>
