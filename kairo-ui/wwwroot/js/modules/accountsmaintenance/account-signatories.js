@@ -239,14 +239,14 @@ window.AccountSignatoriesModule = (function () {
 
         const mand = document.getElementById('isMandatory');
         if (mand) {
-            const mv = fv(['IsMandatory', 'isMandatory', 'Mandatory']);
+            const mv = fv(['IsMandatory', 'isMandatory', 'Ismandatory', 'IsMendetory', 'Mandatory']);
             mand.checked = mv === true || mv === 1 || mv === '1' || mv === 'Y' || mv === 'Yes';
         }
 
         const menu = document.getElementById('mandatesDropdownMenu');
         if (menu) {
             menu.querySelectorAll('input[type="checkbox"]').forEach(cb => (cb.checked = false));
-            const vals = String(fv(['Mandates', 'MandateID', 'mandateID']) || '').split(',').map(v => v.trim()).filter(Boolean);
+            const vals = String(fv(['AgentMandate', 'agentMandate', 'Mandates', 'MandateID', 'mandateID']) || '').split(',').map(v => v.trim()).filter(Boolean);
             vals.forEach(v => {
                 const cb = menu.querySelector(`input[type="checkbox"][value="${v}"]`);
                 if (cb) cb.checked = true;
@@ -284,6 +284,7 @@ window.AccountSignatoriesModule = (function () {
             SignatoryType: stTxt,
             ReferenceID: referenceID,
             Limit: gv('limit'),
+            AgentMandate: getSelectedMandates(),
             Mandates: getSelectedMandates(),
             IsMandatory: document.getElementById('isMandatory')?.checked || false,
             OpenedDate: openedDate,
@@ -374,7 +375,7 @@ window.AccountSignatoriesModule = (function () {
             const st = fv(row, ['SignatoryType', 'SignatoryTypeID', 'signatoryType']) || '-';
             const lim = fv(row, ['Limit', 'limit', 'GroupID']) || '-';
             const ref = fv(row, ['ReferenceID', 'referenceID', 'SequenceNo', 'SeqNo']) || '-';
-            const mv = fv(row, ['IsMandatory', 'isMandatory', 'Mandatory']);
+            const mv = fv(row, ['IsMandatory', 'isMandatory', 'Ismandatory', 'IsMendetory', 'Mandatory']);
             const mand = mv === true || mv === 1 || mv === '1' || mv === 'Y' || mv === 'Yes';
             const isN = row._isNew === true;
             const isM = row._isModified === true;
@@ -533,6 +534,21 @@ window.AccountSignatoriesModule = (function () {
 
         showLoader(true);
         try {
+            let allRows = [];
+            let lastMetadata = null;
+
+            try {
+                const legacyLoad = await loadSignatoriesFromLegacyService();
+                if (legacyLoad?.rows?.length > 0) {
+                    allRows = legacyLoad.rows;
+                    lastMetadata = legacyLoad.metadata;
+                    console.log(`[AccountSignatories] Loaded ${allRows.length} signator(ies) from legacy operated-by service.`);
+                }
+            } catch (legacyErr) {
+                console.warn('[AccountSignatories] Legacy operated-by load failed, falling back to MVC endpoint:', legacyErr);
+            }
+
+            if (allRows.length === 0) {
             const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             const headers = {
                 'Content-Type': 'application/json',
@@ -567,11 +583,12 @@ window.AccountSignatoriesModule = (function () {
             }
 
             const parsed = parseSignatoriesResponse(firstResult);
-            let allRows = parsed.rows;
-            let lastMetadata = parsed.metadata || firstResult;
+                allRows = parsed.rows;
+                lastMetadata = parsed.metadata || firstResult;
 
             if (allRows.length === 0) {
                 allRows = await loadSignatoriesByNavigation(basePayload, headers, firstResult);
+            }
             }
 
             console.log(`[AccountSignatories] Finished loading ${allRows.length} signator(ies).`);
@@ -588,6 +605,37 @@ window.AccountSignatoriesModule = (function () {
         } finally {
             showLoader(false);
         }
+    }
+
+    async function loadSignatoriesFromLegacyService() {
+        const legacyService = await ensureLegacySignatoryService();
+        if (!legacyService?.getAccountOperatedBy) {
+            throw new Error('Legacy getAccountOperatedBy service is unavailable.');
+        }
+
+        const requestData = {
+            OurBranchID: state.context.OurBranchID || '',
+            AccountID: state.context.AccountID,
+            OperatorID: state.context.OperatorID || 'web_portal',
+            IncludeAgentMandate: true
+        };
+
+        const result = await legacyService.getAccountOperatedBy(requestData);
+        console.log('[AccountSignatories] Legacy operated-by response:', result);
+
+        const ok = result?.success === true || result?.Success === true ||
+            result?.code === '00' || result?.ResponseCode === '00' ||
+            result?.data || result?.Details;
+
+        if (!ok) {
+            throw new Error(result?.message || result?.ResponseMessage || 'Legacy load failed.');
+        }
+
+        const parsed = parseSignatoriesResponse(result);
+        return {
+            rows: parsed.rows,
+            metadata: parsed.metadata || result?.data || result?.Details || result
+        };
     }
 
     function parseSignatoriesResponse(result) {
@@ -774,8 +822,9 @@ window.AccountSignatoriesModule = (function () {
     }
 
     async function ensureLegacySignatoryService() {
-        if (window.OtherAccountService?.addEditAccountOperatedBy || window.otherAccountService?.addEditAccountOperatedBy) {
-            return window.OtherAccountService || window.otherAccountService;
+        const existingService = window.OtherAccountService || window.otherAccountService;
+        if (existingService?.addEditAccountOperatedBy || existingService?.getAccountOperatedBy) {
+            return existingService;
         }
 
         if (!window.ServiceLoader) {
@@ -788,17 +837,17 @@ window.AccountSignatoriesModule = (function () {
         await window.ServiceLoader.waitForService('OtherAccountService', 5000);
 
         const legacyService = window.OtherAccountService || window.otherAccountService;
-        if (!legacyService?.addEditAccountOperatedBy) {
-            throw new Error('Legacy signatory save service could not be initialized.');
+        if (!legacyService?.addEditAccountOperatedBy && !legacyService?.getAccountOperatedBy) {
+            throw new Error('Legacy signatory service could not be initialized.');
         }
 
         return legacyService;
     }
 
-    async function saveNewSignatoriesViaLegacyService(newPending, maxUpdateCount) {
+    async function saveAllSignatoriesViaLegacyService(maxUpdateCount) {
         const legacyService = await ensureLegacySignatoryService();
 
-        const detailRecords = buildXmlForSubset(newPending, 'N');
+        const detailRecords = buildXml();
         const requestData = {
             OurBranchID: state.context.OurBranchID,
             AccountID: state.context.AccountID,
@@ -809,13 +858,18 @@ window.AccountSignatoriesModule = (function () {
             DetailRecords: detailRecords
         };
 
-        console.log('[AccountSignatories] LEGACY ADD payload:', requestData);
+        console.log('[AccountSignatories] LEGACY SAVE payload:', requestData);
+
+        if (!legacyService?.addEditAccountOperatedBy) {
+            throw new Error('Legacy addEditAccountOperatedBy service is unavailable.');
+        }
+
         const result = await legacyService.addEditAccountOperatedBy(requestData);
-        console.log('[AccountSignatories] LEGACY ADD response:', result);
+        console.log('[AccountSignatories] LEGACY SAVE response:', result);
 
         const ok = result?.success === true || result?.Success === true || result?.code === '00' || result?.ResponseCode === '00';
         if (!ok) {
-            throw new Error(result?.message || result?.ResponseMessage || 'Failed to add new signatories.');
+            throw new Error(result?.message || result?.ResponseMessage || 'Failed to save signatories.');
         }
     }
 
@@ -828,73 +882,22 @@ window.AccountSignatoriesModule = (function () {
 
         showLoader(true);
         try {
-            const searchKey = `[${state.context.OurBranchID}:${state.context.AccountID}]`;
             const maxUC = state.signatories.reduce((m, s) => Math.max(m, parseInt(s.UpdateCount, 10) || 0), 0);
-            const parentState = window.AccountMaintenanceState || {};
-            const operatingModeID = parentState.OperatingModeID || parentState.OperatingMode || '';
-            const operatingInstructionID = parentState.OperatingInstructionID || parentState.OperatingInstructions || parentState.OperatingInstruction || '';
-            const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const headers = {
-                'Content-Type': 'application/json',
-                ...(csrfToken && { 'RequestVerificationToken': csrfToken })
-            };
-
-            const buildBasePayload = () => ({
-                SearchKey: searchKey,
-                SearchID: searchKey,
-                OurBranchID: state.context.OurBranchID,
-                AccountID: state.context.AccountID,
-                BankID: state.context.BankID || '00',
-                OperatorID: state.context.OperatorID || 'web_portal',
-                OperatingModeID: operatingModeID,
-                OperatingInstructionID: operatingInstructionID,
-                OperatedBy: state.context.OperatorID || 'web_portal',
-                OperatedOn: new Date().toISOString(),
-                SupervisedBy: '',
-                UpdateCount: maxUC,
-                ModuleID: 20
+            const changedRows = state.signatories.filter(s => s._isNew || s._isModified || s._isDeleted);
+            console.log('[AccountSignatories] Pending changes summary:', {
+                mode: state.mode,
+                total: state.signatories.length,
+                changedRows: changedRows.length,
+                pendingChanges: state.pendingChanges.length
             });
 
-            const existingPending = state.signatories.filter(s => !s._isNew && (s._isModified || s._isDeleted));
-            const newPending = state.signatories.filter(s => s._isNew && !s._isDeleted);
-
-            let allOk = true;
-            let lastMessage = '';
-
-            // 1) Add new signatories.
-            // The dedicated MVC add endpoint is currently failing with APIEX96 transaction-count errors,
-            // so use the legacy save contract for inserts until the backend procedure is corrected.
-            if (newPending.length > 0) {
-                try {
-                    await saveNewSignatoriesViaLegacyService(newPending, maxUC);
-                } catch (err) {
-                    allOk = false;
-                    lastMessage = err.message || 'Add failed.';
-                }
+            if (changedRows.length === 0) {
+                showInfo('No changes to save.');
+                return;
             }
 
-            // 2) Edit/Remove existing signatories (p_V8_EditBankSignatory)
-            if (existingPending.length > 0 && allOk) {
-                const editXml = buildXmlForSubset(existingPending);
-                const editPayload = { ...buildBasePayload(), DetailRecords: editXml, SignatoriesXml: editXml };
-                console.log('[AccountSignatories] EDIT payload:', editPayload);
+            await saveAllSignatoriesViaLegacyService(maxUC);
 
-                const editResp = await fetch('/AccountsMaintenance/api/edit-account-signatories', {
-                    method: 'POST', headers, body: JSON.stringify(editPayload)
-                });
-                if (!editResp.ok) throw new Error(`Edit HTTP ${editResp.status}`);
-                const editResult = await editResp.json();
-                console.log('[AccountSignatories] EDIT response:', editResult);
-
-                const editOk = editResult?.ResponseCode === '00' || editResult?.ResponseCode === 0 ||
-                    editResult?.success === true || editResult?.Success === true;
-                if (!editOk) {
-                    allOk = false;
-                    lastMessage = editResult?.ResponseMessage || editResult?.message || 'Edit failed.';
-                }
-            }
-
-            if (allOk) {
                 state.pendingChanges = [];
                 showSuccess('Signatories saved successfully.');
                 await loadSignatories();
@@ -902,9 +905,6 @@ window.AccountSignatoriesModule = (function () {
                 state.selectedRow = null;
                 state.mode = 'VIEW';
                 updateButtonStates();
-            } else {
-                showError(lastMessage || 'Save failed.');
-            }
         } catch (err) {
             console.error('[AccountSignatories] Save error:', err);
             showError('Save error: ' + err.message);
@@ -939,13 +939,21 @@ window.AccountSignatoriesModule = (function () {
             }
 
             const ref = sig.ReferenceID || sig.Sequence || sig.SeqNo || sig.SequenceNo || (i + 1).toString();
+            const mandates = sig.AgentMandate || sig.agentMandate || sig.Mandates || sig.MandateID || sig.mandateID || '';
             xml += '<dt_AccountOperatedBy>';
             xml += `<ReferenceID>${escapeXml(ref)}</ReferenceID>`;
             xml += `<SignatoryTypeID>${escapeXml(sig.SignatoryTypeID || '')}</SignatoryTypeID>`;
             xml += `<SignatoryID>${escapeXml(sig.SignatoryID || sig.OperatorID || '')}</SignatoryID>`;
             xml += `<SignatoryName>${escapeXml(sig.SignatoryName || sig.SignatoryID || '')}</SignatoryName>`;
             xml += `<ButtonMark>${bm}</ButtonMark>`;
-            if (bm !== 'R') xml += `<IsMendetory>${sig.IsMandatory ? 'true' : 'false'}</IsMendetory>`;
+            if (bm !== 'R') {
+                xml += `<IsMendetory>${sig.IsMandatory ? 'true' : 'false'}</IsMendetory>`;
+                xml += `<IsMandatory>${sig.IsMandatory ? 'true' : 'false'}</IsMandatory>`;
+                xml += `<Mandatory>${sig.IsMandatory ? 'true' : 'false'}</Mandatory>`;
+                xml += `<AgentMandate>${escapeXml(mandates)}</AgentMandate>`;
+                xml += `<Mandates>${escapeXml(mandates)}</Mandates>`;
+                xml += `<MandateID>${escapeXml(mandates)}</MandateID>`;
+            }
             xml += '</dt_AccountOperatedBy>';
         });
         return xml;

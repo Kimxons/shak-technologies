@@ -4,6 +4,7 @@
     const state = { mode: MODES.VIEW, hasLoaded: false, canAdd: false, updateCount: 0 };
     const thirdPartyProviderService = window.ThirdPartyProviderStaticDataService || window.StaticDataService;
     let searchModal = null;
+    let providerSearchResults = [];
 
     function qs(sel, root = document) { return root.querySelector(sel); }
     function qsa(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
@@ -71,6 +72,17 @@
             return candidate;
         }
         return null;
+    }
+    function extractRows(response) {
+        if (!response) return [];
+        const candidate = response.data || response.Details || response.Details01 || response;
+        if (Array.isArray(candidate)) return candidate;
+        if (candidate && typeof candidate === 'object') {
+            for (const value of Object.values(candidate)) {
+                if (Array.isArray(value)) return value;
+            }
+        }
+        return [];
     }
     function setAudit(row) {
         qs('#spn_providerCreatedBy').textContent = row?.CreatedBy || row?.createdBy || '-';
@@ -229,7 +241,10 @@
     }
     function openGlLookup(onSelect) {
         initSearchModal();
-        if (!searchModal) return;
+        if (!searchModal) {
+            setToast('Search is not available right now.', 'danger');
+            return;
+        }
         searchModal.open({
             title: 'Find GL Account',
             tableID: 'RecGLAccountID',
@@ -238,9 +253,71 @@
             onSelect: onSelect
         });
     }
+    function showProviderSearchModal() {
+        const modal = qs('#thirdPartyProviderSearchModal');
+        if (!modal) return;
+        modal.classList.add('show', 'd-block');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        qs('#txt_providerSearchKey')?.focus();
+    }
+    function hideProviderSearchModal() {
+        const modal = qs('#thirdPartyProviderSearchModal');
+        if (!modal) return;
+        modal.classList.remove('show', 'd-block');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+    }
+    function renderProviderSearchResults(rows) {
+        providerSearchResults = rows || [];
+        const tbody = qs('#tbl_providerSearchResults tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (!providerSearchResults.length) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td colspan="2">No service providers found.</td>';
+            tbody.appendChild(tr);
+            return;
+        }
+
+        providerSearchResults.forEach((row) => {
+            const serviceProviderId = row.ServiceProvider || row.ID || row.SystemSubID || '';
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.innerHTML = `<td>${serviceProviderId}</td><td>${row.Description || ''}</td>`;
+            tr.addEventListener('click', () => {
+                qs('#txt_serviceProviderId').value = serviceProviderId;
+                qs('#txt_serviceProviderSummary').value = row.Description || '';
+                hideProviderSearchModal();
+                if (serviceProviderId) {
+                    void loadRecord(serviceProviderId);
+                }
+            });
+            tbody.appendChild(tr);
+        });
+    }
+    async function searchProviderRecords() {
+        try {
+            const response = await thirdPartyProviderService.searchThirdPartyProvider({
+                SearchKey: qs('#txt_providerSearchKey')?.value.trim() || ''
+            });
+            renderProviderSearchResults(extractRows(response));
+        } catch (error) {
+            renderProviderSearchResults([]);
+            setToast('Service Provider search failed.', 'danger');
+        }
+    }
+    function openServiceProviderLookup() {
+        showProviderSearchModal();
+        void searchProviderRecords();
+    }
     function openCurrencyLookup(onSelect) {
         initSearchModal();
-        if (!searchModal) return;
+        if (!searchModal) {
+            setToast('Search is not available right now.', 'danger');
+            return;
+        }
         searchModal.open({
             title: 'Find Currency',
             tableID: 'MastCurrencyID',
@@ -250,7 +327,7 @@
         });
     }
     function bindEvents() {
-        qs('#btn_searchProvider')?.addEventListener('click', () => void loadRecord());
+        qs('#btn_searchProvider')?.addEventListener('click', openServiceProviderLookup);
         qs('#btn_providerView')?.addEventListener('click', () => void loadRecord());
         qs('#btn_providerAdd')?.addEventListener('click', () => {
             clearForm(true);
@@ -281,6 +358,19 @@
             qs('#txt_currencyId').value = row.CurrencyID || '';
             qs('#txt_currencyName').value = row.Description || '';
         }));
+        qs('#btn_closeProviderSearch')?.addEventListener('click', hideProviderSearchModal);
+        qs('#btn_runProviderSearch')?.addEventListener('click', () => void searchProviderRecords());
+        qs('#txt_providerSearchKey')?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                void searchProviderRecords();
+            }
+        });
+        qs('#thirdPartyProviderSearchModal')?.addEventListener('click', (event) => {
+            if (event.target?.id === 'thirdPartyProviderSearchModal') {
+                hideProviderSearchModal();
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {

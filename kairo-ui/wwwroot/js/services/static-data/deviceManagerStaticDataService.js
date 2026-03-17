@@ -24,13 +24,13 @@
     };
   }
 
-  async function invokeDeviceManagerController(endpoint, payload, fallbackProcedure) {
-    if (controllerApi?.invokeControllerAsync) {
-      const response = await controllerApi.invokeControllerAsync(endpoint, payload || {});
-      return normalizeControllerResponse(response);
+  async function invokeDeviceManagerController(endpoint, payload) {
+    if (!controllerApi?.invokeControllerAsync) {
+      throw new Error('AppCore.invokeControllerAsync is not available.');
     }
 
-    return core.postOldApi(fallbackProcedure, payload || {}, core.APP_NAME);
+    const response = await controllerApi.invokeControllerAsync(endpoint, payload || {});
+    return normalizeControllerResponse(response);
   }
 
   deviceManagerService.getDevice = function getDevice(payload) {
@@ -38,15 +38,15 @@
     if (isDeviceManagerScreen && global.__deviceManagerAllowGetDevice !== true) {
       return Promise.resolve({ success: true, data: [], Details: [] });
     }
-    return invokeDeviceManagerController('StaticData/DeviceManager/api/get-device-manager', payload, 'dbo.p_GetDevice');
+    return invokeDeviceManagerController('StaticData/DeviceManager/api/get-device-manager', payload);
   };
 
   deviceManagerService.addEditDevice = function addEditDevice(payload) {
-    return invokeDeviceManagerController('StaticData/DeviceManager/api/save-device-manager', payload, 'dbo.p_AddEditATMDevices');
+    return invokeDeviceManagerController('StaticData/DeviceManager/api/save-device-manager', payload);
   };
 
   deviceManagerService.deleteDevice = function deleteDevice(payload) {
-    return core.postOldApi('dbo.p_DeleteDevice', payload || {}, core.APP_NAME);
+    return invokeDeviceManagerController('StaticData/DeviceManager/api/delete-device-manager', payload);
   };
 
   Object.assign(svc, {

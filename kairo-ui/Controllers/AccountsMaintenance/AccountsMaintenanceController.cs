@@ -153,11 +153,11 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
                     "SignatoryTypeID",
-                    "MandatesID"
+                        "AgentMandateID"
                 });
 
                 dropdownOptions.TryGetValue("SignatoryTypeID", out var signatoryTypeOptions);
-                dropdownOptions.TryGetValue("MandatesID", out var mandatesOptions);
+                    dropdownOptions.TryGetValue("AgentMandateID", out var mandatesOptions);
 
                 ViewData["SignatoryTypeOptions"] = signatoryTypeOptions ?? Enumerable.Empty<SelectListItem>();
                 ViewData["MandatesOptions"] = mandatesOptions ?? Enumerable.Empty<SelectListItem>();

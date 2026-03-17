@@ -106,6 +106,36 @@ namespace kairo_ui.Controllers.StaticData
             }
         }
 
+        [HttpPost("api/delete-device-manager")]
+        public async Task<IActionResult> DeleteDeviceManager([FromBody] DeviceManagerRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                {
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+                }
+
+                var payload = new
+                {
+                    BranchID = request.BranchID ?? string.Empty,
+                    DeviceID = request.DeviceID ?? string.Empty
+                };
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.DELETE_DEVICE_MANAGER,
+                    payload);
+
+                return Ok(new { Success = true, Data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting device manager row");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
         internal static string NormalizeDeviceManagerXml(string? xml, string branchId, string operatorId)
         {
             if (string.IsNullOrWhiteSpace(xml))

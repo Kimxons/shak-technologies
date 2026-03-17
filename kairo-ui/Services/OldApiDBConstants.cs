@@ -262,6 +262,13 @@ namespace kairo_ui.Services
         public const string DELETE_DEVICE_MANAGER = "p_DeleteDevice";
 
         // ═══════════════════════════════════════════════════════════════════
+        // STATIC DATA - THIRD PARTY PROVIDER
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_THIRD_PARTY_PROVIDER = "dbo.p_GetThirdPartyProvider";
+        public const string ADD_EDIT_THIRD_PARTY_PROVIDER = "dbo.p_AddEditThirdPartyProvider";
+        public const string DELETE_THIRD_PARTY_PROVIDER = "dbo.p_DeleteThirdPartyProvider";
+
+        // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_SI_TYPES = "dbo.p_GetSITypes";
