@@ -3775,6 +3775,9 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public int? ModuleID { get; set; }
         public int? Direction { get; set; }      // 0=First, 1=Next, -1=Previous
         public string? SignatoryID { get; set; }  // Current signatory ID for navigation
+        public bool? IncludeAgentMandate { get; set; }
+        public bool? IncludeClosed { get; set; }
+        public int? RequestedReferenceID { get; set; }
     }
 
     public class AddAccountSignatoriesRequest
@@ -3784,11 +3787,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public string? SearchID { get; set; }
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? OperatedBy { get; set; }
+        public string? OperatedOn { get; set; }
+        public string? SupervisedBy { get; set; }
         public string? BankID { get; set; }
         public int? ModuleID { get; set; }
         public string? OperatingModeID { get; set; }
         public string? OperatingInstructionID { get; set; }
+        public int? UpdateCount { get; set; }
         public string? SignatoriesXml { get; set; }  // XML format: <ListOfSignatory><Signatory>...</Signatory></ListOfSignatory>
+        public object? DetailRecords { get; set; }
     }
 
     public class EditAccountSignatoriesRequest
