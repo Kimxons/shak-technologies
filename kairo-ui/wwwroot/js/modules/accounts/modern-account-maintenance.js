@@ -273,10 +273,10 @@
             // Re-wire sidebar event handlers after loading new HTML
             wireSidebarAfterLoad();
             
-            // Initialize sidebar manager if available
-            if (window.SidebarManager && typeof window.SidebarManager.init === 'function') {
-                window.SidebarManager.init();
-            }
+            // NOTE: We do NOT call SidebarManager.init() here because 
+            // wireSidebarAfterLoad() already handles event wiring with 
+            // Account Maintenance-specific logic (CHILD_FORMS mapping, etc.)
+            // Calling both would result in duplicate handlers.
         } catch (error) {
             console.error('[AccountMaintenance] Error loading sidebar:', error);
             // Fallback to client-side recent activities loading
@@ -2821,8 +2821,14 @@
                         useInlineAlert: true
                     });
 
-                    // Track recent activity for quick access later
+                    // Notify sidebar that main record is loaded (enables submodule access)
                     const finalAccountId = account.AccountID || accountId;
+                    if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+                        window.SidebarManager.setMainRecordLoaded(true, finalAccountId);
+                        console.log('[AccountMaintenance] Sidebar notified - main record loaded:', finalAccountId);
+                    }
+
+                    // Track recent activity for quick access later
                     console.log('[AccountMaintenance] About to track recent activity for:', finalAccountId);
                     try {
                         await addRecentActivityAndRefreshSidebar(finalAccountId, account.AccountName || '');
@@ -3264,6 +3270,11 @@
 
         // Then set to ADD mode AFTER reset
         currentMode = 'ADD';
+
+        // Notify sidebar that main record is no longer loaded
+        if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+            window.SidebarManager.setMainRecordLoaded(false, null);
+        }
 
         // Clear all form fields
         const fieldsToClear = [
