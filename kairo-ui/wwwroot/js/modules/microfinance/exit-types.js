@@ -66,6 +66,7 @@
 
         wireSectionToggles();
         wireLookupButtons();
+        wireExitTypeIdAutoLoad();
         wireFormEvents();
         wireActionButtons();
         wireRecordNavigation();
@@ -91,6 +92,37 @@
         }
 
         console.log('✅ Exit Types module initialized', state);
+    }
+
+    function wireExitTypeIdAutoLoad() {
+        const exitTypeIdInput = document.getElementById('txt_exitTypeId');
+        if (!exitTypeIdInput) return;
+
+        const tryAutoLoad = async () => {
+            if (state.currentMode !== 'VIEW') return;
+
+            const typedId = String(exitTypeIdInput.value || '').trim();
+            if (!typedId) return;
+
+            // If the same record is already loaded, do nothing.
+            if (state.currentExitTypeId && state.currentData && typedId.toLowerCase() === String(state.currentExitTypeId).toLowerCase()) {
+                return;
+            }
+
+            await loadExitType(typedId, { notFoundMessage: 'Invalid Exit Type ID' });
+        };
+
+        exitTypeIdInput.addEventListener('blur', () => {
+            // Fire and forget; errors are handled in loadExitType
+            tryAutoLoad();
+        });
+
+        exitTypeIdInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                tryAutoLoad();
+            }
+        });
     }
 
     function wireRecordNavigation() {
@@ -307,7 +339,6 @@
     // ═══════════════════════════════════════════════════════════════════
 
     async function handleView() {
-        const appCore = getAppCore();
         const exitTypeId = document.getElementById('txt_exitTypeId')?.value?.trim();
         if (!exitTypeId) {
             showWarning('Enter Exit Type ID to view');
@@ -315,47 +346,63 @@
             return;
         }
 
+        await loadExitType(exitTypeId, { notFoundMessage: 'Exit Type Details not Found' });
+    }
+
+    async function loadExitType(exitTypeId, { notFoundMessage } = {}) {
+        const appCore = getAppCore();
+        if (!appCore) return false;
+
+        const normalizedId = String(exitTypeId || '').trim();
+        if (!normalizedId) return false;
+
         showLoading(true);
 
         try {
             const response = await appCore.invokeControllerAsync('MicroFinance/ExitTypes/get', {
-                ExitTypeID: exitTypeId,
+                ExitTypeID: normalizedId,
                 OurBranchID: state.branchId,
                 BankID: '00',
                 OperatorID: state.operatorId,
                 Direction: 0
             });
 
-            console.log('[View] Response:', response);
+            console.log('[LoadExitType] Response:', response);
 
             const record = extractExitTypeRecord(response);
-
             if (record) {
+                const resolvedId = String(record.ExitTypeID || '').trim() || normalizedId;
+                document.getElementById('txt_exitTypeId').value = resolvedId;
+
                 populateForm(record, response);
-                state.currentExitTypeId = exitTypeId;
+                state.currentExitTypeId = resolvedId;
                 state.currentData = record;
+
                 setMode('VIEW');
                 setActionButtonsState({ canView: false, canAdd: false, canEdit: true, canDelete: true, canSave: false, canCancel: true });
                 setNavButtonsState({ canPrev: true, canNext: true });
-                showSuccess(`Exit Type '${exitTypeId}' loaded`);
-            } else {
-                // Not found: clear everything but keep the typed Exit Type ID
-                clearForm({ preserveExitTypeId: true });
-                state.currentExitTypeId = null;
-                state.currentData = null;
-                state.isDirty = false;
-                setMode('VIEW');
-
-                // Enable Add + Cancel (and allow View retry)
-                setActionButtonsState({ canView: false, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: true });
-                setNavButtonsState({ canPrev: false, canNext: false });
-                showError('Exit Type Details not Found');
+                showSuccess(`Exit Type '${resolvedId}' loaded`);
+                return true;
             }
+
+            // Not found: clear everything but keep the typed Exit Type ID
+            clearForm({ preserveExitTypeId: true });
+            state.currentExitTypeId = null;
+            state.currentData = null;
+            state.isDirty = false;
+            setMode('VIEW');
+
+            // Enable Add + Cancel (and allow View retry)
+            setActionButtonsState({ canView: false, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: true });
+            setNavButtonsState({ canPrev: false, canNext: false });
+            showError(notFoundMessage || 'Invalid Exit Type ID');
+            return false;
         } catch (error) {
-            console.error('[View] Error:', error);
+            console.error('[LoadExitType] Error:', error);
             showError('Error loading exit type: ' + error.message);
             setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
             setNavButtonsState({ canPrev: false, canNext: false });
+            return false;
         } finally {
             showLoading(false);
         }
