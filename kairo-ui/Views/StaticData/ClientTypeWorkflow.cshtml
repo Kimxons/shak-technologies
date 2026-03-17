@@ -1,0 +1,136 @@
+@{
+    ViewData["Title"] = "Client Type Workflow";
+    Layout = "_ApplicationLayout";
+
+    var operatorId = ViewData["OperatorId"]?.ToString() ?? string.Empty;
+    var branchCode = ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var bankId     = ViewData["BankId"]?.ToString()     ?? string.Empty;
+}
+
+<div class="window">
+    <div class="main-container">
+
+        <section class="form-content" aria-label="Client Type Workflow Content">
+            <form id="client-type-workflow-form" autocomplete="off" novalidate>
+
+                <!-- Context hidden fields -->
+                <input type="hidden" id="moduleId_ctw"   value="@ViewData["ModuleId"]" />
+                <input type="hidden" id="OperatorID"     value="@operatorId" />
+                <input type="hidden" id="hdn_BranchCode" value="@branchCode" />
+                <input type="hidden" id="hdn_BankId"     value="@bankId" />
+
+                <div class="form-card">
+
+                    <!-- Client Type Workflow Configuration Section -->
+                    <div class="form-section" data-section="client-type-workflow">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-diagram-project"></i> Client Type Workflow Configuration</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Client Type Workflow" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="WorkflowId">Workflow ID</label>
+                                    <select class="bs-select" id="WorkflowId" name="WorkflowId" aria-label="Workflow ID" data-always-enabled>
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0" id="clientTypeTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" class="text-center">
+                                                <input type="checkbox" class="form-check-input grid-select-all" aria-label="Select all" disabled />
+                                            </th>
+                                            <th scope="col">Client Type</th>
+                                            <th scope="col">Client Type Name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="clientTypeTableBody">
+                                        <!-- populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label class="audit-label">Created By</label>
+                                        <span class="audit-value" id="CreatedBy" data-ctw-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label class="audit-label">Created On</label>
+                                        <span class="audit-value" id="CreatedOn" data-ctw-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label class="audit-label">Modified By</label>
+                                        <span class="audit-value" id="ModifiedBy" data-ctw-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label class="audit-label">Modified On</label>
+                                        <span class="audit-value" id="ModifiedOn" data-ctw-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label class="audit-label">Supervised By</label>
+                                        <span class="audit-value" id="SupervisedBy" data-ctw-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label class="audit-label">Supervised On</label>
+                                        <span class="audit-value" id="SupervisedOn" data-ctw-audit></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        <aside class="action-panel" aria-label="Actions">
+            <div class="action-buttons">
+                <button type="button" class="btn-action btn-view"   data-ctw-action="view"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action"            data-ctw-action="edit"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button type="button" class="btn-action"            data-ctw-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button type="button" class="btn-action btn-cancel" data-ctw-action="cancel" disabled><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <div class="am-message-panel" id="dv_messagePanel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle" id="icn_messageIcon"></i>
+        <span id="spn_messageText"></span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert2.min.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/client-type-workflow.js" asp-append-version="true"></script>
+}

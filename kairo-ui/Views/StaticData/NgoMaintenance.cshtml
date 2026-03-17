@@ -1,0 +1,310 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "NGO Maintenance";
+    Layout = "_ApplicationLayout";
+
+    var operatorId = ViewData["OperatorId"]?.ToString() ?? string.Empty;
+    var branchCode = ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var bankId = ViewData["BankId"]?.ToString() ?? string.Empty;
+    var cityOptions = ViewData["CityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["CountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="window">
+    <div class="main-container">
+        <section class="form-content" aria-label="NGO Maintenance Content">
+            <form id="ngo-maintenance-form" autocomplete="off" novalidate>
+                <!-- Context hidden fields -->
+                <input type="hidden" id="moduleId_ngoMaintenance" value="@ViewData["ModuleId"]" />
+                <input type="hidden" id="OperatorID" value="@operatorId" />
+                <input type="hidden" id="hdn_BranchCode" value="@branchCode" />
+                <input type="hidden" id="hdn_BankId" value="@bankId" />
+
+                <div class="form-card">
+
+                    <!-- NGO Information Section -->
+                    <div class="form-section" data-section="ngo-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-building"></i> NGO Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle NGO Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="NgoId">NGO ID</label>
+                                    <div class="kairo-control kairo-control--single">
+                                        <input type="text" class="kairo-control__id" id="NgoId" name="NgoId" aria-label="NGO ID" data-always-enabled />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="ngoSearchBtn" aria-label="Search NGO" data-always-enabled data-nmo-action="search">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="NgoName">NGO Name</label>
+                                    <input type="text" class="bs-input-text" id="NgoName" name="NgoName" aria-label="NGO Name" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="EstablishedDate">Established Date</label>
+                                    <input type="text" class="bs-input-date" id="EstablishedDate" name="EstablishedDate" aria-label="Established Date" />
+                                </div>
+                                <div class="col">
+                                    <label for="RegistrationNo">Registration No.</label>
+                                    <input type="text" class="bs-input-text" id="RegistrationNo" name="RegistrationNo" aria-label="Registration No" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="RegistrationDetail">Registration Detail</label>
+                                    <input type="text" class="bs-input-text" id="RegistrationDetail" name="RegistrationDetail" aria-label="Registration Detail" />
+                                </div>
+                                <div class="col">
+                                    <label for="AffiliatedDate">Affiliated Date</label>
+                                    <input type="text" class="bs-input-date" id="AffiliatedDate" name="AffiliatedDate" aria-label="Affiliated Date" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="ContactPerson">Contact Person</label>
+                                    <input type="text" class="bs-input-text" id="ContactPerson" name="ContactPerson" aria-label="Contact Person" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="City">City</label>
+                                    <select class="bs-select" id="City" name="CityID" aria-label="City"
+                                            asp-items="@cityOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value))">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="Country">Country</label>
+                                    <select class="bs-select" id="Country" name="CountryID" aria-label="Country"
+                                            asp-items="@countryOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value))">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label for="ZipCode">Zip Code</label>
+                                    <input type="text" class="bs-input-text" id="ZipCode" name="ZipCode" aria-label="Zip Code" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="Address1">Address 1</label>
+                                    <input type="text" class="bs-input-text" id="Address1" name="Address1" aria-label="Address 1" />
+                                </div>
+                                <div class="col">
+                                    <label for="Address2">Address 2</label>
+                                    <input type="text" class="bs-input-text" id="Address2" name="Address2" aria-label="Address 2" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="EmailId">Email ID</label>
+                                    <input type="text" class="bs-input-text" id="EmailId" name="EmailId" aria-label="Email ID" />
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="PhoneHome">Phone (Home)</label>
+                                    <input type="text" class="bs-input-text" id="PhoneHome" name="PhoneHome" aria-label="Phone Home" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="PhoneWork">Phone (Work)</label>
+                                    <input type="text" class="bs-input-text" id="PhoneWork" name="PhoneWork" aria-label="Phone Work" />
+                                </div>
+                                <div class="col">
+                                    <label for="Mobile">Mobile</label>
+                                    <input type="text" class="bs-input-text" id="Mobile" name="Mobile" aria-label="Mobile" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="FaxNo">Fax No</label>
+                                    <input type="text" class="bs-input-text" id="FaxNo" name="FaxNo" aria-label="Fax No" />
+                                </div>
+                                <div class="col">
+                                    <!-- spacing -->
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="ByLawDetails">By Law Details</label>
+                                    <textarea class="bs-textarea" id="ByLawDetails" name="ByLawDetails" rows="2" aria-label="By Law Details"></textarea>
+                                </div>
+                                <div class="col">
+                                    <!-- spacing -->
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Created By</label>
+                                        <span class="audit-value" id="CreatedBy" data-nmo-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Created On</label>
+                                        <span class="audit-value" id="CreatedOn" data-nmo-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Modified By</label>
+                                        <span class="audit-value" id="ModifiedBy" data-nmo-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Modified On</label>
+                                        <span class="audit-value" id="ModifiedOn" data-nmo-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Supervised By</label>
+                                        <span class="audit-value" id="SupervisedBy" data-nmo-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Supervised On</label>
+                                        <span class="audit-value" id="SupervisedOn" data-nmo-audit></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        <aside class="action-panel" aria-label="Actions">
+            <div class="action-buttons">
+                <button type="button" class="btn-action btn-view" data-shell-mode="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button type="button" class="btn-action" data-nmo-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button type="button" class="btn-action" data-nmo-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button type="button" class="btn-action btn-cancel" data-nmo-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="am-message-panel" id="dv_messagePanel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle" id="icn_messageIcon"></i>
+        <span id="spn_messageText"></span>
+    </div>
+
+    <!-- NGO Search Modal -->
+    <div class="modal fade" id="ngoLookupModal" tabindex="-1" aria-labelledby="ngoLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0 small">NGO Maintenance</p>
+                        <h5 class="modal-title" id="ngoLookupModalLabel">Find NGO</h5>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-light" id="ngoSearchRefresh" aria-label="Refresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form class="row g-3 align-items-end mb-3" id="ngoLookupForm">
+                        <div class="col-md-4">
+                            <label class="form-label">NGO ID</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="ngoSearchModeId">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="ngoSearchId" placeholder="e.g. NGO001" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">NGO Name</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="ngoSearchModeName">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="ngoSearchName" placeholder="NGO name" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="ngoSearchReset">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm" id="ngoSearchSubmit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="position-relative">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">NGO ID</th>
+                                        <th scope="col">NGO Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ngoSearchResults"></tbody>
+                            </table>
+                        </div>
+                        <div id="ngoSearchEmpty" class="text-center py-5 text-muted">
+                            Enter at least one filter above and click Search to query NGOs.
+                        </div>
+                        <div id="ngoSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted me-auto">Double-click a row to select record.</small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert2.min.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/ngo-maintenance.js" asp-append-version="true"></script>
+}

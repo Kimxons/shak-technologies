@@ -1,0 +1,292 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Transaction Description";
+    Layout = "_ApplicationLayout";
+
+    var operatorId = ViewData["OperatorId"]?.ToString() ?? string.Empty;
+    var branchCode = ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var bankId = ViewData["BankId"]?.ToString() ?? string.Empty;
+    var transactionTypeOptions = ViewData["TransactionTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var categoryOptions = ViewData["CategoryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="window">
+    <div class="main-container">
+        <section class="form-content" aria-label="Transaction Description Maintenance Content">
+            <form id="transaction-description-form" autocomplete="off" novalidate>
+                <!-- Context hidden fields -->
+                <input type="hidden" id="moduleId_trxDescription" value="@ViewData["ModuleId"]" />
+                <input type="hidden" id="OperatorID" value="@operatorId" />
+                <input type="hidden" id="hdn_BranchCode" value="@branchCode" />
+                <input type="hidden" id="hdn_BankId" value="@bankId" />
+
+                <div class="form-card">
+
+                    <!-- Transaction Description Section -->
+                    <div class="form-section" data-section="transaction-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-file-text"></i> Transaction Description</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Transaction Description" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="TrxDescriptionID">Transaction ID</label>
+                                    <div class="kairo-control kairo-control--single">
+                                        <input type="text" class="kairo-control__id" id="TrxDescriptionID" name="TrxDescriptionID"
+                                               aria-label="Transaction ID" data-always-enabled />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="btnLookupTrx"
+                                                aria-label="Search Transaction" data-always-enabled data-td-action="search">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="Description">Description</label>
+                                    <input type="text" class="bs-input-text" id="Description" name="Description" aria-label="Description" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="TransactionTypeID">Type</label>
+                                    @if (transactionTypeOptions.Any())
+                                    {
+                                        <select class="bs-select" id="TransactionTypeID" name="TransactionTypeID" aria-label="Transaction Type"
+                                                asp-items="@transactionTypeOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value))">
+                                            <option value="">--Select--</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <select class="bs-select" id="TransactionTypeID" name="TransactionTypeID" aria-label="Transaction Type">
+                                            <option value="">--Select--</option>
+                                            <option value="1">Debit</option>
+                                            <option value="2">Credit</option>
+                                        </select>
+                                    }
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="TrxCategoryID">Category</label>
+                                    @if (categoryOptions.Any())
+                                    {
+                                        <select class="bs-select" id="TrxCategoryID" name="TrxCategoryID" aria-label="Category"
+                                                asp-items="@categoryOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value))">
+                                            <option value="">--Select--</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <select class="bs-select" id="TrxCategoryID" name="TrxCategoryID" aria-label="Category">
+                                            <option value="">--Select--</option>
+                                            <option value="CHR">CHR - Charge</option>
+                                            <option value="COM">COM - Commission</option>
+                                            <option value="INC">INC - Income</option>
+                                            <option value="SER">SER - Service</option>
+                                        </select>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="IsChargeable">Chargeable</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="IsChargeable" name="IsChargeable" aria-label="Chargeable" />
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <!-- spacing -->
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+
+                            <!-- Read-only system flags -->
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="IsBlocked">Blocked</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="IsBlocked" name="IsBlocked"
+                                               aria-label="Blocked" data-never-editable disabled />
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="IsSystemTrx">Is System</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="IsSystemTrx" name="IsSystemTrx"
+                                               aria-label="Is System Transaction" data-never-editable disabled />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Created By</label>
+                                        <span class="audit-value" id="CreatedBy" data-td-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Created On</label>
+                                        <span class="audit-value" id="CreatedOn" data-td-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Modified By</label>
+                                        <span class="audit-value" id="ModifiedBy" data-td-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Modified On</label>
+                                        <span class="audit-value" id="ModifiedOn" data-td-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Supervised By</label>
+                                        <span class="audit-value" id="SupervisedBy" data-td-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Supervised On</label>
+                                        <span class="audit-value" id="SupervisedOn" data-td-audit></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        <aside class="action-panel" aria-label="Actions">
+            <div class="action-buttons">
+                <div class="nav-group">
+                    <button type="button" class="btn-nav green" aria-label="Previous Record" data-td-nav="prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span>TrxDesc</span>
+                    <button type="button" class="btn-nav green" aria-label="Next Record" data-td-nav="next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <button type="button" class="btn-action btn-view" data-shell-mode="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button type="button" class="btn-action" data-td-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button type="button" class="btn-action" data-td-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button type="button" class="btn-action btn-cancel" data-td-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="am-message-panel" id="dv_messagePanel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle" id="icn_messageIcon"></i>
+        <span id="spn_messageText"></span>
+    </div>
+
+    <!-- Transaction Description Lookup Modal -->
+    <div class="modal fade" id="trxLookupModal" tabindex="-1" aria-labelledby="trxLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0 small">Transaction Description</p>
+                        <h5 class="modal-title" id="trxLookupModalLabel">Find Transaction Description</h5>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-light" id="trxSearchRefresh" aria-label="Refresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form class="row g-3 align-items-end mb-3" id="trxLookupForm">
+                        <div class="col-md-4">
+                            <label class="form-label">Transaction ID</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="trxSearchModeId">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="trxSearchId" placeholder="Enter Transaction ID" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Description</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="trxSearchModeName">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="trxSearchName" placeholder="Enter Description" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="trxSearchReset">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm" id="trxSearchSubmit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="position-relative">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Transaction ID</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trxSearchResults"></tbody>
+                            </table>
+                        </div>
+                        <div id="trxSearchEmpty" class="text-center py-5 text-muted">
+                            Enter at least one filter above and click Search to query records.
+                        </div>
+                        <div id="trxSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted me-auto">Double-click a row to select record.</small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert2.min.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/transaction-description.js" asp-append-version="true"></script>
+}

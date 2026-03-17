@@ -409,7 +409,10 @@ window.CardMaintenanceModule = (function () {
     async function saveData() {
         const isAdd = state.editMode === 'ADD';
         const trackingId = val('trackingId');
-        if (!trackingId) { showMsg('TrackingCardID is required', 'warning'); return; }
+
+        // For new cards the SP accepts TrackingCardID = 0 and auto-assigns one.
+        // Only require a value when editing an existing card.
+        if (!isAdd && !trackingId) { showMsg('TrackingCardID is required', 'warning'); return; }
 
         const confirmed = await showConfirm(
             `Are you sure you want to ${isAdd ? 'create' : 'update'} this card?`,
@@ -516,7 +519,34 @@ window.CardMaintenanceModule = (function () {
     }
 
     /* ── Public API ──────────────────────────────────────────── */
-    function confirmAdd() { setMode('ADD'); }
+    async function confirmAdd() {
+        setMode('ADD');
+        // Auto-populate TrackingID from the SP
+        try {
+            const ctx = refreshContext();
+            const result = await window.AppCore.invokeControllerAsync(
+                'AccountsMaintenance/api/get-next-tracking-card-id',
+                {
+                    BankID:      ctx.BankID      || sessionStorage.getItem('bank_id') || '00',
+                    OurBranchID: ctx.OurBranchID,
+                    AccountID:   ctx.AccountID
+                }
+            );
+            // SP returns a single-column, single-row result — extract the value
+            const raw = result?.data ?? result;
+            let nextId = '';
+            if (raw?.Details01?.[0]) {
+                nextId = String(Object.values(raw.Details01[0])[0] ?? '');
+            } else if (raw?.Details?.[0]) {
+                nextId = String(Object.values(raw.Details[0])[0] ?? '');
+            } else if (typeof raw === 'number' || typeof raw === 'string') {
+                nextId = String(raw);
+            }
+            if (nextId) setVal('trackingId', nextId);
+        } catch (err) {
+            console.warn('[CardMaintenance] Could not fetch next TrackingCardID:', err.message);
+        }
+    }
     function confirmEdit() { if (state.selectedIndex >= 0) setMode('EDIT'); else showMsg('Select a record.', 'warning'); }
     function confirmCancel() { cancelChanges(); }
     function cancelChanges() {
