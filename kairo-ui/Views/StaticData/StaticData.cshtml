@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Static Data";
+    ViewData["Title"] = "Static Data - Location";
     Layout = "_ApplicationLayout";
 }
 
@@ -47,7 +47,6 @@
 
         var mod = window.StaticDataLocationModule;
 
-        // ── Sync action panel button states with Location module ──
         function syncActionPanel() {
             var container = document.querySelector('#locationModule');
             var actionMap = {
@@ -62,17 +61,11 @@
             ['view', 'add', 'edit', 'delete', 'save', 'cancel'].forEach(function (action) {
                 var parentBtn = document.querySelector('.action-panel .action-buttons [data-action="' + action + '"]');
                 if (!parentBtn) return;
-
                 var subBtn = container ? container.querySelector(actionMap[action]) : null;
-                if (subBtn) {
-                    parentBtn.disabled = subBtn.disabled;
-                } else {
-                    parentBtn.disabled = (action !== 'view');
-                }
+                parentBtn.disabled = subBtn ? subBtn.disabled : (action !== 'view');
             });
         }
 
-        // ── Parent action buttons delegate to Location module ──
         document.querySelectorAll('.action-panel .action-buttons [data-action]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 if (!mod) return;
@@ -89,10 +82,7 @@
             });
         });
 
-        // ── Re-sync when Location module changes mode ──
         document.addEventListener('location-mode-changed', syncActionPanel);
-
-        // ── Initial sync ──
         syncActionPanel();
 
     })();

@@ -17,9 +17,9 @@
     };
 
     const API = {
-        GET: 'StaticData/api/get-contact-person',
-        SAVE: 'StaticData/api/add-edit-contact-person',
-        DELETE: 'StaticData/api/delete-contact-person'
+        GET: 'StaticData/ContactPerson/get',
+        SAVE: 'StaticData/ContactPerson/save',
+        DELETE: 'StaticData/ContactPerson/delete'
     };
 
     // ── State ─────────────────────────────────────────────────────

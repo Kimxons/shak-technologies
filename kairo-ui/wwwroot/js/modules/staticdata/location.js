@@ -17,9 +17,9 @@
     };
 
     const API = {
-        GET: 'StaticData/api/get-location',
-        SAVE: 'StaticData/api/add-edit-location',
-        DELETE: 'StaticData/api/delete-location'
+        GET: 'StaticData/Location/get',
+        SAVE: 'StaticData/Location/save',
+        DELETE: 'StaticData/Location/delete'
     };
 
     // ── State ─────────────────────────────────────────────────────

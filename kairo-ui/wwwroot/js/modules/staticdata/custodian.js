@@ -17,9 +17,9 @@
     };
 
     var API = {
-        GET: 'StaticData/api/get-custodian',
-        SAVE: 'StaticData/api/add-edit-custodian',
-        DELETE: 'StaticData/api/delete-custodian'
+        GET: 'StaticData/Custodian/get',
+        SAVE: 'StaticData/Custodian/save',
+        DELETE: 'StaticData/Custodian/delete'
     };
 
     // ── State ─────────────────────────────────────────────────────

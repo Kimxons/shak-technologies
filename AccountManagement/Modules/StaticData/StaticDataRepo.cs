@@ -91,6 +91,16 @@ namespace AccountManagement.Modules.StaticData
 
                 using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
+                // No result set returned (typical for INSERT/UPDATE SPs)
+                if (reader.FieldCount == 0)
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "00",
+                        ResponseMessage = "Success"
+                    };
+                }
+
                 // Check if result set has the standard envelope columns
                 var fieldNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 for (int i = 0; i < reader.FieldCount; i++)
@@ -176,12 +186,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@Building", GetString(data, "Building")),
                 new SqlParameter("@RoomOffice", GetString(data, "RoomOffice")),
                 new SqlParameter("@Store", GetBool(data, "Store")),
-                new SqlParameter("@CreatedBy", GetString(data, "CreatedBy")),
-                new SqlParameter("@CreatedOn", GetString(data, "CreatedOn")),
-                new SqlParameter("@ModifiedBy", GetString(data, "ModifiedBy")),
-                new SqlParameter("@ModifiedOn", GetString(data, "ModifiedOn")),
-                new SqlParameter("@NewRecord", GetInt(data, "NewRecord")),
-                new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
+                new SqlParameter("@NewRecord", GetInt(data, "NewRecord"))
             };
 
             return await ExecuteSpRaw(StaticDataDbConstants.ADD_EDIT_LOCATION, parameters, cancellationToken);
@@ -222,10 +227,6 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@Phone", GetString(data, "Phone")),
                 new SqlParameter("@Email", GetString(data, "Email")),
                 new SqlParameter("@IsActive", GetBool(data, "IsActive")),
-                new SqlParameter("@CreatedBy", GetString(data, "CreatedBy")),
-                new SqlParameter("@CreatedOn", GetString(data, "CreatedOn")),
-                new SqlParameter("@ModifiedBy", GetString(data, "ModifiedBy")),
-                new SqlParameter("@ModifiedOn", GetString(data, "ModifiedOn")),
                 new SqlParameter("@NewRecord", GetInt(data, "NewRecord")),
                 new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
@@ -266,11 +267,8 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@Name", GetString(data, "Name")),
                 new SqlParameter("@Department", GetString(data, "Department")),
                 new SqlParameter("@Section", GetString(data, "Section")),
-                new SqlParameter("@CreatedBy", GetString(data, "CreatedBy")),
-                new SqlParameter("@CreatedOn", GetString(data, "CreatedOn")),
-                new SqlParameter("@ModifiedBy", GetString(data, "ModifiedBy")),
-                new SqlParameter("@ModifiedOn", GetString(data, "ModifiedOn")),
-                new SqlParameter("@NewRecord", GetInt(data, "NewRecord"))
+                new SqlParameter("@NewRecord", GetInt(data, "NewRecord")),
+                new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
 
             return await ExecuteSpRaw(StaticDataDbConstants.ADD_EDIT_CUSTODIAN, parameters, cancellationToken);
