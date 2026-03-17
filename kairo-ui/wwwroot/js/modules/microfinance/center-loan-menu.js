@@ -1,6 +1,6 @@
 /**
  * Center Loan Menu - Migrated JS Module
- * Uses invokeCenterLoanController (AppCore pattern) — no GroupService dependency.
+ * Uses invokeCenterLoanController (AppCore pattern) ï¿½ no GroupService dependency.
  */
 (function () {
     'use strict';
@@ -119,7 +119,7 @@
         const modal = ensureSharedSearchModal();
         if (!modal) return;
 
-        const { ourBranchID } = getEnv();
+        const { OurBranchID } = getContext();
         const advFilterString = typeof config.getAdvFilterString === 'function'
             ? config.getAdvFilterString() : (config.advFilterString || '');
 
@@ -130,7 +130,7 @@
             whereStmt: '',
             advFilterString,
             searchKey: '',
-            ourbranchId: ourBranchID,
+            ourbranchId: OurBranchID,
             onSelect: (record) => mapLookupSelection(lookupType, record)
         });
     }
@@ -181,14 +181,36 @@
     }
 
     // =========================================================================
-    // Environment
+    // Context Helper (Client360 pattern: AuthService â†’ sessionStorage â†’ Environment fallback)
     // =========================================================================
-    function getEnv() {
-        const e = window.Environment || window.AppEnvironment || {};
-        const bankID = e.bankID || e.bankId || sessionStorage.getItem('BankID') || '00';
-        const ourBranchID = e.ourBranchID || e.branchID || sessionStorage.getItem('OurBranchID') || '';
-        const operatorID = e.operatorID || e.operatorId || sessionStorage.getItem('OperatorID') || 'CSADM';
-        return { bankID, ourBranchID, operatorID };
+    function getContext() {
+        const session = window.AuthService?.getSession?.() || {};
+        return {
+            OperatorID:
+                session.operatorID ||
+                session.operatorId ||
+                session.OperatorID ||
+                window.sessionStorage?.getItem?.('operatorID') ||
+                window.Environment?.OperatorID ||
+                'web_portal',
+            OurBranchID:
+                session.branchID ||
+                session.branchId ||
+                session.OurBranchID ||
+                window.sessionStorage?.getItem?.('branchID') ||
+                window.Environment?.OurBranchID ||
+                '',
+            BankID:
+                session.bankID ||
+                session.bankId ||
+                session.BankID ||
+                session.BankId ||
+                window.sessionStorage?.getItem?.('BankID') ||
+                window.localStorage?.getItem?.('BankID') ||
+                window.Environment?.BankID ||
+                window.Environment?.bankID ||
+                '00'
+        };
     }
 
     // =========================================================================
@@ -325,18 +347,18 @@
             return;
         }
 
-        const { bankID, ourBranchID, operatorID } = getEnv();
+        const { BankID, OurBranchID, OperatorID } = getContext();
         const formattedDate = effectiveDate && !effectiveDate.includes('T')
             ? effectiveDate + 'T00:00:00' : effectiveDate;
 
         const requestData = {
-            BankID:         bankID,
-            OurBranchID:    ourBranchID,
+            BankID:         BankID,
+            OurBranchID:    OurBranchID,
             LoanSchemeID:   parentSchemeId,
             LoanCycleNo:    parseInt(loanCycleNo, 10) || 0,
             LoanLevelNo:    parseInt(loanLevelNo, 10) || 0,
             EffectiveDate:  formattedDate,
-            OperatorID:     operatorID
+            OperatorID:     OperatorID
         };
 
         try {
@@ -452,10 +474,15 @@
     // Populate / Clear Form
     // =========================================================================
     function populateForm(vm) {
+        const spanKeys = new Set([
+            'MenuLoanProductId','MenuCurrencyId','MenuTermExcludesGracePeriod','MenuLoanPeriod','MenuCalculationMethod',
+            'MenuCreatedBy','MenuCreatedOn','MenuModifiedBy','MenuModifiedOn','MenuSupervisedBy','MenuSupervisedOn'
+        ]);
         Object.entries(vm).forEach(([key, value]) => {
             const el = document.getElementById(key);
             if (!el) return;
-            if (el.type === 'checkbox') { el.checked = !!value; }
+            if (spanKeys.has(key)) { el.textContent = value || '-'; }
+            else if (el.type === 'checkbox') { el.checked = !!value; }
             else { el.value = value ?? ''; }
         });
         toggleSavingsFields(document.getElementById('MenuCollectSavingWithInstallment')?.checked || false);
@@ -463,7 +490,9 @@
 
     function setVal(id, value) {
         const el = document.getElementById(id);
-        if (el) el.value = value ?? '';
+        if (!el) return;
+        if (el.tagName === 'SPAN') { el.textContent = value || '-'; }
+        else { el.value = value ?? ''; }
     }
 
     function clearForm() {
@@ -474,6 +503,10 @@
             else el.value = '';
         });
         form.querySelectorAll('select').forEach(el => { el.selectedIndex = 0; });
+        // Reset all Behind the Scene spans back to default
+        ['MenuLoanProductId','MenuCurrencyId','MenuTermExcludesGracePeriod','MenuLoanPeriod','MenuCalculationMethod',
+         'MenuCreatedBy','MenuCreatedOn','MenuModifiedBy','MenuModifiedOn','MenuSupervisedBy','MenuSupervisedOn']
+            .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
         currentMenu = null;
     }
 
@@ -485,7 +518,11 @@
             'MenuLoanProductId', 'MenuCurrencyId', 'MenuTermExcludesGracePeriod',
             'MenuLoanPeriod', 'MenuCalculationMethod'];
         const saved = {};
-        preserve.forEach(id => { saved[id] = document.getElementById(id)?.value || ''; });
+        preserve.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            saved[id] = el.tagName === 'SPAN' ? (el.textContent || '') : (el.value || '');
+        });
 
         clearForm();
         preserve.forEach(id => setVal(id, saved[id]));
@@ -494,7 +531,7 @@
         isEditMode = false;
         setFormMode('add');
         toggleSavingsFields(false);
-        showInfo('Add mode — fill in the menu details and save.');
+        showInfo('Add mode ï¿½ fill in the menu details and save.');
     }
 
     function handleEdit() {
@@ -503,7 +540,7 @@
         isAddMode  = false;
         setFormMode('edit');
         toggleSavingsFields(document.getElementById('MenuCollectSavingWithInstallment')?.checked || false);
-        showInfo('Edit mode — make your changes and save.');
+        showInfo('Edit mode ï¿½ make your changes and save.');
     }
 
     async function handleDelete() {
@@ -512,9 +549,9 @@
         const confirmed = window.confirm('Are you sure you want to delete this menu entry?');
         if (!confirmed) return;
 
-        const { bankID } = getEnv();
+        const { BankID } = getContext();
         const requestData = {
-            BankID:        bankID,
+            BankID:        BankID,
             LoanSchemeID:  parentSchemeId,
             LoanCycleNo:   parseInt(document.getElementById('LoanCycleNo')?.value, 10) || 0,
             LoanLevelNo:   parseInt(document.getElementById('LoanLevelNo')?.value, 10) || 0,
@@ -549,7 +586,7 @@
         if (!validateForm()) return;
         if (!parentSchemeId) { showError('No scheme ID available. Please load a scheme first.'); return; }
 
-        const { bankID, operatorID } = getEnv();
+        const { BankID, OperatorID } = getContext();
         const now          = new Date().toISOString().slice(0, 19);
         const loanCycleNo  = document.getElementById('LoanCycleNo')?.value?.trim() || '';
         const loanLevelNo  = document.getElementById('LoanLevelNo')?.value?.trim() || '';
@@ -557,9 +594,9 @@
         const formattedDate = effectiveDate && !effectiveDate.includes('T')
             ? effectiveDate + 'T00:00:00' : effectiveDate;
 
-        // Only send fields the SP accepts — no extra audit columns beyond what it expects
+        // Only send fields the SP accepts Ã¢â‚¬â€œ no extra audit columns beyond what it expects
         const requestData = {
-            BankID:                 bankID,
+            BankID:                 BankID,
             LoanSchemeID:           parentSchemeId,
             LoanCycleNo:            parseInt(loanCycleNo, 10) || 0,
             LoanLevelNo:            parseInt(loanLevelNo, 10) || 0,
@@ -576,9 +613,9 @@
             CollateralRatio:        parseFloat(document.getElementById('MenuSavingToLoanRatio')?.value) || 0,
             SLRecoveryType:         document.getElementById('MenuSLRecoveryType')?.value || null,
             CollectSavingWithInst:  document.getElementById('MenuCollectSavingWithInstallment')?.checked ? true : false,
-            CreatedBy:   isAddMode ? operatorID : (currentMenu?.MenuCreatedBy || ''),
+            CreatedBy:   isAddMode ? OperatorID : (currentMenu?.MenuCreatedBy || ''),
             CreatedOn:   isAddMode ? now : (currentMenu?.MenuCreatedOn || ''),
-            ModifiedBy:  isEditMode ? operatorID : (isAddMode ? null : (currentMenu?.MenuModifiedBy || null)),
+            ModifiedBy:  isEditMode ? OperatorID : (isAddMode ? null : (currentMenu?.MenuModifiedBy || null)),
             ModifiedOn:  isEditMode ? now : (isAddMode ? null : (currentMenu?.MenuModifiedOn || null)),
             SupervisedBy: null,
             SupervisedOn: null,
@@ -635,26 +672,30 @@
     // =========================================================================
     async function loadInterestMenuCombo(loanSchemeID) {
         if (!loanSchemeID) return;
-        const { bankID } = getEnv();
+        const { BankID } = getContext();
         try {
-            const resp    = await invokeController('old-api', {
-                FormId:      'p_getInterestmenucombo',
-                RequestData: { BankID: bankID, LoanSchemeID: loanSchemeID }
-            });
+            const requestData = { BankID: BankID, LoanSchemeID: loanSchemeID };
+            const resp = await invokeController('get-interest-menu-combo', requestData);
+
+            console.log('[CenterLoanMenu] Interest menu combo response:', resp, requestData);
             const payload = resp?.raw ?? resp?.data ?? resp;
-            const rows    = payload?.Details01 ?? payload?.Details ?? payload?.details ?? [];
-            const items   = Array.isArray(rows) ? rows : [];
+            const rows = payload?.Details01 ?? payload?.Details ?? payload?.details ?? [];
+            const items = Array.isArray(rows) ? rows : [];
 
             const select = document.getElementById('InterestMenuId');
-            if (!select || !items.length) return;
+            if (!select) return;
 
-            while (select.options.length > 1) select.remove(1);
-            items.forEach(opt => {
-                const o = document.createElement('option');
-                o.value       = opt.RateID || opt.InterestMenuID || opt.value || '';
-                o.textContent = opt.Description || opt.label || o.value;
-                select.appendChild(o);
+            // Always clear all options and add placeholder
+            select.innerHTML = '<option value="" selected>--Select--</option>';
+
+            // Add options from API response, handling all legacy field names
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.RateID || item.InterestMenuID || item.InterestRateID || item.ID || item.value || '';
+                option.textContent = item.Description || item.InterestMenuDesc || item.Name || item.label || option.value;
+                select.appendChild(option);
             });
+            console.log('[CenterLoanMenu] Populated InterestMenuId dropdown with', items.length, 'options');
         } catch (err) {
             console.warn('[CenterLoanMenu] loadInterestMenuCombo error:', err);
         }
@@ -680,11 +721,21 @@
     // =========================================================================
     function closeChildForm() {
         try {
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ action: 'submoduleClosed', source: 'Center Loan Menu' }, '*');
-            } else {
-                window.close();
+            const parent = window.parent;
+
+            // Primary: parent has closeChildForm (MVC standard)
+            if (typeof parent.closeChildForm === 'function') {
+                parent.closeChildForm();
+                return;
             }
+
+            // Fallback: set iframe src to about:blank
+            if (parent !== window && parent.document) {
+                const iframe = parent.document.querySelector('iframe[data-child-iframe]');
+                if (iframe) { iframe.src = 'about:blank'; return; }
+            }
+
+            window.close();
         } catch { window.close(); }
     }
 
@@ -749,12 +800,12 @@
     // Init
     // =========================================================================
     function initialize() {
-        console.log('[CenterLoanMenu] Initializing — SchemeID:', parentSchemeId);
+        console.log('[CenterLoanMenu] Initializing ï¿½ SchemeID:', parentSchemeId);
         initSectionToggles();
         initEventListeners();
         setFormMode('default');
 
-        // If scheme context available, pre-load interest menu combo
+        // Always load interest menu combo on page load if scheme context is available
         if (parentSchemeId) {
             loadInterestMenuCombo(parentSchemeId);
         }

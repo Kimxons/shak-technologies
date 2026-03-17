@@ -23,21 +23,6 @@
     <input type="hidden" id="moduleId_group_bank_details" value="@moduleId" />
 
     <div class="window">
-        <div class="am-header" role="banner" aria-label="Window title bar">
-            <div class="am-header__left">
-                <i class="bi bi-bank am-header__icon" aria-hidden="true"></i>
-                <span class="am-header__title">Group Bank Details</span>
-            </div>
-            <div class="am-header__right" role="toolbar" aria-label="Window controls">
-                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
-                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        </div>
-
         <main class="main-container" aria-label="Group Bank Details form">
             <div class="form-content" role="region" aria-label="Group Bank Details form">
                 <div class="form-card" data-main-form>
@@ -231,6 +216,7 @@
                     <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.delete?.()" title="Delete" data-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
                     <button class="btn-action" type="button" onclick="window.groupBankDetailsActions?.save?.()" title="Save" data-action="save"><i class="bi bi-check-lg me-1"></i>Save</button>
                     <button class="btn-action btn-cancel" type="button" onclick="window.groupBankDetailsActions?.cancel?.()" title="Cancel" data-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                    <button class="btn-action" type="button" data-action="close" id="btnClose" title="Close"><i class="bi bi-box-arrow-right me-1"></i>Close</button>
                 </div>
             </div>
         </main>
