@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // No layout - this is a partial view loaded dynamically
+    Layout = "_ApplicationLayout";
     // Migrated from: public/modules/account-maintenance/DataEntry/account-charge-rates.html
     var ceilingAmountTypeOptions = ViewData["CeilingAmountTypeOptions"] as IEnumerable<SelectListItem> ??
 Enumerable.Empty<SelectListItem>();
@@ -8,8 +8,8 @@ Enumerable.Empty<SelectListItem>();
 Enumerable.Empty<SelectListItem>();
 }
 
-<!-- ChargeRates Submodule - Original HTML Preserved -->
 <!-- ChargeRates Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Charge Rates form">
     <div class="form-card" data-main-form>
         <div class="form-section" data-section="charge-selection">
@@ -186,6 +186,8 @@ Enumerable.Empty<SelectListItem>();
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <div class="loading-overlay" id="loadingOverlay" hidden>
     <div class="loading-spinner">

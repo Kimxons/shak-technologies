@@ -1,7 +1,7 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+  Layout = "_ApplicationLayout";
   // Migrated from: account-classification.html
-  // Rendered inside parent #submodule-container; parent provides window shell + action panel
   var classificationCodeOptions = ViewData["ClassificationCodeOptions"] as IEnumerable<SelectListItem> ??
 Enumerable.Empty<SelectListItem>();
   var classificationSubCodeOptions = ViewData["ClassificationSubCodeOptions"] as IEnumerable<SelectListItem> ??
@@ -9,6 +9,8 @@ Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountClassification Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card" data-main-form>
   <div class="form-section" data-section="classification-selection">
     <div class="section-header" data-section-toggle>
@@ -125,6 +127,9 @@ Enumerable.Empty<SelectListItem>();
                 </div>
               </div>
             </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
             <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-classification.js"
                     asp-append-version="true"></script>

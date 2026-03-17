@@ -1,10 +1,10 @@
 @{
-    // No layout - this is a partial view loaded dynamically
+    Layout = "_ApplicationLayout";
     // Migrated from: public/modules/account-maintenance/DataEntry/account-nomination.html
 }
 
-<!-- Nomination Submodule - Original HTML Preserved -->
 <!-- Nomination Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Nomination form">
     <div class="form-card" data-main-form>
         <!-- Nomination Details Section -->
@@ -124,6 +124,8 @@
       </div>
     </div>
   </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <!-- Initialize Account Nomination Module -->
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-nomination.js"></script>

@@ -1,8 +1,10 @@
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: account-activation.html
 }
 
 <!-- AccountActivation Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Activation form">
   <div class="form-card" data-main-form>
 
@@ -99,6 +101,8 @@
 
   </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 

@@ -1,8 +1,11 @@
 ﻿@{
+    Layout = "_ApplicationLayout";
     // Migrated from: account-reminders.html
 }
 
 <!-- REMINDERS FORM -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card" data-main-form>
 
   <!-- ACCOUNT IDENTIFICATION SECTION -->
@@ -186,5 +189,8 @@
   </div>
 
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <script src="~/js/modules/accountsmaintenance/account-reminders.js" asp-append-version="true"></script>

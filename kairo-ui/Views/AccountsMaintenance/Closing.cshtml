@@ -1,13 +1,13 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    // No layout - this is a partial view loaded dynamically
+    Layout = "_ApplicationLayout";
     // Migrated from: public/modules/account-maintenance/DataEntry/account-closing.html
     var accountCloseReasonOptions = ViewData["AccountCloseReasonOptions"] as IEnumerable<SelectListItem> ??
 Enumerable.Empty<SelectListItem>();
 }
 
-<!-- Closing Submodule - Original HTML Preserved -->
 <!-- Closing Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Closing form">
     <div class="form-card" data-main-form>
         <!-- Bootstrap 5 Nav Tabs -->
@@ -368,6 +368,8 @@ Enumerable.Empty<SelectListItem>();
                                         </div>
                                     </div>
                                 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "closing" } })
+</main>
 
                                 <div class="loading-overlay" id="loadingOverlay" hidden>
                                     <div class="loading-spinner">
