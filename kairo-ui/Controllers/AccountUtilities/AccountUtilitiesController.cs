@@ -10,17 +10,20 @@ namespace kairo_ui.Controllers.AccountUtilities
     {
         private readonly IAuthService _authService;
         private readonly IApiService _apiService;
+        private readonly IOldApiService _oldApiService;
         private readonly IApiCachedService _apiCachedService;
         private readonly ILogger<AccountUtilitiesController> _logger;
 
         public AccountUtilitiesController(
             IAuthService authService,
             IApiService apiService,
+            IOldApiService oldApiService,
             IApiCachedService apiCachedService,
             ILogger<AccountUtilitiesController> logger)
         {
             _authService = authService;
             _apiService = apiService;
+            _oldApiService = oldApiService;
             _apiCachedService = apiCachedService;
             _logger = logger;
         }
@@ -126,6 +129,27 @@ namespace kairo_ui.Controllers.AccountUtilities
                     ViewData["CityOptions"] = Enumerable.Empty<SelectListItem>();
                     ViewData["SITransferTypeOptions"] = Enumerable.Empty<SelectListItem>();
                     ViewData["ChargeRecoveryOptions"] = Enumerable.Empty<SelectListItem>();
+                }
+
+                // Load SI Type combo via OldApiService (p_GetSITypeCombo)
+                try
+                {
+                    var bankId = HttpContext.Session.GetString("bank_id")
+                        ?? HttpContext.Session.GetString("bank_code")
+                        ?? "00";
+
+                    var siTypeResponse = await _oldApiService.CreateAsync<JsonElement>(
+                        "AccountManagementApi",
+                        OldApiDBConstants.GET_SI_TYPE_COMBO,
+                        new { BankID = bankId, ModuleID = 1906 }
+                    );
+
+                    ViewData["SITypeOptions"] = ParseSITypeComboToSelectList(siTypeResponse);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error loading SI Type combo options");
+                    ViewData["SITypeOptions"] = Enumerable.Empty<SelectListItem>();
                 }
 
                 return PartialView("StandingInstructionEFT");
@@ -546,6 +570,96 @@ namespace kairo_ui.Controllers.AccountUtilities
             }
         }
 
+        /// <summary>
+        /// Fetches SI Type combo options via old API (p_GetSITypeCombo).
+        /// Requires BankID and ModuleID.
+        /// </summary>
+        [HttpPost]
+        [Route("api/get-si-type-combo")]
+        public async Task<IActionResult> GetSITypeCombo([FromBody] SITypeComboRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, message = "Not authenticated" });
+
+                var bankId = HttpContext.Session.GetString("bank_id")
+                    ?? HttpContext.Session.GetString("bank_code")
+                    ?? request.BankID
+                    ?? "00";
+
+                var requestData = new
+                {
+                    BankID = bankId,
+                    ModuleID = request.ModuleID
+                };
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    OldApiDBConstants.GET_SI_TYPE_COMBO,
+                    requestData
+                );
+
+                return Ok(new { success = true, data = response });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading SI Type combo");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Parses the SI Type combo response (from p_GetSITypeCombo) into SelectListItem list.
+        /// </summary>
+        private static IEnumerable<SelectListItem> ParseSITypeComboToSelectList(JsonElement response)
+        {
+            var items = new List<SelectListItem>();
+            try
+            {
+                JsonElement rows = default;
+
+                if (response.TryGetProperty("Details", out var details))
+                {
+                    if (details.TryGetProperty("Details01", out var d01) && d01.ValueKind == JsonValueKind.Array)
+                        rows = d01;
+                    else if (details.TryGetProperty("Details02", out var d02) && d02.ValueKind == JsonValueKind.Array)
+                        rows = d02;
+                    else if (details.ValueKind == JsonValueKind.Array)
+                        rows = details;
+                }
+                else if (response.ValueKind == JsonValueKind.Array)
+                {
+                    rows = response;
+                }
+
+                if (rows.ValueKind != JsonValueKind.Array) return items;
+
+                foreach (var row in rows.EnumerateArray())
+                {
+                    var value = row.TryGetProperty("SITypeID", out var id) ? id.GetString()
+                        : row.TryGetProperty("SubCodeID", out var sub) ? sub.GetString()
+                        : row.TryGetProperty("ID", out var genId) ? genId.GetString()
+                        : null;
+
+                    var text = row.TryGetProperty("SITypeDescription", out var desc) ? desc.GetString()
+                        : row.TryGetProperty("Description", out var d) ? d.GetString()
+                        : row.TryGetProperty("CodeDescription", out var cd) ? cd.GetString()
+                        : row.TryGetProperty("Name", out var n) ? n.GetString()
+                        : null;
+
+                    if (!string.IsNullOrEmpty(value))
+                        items.Add(new SelectListItem { Value = value, Text = text ?? value });
+                }
+            }
+            catch { /* Return empty on parse failure */ }
+            return items;
+        }
+
         #endregion
     }
 
@@ -561,6 +675,12 @@ namespace kairo_ui.Controllers.AccountUtilities
         public string? ReferenceNo { get; set; }
         public int Direction { get; set; }
         public string? DirectionType { get; set; }
+    }
+
+    public class SITypeComboRequest
+    {
+        public string? BankID { get; set; }
+        public int ModuleID { get; set; } = 1906;
     }
 
     public class SIDemandDraftRequest
