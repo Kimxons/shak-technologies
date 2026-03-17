@@ -267,4 +267,5 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapControllers();
+
 app.Run();

@@ -1,0 +1,304 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Maintain Vendors";
+    Layout = "_ApplicationLayout";
+
+    var operatorId = ViewData["OperatorId"]?.ToString() ?? string.Empty;
+    var branchCode = ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var bankId = ViewData["BankId"]?.ToString() ?? string.Empty;
+    var cityOptions = ViewData["CityOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countryOptions = ViewData["CountryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<div class="window">
+    <div class="main-container">
+        <section class="form-content" aria-label="Maintain Vendors Content">
+            <form id="maintain-vendors-form" autocomplete="off" novalidate>
+                <!-- Context hidden fields -->
+                <input type="hidden" id="moduleId_maintainVendors" value="@ViewData["ModuleId"]" />
+                <input type="hidden" id="OperatorID" value="@operatorId" />
+                <input type="hidden" id="hdn_BranchCode" value="@branchCode" />
+                <input type="hidden" id="hdn_BankId" value="@bankId" />
+
+                <div class="form-card">
+
+                    <!-- Vendor Information Section -->
+                    <div class="form-section" data-section="vendor-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-building"></i> Maintain Vendors</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Maintain Vendors" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+
+                            <!-- Vendor ID + Name inline (kairo-control) -->
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="VendorId">Vendor ID</label>
+                                    <div class="kairo-control kairo-control--dual">
+                                        <input type="text" class="kairo-control__id" id="VendorId" name="VendorId"
+                                               aria-label="Vendor ID" data-always-enabled />
+                                        <input type="text" class="kairo-control__name bs-input-text" id="VendorName" name="VendorName"
+                                               aria-label="Vendor Name" placeholder="Vendor Name" />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" id="vendorSearchBtn"
+                                                aria-label="Search Vendor" data-always-enabled data-mv-action="search">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="Address1">Address 1</label>
+                                    <input type="text" class="bs-input-text" id="Address1" name="Address1" aria-label="Address 1" />
+                                </div>
+                                <div class="col">
+                                    <label for="Address2">Address 2</label>
+                                    <input type="text" class="bs-input-text" id="Address2" name="Address2" aria-label="Address 2" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="City">City</label>
+                                    <select class="bs-select" id="City" name="CityID" aria-label="City"
+                                            asp-items="@cityOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value))">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="Country">Country</label>
+                                    <select class="bs-select" id="Country" name="CountryID" aria-label="Country"
+                                            asp-items="@countryOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value))">
+                                        <option value="" selected>--Select--</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="ZipCode">Zip Code</label>
+                                    <input type="text" class="bs-input-text" id="ZipCode" name="ZipCode" aria-label="Zip Code" />
+                                </div>
+                                <div class="col">
+                                    <label for="EmailId">Email ID</label>
+                                    <input type="text" class="bs-input-text" id="EmailId" name="EmailId" aria-label="Email ID" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="PhoneHome">Phone (Home)</label>
+                                    <input type="text" class="bs-input-text" id="PhoneHome" name="PhoneHome" aria-label="Phone Home" />
+                                </div>
+                                <div class="col">
+                                    <label for="PhoneWork">Phone (Work)</label>
+                                    <input type="text" class="bs-input-text" id="PhoneWork" name="PhoneWork" aria-label="Phone Work" />
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="Mobile">Mobile</label>
+                                    <input type="text" class="bs-input-text" id="Mobile" name="Mobile" aria-label="Mobile" />
+                                </div>
+                                <div class="col">
+                                    <label for="FaxNo">Fax No</label>
+                                    <input type="text" class="bs-input-text" id="FaxNo" name="FaxNo" aria-label="Fax No" />
+                                </div>
+                            </div>
+
+                            <!-- Contact Person inline lookup -->
+                            <div class="form-row">
+                                <div class="col">
+                                    <label class="label-blue" for="ContactPerson">Contact Person</label>
+                                    <div class="kairo-control kairo-control--dual">
+                                        <input type="text" class="kairo-control__id" id="ContactPerson" name="ContactPersonID"
+                                               aria-label="Contact Person ID" />
+                                        <input type="text" class="kairo-control__name bs-input-text" id="ContactPersonName"
+                                               name="ContactPersonName" aria-label="Contact Person Name"
+                                               placeholder="Contact Person Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup"
+                                                aria-label="Lookup Contact Person" data-mv-action="lookup-contact">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col">
+                                    <label for="ProductsDealingWith">Products Dealing With</label>
+                                    <textarea class="bs-textarea" id="ProductsDealingWith" name="ProductsDealingWith"
+                                              rows="4" aria-label="Products Dealing With"></textarea>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Behind The Scene Section -->
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Created By</label>
+                                        <span class="audit-value" id="CreatedBy" data-mv-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Created On</label>
+                                        <span class="audit-value" id="CreatedOn" data-mv-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Modified By</label>
+                                        <span class="audit-value" id="ModifiedBy" data-mv-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Modified On</label>
+                                        <span class="audit-value" id="ModifiedOn" data-mv-audit></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Supervised By</label>
+                                        <span class="audit-value" id="SupervisedBy" data-mv-audit></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Supervised On</label>
+                                        <span class="audit-value" id="SupervisedOn" data-mv-audit></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        <aside class="action-panel" aria-label="Actions">
+            <div class="action-buttons">
+                <div class="nav-group">
+                    <button type="button" class="btn-nav green" aria-label="Previous Vendor" data-mv-nav="prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span>Vendor</span>
+                    <button type="button" class="btn-nav green" aria-label="Next Vendor" data-mv-nav="next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <button type="button" class="btn-action btn-view" data-shell-mode="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button type="button" class="btn-action" data-shell-mode="Update"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                <button type="button" class="btn-action" data-mv-action="delete"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button type="button" class="btn-action" data-mv-action="save" disabled><i class="bi bi-check-lg me-1"></i>Save</button>
+                <button type="button" class="btn-action btn-cancel" data-mv-action="cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </aside>
+    </div>
+
+    <div class="am-message-panel" id="dv_messagePanel" role="alert" aria-live="polite">
+        <i class="bi bi-info-circle" id="icn_messageIcon"></i>
+        <span id="spn_messageText"></span>
+    </div>
+
+    <!-- Vendor Lookup Modal -->
+    <div class="modal fade" id="vendorLookupModal" tabindex="-1" aria-labelledby="vendorLookupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0 small">Maintain Vendors</p>
+                        <h5 class="modal-title" id="vendorLookupModalLabel">Find Vendor</h5>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-light" id="vendorSearchRefresh" aria-label="Refresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form class="row g-3 align-items-end mb-3" id="vendorLookupForm">
+                        <div class="col-md-4">
+                            <label class="form-label">Vendor ID</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="vendorSearchModeId">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="vendorSearchId" placeholder="e.g. VEN00001" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Vendor Name</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select" id="vendorSearchModeName">
+                                    <option value="Like">Contains</option>
+                                    <option value="Exact">Exact</option>
+                                </select>
+                                <input type="text" class="form-control" id="vendorSearchName" placeholder="Vendor name" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="vendorSearchReset">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm" id="vendorSearchSubmit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="position-relative">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Vendor ID</th>
+                                        <th scope="col">Vendor Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vendorSearchResults"></tbody>
+                            </table>
+                        </div>
+                        <div id="vendorSearchEmpty" class="text-center py-5 text-muted">
+                            Enter at least one filter above and click Search to query vendors.
+                        </div>
+                        <div id="vendorSearchLoading" class="d-none position-absolute top-50 start-50 translate-middle">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted me-auto">Double-click a row to select record.</small>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert2.min.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/maintain-vendors.js" asp-append-version="true"></script>
+}

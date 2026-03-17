@@ -3,8 +3,7 @@
     ViewData["Title"] = "Standing Instruction EFT";
     Layout = "_ApplicationLayout";
 
-    var siTransferTypeOptions = ViewData["SITransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var chargeRecoveryOptions = ViewData["ChargeRecoveryOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var siTypeOptions = ViewData["SITypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <form id="siEFTForm" style="display:none;">
@@ -66,9 +65,9 @@
                   <label class="label-blue" id="lbl_siType" for="ddl_siType">SI Type <span class="text-danger">*</span></label>
                   <select id="ddl_siType" name="siType" class="bs-select">
                     <option value="">--Select--</option>
-                    @foreach (var option in siTransferTypeOptions)
+                    @foreach (var opt in siTypeOptions)
                     {
-                        <option value="@option.Value">@option.Text</option>
+                        <option value="@opt.Value">@opt.Text</option>
                     }
                   </select>
                 </div>
@@ -121,10 +120,6 @@
                   <label class="label-blue" id="lbl_chargeRecovery" for="ddl_chargeRecovery">Charge Recovery</label>
                   <select id="ddl_chargeRecovery" name="chargeRecovery" class="bs-select">
                     <option value="">--Select--</option>
-                    @foreach (var option in chargeRecoveryOptions)
-                    {
-                        <option value="@option.Value">@option.Text</option>
-                    }
                   </select>
                 </div>
               </div>

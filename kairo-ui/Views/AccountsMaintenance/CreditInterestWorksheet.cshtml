@@ -1,3 +1,6 @@
+@{
+    Layout = "_ApplicationLayout";
+}
 @* Credit Interest Worksheet Submodule - Loaded as Partial View *@
 @* Migrated from: credit-interest-worksheet.html *@
 
@@ -6,6 +9,7 @@
 </form>
 
 <!-- Form Content -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Credit Interest Worksheet" data-submodule-content>
     <div class="form-card" data-submodule-form>
         <!-- Filters Section -->
@@ -77,6 +81,8 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "worksheet" } })
+</main>
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="div_loadingOverlay" style="display:none;">

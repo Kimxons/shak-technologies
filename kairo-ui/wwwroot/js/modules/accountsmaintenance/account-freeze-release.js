@@ -88,8 +88,11 @@ window.AccountFreezeReleaseModule = (function () {
     }
 
     function showMsg(msg, type) {
-        if (typeof window.showSystemToast === 'function') {
-            window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
+        var variant = type === 'error' ? 'danger' : type;
+        if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+            window.AppCore.showNotification(msg, variant);
+        } else if (typeof window.showSystemToast === 'function') {
+            window.showSystemToast(msg, { variant: variant });
         }
         console.log('[FreezeRelease] ' + type + ': ' + msg);
     }
@@ -395,10 +398,11 @@ window.AccountFreezeReleaseModule = (function () {
     /* ── Bind / Populate form data ───────────────────────────── */
     function populateForm(f) {
         if (!f) return;
-        setVal('referenceId', f.ReferenceID || '');
+        setVal('referenceId', f.ReferenceID != null ? f.ReferenceID : '');
         setVal('effectiveDate', formatDateForInput(f.EffectiveDate || f.FreezedDate));
-        setVal('fixedAmount', f.FreezedValue || f.FreezeAmount || f.FixedAmount || '');
-        setVal('reason', f.FreezedReason || f.FreezeReason || '');
+        var amt = (f.FreezedValue != null && f.FreezedValue !== '') ? f.FreezedValue : (f.FreezeAmount != null && f.FreezeAmount !== '') ? f.FreezeAmount : (f.FixedAmount != null && f.FixedAmount !== '') ? f.FixedAmount : '';
+        setVal('fixedAmount', amt);
+        setVal('reason', (f.FreezedReason != null && f.FreezedReason !== '') ? f.FreezedReason : (f.FreezeReason || ''));
     }
 
     function populateBts(acct, f) {
@@ -412,7 +416,7 @@ window.AccountFreezeReleaseModule = (function () {
         setVal('totalBalance', fmtMoney(acct.TotalBalance));
         setVal('drawingPower', fmtMoney(acct.DrawingPower));
         setVal('minimumBalance', fmtMoney(acct.MinimumBalance));
-        setVal('freezedAmount', fmtMoney(f.FreezedValue || f.FreezeAmount));
+        setVal('freezedAmount', fmtMoney(f.FreezedValue != null ? f.FreezedValue : f.FreezeAmount));
         setVal('loanBranchId', f.LoanBranchID || '');
         setVal('loanAccountId', f.LoanAccountID || '');
     }
@@ -455,7 +459,9 @@ window.AccountFreezeReleaseModule = (function () {
             }
 
             const result = await window.AppCore.invokeControllerAsync(API.GET, payload);
+            console.log('[FreezeRelease] GET raw result:', JSON.stringify(result));
             const raw = result?.Details || result?.Data || result?.data || result || {};
+            console.log('[FreezeRelease] GET parsed raw:', JSON.stringify(raw));
             const noFreezeRecords = result?.ResponseCode === 'DBEX000020'
                 || raw?.error === 'No_Freeze_Records'
                 || raw?.Error === 'No_Freeze_Records';
@@ -464,6 +470,8 @@ window.AccountFreezeReleaseModule = (function () {
             if (isSuccess(result)) {
                 const acct = pickAccountDetails(raw);
                 const freeze = pickFreezeDetails(raw);
+                console.log('[FreezeRelease] Parsed freeze:', JSON.stringify(freeze));
+                console.log('[FreezeRelease] Parsed acct:', JSON.stringify(acct));
                 const d = {
                     ...raw,
                     AccountInfo: acct,
@@ -544,6 +552,8 @@ window.AccountFreezeReleaseModule = (function () {
         const resolvedBranchID = ctx.OurBranchID || val('branchId');
         const payload = {
             AccountID: resolvedAccountID,
+            FreezedValue: amount,
+            FreezedReason: reason,
             FreezeAmount: amount,
             FreezeReason: reason,
             FreezeDate: date,

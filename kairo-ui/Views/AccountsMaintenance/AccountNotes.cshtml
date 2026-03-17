@@ -1,3 +1,6 @@
+@{
+    Layout = "_ApplicationLayout";
+}
 @* Account Notes Submodule - Loaded as Partial View *@
 @* This partial view includes BOTH the form content AND the action panel *@
 @* It replaces the parent's form-content and action-panel when loaded *@
@@ -7,6 +10,7 @@
 </form>
 
 <!-- Form Content -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Notes form" data-submodule-content>
     <div class="form-card" data-submodule-form>
         <!-- Note Details Section -->
@@ -68,6 +72,8 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="notesLoadingOverlay" hidden>

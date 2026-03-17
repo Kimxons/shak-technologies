@@ -1,0 +1,124 @@
+@{
+    Layout = null;
+}
+
+<form id="custodianFormToken" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div id="custodianModule">
+    <!-- Loading Overlay -->
+    <div id="custodianLoadingOverlay" class="page-loading-overlay" hidden>
+        <div class="page-loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Pill -->
+    <div class="d-flex justify-content-end px-2 pt-1">
+        <span class="badge bg-secondary" data-page-function-pill>Mode &middot; View</span>
+    </div>
+
+    <form id="custodian-form" autocomplete="off" novalidate>
+                <div class="form-card">
+                    <div class="form-section" data-section="custodian-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-shield-check"></i> Custodian Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Custodian Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="CustodianID">Custodian ID</label>
+                                    <div class="kairo-control kairo-control--id-only" data-kairo-control>
+                                        <input type="text" id="CustodianID" class="kairo-control__id" aria-label="Custodian ID" data-always-enabled>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-custodian-action="search" aria-label="Search Custodian" data-always-enabled><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label for="CustodianName">Custodian Name</label>
+                                    <input type="text" class="bs-input-text" id="CustodianName" name="CustodianName" placeholder="Custodian Name">
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="Department">Department</label>
+                                    <select class="bs-select" id="Department" name="Department">
+                                        <option value="">-- Select Department --</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label for="Section">Section</label>
+                                    <select class="bs-select" id="Section" name="Section">
+                                        <option value="">-- Select Section --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Created By</label>
+                                        <span class="audit-value" id="cusCreatedBy"></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Created On</label>
+                                        <span class="audit-value" id="cusCreatedOn"></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Modified By</label>
+                                        <span class="audit-value" id="cusModifiedBy"></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Modified On</label>
+                                        <span class="audit-value" id="cusModifiedOn"></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Supervised By</label>
+                                        <span class="audit-value" id="cusSupervisedBy"></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Supervised On</label>
+                                        <span class="audit-value" id="cusSupervisedOn"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+    <div class="am-message-panel" role="alert" aria-live="polite" id="custodianMessagePanel">
+        <i class="bi bi-info-circle"></i>
+        <span></span>
+    </div>
+
+    <!-- Hidden proxy buttons for parent action panel sync -->
+    <div hidden aria-hidden="true">
+        <button data-custodian-mode="View"></button>
+        <button data-custodian-mode="Add" disabled></button>
+        <button data-custodian-mode="Edit" disabled></button>
+        <button data-custodian-action="delete" disabled></button>
+        <button data-custodian-action="save" disabled></button>
+        <button data-custodian-action="cancel" disabled></button>
+    </div>
+</div>

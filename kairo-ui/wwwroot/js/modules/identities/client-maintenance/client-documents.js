@@ -1,7 +1,24 @@
 const CM_DOCUMENTS_BASE = 'Identities/ClientMaintenance/Documents';
 
 function invokeClientMaintenanceDocuments(action, requestData) {
-    return window.ClientMaintenanceCore.invokeControllerMethod(CM_DOCUMENTS_BASE, action, 'POST', requestData || {});
+    // For FormData payloads, pass options to prevent JSON content-type header
+    // This allows the multipart/form-data header with boundary to be set by the browser
+    if (requestData instanceof FormData) {
+        return window.ClientMaintenanceCore.invokeControllerMethod(
+            CM_DOCUMENTS_BASE,
+            action,
+            'POST',
+            requestData,
+            { skipJsonHeader: true }
+        );
+    }
+    // For regular object payloads, use standard JSON submission
+    return window.ClientMaintenanceCore.invokeControllerMethod(
+        CM_DOCUMENTS_BASE,
+        action,
+        'POST',
+        requestData || {}
+    );
 }
 
 window.ClientMaintenanceDocumentsService = {
@@ -39,6 +56,27 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         if (clearBtn) clearBtn.disabled = !enabled;
     };
 
+    const syncDateFieldState = (field, enabled) => {
+        if (!field || !field._flatpickr) {
+            return;
+        }
+
+        const isDisabled = !enabled;
+        try {
+            field._flatpickr.set('clickOpens', enabled);
+            field._flatpickr.set('allowInput', enabled);
+            if (field._flatpickr.altInput) {
+                field._flatpickr.altInput.disabled = isDisabled;
+                field._flatpickr.altInput.readOnly = isDisabled;
+            }
+            if (isDisabled) {
+                field._flatpickr.close();
+            }
+        } catch (error) {
+            console.warn('[Documents] Failed to sync date field state:', error);
+        }
+    };
+
     const setFieldsEnabled = (enabled) => {
         const allowEdit = Boolean(window.ClientMaintenanceCore?.isEditMode);
         const nextEnabled = allowEdit && enabled;
@@ -46,6 +84,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         state.enabled = nextEnabled;
         form.querySelectorAll('[data-document-field]').forEach((field) => {
             field.disabled = !nextEnabled;
+            syncDateFieldState(field, nextEnabled);
         });
         const lookupBtn = form.querySelector('[data-document-action="lookup-receiver"]');
         if (lookupBtn) lookupBtn.disabled = !nextEnabled;
@@ -118,7 +157,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         // Get client ID and request ID from parent context
         const clientId = requestData?.ClientID || window.ClientMaintenanceCore?.clientId || '';
         const requestId = requestData?.RequestID || window.ClientMaintenanceCore?.requestId || '';
-        
+
         // Need at least one identifier (ClientID or RequestID) to fetch documents
         if (!clientId && !requestId) {
             renderDocumentsTable([]);
@@ -146,6 +185,8 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 field.checked = false;
             } else if (field.type === 'file') {
                 field.value = '';
+            } else if (field._flatpickr) {
+                field._flatpickr.clear();
             } else {
                 field.value = '';
             }
@@ -166,12 +207,132 @@ function bindDocumentsCrud(tabRoot, moduleId) {
         return field.value ?? '';
     };
 
+    const isSelectValueValid = (field) => {
+        const value = String(field?.value || '').trim();
+        if (!value) {
+            return false;
+        }
+
+        const selectedOption = field?.options?.[field.selectedIndex];
+        if (!selectedOption) {
+            return false;
+        }
+
+        const optionText = String(selectedOption.text || '').trim().toLowerCase();
+        const placeholderPatterns = ['select', 'choose', 'pick', 'option', '---', '...'];
+        return !placeholderPatterns.some((pattern) => optionText.includes(pattern));
+    };
+
+    const focusField = (field) => {
+        if (!field) {
+            return;
+        }
+
+        if (field._flatpickr?.altInput) {
+            field._flatpickr.altInput.focus();
+            return;
+        }
+
+        field.focus();
+    };
+
+    const validateRequiredFields = (mode) => {
+        const requiredFields = [
+            { key: 'DocumentID', label: 'Document ID' },
+            { key: 'DocumentTypeID', label: 'Document Type' },
+            { key: 'LocationID', label: 'Location' },
+            { key: 'ReceivedBy', label: 'Received By' },
+            { key: 'ReceivedDate', label: 'Received Date' }
+        ];
+
+        const missingFields = [];
+        const invalidElements = [];
+
+        requiredFields.forEach(({ key, label }) => {
+            const field = form.querySelector(`[data-document-field="${key}"]`);
+            if (!field) {
+                return;
+            }
+
+            const tagName = String(field.tagName || '').toLowerCase();
+            const value = String(field.value || '').trim();
+            const isValid = tagName === 'select' ? isSelectValueValid(field) : value.length > 0;
+
+            if (!isValid) {
+                missingFields.push(label);
+                invalidElements.push(field);
+            }
+        });
+
+        if (mode === 'add') {
+            const fileField = form.querySelector('[data-document-field="Image"]');
+            const hasFile = Boolean(fileField?.files?.length);
+            if (!hasFile) {
+                missingFields.push('Document File');
+                if (fileField) {
+                    invalidElements.push(fileField);
+                }
+            }
+        }
+
+        if (missingFields.length > 0) {
+            window.ClientMaintenanceCore.showToast(`Please fill in required fields: ${missingFields.join(', ')}`, 'warning');
+            focusField(invalidElements[0]);
+            return false;
+        }
+
+        return true;
+    };
+
     const buildPayload = () => {
+        // Check if we have file uploads - if so use FormData, otherwise use plain object
+        const hasFileUpload = Array.from(form.querySelectorAll('[data-document-field][type="file"]'))
+            .some(field => field.files && field.files[0]);
+
+        if (hasFileUpload) {
+            // Use FormData for multipart/form-data submission
+            const formData = new FormData();
+            form.querySelectorAll('[data-document-field]').forEach((field) => {
+                const key = field.dataset.documentField;
+                if (!key) return;
+
+                if (field.type === 'file') {
+                    if (field.files && field.files[0]) {
+                        formData.append("RequestData." + key, field.files[0]);
+                    }
+                } else if (field.type === 'checkbox') {
+                    formData.append("RequestData." + key, field.checked ? '1' : '0');
+                } else {
+                    formData.append("RequestData." + key, field.value ?? '');
+                }
+            });
+
+            const selectedImageId = state.editing?.ImageID ?? state.editing?.ID ?? null;
+            const selectedTempImageId = state.editing?.TempImageID ?? null;
+
+            if (selectedImageId !== null && selectedImageId !== undefined && selectedImageId !== '') {
+                formData.append("RequestData." + 'ImageID', selectedImageId);
+            }
+
+            if (selectedTempImageId !== null && selectedTempImageId !== undefined && selectedTempImageId !== '') {
+                formData.append("RequestData." + 'TempImageID', selectedTempImageId);
+            }
+
+            const requestId = window.ClientMaintenanceCore.requestId || '';
+            formData.append("RequestData."+'ModuleID', moduleId || window.ClientMaintenanceCore.moduleId || '');
+            formData.append("RequestData."+'ClientID', window.ClientMaintenanceCore.clientId || '');
+            formData.append("RequestData."+'RequestID', requestId);
+            formData.append("RequestData." + 'ApplicationID', requestId);
+
+            return formData;
+        }
+
+        // Regular object payload for non-file operations
         const payload = {};
         form.querySelectorAll('[data-document-field]').forEach((field) => {
             const key = field.dataset.documentField;
             if (!key) return;
-            payload[key] = readFieldValue(field);
+            payload["RequestData." + key] = readFieldValue(field);
         });
 
         const selectedImageId = state.editing?.ImageID ?? state.editing?.ID ?? null;
@@ -187,13 +348,12 @@ function bindDocumentsCrud(tabRoot, moduleId) {
 
         const requestId = window.ClientMaintenanceCore.requestId || '';
 
-        return {
-            ModuleID: moduleId || window.ClientMaintenanceCore.moduleId || '',
-            ClientID: window.ClientMaintenanceCore.clientId || '',
-            RequestID: requestId,
-            ApplicationID: requestId,
-            Payload: payload
-        };
+        payload.ModuleID = moduleId || window.ClientMaintenanceCore.moduleId || '';
+        payload.ClientID = window.ClientMaintenanceCore.clientId || '';
+        payload.RequestID = requestId;
+        payload.ApplicationID = requestId;
+
+        return payload;
     };
 
     const fetchSingleDocumentDetails = async (rowPayload) => {
@@ -213,10 +373,9 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             ClientID: window.ClientMaintenanceCore.clientId || '',
             RequestID: requestId,
             ApplicationID: requestId,
-            Payload: {
-                ImageID: requestedId,
-                TempImageID: tempImageId
-            }
+            ImageID: requestedId,
+            TempImageID: tempImageId
+
         });
 
         const details = response?.Details ?? response?.data?.Details ?? response?.data ?? null;
@@ -363,7 +522,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                     window.ClientMaintenanceCore.showToast('Select a document to remove.', 'warning');
                     return;
                 }
-                
+
                 const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
                 let confirmed = false;
                 if (!appCore || !appCore.showConfirmation) {
@@ -378,7 +537,6 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 setMode('delete');
             }
 
-            const request = buildPayload();
             const service = window.ClientMaintenanceDocumentsService;
             const mode = state.mode === 'view'
                 ? (state.editing ? 'edit' : 'add')
@@ -389,11 +547,16 @@ function bindDocumentsCrud(tabRoot, moduleId) {
                 return;
             }
 
+            if ((mode === 'add' || mode === 'edit') && !validateRequiredFields(mode)) {
+                return;
+            }
+
+            const request = buildPayload();
             const handler = mode === 'delete'
                 ? service.delete
                 : (mode === 'edit' ? service.update : service.create);
             const actionLabel = mode === 'delete' ? 'remove' : (mode === 'edit' ? 'update' : 'create');
-
+            console.log(request);
             try {
                 const response = await handler(request);
                 const success = response?.Success ?? response?.success ?? true;
@@ -424,7 +587,7 @@ function bindDocumentsCrud(tabRoot, moduleId) {
  */
 function initDocumentsSearchModal(tabRoot, moduleId) {
     if (!tabRoot) return;
-    
+
     const receivedByField = tabRoot.querySelector('[data-document-field="ReceivedBy"]');
     const receivedByNameField = tabRoot.querySelector('#txt_documentReceivedByName');
     const searchBtn = tabRoot.querySelector('[data-document-action="lookup-receiver"]');
@@ -435,14 +598,14 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
         console.warn('[Documents] AppCore not available for SearchModal');
         return;
     }
-    
+
     // Get or create SearchModal instance
     let searchModal = window._documentsSearchModal;
     if (!searchModal && window.SearchModal) {
         searchModal = new window.SearchModal(appCore);
         window._documentsSearchModal = searchModal;
     }
-    
+
     if (!searchModal) {
         console.warn('[Documents] SearchModal not available');
         return;
@@ -499,11 +662,11 @@ function initDocumentsSearchModal(tabRoot, moduleId) {
             receiverLookupInFlight = false;
         }
     };
-    
+
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
         const currentValue = receivedByField.value || '';
-        
+
         searchModal.open({
             title: 'Find User for Document Receiver',
             tableID: 'OperatorID',

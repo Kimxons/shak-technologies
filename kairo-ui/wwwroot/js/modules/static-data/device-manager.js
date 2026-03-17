@@ -60,7 +60,55 @@
         alert.classList.remove('d-none');
         alert.removeAttribute('hidden');
     }
+    function escapeSql(value) {
+        return String(value || '').replace(/'/g, "''");
+    }
+    function escapeXml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+    function formatXmlDate(value = new Date()) {
+        const date = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        const pad = (num, size = 2) => String(num).padStart(size, '0');
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+        const millis = pad(date.getMilliseconds(), 3);
+        const offsetMinutes = -date.getTimezoneOffset();
+        const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+        const absOffsetMinutes = Math.abs(offsetMinutes);
+        const offsetHours = pad(Math.floor(absOffsetMinutes / 60));
+        const offsetMins = pad(absOffsetMinutes % 60);
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}${offsetSign}${offsetHours}:${offsetMins}`;
+    }
+    function getCurrentBranchId() {
+        const session = window.AuthService?.getSession?.() || {};
+        const fromSession =
+            session.branchID || session.BranchID || session.OurBranchID || session.branchId || session.ourBranchId;
+        const fromForm = qs('#txt_deviceBranchId')?.value?.trim?.() || '';
+        const fromEnvironmentDefault = window.Environment?.defaultOurBranchId || window.Environment?.DefaultOurBranchId;
+        const fromEnvironment = window.Environment?.BranchID || window.Environment?.branchID || window.Environment?.OurBranchID;
+        const fromSelectedRow = state.selectedIndex >= 0 ? (state.rows[state.selectedIndex]?.BranchId || '') : '';
+        return String(fromSession || fromForm || fromSelectedRow || fromEnvironmentDefault || fromEnvironment || '').trim();
+    }
+    function getSessionContext() {
+        const session = window.AuthService?.getSession?.() || {};
+        const branchId = getCurrentBranchId();
+        const operatorId = String(
+            session.operatorID || session.OperatorID || session.operatorId || session.OperatorId || window.Environment?.OperatorID || 'SYSTEM'
+        ).trim() || 'SYSTEM';
+        return { branchId, operatorId };
+    }
     function getFormData() {
+        const selectedRow = state.selectedIndex >= 0 ? state.rows[state.selectedIndex] : null;
         return {
             BranchId: qs('#txt_deviceBranchId').value.trim(),
             BranchName: qs('#txt_deviceBranchName').value.trim(),
@@ -76,7 +124,9 @@
             CreatedBy: qs('#spn_deviceCreatedBy').textContent === '-' ? '' : qs('#spn_deviceCreatedBy').textContent,
             CreatedOn: qs('#spn_deviceCreatedOn').textContent === '-' ? '' : qs('#spn_deviceCreatedOn').textContent,
             ModifiedBy: qs('#spn_deviceModifiedBy').textContent === '-' ? '' : qs('#spn_deviceModifiedBy').textContent,
-            ModifiedOn: qs('#spn_deviceModifiedOn').textContent === '-' ? '' : qs('#spn_deviceModifiedOn').textContent
+            ModifiedOn: qs('#spn_deviceModifiedOn').textContent === '-' ? '' : qs('#spn_deviceModifiedOn').textContent,
+            SupervisedBy: selectedRow?.SupervisedBy || '',
+            SupervisedOn: selectedRow?.SupervisedOn || ''
         };
     }
     function setFormData(row) {
@@ -96,36 +146,42 @@
         qs('#spn_deviceModifiedBy').textContent = row?.ModifiedBy || '-';
         qs('#spn_deviceModifiedOn').textContent = row?.ModifiedOn || '-';
     }
-    function clearForm(keepBranch) {
-        const branchId = qs('#txt_deviceBranchId').value.trim();
-        const branchName = qs('#txt_deviceBranchName').value.trim();
+    function clearForm() {
         setFormData({
-            BranchId: keepBranch ? branchId : '',
-            BranchName: keepBranch ? branchName : '',
-            DeviceId: '', DeviceDescription: '', SettlementGl: '', SettlementGlName: '', ReceivableGl: '', ReceivableGlName: '', BankId: '', IsActive: false, IsLocal: false, CreatedBy: '-', CreatedOn: '-', ModifiedBy: '-', ModifiedOn: '-'
+            BranchId: '', BranchName: '',
+            DeviceId: '', DeviceDescription: '', SettlementGl: '', SettlementGlName: '', ReceivableGl: '', ReceivableGlName: '', BankId: '', IsActive: false, IsLocal: false, CreatedBy: '-', CreatedOn: '-', ModifiedBy: '-', ModifiedOn: '-', SupervisedBy: '', SupervisedOn: ''
         });
     }
     function setMode(mode) {
         state.mode = mode;
-        const editable = mode === MODES.EDIT && (state.gridAction === 'new' || state.gridAction === 'alter');
-        ['#txt_deviceId', '#txt_deviceDescription', '#txt_settlementGlId', '#txt_receivableDeviceGlId', '#txt_deviceBankId', '#chk_deviceActive', '#chk_deviceLocal'].forEach((sel) => {
+        const isView = mode === MODES.VIEW;
+        const isEdit = mode === MODES.EDIT && !state.gridAction;
+        const isRowAction = mode === MODES.EDIT && (state.gridAction === 'new' || state.gridAction === 'alter');
+
+        // Form fields editable only when entering a new row or altering an existing one
+        ['#txt_deviceBranchId', '#txt_deviceId', '#txt_deviceDescription', '#txt_settlementGlId', '#txt_receivableDeviceGlId', '#txt_deviceBankId', '#chk_deviceActive', '#chk_deviceLocal'].forEach((sel) => {
             const el = qs(sel);
-            if (el) el.disabled = !editable;
+            if (el) el.disabled = !isRowAction;
         });
-        ['#btn_searchSettlementGl', '#btn_searchReceivableDeviceGl'].forEach((sel) => {
+        ['#btn_searchDeviceBranch', '#btn_searchSettlementGl', '#btn_searchReceivableDeviceGl'].forEach((sel) => {
             const button = qs(sel);
-            if (button) button.disabled = !editable;
+            if (button) button.disabled = !isRowAction;
         });
-        setButtonDisabled(qs('#btn_deviceView'), false);
-        setButtonDisabled(qs('#btn_deviceEdit'), !qs('#txt_deviceBranchId').value.trim());
-        setButtonDisabled(qs('#btn_deviceSave'), state.mode !== MODES.EDIT || !state.rows.length);
+
+        // Side panel — VIEW: Edit+Cancel+Back; EDIT: Save+Cancel; NEW/ALTER: Cancel only
+        setButtonDisabled(qs('#btn_deviceView'), true);
+        setButtonDisabled(qs('#btn_deviceAdd'), !isView && !isEdit);
+        setButtonDisabled(qs('#btn_deviceEdit'), !isView);
+        setButtonDisabled(qs('#btn_deviceSave'), !isEdit || !state.rows.length);
         setButtonDisabled(qs('#btn_deviceCancel'), false);
-        setButtonDisabled(qs('#btn_deviceBack'), false);
-        setButtonDisabled(qs('#btn_deviceNew'), state.mode !== MODES.EDIT);
-        setButtonDisabled(qs('#btn_deviceAlter'), state.mode !== MODES.EDIT || state.selectedIndex < 0);
-        setButtonDisabled(qs('#btn_deviceRemove'), state.mode !== MODES.EDIT || state.selectedIndex < 0);
-        setButtonDisabled(qs('#btn_deviceUpdate'), !(state.mode === MODES.EDIT && (state.gridAction === 'new' || state.gridAction === 'alter')));
-        setButtonDisabled(qs('#btn_deviceClear'), state.mode !== MODES.EDIT);
+        setButtonDisabled(qs('#btn_deviceBack'), !isView);
+
+        // Grid toolbar — EDIT: New+Alter+Remove; NEW/ALTER: Update+Clear
+        setButtonDisabled(qs('#btn_deviceNew'), !isEdit);
+        setButtonDisabled(qs('#btn_deviceAlter'), !isEdit || state.selectedIndex < 0);
+        setButtonDisabled(qs('#btn_deviceRemove'), !isEdit || state.selectedIndex < 0);
+        setButtonDisabled(qs('#btn_deviceUpdate'), !isRowAction);
+        setButtonDisabled(qs('#btn_deviceClear'), !isRowAction);
     }
     function renderRows() {
         const tbody = qs('#tbl_deviceRows');
@@ -153,114 +209,145 @@
         });
     }
     async function loadRows() {
-        const branchId = qs('#txt_deviceBranchId').value.trim();
-        if (!branchId) {
-            setToast('Enter or select a Branch ID first.', 'warning');
-            return;
-        }
+        const { branchId } = getSessionContext();
         try {
-            const response = await deviceManagerService.getDevice({ BranchID: branchId, DeviceID: '', GLAccountID: '' });
-            const list = (response?.data?.Details || response?.Details || response?.data || []).filter?.(Boolean) || [];
+            window.__deviceManagerAllowGetDevice = true;
+            const response = await deviceManagerService.getDevice({ DeviceID: '', BranchID: branchId, GLAccountID: '' });
+            const list = Array.isArray(response?.data?.Details01)
+                ? response.data.Details01.filter(Boolean)
+                : Array.isArray(response?.Details01)
+                    ? response.Details01.filter(Boolean)
+                    : Array.isArray(response?.Details)
+                        ? response.Details.filter(Boolean)
+                        : [];
             state.rows = list.map((row) => ({
                 DeviceId: row.DeviceID || row.DeviceId || '',
-                BranchId: row.OurBranchID || row.BranchID || branchId,
-                BranchName: qs('#txt_deviceBranchName').value.trim(),
-                SettlementGl: row.GLAccountID || row.SettlementGL || row.SettlementGl || '',
-                SettlementGlName: row.GLAccountName || row.SettlementGLName || row.SettlementGlName || '',
-                ReceivableGl: row.ReceivableGLID || row.ReceivableGL || row.ReceivableGl || '',
-                ReceivableGlName: row.ReceivableGLName || row.ReceivableGlName || '',
+                BranchId: row.BranchID || row.BranchId || row.OurBranchID || branchId,
+                BranchName: row.BranchName || '',
+                SettlementGl: row.GLAccountID || '',
+                SettlementGlName: row.GLAccountName || '',
+                ReceivableGl: row.ReceivableGLID || '',
+                ReceivableGlName: row.ReceivableGLName || '',
                 BankId: row.BankID || row.BankId || '',
                 IsActive: row.IsActive === 1 || row.IsActive === true || row.IsActive === 'true',
                 IsLocal: row.IsLocal === 1 || row.IsLocal === true || row.IsLocal === 'true',
-                DeviceDescription: row.Description || row.DeviceDescription || '',
+                DeviceDescription: row.Description || '',
                 CreatedBy: row.CreatedBy || '',
                 CreatedOn: row.CreatedOn || '',
                 ModifiedBy: row.ModifiedBy || '',
-                ModifiedOn: row.ModifiedOn || ''
+                ModifiedOn: row.ModifiedOn || '',
+                SupervisedBy: row.SupervisedBy || '',
+                SupervisedOn: row.SupervisedOn || ''
             }));
             state.selectedIndex = state.rows.length ? 0 : -1;
             if (state.selectedIndex >= 0) setFormData(state.rows[state.selectedIndex]);
-            else clearForm(true);
+            else clearForm();
+            if (state.selectedIndex >= 0 && !qs('#txt_deviceBranchId').value.trim()) {
+                qs('#txt_deviceBranchId').value = state.rows[state.selectedIndex]?.BranchId || branchId || '';
+            }
             renderRows();
             state.gridAction = null;
             setMode(MODES.VIEW);
             setInlineAlert('');
-            setToast(`Loaded ${state.rows.length} device(s).`, 'success');
+            if (state.rows.length) setToast(`Loaded ${state.rows.length} device(s).`, 'success');
         } catch (error) {
             setInlineAlert('Device lookup failed.');
             setToast('Device lookup failed.', 'danger');
+        } finally {
+            window.__deviceManagerAllowGetDevice = false;
         }
     }
+    function getRowForSave() {
+        if (state.selectedIndex >= 0 && state.rows[state.selectedIndex]) {
+            return state.rows[state.selectedIndex];
+        }
+        return getFormData();
+    }
     function buildGridXml() {
-        const operatorId = window.AuthService?.getSession?.()?.operatorId || 'SYSTEM';
-        const isoDate = new Date().toLocaleString('en-US');
-        let xml = '<NewDataSet>';
-        state.rows.forEach((row) => {
-            xml += '<dt_DeviceManager>';
-            xml += `<DeviceID>${row.DeviceId || ''}</DeviceID>`;
-            xml += `<BranchID>${row.BranchId || ''}</BranchID>`;
-            xml += `<BranchName>${row.BranchName || ''}</BranchName>`;
-            xml += `<BankID>${row.BankId || '00'}</BankID>`;
-            xml += `<GLAccountID>${row.SettlementGl || ''}</GLAccountID>`;
-            xml += `<GLAccountName>${row.SettlementGlName || ''}</GLAccountName>`;
-            xml += `<IsActive>${row.IsActive ? 'true' : 'false'}</IsActive>`;
-            xml += `<IsLocal>${row.IsLocal ? 'true' : 'false'}</IsLocal>`;
-            xml += `<Description>${row.DeviceDescription || ''}</Description>`;
-            xml += `<CreatedBy>${row.CreatedBy || operatorId}</CreatedBy>`;
-            xml += `<CreatedOn>${row.CreatedOn || isoDate}</CreatedOn>`;
-            xml += `<ModifiedBy>${operatorId}</ModifiedBy>`;
-            xml += `<ModifiedOn>${isoDate}</ModifiedOn>`;
-            xml += `<ReceivableGLID>${row.ReceivableGl || ''}</ReceivableGLID>`;
-            xml += `<ReceivableGLName>${row.ReceivableGlName || ''}</ReceivableGLName>`;
-            xml += '<DS_DeviceManager_Id>0</DS_DeviceManager_Id>';
-            xml += '</dt_DeviceManager>';
-        });
-        xml += '</NewDataSet>';
+        const { operatorId } = getSessionContext();
+        const nowStamp = formatXmlDate();
+        const row = getRowForSave();
+        let xml = '<dt_DeviceManager>';
+        xml += `<DeviceID>${escapeXml(row.DeviceId)}</DeviceID>`;
+        xml += `<BranchID>${escapeXml(row.BranchId)}</BranchID>`;
+        xml += `<BranchName>${escapeXml(row.BranchName)}</BranchName>`;
+        xml += `<BankID>${escapeXml(row.BankId || '00')}</BankID>`;
+        xml += `<GLAccountID>${escapeXml(row.SettlementGl)}</GLAccountID>`;
+        xml += `<GLAccountName>${escapeXml(row.SettlementGlName)}</GLAccountName>`;
+        xml += `<IsActive>${row.IsActive ? 'true' : 'false'}</IsActive>`;
+        xml += `<IsLocal>${row.IsLocal ? 'true' : 'false'}</IsLocal>`;
+        xml += `<Description>${escapeXml(row.DeviceDescription)}</Description>`;
+        xml += `<CreatedBy>${escapeXml(row.CreatedBy || operatorId)}</CreatedBy>`;
+        xml += `<CreatedOn>${escapeXml(row.CreatedOn || nowStamp)}</CreatedOn>`;
+        xml += `<SupervisedBy>${escapeXml(row.SupervisedBy || operatorId)}</SupervisedBy>`;
+        xml += `<SupervisedOn>${escapeXml(row.SupervisedOn || row.CreatedOn || nowStamp)}</SupervisedOn>`;
+        xml += `<ModifiedBy>${escapeXml(operatorId)}</ModifiedBy>`;
+        xml += `<ModifiedOn>${escapeXml(nowStamp)}</ModifiedOn>`;
+        xml += `<ReceivableGLID>${escapeXml(row.ReceivableGl)}</ReceivableGLID>`;
+        xml += `<ReceivableGLName>${escapeXml(row.ReceivableGlName)}</ReceivableGLName>`;
+        xml += '</dt_DeviceManager>';
         return xml;
     }
     async function saveRows() {
-        const branchId = qs('#txt_deviceBranchId').value.trim();
-        if (!branchId || !state.rows.length) {
-            setToast('Load or add at least one device first.', 'warning');
+        if (!state.rows.length) {
+            setToast('No devices to save.', 'warning');
             return;
         }
-        const operatorId = window.AuthService?.getSession?.()?.operatorId || 'SYSTEM';
+        const { branchId: sessionBranchId, operatorId } = getSessionContext();
+        const rowForSave = getRowForSave();
+        const expectedDeviceIds = [rowForSave?.DeviceId].filter(Boolean);
+        const branchId = sessionBranchId
+            || qs('#txt_deviceBranchId').value.trim()
+            || state.rows[state.selectedIndex >= 0 ? state.selectedIndex : 0]?.BranchId || '';
+        if (!branchId) {
+            setToast('Branch ID is required.', 'warning');
+            return;
+        }
         try {
             const response = await deviceManagerService.addEditDevice({ OurBranchID: branchId, ATMDevices: buildGridXml(), OperatorID: operatorId });
             if (!response?.success) {
                 setToast(response?.message || 'Save failed.', 'danger');
                 return;
             }
-            state.gridAction = null;
-            setMode(MODES.VIEW);
             await loadRows();
+            const persisted = expectedDeviceIds.every((deviceId) => state.rows.some((row) => row.DeviceId === deviceId));
+            if (!persisted) {
+                setToast('Save request completed, but the device was not persisted by the database.', 'danger');
+                return;
+            }
             setToast('Devices saved.', 'success');
         } catch (error) {
             setToast('Save failed.', 'danger');
         }
     }
-    async function deleteSelected() {
-        const row = state.rows[state.selectedIndex];
-        if (!row) {
-            setToast('Select a device first.', 'warning');
+    function deleteSelected() {
+        if (state.selectedIndex < 0) {
+            setToast('Select a device row first.', 'warning');
             return;
         }
-        if (!window.confirm(`Delete Device '${row.DeviceId}' from branch '${row.BranchId}'?`)) return;
-        try {
-            const response = await deviceManagerService.deleteDevice({ BranchID: row.BranchId, DeviceID: row.DeviceId });
-            if (!response?.success) {
-                setToast(response?.message || 'Delete failed.', 'danger');
-                return;
-            }
-            await loadRows();
-            setToast('Device deleted.', 'success');
-        } catch (error) {
-            setToast('Delete failed.', 'danger');
-        }
+        const row = state.rows[state.selectedIndex];
+        if (!row) return;
+        if (!window.confirm(`Remove Device '${row.DeviceId}' from the list?`)) return;
+        state.rows.splice(state.selectedIndex, 1);
+        state.selectedIndex = state.rows.length > 0 ? Math.min(state.selectedIndex, state.rows.length - 1) : -1;
+        if (state.selectedIndex >= 0) setFormData(state.rows[state.selectedIndex]);
+        else clearForm();
+        renderRows();
+        setMode(MODES.EDIT);
+        setToast('Device removed. Click Save to persist changes.', 'success');
+    }
+    function getGlId(row) {
+        return row?.AccountID || row?.GLAccountID || row?.GeneralLedgerID || row?.GLID || '';
+    }
+    function getGlName(row) {
+        return row?.GLName || row?.AccountName || row?.Description || row?.GLAccountName || '';
     }
     function openBranchLookup() {
         initSearchModal();
-        if (!searchModal) return;
+        if (!searchModal) {
+            setToast('Branch search is not available right now.', 'danger');
+            return;
+        }
         searchModal.open({
             title: 'Find Branch',
             tableID: 'BranchID',
@@ -269,69 +356,89 @@
             onSelect: (row) => {
                 qs('#txt_deviceBranchId').value = row.OurBranchID || row.BranchID || '';
                 qs('#txt_deviceBranchName').value = row.BranchName || row.Description || '';
-                state.rows = [];
-                state.selectedIndex = -1;
-                renderRows();
-                clearForm(true);
-                setMode(state.mode);
             }
         });
     }
     function openGlLookup(target) {
         initSearchModal();
-        if (!searchModal) return;
+        if (!searchModal) {
+            setToast('GL search is not available right now.', 'danger');
+            return;
+        }
+        const branchId = getCurrentBranchId();
+        if (!branchId) {
+            setToast('Branch ID is required for GL search. Select or enter branch first.', 'warning');
+            return;
+        }
+        const advFilter = `GLAccountTypeID IN ('L','A') AND OurBranchID = '${escapeSql(branchId)}'`;
         searchModal.open({
             title: 'Find GL Account',
-            tableID: 'RecGLAccountID',
+            tableID: 'GLBranchID',
+            whereStmt: '',
+            advFilterString: advFilter,
+            moduleID: 3082,
+            ourbranchId: branchId,
             searchFields: [{ name: 'accountId', label: 'Account ID', column: 'AccountID' }, { name: 'accountName', label: 'Account Name', column: 'GLName' }],
             displayFields: [{ key: 'AccountID', label: 'Account ID' }, { key: 'GLName', label: 'Name' }, { key: 'CurrencyID', label: 'Currency' }],
             onSelect: (row) => {
+                const glId = getGlId(row);
+                const glName = getGlName(row);
                 if (target === 'settlement') {
-                    qs('#txt_settlementGlId').value = row.AccountID || row.GLAccountID || '';
-                    qs('#txt_settlementGlName').value = row.GLName || row.AccountName || '';
-                } else {
-                    qs('#txt_receivableDeviceGlId').value = row.AccountID || row.GLAccountID || '';
-                    qs('#txt_receivableDeviceGlName').value = row.GLName || row.AccountName || '';
+                    qs('#txt_settlementGlId').value = glId;
+                    qs('#txt_settlementGlName').value = glName;
+                } else if (target === 'receivable') {
+                    qs('#txt_receivableDeviceGlId').value = glId;
+                    qs('#txt_receivableDeviceGlName').value = glName;
                 }
             }
         });
     }
     function bindEvents() {
+        const beginAddMode = () => {
+            state.gridAction = 'new';
+            clearForm();
+            setMode(MODES.EDIT);
+            setToast('Add device mode. Fill in the details and click Update.', 'info');
+        };
+
         qs('#btn_searchDeviceBranch')?.addEventListener('click', openBranchLookup);
         qs('#btn_searchSettlementGl')?.addEventListener('click', () => openGlLookup('settlement'));
         qs('#btn_searchReceivableDeviceGl')?.addEventListener('click', () => openGlLookup('receivable'));
-        qs('#btn_deviceView')?.addEventListener('click', () => void loadRows());
+
+        // View is always disabled in the side panel — kept for synthetic-click safety only
+        qs('#btn_deviceView')?.addEventListener('click', (event) => {
+            if (event && event.isTrusted === false) return;
+            void loadRows();
+        });
+
         qs('#btn_deviceEdit')?.addEventListener('click', () => {
-            if (!qs('#txt_deviceBranchId').value.trim()) {
-                setToast('Select a branch first.', 'warning');
-                return;
-            }
             state.gridAction = null;
             setMode(MODES.EDIT);
             setToast('Edit mode. Use the grid actions to manage rows.', 'info');
         });
+
+        qs('#btn_deviceAdd')?.addEventListener('click', beginAddMode);
+
         qs('#btn_deviceSave')?.addEventListener('click', () => void saveRows());
-        qs('#btn_deviceCancel')?.addEventListener('click', () => {
+
+        qs('#btn_deviceCancel')?.addEventListener('click', async () => {
             state.gridAction = null;
-            if (state.selectedIndex >= 0) setFormData(state.rows[state.selectedIndex]);
-            else clearForm(true);
             setMode(MODES.VIEW);
+            await loadRows();
             setToast('Changes cancelled.', 'info');
         });
+
         qs('#btn_deviceBack')?.addEventListener('click', () => {
             state.rows = [];
             state.selectedIndex = -1;
             state.gridAction = null;
-            clearForm(false);
+            clearForm();
             renderRows();
             setMode(MODES.VIEW);
         });
-        qs('#btn_deviceNew')?.addEventListener('click', () => {
-            state.gridAction = 'new';
-            clearForm(true);
-            setMode(MODES.EDIT);
-            setToast('New row mode.', 'info');
-        });
+
+        qs('#btn_deviceNew')?.addEventListener('click', beginAddMode);
+
         qs('#btn_deviceAlter')?.addEventListener('click', () => {
             if (state.selectedIndex < 0) {
                 setToast('Select a device row first.', 'warning');
@@ -339,13 +446,20 @@
             }
             state.gridAction = 'alter';
             setMode(MODES.EDIT);
-            setToast('Alter row mode.', 'info');
+            setToast('Alter mode. Edit the details and click Update.', 'info');
         });
-        qs('#btn_deviceRemove')?.addEventListener('click', () => void deleteSelected());
-        qs('#btn_deviceClear')?.addEventListener('click', () => clearForm(true));
+
+        qs('#btn_deviceRemove')?.addEventListener('click', () => deleteSelected());
+
+        qs('#btn_deviceClear')?.addEventListener('click', () => clearForm());
+
         qs('#btn_deviceUpdate')?.addEventListener('click', () => {
             if (!(state.gridAction === 'new' || state.gridAction === 'alter')) return;
             const row = getFormData();
+            const { branchId, operatorId } = getSessionContext();
+            row.BranchId = row.BranchId || branchId;
+            row.CreatedBy = row.CreatedBy || operatorId;
+            row.ModifiedBy = operatorId;
             if (!row.BranchId || !row.DeviceId) {
                 setToast('Branch ID and Device ID are required.', 'warning');
                 return;
@@ -360,16 +474,23 @@
             setFormData(row);
             renderRows();
             setMode(MODES.EDIT);
-            setToast('Grid row updated.', 'success');
+            setToast('Row updated. Click Save to persist all changes.', 'success');
         });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function initializePage() {
         addBodyClass();
         initSectionToggles();
         initSearchModal();
         bindEvents();
         renderRows();
         setMode(MODES.VIEW);
-    });
+        void loadRows();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        initializePage();
+    }
 })();

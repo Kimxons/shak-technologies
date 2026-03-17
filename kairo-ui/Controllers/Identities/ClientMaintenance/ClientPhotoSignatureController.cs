@@ -144,10 +144,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 var form = await Request.ReadFormAsync();
                 using var multipart = BuildMultipartContent(form, "UploadImageAccountPreApproval");
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var response = await client.PostAsync(ApiEndpoints.UPLOAD_IMAGE_ACCOUNT_PREAPPROVAL, multipart);
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                var response = await _apiService.CreateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPLOAD_IMAGE_ACCOUNT_PREAPPROVAL, multipart);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {
@@ -366,33 +364,10 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 var form = await Request.ReadFormAsync();
-                using var multipart = new MultipartFormDataContent();
+                using var multipart = BuildMultipartContent(form, "UploadImageAccountPreApproval");
 
-                foreach (var key in form.Keys)
-                {
-                    var values = form[key];
-                    foreach (var value in values)
-                    {
-                        multipart.Add(new StringContent(value ?? string.Empty), key);
-                    }
-                }
-
-                foreach (var file in form.Files)
-                {
-                    var streamContent = new StreamContent(file.OpenReadStream());
-                    if (!string.IsNullOrWhiteSpace(file.ContentType))
-                    {
-                        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(file.ContentType);
-                    }
-                    multipart.Add(streamContent, file.Name, file.FileName);
-                }
-
-                AppendEnvelopeFields(multipart, form, "UploadImageAccountPreApproval");
-
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var response = await client.PostAsync(ApiEndpoints.UPLOAD_IMAGE_ACCOUNT_PREAPPROVAL, multipart);
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                var response = await _apiService.CreateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPLOAD_IMAGE_ACCOUNT_PREAPPROVAL, multipart);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {

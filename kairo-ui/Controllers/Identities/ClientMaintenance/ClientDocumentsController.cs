@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
@@ -69,7 +71,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("get")]
-        public async Task<IActionResult> Get([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Get([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -77,26 +79,22 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.documents.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
 
-                //var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var imageId = ResolvePayloadLong(requestData, "ImageID", "ImageId", "ID", "imageId", "TempImageID", "tempImageId");
-                var requestKey = ResolveRequestKey(requestData);
-                //HttpResponseMessage response;
+                var imageId = _commonUtilities.ResolveRequestDataLong(requestData!, "ImageID", "ImageId", "ID", "imageId", "TempImageID", "tempImageId");
+                var requestKey = ResolveRequestKey(requestData!);
                 object? response;
-                if (!string.IsNullOrWhiteSpace(requestData.ClientID))
+                if (!string.IsNullOrWhiteSpace(requestData["ClientID"]!.ToString()))
                 {
                     if (imageId.HasValue)
                     {
                         var endpoint = string.Format(ApiEndpoints.GET_IMAGE_BY_ID, imageId.Value);
-                        //response = await client.GetAsync(endpoint);
                         response = await _apiService.GetSingleAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                     else
                     {
-                        var endpoint = string.Format(ApiEndpoints.GET_IMAGES_BY_CLIENT, requestData.ClientID);
-                        //response = await client.GetAsync(endpoint);
+                        var endpoint = string.Format(ApiEndpoints.GET_IMAGES_BY_CLIENT, requestData["ClientID"]!.ToString());
                         response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                 }
@@ -105,17 +103,11 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                     if (imageId.HasValue)
                     {
                         var endpoint = string.Format(ApiEndpoints.GET_TEMP_IMAGE_BY_ID, imageId.Value);
-                        //response = await client.GetAsync(endpoint);
                         response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                     else
                     {
                         var endpoint = string.Format(ApiEndpoints.GET_TEMP_IMAGES_BY_CLIENT, string.Empty, requestKey);
-                        //var endpointWithQuery = string.IsNullOrWhiteSpace(requestKey)
-                        //    ? endpoint
-                        //    : $"{endpoint}?requestId={Uri.EscapeDataString(requestKey)}";
-                        //response = await client.GetAsync(endpointWithQuery);
-                        //response = await client.GetAsync(endpoint);
                         response = await _apiService.GetAsync<ResponseDetail<object>>("ClientDocumentApi", endpoint, []);
                     }
                 }
@@ -124,8 +116,6 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                     return BadRequest(new { Success = false, ErrorMessage = "ClientID or RequestID is required" });
                 }
 
-                //var payload = await ReadClientDocumentApiResponseAsync(response);
-                //return StatusCode((int)response.StatusCode, payload);
                 return StatusCode(200, response);
             }
             catch (Exception ex)
@@ -145,12 +135,10 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 var form = await Request.ReadFormAsync();
-                using var multipart = BuildMultipartContent(form, "UploadTempImage");
+                using var multipart = BuildMultipartContent(form);
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var response = await client.PostAsync(ApiEndpoints.UPLOAD_TEMP_IMAGE, multipart);
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                var response = await _apiService.CreateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPLOAD_CLIENT_DOCUMENT, multipart);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {
@@ -160,42 +148,50 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("update")]
-        public async Task<IActionResult> Update([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Update(long? imageId)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
-            if (requestData == null)
-                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            if (!Request.HasFormContentType)
+                return BadRequest(new { Success = false, ErrorMessage = "multipart/form-data content is required" });
+            //if (requestData == null)
+            //    return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                _logger.LogInformation("client-maintenance.documents.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                //_commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
+                var form = await Request.ReadFormAsync();
+                using var multipart = BuildMultipartContent(form);
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var imageId = ResolvePayloadLong(requestData, "ImageID", "ImageId", "imageId");
-                HttpResponseMessage response;
+                //_logger.LogInformation("client-maintenance.documents.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
 
+
+                if (multipart.Any(c => c.Headers.ContentDisposition != null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("ModifiedBy")))
+                {
+                    multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("user_name", "user_id")!), "ModifiedBy"); ;
+                }
+
+                if (multipart.Any(c => c.Headers.ContentDisposition != null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("ModifiedOn")))
+                {
+                    multipart.Add(new StringContent(DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff")), "ModifiedOn"); ;
+                }
+                ResponseDetail<object> response = new();
                 if (imageId.HasValue)
                 {
-                    var endpoint = string.Format(ApiEndpoints.UPDATE_IMAGE, imageId.Value);
-                    var updateRequest = BuildImageUpdateRequest(requestData);
-                    response = await client.PutAsJsonAsync(endpoint, updateRequest);
+                    response = await _apiService.UpdateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_CLIENT_DOCUMENT, imageId, multipart);
                 }
-                else
-                {
-                    var tempImageId = ResolvePayloadLong(requestData, "TempImageID", "ID", "tempImageId");
-                    if (!tempImageId.HasValue)
-                    {
-                        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
-                    }
+                //else
+                //{
+                //    //var tempImageId = _commonUtilities.ResolveRequestDataLong(requestData!, "TempImageID", "ID", "tempImageId");
+                //    if (!tempImageId.HasValue)
+                //    {
+                //        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
+                //    }
 
-                    var endpoint = string.Format(ApiEndpoints.UPDATE_TEMP_IMAGE, tempImageId.Value);
-                    var updateRequest = BuildTempImageUpdateRequest(requestData);
-                    response = await client.PutAsJsonAsync(endpoint, updateRequest);
-                }
+                //    response = await _apiService.UpdateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_CLIENT_DOCUMENT, tempImageId, multipart);
+                //    //response = await _apiService.UpdateAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_TEMP_IMAGE, tempImageId, requestData);
+                //}
 
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {
@@ -205,7 +201,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("delete")]
-        public async Task<IActionResult> Delete([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> Delete([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
@@ -213,32 +209,33 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.documents.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var imageId = ResolvePayloadLong(requestData, "ImageID", "ImageId", "imageId");
-                HttpResponseMessage response;
-
+                //var client = _httpClientFactory.CreateClient("ClientDocumentApi");
+                var imageId = _commonUtilities.ResolveRequestDataLong(requestData!, "ImageID", "ImageId", "imageId");
+                //HttpResponseMessage response;
+                ResponseDetail<object> response = new();
                 if (imageId.HasValue)
                 {
-                    var endpoint = string.Format(ApiEndpoints.DELETE_IMAGE, imageId.Value);
-                    response = await client.DeleteAsync(endpoint);
+                    //var endpoint = string.Format(ApiEndpoints.DELETE_IMAGE, imageId.Value);
+                    response = await _apiService.DeleteAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.DELETE_CLIENT_DOCUMENT, (int)imageId);
+                    //response = await client.DeleteAsync(endpoint);
                 }
-                else
-                {
-                    var tempImageId = ResolvePayloadLong(requestData, "TempImageID", "ID", "tempImageId");
-                    if (!tempImageId.HasValue)
-                    {
-                        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
-                    }
+                //else
+                //{
+                //    var tempImageId = _commonUtilities.ResolveRequestDataLong(requestData!, "TempImageID", "ID", "tempImageId");
+                //    if (!tempImageId.HasValue)
+                //    {
+                //        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
+                //    }
 
-                    var endpoint = string.Format(ApiEndpoints.DELETE_TEMP_IMAGE, tempImageId.Value);
-                    response = await client.DeleteAsync(endpoint);
-                }
+                //    //var endpoint = string.Format(ApiEndpoints.DELETE_TEMP_IMAGE, tempImageId.Value);
+                //    response = await _apiService.DeleteAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.DELETE_CLIENT_DOCUMENT, (int)tempImageId);
+                //    //response = await client.DeleteAsync(endpoint);
+                //}
+                return StatusCode(200, response);
 
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
             }
             catch (Exception ex)
             {
@@ -247,7 +244,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             }
         }
 
-        private MultipartFormDataContent BuildMultipartContent(IFormCollection form, string formId)
+        private MultipartFormDataContent BuildMultipartContent(IFormCollection form)
         {
             var multipart = new MultipartFormDataContent();
             foreach (var key in form.Keys)
@@ -266,320 +263,43 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 {
                     streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(file.ContentType);
                 }
-                multipart.Add(streamContent, file.Name, file.FileName);
+                //multipart.Add(streamContent, file.Name, file.FileName);
+                multipart.Add(streamContent, "RequestData.File", Path.GetFileName(file.Name));
             }
 
-            AppendEnvelopeFields(multipart, form, formId);
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("RequestId")))
+            {
+                multipart.Add(new StringContent(HttpContext!.Connection.Id), "RequestId");
+            }
+            //var imageId = _commonUtilities.ResolveRequestDataLong(requestData!, "ImageID", "ImageId", "imageId");
+
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("CreatedBy")))
+            {
+                multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("user_name", "user_id")!), "RequestData.CreatedBy"); ;
+            }
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("CreatedOn")))
+            {
+                multipart.Add(new StringContent(DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff")), "RequestData.CreatedOn"); ;
+            }
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("OurBranchID")))
+            {
+                multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty), "RequestData.OurBranchID"); ;
+            }
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("AppName")))
+            {
+                multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("appname", "app-name") ?? "KAIRO-UI"), "AppName"); ;
+            }
+
             return multipart;
         }
-
-        private void AppendEnvelopeFields(MultipartFormDataContent multipart, IFormCollection form, string formId)
+        private static string? ResolveRequestKey(JsonNode requestData)
         {
-            var requestId = HttpContext.Connection.Id;
-            var appName = HttpContext.Session.GetString("appname") ?? "KAIRO FRONT END";
-            var requestTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-
-            if (!form.ContainsKey("RequestId"))
+            if (!string.IsNullOrWhiteSpace(requestData["RequestID"]!.ToString()))
             {
-                multipart.Add(new StringContent(requestId), "RequestId");
-            }
-            if (!form.ContainsKey("FormID"))
-            {
-                multipart.Add(new StringContent(formId), "FormID");
-            }
-            if (!form.ContainsKey("AppName"))
-            {
-                multipart.Add(new StringContent(appName), "AppName");
-            }
-            if (!form.ContainsKey("RequestTime"))
-            {
-                multipart.Add(new StringContent(requestTime), "RequestTime");
-            }
-            if (!form.ContainsKey("CheckSum"))
-            {
-                multipart.Add(new StringContent(string.Empty), "CheckSum");
-            }
-        }
-
-        private static string? ResolveRequestKey(ClientMaintenanceCrudRequest requestData)
-        {
-            if (!string.IsNullOrWhiteSpace(requestData?.RequestID))
-            {
-                return requestData.RequestID;
+                return requestData["RequestID"]!.ToString();
             }
 
-            return string.IsNullOrWhiteSpace(requestData?.ApplicationID) ? null : requestData.ApplicationID;
-        }
-
-        private object BuildImageUpdateRequest(ClientMaintenanceCrudRequest requestData)
-        {
-            return new
-            {
-                RequestId = HttpContext.Connection.Id,
-                FormID = "UpdateImage",
-                AppName = HttpContext.Session.GetString("appname") ?? "KAIRO FRONT END",
-                RequestTime = DateTime.UtcNow,
-                CheckSum = string.Empty,
-                RequestData = new
-                {
-                    ImageTypeID = ResolvePayloadString(requestData, "ImageTypeID", "DocumentTypeID", "DocumentID"),
-                    Description = ResolvePayloadString(requestData, "Description", "Remarks"),
-                    ImageStatusID = ResolvePayloadString(requestData, "ImageStatusID"),
-                    ClosedBy = ResolvePayloadString(requestData, "ClosedBy"),
-                    ClosedDate = ResolvePayloadDateTime(requestData, "ClosedDate"),
-                    SupervisedBy = ResolvePayloadString(requestData, "SupervisedBy"),
-                    SupervisedOn = ResolvePayloadDateTime(requestData, "SupervisedOn"),
-                    ModifiedBy = requestData.OperatorID ?? ResolvePayloadString(requestData, "ModifiedBy")
-                }
-            };
-        }
-
-        private object BuildTempImageUpdateRequest(ClientMaintenanceCrudRequest requestData)
-        {
-            return new
-            {
-                RequestId = HttpContext.Connection.Id,
-                FormID = "UpdateTempImage",
-                AppName = HttpContext.Session.GetString("appname") ?? "KAIRO FRONT END",
-                RequestTime = DateTime.UtcNow,
-                CheckSum = string.Empty,
-                RequestData = new
-                {
-                    ModuleID = ResolvePayloadShort(requestData, "ModuleID"),
-                    ImageID = ResolvePayloadLong(requestData, "ImageID"),
-                    ImageTypeID = ResolvePayloadString(requestData, "ImageTypeID", "DocumentTypeID"),
-                    OurBranchID = requestData.OurBranchID ?? ResolvePayloadString(requestData, "OurBranchID"),
-                    ClientID = requestData.ClientID ?? ResolvePayloadString(requestData, "ClientID"),
-                    AccountID = ResolvePayloadString(requestData, "AccountID"),
-                    TempClientID = ResolvePayloadString(requestData, "TempClientID"),
-                    Description = ResolvePayloadString(requestData, "Description", "Remarks"),
-                    CopyToClientImage = ResolvePayloadBool(requestData, "CopyToClientImage"),
-                    ModifiedBy = requestData.OperatorID ?? ResolvePayloadString(requestData, "ModifiedBy")
-                }
-            };
-        }
-
-        private static long? ResolvePayloadLong(ClientMaintenanceCrudRequest requestData, params string[] keys)
-        {
-            if (requestData == null)
-            {
-                return null;
-            }
-
-            if (!string.IsNullOrWhiteSpace(requestData.RecordID) && long.TryParse(requestData.RecordID, out var recordId))
-            {
-                return recordId;
-            }
-
-            var payload = requestData.Payload;
-            if (payload == null)
-            {
-                return null;
-            }
-
-            foreach (var key in keys)
-            {
-                if (!payload.TryGetValue(key, out var value) || value == null)
-                {
-                    continue;
-                }
-
-                if (value is JsonElement element)
-                {
-                    if (element.ValueKind == JsonValueKind.Number && element.TryGetInt64(out var numericValue))
-                    {
-                        return numericValue;
-                    }
-
-                    var textValue = element.ToString();
-                    if (long.TryParse(textValue, out var parsedValue))
-                    {
-                        return parsedValue;
-                    }
-                }
-                else if (long.TryParse(value.ToString(), out var parsedValue))
-                {
-                    return parsedValue;
-                }
-            }
-
-            return null;
-        }
-
-        private static short? ResolvePayloadShort(ClientMaintenanceCrudRequest requestData, params string[] keys)
-        {
-            var payload = requestData?.Payload;
-            if (payload == null)
-            {
-                return null;
-            }
-
-            foreach (var key in keys)
-            {
-                if (!payload.TryGetValue(key, out var value) || value == null)
-                {
-                    continue;
-                }
-
-                if (value is JsonElement element)
-                {
-                    if (element.ValueKind == JsonValueKind.Number && element.TryGetInt16(out var numericValue))
-                    {
-                        return numericValue;
-                    }
-                    if (short.TryParse(element.ToString(), out var parsedValue))
-                    {
-                        return parsedValue;
-                    }
-                }
-                else if (short.TryParse(value.ToString(), out var parsedValue))
-                {
-                    return parsedValue;
-                }
-            }
-
-            return null;
-        }
-
-        private static string? ResolvePayloadString(ClientMaintenanceCrudRequest requestData, params string[] keys)
-        {
-            var payload = requestData?.Payload;
-            if (payload == null)
-            {
-                return null;
-            }
-
-            foreach (var key in keys)
-            {
-                if (!payload.TryGetValue(key, out var value) || value == null)
-                {
-                    continue;
-                }
-
-                if (value is JsonElement element)
-                {
-                    return element.ValueKind == JsonValueKind.String ? element.GetString() : element.ToString();
-                }
-
-                return value.ToString();
-            }
-
-            return null;
-        }
-
-        private static DateTime? ResolvePayloadDateTime(ClientMaintenanceCrudRequest requestData, params string[] keys)
-        {
-            var payload = requestData?.Payload;
-            if (payload == null)
-            {
-                return null;
-            }
-
-            foreach (var key in keys)
-            {
-                if (!payload.TryGetValue(key, out var value) || value == null)
-                {
-                    continue;
-                }
-
-                if (value is JsonElement element)
-                {
-                    if (element.ValueKind == JsonValueKind.String && DateTime.TryParse(element.GetString(), out var parsedDate))
-                    {
-                        return parsedDate;
-                    }
-                    if (element.ValueKind == JsonValueKind.Number && element.TryGetInt64(out var epochMs))
-                    {
-                        return DateTimeOffset.FromUnixTimeMilliseconds(epochMs).UtcDateTime;
-                    }
-                }
-                else if (DateTime.TryParse(value.ToString(), out var parsedDate))
-                {
-                    return parsedDate;
-                }
-            }
-
-            return null;
-        }
-
-        private static bool? ResolvePayloadBool(ClientMaintenanceCrudRequest requestData, params string[] keys)
-        {
-            var payload = requestData?.Payload;
-            if (payload == null)
-            {
-                return null;
-            }
-
-            foreach (var key in keys)
-            {
-                if (!payload.TryGetValue(key, out var value) || value == null)
-                {
-                    continue;
-                }
-
-                if (value is JsonElement element)
-                {
-                    if (element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False)
-                    {
-                        return element.GetBoolean();
-                    }
-                    if (element.ValueKind == JsonValueKind.String && bool.TryParse(element.GetString(), out var parsedBool))
-                    {
-                        return parsedBool;
-                    }
-                }
-                else if (bool.TryParse(value.ToString(), out var parsedBool))
-                {
-                    return parsedBool;
-                }
-            }
-
-            return null;
-        }
-
-        private static async Task<ResponseDetail<object>> ReadClientDocumentApiResponseAsync(HttpResponseMessage response)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            var fallbackCode = response.IsSuccessStatusCode ? "00" : "96";
-            var fallbackMessage = response.ReasonPhrase ?? (response.IsSuccessStatusCode ? "Success" : "Request failed");
-
-            var mapped = new ResponseDetail<object>
-            {
-                ResponseCode = fallbackCode,
-                ResponseMessage = fallbackMessage
-            };
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return mapped;
-            }
-
-            try
-            {
-                using var doc = JsonDocument.Parse(content);
-                var root = doc.RootElement;
-
-                if (root.TryGetProperty("responseCode", out var code) || root.TryGetProperty("ResponseCode", out code))
-                {
-                    mapped.ResponseCode = code.GetString() ?? mapped.ResponseCode;
-                }
-
-                if (root.TryGetProperty("responseMessage", out var message) || root.TryGetProperty("ResponseMessage", out message))
-                {
-                    mapped.ResponseMessage = message.GetString() ?? mapped.ResponseMessage;
-                }
-
-                if (root.TryGetProperty("details", out var details) || root.TryGetProperty("Details", out details))
-                {
-                    mapped.Details = details.ValueKind == JsonValueKind.Undefined ? null : details.Clone();
-                }
-            }
-            catch (JsonException)
-            {
-                mapped.ResponseMessage = content;
-            }
-
-            return mapped;
+            return string.IsNullOrWhiteSpace(requestData["ApplicationID"]!.ToString()) ? null : requestData["ApplicationID"]!.ToString();
         }
     }
 }

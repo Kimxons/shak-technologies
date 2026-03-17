@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Data;
 using ClientDocumentApi.Models;
@@ -5,15 +6,10 @@ using ClientDocumentApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.IdentityModel.Tokens;
-using System;
 using System.Data;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using static System.Net.Mime.MediaTypeNames;
-using ImageModel = ClientDocumentApi.Models.Image;
 
 namespace ClientDocumentApi.Controllers
 {
@@ -24,19 +20,21 @@ namespace ClientDocumentApi.Controllers
         private readonly DocumentDbContext _context;
         private readonly IFileStorageService _fileStorage;
         private readonly IImageRepository _imageRepository;
+        private readonly ITempImageRepository _tempImageRepository;
 
         private sealed record ProcedureResponse(string ResponseCode, string? ResponseMessage, string? Details);
 
-        public ClientDocumentsController(DocumentDbContext context, IFileStorageService fileStorage, IImageRepository imageRepository)
+        public ClientDocumentsController(DocumentDbContext context, IFileStorageService fileStorage, IImageRepository imageRepository, ITempImageRepository tempImageRepository)
         {
             _context = context;
             _fileStorage = fileStorage;
             _imageRepository = imageRepository;
+            _tempImageRepository = tempImageRepository;
         }
 
         [HttpPost]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public Task<IActionResult> Upload([FromForm] InData<UploadClientDocumentRequest> request, CancellationToken cancellationToken)
+        public Task<IActionResult> Upload([FromForm] InDataRequest<UploadClientDocumentRequest> request, CancellationToken cancellationToken)
         {
             return UploadWithImageInternalAsync(request.RequestData!, cancellationToken);
         }
@@ -335,7 +333,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(long id, [FromBody] InData<UpdateClientDocumentRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(long id, [FromBody] InDataRequest<UploadClientDocumentRequest> requestData, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -358,65 +356,144 @@ namespace ClientDocumentApi.Controllers
                 });
             }
 
+            string? filePath = string.Empty;
+            //bool succeeded = false;
+            long imageID = 0;
+            UploadClientDocumentRequest request = requestData.RequestData!;
+
             //// Update only provided fields
             //if (request.ClientID != null)
             //    entity.ClientID = request.ClientID;
-
-            if (request.RequestData!.DocumentID != null)
-                entity.DocumentID = request.RequestData!.DocumentID;
-
-            if (request.RequestData!.DocumentTypeID != null)
-                entity.DocumentTypeID = request.RequestData!.DocumentTypeID;
-
-            if (request.RequestData!.ReceivedBy != null)
-                entity.ReceivedBy = request.RequestData.ReceivedBy;
-
-            if (request.RequestData.ReceivedDate.HasValue)
-                entity.ReceivedDate = request.RequestData.ReceivedDate;
-
-            if (!string.IsNullOrEmpty(request.RequestData.LocationID))
-                entity.LocationID = request.RequestData.LocationID;
-
-            if (request.RequestData!.Remarks != null)
-                entity.Remarks = request.RequestData!.Remarks;
-
-            if (request.RequestData!.DocumentReferenceNo != null)
-                entity.DocumentReferenceNo = request.RequestData!.DocumentReferenceNo;
-
-            if (request.RequestData!.DocumentDate.HasValue)
-                entity.DocumentDate = request.RequestData!.DocumentDate;
-
-            if (request.RequestData!.SendingBank != null)
-                entity.SendingBank = request.RequestData!.SendingBank;
-
-            //if (request.RequestID != null)
-            //    entity.RequestID = request.RequestID;
-
-            // Always update ModifiedBy and ModifiedOn
-            entity.ModifiedBy = request.RequestData!.ModifiedBy;
-            entity.ModifiedOn = DateTime.UtcNow;
-            var nextUpdateCount = Math.Min(byte.MaxValue, (entity.UpdateCount ?? 0) + 1);
-            entity.UpdateCount = (byte)nextUpdateCount;
-
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                await _context.SaveChangesAsync(cancellationToken);
-                return Ok(new
+                try
                 {
-                    responseCode = "00",
-                    responseMessage = "Document updated successfully",
-                    details = entity
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
+                    string source = string.Empty;
+                    var imgEntity = await _imageRepository.GetByIdAsync(entity.ImageID ?? 0, cancellationToken);
+                    if (imgEntity != null)
+                    {
+                        source = "image";
+                    }
+                    if (string.IsNullOrEmpty(source))
+                    {
+                        var tempimgEntity = await _tempImageRepository.GetByIdAsync(entity.ImageID ?? 0, cancellationToken);
+                        if (tempimgEntity != null)
+                        {
+                            source = "tempimage";
+                        }
+                    }
+                    switch (source)
+                    {
+                        case "image":
+                            var imageEntity = await _imageRepository.UpdateAsync(
+                                request.File,
+                                id,
+                                "D",
+                                request.Remarks,
+                                "NEW",
+                                request.DeletedBy,
+                                request.DeletedOn,
+                                request.SupervisedBy,
+                                request.SupervisedOn,
+                                request.ModifiedBy,
+                                cancellationToken);
+
+                            imageID = imageEntity.ImageID;
+                            filePath = imageEntity.FilePath;
+                            break;
+                        case "tempimage":
+                            var tempImageEntity = await _tempImageRepository.UpdateAsync(
+                                request.File,
+                                id,
+                                "D",
+                                request.Remarks,
+                                "NEW",
+                                request.DeletedBy,
+                                request.DeletedOn,
+                                request.SupervisedBy,
+                                request.SupervisedOn,
+                                request.ModifiedBy,
+                                cancellationToken);
+                            imageID = tempImageEntity.TempImageID;
+                            filePath = tempImageEntity.FilePath;
+                            break;
+                        default:
+                            // No existing image record, create a new one
+                            var newImageEntity = await _imageRepository.SaveAsync(
+                               request.File,
+                               "D",
+                               request.Remarks,
+                               "NEW",
+                               request.CreatedBy,
+                               request.CreatedOn,
+                               cancellationToken);
+
+                            imageID = newImageEntity.ImageID;
+                            filePath = newImageEntity.FilePath;
+                            break;
+                    }
+
+                    entity.ImageID = imageID;
+                    entity.FilePath = filePath!;
+
+                    if (requestData.RequestData!.DocumentID != null)
+                        entity.DocumentID = requestData.RequestData!.DocumentID;
+
+                    if (requestData.RequestData!.DocumentTypeID != null)
+                        entity.DocumentTypeID = requestData.RequestData!.DocumentTypeID;
+
+                    if (requestData.RequestData!.ReceivedBy != null)
+                        entity.ReceivedBy = requestData.RequestData.ReceivedBy;
+
+                    if (requestData.RequestData.ReceivedDate.HasValue)
+                        entity.ReceivedDate = requestData.RequestData.ReceivedDate;
+
+                    if (!string.IsNullOrEmpty(requestData.RequestData.LocationID))
+                        entity.LocationID = requestData.RequestData.LocationID;
+
+                    if (requestData.RequestData!.Remarks != null)
+                        entity.Remarks = requestData.RequestData!.Remarks;
+
+                    if (requestData.RequestData!.DocumentReferenceNo != null)
+                        entity.DocumentReferenceNo = requestData.RequestData!.DocumentReferenceNo;
+
+                    if (requestData.RequestData!.DocumentDate.HasValue)
+                        entity.DocumentDate = requestData.RequestData!.DocumentDate;
+
+                    if (requestData.RequestData!.SendingBank != null)
+                        entity.SendingBank = requestData.RequestData!.SendingBank;
+
+                    //if (requestData.RequestID != null)
+                    //    entity.RequestID = requestData.RequestID;
+
+                    // Always update ModifiedBy and ModifiedOn
+                    entity.ModifiedBy = requestData.RequestData!.ModifiedBy;
+                    entity.ModifiedOn = DateTime.UtcNow;
+
+                    var nextUpdateCount = Math.Min(byte.MaxValue, (entity.UpdateCount ?? 0) + 1);
+                    entity.UpdateCount = (byte)nextUpdateCount;
+
+                    await _context.SaveChangesAsync(cancellationToken);
+
+                    return Ok(new
+                    {
+                        responseCode = "00",
+                        responseMessage = "Document updated successfully",
+                        details = entity
+                    });
+                }
+                catch (Exception ex)
                 {
-                    responseCode = "99",
-                    responseMessage = "Failed to update document",
-                    details = ex.Message
-                });
-            }
+                    return StatusCode(500, new
+                    {
+                        responseCode = "99",
+                        responseMessage = "Failed to update document",
+                        details = ex.Message
+                    });
+                }
+
+            });
         }
 
         [HttpPut("{id:int}/replace-file")]
@@ -555,6 +632,7 @@ namespace ClientDocumentApi.Controllers
             }
 
             var filePath = entity.FilePath;
+            var imageId = entity.ImageID;
 
             var strategy = _context.Database.CreateExecutionStrategy();
             IActionResult result = NoContent();
@@ -569,7 +647,13 @@ namespace ClientDocumentApi.Controllers
 
                     if (entity.ImageID.HasValue)
                     {
-                        await _imageRepository.DeleteAsync(entity.ImageID.Value, cancellationToken);
+                        try
+                        {
+                            await _imageRepository.DeleteAsync(entity.ImageID.Value, cancellationToken);
+
+                            await _tempImageRepository.DeleteAsync(entity.ImageID.Value, cancellationToken);
+                        }
+                        catch { }
                     }
                     else
                     {

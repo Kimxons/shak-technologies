@@ -4,32 +4,53 @@ const CM_PERSONAL_BASE = 'Identities/ClientMaintenance/Personal';
 const PERSONAL_FIELD_MAP = {
     'FirstName': 'txt_personalFirstName',
     'Firstname': 'txt_personalFirstName',
-    'MiddleName': 'txt_personalMiddleName',
-    'Middlename': 'txt_personalMiddleName',
     'LastName': 'txt_personalLastName',
     'Lastname': 'txt_personalLastName',
+    'MiddleName': 'txt_personalMiddleName',
+    'Middlename': 'txt_personalMiddleName',
     'MotherName': 'txt_personalMotherName',
+    'TitleID': 'ddl_personalTitle',
+    'GenderID': 'ddl_personalGender',
+    'NationalityID': 'ddl_personalNationality',
+    'Nationality': 'ddl_personalNationality',
+    'ResidentID': 'ddl_personalResidentStatus',
+    'IdentificationTypeID': 'ddl_personalIdType',
+    'IdentificationNo': 'txt_personalIdNumber',
+    'IDNumber': 'txt_personalIdNumber',
+    'NationalId': 'txt_personalIdNumber',
+    'PassportNo': 'txt_personalIdNumber',
     'DateOfBirth': 'dt_personalDob',
     'DOB': 'dt_personalDob',
     'Age': 'txt_personalAge',
     'AgeAsOn': 'txt_personalAgeAsOn',
-    'TitleID': 'sel_personalTitle',
-    'GenderID': 'sel_personalGender',
-    'NationalityID': 'sel_personalNationality',
-    'ResidentID': 'sel_personalResident',
-    'IdentificationTypeID': 'sel_personalIdType',
-    'IDNumber': 'txt_personalIdNumber',
+    'IDIssueDate': 'dt_personalIssueDate',
     'IssueDate': 'dt_personalIssueDate',
+    'PassportIssueDate': 'dt_personalIssueDate',
+    'IDExpiryDate': 'dt_personalExpiryDate',
     'ExpiryDate': 'dt_personalExpiryDate',
-    'LiteracyLevelID': 'sel_personalLiteracy',
-    'MaritalStatusID': 'sel_personalMaritalStatus',
-    'BloodGroupID': 'sel_personalBloodGroup',
+    'PassportExpiryDate': 'dt_personalExpiryDate',
+    'IssuedBy': 'txt_personalIssuedBy',
+    'LiteracyLevelID': 'ddl_personalLiteracyLevel',
+    'LiteracyLevel': 'ddl_personalLiteracyLevel',
+    'MaritalStatusID': 'ddl_personalMaritalStatus',
+    'MaritalStatus': 'ddl_personalMaritalStatus',
+    'BloodGroupID': 'ddl_personalBloodGroup',
+    'BloodGroup': 'ddl_personalBloodGroup',
+    'CanDonateBlood': 'chk_personalCanDonateBlood',
+    'NumberOfHouseMembers': 'txt_personalHouseMembers',
     'HouseHoldMembers': 'txt_personalHouseMembers',
+    'NumberOfChildren': 'txt_personalChildren',
     'Children': 'txt_personalChildren',
+    'NumberOfDependents': 'txt_personalDependents',
     'Dependents': 'txt_personalDependents',
+    'OpenedBy': 'txt_personalOpenedBy',
+    'OpenedByName': 'txt_personalOpenedByName',
+    'OpenedDate': 'dt_personalOpenedOn',
     'OpenedOn': 'dt_personalOpenedOn',
-    'RelationshipManagerID': 'sel_personalRelationshipManager'
+    'RelationshipManagerID': 'ddl_personalRelationshipManager'
 };
+
+window.PERSONAL_FIELD_MAP = PERSONAL_FIELD_MAP;
 
 function invokeClientMaintenancePersonal(action, requestData) {
     return window.ClientMaintenanceCore.invokeControllerMethod(CM_PERSONAL_BASE, action, 'POST', requestData || {});
@@ -149,7 +170,7 @@ function initPersonalDateFields(tabRoot) {
         }
         
         // Pattern 4: ISO "2000-03-04"
-        const isoRegex = /^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/;
+        const isoRegex = /^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})(?:[T\s].*)?$/;
         match = dateStr.match(isoRegex);
         if (match) {
             const year = parseInt(match[1], 10);

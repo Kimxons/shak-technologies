@@ -1,8 +1,9 @@
 @{
     ViewData["Title"] = "Group Maintenance";
     Layout = "_ApplicationLayout";
-    var sessionBranchId = Context.Session.GetString("OurBranchID") ?? Context.Session.GetString("branch_code") ?? string.Empty;
-    var sessionBranchName = Context.Session.GetString("branch_name") ?? string.Empty;
+    var sessionBranchId = ViewData["BranchId"]?.ToString() ?? ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var sessionBranchName = ViewData["BranchName"]?.ToString() ?? string.Empty;
+    var sessionUserName = ViewData["UserName"]?.ToString() ?? string.Empty;
 }
 
 
@@ -147,7 +148,7 @@
                             <div class="col">
                                 <label class="label-blue">Center ID</label>
                                 <div class="kairo-control" data-kairo-control>
-                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID" readonly>
+                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID">
                                     <input type="text" id="centerName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Center" onclick="window.handleCenterSearch?.()" aria-label="Search Center"><i class="bi bi-search"></i></button>
                                 </div>
@@ -187,8 +188,8 @@
                             <div class="col">
                                 <label class="label-blue">Credit Officer</label>
                                 <div class="kairo-user-control" data-kairo-user-control>
-                                    <input type="text" id="creditOfficer" class="kairo-user-control__id" aria-label="Credit Officer ID">
-                                    <input type="text" id="creditOfficerName" class="kairo-user-control__name" aria-label="Credit Officer Name" placeholder="Officer Name" readonly>
+                                    <input type="text" id="creditOfficer" class="kairo-user-control__id" aria-label="Credit Officer ID" value="@sessionUserName">
+                                    <input type="text" id="creditOfficerName" class="kairo-user-control__name" aria-label="Credit Officer Name" placeholder="Officer Name" value="@sessionUserName" readonly>
                                     <button type="button" class="btn-lookup kairo-user-control__lookup" data-lookup="CreditOfficer" onclick="window.handleCreditOfficerSearch?.()" aria-label="Search Credit Officer"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
@@ -425,13 +426,6 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="@Url.Content("~/js/app/global-utils.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
-
-    <script type="text/javascript" src="@Url.Content("~/js/environment.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
-
-    <script type="text/javascript" src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
     <script type="text/javascript" src="@Url.Content("~/js/modules/microfinance/group-maintenance.js")"></script>
 
     <script>

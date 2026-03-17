@@ -3,6 +3,10 @@
     Layout = "_ApplicationLayout";
 }
 
+<form id="frm_deviceManagerAntiForgery" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <div class="window">
     <main class="main-container main-container--with-panel" aria-label="Device Maintenance form">
         <div class="form-content" role="region" aria-label="Device details">
@@ -94,7 +98,7 @@
                         </div>
                         <div class="section-content" data-section-content>
                             <div class="dm-toolbar" role="toolbar" aria-label="Device list actions">
-                                <button type="button" class="cm-shell__action" id="btn_deviceNew"><i class="bi bi-plus-circle"></i> New</button>
+                                <button type="button" class="cm-shell__action" id="btn_deviceNew"><i class="bi bi-plus-circle"></i> Add</button>
                                 <button type="button" class="cm-shell__action" id="btn_deviceAlter"><i class="bi bi-pencil-square"></i> Alter</button>
                                 <button type="button" class="cm-shell__action" id="btn_deviceRemove"><i class="bi bi-trash"></i> Remove</button>
                                 <button type="button" class="cm-shell__action" id="btn_deviceUpdate"><i class="bi bi-arrow-repeat"></i> Update</button>
@@ -146,6 +150,7 @@
         <aside class="action-panel" aria-label="Device actions">
             <div class="action-buttons">
                 <button class="btn-action" id="btn_deviceView" type="button"><i class="bi bi-eye me-1"></i>View</button>
+                <button class="btn-action" id="btn_deviceAdd" type="button"><i class="bi bi-plus-circle me-1"></i>Add</button>
                 <button class="btn-action" id="btn_deviceEdit" type="button"><i class="bi bi-pencil-square me-1"></i>Edit</button>
                 <button class="btn-action" id="btn_deviceSave" type="button"><i class="bi bi-save me-1"></i>Save</button>
                 <button class="btn-action btn-cancel" id="btn_deviceCancel" type="button"><i class="bi bi-x-circle me-1"></i>Cancel</button>

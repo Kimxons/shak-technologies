@@ -1,10 +1,10 @@
 @{
-    // No layout - this is a partial view loaded dynamically
+    Layout = "_ApplicationLayout";
     // Migrated from: public/modules/account-maintenance/DataEntry/account-sweeping.html
 }
 
 <!-- AccountSweeping Submodule -->
-<!-- AccountSweeping Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Sweeping form">
     <div class="form-card" data-main-form>
         <div class="form-section" data-section="sweeping-config">
@@ -110,6 +110,8 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <div class="loading-overlay" id="loadingOverlay" hidden>
     <div class="loading-spinner">

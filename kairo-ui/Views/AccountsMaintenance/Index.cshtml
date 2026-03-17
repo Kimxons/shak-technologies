@@ -45,6 +45,11 @@
             background: inherit;
             width: 100%;
         }
+
+        /* Hide parent alert banner when a submodule iframe is open */
+        .main-container.child-open #accountMaintenanceAlertContainer {
+            display: none !important;
+        }
     </style>
 }
 
@@ -137,342 +142,22 @@
     <div class="window">
         <!-- Main Container -->
         <div class="main-container">
-            <!-- Left Sidebar -->
-            <div class="sidebar" id="main-sidebar" data-no-auto-init>
-                <div class="sidebar-header">
-                    <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
-                    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
-                        <i class="bi bi-list"></i>
-                    </button>
-                </div>
-
-                <div class="sidebar-search">
-                    <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules">
-                    <i class="bi bi-search sidebar-search__icon"></i>
-                    <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
-                        <i class="bi bi-x-circle"></i>
-                    </button>
-                </div>
-
-                <div class="sidebar-content">
-                <!-- Data Entry Section -->
-                <div class="nav-section nav-section--card" data-nav-section data-section-name="Data Entry">
-                    <div class="nav-header nav-header--card">
-                        <div class="nav-header__content">
-                            <i class="bi bi-folder-fill nav-header__icon"></i>
-                            <span class="nav-label nav-label--card">Data Entry</span>
-                        </div>
-                        <div class="nav-header__badge">
-                            <span class="nav-badge">22</span>
-                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="nav-items nav-items--card" id="nav-dataentry" hidden>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="Documents">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-file-earmark-text-fill sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Documents</div>
-                                    <div class="sidebar-item__description">Manage account documents</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="Signatories">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-people-fill sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Signatories</div>
-                                    <div class="sidebar-item__description">Manage account signatories</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="AccountSweeping">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-arrow-repeat sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Account Sweeping</div>
-                                    <div class="sidebar-item__description">Configure automatic transfers</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="Nomination">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-person-check sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Nomination</div>
-                                    <div class="sidebar-item__description">Manage account beneficiaries</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="Closing">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-door-closed sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Closing</div>
-                                    <div class="sidebar-item__description">Close account processing</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="ChargeRates">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-cash-coin sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Charge Rates</div>
-                                    <div class="sidebar-item__description">Manage fees and charges</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="Blocking">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-lock sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Blocking / Unblocking</div>
-                                    <div class="sidebar-item__description">Block or unblock account</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="UserDefinedFields">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-sliders sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">User Defined Fields</div>
-                                    <div class="sidebar-item__description">Customize account fields</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="AccountClassification">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-tags sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Account Classification</div>
-                                    <div class="sidebar-item__description">Classify account types</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="AccountNotification">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-bell sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Account Notification</div>
-                                    <div class="sidebar-item__description">Setup alerts and notifications</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="SpecialConditions">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-exclamation-triangle sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Special Conditions</div>
-                                    <div class="sidebar-item__description">Manage special conditions</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="InterestRates">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-percent sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Interest Rates</div>
-                                    <div class="sidebar-item__description">Manage account interest rates</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="CardMaintenance">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-credit-card sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Card Maintenance</div>
-                                    <div class="sidebar-item__description">Manage linked cards</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="AccountNotes">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-sticky sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Account Notes</div>
-                                    <div class="sidebar-item__description">View and add account notes</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="FreezeRelease">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-snow sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Freeze/Release</div>
-                                    <div class="sidebar-item__description">Freeze or release funds</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="ChequeBook">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-journal-text sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Cheque Book</div>
-                                    <div class="sidebar-item__description">Manage cheque requests</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="StopPaymentVoid">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-slash-circle sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Stop Payment/Void</div>
-                                    <div class="sidebar-item__description">Stop or void payments</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="CancelStopPayment">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-arrow-counterclockwise sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Cancel Stop Payment</div>
-                                    <div class="sidebar-item__description">Cancel stop payment orders</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="ActivateDormant">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-lightning-charge sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Activate Dormant</div>
-                                    <div class="sidebar-item__description">Reactivate dormant accounts</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="Reminders">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-alarm sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Reminders</div>
-                                    <div class="sidebar-item__description">Set account reminders</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="AccountActivation">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-check-circle sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Account Activation</div>
-                                    <div class="sidebar-item__description">Activate new accounts</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="AccountTransfer">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-arrow-left-right sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Account Transfer</div>
-                                    <div class="sidebar-item__description">Transfer between accounts</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- View Section -->
-                <div class="nav-section nav-section--card" data-nav-section data-section-name="View">
-                    <div class="nav-header nav-header--card">
-                        <div class="nav-header__content">
-                            <i class="bi bi-eye-fill nav-header__icon"></i>
-                            <span class="nav-label nav-label--card">View</span>
-                        </div>
-                        <div class="nav-header__badge">
-                            <span class="nav-badge">6</span>
-                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle View">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="nav-items nav-items--card" id="nav-view" hidden>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="StatementView">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-receipt sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Statement View</div>
-                                    <div class="sidebar-item__description">View account statements</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="SignaturePhoto">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-image sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Signature / Photo</div>
-                                    <div class="sidebar-item__description">View signatures and photos</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="ClientPortfolio">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-briefcase sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Client Portfolio</div>
-                                    <div class="sidebar-item__description">View client portfolio</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="LoanRepaymentDetails">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-card-checklist sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Loan Repayment Details</div>
-                                    <div class="sidebar-item__description">View loan schedules</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="DebitInterestWorksheet">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-file-earmark-spreadsheet sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Debit Interest Worksheet</div>
-                                    <div class="sidebar-item__description">Calculate debit interest</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-item sidebar-item--enhanced" data-submodule="CreditInterestWorksheet">
-                            <div class="sidebar-item__content">
-                                <i class="bi bi-file-earmark-spreadsheet sidebar-item__icon"></i>
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">Credit Interest Worksheet</div>
-                                    <div class="sidebar-item__description">Calculate credit interest</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activities Section -->
-                <div class="nav-section nav-section--card" data-nav-section data-section-name="Recent Activities">
-                    <div class="nav-header nav-header--card">
-                        <div class="nav-header__content">
-                            <i class="bi bi-clock-history nav-header__icon"></i>
-                            <span class="nav-label nav-label--card">Recent Activities</span>
-                        </div>
-                        <div class="nav-header__badge">
-                            <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Recent Activities">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="nav-items nav-items--card" id="nav-recent" hidden data-recent-activities-container>
-                        <!-- Recent activities populated from API -->
-                    </div>
-                </div>
-                </div><!-- End sidebar-content -->
-            </div>
+            <!-- Left Sidebar (loaded via AJAX like Client Maintenance) -->
+            <div id="sidebarContainer"></div>
 
             <!-- Form Content -->
             <div class="form-content">
+                <!-- Inline child form overlay host for sidebar submodules -->
+                <div class="child-inline" data-child-inline hidden>
+                    <iframe class="child-iframe-inline" data-child-iframe title="DataEntry Submodule"></iframe>
+                </div>
+
                 <!-- Persistent Alert Container (Common Notifications) -->
                 <div id="accountMaintenanceAlertContainer" class="px-2"></div>
 
-                <!-- Submodule Content Container (dynamically loaded partial views) -->
-                <div id="submodule-container" class="submodule-container">
-                    <!-- Default view: Account Search and Details -->
-                    <div class="form-card" data-main-form>
-                        <!-- Account Search Section - Collapsible -->
+                <!-- Main Form (hidden when submodule overlay is open) -->
+                <div class="form-card" data-main-form>
+                    <!-- Account Search Section - Collapsible -->
                         <div class="form-section" data-section="account-search">
                             <div class="section-header" data-section-toggle>
                                 <span class="section-header__title"><i class="bi bi-search"></i>Account Search</span>
@@ -627,7 +312,7 @@
                             </div>
                         </div>
 
-                        <div class="form-row four-col">
+                        <div class="form-row two-col">
                             <div class="col">
                                 <label class="label-blue">Account Class</label>
                                 <select id="AccountClassID" class="bs-select">
@@ -648,6 +333,8 @@
                                     }
                                 </select>
                             </div>
+                        </div>
+                        <div class="form-row two-col">
                             <div class="col">
                                 <label class="label-blue">Liquidation Account</label>
                                 <div class="kairo-account-control" data-kairo-account-control>
@@ -853,8 +540,7 @@
                             </div>
                         </div>
                     </div>
-                    </div><!-- End default form-card -->
-                </div><!-- End submodule-container -->
+                    </div><!-- End default form-card / data-main-form -->
             </div><!-- End form-content -->
 
             <!-- Right Action Panel -->

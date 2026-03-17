@@ -9,8 +9,13 @@
     function qsa(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
     function addBodyClass() { document.body.classList.add(bodyClass); }
     function setToast(message, type = 'info') {
+        const normalizedType = type === 'danger' ? 'error' : type;
+        if (window.AppCore?.showNotification) {
+            window.AppCore.showNotification(message, normalizedType);
+            return;
+        }
         if (window.NotificationService?.showToast) {
-            window.NotificationService.showToast(message, type === 'danger' ? 'error' : type, type === 'danger' ? 5000 : 3000);
+            window.NotificationService.showToast(message, normalizedType, type === 'danger' ? 5000 : 3000);
             return;
         }
         console[type === 'danger' ? 'error' : 'log'](message);
@@ -97,6 +102,18 @@
         setAudit(null);
         state.hasLoaded = false;
     }
+    function getRowsFromResponse(response) {
+        return response?.data?.Details01
+            || response?.data?.Details
+            || response?.Details01
+            || response?.Details
+            || [];
+    }
+
+    function getBinValue(row) {
+        return String(row?.Bin || row?.BinID || '').trim();
+    }
+
     async function loadRecord(selectedBin) {
         const binId = (selectedBin || qs('#txt_binId').value).trim();
         if (!binId) {
@@ -105,7 +122,7 @@
         }
         try {
             const response = await breftBinsService.getBreftBins({ BinID: binId });
-            const row = response?.data?.Details01?.[0] || response?.data?.Details?.[0] || response?.Details?.[0] || null;
+            const row = getRowsFromResponse(response)?.[0] || null;
             if (!row) {
                 clearForm(true);
                 state.canAdd = true;
@@ -160,7 +177,10 @@
     }
     function openGlLookup(onSelect) {
         initSearchModal();
-        if (!searchModal) return;
+        if (!searchModal) {
+            setToast('Search is not available right now.', 'danger');
+            return;
+        }
         searchModal.open({
             title: 'Find GL Account',
             tableID: 'RecGLAccountID',
@@ -169,9 +189,106 @@
             onSelect: onSelect
         });
     }
+    function closeBinPicker() {
+        qs('#breft-bin-picker')?.remove();
+    }
+
+    function showBinPicker(rows) {
+        closeBinPicker();
+        const anchor = qs('#txt_binId');
+        if (!anchor) return;
+
+        const dropdown = document.createElement('div');
+        dropdown.id = 'breft-bin-picker';
+        dropdown.style.cssText = [
+            'position:absolute',
+            'z-index:9999',
+            'background:#fff',
+            'border:1px solid #dee2e6',
+            'border-radius:4px',
+            'max-height:220px',
+            'overflow-y:auto',
+            'min-width:320px',
+            'box-shadow:0 4px 8px rgba(0,0,0,.15)',
+            'top:100%',
+            'left:0'
+        ].join(';');
+
+        rows.slice(0, 20).forEach((row) => {
+            const binId = getBinValue(row);
+            const item = document.createElement('div');
+            item.style.cssText = 'padding:6px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0f0;';
+            item.textContent = `${binId}  |  Pay GL: ${row.PayableGLID || '-'}  |  Rec GL: ${row.ReceivableGLID || '-'}`;
+            item.addEventListener('mouseenter', () => { item.style.background = '#eef2ff'; });
+            item.addEventListener('mouseleave', () => { item.style.background = ''; });
+            item.addEventListener('click', () => { closeBinPicker(); void loadRecord(binId); });
+            dropdown.appendChild(item);
+        });
+
+        const wrapper = anchor.closest('.kairo-control') || anchor.parentElement;
+        wrapper.style.position = 'relative';
+        wrapper.appendChild(dropdown);
+
+        setTimeout(() => {
+            document.addEventListener('click', (e) => {
+                if (!wrapper.contains(e.target)) closeBinPicker();
+            }, { once: true });
+        }, 0);
+    }
+
+    function openBinSearch() {
+        closeBinPicker();
+        const term = qs('#txt_binId')?.value.trim() || '';
+
+        void (async () => {
+            try {
+                const response = await breftBinsService.searchBreftBins({ SearchKey: term });
+                const rows = getRowsFromResponse(response);
+
+                if (!rows.length) {
+                    setInlineAlert(`No bins found${term ? ` for '${term}'` : ''}.`);
+                    setToast('No bins found.', 'warning');
+                    return;
+                }
+
+                if (rows.length === 1) {
+                    void loadRecord(getBinValue(rows[0]));
+                    return;
+                }
+
+                const exact = rows.find((r) => getBinValue(r).toLowerCase() === term.toLowerCase());
+                if (exact) {
+                    void loadRecord(getBinValue(exact));
+                    return;
+                }
+
+                showBinPicker(rows);
+            } catch {
+                setInlineAlert('Bin search failed.');
+                setToast('Bin search failed.', 'danger');
+            }
+        })();
+    }
+
+    function getGlId(row) {
+        return row.AccountID || row.GLAccountID || row.GeneralLedgerID || row.GLID || '';
+    }
+
+    function getGlName(row) {
+        return row.GLName || row.AccountName || row.Description || row.GLAccountName || '';
+    }
+
     function bindEvents() {
-        qs('#btn_viewBin')?.addEventListener('click', () => void loadRecord());
-        qs('#btn_binView')?.addEventListener('click', () => void loadRecord());
+        qs('#btn_viewBin')?.addEventListener('click', openBinSearch);
+        qs('#btn_binView')?.addEventListener('click', () => {
+            const binId = qs('#txt_binId').value.trim();
+            if (binId) {
+                void loadRecord(binId);
+                return;
+            }
+            setInlineAlert('Enter Bin ID, then click View.');
+            setToast('Enter Bin ID first.', 'warning');
+        });
         qs('#btn_binAdd')?.addEventListener('click', () => {
             clearForm(true);
             state.canAdd = true;
@@ -193,13 +310,14 @@
             setToast('Changes cancelled.', 'info');
         });
         qs('#btn_searchPayableGl')?.addEventListener('click', () => openGlLookup((row) => {
-            qs('#txt_payableGlId').value = row.AccountID || row.GLAccountID || '';
-            qs('#txt_payableGlName').value = row.GLName || row.AccountName || '';
+            qs('#txt_payableGlId').value = getGlId(row);
+            qs('#txt_payableGlName').value = getGlName(row);
         }));
         qs('#btn_searchReceivableGl')?.addEventListener('click', () => openGlLookup((row) => {
-            qs('#txt_receivableGlId').value = row.AccountID || row.GLAccountID || '';
-            qs('#txt_receivableGlName').value = row.GLName || row.AccountName || '';
+            qs('#txt_receivableGlId').value = getGlId(row);
+            qs('#txt_receivableGlName').value = getGlName(row);
         }));
+        qs('#txt_binId')?.addEventListener('input', () => updateButtons());
     }
 
     document.addEventListener('DOMContentLoaded', () => {

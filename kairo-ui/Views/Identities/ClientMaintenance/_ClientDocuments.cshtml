@@ -16,7 +16,7 @@
     <div class="section-content" data-section-content>
         <form id="frm_clientDocuments" data-documents-form autocomplete="off" novalidate>
             <!-- Hidden fields for page context -->
-            <input type="hidden" id="moduleIdDocuments" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="moduleIdDocuments" name="ModuleID" value="@ViewData["ModuleId"]" />
 
             <h5 class="mb-4">Document Management</h5>
 
@@ -33,33 +33,36 @@
                         <option value="">Select...</option>
                     </select>
                 </div>
-                <div class="col span-2">
-                    <label class="label-blue" for="fil_documentFile" id="lbl_documentFile">Document Image</label>
-                    <input id="fil_documentFile" name="Image" data-document-field="Image" class="bs-input-text" type="file" accept="image/*,.pdf,.doc,.docx" />
-                </div>
-            </div>
 
-            <div class="form-row four-col">
                 <div class="col span-2">
                     <label class="label-blue" for="ddl_documentLocation" id="lbl_documentLocation">Location</label>
                     <select id="ddl_documentLocation" name="LocationID" data-document-field="LocationID" class="bs-select" asp-items="@(documentLocationOptions.Skip(1))">
                         <option value="">Select...</option>
                     </select>
                 </div>
-                <div class="col span-2">
-                    <label class="label-blue" for="dt_documentReceivedDate" id="lbl_documentReceivedDate">Received Date</label>
-                    <input id="dt_documentReceivedDate" name="ReceivedDate" data-document-field="ReceivedDate" class="bs-input-text" type="date" />
-                </div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col span-4">
+
+                <div class="col span-3">
                     <label class="label-blue" for="txt_documentReceivedBy" id="lbl_documentReceivedBy">Received By</label>
                     <div class="kairo-control" data-kairo-control>
                         <input id="txt_documentReceivedBy" name="ReceivedBy" data-document-field="ReceivedBy" class="bs-input-text" />
                         <input id="txt_documentReceivedByName" name="ReceivedByName" class="bs-input-text" placeholder="Search Client..." readonly />
                         <button type="button" class="btn-lookup" data-document-action="lookup-receiver" aria-label="Find document receiver"><i class="bi bi-search"></i></button>
                     </div>
+                </div>
+                <div class="col">
+                    <label class="label-blue" for="dt_documentReceivedDate" id="lbl_documentReceivedDate">Received Date</label>
+                    <input id="dt_documentReceivedDate" name="ReceivedDate" data-document-field="ReceivedDate" class="bs-input-text" type="date" />
+                </div>
+            </div>
+
+            <div class="form-row four-col">
+
+                <div class="col span-4">
+                    <label class="label-blue" for="fil_documentFile" id="lbl_documentFile">Document File</label>
+                    <input id="fil_documentFile" name="Image" data-document-field="Image" class="bs-input-text" type="file" accept="image/*,.pdf,.doc,.docx" />
                 </div>
             </div>
 

@@ -14,6 +14,12 @@ namespace kairo_ui.Services
         public const string GET_GROUP_LOAN_SCHEME_PRODUCTS = "p_GetGroupLoanSchemeProducts";
         public const string ADD_EDIT_GROUP_LOAN_SCHEME_PRODUCTS = "p_AddEditGroupLoanSchemeProducts";
         public const string GETACCOUNTOFFICERDETAILS = "p_GetAccountOfficerDetail";
+        public const string GET_ACCOUNT_OFFICERS = "p_GetAccountOfficers";
+        public const string ADD_EDIT_ACCOUNT_OFFICERS = "p_AddEditAccountOfficers";
+        public const string ADD_EDIT_ACCOUNT_OFFICER_DETAIL = "p_AddEditAccountOfficerDetail";
+        public const string DELETE_ACCOUNT_OFFICERS = "p_DeleteAccountOfficers";
+        public const string RESIGN_ACCOUNT_OFFICERS = "p_ResignAccountOfficers";
+        public const string GET_SYSTEM_CODES_V1 = "dbo.p_v1_GetSystemCodes";
 
         // Branch
         public const string GET_BRANCH_LIST = "dbo.p_getBranchList";
@@ -227,7 +233,17 @@ namespace kairo_ui.Services
         public const string GET_SP_CONDITION_CLASS_COMBO = "p_GetSpConditionCalssCombo"; // Note: Typo in DB
         public const string USER_RIGHTS = "p_UserRights";
 
+
+
         // ═══════════════════════════════════════════════════════════════════
+        // ACCOUNT MAINTENANCE 
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_ACCOUNT_CUSTOMER="p_GetAccountCustomers";
+
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════════════
+
         // ACCOUNT MAINTENANCE - ACCOUNT NOTIFICATION (DataEntry)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_PRODUCT_NOTIFICATION_DETAILS = "p_GetProductNotificationDetails";
@@ -260,11 +276,26 @@ namespace kairo_ui.Services
         public const string RELEASE_RECORD_LOCK = "p_ReleaseRecordLock";
 
         // ═══════════════════════════════════════════════════════════════════
+        // STATIC DATA - DEVICE MANAGER
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_DEVICE_MANAGER = "p_GetDevice";
+        public const string ADD_EDIT_DEVICE_MANAGER = "p_AddEditATMDevices";
+        public const string DELETE_DEVICE_MANAGER = "p_DeleteDevice";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // STATIC DATA - THIRD PARTY PROVIDER
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_THIRD_PARTY_PROVIDER = "dbo.p_GetThirdPartyProvider";
+        public const string ADD_EDIT_THIRD_PARTY_PROVIDER = "dbo.p_AddEditThirdPartyProvider";
+        public const string DELETE_THIRD_PARTY_PROVIDER = "dbo.p_DeleteThirdPartyProvider";
+
+        // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_SI_TYPES = "dbo.p_GetSITypes";
-        public const string ADD_EDIT_SI_TYPES = "dbo.p_AddEditSITypes";
-        public const string DELETE_SI_TYPES = "dbo.p_DeleteSITypes";
+        public const string GET_SI_TYPE_COMBO = "p_GetSITypeCombo";
+        public const string GET_SI_TYPES = "p_GetSITypes";
+        public const string ADD_EDIT_SI_TYPES = "p_AddEditSITypes";
+        public const string DELETE_SI_TYPES = "p_DeleteSITypes";
         public const string GET_ELECTRONIC_CARDS_STAGE_WISE = "p_GetElectronicCardsStageWise";
         public const string GET_EDIT_CARD_STATUS = "p_EditCardStatus";
         public const string GET_ACCOUNT_CLOSING_DETAILS = "p_GetAcClosingDetails";
@@ -273,6 +304,7 @@ namespace kairo_ui.Services
         public const string GET_MERGE_CLIENT_ACCOUNTS = "p_GetCustomerQuery_MergeClientAccount";
         public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
         public const string SEARCH_SYSTEM_BRANCHES = "pc_SearchSystemBranches";
+        public const string GET_BREFT_BINS = "dbo.p_GetBreftBins";
         public const string MERGE_ACCOUNTS = "p_MergeAccounts";
         public const string ADD_ACCOUNT_CARD = "p_AddEditElectronicCard";
         public const string UPDATE_ACCOUNT_CARD = "p_AddEditElectronicCard";
@@ -284,6 +316,27 @@ namespace kairo_ui.Services
 
 
 
+
+        // ═══════════════════════════════════════════════════════════════════
+        // LOAN ANALYSIS (StaticData/LoanAnalysis)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_LOAN_ANALYSIS = "dbo.p_GetLoanAnalysis";
+        public const string GET_LOAN_ANALYSIS_TYPE_ID = "dbo.p_GetLoanAnalysisTypeID";
+        public const string ADD_EDIT_LOAN_ANALYSIS = "dbo.p_AddEditLoanAnalysis";
+        public const string DELETE_LOAN_ANALYSIS = "dbo.p_DeleteLoanAnalysis";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CARD MAINTENANCE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_NEXT_TRACKING_CARD_ID = "p_GetNextTrackingCardID";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // NGO MAINTENANCE (StaticData/NgoMaintenance)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_NGO = "dbo.p_GetNGO";
+        public const string ADD_EDIT_NGO = "dbo.p_AddEditNGO";
+        public const string DELETE_NGO = "dbo.p_DeleteNGO";
+        public const string SEARCH_NGO = "p_GetSearchResult";  // passes TableID = "NGO"
 
         // ═══════════════════════════════════════════════════════════════════
         // EXIT TYPES MODULE
@@ -305,6 +358,33 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_GROUP_LOAN_REVERSALS = "p_GetGroupLoanReversals";
         public const string ADD_LOAN_REVERSAL_TRX = "p_AddLoanReversalTrx";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TRANSACTION DESCRIPTION (StaticData/TransactionDescription)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_TRX_DESCRIPTION = "dbo.p_GetTrxDescriptions";
+        public const string ADD_EDIT_TRX_DESCRIPTION = "dbo.p_AddEditTrxDescriptions";
+        public const string DELETE_TRX_DESCRIPTION = "dbo.p_DeleteTrxDescriptions";
+        public const string SEARCH_TRX_DESCRIPTION = "p_GetSearchResult";  // passes TableID = "TransactionDescription"
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MAINTAIN VENDORS (StaticData/MaintainVendors)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_VENDOR = "dbo.p_GetVendors";
+        public const string ADD_EDIT_VENDOR = "dbo.p_AddEditVendors";
+        public const string DELETE_VENDOR = "dbo.p_DeleteVendors";
+        public const string SEARCH_VENDOR = "p_GetSearchResult";  // passes TableID = "Vendors"
+        public const string GET_CONTACT_PERSON = "dbo.p_GetContactPerson";
+
+        // ═══════════════════════════════════════════════════════════════════
+        // CLIENT TYPE WORKFLOW (StaticData/ClientTypeWorkflow)
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_CLIENT_TYPE_WORKFLOW = "dbo.p_GetClientTypeWorkFlow";
+        public const string GET_WORKFLOW_TYPES = "dbo.p_GetClientsWorkFlows";
+        public const string EDIT_CLIENT_TYPE_WORKFLOW = "dbo.p_EditClientTypeWorkFlow";
+        public const string GET_CLIENT_TYPE_WORKFLOW_PENDING = "p_GetClientTypeWorkflowPending";
+
+
 
     }
 }

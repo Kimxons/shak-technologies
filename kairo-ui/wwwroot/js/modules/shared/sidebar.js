@@ -61,6 +61,22 @@
             return window.ClientMaintenanceCore.getParentContext();
         }
 
+        // Try to get context from AccountMaintenanceState if it exists
+        if (window.AccountMaintenanceState) {
+            var ams = window.AccountMaintenanceState;
+            return {
+                moduleName: mainModuleState.moduleName || 'Account',
+                primaryRecordId: mainModuleState.primaryRecordId || ams.AccountID,
+                isMainRecordLoaded: mainModuleState.isMainRecordLoaded,
+                AccountID: ams.AccountID || '',
+                OurBranchID: ams.OurBranchID || '',
+                ProductID: ams.ProductID || '',
+                ClientID: ams.ClientID || '',
+                OperatorID: ams.OperatorID || '',
+                ModuleID: ams.ModuleID || '1300'
+            };
+        }
+
         // Fallback to mainModuleState
         return {
             moduleName: mainModuleState.moduleName,

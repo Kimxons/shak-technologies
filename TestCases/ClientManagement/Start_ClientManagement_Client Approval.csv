@@ -1,0 +1,181 @@
+Test Case ID,Test Case Description,Category,Priority,Preconditions,Test Steps,Expected Result,Actual Result,Status,Tested By,Test Date,Remarks
+TC_CA_001,Verify Client Approval module loads successfully,Functional,P1,User is authenticated and has access to Client Approval (Module ID 6961),"1. Log in to KAIRO
+2. Navigate to Identities > Client Approval
+3. Wait for the page to load completely",Page loads without errors. Filter Criteria section, Pending Approvals section and Status Reasons section are all visible. No JavaScript errors in console.,,,Not Executed,,,
+TC_CA_002,Verify initial action button states on load,UI,P1,Client Approval module is loaded,"1. Observe the action panel buttons (View / Approve / Reject / Cancel)
+2. Note the enabled/disabled state of each button","View, Approve and Reject buttons are disabled. Cancel button is enabled. No client is selected.",,,Not Executed,,,
+TC_CA_003,Verify module ID is correctly set to 6961,Integration,P2,Client Approval module is loaded,"1. Inspect the hidden field #moduleId in the DOM (browser DevTools)
+2. Confirm its value","Hidden field #moduleId has value '6961'.",,,Not Executed,,,
+TC_CA_004,Verify default branch is auto-populated from session,Functional,P1,"Client Approval module is loaded, user session contains a valid OurBranchID","1. Observe the Branch ID field (#txt_branchId) on page load
+2. Observe the branch hidden field (#txt_branchIdValue)
+3. Observe the branch name label (#spn_branchName)","#txt_branchId is pre-filled with the session branch ID. #txt_branchIdValue holds the branch ID. #spn_branchName shows the branch name from session.",,,Not Executed,,,
+TC_CA_005,Verify hidden fields for default branch are present in DOM,UI,P2,Client Approval module is loaded,"1. Open browser DevTools
+2. Inspect for #hdn_defaultBranchId and #hdn_defaultBranchName elements","Both hidden fields exist and contain the server-side default branch ID and name respectively.",,,Not Executed,,,
+TC_CA_006,Verify Client Type dropdown is populated from server,Functional,P1,Client Approval module is loaded,"1. Click the Client Type dropdown (#ddl_clientType)
+2. Observe the available options","Dropdown is populated with client type options loaded server-side via ViewData['ClientTypeOptions']. A default placeholder 'Select Type' is shown.",,,Not Executed,,,
+TC_CA_007,Verify Filter Criteria section can be collapsed and expanded,UI,P3,Client Approval module is loaded,"1. Click the toggle button (#btn_toggleFilters) on the Filter Criteria section header
+2. Observe the section content
+3. Click the toggle button again","Section collapses on first click (content hidden). Section expands on second click (content visible). Toggle icon changes accordingly.",,,Not Executed,,,
+TC_CA_008,Verify Branch ID search button opens branch search modal,Functional,P1,Client Approval module is loaded,"1. Click the search icon button (#btn_searchBranch) next to the Branch ID field
+2. Observe the modal or search panel","A branch search modal opens allowing the user to search and select a branch.",,,Not Executed,,,
+TC_CA_009,Verify selecting a branch via search modal updates the Branch ID field,Functional,P1,Branch search modal is open,"1. Search for and double-click or select a valid branch in the modal
+2. Observe the Branch ID field and branch name label","#txt_branchId is updated with the selected branch code/ID. #txt_branchIdValue is updated with the branch ID. #spn_branchName shows the selected branch name.",,,Not Executed,,,
+TC_CA_010,Verify Application ID search button is disabled when no Client Type is selected,Functional,P2,Client Approval module is loaded and Client Type dropdown shows placeholder,"1. Ensure no Client Type is selected (value is empty)
+2. Observe the Application ID search button (#btn_searchApplication) state","#btn_searchApplication is disabled and cannot be clicked.",,,Not Executed,,,
+TC_CA_011,Verify Application ID search button is enabled when Client Type is selected,Functional,P2,Client Approval module is loaded,"1. Select any Client Type from #ddl_clientType
+2. Observe the Application ID search button (#btn_searchApplication) state","#btn_searchApplication becomes enabled and is clickable.",,,Not Executed,,,
+TC_CA_012,Verify Application ID search button opens application search modal,Functional,P1,"Client Approval module is loaded, Client Type is selected","1. Select a Client Type
+2. Click #btn_searchApplication","Application search modal opens. Available applications are filtered according to the selected branch and client type.",,,Not Executed,,,
+TC_CA_013,Verify selecting an application via search modal updates the Application ID field,Functional,P1,Application search modal is open with results,"1. Select/double-click a valid application in the modal
+2. Observe the Application ID field and label","#txt_applicationId is updated with the selected application ID. #txt_applicationIdValue holds the raw ID. #spn_applicationName shows the application name.",,,Not Executed,,,
+TC_CA_014,Verify Application ID field clears when Client Type is changed,Functional,P2,"Application ID field is populated, Client Type is changed","1. Select a Client Type and select an Application ID
+2. Change the Client Type to a different value
+3. Observe the Application ID field","Application ID field (#txt_applicationId) is cleared. #txt_applicationIdValue is empty. #spn_applicationName is cleared.",,,Not Executed,,,
+TC_CA_015,Verify Client Type change auto-loads Status Reasons table,Functional,P2,Client Approval module is loaded,"1. Select or change the Client Type in #ddl_clientType
+2. Observe the Status Reasons section (#tbl_statusReasonsBody)","Status Reasons table is reloaded with reasons relevant to the newly selected client type via the get-status-reasons endpoint.",,,Not Executed,,,
+TC_CA_016,Verify Load Approvals button triggers get-pending-approvals API call,Functional,P1,"Branch ID and Client Type are filled, Application ID is selected","1. Fill in Branch ID, Client Type, and Application ID
+2. Click #btn_loadApprovals","A POST request is made to Identities/ClientApproval/get-pending-approvals with the selected filter values. Response is processed and table is populated.",,,Not Executed,,,
+TC_CA_017,Verify Pending Approvals table displays records after loading,Functional,P1,"Pending approval records exist for the selected filters, Load Approvals clicked","1. Click #btn_loadApprovals with valid filters
+2. Observe the #tbl_approvalBody","Table rows appear with columns: checkbox | Gender | Date of Birth | Nationality | Identification No | Marital Status | Address | Mobile | Center ID | Group ID | Created By. Each row has a .ca-client-checkbox.",,,Not Executed,,,
+TC_CA_018,Verify record count badge updates after loading,Functional,P2,"Load Approvals clicked and records are returned","1. Click #btn_loadApprovals
+2. Observe the #spn_recordCount badge in the Pending Approvals section header","#spn_recordCount shows the correct number of loaded records (e.g., '5 records').",,,Not Executed,,,
+TC_CA_019,Verify Pending Approvals table shows empty state when no records found,Functional,P2,"Load Approvals clicked but no records match the filter","1. Select filters that have no pending approvals
+2. Click #btn_loadApprovals
+3. Observe the table body","Table shows 'No records to display.' placeholder row. Record count shows '0 records'.",,,Not Executed,,,
+TC_CA_020,Verify Pending Approvals section can be collapsed and expanded,UI,P3,Pending Approvals section is visible,"1. Click the toggle button (#btn_togglePendingApprovals)
+2. Observe the section content
+3. Click again","Section collapses then expands correctly. Toggle icon reflects the current state.",,,Not Executed,,,
+TC_CA_021,Verify individual client checkbox selection,Functional,P1,Pending Approvals table has records loaded,"1. Click the checkbox on any one table row (.ca-client-checkbox)
+2. Observe the selectedClients state and action buttons","The client is added to the selectedClients array. View button becomes enabled. Approve and Reject buttons become enabled.",,,Not Executed,,,
+TC_CA_022,Verify selecting exactly one client enables View button,Functional,P1,Pending Approvals table has records loaded,"1. Check exactly one .ca-client-checkbox
+2. Observe the View button (#btn_view) state","View button is enabled. Approve and Reject buttons are also enabled.",,,Not Executed,,,
+TC_CA_023,Verify selecting two or more clients disables View button,Functional,P1,Pending Approvals table has at least two rows,"1. Check two or more .ca-client-checkbox rows
+2. Observe the View button (#btn_view) state","View button is disabled. Approve and Reject remain enabled.",,,Not Executed,,,
+TC_CA_024,Verify selecting zero clients disables View, Approve and Reject buttons,Functional,P1,Pending Approvals table has records loaded,"1. Ensure no checkboxes are checked (or uncheck all)
+2. Observe the action buttons","View, Approve and Reject buttons are all disabled. Cancel button remains enabled.",,,Not Executed,,,
+TC_CA_025,Verify Select All checkbox selects all visible rows,Functional,P1,Pending Approvals table has multiple rows loaded,"1. Click the #chk_selectAll checkbox in the table header
+2. Observe all row checkboxes","All .ca-client-checkbox checkboxes become checked. selectedClients array contains all loaded clients. Approve and Reject become enabled. View is disabled (more than 1 selected).",,,Not Executed,,,
+TC_CA_026,Verify clicking Select All again deselects all rows,Functional,P2,"All rows are selected via #chk_selectAll","1. Click #chk_selectAll again to deselect
+2. Observe all row checkboxes","All .ca-client-checkbox become unchecked. selectedClients array is empty. View, Approve and Reject buttons become disabled.",,,Not Executed,,,
+TC_CA_027,Verify Select All checkbox state when individual rows are manually checked/unchecked,Functional,P3,Pending Approvals table has multiple rows,"1. Click #chk_selectAll to select all
+2. Uncheck one individual .ca-client-checkbox
+3. Observe the #chk_selectAll state","#chk_selectAll becomes unchecked or indeterminate when not all rows are selected.",,,Not Executed,,,
+TC_CA_028,Verify View button shows Client 360 info message when exactly one client is selected,Functional,P1,"Exactly one .ca-client-checkbox is checked","1. Select one client row
+2. Click #btn_view
+3. Observe the message panel (#dv_messagePanel)","The info message 'Use Client 360 view to see detailed information' (or equivalent) appears in the #dv_messagePanel. Message icon is set to info style.",,,Not Executed,,,
+TC_CA_029,Verify View button remains disabled when no client is selected,UI,P2,Pending Approvals table is loaded and no row is checked,"1. Confirm no checkboxes are checked
+2. Attempt to click View button","View button (#btn_view) is disabled and does not respond to click. No message is shown.",,,Not Executed,,,
+TC_CA_030,Verify View button is disabled when multiple clients are selected,UI,P2,Two or more .ca-client-checkbox rows are checked,"1. Check two rows
+2. Observe View button state","View button is disabled.",,,Not Executed,,,
+TC_CA_031,Verify Status Reasons section is visible,UI,P2,Client Approval module is loaded,"1. Scroll to the Status Reasons section (#dv_statusReasonsSection)
+2. Observe its content","Status Reasons section is visible with a table header containing a Select All checkbox and a Description column.",,,Not Executed,,,
+TC_CA_032,Verify Status Reasons table populates based on Client Type selection,Functional,P1,"Client Type is selected in #ddl_clientType","1. Select a Client Type (e.g. Individual)
+2. Observe #tbl_statusReasonsBody","Status reason rows are loaded into the table. Each row has a checkbox and description from the get-status-reasons endpoint.",,,Not Executed,,,
+TC_CA_033,Verify Status Reasons Select All checkbox selects all reason rows,Functional,P2,"Status Reasons table has multiple rows","1. Click #chk_selectAllReasons
+2. Observe all reason row checkboxes","All reason row checkboxes become checked.",,,Not Executed,,,
+TC_CA_034,Verify Status Reasons Select All unchecks all reason rows on second click,Functional,P3,"All status reason rows are checked","1. Click #chk_selectAllReasons again
+2. Observe all reason row checkboxes","All reason row checkboxes become unchecked.",,,Not Executed,,,
+TC_CA_035,Verify Status Reasons section can be collapsed and expanded,UI,P3,Client Approval module is loaded and Status Reasons section is visible,"1. Click the toggle button (#btn_toggleStatusReasons)
+2. Observe the section
+3. Click again","Section collapses then expands. Icon reflects state correctly.",,,Not Executed,,,
+TC_CA_036,Verify Approve button shows SweetAlert confirmation dialog,Functional,P1,"One or more clients are selected via .ca-client-checkbox","1. Select at least one client in the approval table
+2. Click #btn_approve","A SweetAlert confirmation dialog appears showing the number of clients about to be approved. Dialog has Confirm and Cancel options.",,,Not Executed,,,
+TC_CA_037,Verify SweetAlert shows correct client count for approval,Functional,P2,"Multiple clients are selected","1. Select 3 clients
+2. Click #btn_approve
+3. Read the SweetAlert message","SweetAlert message shows '3' (or the selected count) in the confirmation prompt.",,,Not Executed,,,
+TC_CA_038,Verify cancelling the SweetAlert does not submit approval,Functional,P1,SweetAlert approval confirmation dialog is open,"1. Click Cancel (or press Escape) on the SweetAlert dialog
+2. Observe the network requests and table state","No request is sent to approve-clients. Table selection is unchanged.",,,Not Executed,,,
+TC_CA_039,Verify confirming approval calls approve-clients endpoint,Functional,P1,"One or more clients are selected, SweetAlert is open","1. Select clients
+2. Click #btn_approve
+3. Click Confirm on SweetAlert dialog","A POST request is made to Identities/ClientApproval/approve-clients with OurBranchID, ApprovedBy, ApprovedOn, and DetailRecords (XML) in the payload.",,,Not Executed,,,
+TC_CA_040,Verify approve-clients request includes correct XML payload (DetailRecords),Integration,P1,"Clients are selected and approval is confirmed","1. Open browser DevTools Network tab
+2. Select clients and confirm approval
+3. Inspect the POST body of approve-clients","DetailRecords field contains valid XML with one <dt_ClientApproval> (or equivalent) element per selected client. Each element contains the client's identifier.",,,Not Executed,,,
+TC_CA_041,Verify approve-clients request includes OurBranchID from session,Integration,P2,"User session has a valid OurBranchID, approval is confirmed","1. Confirm approval
+2. Inspect the POST body of approve-clients","OurBranchID in the payload matches the branch from the user's session context.",,,Not Executed,,,
+TC_CA_042,Verify approve-clients request includes ApprovedBy from session,Integration,P2,Approval is confirmed,"1. Confirm approval
+2. Inspect the POST body of approve-clients","ApprovedBy in the payload matches the logged-in operator/user ID.",,,Not Executed,,,
+TC_CA_043,Verify addClientSupervisionData is called after successful approval,Integration,P2,"Approval is confirmed and approve-clients returns success","1. Confirm approval and monitor network requests
+2. Observe requests after the approve-clients call returns","A POST request is made to Identities/ClientApproval/add-client-supervision-data for the approved clients as an audit trail.",,,Not Executed,,,
+TC_CA_044,Verify success message is shown after approval,Functional,P1,"Approval is confirmed and the API returns success","1. Select clients and confirm approval
+2. Observe the message panel (#dv_messagePanel)","#dv_messagePanel shows a success message confirming the clients were approved. Message icon is success style.",,,Not Executed,,,
+TC_CA_045,Verify selected clients are cleared after successful approval,Functional,P2,"Approval is confirmed and the API returns success","1. Select clients and confirm approval
+2. Observe the approval table","Previously checked checkboxes are unchecked. #chk_selectAll is unchecked. selectedClients array is empty. View, Approve and Reject buttons return to disabled state.",,,Not Executed,,,
+TC_CA_046,Verify Approve button is disabled when no client is selected,UI,P1,Pending Approvals table is loaded and no row is checked,"1. Confirm no checkboxes are checked
+2. Observe #btn_approve state","#btn_approve is disabled.",,,Not Executed,,,
+TC_CA_047,Verify Reject button opens rejection modal when clients are selected,Functional,P1,One or more clients are selected,"1. Select at least one client
+2. Click #btn_reject","The rejection modal (#mdl_rejection) opens. The #spn_rejectionCount shows the number of selected clients. #txa_rejectionRemarks is empty.",,,Not Executed,,,
+TC_CA_048,Verify rejection modal shows correct selected client count,Functional,P2,"Two clients are selected, rejection modal is open","1. Select 2 clients
+2. Click #btn_reject
+3. Read the count in the modal alert (#spn_rejectionCount)","#spn_rejectionCount displays '2'.",,,Not Executed,,,
+TC_CA_049,Verify rejection remarks textarea is cleared each time rejection modal opens,Functional,P2,"Rejection modal was previously used with text","1. Submit a rejection (or cancel it)
+2. Re-select clients and click #btn_reject again
+3. Observe #txa_rejectionRemarks","#txa_rejectionRemarks is empty / cleared when the modal opens.",,,Not Executed,,,
+TC_CA_050,Verify rejection form validation fails when remarks are empty,Functional,P1,"Rejection modal is open, #txa_rejectionRemarks is empty","1. Leave #txa_rejectionRemarks empty
+2. Click #btn_confirmReject","Form does not submit. Validation error message appears. The field highlights as invalid (.is-invalid or HTML5 native).",,,Not Executed,,,
+TC_CA_051,Verify rejection form validation fails when remarks are fewer than 10 characters,Functional,P1,"Rejection modal is open","1. Type fewer than 10 characters in #txa_rejectionRemarks (e.g. 'short')
+2. Click #btn_confirmReject","Form does not submit. Validation error message appears: 'Please provide a valid rejection reason (minimum 10 characters)'.",,,Not Executed,,,
+TC_CA_052,Verify rejection form validation passes with 10 or more characters,Functional,P2,"Rejection modal is open","1. Type 10 or more characters in #txa_rejectionRemarks (e.g. 'Valid long reason')
+2. Click #btn_confirmReject","Form passes HTML5 validation. Rejection is submitted.", ,,Not Executed,,,
+TC_CA_053,Verify confirming rejection calls reject-clients endpoint,Functional,P1,"Rejection modal is open with valid remarks","1. Enter valid remarks (10+ chars)
+2. Click #btn_confirmReject","A POST request is made to Identities/ClientApproval/reject-clients with OurBranchID, RejectedReason, RejectedBy, and DetailRecords (XML) in the payload.",,,Not Executed,,,
+TC_CA_054,Verify reject-clients request includes correct XML payload (DetailRecords),Integration,P1,"Rejection is confirmed","1. Enter valid remarks and confirm rejection
+2. Inspect the POST body of reject-clients in DevTools","DetailRecords field contains valid XML with an element per selected client.",,,Not Executed,,,
+TC_CA_055,Verify reject-clients request includes RejectedReason matching typed remarks,Integration,P2,"Rejection is confirmed","1. Type 'Testing rejection reason' and confirm
+2. Inspect the POST body","RejectedReason in the payload equals 'Testing rejection reason'.",,,Not Executed,,,
+TC_CA_056,Verify reject-clients request includes RejectedBy from session,Integration,P2,"Rejection is confirmed","1. Confirm rejection
+2. Inspect the POST body","RejectedBy in the payload matches the logged-in operator/user ID.",,,Not Executed,,,
+TC_CA_057,Verify success message is shown after successful rejection,Functional,P1,"Rejection submitted and API returns success","1. Enter valid remarks and confirm rejection
+2. Observe the message panel","#dv_messagePanel shows a success message indicating clients were rejected.",,,Not Executed,,,
+TC_CA_058,Verify rejection modal closes after successful rejection,Functional,P1,"Rejection submitted and API returns success","1. Confirm rejection
+2. Observe the modal state","#mdl_rejection is closed/hidden after successful rejection response.",,,Not Executed,,,
+TC_CA_059,Verify selection is cleared after successful rejection,Functional,P2,"Rejection is confirmed and API returns success","1. Confirm rejection
+2. Observe the approval table checkboxes and action buttons","All client checkboxes are unchecked. selectedClients is empty. View, Approve and Reject return to disabled.",,,Not Executed,,,
+TC_CA_060,Verify Cancel button on rejection modal does not submit rejection,Functional,P1,"Rejection modal is open","1. Enter remarks
+2. Click #btn_cancelRejection (or close button in modal header)","Modal closes. No request is made to reject-clients. Table selection is unchanged.",,,Not Executed,,,
+TC_CA_061,Verify Reject button is disabled when no client is selected,UI,P1,Pending Approvals table is loaded and no row is checked,"1. Confirm no checkboxes are checked
+2. Observe #btn_reject state","#btn_reject is disabled.",,,Not Executed,,,
+TC_CA_062,Verify Cancel / Close button clears the pending approvals table,Functional,P1,Pending Approvals table has records and optionally some are selected,"1. Click #btn_cancel
+2. Observe the table body","#tbl_approvalBody is cleared to the 'No records to display.' placeholder row.",,,Not Executed,,,
+TC_CA_063,Verify Cancel button resets the selectedClients array,Functional,P2,One or more clients are selected in the table,"1. Select some clients
+2. Click #btn_cancel
+3. Observe action button states","selectedClients array is empty. View, Approve and Reject become disabled.",,,Not Executed,,,
+TC_CA_064,Verify Cancel button unchecks Select All checkbox,Functional,P2,"#chk_selectAll is checked","1. Click #chk_selectAll to select all
+2. Click #btn_cancel
+3. Observe #chk_selectAll","#chk_selectAll becomes unchecked.",,,Not Executed,,,
+TC_CA_065,Verify window close button (data-action=close) closes the module window,UI,P3,Client Approval module is loaded,"1. Click the × button in the window header (data-action='close')","The Client Approval window is closed / navigated away from.",,,Not Executed,,,
+TC_CA_066,Verify Refresh button (data-action=refresh) reloads the module,UI,P3,Client Approval module is loaded,"1. Click the Refresh button in the window header (data-action='refresh')","The module reloads. Filters reset to defaults. Table is cleared.",,,Not Executed,,,
+TC_CA_067,Verify unauthenticated user is redirected to login,Security,P1,User is not logged in,"1. Open the Client Approval URL directly (Identities/ClientApproval) without a valid session","User is redirected to the login page. No module content is shown.",,,Not Executed,,,
+TC_CA_068,Verify XSRF token is included in all POST requests,Security,P1,"User is authenticated","1. Open DevTools Network
+2. Trigger any POST action (load approvals, approve, reject)","All POST requests include the anti-forgery (X-XSRF-TOKEN or __RequestVerificationToken) header or form field.",,,Not Executed,,,
+TC_CA_069,Verify unauthorized user cannot access Client Approval module,Security,P2,User is authenticated but does not have Module ID 6961 permission,"1. Log in as a user without Client Approval rights
+2. Navigate to Identities/ClientApproval","Access is denied. User sees an authorization error or is redirected. No pending approvals data is exposed.",,,Not Executed,,,
+TC_CA_070,Verify error handling when get-pending-approvals returns 500,Error Handling,P1,"Network/server error simulated on get-pending-approvals endpoint","1. Simulate a server error (or intercept via DevTools)
+2. Click #btn_loadApprovals","An error message is displayed in the #dv_messagePanel or as a toast. Table remains empty. No unhandled exception in console.",,,Not Executed,,,
+TC_CA_071,Verify error handling when approve-clients returns 500,Error Handling,P1,"Server error on approve-clients endpoint","1. Simulate a server error on approve-clients
+2. Select clients and confirm approval","Error message is shown to the user. Selected clients remain checked (selection not cleared). User can retry.",,,Not Executed,,,
+TC_CA_072,Verify error handling when reject-clients returns 500,Error Handling,P1,"Server error on reject-clients endpoint","1. Simulate a server error on reject-clients
+2. Enter remarks and confirm rejection","Error message is shown. Rejection modal may stay open. No data is corrupted.",,,Not Executed,,,
+TC_CA_073,Verify error handling when get-status-reasons returns empty or error,Error Handling,P2,"get-status-reasons returns error or empty response","1. Simulate no status reasons returned
+2. Observe the Status Reasons table","Table shows 'No records to display.' placeholder. No JavaScript error in console.",,,Not Executed,,,
+TC_CA_074,Verify 401 response on approve-clients triggers re-authentication flow,Security,P2,"Session expires between page load and approval action","1. Let session expire
+2. Select clients and confirm approval","401 response is handled gracefully. User is redirected to login or shown a session expiry message.",,,Not Executed,,,
+TC_CA_075,Verify that Branch ID in filter is sent as OurBranchID in get-pending-approvals request,Integration,P1,"Branch is selected and Load Approvals is clicked","1. Set Branch ID filter and click Load Approvals
+2. Inspect the POST body of get-pending-approvals in DevTools","OurBranchID (or equivalent field) in the request payload matches the selected branch ID.",,,Not Executed,,,
+TC_CA_076,Verify that ClientType in filter is sent in get-pending-approvals request,Integration,P1,"Client Type is selected and Load Approvals is clicked","1. Select a Client Type and click Load Approvals
+2. Inspect the POST body","ClientTypeID (or equivalent) in the request payload matches the selected client type value.",,,Not Executed,,,
+TC_CA_077,Verify that ApplicationID in filter is sent in get-pending-approvals request,Integration,P2,"Application ID is selected and Load Approvals is clicked","1. Select an Application ID and click Load Approvals
+2. Inspect the POST body","Application ID (or equivalent) in the request payload matches the selected application ID value.",,,Not Executed,,,
+TC_CA_078,Verify get-client-approval-details request structure,Integration,P2,"One client is selected and View is clicked","1. Select one client and click View
+2. Monitor network requests (if detail endpoint is triggered)","get-client-approval-details is called (if applicable) with the correct client identifier. Request body matches ClientApprovalDetailRequest model.",,,Not Executed,,,
+TC_CA_079,Verify that add-client-supervision-data includes the correct client identifiers,Integration,P2,"Approval is confirmed and approved clients are processed","1. Confirm approval for specific clients
+2. Inspect the POST body of add-client-supervision-data","The payload includes the client IDs or reference data of the clients that were just approved.",,,Not Executed,,,
+TC_CA_080,Verify performance with large number of pending approvals (50+ records),Performance,P3,"The test environment has 50+ pending approval records","1. Select filters that return 50+ records
+2. Click Load Approvals
+3. Measure load time","Table loads within an acceptable time (< 5 seconds). No UI freezing. Record count updates correctly.",,,Not Executed,,,
+TC_CA_081,Verify approving multiple clients simultaneously (batch approval),Performance,P2,"10 or more clients are visible in the pending table","1. Click #chk_selectAll to select all
+2. Confirm approval via SweetAlert","All selected clients are included in the XML payload sent to approve-clients as a single batch request. Approval is processed correctly.",,,Not Executed,,,
+TC_CA_082,Verify that Load Approvals does not auto-trigger on filter change,Functional,P2,Client Approval module is loaded,"1. Change the Branch ID
+2. Change the Client Type
+3. Do NOT click Load Approvals
+4. Observe the Pending Approvals table","Table does not update automatically. Pending Approvals table remains empty or unchanged. Only clicking #btn_loadApprovals triggers data loading.",,,Not Executed,,,

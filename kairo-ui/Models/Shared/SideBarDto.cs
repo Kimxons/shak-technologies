@@ -31,6 +31,7 @@ namespace kairo_ui.Models.Shared
         public string? LoggedInOperator { get; set; }
         public string? ModuleID { get; set; }
         public string? AccessedFields { get; set; }
+        public string? Narration { get; set; }
     }
 
     public class RecentActivityItem

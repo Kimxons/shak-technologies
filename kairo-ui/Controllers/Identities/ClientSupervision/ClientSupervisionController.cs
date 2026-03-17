@@ -285,7 +285,15 @@ namespace kairo_ui.Controllers.Identities.ClientSupervision
                         RejectReson = requestData.RejectReson
                     });
 
-                return Ok(response);
+                // p_ClientRejectSupervision has no final SELECT — an empty result set
+                // is the normal success response. Wrap explicitly like ApproveSupervision.
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Supervision rejected successfully!",
+                    ResponseCode = "00",
+                    Details = response
+                });
             }
             catch (Exception ex)
             {

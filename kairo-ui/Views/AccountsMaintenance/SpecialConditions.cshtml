@@ -1,8 +1,11 @@
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: account-special-conditions.html
 }
 
 <!-- SpecialConditions Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card" data-main-form>
   <div class="form-section" data-section="special-conditions">
     <div class="section-header" data-section-toggle>
@@ -65,5 +68,8 @@
     </div>
   </div>
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "notification" } })
+</main>
 
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-special-conditions.js" asp-append-version="true"></script>
