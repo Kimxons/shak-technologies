@@ -1,0 +1,193 @@
+@{
+    ViewData["Title"] = "Reject Log";
+    Layout = "_ApplicationLayout";
+}
+
+
+<div class="window" id="rejectLogWindow" data-module-id="@ViewData["ModuleId"]">
+    <!-- Header Bar -->
+    <div class="am-header">
+        <h1 class="am-header__title"><i class="bi bi-x-octagon"></i> Reject Log</h1>
+        <div class="am-header__controls">
+            <button type="button" class="am-header__control" data-action="refresh" title="Refresh">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button type="button" class="am-header__control" data-action="minimize" title="Minimize">
+                <i class="bi bi-dash"></i>
+            </button>
+            <button type="button" class="am-header__control" data-action="maximize" title="Maximize">
+                <i class="bi bi-square"></i>
+            </button>
+            <button type="button" class="am-header__control am-header__control--close" data-action="close" title="Close">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container main-container--with-panel">
+        <!-- Main Content Area -->
+        <main class="form-content">
+            <!-- Message Panel -->
+            <div class="am-message-panel" id="messagePanel" style="display: none;">
+                <div class="am-message-panel__content">
+                    <i class="bi bi-info-circle"></i>
+                    <span id="messageText"></span>
+                </div>
+            </div>
+
+            <!-- Record Type Filter Section -->
+            <div class="form-card">
+                <div class="form-section" data-section="record-type">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-funnel"></i> Record Type</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Record Type</label>
+                                <select id="recordTypeFilter" class="bs-select">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejected Clients Grid -->
+            <div class="form-card">
+                <div class="form-section" data-section="rejected-clients">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title">
+                            <i class="bi bi-x-circle"></i> Rejected Clients <span id="recordCount" class="badge bg-secondary ms-2">0 records</span>
+                        </span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm" id="rejectLogTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40px;"></th>
+                                        <th>Client ID</th>
+                                        <th>Client Name</th>
+                                        <th>Client Type</th>
+                                        <th>Rejected On</th>
+                                        <th>Rejected By</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rejectLogTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-inbox"></i> No rejected clients found
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Summary Section -->
+            <div class="form-card" id="clientSummarySection">
+                <div class="form-section" data-section="client-summary">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-person-badge"></i> Client Summary</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Section" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">ClientID</label>
+                                <input type="text" id="dtlClientID" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Client Type</label>
+                                <input type="text" id="dtlClientType" class="bs-input-text" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Client Name</label>
+                                <input type="text" id="dtlClientName" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Our Branch ID</label>
+                                <input type="text" id="dtlOurBranchID" class="bs-input-text" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Total Accounts</label>
+                                <input type="text" id="dtlTotalAccounts" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Account ID</label>
+                                <input type="text" id="dtlAccountID" class="bs-input-text" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Rejected By</label>
+                                <input type="text" id="dtlRejectedBy" class="bs-input-text" readonly>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Rejected On</label>
+                                <input type="text" id="dtlRejectedOn" class="bs-input-text" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Reason</label>
+                                <textarea id="dtlReason" class="bs-input-text" rows="3" readonly></textarea>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue">Total Amount</label>
+                                <input type="text" id="dtlTotalAmount" class="bs-input-text" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue">Record Status</label>
+                                <input type="text" id="dtlRecordStatus" class="bs-input-text" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Action Panel (Right Rail) -->
+        <aside class="action-panel">
+            <div class="action-buttons">
+                <!-- Changed buttons to use Account Maintenance generic button styles -->
+                <button class="btn-action" data-action="close-client" type="button" id="closeClientBtn" disabled>
+                    <i class="bi bi-x-circle-fill"></i><span>Close Client</span>
+                </button>
+                <button class="btn-action" data-action="resend" type="button" id="resendClientBtn" disabled>
+                    <i class="bi bi-arrow-clockwise"></i><span>Resend Client</span>
+                </button>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/modules/identities/reject-log.js"></script>
+}
