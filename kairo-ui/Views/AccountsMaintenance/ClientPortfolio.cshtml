@@ -2,6 +2,7 @@
 @* Migrated from: client-portfolio.html *@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    Layout = "_ApplicationLayout";
     var portfolioTypeOptions = ViewData["PortfolioTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
@@ -10,6 +11,7 @@
 </form>
 
 <!-- Form Content -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Client Portfolio" data-submodule-content>
     <div class="form-card" data-submodule-form>
         <!-- Portfolio Type Section -->
@@ -103,6 +105,8 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "viewonly" } })
+</main>
 
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="portfolioLoadingOverlay" hidden>

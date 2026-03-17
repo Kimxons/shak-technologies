@@ -41,17 +41,17 @@
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label class="label-blue" for="ddl_employmentOccupation" id="lbl_employmentOccupation">Occupation</label><select id="ddl_employmentOccupation" name="Occupation" class="bs-select" required asp-items="@(occupationOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label class="label-blue" for="ddl_employmentDesignation" id="lbl_employmentDesignation">Position</label><select id="ddl_employmentDesignation" name="Designation" class="bs-select" required asp-items="@(designationOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label class="label-blue" for="ddl_employmentCompanyType" id="lbl_employmentCompanyType">Company Type</label><select id="ddl_employmentCompanyType" name="CompanyType" class="bs-select" required asp-items="@(companyTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label for="dt_employmentWorkingSince" id="lbl_employmentWorkingSince">Working Since</label><input id="dt_employmentWorkingSince" name="WorkingSince" class="bs-input-text" type="date" /></div>
+                <div class="col"><label class="label-blue" for="ddl_employmentOccupation" id="lbl_employmentOccupation">Occupation</label><select id="ddl_employmentOccupation" name="OccupationID" class="bs-select" required asp-items="@(occupationOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_employmentDesignation" id="lbl_employmentDesignation">Position</label><select id="ddl_employmentDesignation" name="DesignationID" class="bs-select" required asp-items="@(designationOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_employmentCompanyType" id="lbl_employmentCompanyType">Company Type</label><select id="ddl_employmentCompanyType" name="CompanyTypeID" class="bs-select" required asp-items="@(companyTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="dt_employmentWorkingSince" id="lbl_employmentWorkingSince">Working Since</label><input id="dt_employmentWorkingSince" name="WorkingSince" class="bs-input-text" type="date" placeholder="dd-MMM-yyyy" data-type="date" data-date-format="dd-MMM-yyyy" /></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label for="txt_employmentCompanyName" id="lbl_employmentCompanyName">Company Name</label><input id="txt_employmentCompanyName" name="EmploymentCompanyName" class="bs-input-text" /></div>
-                <div class="col"><label for="ddl_employmentCompanyCode" id="lbl_employmentCompanyCode">Company Code</label><select id="ddl_employmentCompanyCode" name="EmploymentCompanyCode" class="bs-select"><option value="">Select...</option></select></div>
+                <div class="col"><label for="txt_employmentCompanyName" id="lbl_employmentCompanyName">Company Name</label><input id="txt_employmentCompanyName" name="EmployerName" class="bs-input-text" /></div>
+                <div class="col"><label for="ddl_employmentCompanyCode" id="lbl_employmentCompanyCode">Company Code</label><select id="ddl_employmentCompanyCode" name="EmployerCode" class="bs-select"><option value="">Select...</option></select></div>
                 <div class="col"><label for="txt_employmentWorkPermit" id="lbl_employmentWorkPermit">Work Permit No</label><input id="txt_employmentWorkPermit" name="WorkPermitNo" class="bs-input-text" /></div>
-                <div class="col"><label class="label-blue" for="txt_employmentMonthlyIncome" id="lbl_employmentMonthlyIncome">Avg Monthly Income</label><input id="txt_employmentMonthlyIncome" name="MonthlyIncome" class="bs-input-text text-end" required /></div>
+                <div class="col"><label class="label-blue" for="txt_employmentMonthlyIncome" id="lbl_employmentMonthlyIncome">Avg Monthly Income</label><input id="txt_employmentMonthlyIncome" name="AverageMonthlyIncome" class="bs-input-text text-end" required /></div>
             </div>
 
             <div class="form-row four-col">
@@ -71,13 +71,13 @@
             <div id="selfEmployedSection" class="mt-4 pt-3 border-top d-none" data-employment-for="self-employed">
                 <h6 class="mb-3 text-primary">Self Employment Details</h6>
                 <div class="form-row four-col">
-                    <div class="col"><label class="label-blue" for="ddl_employmentBusinessOwnership" id="lbl_employmentBusinessOwnership">Business Ownership</label><select id="ddl_employmentBusinessOwnership" name="BusinessOwnership" class="bs-select" asp-items="@(businessOwnershipOptions.Skip(1))"><option value="">Select...</option></select></div>
-                    <div class="col"><label class="label-blue" for="ddl_employmentBusinessLine" id="lbl_employmentBusinessLine">Business Line</label><select id="ddl_employmentBusinessLine" name="BusinessLine" class="bs-select" asp-items="@(businessLineOptions.Skip(1))"><option value="">Select...</option></select></div>
+                    <div class="col"><label class="label-blue" for="ddl_employmentBusinessOwnership" id="lbl_employmentBusinessOwnership">Business Ownership</label><select id="ddl_employmentBusinessOwnership" name="BusinessOwnershipID" class="bs-select" asp-items="@(businessOwnershipOptions.Skip(1))"><option value="">Select...</option></select></div>
+                    <div class="col"><label class="label-blue" for="ddl_employmentBusinessLine" id="lbl_employmentBusinessLine">Business Line</label><select id="ddl_employmentBusinessLine" name="BusinessLineID" class="bs-select" asp-items="@(businessLineOptions.Skip(1))"><option value="">Select...</option></select></div>
                     <div class="col"><label for="txt_employmentBusinessStartedYear" id="lbl_employmentBusinessStartedYear">Year Started</label><input id="txt_employmentBusinessStartedYear" name="BusinessStartedYear" class="bs-input-text" type="number" min="1900" max="2100" /></div>
-                    <div class="col"><label for="txt_employmentNumberOfEmployees" id="lbl_employmentNumberOfEmployees">No. Employees</label><input id="txt_employmentNumberOfEmployees" name="NumberOfEmployees" class="bs-input-text" type="number" min="0" /></div>
+                    <div class="col"><label for="txt_employmentNumberOfEmployees" id="lbl_employmentNumberOfEmployees">No. Employees</label><input id="txt_employmentNumberOfEmployees" name="NoOfEmployees" class="bs-input-text" type="number" min="0" /></div>
                 </div>
                 <div class="form-row">
-                    <div class="col"><label for="txa_employmentComments" id="lbl_employmentComments">Comments</label><textarea id="txa_employmentComments" name="EmploymentComments" class="bs-input-text" rows="2"></textarea></div>
+                    <div class="col"><label for="txa_employmentComments" id="lbl_employmentComments">Comments</label><textarea id="txa_employmentComments" name="Comments" class="bs-input-text" rows="2"></textarea></div>
                 </div>
             </div>
         </form>

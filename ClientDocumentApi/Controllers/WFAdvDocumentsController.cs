@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Data;
 using ClientDocumentApi.Models;
@@ -26,7 +27,7 @@ namespace ClientDocumentApi.Controllers
 
         [HttpPost]
         [RequestSizeLimit(50 * 1024 * 1024)]
-        public async Task<IActionResult> Upload([FromForm] InData<UploadWFAdvDocumentRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Upload([FromForm] InDataRequest<UploadWFAdvDocumentRequest> request, CancellationToken cancellationToken)
         {
             string filePath = string.Empty;
             bool succeeded = false;
@@ -214,7 +215,7 @@ namespace ClientDocumentApi.Controllers
         }
 
         [HttpPut("{branchId}/{applicationId}/{documentId}")]
-        public async Task<IActionResult> Update(string branchId, string applicationId, string documentId, [FromBody] InData<UpdateWFAdvDocumentRequest> request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(string branchId, string applicationId, string documentId, [FromBody] InDataRequest<UpdateWFAdvDocumentRequest> request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {

@@ -1,8 +1,9 @@
 @{
     ViewData["Title"] = "Group Maintenance";
     Layout = "_ApplicationLayout";
-    var sessionBranchId = Context.Session.GetString("OurBranchID") ?? Context.Session.GetString("branch_code") ?? string.Empty;
-    var sessionBranchName = Context.Session.GetString("branch_name") ?? string.Empty;
+    var sessionBranchId = ViewData["BranchId"]?.ToString() ?? ViewData["BranchCode"]?.ToString() ?? string.Empty;
+    var sessionBranchName = ViewData["BranchName"]?.ToString() ?? string.Empty;
+    var sessionUserName = ViewData["UserName"]?.ToString() ?? string.Empty;
 }
 
 
@@ -187,8 +188,8 @@
                             <div class="col">
                                 <label class="label-blue">Credit Officer</label>
                                 <div class="kairo-user-control" data-kairo-user-control>
-                                    <input type="text" id="creditOfficer" class="kairo-user-control__id" aria-label="Credit Officer ID">
-                                    <input type="text" id="creditOfficerName" class="kairo-user-control__name" aria-label="Credit Officer Name" placeholder="Officer Name" readonly>
+                                    <input type="text" id="creditOfficer" class="kairo-user-control__id" aria-label="Credit Officer ID" value="@sessionUserName">
+                                    <input type="text" id="creditOfficerName" class="kairo-user-control__name" aria-label="Credit Officer Name" placeholder="Officer Name" value="@sessionUserName" readonly>
                                     <button type="button" class="btn-lookup kairo-user-control__lookup" data-lookup="CreditOfficer" onclick="window.handleCreditOfficerSearch?.()" aria-label="Search Credit Officer"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>

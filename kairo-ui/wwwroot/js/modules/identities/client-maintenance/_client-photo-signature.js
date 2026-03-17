@@ -755,16 +755,23 @@ window.initClientMaintenancePhotoSignatureTab = function (tabRoot, moduleId, opt
             return;
         }
 
-        const payload = {
-            ModuleID: moduleValue,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            Payload: {
-                ImageTypeID: imageTypeId,
-                File: state.selectedFile,
-                Description: state.selectedFile.name
-            }
-        };
+        //const payload = {
+        //    ModuleID: moduleValue,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    Payload: {
+        //        ImageTypeID: imageTypeId,
+        //        File: state.selectedFile,
+        //        Description: state.selectedFile.name
+        //    }
+        //};
+        const payload = {};
+        payload.ModuleID = moduleValue;
+        payload.ClientID = context.ClientID;
+        payload.RequestID = context.RequestID;
+        payload.ImageTypeID = imageTypeId;
+        payload.File = state.selectedFile;
+        payload.Description = state.selectedFile.name;
 
         try {
             const response = await window.ClientMaintenancePhotoSignatureService.create(payload);

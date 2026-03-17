@@ -112,6 +112,177 @@ function invokeClientMaintenanceController(action, requestData) {
     return invokeController(CLIENT_MAINTENANCE_CONTROLLER_BASE, action, requestData);
 }
 
+const CLIENT_MAINTENANCE_MONTH_MAP = {
+    jan: 0,
+    january: 0,
+    feb: 1,
+    february: 1,
+    mar: 2,
+    march: 2,
+    apr: 3,
+    april: 3,
+    may: 4,
+    jun: 5,
+    june: 5,
+    jul: 6,
+    july: 6,
+    aug: 7,
+    august: 7,
+    sep: 8,
+    sept: 8,
+    september: 8,
+    oct: 9,
+    october: 9,
+    nov: 10,
+    november: 10,
+    dec: 11,
+    december: 11
+};
+
+const CLIENT_MAINTENANCE_SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const CLIENT_MAINTENANCE_RESPONSE_META_KEYS = new Set([
+    'responsecode',
+    'responsemessage',
+    'success',
+    'errormessage',
+    'error',
+    'message',
+    'status',
+    'statuscode',
+    'details',
+    'details01',
+    'data',
+    'records',
+    'searchresults'
+]);
+
+function formatClientMaintenanceIsoDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatClientMaintenanceDisplayDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = CLIENT_MAINTENANCE_SHORT_MONTHS[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function parseClientMaintenanceDateValue(value) {
+    if (value == null || value === '') return null;
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    const text = String(value).trim();
+    if (!text) return null;
+
+    let match = text.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (match) {
+        return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+
+    match = text.match(/^(\d{1,2})[-\/\s.,]+([a-z]{3,})[-\/\s.,]+(\d{4})$/i);
+    if (match) {
+        const month = CLIENT_MAINTENANCE_MONTH_MAP[String(match[2]).toLowerCase()];
+        if (month !== undefined) {
+            return new Date(Number(match[3]), month, Number(match[1]));
+        }
+    }
+
+    match = text.match(/^(\d{1,2})[-\/\s.,]+(\d{1,2})[-\/\s.,]+(\d{4})$/);
+    if (match) {
+        return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    }
+
+    const nativeDate = new Date(text);
+    return Number.isNaN(nativeDate.getTime()) ? null : nativeDate;
+}
+
+function formatClientMaintenanceDisplayDateTime(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = CLIENT_MAINTENANCE_SHORT_MONTHS[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
+
+function setClientMaintenanceFieldValue(field, value) {
+    if (!field) return;
+
+    const normalizedValue = value == null ? '' : String(value).trim();
+
+    if (field._flatpickr) {
+        try {
+            if (!normalizedValue) {
+                field._flatpickr.clear();
+            } else {
+                const parsedDate = parseClientMaintenanceDateValue(normalizedValue);
+                field._flatpickr.setDate(parsedDate || normalizedValue, true);
+            }
+            return;
+        } catch (error) {
+            console.warn('[ClientMaintenance] Failed to set flatpickr value:', error);
+        }
+    }
+
+    if (!normalizedValue) {
+        field.value = '';
+        return;
+    }
+
+    const type = String(field.type || '').toLowerCase();
+    const dataType = String(field.getAttribute('data-type') || '').toLowerCase();
+    const parsedDate = parseClientMaintenanceDateValue(normalizedValue);
+
+    if (type === 'date') {
+        field.value = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : normalizedValue;
+        return;
+    }
+
+    if (dataType === 'datetime') {
+        if (parsedDate) {
+            field.value = formatClientMaintenanceDisplayDateTime(parsedDate);
+            return;
+        }
+
+        if (window.GlobalUtils?.formatDateTime) {
+            field.value = window.GlobalUtils.formatDateTime(normalizedValue);
+            return;
+        }
+
+        field.value = normalizedValue;
+        return;
+    }
+
+    if (dataType === 'date') {
+        if (parsedDate) {
+            field.value = formatClientMaintenanceDisplayDate(parsedDate);
+            return;
+        }
+
+        if (window.GlobalUtils?.formatDate) {
+            field.value = window.GlobalUtils.formatDate(normalizedValue);
+            return;
+        }
+
+        field.value = normalizedValue;
+        return;
+    }
+
+    field.value = value ?? '';
+}
+
 function syncClientMaintenanceDateInput(input) {
     if (!input || !input._flatpickr) return;
 
@@ -119,6 +290,10 @@ function syncClientMaintenanceDateInput(input) {
     try {
         input._flatpickr.set('clickOpens', !isDisabled);
         input._flatpickr.set('allowInput', !isDisabled);
+        if (input._flatpickr.altInput) {
+            input._flatpickr.altInput.disabled = isDisabled;
+            input._flatpickr.altInput.readOnly = isDisabled;
+        }
         if (isDisabled) input._flatpickr.close();
     } catch (error) {
         console.warn('[ClientMaintenance] Failed to sync flatpickr state:', error);
@@ -141,11 +316,31 @@ function initializeClientMaintenanceDatePickers(scopeRoot = document) {
         try {
             window.flatpickr(input, {
                 dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd-M-Y',
+                altInputClass: input.className || 'form-control',
+                parseDate: parseClientMaintenanceDateValue,
+                formatDate: (date, format) => {
+                    if (format === 'Y-m-d') {
+                        return formatClientMaintenanceIsoDate(date);
+                    }
+
+                    return formatClientMaintenanceDisplayDate(date);
+                },
                 disableMobile: true,
                 monthSelectorType: 'dropdown',
+                minDate: input.getAttribute('min') || undefined,
+                maxDate: input.getAttribute('max') || undefined,
                 clickOpens: !(input.disabled || input.readOnly),
                 allowInput: !(input.disabled || input.readOnly),
                 onReady: (_selectedDates, _dateStr, instance) => {
+                    if (instance?.altInput) {
+                        instance.altInput.placeholder = input.getAttribute('placeholder') || 'dd-MMM-yyyy';
+                        instance.altInput.readOnly = Boolean(input.readOnly);
+                        instance.altInput.disabled = Boolean(input.disabled);
+                        if (input.getAttribute('aria-label')) instance.altInput.setAttribute('aria-label', input.getAttribute('aria-label'));
+                        if (input.getAttribute('aria-describedby')) instance.altInput.setAttribute('aria-describedby', input.getAttribute('aria-describedby'));
+                    }
                     syncClientMaintenanceDateInput(instance.input);
                 },
                 onOpen: (_selectedDates, _dateStr, instance) => {
@@ -898,44 +1093,126 @@ window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName
 };
 
 function normalizeSingleRow(response) {
-    const candidates = [
-        response?.Details?.[0],
-        response?.Details,
-        response?.data?.Details?.[0],
-        response?.data?.Details,
-        response?.data?.[0]?.Details?.[0],
-        response?.data?.[0]?.Details,
-        response?.data,
-        response
-    ];
-
-    for (const candidate of candidates) {
-        if (!candidate) continue;
-        if (Array.isArray(candidate)) {
-            if (candidate.length > 0 && typeof candidate[0] === 'object') return candidate[0];
-            continue;
-        }
-        if (typeof candidate === 'object') {
-            return candidate;
-        }
-    }
-
-    return null;
+    return extractSingleDataRow(response);
 }
 
 function normalizeDetailsArray(response) {
-    const candidates = [
-        response?.Details,
-        response?.data?.Details,
-        response?.data?.[0]?.Details,
-        response?.data
-    ];
+    return extractDetailsArray(response);
+}
 
-    for (const candidate of candidates) {
-        if (Array.isArray(candidate)) return candidate;
+function parseResponseCandidate(candidate) {
+    if (typeof candidate !== 'string') return candidate;
+
+    const text = candidate.trim();
+    if (!text) return null;
+
+    try {
+        return JSON.parse(text);
+    } catch (_) {
+        return candidate;
+    }
+}
+
+function isMeaningfulResponseValue(value) {
+    if (value == null) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return true;
+}
+
+function isMeaningfulDataObject(candidate) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+        return false;
     }
 
-    return [];
+    return Object.entries(candidate).some(([key, value]) => {
+        const normalizedKey = normalizeDataKey(key);
+        if (!normalizedKey || CLIENT_MAINTENANCE_RESPONSE_META_KEYS.has(normalizedKey)) {
+            return false;
+        }
+
+        return isMeaningfulResponseValue(value);
+    });
+}
+
+function getNestedResponseCandidates(candidate) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+        return [];
+    }
+
+    return [
+        candidate.Details,
+        candidate.details,
+        candidate.Details01,
+        candidate.details01,
+        candidate.Data,
+        candidate.data,
+        candidate.Records,
+        candidate.records,
+        candidate.SearchResults,
+        candidate.searchResults
+    ];
+}
+
+function extractSingleDataRow(candidate, depth = 0) {
+    if (depth > 5 || candidate == null) {
+        return null;
+    }
+
+    const parsedCandidate = parseResponseCandidate(candidate);
+    if (parsedCandidate == null) {
+        return null;
+    }
+
+    if (Array.isArray(parsedCandidate)) {
+        for (const item of parsedCandidate) {
+            const row = extractSingleDataRow(item, depth + 1);
+            if (row) return row;
+        }
+        return null;
+    }
+
+    if (typeof parsedCandidate !== 'object') {
+        return null;
+    }
+
+    for (const nested of getNestedResponseCandidates(parsedCandidate)) {
+        const row = extractSingleDataRow(nested, depth + 1);
+        if (row) return row;
+    }
+
+    return isMeaningfulDataObject(parsedCandidate) ? parsedCandidate : null;
+}
+
+function extractDetailsArray(candidate, depth = 0) {
+    if (depth > 5 || candidate == null) {
+        return [];
+    }
+
+    const parsedCandidate = parseResponseCandidate(candidate);
+    if (parsedCandidate == null) {
+        return [];
+    }
+
+    if (Array.isArray(parsedCandidate)) {
+        return parsedCandidate
+            .map((item) => extractSingleDataRow(item, depth + 1))
+            .filter((item) => item != null);
+    }
+
+    if (typeof parsedCandidate !== 'object') {
+        return [];
+    }
+
+    for (const nested of getNestedResponseCandidates(parsedCandidate)) {
+        const rows = extractDetailsArray(nested, depth + 1);
+        if (rows.length > 0) {
+            return rows;
+        }
+    }
+
+    return isMeaningfulDataObject(parsedCandidate) ? [parsedCandidate] : [];
 }
 
 function normalizeStageName(name) {
@@ -1232,6 +1509,15 @@ function resetPaneFormFields(pane) {
 
         if (type === 'hidden') return;
 
+        if (field._flatpickr) {
+            try {
+                field._flatpickr.clear();
+            } catch (_error) {
+                field.value = '';
+            }
+            return;
+        }
+
         if (type === 'radio') {
             const groupName = field.name || field.id || '';
             if (!groupName || resetRadioGroups.has(groupName)) return;
@@ -1261,6 +1547,7 @@ function applyResponseDataToPane(pane, response, explicitFieldMap) {
     if (!pane) return;
 
     const row = normalizeSingleRow(response);
+    pane.setAttribute('data-cm-loaded', row ? 'true' : 'false');
     resetPaneFormFields(pane);
     if (!row) return;
 
@@ -1347,7 +1634,7 @@ function applyResponseDataToPane(pane, response, explicitFieldMap) {
             return;
         }
 
-        field.value = value ?? '';
+        setClientMaintenanceFieldValue(field, value);
     });
 }
 
@@ -1383,6 +1670,9 @@ async function autoLoadTabData(config, pane) {
 
         applyResponseDataToPane(pane, response, fieldMap);
     } catch (error) {
+        if (pane) {
+            pane.setAttribute('data-cm-loaded', 'false');
+        }
         window.ClientMaintenanceCore.showToast(`${config.key} load failed - ${error.message}`, 'error');
     }
 }
@@ -1541,33 +1831,7 @@ function setFieldValue(root, selector, value) {
     const field = root?.querySelector(selector);
     if (!field) return;
 
-    const normalizedValue = value == null ? '' : String(value).trim();
-    if (field._flatpickr) {
-        if (!normalizedValue) {
-            field._flatpickr.clear();
-        } else {
-            field._flatpickr.setDate(normalizedValue, true);
-        }
-        return;
-    }
-
-    const dataType = String(field.getAttribute('data-type') || '').toLowerCase();
-    if (!normalizedValue) {
-        field.value = '';
-        return;
-    }
-
-    if (dataType === 'datetime' && window.GlobalUtils?.formatDateTime) {
-        field.value = window.GlobalUtils.formatDateTime(normalizedValue);
-        return;
-    }
-
-    if (dataType === 'date' && window.GlobalUtils?.formatDate) {
-        field.value = window.GlobalUtils.formatDate(normalizedValue);
-        return;
-    }
-
-    field.value = value ?? '';
+    setClientMaintenanceFieldValue(field, value);
 }
 
 function setSelectValueWithFallback(selectElement, value, fallbackText) {
@@ -1634,22 +1898,24 @@ function applyBasicDetailsToPersonal(row) {
         ['#txt_personalLastName', row?.LastName],
         ['#ddl_personalGender', row?.GenderID],
         ['#dt_personalDob', row?.DateOfBirth],
+        ['#txt_personalAge', row?.Age],
+        ['#txt_personalAgeAsOn', row?.AgeAsOn],
         ['#ddl_personalNationality', row?.NationalityID],
         ['#ddl_personalResidentStatus', row?.ResidentID],
         ['#ddl_personalIdType', row?.IdentificationTypeID],
-        ['#txt_personalIdNumber', row?.NationalId || row?.IdentificationNo],
-        ['#dt_personalIssueDate', row?.IDIssueDate],
+        ['#txt_personalIdNumber', row?.IdentificationNo || row?.PassportNo || row?.NationalId],
+        ['#dt_personalIssueDate', row?.IDIssueDate || row?.PassportIssueDate || row?.IssueDate],
         ['#txt_personalIssuedBy', row?.IssuedBy],
-        ['#dt_personalExpiryDate', row?.IDExpiryDate],
-        ['#ddl_personalLiteracyLevel', row?.LiteracyLevel],
-        ['#ddl_personalMaritalStatus', row?.MaritalStatus],
+        ['#dt_personalExpiryDate', row?.IDExpiryDate || row?.PassportExpiryDate || row?.ExpiryDate],
+        ['#ddl_personalLiteracyLevel', row?.LiteracyLevelID || row?.LiteracyLevel],
+        ['#ddl_personalMaritalStatus', row?.MaritalStatusID || row?.MaritalStatus],
         ['#txt_personalHouseMembers', row?.NumberOfHouseMembers],
         ['#txt_personalChildren', row?.NumberOfChildren],
         ['#txt_personalDependents', row?.NumberOfDependents],
         ['#txt_personalMotherName', row?.MotherName],
-        ['#ddl_personalBloodGroup', row?.BloodGroup],
-        ['#txt_personalOpenedBy', row?.CreatedBy],
-        ['#dt_personalOpenedOn', row?.OpenedOn ?? row?.OpenedDate],
+        ['#ddl_personalBloodGroup', row?.BloodGroupID || row?.BloodGroup],
+        ['#txt_personalOpenedBy', row?.OpenedBy || row?.CreatedBy],
+        ['#dt_personalOpenedOn', row?.OpenedDate ?? row?.OpenedOn],
         ['#ddl_personalRelationshipManager', row?.RelationshipManagerID]
     ];
 
@@ -1662,7 +1928,7 @@ function applyBasicDetailsToPersonal(row) {
 
     const openedByName = personalPane.querySelector('#txt_personalOpenedByName');
     if (openedByName) {
-        openedByName.value = row?.CreatedByName || row?.OpenedByName || '';
+        openedByName.value = row?.OpenedByName || row?.CreatedByName || row?.openedByName || '';
     }
 }
 
@@ -2153,14 +2419,14 @@ function initMainClientSearch(shell) {
             tableID: 'WFClientID',
             moduleID: window.ClientMaintenanceCore.moduleId || '',
             searchFields: [
-                { name: 'ClientID', label: 'Application ID', column: 'ClientID', value: applicationIdInput?.value || '' },
+                { name: 'RequestID', label: 'Application ID', column: 'ApplicationID', value: applicationIdInput?.value || '' },
                 { name: 'Name', label: 'Client Name', column: 'Name' }
             ],
             autoSearch: false,
             onSelect: async (record) => {
                 try {
                     await withClientMaintenanceShellLoading(async () => {
-                        const selectedRequestId = record?.ClientID || '';
+                        const selectedRequestId = record?.ApplicationID || record?.ClientID || '';
                         const selectedName = record?.Name || '';
                         const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
                         const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
@@ -2394,7 +2660,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Ensure edit mode is enabled for this tab so the next save uses UPDATE action
                 // Note: The global isEditMode flag controls the mode across all tabs
                 // For tabs with existing data, we want them to use UPDATE action when navigating next
-                
+
                 // If this tab has the "is-completed" class, it means it was previously saved
                 // We should ensure edit mode applies to it
                 const tabButton = event.target;
@@ -2734,7 +3000,25 @@ function getTabDataFromPane(pane) {
         if (!key || key.startsWith('_')) return; // Skip internal fields
 
         const type = element.type?.toLowerCase() || '';
-        if (type === 'hidden' || type === 'button' || type === 'submit') return;
+        if ((type === 'hidden' && !element._flatpickr) || type === 'button' || type === 'submit') return;
+
+        if (element._flatpickr) {
+            const selectedDate = element._flatpickr.selectedDates?.[0];
+            if (selectedDate instanceof Date && !Number.isNaN(selectedDate.getTime())) {
+                payload[key] = formatClientMaintenanceIsoDate(selectedDate);
+                return;
+            }
+
+            const rawValue = String(element.value || element._flatpickr.altInput?.value || '').trim();
+            if (!rawValue) {
+                payload[key] = '';
+                return;
+            }
+
+            const parsedDate = parseClientMaintenanceDateValue(rawValue);
+            payload[key] = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : rawValue;
+            return;
+        }
 
         if (type === 'checkbox') {
             payload[key] = element.checked;
@@ -2758,8 +3042,10 @@ function getTabDataFromPane(pane) {
 function detectTabHasExistingData(pane) {
     if (!pane) return false;
 
-    // Check for data-cm-loaded marker
-    if (pane.querySelector('[data-cm-loaded]')) return true;
+    const explicitLoadedState = getPaneLoadedState(pane);
+    if (explicitLoadedState != null) {
+        return explicitLoadedState;
+    }
 
     // Check if there are any filled form fields (indicates data was loaded)
     const fields = pane.querySelectorAll('input:not([type="hidden"]), textarea, select');
@@ -2767,14 +3053,44 @@ function detectTabHasExistingData(pane) {
 
     fields.forEach((field) => {
         const type = field.type?.toLowerCase() || '';
-        if (type === 'checkbox' || type === 'radio') {
+        if (type === 'radio') {
+            return;
+        }
+
+        if (type === 'checkbox') {
             if (field.checked) filledCount++;
-        } else if (field.value && String(field.value).trim()) {
+            return;
+        }
+
+        if (field.tagName.toLowerCase() === 'select') {
+            if (field.value && String(field.value).trim()) {
+                filledCount++;
+            }
+            return;
+        }
+
+        if (field.value && String(field.value).trim()) {
             filledCount++;
         }
     });
 
     return filledCount > 0;
+}
+
+function getPaneLoadedState(pane) {
+    if (!pane) return null;
+
+    const ownMarker = pane.getAttribute('data-cm-loaded');
+    if (ownMarker === 'true') return true;
+    if (ownMarker === 'false') return false;
+
+    const nestedTrueMarker = pane.querySelector('[data-cm-loaded="true"]');
+    if (nestedTrueMarker) return true;
+
+    const nestedFalseMarker = pane.querySelector('[data-cm-loaded="false"]');
+    if (nestedFalseMarker) return false;
+
+    return null;
 }
 
 /**
@@ -3049,6 +3365,29 @@ async function invokeTabAction(tabKey, action, requestData) {
  */
 async function processTabWorkflowStep(tabKey, pane, tabIndex) {
     if (!pane || !tabKey) return false;
+
+    // Special validation for Relations tab: share percent must total 100%
+    if (tabKey === 'Relations') {
+        const tbody = pane.querySelector('table tbody') || pane.querySelector('#tbl_clientRelationsBody');
+        if (tbody) {
+            const rows = tbody.querySelectorAll('tr[data-payload]');
+            let totalShare = 0;
+            rows.forEach((row) => {
+                try {
+                    const payload = JSON.parse(row.dataset.payload || '{}');
+                    const share = parseFloat(payload.SharePercent) || 0;
+                    totalShare += share;
+                } catch (_error) { }
+            });
+            if (totalShare !== 100) {
+                window.ClientMaintenanceCore.showToast(
+                    `Relations: Share percentage must total 100% (Current: ${totalShare.toFixed(2)}%)`,
+                    'warning'
+                );
+                return false;
+            }
+        }
+    }
 
     const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
     const isFirstWorkflowStep = Number(tabIndex) === 0;
@@ -3338,8 +3677,9 @@ async function saveCurrentTabData() {
     }
 
     // Check if tab has loaded data (look for _cmLoadData or data indicators)
-    const hasLoadedData = tabPane.querySelector('[data-cm-loaded]') !== null ||
-        tabPane.querySelectorAll('input[value], select option:selected, textarea').length > 0;
+    const explicitLoadedState = getPaneLoadedState(tabPane);
+    const hasLoadedData = explicitLoadedState === true ||
+        (explicitLoadedState == null && tabPane.querySelectorAll('input[value], select option:selected, textarea').length > 0);
 
     try {
         // Build request
@@ -3347,18 +3687,22 @@ async function saveCurrentTabData() {
         const selectedId = window.ClientMaintenanceCore.getSelectedId();
         const requestId = window.ClientMaintenanceCore.requestId || '';
 
-        const request = {
-            ModuleID: moduleId,
-            ClientID: selectedId,
-            RequestID: requestId,
-            Payload: {}
-        };
+        //const request = {
+        //    ModuleID: moduleId,
+        //    ClientID: selectedId,
+        //    RequestID: requestId,
+        //    Payload: {}
+        //};
+        const request = {};
+        request.ModuleID = moduleId;
+        request.ClientID = selectedId;
+        request.RequestID = requestId;
 
         // Collect form data from tab
         tabPane.querySelectorAll('input, select, textarea').forEach((element) => {
             const key = element.name || element.id;
             if (!key) return;
-            request.Payload[key] = element.type === 'checkbox' ? element.checked : element.value;
+            request[key] = element.type === 'checkbox' ? element.checked : element.value;
         });
 
         // Determine if we should call create or update

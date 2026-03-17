@@ -32,6 +32,7 @@ namespace CBS.Entities.SystemCore
         public bool IsTrxModule { get; set; }
         public bool IsMenuItem { get; set; }
         public string? MenuURL { get; set; }
+        public string? NewMenuUrl { get; set; }
         public string? MenuDescription { get; set; }
         public short? ParentMenuModuleID { get; set; }
         public byte? MenuItemOrder { get; set; }

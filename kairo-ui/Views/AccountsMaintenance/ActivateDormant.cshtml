@@ -1,9 +1,10 @@
 @{
     // Migrated from: account-activate-dormant.html
-    Layout = null;
+    Layout = "_ApplicationLayout";
 }
 
 <!-- ActivateDormant Submodule Content -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Activate Dormant form">
     <div class="form-card" data-main-form>
         <!-- Account Identification Section -->
@@ -87,5 +88,7 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "activatedormant" } })
+</main>
 
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-dormant.js?v=@DateTime.Now.Ticks"></script>

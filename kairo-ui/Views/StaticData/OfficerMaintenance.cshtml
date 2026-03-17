@@ -1,0 +1,312 @@
+@{
+    ViewData["Title"] = "Officer Maintenance";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="window">
+    <main class="main-container main-container--with-panel" aria-label="Officer maintenance form">
+        <div class="form-content" id="mainFormContainer" data-om-view="officer" role="region" aria-label="Officer maintenance details">
+            <form id="officers-maintenance-form" class="om-shell-form" autocomplete="off" novalidate>
+                <div class="form-card" data-main-form>
+                    <div class="form-section" data-section="officer-identifiers">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-search"></i> Account Identification</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="validation-summary" role="status" aria-live="polite" hidden>
+                                <i class="bi bi-info-circle validation-summary__icon"></i>
+                                <span class="validation-summary__text"></span>
+                                <button type="button" class="validation-summary__close" aria-label="Close notification">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="OfficerId">Officer ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-user-control" data-kairo-user-control>
+                                        <input type="text" id="OfficerId" name="OfficerId" class="kairo-user-control__id" data-always-enabled required>
+                                        <input type="text" id="OfficerName" name="OfficerName" class="kairo-user-control__name" placeholder="Officer Name" readonly>
+                                        <button type="button" id="btnOfficerLookup" class="btn-lookup kairo-user-control__lookup" data-always-enabled aria-label="Search officer">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="ClientId">Client ID <span class="text-danger">*</span></label>
+                                    <div class="kairo-client-control" data-kairo-client-control>
+                                        <input type="text" id="ClientId" name="ClientId" class="kairo-client-control__id" required>
+                                        <input type="text" id="ClientName" name="ClientName" class="kairo-client-control__name" placeholder="Client Name" readonly>
+                                        <button type="button" id="btnClientLookup" class="btn-lookup kairo-client-control__lookup" aria-label="Search client">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="officer-details">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-person-vcard"></i> Officer Details</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="JoinedOn">Joined On <span class="text-danger">*</span></label>
+                                    <input type="text" id="JoinedOn" name="JoinedOn" class="form-control" placeholder="YYYY-MM-DD" data-date-picker required>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="Designation">Designation <span class="text-danger">*</span></label>
+                                    <select id="Designation" name="Designation" class="form-select" required>
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="BaseBranch">Base Branch <span class="text-danger">*</span></label>
+                                    <div class="kairo-branch-control" data-kairo-branch-control>
+                                        <input type="text" id="BaseBranch" name="BaseBranch" class="kairo-branch-control__id" required>
+                                        <input type="text" id="BaseBranchName" name="BaseBranchName" class="kairo-branch-control__name" placeholder="Branch Name" readonly>
+                                        <button type="button" id="btnBaseBranchLookup" class="btn-lookup kairo-branch-control__lookup" aria-label="Search base branch">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="ReportingTo">Reporting To</label>
+                                    <div class="kairo-user-control" data-kairo-user-control>
+                                        <input type="text" id="ReportingTo" name="ReportingTo" class="kairo-user-control__id">
+                                        <input type="text" id="ReportingToName" name="ReportingToName" class="kairo-user-control__name" placeholder="Officer Name" readonly>
+                                        <button type="button" id="btnReportingOfficerLookup" class="btn-lookup kairo-user-control__lookup" aria-label="Search reporting officer">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="AccountId">Account ID</label>
+                                    <div class="kairo-account-control" data-kairo-account-control>
+                                        <input type="text" id="AccountId" name="AccountId" class="kairo-account-control__id">
+                                        <input type="text" id="AccountName" name="AccountName" class="kairo-account-control__name" placeholder="Account Name" readonly>
+                                        <button type="button" id="btnAccountLookup" class="btn-lookup kairo-account-control__lookup" aria-label="Search account">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="SanctioningAuthority">Sanctioning Authority</label>
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" id="SanctioningAuthority" class="form-check-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="disbursement-restriction">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-lock"></i> Disbursement Restriction</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row three-col">
+                                <div class="col">
+                                    <label class="label-blue" for="Period">Period</label>
+                                    <select id="Period" name="Period" class="form-select">
+                                        <option value="">--Select--</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="NoOfLoans">No Of Loans</label>
+                                    <input type="number" id="NoOfLoans" name="NoOfLoans" class="form-control" min="0" step="1">
+                                </div>
+                                <div class="col">
+                                    <label class="label-blue" for="FixedAmount">Fixed Amount</label>
+                                    <input type="number" id="FixedAmount" name="FixedAmount" class="form-control" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item"><label>Status</label><span class="audit-value" id="Status" data-om-audit></span></div>
+                                    <div class="audit-item"><label>Resigned On</label><span class="audit-value" id="ResignedOn" data-om-audit></span></div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item"><label>Created By</label><span class="audit-value" id="CreatedBy" data-om-audit></span></div>
+                                    <div class="audit-item"><label>Created On</label><span class="audit-value" id="CreatedOn" data-om-audit></span></div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item"><label>Modified By</label><span class="audit-value" id="ModifiedBy" data-om-audit></span></div>
+                                    <div class="audit-item"><label>Modified On</label><span class="audit-value" id="ModifiedOn" data-om-audit></span></div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item"><label>Supervised By</label><span class="audit-value" id="SupervisedBy" data-om-audit></span></div>
+                                    <div class="audit-item"><label>Supervised On</label><span class="audit-value" id="SupervisedOn" data-om-audit></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-content" id="branchAssignedContainer" data-om-view="branch-assigned" role="region" aria-label="Assigned branch details" hidden>
+            <div class="form-card">
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-funnel"></i> Filters</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="BaReportingBranch">Reporting Branch</label>
+                                <div class="kairo-branch-control" data-kairo-branch-control>
+                                    <input type="text" id="BaReportingBranch" class="kairo-branch-control__id">
+                                    <input type="text" id="BaReportingBranchName" class="kairo-branch-control__name" placeholder="Branch Name" readonly>
+                                    <button type="button" id="btnBaBranchLookup" class="btn-lookup kairo-branch-control__lookup" aria-label="Search assigned branch">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="BaPeriod">Period</label>
+                                <select id="BaPeriod" class="form-select">
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-col">
+                            <div class="col">
+                                <label class="label-blue" for="BaNoOfLoans">No Of Loans</label>
+                                <input type="number" id="BaNoOfLoans" class="form-control" min="0" step="1">
+                            </div>
+                            <div class="col">
+                                <label class="label-blue" for="BaFixedAmount">Fixed Amount</label>
+                                <input type="number" id="BaFixedAmount" class="form-control" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-table"></i> Assigned Branches (<span id="baRecordCount">0</span>)</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="d-flex gap-2 justify-content-center mb-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-om-ba-grid="new" disabled>New</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-om-ba-grid="alter" disabled>Alter</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-om-ba-grid="remove" disabled>Remove</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-om-ba-grid="update" disabled>Update</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-om-ba-grid="clear" disabled>Clear</button>
+                        </div>
+                        <div class="table-responsive om-ba-grid">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-nowrap">Assigned Branch ID</th>
+                                        <th class="text-nowrap">Branch Name</th>
+                                        <th class="text-nowrap">Restricted Period</th>
+                                        <th class="text-nowrap">No of Loans</th>
+                                        <th class="text-nowrap">Restricted Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="5" class="text-center text-muted py-4">No records to display.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="audit-section">
+                            <div class="audit-block">
+                                <div class="audit-item"><label>Created By</label><span class="audit-value" id="BaCreatedBy"></span></div>
+                                <div class="audit-item"><label>Created On</label><span class="audit-value" id="BaCreatedOn"></span></div>
+                            </div>
+                            <div class="audit-block">
+                                <div class="audit-item"><label>Modified By</label><span class="audit-value" id="BaModifiedBy"></span></div>
+                                <div class="audit-item"><label>Modified On</label><span class="audit-value" id="BaModifiedOn"></span></div>
+                            </div>
+                            <div class="audit-block">
+                                <div class="audit-item"><label>Supervised By</label><span class="audit-value" id="BaSupervisedBy"></span></div>
+                                <div class="audit-item"><label>Supervised On</label><span class="audit-value" id="BaSupervisedOn"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="action-panel" aria-label="Officer actions">
+            <div class="action-buttons" data-om-actions-view="officer">
+                <button type="button" class="btn-action" data-om-action="more-info"><i class="bi bi-info-circle"></i><span>More Info</span></button>
+                <button type="button" class="btn-action" data-om-view-trigger="branch-assigned" disabled><i class="bi bi-diagram-3"></i><span>Branches</span></button>
+                <button type="button" class="btn-action" data-om-action="resign" disabled><i class="bi bi-door-open"></i><span>Resign</span></button>
+                <button type="button" class="btn-action" data-shell-mode="View"><i class="bi bi-eye"></i><span>View</span></button>
+                <button type="button" class="btn-action" data-shell-mode="Add"><i class="bi bi-plus-circle"></i><span>Add</span></button>
+                <button type="button" class="btn-action" data-shell-mode="Update" disabled><i class="bi bi-pencil"></i><span>Edit</span></button>
+                <button type="button" class="btn-action btn-delete" data-om-action="delete" disabled><i class="bi bi-trash"></i><span>Delete</span></button>
+                <button type="button" class="btn-action btn-save" data-om-action="save" disabled><i class="bi bi-save"></i><span>Save</span></button>
+                <button type="button" class="btn-action btn-cancel" data-om-action="cancel" disabled><i class="bi bi-x-circle"></i><span>Cancel</span></button>
+            </div>
+
+            <div class="action-buttons" data-om-actions-view="branch-assigned" hidden>
+                <button type="button" class="btn-action" data-om-ba-action="edit"><i class="bi bi-pencil"></i><span>Edit</span></button>
+                <button type="button" class="btn-action btn-save" data-om-ba-action="save" disabled><i class="bi bi-save"></i><span>Save</span></button>
+                <button type="button" class="btn-action btn-cancel" data-om-ba-action="cancel"><i class="bi bi-x-circle"></i><span>Cancel</span></button>
+                <button type="button" class="btn-action" data-om-ba-action="back"><i class="bi bi-arrow-left"></i><span>Back</span></button>
+            </div>
+        </aside>
+    </main>
+</div>
+
+@section Scripts {
+    <script src="~/js/environment.js" asp-append-version="true"></script>
+    <script src="~/js/config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+    <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+    <script src="~/js/services/shared/serviceLoader.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/staticDataCore.js" asp-append-version="true"></script>
+    <script src="~/js/services/static-data/staticDataService.js" asp-append-version="true"></script>
+    <script src="~/js/modules/static-data/officer-maintenance.js" asp-append-version="true"></script>
+}

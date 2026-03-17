@@ -8,14 +8,9 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
-    <link rel="stylesheet" type="text/css" href="~/css/maincss.css" />
-    <link rel="stylesheet" type="text/css" href="/css/styles.css" />
-
-    <link rel="stylesheet" type="text/css" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="/lib/bootstrap-icons/bootstrap-icons.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/font-awesome/css/all.min.css" />
     <link rel="stylesheet" type="text/css" href="/lib/flatpickr/flatpickr.min.css" />
-    <link rel="stylesheet" type="text/css" href="/css/maincss.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/maincss.css" />
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
 
     @await RenderSectionAsync("Styles", required: false)
@@ -32,15 +27,11 @@
             <i class="bi bi-x"></i>
         </button>
     </div>
-    @RenderBody()
 
-    <!-- Core Scripts -->
+    <!-- Core Scripts (must load before RenderBody so submodule JS can use AppCore, SearchModal etc.) -->
     <script type="text/javascript" src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="/lib/flatpickr/flatpickr.min.js"></script>
     <script type="text/javascript" src="/js/app/global-utils.js"></script>
-    @* <script type="text/javascript" src="/js/environment.js"></script> *@
-    @* <script type="text/javascript" src="/js/auth/auth.config.js"></script> *@
-    @* <script type="text/javascript" src="/js/auth/auth.service.js"></script> *@
     <script type="text/javascript" src="/js/app/app-core.js"></script>
     <script type="text/javascript" src="/js/app/notificationService.js"></script>
 
@@ -53,8 +44,10 @@
     <!-- Shared Search Modal -->
     <script type="text/javascript" src="/js/modules/shared/searchModal.js"></script>
 
+    @RenderBody()
+
     <!-- Session Expiry Re-Authentication Modal -->
-    @Html.PartialAsync("_SessionExpiredModal")
+    @await Html.PartialAsync("_SessionExpiredModal")
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

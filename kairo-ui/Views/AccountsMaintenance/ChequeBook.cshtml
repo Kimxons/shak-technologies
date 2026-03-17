@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: account-cheque-book.html
     var bookTypeOptions = ViewData["BookTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
@@ -65,6 +66,7 @@
 </style>
 
 <!-- ChequeBook Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content submodule-cheque-book" role="region" aria-label="Cheque Book form">
     <div class="form-card" data-main-form>
 
@@ -288,6 +290,8 @@
 
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "chequebook" } })
+</main>
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 

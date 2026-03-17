@@ -6,8 +6,9 @@
 (function() {
     'use strict';
 
-    const SEARCH_MODAL_PREFIX = (window.Environment?.searchModalPrefix || 'mfs').toString();
-    const DEFAULT_SEARCH_MODULE_ID = String(window.Environment?.defaultSearchModuleId || window.Environment?.microfinanceModuleId || '5010');
+    const DEFAULT_SEARCH_MODULE_ID = String(
+        window.sessionStorage?.getItem?.('microfinanceModuleId') || '5010'
+    );
 
     function getAppCore() {
         const win = window;
@@ -54,17 +55,36 @@
     let lastFetchedSchemeId = ''; // Track last fetched scheme to avoid duplicate fetches
 
     // =========================================================================
-    // Environment Helper
+    // Context Helper (Client360 pattern: AuthService → sessionStorage → Environment fallback)
     // =========================================================================
-    function getEnv() {
-        const e = window.Environment || {};
-        const bankID = e.defaultBankId || e.defaultBankID || e.bankID || e.bankId || 
-                       sessionStorage.getItem('BankID') || localStorage.getItem('BankID') || '00';
-        const ourBranchID = e.branchID || e.branchId || 
-                            sessionStorage.getItem('BranchID') || localStorage.getItem('BranchID') || '0325';
-        const operatorID = e.operatorID || e.operatorId || 
-                           sessionStorage.getItem('OperatorID') || localStorage.getItem('OperatorID') || 'CSADM';
-        return { bankID, ourBranchID, operatorID };
+    function getContext() {
+        const session = window.AuthService?.getSession?.() || {};
+        return {
+            OperatorID:
+                session.operatorID ||
+                session.operatorId ||
+                session.OperatorID ||
+                window.sessionStorage?.getItem?.('operatorID') ||
+                window.Environment?.OperatorID ||
+                'web_portal',
+            OurBranchID:
+                session.branchID ||
+                session.branchId ||
+                session.OurBranchID ||
+                window.sessionStorage?.getItem?.('branchID') ||
+                window.Environment?.OurBranchID ||
+                '',
+            BankID:
+                session.bankID ||
+                session.bankId ||
+                session.BankID ||
+                session.BankId ||
+                window.sessionStorage?.getItem?.('BankID') ||
+                window.localStorage?.getItem?.('BankID') ||
+                window.Environment?.BankID ||
+                window.Environment?.bankID ||
+                '00'
+        };
     }
 
     // =========================================================================
@@ -145,8 +165,8 @@
             title: 'Loan Scheme Search',
             targetId: 'SchemeId',
             targetName: 'Description',
-            tableID: 'GroupDefaultSchemeID',
-            moduleIDOverride: 5060,
+            tableID: 'LoanSchemeID',
+            moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
             searchFields: [
                 { name: 'schemeId', label: 'Scheme ID', column: 'LoanSchemeID' },
                 { name: 'schemeName', label: 'Scheme Name', column: 'Description' }
@@ -157,14 +177,9 @@
                 { key: 'GroupProductID', label: 'Group Product ID' }
             ],
             getAdvFilterString: () => {
-                const groupProductId = document.getElementById('LoanProductId')?.value?.trim() || '';
-                if (groupProductId != '') {
-                    return `GroupProductID ='${groupProductId.replace(/'/g, "''")}' AND SchemeTypeID = 'P'`;
-                }
-                else {
-                    return `SchemeTypeID = 'P'`;
- }
-                
+                const { BankID } = getContext();
+                const safeBankId = String(BankID || '').replace(/'/g, "''");
+                return `BankID ='${safeBankId}'`;
             }
         },
         'loan-product': {
@@ -174,8 +189,8 @@
             tableID: 'schemeproductid',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
             getAdvFilterString: () => {
-                const { bankID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
+                const { BankID } = getContext();
+                const safeBankId = String(BankID || '').replace(/'/g, "''");
                 return `BankID ='${safeBankId}' AND ProductTypeID in ('LN')`;
             },
             searchFields: [
@@ -192,13 +207,12 @@
             title: 'Advance Type Search',
             targetId: 'AdvanceTypeId',
             targetName: 'AdvanceTypeName',
-            tableID: 'WFAdvTypeActiveID',
+            tableID: 'WFAdvTypeID',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
             getAdvFilterString: () => {
-                const { bankID, ourBranchID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
-                const safeBranchId = String(ourBranchID || '').replace(/'/g, "''");
-                return `ModuleID in ('LN') AND BankID ='${safeBankId}' AND OurBranchID ='${safeBranchId}'`;
+                const { BankID } = getContext();
+                const safeBankId = String(BankID || '').replace(/'/g, "''");
+                return `BankID='${safeBankId}' AND ModuleID='LN'`;
             },
             searchFields: [
                 { name: 'advanceTypeId', label: 'Advance Type ID', column: 'WFAdvTypeID' },
@@ -232,11 +246,7 @@
             targetName: 'DepositProductNamePrimary',
             tableID: 'ProductID',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
-            getAdvFilterString: () => {
-                const { bankID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
-                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
-            },
+            getAdvFilterString: () => buildDepositProductAdvFilter('primary'),
             searchFields: [
                 { name: 'productId', label: 'Product ID', column: 'ProductID' },
                 { name: 'productName', label: 'Product Name', column: 'Description' }
@@ -253,11 +263,7 @@
             targetName: 'DepositProductNameSecondary',
             tableID: 'ProductID',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
-            getAdvFilterString: () => {
-                const { bankID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
-                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
-            },
+            getAdvFilterString: () => buildDepositProductAdvFilter('secondary'),
             searchFields: [
                 { name: 'productId', label: 'Product ID', column: 'ProductID' },
                 { name: 'productName', label: 'Product Name', column: 'Description' }
@@ -274,11 +280,7 @@
             targetName: 'DepositProductNameAdditional',
             tableID: 'ProductID',
             moduleIDOverride: Number(DEFAULT_SEARCH_MODULE_ID),
-            getAdvFilterString: () => {
-                const { bankID } = getEnv();
-                const safeBankId = String(bankID || '').replace(/'/g, "''");
-                return `ProductTypeID in ('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A'`;
-            },
+            getAdvFilterString: () => buildDepositProductAdvFilter('additional'),
             searchFields: [
                 { name: 'productId', label: 'Product ID', column: 'ProductID' },
                 { name: 'productName', label: 'Product Name', column: 'Description' }
@@ -290,6 +292,28 @@
             ]
         }
     };
+
+    function buildDepositProductAdvFilter(collateralType) {
+        const { BankID } = getContext();
+        const safeBankId = String(BankID || '').replace(/'/g, "''");
+        let collateralValue = '';
+
+        if (collateralType === 'primary') {
+            collateralValue = document.getElementById('PrimaryCollateral')?.value || '';
+        } else if (collateralType === 'secondary') {
+            collateralValue = document.getElementById('SecondaryCollateral')?.value || '';
+        } else if (collateralType === 'additional') {
+            collateralValue = document.getElementById('AdditionalCollateral')?.value || '';
+        }
+
+        if (collateralValue === 'COMSAV' || collateralValue === 'CS') {
+            return `ProductTypeID='CS' AND BankID ='${safeBankId}' AND ProductCategoryID='A' AND CurrencyID='ETB'`;
+        }
+        if (collateralValue === 'VOLSAV' || collateralValue === 'GRPSAV' || collateralValue === 'SB' || collateralValue === 'VS') {
+            return `ProductTypeID='SB' AND BankID ='${safeBankId}' AND ProductCategoryID='A' AND CurrencyID='ETB'`;
+        }
+        return `ProductTypeID in('SB', 'CS') AND BankID ='${safeBankId}' AND ProductCategoryID='A' AND CurrencyID='ETB'`;
+    }
 
     function ensureSharedSearchModal() {
         if (typeof window.SearchModal !== 'function') {
@@ -341,7 +365,7 @@
         if (!data) return;
 
         if (lookupType === 'scheme') {
-            const schemeId = data.LoanSchemeID || data.SchemeId || data.ID || '';
+            const schemeId = getRecordValue(data, 'LoanSchemeID', 'SchemeId', 'ID');
             const schemeIdField = document.getElementById('SchemeId');
             if (schemeIdField) {
                 schemeIdField.value = schemeId;
@@ -356,13 +380,121 @@
         const idField = document.getElementById(config.targetId);
         const nameField = document.getElementById(config.targetName);
 
+        const lookupIdCandidates = {
+            'advance-type': [
+                'WFAdvTypeID',
+                'WFAdvTypeActiveID',
+                'WorkflowID',
+                'AdvanceTypeId',
+                'AdvanceTypeID',
+                'DepositProductID',
+                'ProductID',
+                'ID'
+            ]
+        };
+
+        const genericIdCandidates = [
+            'LoanSchemeID',
+            'SchemeProductID',
+            'WFAdvTypeID',
+            'WFAdvTypeActiveID',
+            'WorkflowID',
+            'GroupProductID',
+            'ProductID',
+            'ID'
+        ];
+
+        const idValue = getRecordValue(data, ...((lookupIdCandidates[lookupType] || genericIdCandidates)));
+
         if (idField) {
-            idField.value = data.LoanSchemeID || data.SchemeProductID || data.WFAdvTypeID || data.GroupProductID || data.ProductID || data.ID || '';
+            idField.value = idValue || '';
         }
 
         if (nameField) {
-            nameField.value = data.Description || data.GroupProductName || data.ProductName || data.AdvanceTypeName || data.Name || '';
+            nameField.value = getRecordValue(
+                data,
+                'Description',
+                'GroupProductName',
+                'ProductName',
+                'AdvanceTypeName',
+                'Name'
+            );
         }
+
+        // Loan Product lookup should also populate Installment Frequency
+        if (lookupType === 'loan-product') {
+            setFieldValue('InstallmentFrequency', extractInstallmentFrequency(data));
+        }
+    }
+
+    function getRecordValue(record, ...candidateKeys) {
+        if (!record || typeof record !== 'object') return '';
+
+        const sources = [record];
+        // Support wrapped payload shapes from some search providers
+        ['row', 'Row', 'data', 'Data', 'record', 'Record'].forEach(k => {
+            if (record[k] && typeof record[k] === 'object') sources.push(record[k]);
+        });
+
+        const normalize = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        for (const source of sources) {
+            const keys = Object.keys(source);
+            for (const candidate of candidateKeys) {
+                if (source[candidate] !== undefined && source[candidate] !== null && String(source[candidate]).trim() !== '') {
+                    return String(source[candidate]).trim();
+                }
+
+                const target = normalize(candidate);
+                const matchedKey = keys.find(k => {
+                    const nk = normalize(k);
+                    return nk === target
+                        || nk.endsWith(target)
+                        || nk.includes(target);
+                });
+                if (matchedKey) {
+                    const value = source[matchedKey];
+                    if (value !== undefined && value !== null && String(value).trim() !== '') {
+                        return String(value).trim();
+                    }
+                }
+            }
+        }
+
+        return '';
+    }
+
+    function extractInstallmentFrequency(data) {
+        if (!data || typeof data !== 'object') return '';
+
+        const directKeys = [
+            'InstallmentFrequency',
+            'InstallmentFrequencyID',
+            'RepaymentFrequency',
+            'RepaymentFrequencyID',
+            'Frequency',
+            'FrequencyID'
+        ];
+
+        for (const key of directKeys) {
+            const value = data[key];
+            if (value !== undefined && value !== null && String(value).trim() !== '') {
+                return String(value).trim();
+            }
+        }
+
+        // Fallback for search results with varying column casing/naming
+        for (const key of Object.keys(data)) {
+            const normalized = key.toLowerCase();
+            if (normalized.includes('installment') && normalized.includes('frequency')) {
+                const value = data[key];
+                if (value !== undefined && value !== null && String(value).trim() !== '') {
+                    return String(value).trim();
+                }
+            }
+        }
+
+        return '';
     }
 
     function openSearchDialog(lookupType) {
@@ -514,7 +646,7 @@
             return;
         }
 
-        const { bankID } = getEnv();
+        const { BankID } = getContext();
         const schemeId = currentScheme.SchemeId || currentScheme.LoanSchemeID || '';
         const newRecord = currentScheme.UpdateCount || currentScheme.NewRecord || 0;
 
@@ -524,7 +656,7 @@
         }
 
         const requestData = {
-            BankID: bankID,
+            BankID: BankID,
             LoanSchemeID: schemeId,
             NewRecord: newRecord
         };
@@ -577,12 +709,12 @@
         const formData = collectFormData();
         
         // Build request data for API
-        const { bankID, operatorID } = getEnv();
+        const { BankID, OperatorID } = getContext();
         // Format date for SQL smalldatetime: YYYY-MM-DDTHH:mm:ss
         const now = new Date().toISOString().slice(0, 19);
         
         const requestData = {
-            BankID: bankID,
+            BankID: BankID,
             LoanSchemeID: formData.SchemeId,
             Description: formData.Description,
             WFAdvTypeID: formData.AdvanceTypeId || '',
@@ -604,9 +736,9 @@
             SLRecoveryType: formData.SLRecoveryType || '',
             CollectSavingWithInst: formData.CollectSavingWithInstallment ? 1 : 0,
             SavingsTypeID: formData.SavingsCollectionType || '',
-            CreatedBy: isAddMode ? operatorID : (currentScheme?.CreatedBy || operatorID),
+            CreatedBy: isAddMode ? OperatorID : (currentScheme?.CreatedBy || OperatorID),
             CreatedOn: isAddMode ? now : (formatDateForApi(currentScheme?.CreatedOn) || now),
-            ModifiedBy: operatorID,
+            ModifiedBy: OperatorID,
             ModifiedOn: now,
             SupervisedBy: '',
             GroupCollectionProductID: formData.CenterCollectionProductId || '',
@@ -695,8 +827,10 @@
     function setFormMode(mode) {
         const isReadOnly = mode === 'view';
         
+        // Fields that should remain disabled in all modes (populated by system/lookup)
+        const alwaysDisabledFields = ['InstallmentFrequency'];
         // Fields that should remain disabled during edit mode (key identifiers)
-        const editProtectedFields = ['SchemeId', 'LoanProductId', 'InstallmentFrequency'];
+        const editProtectedFields = ['SchemeId', 'LoanProductId'];
         // Lookup types that should be disabled during edit mode
         const editProtectedLookups = ['scheme', 'loan-product'];
         
@@ -709,6 +843,12 @@
         const lookupButtons = document.querySelectorAll('.form-card [data-mcs-lookup]');
         
         inputs.forEach(input => {
+            // InstallmentFrequency is always system-populated from loan product
+            if (alwaysDisabledFields.includes(input.id)) {
+                input.disabled = true;
+                return;
+            }
+
             // Keep SchemeId always enabled for search functionality (in default/view modes)
             if (input.id === 'SchemeId') {
                 // In edit mode, disable SchemeId; in default/view/add modes, keep enabled for search
@@ -719,6 +859,17 @@
             // Keep LoanProductId and InstallmentFrequency disabled during edit
             if (mode === 'edit' && editProtectedFields.includes(input.id)) {
                 input.disabled = true;
+                return;
+            }
+
+            // Savings collection controls only apply when collect-saving is enabled.
+            if (input.id === 'SavingsCollectionType' || input.id === 'SavingsValue') {
+                const collectSavingCheckbox = document.getElementById('CollectSavingWithInstallment');
+                if (isViewLikeMode) {
+                    input.disabled = true;
+                } else {
+                    input.disabled = !collectSavingCheckbox?.checked;
+                }
                 return;
             }
             
@@ -753,14 +904,20 @@
             } else if (isViewLikeMode) {
                 // In view-like modes, only scheme lookup is enabled (for search)
                 btn.disabled = (lookupType !== 'scheme');
+            } else if (mode === 'add') {
+                // In add mode, scheme lookup is disabled because user is creating a new scheme
+                btn.disabled = (lookupType === 'scheme');
             } else {
-                // In add mode, all lookups are enabled
+                // In other edit-like modes, all lookups are enabled
                 btn.disabled = false;
             }
         });
 
         // Update action buttons state
         updateActionButtons(mode);
+
+        // Keep dependent savings fields synced after mode changes.
+        updateSavingsCollectionFieldsState(isViewLikeMode);
     }
 
     function updateActionButtons(mode) {
@@ -818,6 +975,12 @@
 
         if (!schemeId) {
             showError('Scheme ID is required');
+            document.getElementById('SchemeId')?.focus();
+            return false;
+        }
+
+        if (isAddMode && !/^\d+$/.test(schemeId)) {
+            showError('Scheme ID must be an integer value in Add mode');
             document.getElementById('SchemeId')?.focus();
             return false;
         }
@@ -959,13 +1122,13 @@
         setFieldValue('DepositProductIdAdditional', data.DepositProductIdAdditional);
         setFieldValue('DepositProductNameAdditional', data.DepositProductNameAdditional);
 
-        // Audit fields (use display-formatted values)
-        setFieldValue('CreatedBy', data.CreatedBy);
-        setFieldValue('CreatedOn', data.CreatedOnDisplay || data.CreatedOn);
-        setFieldValue('ModifiedBy', data.ModifiedBy);
-        setFieldValue('ModifiedOn', data.ModifiedOnDisplay || data.ModifiedOn);
-        setFieldValue('SupervisedBy', data.SupervisedBy);
-        setFieldValue('SupervisedOn', data.SupervisedOnDisplay || data.SupervisedOn);
+        // Audit fields
+        setAuditValue('CreatedBy', data.CreatedBy);
+        setAuditValue('CreatedOn', data.CreatedOnDisplay || data.CreatedOn);
+        setAuditValue('ModifiedBy', data.ModifiedBy);
+        setAuditValue('ModifiedOn', data.ModifiedOnDisplay || data.ModifiedOn);
+        setAuditValue('SupervisedBy', data.SupervisedBy);
+        setAuditValue('SupervisedOn', data.SupervisedOnDisplay || data.SupervisedOn);
 
         // Update collateral sections visibility based on checkbox states
         updateCollateralSectionsVisibility();
@@ -1006,6 +1169,29 @@
         }
     }
 
+    function updateSavingsCollectionFieldsState(forceDisable = false) {
+        const collectSavingCheckbox = document.getElementById('CollectSavingWithInstallment');
+        const savingsCollectionType = document.getElementById('SavingsCollectionType');
+        const savingsValue = document.getElementById('SavingsValue');
+
+        if (!savingsCollectionType || !savingsValue) return;
+
+        if (forceDisable) {
+            savingsCollectionType.disabled = true;
+            savingsValue.disabled = true;
+            return;
+        }
+
+        const isChecked = !!collectSavingCheckbox?.checked;
+        savingsCollectionType.disabled = !isChecked;
+        savingsValue.disabled = !isChecked;
+
+        if (!isChecked) {
+            savingsCollectionType.selectedIndex = 0;
+            savingsValue.value = '';
+        }
+    }
+
     /**
      * Clear all fields in a specific collateral section
      */
@@ -1041,6 +1227,13 @@
         const field = document.getElementById(fieldId);
         if (field) {
             field.value = value || '';
+        }
+    }
+
+    function setAuditValue(spanId, value) {
+        const span = document.getElementById(spanId);
+        if (span) {
+            span.textContent = value || '-';
         }
     }
 
@@ -1125,18 +1318,24 @@
             select.selectedIndex = 0;
         });
 
+        // Reset audit spans
+        ['CreatedBy', 'CreatedOn', 'ModifiedBy', 'ModifiedOn', 'SupervisedBy', 'SupervisedOn'].forEach(id => {
+            const span = document.getElementById(id);
+            if (span && span.tagName === 'SPAN') span.textContent = '-';
+        });
+
         currentScheme = null;
         lastFetchedSchemeId = ''; // Reset to allow re-fetching same scheme
     }
 
     async function loadSchemeData(schemeId, direction = 0) {
-        const { bankID, ourBranchID, operatorID } = getEnv();
+        const { BankID, OurBranchID, OperatorID } = getContext();
         
         const requestData = {
-            BankID: bankID,
-            OurBranchID: ourBranchID,
+            BankID: BankID,
+            OurBranchID: OurBranchID,
             LoanSchemeID: schemeId || '',
-            OperatorID: operatorID,
+            OperatorID: OperatorID,
             Direction: direction
         };
 
@@ -1155,7 +1354,7 @@
                 return null;
             }
 
-            // Normalise details � SP may return Details01 or Details array
+            // Normalise details � SP may return Details01 or Details array
             const detailsArr = payload?.Details01 ?? payload?.Details ?? payload?.details ?? payload?.ResponseData ?? [];
             const details = Array.isArray(detailsArr) ? detailsArr : [detailsArr];
             const data = details.find(d => d && d.LoanSchemeID) ?? details[0] ?? null;
@@ -1261,13 +1460,13 @@
      * Fetch all loan schemes for navigation (on page load)
      */
     async function fetchAllSchemes() {
-        const { bankID, ourBranchID, operatorID } = getEnv();
+        const { BankID, OurBranchID, OperatorID } = getContext();
         
         const requestData = {
-            BankID: bankID,
-            OurBranchID: ourBranchID,
+            BankID: BankID,
+            OurBranchID: OurBranchID,
             LoanSchemeID: '',  // Empty to get all schemes
-            OperatorID: operatorID,
+            OperatorID: OperatorID,
             Direction: 0       // 0 for all/first
         };
 
@@ -1335,11 +1534,43 @@
         });
     }
 
+    function wireSchemeIdIntegerConstraint() {
+        const schemeIdInput = document.getElementById('SchemeId');
+        if (!schemeIdInput) return;
+
+        schemeIdInput.addEventListener('input', () => {
+            const sanitized = String(schemeIdInput.value || '').replace(/\D+/g, '');
+            if (schemeIdInput.value !== sanitized) {
+                schemeIdInput.value = sanitized;
+            }
+        });
+    }
+
+    function wireConditionalFieldHandlers() {
+        ['PrimaryCollateralRequired', 'SecondaryCollateralRequired', 'AdditionalCollateralRequired'].forEach((checkboxId) => {
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.addEventListener('change', updateCollateralSectionsVisibility);
+            }
+        });
+
+        const collectSavingCheckbox = document.getElementById('CollectSavingWithInstallment');
+        if (collectSavingCheckbox) {
+            collectSavingCheckbox.addEventListener('change', () => {
+                const isViewLikeMode = !isAddMode && !isEditMode;
+                updateSavingsCollectionFieldsState(isViewLikeMode);
+            });
+        }
+
+        updateCollateralSectionsVisibility();
+        updateSavingsCollectionFieldsState(true);
+    }
+
     function wireSidebarItems() {
         document.querySelectorAll('.sidebar-item[data-child-form]').forEach(item => {
             item.addEventListener('click', function () {
-                if (!currentScheme) {
-                    showWarning('Please load a record before accessing this feature.');
+                if (!currentScheme && !document.getElementById('SchemeId')?.value?.trim()) {
+                    // showWarning('Please load a reeecord before accessing this feature.');
                     return;
                 }
                 const formName = this.dataset.childForm;
@@ -1384,10 +1615,37 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function closeChildForm() {
+        const childInline = document.querySelector('[data-child-inline]');
+        const childIframe = document.querySelector('[data-child-iframe]');
+        const mainForm = document.querySelector('[data-main-form]');
+        const mainContainer = document.querySelector('.main-container');
+
+        if (!childInline || !mainContainer) return;
+
+        mainContainer.classList.add('child-closing');
+        childInline.classList.add('is-closing');
+        childInline.classList.remove('is-visible');
+
+        if (mainForm) mainForm.hidden = false;
+
+        setTimeout(() => {
+            childInline.hidden = true;
+            mainContainer.classList.remove('child-open', 'child-closing');
+            if (childIframe) childIframe.src = 'about:blank';
+        }, 350);
+    }
+    window.closeChildForm = closeChildForm;
+
+    document.addEventListener('DOMContentLoaded', async () => {
         wireLookupButtons();
         wireActionButtons();
+        wireSchemeIdIntegerConstraint();
+        wireConditionalFieldHandlers();
         wireSidebarItems();
         setFormMode('default');
+
+        // Load the first scheme so sidebar items work immediately
+        await fetchAllSchemes();
     });
 })();

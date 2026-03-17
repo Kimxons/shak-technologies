@@ -19,21 +19,6 @@
     <input type="hidden" id="moduleId_group_members" value="@moduleId" />
 
     <div class="window">
-        <div class="am-header" role="banner" aria-label="Window title bar">
-            <div class="am-header__left">
-                <i class="bi bi-people-fill am-header__icon" aria-hidden="true"></i>
-                <span class="am-header__title">Center Members</span>
-            </div>
-            <div class="am-header__right" role="toolbar" aria-label="Window controls">
-                <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh data" id="btnRefresh">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
-                <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close window" id="btnClose">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        </div>
-
         <main class="main-container" aria-label="Center Members view">
             <div class="form-content" role="region" aria-label="Center Members view">
                 <div class="form-card" data-main-form>
@@ -102,6 +87,9 @@
                     </button>
                     <button class="btn-action btn-cancel" type="button" data-action="cancel" data-cu-cancel title="Cancel">
                         <i class="bi bi-x-lg"></i>Cancel
+                    </button>
+                    <button class="btn-action" type="button" data-action="close" id="btnClose" title="Close">
+                        <i class="bi bi-box-arrow-right"></i>Close
                     </button>
                 </div>
             </div>

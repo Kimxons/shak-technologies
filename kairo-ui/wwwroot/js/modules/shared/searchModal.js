@@ -18,9 +18,12 @@
     'use strict';
 
     class SearchModal {
-        constructor(appCore) {
-            // Support both direct injection and global fallback
-            this.appCore = appCore || global.AppCore || window.AppCore;
+        constructor(appCoreOrOptions) {
+            const looksLikeAppCore = !!appCoreOrOptions && typeof appCoreOrOptions.invokeControllerAsync === 'function';
+            this.options = looksLikeAppCore ? {} : (appCoreOrOptions || {});
+            this.appCore = looksLikeAppCore
+                ? appCoreOrOptions
+                : (this.options.appCore || global.AppCore || window.AppCore);
 
             if (!this.appCore) {
                 console.error('[SearchModal] AppCore is required but not found in arguments or globally');
