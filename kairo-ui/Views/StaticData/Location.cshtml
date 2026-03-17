@@ -1,0 +1,119 @@
+@{
+    Layout = null;
+}
+
+<form id="locationFormToken" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div id="locationModule">
+    <!-- Loading Overlay -->
+    <div id="locationLoadingOverlay" class="page-loading-overlay" hidden>
+        <div class="page-loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Pill -->
+    <div class="d-flex justify-content-end px-2 pt-1">
+        <span class="badge bg-secondary" data-page-function-pill>Mode &middot; View</span>
+    </div>
+
+    <form id="location-form" autocomplete="off" novalidate>
+                <div class="form-card">
+                    <div class="form-section" data-section="location-info">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-geo-alt"></i> Location Information</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Location Information" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="LocationID">Location ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="LocationID" class="kairo-control__id" aria-label="Location ID" data-always-enabled>
+                                        <input type="text" id="LocationDesc" class="kairo-control__name" aria-label="Location Name" placeholder="Location Name" readonly>
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-location-action="search" aria-label="Search Location"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="Building">Building</label>
+                                    <textarea class="bs-textarea" id="Building" name="Building" rows="2"></textarea>
+                                </div>
+                                <div class="col">
+                                    <label for="RoomOffice">Room/Office</label>
+                                    <textarea class="bs-textarea" id="RoomOffice" name="RoomOffice" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label for="Store">Store</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="checkbox" class="bs-checkbox" id="Store" name="Store">
+                                        <span class="small text-muted">Mark as Store</span>
+                                    </div>
+                                </div>
+                                <div class="col"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section" data-section="behind-scene">
+                        <div class="section-header" data-section-toggle>
+                            <span class="section-header__title"><i class="bi bi-eye"></i> Behind The Scene</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="audit-section">
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Created By</label>
+                                        <span class="audit-value" id="CreatedBy"></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Created On</label>
+                                        <span class="audit-value" id="CreatedOn"></span>
+                                    </div>
+                                </div>
+                                <div class="audit-block">
+                                    <div class="audit-item">
+                                        <label>Modified By</label>
+                                        <span class="audit-value" id="ModifiedBy"></span>
+                                    </div>
+                                    <div class="audit-item">
+                                        <label>Modified On</label>
+                                        <span class="audit-value" id="ModifiedOn"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+    <div class="am-message-panel" role="alert" aria-live="polite" id="locationMessagePanel">
+        <i class="bi bi-info-circle"></i>
+        <span></span>
+    </div>
+
+    <!-- Hidden proxy buttons for parent action panel sync -->
+    <div hidden aria-hidden="true">
+        <button data-location-mode="View"></button>
+        <button data-location-mode="Add" disabled></button>
+        <button data-location-mode="Edit" disabled></button>
+        <button data-location-action="delete" disabled></button>
+        <button data-location-action="save" disabled></button>
+        <button data-location-action="cancel" disabled></button>
+    </div>
+</div>

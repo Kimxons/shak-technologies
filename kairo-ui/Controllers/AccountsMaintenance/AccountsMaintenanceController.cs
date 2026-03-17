@@ -1042,6 +1042,32 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         }
 
         [HttpPost]
+        [Route("api/update-account-freeze")]
+        public async Task<IActionResult> UpdateAccountFreeze([FromBody] AddAccountFreezeRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _apiService.CreateAsync<JsonElement>(
+                    "AccountManagementApi",
+                    ApiEndpoints.UPDATE_ACCOUNT_FREEZE,
+                    request
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating account freeze");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/release-account-freeze")]
         public async Task<IActionResult> ReleaseAccountFreeze([FromBody] ReleaseAccountFreezeRequest request)
         {
@@ -3882,11 +3908,20 @@ namespace kairo_ui.Controllers.AccountsMaintenance
     public class AddAccountFreezeRequest
     {
         public string? AccountID { get; set; }
+        public string? FreezedValue { get; set; }
+        public string? FreezedReason { get; set; }
         public string? FreezeAmount { get; set; }
         public string? FreezeReason { get; set; }
         public string? FreezeDate { get; set; }
+        public string? FreezedDate { get; set; }
+        public string? EffectiveDate { get; set; }
         public string? OurBranchID { get; set; }
+        public string? BranchID { get; set; }
         public string? OperatorID { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? MakerID { get; set; }
+        public string? ModifiedBy { get; set; }
+        public string? ReferenceID { get; set; }
     }
 
     public class ReleaseAccountFreezeRequest
