@@ -87,6 +87,44 @@ function getAppCore() {
         null;
 }
 
+function getContext() {
+    const session = window.AuthService?.getSession?.() || {};
+    return {
+        OperatorID:
+            session.operatorID ||
+            session.operatorId ||
+            session.OperatorID ||
+            window.sessionStorage?.getItem?.('operatorID') ||
+            window.Environment?.OperatorID ||
+            window.Environment?.operatorId ||
+            'web_portal',
+        OurBranchID:
+            session.branchID ||
+            session.branchId ||
+            session.OurBranchID ||
+            window.sessionStorage?.getItem?.('branchID') ||
+            window.Environment?.OurBranchID ||
+            window.Environment?.defaultOurBranchId ||
+            '',
+        BankID:
+            session.bankID ||
+            session.bankId ||
+            session.BankID ||
+            session.BankId ||
+            window.sessionStorage?.getItem?.('BankID') ||
+            window.localStorage?.getItem?.('BankID') ||
+            window.Environment?.BankID ||
+            window.Environment?.bankID ||
+            '00',
+        WorkingDate:
+            session.WorkingDate ||
+            session.workingDate ||
+            window.sessionStorage?.getItem?.('workingDate') ||
+            window.Environment?.workingDate ||
+            getLocalDateString()
+    };
+}
+
 function invokeMicroFinanceController(action, requestData) {
     return new Promise((resolve, reject) => {
         const appCore = getAppCore();
@@ -237,6 +275,209 @@ function wireLookupButtons() {
 
 function canUseSearchDialogs() {
     return isAddMode || isEditMode;
+}
+
+// =========================================================================
+// Centralized blur-resolve: type an ID + Tab → auto-search & populate name
+// Uses SearchModal/Search (same backend as the popup search dialogs)
+// =========================================================================
+const BLUR_MODULE_ID = 5060;
+
+const blurSearchConfig = {
+    'centerProductId': {
+        targetName: 'centerProductName',
+        tableID: 'GroupProductID',
+        idColumns: ['GroupProductID', 'ProductID'],
+        nameKeys: ['GroupProductName', 'Description', 'Name', 'ProductName'],
+        getAdvFilterString: () => {
+            const { BankID } = getContext();
+            return `BankID='${String(BankID || '').replace(/'/g, "''")}'`;
+        }
+    },
+    'primarySchemeId': {
+        targetName: 'primarySchemeName',
+        tableID: 'LoanSchemeID',
+        idColumns: ['LoanSchemeID', 'SchemeID'],
+        nameKeys: ['Description', 'LoanSchemeName', 'Name'],
+        getAdvFilterString: () => {
+            const { BankID } = getContext();
+            return `BankID='${String(BankID || '').replace(/'/g, "''")}'`;
+        }
+    },
+    'creditOfficer': {
+        targetName: 'creditOfficerName',
+        tableID: 'ActiveOfficerID',
+        idColumns: ['OfficerID'],
+        nameKeys: ['Name', 'OfficerName', 'Description'],
+        getAdvFilterString: () => {
+            const { BankID } = getContext();
+            const branchId = document.getElementById('branchId')?.value?.trim() || '';
+            return `BankID='${String(BankID || '').replace(/'/g, "''")}' AND OfficerTypeID in ('CO','AO') AND ReportingBranchID='${String(branchId).replace(/'/g, "''")}'`;
+        }
+    },
+    'groupFormedBy': {
+        targetName: 'groupFormedByName',
+        tableID: 'ActiveOfficerID',
+        idColumns: ['OfficerID'],
+        nameKeys: ['Name', 'OfficerName', 'Description'],
+        getAdvFilterString: () => {
+            const { BankID } = getContext();
+            const branchId = document.getElementById('branchId')?.value?.trim() || '';
+            return `BankID='${String(BankID || '').replace(/'/g, "''")}' AND OfficerTypeID in ('CO','AO') AND ReportingBranchID='${String(branchId).replace(/'/g, "''")}'`;
+        }
+    },
+    'ngoId': {
+        targetName: 'ngoName',
+        tableID: 'NGOBranchID',
+        idColumns: ['NGOID', 'NGOBranchID'],
+        nameKeys: ['NGOName', 'Name', 'Description'],
+        getAdvFilterString: () => {
+            const branchId = document.getElementById('branchId')?.value?.trim() || '';
+            return branchId ? `BranchID='${String(branchId).replace(/'/g, "''")}'` : '';
+        }
+    }
+};
+
+async function invokeSearchApi(requestData) {
+    const resp = await fetch('/SearchModal/Search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(requestData)
+    });
+    if (!resp.ok) throw new Error(`Search request failed (${resp.status})`);
+    return resp.json();
+}
+
+async function resolveFieldByBlur(inputId, typedValue) {
+    const config = blurSearchConfig[inputId];
+    if (!config || !typedValue) return null;
+
+    const nameField = document.getElementById(config.targetName);
+    const advFilterString = typeof config.getAdvFilterString === 'function'
+        ? config.getAdvFilterString() : '';
+
+    try {
+        const result = await invokeSearchApi({
+            TableID: config.tableID,
+            SearchKey: typedValue,
+            AdvFilterString: advFilterString,
+            ModuleID: String(BLUR_MODULE_ID),
+            PrevOrNext: 1,
+            PageSize: 50,
+            WhereStmt: '',
+            RefID: ''
+        });
+
+        if (!result?.success) {
+            if (nameField) nameField.value = '';
+            showSnackbar(`No match found for "${typedValue}"`, 'warning');
+            return null;
+        }
+
+        // Unwrap: { success, data: { details: { SearchResults: [...] } } }
+        const responseData = result?.data ?? {};
+        const searchDetails = responseData?.details ?? responseData?.Details ?? {};
+        const rows = searchDetails?.SearchResults ?? responseData?.Details ?? responseData?.Details01 ?? [];
+        const rowsArr = Array.isArray(rows) ? rows : [];
+        const normalise = v => String(v || '').trim().toUpperCase();
+
+        const match = rowsArr.find(row => {
+            for (const col of config.idColumns) {
+                if (normalise(row[col]) === normalise(typedValue)) return true;
+            }
+            // Fallback: any key ending with "ID"
+            for (const key of Object.keys(row)) {
+                if (key.toUpperCase().endsWith('ID') && normalise(row[key]) === normalise(typedValue)) return true;
+            }
+            return false;
+        });
+
+        if (match) {
+            if (nameField) {
+                nameField.value = getFieldValue(match, ...config.nameKeys);
+            }
+            return match;
+        } else {
+            if (nameField) nameField.value = '';
+            showSnackbar(`No match found for "${typedValue}"`, 'warning');
+            return null;
+        }
+    } catch (err) {
+        console.error(`[GroupMaintenance] blur resolve error for ${inputId}:`, err);
+        if (nameField) nameField.value = '';
+        return null;
+    }
+}
+
+function wireBlurLookups() {
+    // BranchId uses the existing SP-based fetchBranchDetails (not SearchModal/Search)
+    const branchEl = document.getElementById('branchId');
+    if (branchEl) {
+        branchEl.addEventListener('blur', () => {
+            const val = branchEl.value.trim();
+            if (val) fetchBranchDetails(val);
+        });
+    }
+
+    // CenterId: blur → search via SearchModal, then load full details if found
+    const centerIdEl = document.getElementById('centerId');
+    if (centerIdEl) {
+        centerIdEl.addEventListener('blur', async () => {
+            if (isAddMode || isEditMode) return;
+            const val = centerIdEl.value.trim();
+            const branchId = document.getElementById('branchId')?.value?.trim() || '';
+            if (!val || !branchId) return;
+
+            try {
+                const result = await invokeSearchApi({
+                    TableID: 'GroupID',
+                    SearchKey: val,
+                    AdvFilterString: `OurBranchID='${String(branchId).replace(/'/g, "''")}'`,
+                    ModuleID: String(BLUR_MODULE_ID),
+                    PrevOrNext: 1,
+                    PageSize: 50,
+                    WhereStmt: '',
+                    RefID: ''
+                });
+
+                const responseData = result?.data ?? {};
+                const searchDetails = responseData?.details ?? responseData?.Details ?? {};
+                const rows = searchDetails?.SearchResults ?? responseData?.Details ?? [];
+                const rowsArr = Array.isArray(rows) ? rows : [];
+                const normalise = v => String(v || '').trim().toUpperCase();
+
+                const match = rowsArr.find(row => {
+                    return normalise(row.GroupID) === normalise(val)
+                        || normalise(row.ID) === normalise(val);
+                });
+
+                if (match) {
+                    // Found — load full center details
+                    handleView();
+                } else {
+                    showSnackbar('Center ID not found', 'warning');
+                    document.getElementById('centerName').value = '';
+                }
+            } catch (err) {
+                console.error('[GroupMaintenance] Center ID blur search error:', err);
+            }
+        });
+    }
+
+    Object.entries(blurSearchConfig).forEach(([inputId, config]) => {
+        const el = document.getElementById(inputId);
+        if (!el) return;
+        el.addEventListener('blur', async () => {
+            const val = el.value.trim();
+            if (!val) return;
+            const match = await resolveFieldByBlur(inputId, val);
+            // CenterProduct: also fetch product details for primary scheme population
+            if (inputId === 'centerProductId' && match) {
+                fetchGroupProductDetails(val).catch(() => {});
+            }
+        });
+    });
 }
 
 function getLocalDateString() {
@@ -637,7 +878,8 @@ async function initializeCenterMaintenance() {
     const branchNameInput = document.getElementById('branchName');
     const existingBranchId = branchInput?.value?.trim() || '';
     const existingBranchName = branchNameInput?.value?.trim() || '';
-    const branchId = existingBranchId || window.Environment?.OurBranchID || window.Environment?.defaultOurBranchId;
+    const context = getContext();
+    const branchId = existingBranchId || context.OurBranchID;
     if (branchId && branchInput && !existingBranchId) {
         branchInput.value = branchId;
         await fetchBranchDetails(branchId, { silent: true });
@@ -647,31 +889,40 @@ async function initializeCenterMaintenance() {
 
     setupEventListeners();
     wireLookupButtons();
+    wireBlurLookups();
     wireChildFormLinks();
     wireSectionToggles();
     wireNavSections();
     wireSidebarToggle();
     wireSidebarSearch();
 
-    const maxDate = window.Environment?.workingDate || getLocalDateString();
+    // Ensure the form starts in proper View mode (centerId enabled, editable fields locked)
+    isAddMode = false;
+    isEditMode = false;
+    setEditMode(false);
+
+    const maxDate = context.WorkingDate || getLocalDateString();
     const formationDateInput = document.getElementById('formationDate');
     if (formationDateInput) {
         formationDateInput.setAttribute('max', maxDate);
     }
     const firstMeetingDateInput = document.getElementById('firstMeetingDate');
     if (firstMeetingDateInput) {
-        firstMeetingDateInput.setAttribute('max', maxDate);
+        // No max — first meeting date can be in the future
+        firstMeetingDateInput.removeAttribute('max');
     }
     const nextMeetingDateInput = document.getElementById('nextMeetingDate');
     if (nextMeetingDateInput) {
-        nextMeetingDateInput.setAttribute('max', maxDate);
+        // No max — next meeting date can be in the future
+        nextMeetingDateInput.removeAttribute('max');
     }
 }
 
 async function loadGroupClassOptions() {
     try {
+        const context = getContext();
         const requestData = {
-            BankID: '00',
+            BankID: context.BankID,
             ClasificationType: 'T'
         };
 
@@ -722,13 +973,7 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('centerId').addEventListener('change', () => {
-        const centerId = document.getElementById('centerId').value.trim();
-        const branchId = document.getElementById('branchId').value.trim();
-        if (centerId && branchId && !isAddMode && !isEditMode) {
-            handleView();
-        }
-    });
+    // Center ID blur-resolve is handled by wireBlurLookups()
 
     document.getElementById('branchId').addEventListener('change', async () => {
         const centerId = document.getElementById('centerId').value.trim();
@@ -747,47 +992,7 @@ function setupEventListeners() {
         e.target.value = e.target.value.replace(/[^0-9]/g, '');
     });
 
-    document.getElementById('branchId').addEventListener('blur', async (e) => {
-        const branchId = e.target.value.trim();
-        if (branchId) {
-            await fetchBranchDetails(branchId);
-        }
-    });
-
-    document.getElementById('centerProductId').addEventListener('blur', async (e) => {
-        const productId = e.target.value.trim();
-        if (productId) {
-            await fetchGroupProductDetails(productId);
-        }
-    });
-
-    document.getElementById('primarySchemeId').addEventListener('blur', async (e) => {
-        const schemeId = e.target.value.trim();
-        if (schemeId) {
-            await fetchSchemeDetails(schemeId);
-        }
-    });
-
-    document.getElementById('creditOfficer').addEventListener('blur', async (e) => {
-        const officerId = e.target.value.trim();
-        if (officerId) {
-            await fetchOfficerDetails(officerId, 'creditOfficer');
-        }
-    });
-
-    document.getElementById('groupFormedBy').addEventListener('blur', async (e) => {
-        const officerId = e.target.value.trim();
-        if (officerId) {
-            await fetchOfficerDetails(officerId, 'groupFormedBy');
-        }
-    });
-
-    document.getElementById('ngoId').addEventListener('blur', async (e) => {
-        const ngoId = e.target.value.trim();
-        if (ngoId) {
-            await fetchNgoDetails(ngoId);
-        }
-    });
+    // Blur-resolve for lookup fields is handled by wireBlurLookups() (centralized SearchModal/Search)
 
     // Status change handler - enable/disable reason field
     document.getElementById('status').addEventListener('change', handleStatusChange);
@@ -798,8 +1003,14 @@ function setupEventListeners() {
     // Meeting day change handler
     document.getElementById('meetingDay').addEventListener('change', handleMeetingDayChange);
 
+    // Formation date change handler — update min on first/next meeting date calendars
+    document.getElementById('formationDate').addEventListener('change', updateDateConstraints);
+
     // First meeting date change handler
-    document.getElementById('firstMeetingDate').addEventListener('change', calculateMeetingDates);
+    document.getElementById('firstMeetingDate').addEventListener('change', () => {
+        updateDateConstraints();
+        calculateMeetingDates();
+    });
 
     // First day and next day change handlers for bimonthly/monthly calculations
     document.getElementById('firstDay').addEventListener('change', calculateMeetingDates);
@@ -809,8 +1020,14 @@ function setupEventListeners() {
     document.getElementById('statusReason')?.addEventListener('keypress', handleReasonLength);
     document.getElementById('statusReason')?.addEventListener('paste', handleReasonLength);
 
-    // Center ID uppercase conversion
+    // Center ID: numeric only (keypress + input sanitization)
     document.getElementById('centerId').addEventListener('keypress', convertToUppercase);
+    document.getElementById('centerId').addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+
+    // Next meeting date change handler — validate against first meeting date
+    document.getElementById('nextMeetingDate').addEventListener('change', updateDateConstraints);
 
     // Meeting time validation on blur
     document.getElementById('meetingTime').addEventListener('blur', validateMeetingTime);
@@ -961,22 +1178,15 @@ function handleReasonLength(event) {
 }
 
 /**
- * Converts input to uppercase (for Center ID)
+ * Restricts Center ID to numeric values only
  * Legacy: txtGroupID_KeyPress
  */
 function convertToUppercase(event) {
     if (event.key && event.key.length === 1) {
-        event.preventDefault();
-        const input = event.target;
-        const char = event.key.toUpperCase();
-        
-        // Only allow alphanumeric
-        if (/[A-Z0-9]/.test(char)) {
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const currentValue = input.value;
-            input.value = currentValue.substring(0, start) + char + currentValue.substring(end);
-            input.selectionStart = input.selectionEnd = start + 1;
+        // Only allow digits
+        if (!/[0-9]/.test(event.key)) {
+            event.preventDefault();
+            return;
         }
     }
 }
@@ -1140,16 +1350,40 @@ function calculateMeetingDates() {
 }
 
 /**
+ * Dynamically update the min/max attributes on date inputs so the browser
+ * calendar picker enforces: formationDate <= firstMeetingDate <= nextMeetingDate
+ */
+function updateDateConstraints() {
+    const formationDateInput = document.getElementById('formationDate');
+    const firstMeetingDateInput = document.getElementById('firstMeetingDate');
+    const nextMeetingDateInput = document.getElementById('nextMeetingDate');
+
+    const formationDate = formationDateInput?.value || '';
+    const firstMeetingDate = firstMeetingDateInput?.value || '';
+
+    // First Meeting Date min = Formation Date
+    if (firstMeetingDateInput) {
+        firstMeetingDateInput.setAttribute('min', formationDate || '');
+    }
+
+    // Next Meeting Date min = First Meeting Date (or Formation Date if first meeting not set)
+    if (nextMeetingDateInput) {
+        nextMeetingDateInput.setAttribute('min', firstMeetingDate || formationDate || '');
+    }
+}
+
+/**
  * Fetch Group Product details and populate related fields
  * Legacy: GroupProductClass_CallBack
  */
 async function fetchGroupProductDetails(productId) {
     try {
         console.log('[GroupMaintenance] Fetching product details for:', productId);
+        const context = getContext();
         
         // Fetch product details via old-api/controller flow
         const requestData = {
-            BankID: '00',
+            BankID: context.BankID,
             GroupProductID: productId
         };
 
@@ -1188,9 +1422,10 @@ async function fetchGroupProductDetails(productId) {
 async function fetchSchemeDetails(schemeId) {
     try {
         console.log('[GroupMaintenance] Fetching scheme details for:', schemeId);
+        const context = getContext();
         
         const requestData = {
-            BankID: '00',
+            BankID: context.BankID,
             LoanSchemeID: schemeId
         };
 
@@ -1221,10 +1456,11 @@ async function fetchSchemeDetails(schemeId) {
 async function fetchOfficerDetails(officerId, fieldType) {
     try {
         console.log('[GroupMaintenance] Fetching officer details for:', officerId, fieldType);
+        const context = getContext();
         
         const branchId = document.getElementById('branchId')?.value?.trim() || '';
         const requestData = {
-            BankID: '00',
+            BankID: context.BankID,
             OfficerID: officerId,
             BranchID: branchId
         };
@@ -1267,10 +1503,11 @@ async function fetchOfficerDetails(officerId, fieldType) {
 async function fetchNgoDetails(ngoId) {
     try {
         console.log('[GroupMaintenance] Fetching NGO details for:', ngoId);
+        const context = getContext();
         
         const branchId = document.getElementById('branchId')?.value?.trim() || '';
         const requestData = {
-            BankID: '00',
+            BankID: context.BankID,
             NGOID: ngoId,
             BranchID: branchId
         };
@@ -1321,6 +1558,16 @@ function validateBeforeSave() {
         return false;
     }
 
+    // Center ID is required in edit mode (auto-generated in add mode)
+    if (!isAddMode) {
+        const centerId = document.getElementById('centerId')?.value?.trim();
+        if (!centerId) {
+            showSnackbar('Center ID is required', 'error');
+            document.getElementById('centerId')?.focus();
+            return false;
+        }
+    }
+
     if (!centerName) {
         showSnackbar('Center Name is required', 'error');
         document.getElementById('centerName')?.focus();
@@ -1359,7 +1606,8 @@ function validateBeforeSave() {
 
     // Validate formation date is not in future
     const formDate = new Date(formationDate);
-    const workingDate = new Date(window.Environment?.workingDate || getLocalDateString());
+    const context = getContext();
+    const workingDate = new Date(context.WorkingDate || getLocalDateString());
     if (formDate > workingDate) {
         showSnackbar('Formation Date cannot be in the future', 'error');
         document.getElementById('formationDate')?.focus();
@@ -1376,6 +1624,13 @@ function validateBeforeSave() {
     const firstMeetDate = new Date(firstMeetingDate);
     if (firstMeetDate < formDate) {
         showSnackbar('First Meeting Date cannot be before Formation Date', 'error');
+        document.getElementById('firstMeetingDate')?.focus();
+        return false;
+    }
+
+    // First Meeting Date cannot be before working date
+    if (firstMeetDate < workingDate) {
+        showSnackbar('First Meeting Date cannot be before the current working date', 'error');
         document.getElementById('firstMeetingDate')?.focus();
         return false;
     }
@@ -1443,14 +1698,32 @@ function validateBeforeSave() {
         }
     }
 
-    // Validate next meeting date
-    if (nextMeetingDate) {
-        const nextMeetDate = new Date(nextMeetingDate);
-        if (nextMeetDate <= firstMeetDate) {
-            showSnackbar('Next Meeting Date must be after First Meeting Date', 'error');
-            document.getElementById('nextMeetingDate')?.focus();
-            return false;
-        }
+    // Next Meeting Date is required
+    if (!nextMeetingDate) {
+        showSnackbar('Next Meeting Date is required', 'error');
+        document.getElementById('nextMeetingDate')?.focus();
+        return false;
+    }
+
+    const nextMeetDate = new Date(nextMeetingDate);
+    if (nextMeetDate <= firstMeetDate) {
+        showSnackbar('Next Meeting Date cannot be earlier than or equal to First Meeting Date', 'error');
+        document.getElementById('nextMeetingDate')?.focus();
+        return false;
+    }
+
+    // Next Meeting Date cannot be before Formation Date
+    if (nextMeetDate < formDate) {
+        showSnackbar('Next Meeting Date cannot be before Formation Date', 'error');
+        document.getElementById('nextMeetingDate')?.focus();
+        return false;
+    }
+
+    // Next Meeting Date cannot be before working date
+    if (nextMeetDate < workingDate) {
+        showSnackbar('Next Meeting Date cannot be before the current working date', 'error');
+        document.getElementById('nextMeetingDate')?.focus();
+        return false;
     }
 
     // Status change reason validation
@@ -1597,6 +1870,8 @@ async function fetchGroupLeaderDetails(clientId, leaderNumber) {
     try {
         if (!clientId) return;
 
+        const context = getContext();
+
         const centerId = document.getElementById('centerId')?.value?.trim();
         const branchId = document.getElementById('branchId')?.value?.trim();
 
@@ -1607,7 +1882,7 @@ async function fetchGroupLeaderDetails(clientId, leaderNumber) {
         console.log('[GroupMaintenance] Fetching group leader details for:', clientId);
         
         const requestData = {
-            BankID: '00',
+            BankID: context.BankID,
             ClientID: clientId,
             GroupID: centerId,
             OurBranchID: branchId
@@ -1770,10 +2045,13 @@ function handleCenterProductSearch() {
         requireEditMode: true,
         editModeMessage: 'Center Product search is only available in Add or Edit mode.',
         requireBranch: false,
-        buildConfig: () => ({
+        buildConfig: () => {
+            const context = getContext();
+            return ({
             tableID: 'GroupProductID',
-            advFilterString: "BankID='00'"
-        }),
+            advFilterString: `BankID='${context.BankID}'`
+            });
+        },
         onSelect: (row) => {
             const productId = String(getFieldValue(row, 'GroupProductID', 'ProductID', 'ID')).trim();
             const productName = String(getFieldValue(row, 'GroupProductName', 'Description', 'Name')).trim();
@@ -1786,20 +2064,17 @@ function handleCenterProductSearch() {
 }
 
 function handlePrimarySchemeSearch() {
-    const productId = document.getElementById('centerProductId')?.value?.trim();
-    if (!productId) {
-        showSnackbar('Please select a product first', 'warning');
-        return;
-    }
-
     runLookupSearch({
         requireEditMode: true,
         editModeMessage: 'Scheme search is only available in Add or Edit mode.',
         requireBranch: false,
-        buildConfig: () => ({
-            tableID: 'GroupDefaultSchemeID',
-            advFilterString: `GroupProductID='${productId}' AND SchemeTypeID='P'`
-        }),
+        buildConfig: () => {
+            const { BankID } = getContext();
+            return {
+                tableID: 'LoanSchemeID',
+                advFilterString: `BankID='${String(BankID || '').replace(/'/g, "''")}'`
+            };
+        },
         onSelect: (row) => {
             const schemeId = String(getFieldValue(row, 'LoanSchemeID', 'SchemeID', 'ID')).trim();
             const schemeName = String(getFieldValue(row, 'Description', 'LoanSchemeName', 'Name')).trim();
@@ -1816,10 +2091,13 @@ function handleCreditOfficerSearch() {
         requireEditMode: true,
         editModeMessage: 'Officer search is only available in Add or Edit mode.',
         requireBranch: true,
-        buildConfig: (branchId) => ({
-            tableID: 'ActiveOfficerID',
-            advFilterString: `BankID='00' AND OfficerTypeID in ('CO','AO') AND ReportingBranchID='${branchId}'`
-        }),
+        buildConfig: (branchId) => {
+            const context = getContext();
+            return ({
+                tableID: 'ActiveOfficerID',
+                advFilterString: `BankID='${context.BankID}' AND OfficerTypeID in ('CO','AO') AND ReportingBranchID='${branchId}'`
+            });
+        },
         onSelect: (row) => {
             const officerId = String(getFieldValue(row, 'OfficerID', 'ID')).trim();
             const officerName = String(getFieldValue(row, 'Name', 'OfficerName', 'Description')).trim();
@@ -1836,10 +2114,13 @@ function handleGroupFormedBySearch() {
         requireEditMode: true,
         editModeMessage: 'Officer search is only available in Add or Edit mode.',
         requireBranch: true,
-        buildConfig: (branchId) => ({
-            tableID: 'ActiveOfficerID',
-            advFilterString: `BankID='00' AND OfficerTypeID in ('CO','AO') AND ReportingBranchID='${branchId}'`
-        }),
+        buildConfig: (branchId) => {
+            const context = getContext();
+            return ({
+                tableID: 'ActiveOfficerID',
+                advFilterString: `BankID='${context.BankID}' AND OfficerTypeID in ('CO','AO') AND ReportingBranchID='${branchId}'`
+            });
+        },
         onSelect: (row) => {
             const officerId = String(getFieldValue(row, 'OfficerID', 'ID')).trim();
             const officerName = String(getFieldValue(row, 'Name', 'OfficerName', 'Description')).trim();
@@ -1874,37 +2155,42 @@ function handleNgoSearch() {
 async function fetchBranchDetails(branchId, options = {}) {
     try {
         const silent = Boolean(options.silent);
+        const context = getContext();
         const requestData = {
-            BankID: '00',
-            OurBranchID: branchId || ''
+            BankID: context.BankID
         };
 
         const result = await callMicroFinanceOldApi('dbo.pc_SearchSystemBranches', requestData);
 
+        console.log('[GroupMaintenance] Fetched branches for details lookup:', result);
         const branches = unwrapOldApiRows(result?.data ?? result);
 
-        const lowerBranchId = String(branchId || '').toLowerCase();
         const normalize = (value) => String(value || '').trim().toLowerCase();
         const stripLeadingZeros = (value) => normalize(value).replace(/^0+/, '');
 
         const filteredBranches = branches.filter(b => {
             const rowBranchId = getFieldValue(b, 'OurBranchID', 'BranchID', 'branchId', 'ourBranchID');
-            const rowNormalized = normalize(rowBranchId);
-            const targetNormalized = normalize(lowerBranchId);
-            return rowNormalized === targetNormalized || stripLeadingZeros(rowNormalized) === stripLeadingZeros(targetNormalized);
+            return normalize(rowBranchId) === normalize(branchId) ||
+                stripLeadingZeros(rowBranchId) === stripLeadingZeros(branchId);
         });
 
-        if (filteredBranches.length === 1) {
+        if (filteredBranches.length > 0) {
             const branch = filteredBranches[0];
-            document.getElementById('branchName').value = String(getFieldValue(branch, 'BranchName', 'Name', 'Description', 'branchName')).trim();
-        } else if (filteredBranches.length === 0) {
-            document.getElementById('branchName').value = '';
-            if (!silent) showSnackbar('Branch not found', 'warning');
-        } else {
-            document.getElementById('branchName').value = '';
-            if (!silent) showSnackbar('Multiple branches match, please use search dialog', 'warning');
+            const branchName = String(
+                branch.Name || branch.BranchName || branch.Description || ''
+            ).trim();
+
+            if (branchName) {
+                document.getElementById('branchName').value = branchName;
+                return;
+            }
         }
+
+        // No match found
+        document.getElementById('branchName').value = '';
+        if (!silent) showSnackbar('Branch not found', 'warning');
     } catch (error) {
+        console.error('[GroupMaintenance] Error fetching branch details:', error);
         document.getElementById('branchName').value = '';
         if (!options?.silent) showSnackbar('Error fetching branch details', 'error');
     }
@@ -2139,10 +2425,10 @@ function setEditMode(enabled) {
             centerLookupBtn.style.cursor = 'not-allowed';
         }
     } else if (enabled) {
-        // In Edit Mode: Center ID is readonly (key field), but Center Name is editable
+        // In Edit Mode: Center ID is readonly (key field cannot change), but enabled for visibility
         if (centerIdElement) {
             centerIdElement.setAttribute('readonly', 'readonly');
-            centerIdElement.disabled = true;
+            centerIdElement.disabled = false;
         }
         if (centerNameElement) {
             // In Edit mode, Group Name can be changed (per legacy system behavior)
@@ -2301,8 +2587,9 @@ async function handleSave() {
         const meetingTimeRaw = document.getElementById('meetingTime')?.value || '';
         const nextMeetingDate = document.getElementById('nextMeetingDate')?.value || '';
         const meetingDayId = getMeetingDayId(meetingDay);
-        const operatorId = window.Environment?.OperatorID || window.Environment?.operatorId || 'CSADM';
-        const workingDate = window.Environment?.workingDate || getLocalDateString();
+        const context = getContext();
+        const operatorId = context.OperatorID || 'web_portal';
+        const workingDate = context.WorkingDate || getLocalDateString();
 
         // Parse meeting time to Numeric(5,2) format
         let meetingTime = '';
@@ -2380,47 +2667,43 @@ async function handleSave() {
             || result?.data?.error;
 
         if (!isFailure) {
-            const savedGroupId = result?.Details?.[0]?.GroupID
-                || result?.data?.Details?.[0]?.GroupID
-                || result?.data?.GroupID
-                || document.getElementById('centerId')?.value
-                || '';
-            
-            showSnackbar(`Center ${isAddMode ? 'created' : 'updated'} successfully. Group ID: ${savedGroupId}`, 'success');
-            
-            if (isAddMode) {
-                showCenterCreatedMessage(savedGroupId);
-                // After Add, update the center ID field with the newly created ID
-                if (savedGroupId) {
-                    document.getElementById('centerId').value = savedGroupId;
-                }
+            // Extract GroupID from response - API may return it in various locations
+            let savedGroupId = document.getElementById('centerId')?.value || '';
+
+            // Check result arrays first (primary location)
+            if (Array.isArray(result?.data?.Details) && result.data.Details.length > 0 && result.data.Details[0].GroupID) {
+                savedGroupId = result.data.Details[0].GroupID;
+            } else if (Array.isArray(result?.Details) && result.Details.length > 0 && result.Details[0].GroupID) {
+                savedGroupId = result.Details[0].GroupID;
+            } else if (Array.isArray(result?.data) && result.data.length > 0 && result.data[0]?.GroupID) {
+                savedGroupId = result.data[0].GroupID;
+            } else if (result?.data?.GroupID) {
+                savedGroupId = result.data.GroupID;
             }
-            
-            // Reset mode flags
+
             const wasAddMode = isAddMode;
+
+            // Reset mode flags before reloading
             isAddMode = false;
             isEditMode = false;
-            
-            // If we just added a center, load its details to show in view mode
-            if (wasAddMode && savedGroupId) {
-                // Set the modes to false before calling handleView
+
+            // Reload the saved record
+            if (savedGroupId && branchId) {
+                document.getElementById('branchId').value = branchId;
+                document.getElementById('centerId').value = savedGroupId;
                 await handleView(0);
             } else {
-                // For edit, just switch to view mode
                 setEditMode(false);
-                
-                // Enable navigation buttons
-                const btnEdit = document.querySelector('.btn-action[onclick*="handleEdit"]');
-                const btnDelete = document.querySelector('.btn-action[onclick*="handleDelete"]');
-                const btnPrev = document.querySelector('.btn-action[onclick*="handleNavigatePrevious"]');
-                const btnNext = document.querySelector('.btn-action[onclick*="handleNavigateNext"]');
-                
-                if (btnEdit) btnEdit.disabled = false;
-                if (btnDelete) btnDelete.disabled = false;
-                if (btnPrev) btnPrev.disabled = false;
-                if (btnNext) btnNext.disabled = false;
             }
-            
+
+            // Show success message AFTER handleView so the toast is not overridden
+            if (wasAddMode && savedGroupId) {
+                showCenterCreatedMessage(savedGroupId);
+                showSnackbar(`Center created successfully, group ID: ${savedGroupId}`, 'success');
+            } else {
+                showSnackbar('Center saved successfully', 'success');
+            }
+
             // Enable Add button
             const btnAdd = document.querySelector('.btn-action[onclick*="handleAdd"]');
             if (btnAdd) btnAdd.disabled = false;
@@ -2486,11 +2769,12 @@ function handleDelete() {
         if (!confirmed) return;
 
         try {
+            const context = getContext();
             const branchId = document.getElementById('branchId')?.value?.trim();
             const requestData = {
                 OurBranchID: branchId,
                 GroupID: centerId,
-                OperatorID: window.Environment?.OperatorID || window.Environment?.operatorId || 'CSADM'
+                OperatorID: context.OperatorID || 'web_portal'
             };
 
             console.log('[GroupMaintenance] Deleting group with data:', requestData);
@@ -2521,10 +2805,11 @@ async function handleView(direction = 0) {
     }
 
     try {
+        const context = getContext();
         const requestData = {
             OurBranchID: branchId,
             GroupID: centerId,
-            OperatorID: window.Environment?.OperatorID || window.Environment?.operatorId || 'CSADM',
+            OperatorID: context.OperatorID || 'web_portal',
             Direction: direction
         };
 
@@ -2538,8 +2823,13 @@ async function handleView(direction = 0) {
             || result?.Details02?.[0]
             || null;
 
-        if (!details01 && !details02) {
-            showSnackbar(result?.message || 'No group details found', 'warning');
+        // Validate that we actually got meaningful data back
+        const hasValidData = (details02 && (details02.GroupID || details02.GroupName))
+            || (details01 && details01.TotalMembers !== undefined);
+
+        if (!hasValidData) {
+            showSnackbar('Center ID not found', 'warning');
+            clearCenterFields();
             return;
         }
 

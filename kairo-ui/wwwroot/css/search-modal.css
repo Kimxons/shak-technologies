@@ -23,9 +23,10 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     max-width: 900px !important;
     width: 90% !important;
-    max-height: 95vh !important;
+    max-height: 80vh !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow: hidden !important;
     border: 1px solid var(--color-border, var(--color-border-default, #e0e0e0)) !important;
 }
 
@@ -64,6 +65,9 @@
     padding: 5px 10px !important;
     border-bottom: 1px solid var(--color-border, var(--color-border-default, #e0e0e0)) !important;
     background: var(--color-bg-section, var(--color-bg-panel, #fafafa)) !important;
+    max-height: 30vh !important;
+    overflow-y: auto !important;
+    flex-shrink: 0 !important;
 }
 
 .search-modal-themed__criteria {
@@ -149,6 +153,7 @@
 
 .search-modal-themed__body {
     flex: 1 !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
     padding: 12px 20px !important;
     background: var(--color-bg-panel, var(--color-bg-section, #fff)) !important;

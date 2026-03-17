@@ -192,19 +192,55 @@
                         </button>
                     </div>
                     <div class="section-content" data-section-content>
-                        <div class="d-flex flex-row flex-wrap align-items-center gap-4 px-3 py-2">
-                            <div class="form-check form-check-inline mb-0">
-                                <input class="form-check-input" type="checkbox" id="PrimaryCollateralRequired">
-                                <label class="form-check-label text-dark" for="PrimaryCollateralRequired">Primary Collateral</label>
-                            </div>
-                            <div class="form-check form-check-inline mb-0">
-                                <input class="form-check-input" type="checkbox" id="SecondaryCollateralRequired">
-                                <label class="form-check-label text-dark" for="SecondaryCollateralRequired">Secondary Collateral</label>
-                            </div>
-                            <div class="form-check form-check-inline mb-0">
-                                <input class="form-check-input" type="checkbox" id="AdditionalCollateralRequired">
-                                <label class="form-check-label text-dark" for="AdditionalCollateralRequired">Additional Collateral</label>
-                            </div>
+                        <style>
+                            .collateral-check-group {
+                                display: flex;
+                                flex-wrap: wrap;
+                                align-items: center;
+                                gap: 24px;
+                                padding: 8px 16px;
+                            }
+                            .collateral-check-group label {
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 6px;
+                                cursor: pointer;
+                                font-size: 13px;
+                                color: #333;
+                                user-select: none;
+                            }
+                            .collateral-check-group input[type="checkbox"] {
+                                appearance: auto !important;
+                                -webkit-appearance: checkbox !important;
+                                -moz-appearance: checkbox !important;
+                                width: 16px !important;
+                                height: 16px !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                cursor: pointer;
+                                accent-color: var(--theme-primary, #0d6efd);
+                                background-image: none !important;
+                                border: initial !important;
+                                background-color: initial !important;
+                            }
+                            .collateral-check-group input[type="checkbox"]:checked {
+                                background-color: initial !important;
+                                background-image: none !important;
+                            }
+                        </style>
+                        <div class="collateral-check-group">
+                            <label for="PrimaryCollateralRequired">
+                                <input type="checkbox" id="PrimaryCollateralRequired">
+                                Primary Collateral
+                            </label>
+                            <label for="SecondaryCollateralRequired">
+                                <input type="checkbox" id="SecondaryCollateralRequired">
+                                Secondary Collateral
+                            </label>
+                            <label for="AdditionalCollateralRequired">
+                                <input type="checkbox" id="AdditionalCollateralRequired">
+                                Additional Collateral
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -242,7 +278,7 @@
                         <div class="form-row two-col">
                             <div class="col">
                                 <label>Saving To Loan Ratio</label>
-                                <input type="text" id="SavingToLoanRatio" class="bs-input-text" aria-label="Saving To Loan Ratio">
+                                <input type="text" id="SavingToLoanRatio" class="bs-input-text" aria-label="Saving To Loan Ratio" inputmode="decimal">
                             </div>
                             <div class="col">
                                 <label>S/L Recovery Type</label>
@@ -277,7 +313,7 @@
                             </div>
                             <div class="col">
                                 <label>Savings Value</label>
-                                <input type="text" id="SavingsValue" class="bs-input-text" aria-label="Savings Value">
+                                <input type="text" id="SavingsValue" class="bs-input-text" aria-label="Savings Value" inputmode="decimal" placeholder="0.00">
                             </div>
                         </div>
                     </div>
