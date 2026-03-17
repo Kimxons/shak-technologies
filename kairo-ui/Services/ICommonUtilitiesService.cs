@@ -25,6 +25,7 @@ namespace kairo_ui.Services
         /// <returns>The request data object with defaults applied</returns>
         void EnsureDefaults<T>(T requestData, string? moduleId = null) where T : class;
         void EnsureDefaults(Dictionary<string, object> requestData, string? moduleId = null);
+        void EnsureDefaults(MultipartFormDataContent requestData, string? moduleId = null);
         string? ResolveSessionValue(params string[] keys);
         Dictionary<string, object> EnrichDefaults(Dictionary<string, object> requestData, params KeyValuePair<string, object>[] defaultValues);
         long? ResolveRequestDataLong(JsonNode? requestData, params string[] keys);

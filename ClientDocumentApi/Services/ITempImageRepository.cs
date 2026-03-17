@@ -47,6 +47,12 @@ namespace ClientDocumentApi.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Update image metadata and replace file
+        /// </summary>
+        Task<TempImage> UpdateAsync(IFormFile file, long imageID, string? imageTypeID, string? description,
+            string? imageStatusID, string? closedBy, DateTime? closedDate, string? supervisedBy,
+            DateTime? supervisedOn, string? modifiedBy, CancellationToken cancellationToken = default);
+        /// <summary>
         /// Update PhotoID or SignID in t_Client and t_AccountOperatedby based on imageTypeID
         /// </summary>
         Task UpdateClientAndSignatoryImageReferencesAsync(long tempImageID, string imageTypeID,

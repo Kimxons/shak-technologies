@@ -9,6 +9,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
@@ -147,58 +148,48 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
         }
 
         [HttpPost, Route("update")]
-        public async Task<IActionResult> Update([FromBody] JsonNode requestData)
+        public async Task<IActionResult> Update(long? imageId)
         {
             if (!_authService.IsAuthenticated())
                 return Unauthorized(new { Success = false, ErrorMessage = "User is not authenticated" });
-            if (requestData == null)
-                return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
+            if (!Request.HasFormContentType)
+                return BadRequest(new { Success = false, ErrorMessage = "multipart/form-data content is required" });
+            //if (requestData == null)
+            //    return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
-                _logger.LogInformation("client-maintenance.documents.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+                //_commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
+                var form = await Request.ReadFormAsync();
+                using var multipart = BuildMultipartContent(form);
 
-                var imageId = _commonUtilities.ResolveRequestDataLong(requestData!, "ImageID", "ImageId", "imageId");
-                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
+                //_logger.LogInformation("client-maintenance.documents.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
+
+
+                if (multipart.Any(c => c.Headers.ContentDisposition != null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("ModifiedBy")))
                 {
-                    requestData["RequestID"] = HttpContext!.Connection.Id;
-                }
-                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
-                {
-                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
-                }
-                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
-                {
-                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
-                }
-                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
-                {
-                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
-                }
-                if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
-                {
-                    requestData["ModifiedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                    multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("user_name", "user_id")!), "ModifiedBy"); ;
                 }
 
-                if (string.IsNullOrEmpty(requestData["ModifiedOn"]?.ToString()))
+                if (multipart.Any(c => c.Headers.ContentDisposition != null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("ModifiedOn")))
                 {
-                    requestData["ModifiedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                    multipart.Add(new StringContent(DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff")), "ModifiedOn"); ;
                 }
                 ResponseDetail<object> response = new();
                 if (imageId.HasValue)
                 {
+                    response = await _apiService.UpdateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_CLIENT_DOCUMENT, imageId, multipart);
+                }
+                //else
+                //{
+                //    //var tempImageId = _commonUtilities.ResolveRequestDataLong(requestData!, "TempImageID", "ID", "tempImageId");
+                //    if (!tempImageId.HasValue)
+                //    {
+                //        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
+                //    }
 
-                    response = await _apiService.UpdateAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_IMAGE, imageId, requestData);
-                }
-                else
-                {
-                    var tempImageId = _commonUtilities.ResolveRequestDataLong(requestData!, "TempImageID", "ID", "tempImageId");
-                    if (!tempImageId.HasValue)
-                    {
-                        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
-                    }
-                    response = await _apiService.UpdateAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_TEMP_IMAGE, tempImageId, requestData);
-                }
+                //    response = await _apiService.UpdateMultipartAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_CLIENT_DOCUMENT, tempImageId, multipart);
+                //    //response = await _apiService.UpdateAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.UPDATE_TEMP_IMAGE, tempImageId, requestData);
+                //}
 
                 return StatusCode(200, response);
             }
@@ -221,26 +212,28 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.documents.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
+                //var client = _httpClientFactory.CreateClient("ClientDocumentApi");
                 var imageId = _commonUtilities.ResolveRequestDataLong(requestData!, "ImageID", "ImageId", "imageId");
-                HttpResponseMessage response;
-
+                //HttpResponseMessage response;
+                ResponseDetail<object> response = new();
                 if (imageId.HasValue)
                 {
-                    var endpoint = string.Format(ApiEndpoints.DELETE_IMAGE, imageId.Value);
-                    response = await client.DeleteAsync(endpoint);
+                    //var endpoint = string.Format(ApiEndpoints.DELETE_IMAGE, imageId.Value);
+                    response = await _apiService.DeleteAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.DELETE_CLIENT_DOCUMENT, (int)imageId);
+                    //response = await client.DeleteAsync(endpoint);
                 }
-                else
-                {
-                    var tempImageId = _commonUtilities.ResolveRequestDataLong(requestData!, "TempImageID", "ID", "tempImageId");
-                    if (!tempImageId.HasValue)
-                    {
-                        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
-                    }
+                //else
+                //{
+                //    var tempImageId = _commonUtilities.ResolveRequestDataLong(requestData!, "TempImageID", "ID", "tempImageId");
+                //    if (!tempImageId.HasValue)
+                //    {
+                //        return BadRequest(new { Success = false, ErrorMessage = "TempImageID is required" });
+                //    }
 
-                    var endpoint = string.Format(ApiEndpoints.DELETE_TEMP_IMAGE, tempImageId.Value);
-                    response = await client.DeleteAsync(endpoint);
-                }
+                //    //var endpoint = string.Format(ApiEndpoints.DELETE_TEMP_IMAGE, tempImageId.Value);
+                //    response = await _apiService.DeleteAsync<ResponseDetail<object>>("ClientDocumentApi", ApiEndpoints.DELETE_CLIENT_DOCUMENT, (int)tempImageId);
+                //    //response = await client.DeleteAsync(endpoint);
+                //}
                 return StatusCode(200, response);
 
             }
@@ -270,7 +263,31 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 {
                     streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(file.ContentType);
                 }
-                multipart.Add(streamContent, file.Name, file.FileName);
+                //multipart.Add(streamContent, file.Name, file.FileName);
+                multipart.Add(streamContent, "RequestData.File", Path.GetFileName(file.Name));
+            }
+
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("RequestId")))
+            {
+                multipart.Add(new StringContent(HttpContext!.Connection.Id), "RequestId");
+            }
+            //var imageId = _commonUtilities.ResolveRequestDataLong(requestData!, "ImageID", "ImageId", "imageId");
+
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("CreatedBy")))
+            {
+                multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("user_name", "user_id")!), "RequestData.CreatedBy"); ;
+            }
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("CreatedOn")))
+            {
+                multipart.Add(new StringContent(DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff")), "RequestData.CreatedOn"); ;
+            }
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("OurBranchID")))
+            {
+                multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty), "RequestData.OurBranchID"); ;
+            }
+            if (multipart.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition!.Name!.Trim('"').Equals("AppName")))
+            {
+                multipart.Add(new StringContent(_commonUtilities.ResolveSessionValue("appname", "app-name") ?? "KAIRO-UI"), "AppName"); ;
             }
 
             return multipart;

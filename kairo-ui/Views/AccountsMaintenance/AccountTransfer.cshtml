@@ -1,11 +1,13 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: account-transfer.html
     var transferTypeOptions = ViewData["TransferTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var transferReasonOptions = ViewData["TransferReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- AccountTransfer Submodule -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Account Transfer form">
     <div class="form-card" data-main-form>
         <!-- Transfer Details Section -->
@@ -93,6 +95,8 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "transfer" } })
+</main>
 
 <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 

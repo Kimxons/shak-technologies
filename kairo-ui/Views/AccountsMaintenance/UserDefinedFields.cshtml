@@ -1,9 +1,11 @@
 @{
-    // No layout - this is a partial view loaded dynamically
+    Layout = "_ApplicationLayout";
     // Migrated from: public/modules/account-maintenance/DataEntry/user-defined-fields.html
 }
 
 <!-- UserDefinedFields Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card">
     <div class="form-section" data-section="user-defined-fields">
         <div class="section-header" data-section-toggle>
@@ -106,5 +108,8 @@
         </div>
     </div>
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/user-defined-fields.js" asp-append-version="true"></script>

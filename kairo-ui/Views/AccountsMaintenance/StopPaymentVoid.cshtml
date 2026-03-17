@@ -1,11 +1,12 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
     // Migrated from: account-stop-payment-void.html
-    Layout = null;
+    Layout = "_ApplicationLayout";
     var stopPaymentReasonOptions = ViewData["StopPaymentReasonOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
 <!-- StopPaymentVoid Submodule Content -->
+<main class="main-container main-container--with-panel">
 <div class="form-content" role="region" aria-label="Stop Payment / Void form">
     <div class="form-card" data-main-form>
         <!-- Account Identification Section -->
@@ -164,5 +165,7 @@
         </div>
     </div>
 </div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/account-stop-payment-void.js?v=@DateTime.Now.Ticks"></script>

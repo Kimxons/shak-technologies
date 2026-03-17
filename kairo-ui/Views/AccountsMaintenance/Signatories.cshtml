@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-  // No layout - partial view loaded dynamically into #submodule-container
+  Layout = "_ApplicationLayout";
   // Migrated from: public/modules/account-maintenance/DataEntry/account-signatories.html
   var signatoryTypeOptions = (ViewData["SignatoryTypeOptions"] as IEnumerable<SelectListItem> ??
   Enumerable.Empty<SelectListItem>())
@@ -230,6 +230,7 @@ StringComparison.OrdinalIgnoreCase)));
 
                 </div><!-- /.form-card -->
               </div><!-- /.form-content -->
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "signatories" } })
             </main>
 
             <!-- ====================================================================
