@@ -60,8 +60,8 @@ Enumerable.Empty<SelectListItem>();
             <div class="section-content" data-section-content>
                 <div class="row g-2 mb-2">
                     <div class="col-md-6">
-                        <label class="label-blue am-label" for="ceilingAmountType">Ceiling Amount Type</label>
-                        <select id="ceilingAmountType" name="CeilingAmountTypeID" class="form-select am-input">
+                        <label class="label-blue am-label" for="ceilingAmountType">Ceiling Amount</label>
+                        <select id="ceilingAmountType" name="ComparisonSignID" class="form-select am-input">
                             <option value="">--Select--</option>
                             @foreach (var option in ceilingAmountTypeOptions)
                             {
@@ -70,7 +70,7 @@ Enumerable.Empty<SelectListItem>();
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="label-blue am-label" for="ceilingAmount">Ceiling Amount</label>
+                        <label class="label-blue am-label" for="ceilingAmount">Amount</label>
                         <input id="ceilingAmount" name="CeilingAmount" type="text" class="form-control am-input" />
                     </div>
                 </div>

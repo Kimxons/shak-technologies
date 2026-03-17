@@ -1,0 +1,459 @@
+@{
+    ViewData["Title"] = "Bank User Code";
+    Layout = "_ApplicationLayout";
+}
+
+@section Styles {
+    <style>
+        #bankUserCodeModule {
+            --buc-primary: #1e7cc4;
+            --buc-primary-deep: #1a6ba3;
+            --buc-surface: #f5f8fc;
+            --buc-border: #d7e3ef;
+            --buc-text: #23405f;
+            --buc-muted: #6c8198;
+        }
+
+        #bankUserCodeModule .window {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #f9fbfe 0%, #edf4fb 100%);
+        }
+
+        #bankUserCodeModule .main-container {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 160px;
+            gap: 14px;
+            padding: 14px;
+            align-items: start;
+        }
+
+        #bankUserCodeModule .form-card {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #bankUserCodeModule .form-section {
+            border: 1px solid var(--buc-border);
+            background: #fff;
+            box-shadow: 0 12px 32px rgba(26, 65, 106, 0.08);
+        }
+
+        #bankUserCodeModule .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            background: linear-gradient(90deg, var(--buc-primary) 0%, var(--buc-primary-deep) 100%);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        #bankUserCodeModule .section-header__title {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+
+        #bankUserCodeModule .section-toggle-btn {
+            border: 0;
+            background: transparent;
+            color: inherit;
+        }
+
+        #bankUserCodeModule .section-content {
+            padding: 14px;
+            background: var(--buc-surface);
+        }
+
+        #bankUserCodeModule .form-row {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        #bankUserCodeModule .form-row.two-col {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        #bankUserCodeModule .col {
+            min-width: 0;
+        }
+
+        #bankUserCodeModule .label-blue {
+            display: inline-block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--buc-text);
+        }
+
+        #bankUserCodeModule .bs-input-text,
+        #bankUserCodeModule .form-control,
+        #bankUserCodeModule .form-select,
+        #bankUserCodeModule .kairo-user-control__id,
+        #bankUserCodeModule .kairo-user-control__name {
+            width: 100%;
+            min-height: 38px;
+            padding: 8px 10px;
+            border: 1px solid #bfd1e2;
+            background: #fff;
+            color: #21384f;
+            font-size: 12px;
+        }
+
+        #bankUserCodeModule .kairo-user-control {
+            display: grid;
+            grid-template-columns: minmax(130px, 180px) minmax(0, 1fr) 42px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #bankUserCodeModule .btn-lookup {
+            height: 38px;
+            border: 1px solid var(--buc-primary);
+            background: linear-gradient(180deg, #ffffff 0%, #dcebfa 100%);
+            color: var(--buc-primary);
+        }
+
+        #bankUserCodeModule .buc-grid {
+            border: 1px solid #c9d9e8;
+            background: #fff;
+            max-height: 360px;
+            overflow: auto;
+        }
+
+        #bankUserCodeModule #subCodesTable {
+            margin-bottom: 0;
+            font-size: 12px;
+        }
+
+        #bankUserCodeModule #subCodesTable thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #eef5fc;
+            color: #31567a;
+            border-bottom-color: #bfd1e2;
+        }
+
+        #bankUserCodeModule #subCodesTable tbody tr {
+            cursor: pointer;
+        }
+
+        #bankUserCodeModule #subCodesTable tbody tr:hover {
+            background: #edf6ff;
+        }
+
+        #bankUserCodeModule .audit-section {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        #bankUserCodeModule .audit-block {
+            display: grid;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid #d8e4f0;
+            background: #fff;
+        }
+
+        #bankUserCodeModule .audit-item {
+            display: grid;
+            gap: 4px;
+        }
+
+        #bankUserCodeModule .audit-item label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--buc-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        #bankUserCodeModule .audit-value {
+            min-height: 20px;
+            color: var(--buc-text);
+            font-size: 12px;
+        }
+
+        #bankUserCodeModule .action-panel {
+            position: sticky;
+            top: 12px;
+            border: 1px solid var(--buc-border);
+            background: linear-gradient(180deg, #ffffff 0%, #edf5fd 100%);
+            box-shadow: 0 12px 28px rgba(26, 65, 106, 0.09);
+        }
+
+        #bankUserCodeModule .action-buttons {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+        }
+
+        #bankUserCodeModule .btn-action {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid #b8cee2;
+            background: #fff;
+            color: #274867;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        #bankUserCodeModule .btn-action.btn-view {
+            background: linear-gradient(180deg, #fefefe 0%, #dfeffc 100%);
+            border-color: #96bee2;
+        }
+
+        #bankUserCodeModule .btn-action:disabled,
+        #bankUserCodeModule .btn-outline-secondary.disabled,
+        #bankUserCodeModule .btn-outline-secondary:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        #bankUserCodeModule .validation-summary {
+            position: relative;
+        }
+
+        #bankUserCodeModule .validation-summary__close {
+            margin-left: auto;
+        }
+
+        #bankUserCodeModule .kairo-toast-container {
+            position: fixed;
+            right: 18px;
+            top: 18px;
+            z-index: 1080;
+            display: grid;
+            gap: 10px;
+        }
+
+        #bankUserCodeModule .kairo-toast {
+            min-width: 280px;
+            max-width: 380px;
+            padding: 12px 14px;
+            border: 1px solid #c8d9ea;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(22, 51, 82, 0.14);
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        #bankUserCodeModule .kairo-toast.is-show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #bankUserCodeModule .kairo-toast--success {
+            border-left: 4px solid #198754;
+        }
+
+        #bankUserCodeModule .kairo-toast--danger {
+            border-left: 4px solid #dc3545;
+        }
+
+        #bankUserCodeModule .kairo-toast--warning {
+            border-left: 4px solid #fd7e14;
+        }
+
+        #bankUserCodeModule .kairo-toast--info {
+            border-left: 4px solid var(--buc-primary);
+        }
+
+        @@media (max-width: 991.98px) {
+            #bankUserCodeModule .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            #bankUserCodeModule .action-panel {
+                position: static;
+            }
+
+            #bankUserCodeModule .action-buttons {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            #bankUserCodeModule .form-row.two-col,
+            #bankUserCodeModule .audit-section,
+            #bankUserCodeModule .kairo-user-control,
+            #bankUserCodeModule .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div id="bankUserCodeModule">
+    <div class="window">
+        <form id="bank-user-code-form" autocomplete="off" novalidate>
+            <div class="main-container">
+                <section class="form-content" aria-label="Bank User Code Content">
+                    <div class="form-card">
+                        <div class="form-section" data-section="bank-user-code">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-key"></i>Bank User Code
+                                    Search</span>
+                                    <button type="button" class="section-toggle-btn" aria-label="Toggle Bank User Code"
+                                            aria-expanded="true">
+                                        <i class="bi bi-chevron-up"></i>
+                                    </button>
+                                </div>
+
+                                <div class="section-content" data-section-content>
+                                    <div class="validation-summary" role="status" aria-live="polite"
+                                         style="display: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745; color: #155724;">
+                                        <i class="bi bi-check-circle validation-summary__icon"
+                                           style="margin-right: 8px;"></i>
+                                        <span class="validation-summary__text"></span>
+                                        <button type="button" class="validation-summary__close"
+                                                aria-label="Close notification"
+                                                style="background: none; border: none; cursor: pointer; color: #155724;">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="CodeID">ID</label>
+                                            <div class="kairo-user-control" data-kairo-lookup-control>
+                                                <input type="text" class="kairo-user-control__id" id="CodeID" name="CodeID"
+                                                       aria-label="Code ID" data-always-enabled />
+                                                <input type="text" class="kairo-user-control__name" id="CodeName"
+                                                       name="CodeName" aria-label="Code Name" placeholder="Code Name"
+                                                       readonly />
+                                                <button type="button" class="btn-lookup kairo-user-control__lookup"
+                                                        aria-label="Search Code" data-always-enabled>
+                                                    <i class="bi bi-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <label class="label-blue" for="SubCode">Sub Code</label>
+                                            <input type="text" class="bs-input-text" id="SubCode" name="SubCode" />
+                                        </div>
+                                    </div>
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="Description">Description</label>
+                                            <input type="text" class="bs-input-text" id="Description" name="Description" />
+                                        </div>
+                                        <div class="col"></div>
+                                    </div>
+
+                                    <div class="d-flex gap-2 justify-content-center mb-3 mt-3 flex-wrap">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-buc-action="new">New</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-buc-action="alter">Alter</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-buc-action="remove">Remove</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-buc-action="update">Update</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-buc-action="clear">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section" data-section="sub-code-details">
+                                <div class="section-header" data-section-toggle>
+                                    <span class="section-header__title"><i class="bi bi-table"></i>SUB CODE DETAILS (<span
+                                        id="subCodeCount">0</span>)</span>
+                                        <button type="button" class="section-toggle-btn" aria-label="Toggle Sub Code Details"
+                                                aria-expanded="true">
+                                            <i class="bi bi-chevron-up"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="section-content" data-section-content>
+                                        <div class="table-responsive buc-grid">
+                                            <table class="table table-sm table-bordered table-hover align-middle mb-0"
+                                                   id="subCodesTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th class="text-nowrap">Sub Code ID</th>
+                                                        <th class="text-nowrap">Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td colspan="2" class="text-center text-muted py-4">No records to
+                                                            display.</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-section" data-section="behind-scene">
+                                        <div class="section-header" data-section-toggle>
+                                            <span class="section-header__title"><i class="bi bi-eye"></i>Behind The Scene</span>
+                                            <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene"
+                                                    aria-expanded="true">
+                                                <i class="bi bi-chevron-up"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="section-content" data-section-content>
+                                            <div class="audit-section">
+                                                <div class="audit-block">
+                                                    <div class="audit-item">
+                                                        <label>Created By</label>
+                                                        <span class="audit-value" id="CreatedBy" data-field="createdBy"></span>
+                                                    </div>
+                                                    <div class="audit-item">
+                                                        <label>Created On</label>
+                                                        <span class="audit-value" id="CreatedOn" data-field="createdOn"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="audit-block">
+                                                    <div class="audit-item">
+                                                        <label>Supervised By</label>
+                                                        <span class="audit-value" id="SupervisedBy"
+                                                              data-field="supervisedBy"></span>
+                                                    </div>
+                                                    <div class="audit-item">
+                                                        <label>Supervised On</label>
+                                                        <span class="audit-value" id="SupervisedOn"
+                                                              data-field="supervisedOn"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <aside class="action-panel" aria-label="Actions">
+                                <div class="action-buttons">
+                                    <button type="button" class="btn-action btn-view" data-buc-action="view"><i
+                                        class="bi bi-eye me-1"></i>View</button>
+                                        <button type="button" class="btn-action" data-buc-action="add"><i
+                                            class="bi bi-plus me-1"></i>Add</button>
+                                            <button type="button" class="btn-action" data-buc-action="edit"><i
+                                                class="bi bi-pencil me-1"></i>Edit</button>
+                                                <button type="button" class="btn-action" data-buc-action="save" disabled><i
+                                                    class="bi bi-check me-1"></i>Save</button>
+                                                    <button type="button" class="btn-action" data-buc-action="cancel" disabled><i
+                                                        class="bi bi-x me-1"></i>Cancel</button>
+                                                    </div>
+                                                </aside>
+                                            </div>
+                                        </form>
+                                        <div class="am-message-panel"></div>
+                                    </div>
+                                </div>
+
+                                @section Scripts {
+                                    <script src="~/js/modules/staticdata/bank-user-code.js?v=20260312a"></script>
+                                }

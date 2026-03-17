@@ -2,7 +2,6 @@ using CBS.Entities.Common;
 using AccountManagement.Helpers;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.SqlClient;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Reflection;
@@ -407,11 +406,7 @@ namespace AccountManagement.Modules.AccountMaintenance
         }
         public async Task<ResponseDetail<object>> GetAccountClassification(string requestJson, CancellationToken cancellationToken = default)
         {
-            return await ExecuteAccountClassificationWithFallback(
-                DBObjectConstants.GET_ACCOUNT_CLASSIFICATION,
-                "p_GetAccountClassification",
-                requestJson
-            );
+            return await ExecuteGetAccountClassificationWithFallback(requestJson, cancellationToken);
         }
         public async Task<ResponseDetail<object>> DeleteAccountClassification(string requestJson, CancellationToken cancellationToken = default)
         {
@@ -434,11 +429,170 @@ namespace AccountManagement.Modules.AccountMaintenance
             }
         }
 
+        private async Task<ResponseDetail<object>> ExecuteGetAccountClassificationWithFallback(string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var response = ExecuteStoredProcedure(DBObjectConstants.GET_ACCOUNT_CLASSIFICATION, requestJson);
+
+                if (ShouldFallbackAccountClassification(response))
+                {
+                    return await ExecuteLegacyGetAccountClassification("p_GetAccountClassification", requestJson, cancellationToken);
+                }
+
+                return response;
+            }
+            catch (SqlException ex) when (CanRetryAccountClassification(ex))
+            {
+                return await ExecuteLegacyGetAccountClassification("p_GetAccountClassification", requestJson, cancellationToken);
+            }
+        }
+
         private bool CanRetryAccountClassification(SqlException ex)
         {
             var msg = ex.Message ?? string.Empty;
             return msg.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase)
                 && msg.Contains(ClassificationLegacyTableName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool ShouldFallbackAccountClassification(ResponseDetail<object>? response)
+        {
+            if (response is null)
+            {
+                return false;
+            }
+
+            JsonDocument? details = response.Details as JsonDocument;
+
+            if (string.Equals(response.ResponseCode, "DBEX000020", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(response.ResponseMessage, "Account not found", StringComparison.OrdinalIgnoreCase)
+                && HasAccountClassificationError(details, "Account_Not_Found"))
+            {
+                return true;
+            }
+
+            return HasSingleDerivedAccountClassificationRow(details);
+        }
+
+        private static bool HasAccountClassificationError(JsonDocument? details, string expectedError)
+        {
+            if (details is null)
+            {
+                return false;
+            }
+
+            JsonElement root = details.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            return TryGetPropertyIgnoreCase(root, "error", out JsonElement errorElement)
+                && string.Equals(errorElement.GetString(), expectedError, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool HasSingleDerivedAccountClassificationRow(JsonDocument? details)
+        {
+            if (details is null)
+            {
+                return false;
+            }
+
+            JsonElement root = details.RootElement;
+            if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() != 1)
+            {
+                return false;
+            }
+
+            JsonElement firstRow = root[0];
+            if (firstRow.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            return TryGetPropertyIgnoreCase(firstRow, "SourceType", out JsonElement sourceTypeElement)
+                && string.Equals(sourceTypeElement.GetString(), "Account", StringComparison.OrdinalIgnoreCase)
+                && TryGetPropertyIgnoreCase(firstRow, "ClassificationCodeID", out JsonElement codeElement)
+                && string.Equals(codeElement.GetString(), "LoanSubClassID", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<ResponseDetail<object>> ExecuteLegacyGetAccountClassification(string procedureName, string requestJson, CancellationToken cancellationToken)
+        {
+            try
+            {
+                JsonElement payload = ResolveRequestPayload(requestJson);
+                string branchId = GetStringValue(payload, "OurBranchID") ?? string.Empty;
+                string accountId = GetStringValue(payload, "AccountID", "AccountNumber", "RelevantID") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId))
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "OurBranchID is required"
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(accountId))
+                {
+                    return new ResponseDetail<object>
+                    {
+                        ResponseCode = "APIEX96",
+                        ResponseMessage = "AccountID is required"
+                    };
+                }
+
+                var conn = _dal.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync(cancellationToken);
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"EXECUTE {procedureName} @OurBranchID=@OurBranchID, @AccountID=@AccountID";
+                cmd.Parameters.Add(new SqlParameter("@OurBranchID", branchId));
+                cmd.Parameters.Add(new SqlParameter("@AccountID", accountId));
+
+                using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                var rows = new JsonArray();
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    var row = new JsonObject();
+                    for (int index = 0; index < reader.FieldCount; index++)
+                    {
+                        var value = reader.IsDBNull(index) ? null : reader.GetValue(index);
+                        row[reader.GetName(index)] = value == null ? null : JsonValue.Create(value);
+                    }
+                    rows.Add(row);
+                }
+
+                var detailSets = new JsonObject
+                {
+                    ["Details01"] = rows
+                };
+
+                return new ResponseDetail<object>
+                {
+                    Details = JsonDocument.Parse(detailSets.ToJsonString()),
+                    ResponseCode = "00",
+                    ResponseMessage = rows.Count > 0 ? "Success" : "No record found."
+                };
+            }
+            catch (SqlException ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseDetail<object>
+                {
+                    ResponseCode = "APIEX96",
+                    ResponseMessage = "Error getting account classification: " + ex.Message
+                };
+            }
         }
 
         private ResponseDetail<object> ExecuteStoredProcedure(string procedureName, string requestJson)

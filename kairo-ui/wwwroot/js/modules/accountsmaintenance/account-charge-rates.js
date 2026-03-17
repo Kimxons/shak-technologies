@@ -55,6 +55,27 @@ window.AccountChargeRatesModule = (function () {
     const setVal = (id, v) => { const e = el(id); if (e) e.value = (v == null) ? '' : v; };
     const setTxt = (id, v) => { const e = el(id); if (e) e.textContent = (v == null) ? '-' : v; };
 
+    function ensureSelectOption(selectId, optionValue, optionText) {
+        const select = el(selectId);
+        if (!select) return;
+
+        const normalizedValue = String(optionValue ?? '').trim();
+        if (!normalizedValue) return;
+
+        const existing = Array.from(select.options).find(option => option.value === normalizedValue);
+        if (existing) {
+            if (optionText && !existing.textContent?.trim()) {
+                existing.textContent = optionText;
+            }
+            return;
+        }
+
+        const option = document.createElement('option');
+        option.value = normalizedValue;
+        option.textContent = optionText || normalizedValue;
+        select.appendChild(option);
+    }
+
     function refreshGridActionButtons() {
         const editing = state.currentMode === 'ADD' || state.currentMode === 'EDIT';
         const hasSelection = state.selectedSettingIndex >= 0 && state.selectedSettingIndex < state.chargeSettings.length;
@@ -72,7 +93,10 @@ window.AccountChargeRatesModule = (function () {
 
     function populateSettingForm(setting) {
         if (!setting) return;
-        setVal('ceilingAmountType', setting.CeilingAmountTypeID || '');
+        const comparisonSignId = getComparisonSignId(setting);
+        const comparisonSignText = getComparisonSignText(setting);
+        ensureSelectOption('ceilingAmountType', comparisonSignId, comparisonSignText);
+        setVal('ceilingAmountType', comparisonSignId);
         setVal('ceilingAmount', setting.CeilingAmount || setting.CeilingAmount);
         setVal('calculationMethod', setting.CalculationMethodID || setting.CalculationMethod || '');
         setVal('minCharge', setting.MinimumCharge || setting.MinCharge);
@@ -127,6 +151,69 @@ window.AccountChargeRatesModule = (function () {
         const raw = String(value ?? '').trim();
         if (!raw || raw === '--Select--') return '';
         return raw;
+    }
+
+    function normalizeComparisonSignId(value) {
+        const raw = String(value ?? '').trim();
+        if (!raw || raw === '--Select--') return '0';
+        if (raw === '=' || raw.toLowerCase() === 'equal to') return '0';
+        return raw;
+    }
+
+    function normalizeComparisonSignText(value) {
+        const raw = String(value ?? '').trim();
+        if (!raw) return 'Equal To';
+        if (raw === '=' || raw === '0') return 'Equal To';
+        return raw;
+    }
+
+    function escapeXml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+
+    function getComparisonSignId(row) {
+        return normalizeComparisonSignId(
+            row?.ComparisonSignID ||
+            row?.ComparisonSignId ||
+            row?.CeilingAmountTypeID ||
+            row?.CeilingAmountTypeId ||
+            '0'
+        );
+    }
+
+    function getComparisonSignText(row) {
+        return normalizeComparisonSignText(
+            row?.ComparisonSign ||
+            row?.comparisonSign ||
+            row?.ComparisonSignName ||
+            row?.ComparisonSignDescription ||
+            row?.CeilingAmountType ||
+            row?.CeilingAmountTypeName ||
+            row?.CeilingAmountTypeDescription ||
+            row?.ComparisonSignID ||
+            row?.CeilingAmountTypeID ||
+            'Equal To'
+        );
+    }
+
+    function getSelectedSetting() {
+        if (state.selectedSettingIndex < 0 || state.selectedSettingIndex >= state.chargeSettings.length) {
+            return null;
+        }
+
+        return state.chargeSettings[state.selectedSettingIndex] || null;
+    }
+
+    function getPreservedSettingValue(existingSetting, key, fallback = '') {
+        if (!existingSetting) return fallback;
+
+        const value = existingSetting[key];
+        return value == null ? fallback : value;
     }
 
     function getNumericIdFromObject(row, keys) {
@@ -411,20 +498,30 @@ window.AccountChargeRatesModule = (function () {
         refreshGridActionButtons();
     }
 
-    function collectSetting() {
+    function collectSetting(preserveExisting = false) {
+        const existingSetting = preserveExisting ? getSelectedSetting() : null;
+        const comparisonSignId = normalizeComparisonSignId(val('ceilingAmountType'));
+        const comparisonSignText = normalizeComparisonSignText(el('ceilingAmountType')?.selectedOptions?.[0]?.textContent || 'Equal To');
         return {
-            CeilingAmountTypeID: val('ceilingAmountType'),
+            RateID: getPreservedSettingValue(existingSetting, 'RateID', getPreservedSettingValue(existingSetting, 'RateId', '0')),
+            ComparisonSignID: comparisonSignId,
+            ComparisonSign: comparisonSignText,
+            CeilingAmountTypeID: comparisonSignId,
             CeilingAmount: normalizeDecimal(val('ceilingAmount')),
             CalculationMethodID: normalizeMethodId(val('calculationMethod')),
             MinimumCharge: normalizeDecimal(val('minCharge')),
             MaximumCharge: normalizeDecimal(val('maximumCharge')),
             Value: normalizeDecimal(val('value')),
-            FixedAmount: normalizeDecimal(val('fixedAmount'))
+            FixedAmount: normalizeDecimal(val('fixedAmount')),
+            Formulae: String(getPreservedSettingValue(existingSetting, 'Formulae', '')),
+            IsFixedPerEvent: getPreservedSettingValue(existingSetting, 'IsFixedPerEvent', null),
+            UpdateCount: getPreservedSettingValue(existingSetting, 'UpdateCount', 0)
         };
     }
 
     function clearSettingForm(resetSelection = true) {
-        ['ceilingAmountType', 'ceilingAmount', 'calculationMethod', 'minCharge', 'maximumCharge', 'value', 'fixedAmount'].forEach(id => setVal(id, ''));
+        ['ceilingAmount', 'calculationMethod', 'minCharge', 'maximumCharge', 'value', 'fixedAmount'].forEach(id => setVal(id, ''));
+        setVal('ceilingAmountType', '0');
         if (resetSelection) {
             state.selectedSettingIndex = -1;
         }
@@ -441,7 +538,7 @@ window.AccountChargeRatesModule = (function () {
             return true;
         }
 
-        const draft = collectSetting();
+        const draft = collectSetting(false);
         if (!draft.CalculationMethodID) {
             showMsg('Calculation method is required for a charge tier', 'warning');
             return false;
@@ -467,25 +564,26 @@ window.AccountChargeRatesModule = (function () {
             const maximumCharge = normalizeDecimal(row.MaximumCharge || row.MaxCharge);
             const value = normalizeDecimal(row.Value);
             const fixedAmount = normalizeDecimal(row.FixedAmount || row.FixedAmt);
-            const comparisonSignId = normalizeInteger(row.ComparisonSignID, '0');
+            const comparisonSignId = getComparisonSignId(row);
+            const comparisonSignText = getComparisonSignText(row);
 
             xml += '<dt_ChargeRates>';
             xml += '<BankID>00</BankID>';
-            xml += `<OurBranchID>${ctx.OurBranchID}</OurBranchID>`;
-            xml += `<ChargeID>${chargeId}</ChargeID>`;
-            xml += `<CalculationMethod>${calculationMethod}</CalculationMethod>`;
-            xml += `<CeilingAmount>${ceilingAmount}</CeilingAmount>`;
-            xml += `<ComparisonSignID>${comparisonSignId}</ComparisonSignID>`;
-            xml += '<ComparisonSign>Equal To</ComparisonSign>';
-            xml += `<MinimumCharge>${minimumCharge}</MinimumCharge>`;
-            xml += `<MaximumCharge>${maximumCharge}</MaximumCharge>`;
-            xml += `<EffectiveDate>${effDate}</EffectiveDate>`;
+            xml += `<OurBranchID>${escapeXml(ctx.OurBranchID)}</OurBranchID>`;
+            xml += `<ChargeID>${escapeXml(chargeId)}</ChargeID>`;
+            xml += `<CalculationMethod>${escapeXml(calculationMethod)}</CalculationMethod>`;
+            xml += `<CeilingAmount>${escapeXml(ceilingAmount)}</CeilingAmount>`;
+            xml += `<ComparisonSignID>${escapeXml(comparisonSignId)}</ComparisonSignID>`;
+            xml += `<ComparisonSign>${escapeXml(comparisonSignText)}</ComparisonSign>`;
+            xml += `<MinimumCharge>${escapeXml(minimumCharge)}</MinimumCharge>`;
+            xml += `<MaximumCharge>${escapeXml(maximumCharge)}</MaximumCharge>`;
+            xml += `<EffectiveDate>${escapeXml(effDate)}</EffectiveDate>`;
             xml += '<ButtonMark>N</ButtonMark>';
             xml += '<EffectiveDateID>0</EffectiveDateID>';
             xml += '<UpdateCount>1</UpdateCount>';
-            xml += `<AccountID>${ctx.AccountID}</AccountID>`;
-            xml += `<Value>${value}</Value>`;
-            xml += `<FixedAmount>${fixedAmount}</FixedAmount>`;
+            xml += `<AccountID>${escapeXml(ctx.AccountID)}</AccountID>`;
+            xml += `<Value>${escapeXml(value)}</Value>`;
+            xml += `<FixedAmount>${escapeXml(fixedAmount)}</FixedAmount>`;
             xml += '</dt_ChargeRates>';
         });
         return xml;
@@ -520,7 +618,7 @@ window.AccountChargeRatesModule = (function () {
             Amount: normalizeDecimal(chosen?.Value),
             FixedAmount: normalizeDecimal(chosen?.FixedAmount || chosen?.FixedAmt),
             Formulae: String(chosen?.Formulae || ''),
-            ComparisonSignID: normalizeInteger(chosen?.ComparisonSignID, '0')
+            ComparisonSignID: getComparisonSignId(chosen)
         };
     }
 
@@ -550,6 +648,11 @@ window.AccountChargeRatesModule = (function () {
         const ctx = getContext();
         if (!ctx.OurBranchID) { showMsg('Branch context is missing. Reload Account Maintenance and try again.', 'warning'); return false; }
         if (!ctx.OperatorID) { showMsg('Operator context is missing. Please sign in again.', 'warning'); return false; }
+        const existingCreatedBy = el('MakerID')?.textContent?.trim();
+        const createdBy = state.currentMode === 'ADD'
+            ? ctx.OperatorID
+            : (existingCreatedBy && existingCreatedBy !== '-' ? existingCreatedBy : ctx.OperatorID);
+        const modifiedBy = state.currentMode === 'EDIT' ? ctx.OperatorID : '';
         const primaryTier = getPrimaryTierForSave();
         const payload = {
             OurBranchID: ctx.OurBranchID,
@@ -560,6 +663,8 @@ window.AccountChargeRatesModule = (function () {
             EffectiveDateID: 0,
             ApplicationID: '',
             OperatorID: ctx.OperatorID,
+            CreatedBy: createdBy,
+            ModifiedBy: modifiedBy,
             NewRecord: state.currentMode === 'ADD' ? 1 : 0,
             UpdateCount: state.updateCount || 0,
             RateID: primaryTier?.RateID || '0',
@@ -838,7 +943,7 @@ window.AccountChargeRatesModule = (function () {
 
         // Grid Actions
         document.querySelector('[data-grid-action="new"]')?.addEventListener('click', () => {
-            const s = collectSetting();
+            const s = collectSetting(false);
             if (!s.CalculationMethodID) { showMsg('Calculation method required', 'warning'); return; }
             state.chargeSettings.push(s);
             state.selectedSettingIndex = state.chargeSettings.length - 1;
@@ -849,7 +954,7 @@ window.AccountChargeRatesModule = (function () {
 
         document.querySelector('[data-grid-action="update"]')?.addEventListener('click', () => {
             if (state.selectedSettingIndex < 0) { showMsg('Please select a row from the grid to update', 'warning'); return; }
-            state.chargeSettings[state.selectedSettingIndex] = collectSetting();
+            state.chargeSettings[state.selectedSettingIndex] = collectSetting(true);
             populateSettingForm(state.chargeSettings[state.selectedSettingIndex]);
             renderSettingsGrid();
             showMsg('Setting tier updated', 'info');

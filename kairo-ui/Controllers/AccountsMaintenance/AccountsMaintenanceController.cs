@@ -235,14 +235,19 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             {
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "CeilingAmountTypeID",
                     "CalculationMethodID"
                 });
 
-                dropdownOptions.TryGetValue("CeilingAmountTypeID", out var ceilingAmountTypeOptions);
                 dropdownOptions.TryGetValue("CalculationMethodID", out var calculationMethodOptions);
 
-                ViewData["CeilingAmountTypeOptions"] = ceilingAmountTypeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["CeilingAmountTypeOptions"] = new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "0", Text = "Equal To" },
+                    new SelectListItem { Value = "<=", Text = "<=" },
+                    new SelectListItem { Value = "<", Text = "<" },
+                    new SelectListItem { Value = ">=", Text = ">=" },
+                    new SelectListItem { Value = ">", Text = ">" }
+                };
                 ViewData["CalculationMethodOptions"] = calculationMethodOptions ?? Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
@@ -580,6 +585,54 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         #endregion
 
         #region API Endpoints - Channel to Backend API
+
+        [HttpPost]
+        [Route("api/get-blocked-reasons")]
+        public async Task<IActionResult> GetBlockedReasons()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "BlockedReasonID"
+                });
+
+                dropdownOptions.TryGetValue("BlockedReasonID", out var options);
+                return Ok(new { Details = options ?? Enumerable.Empty<SelectListItem>() });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading blocked reasons");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/get-unblocked-reasons")]
+        public async Task<IActionResult> GetUnblockedReasons()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
+                {
+                    "UnBlockedReasonID"
+                });
+
+                dropdownOptions.TryGetValue("UnBlockedReasonID", out var options);
+                return Ok(new { Details = options ?? Enumerable.Empty<SelectListItem>() });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading unblocked reasons");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
 
         // ============================================================================
         // NOTES
@@ -2138,7 +2191,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
         [HttpPost]
         [Route("api/get-account-charge-rate")]
-        public async Task<IActionResult> GetAccountChargeRate([FromBody] GenericAccountRequest request)
+        public async Task<IActionResult> GetAccountChargeRate([FromBody] AccountChargeRateRequest request)
         {
             try
             {
@@ -2556,7 +2609,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 var payload = new
                 {
                     AccountID = request.AccountID,
-                    ModuleID  = request.ModuleID ?? 2091,
+                    ModuleID = request.ModuleID ?? 2091,
                     ProductID = request.RelevantID ?? request.AccountTypeID ?? "null"
                 };
 
@@ -2619,11 +2672,11 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 // SP p_EditAccountProductNotification accepts exactly these 5 parameters
                 var payload = new
                 {
-                    XMLData    = request.XMLData    ?? string.Empty,
+                    XMLData = request.XMLData ?? string.Empty,
                     OperatorID = request.OperatorID,
-                    ProductID  = request.ProductID  ?? "null",
-                    BranchID   = request.OurBranchID,
-                    AccountID  = request.AccountID  ?? string.Empty
+                    ProductID = request.ProductID ?? "null",
+                    BranchID = request.OurBranchID,
+                    AccountID = request.AccountID ?? string.Empty
                 };
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
@@ -3993,6 +4046,16 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         public int? ModuleID { get; set; }
         public string? ModuleTypeID { get; set; }
         public string? RelevantID { get; set; }
+    }
+
+    public class AccountChargeRateRequest
+    {
+        public string? AccountID { get; set; }
+        public string? OurBranchID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? ChargeID { get; set; }
+        public string? EffectiveDate { get; set; }
+        public int? EffectiveDateID { get; set; }
     }
 
     public class AccountClosingSaveRequest

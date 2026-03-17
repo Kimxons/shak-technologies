@@ -2,20 +2,33 @@
 @model kairo_ui.Models.Shared.SideBarViewDModel
 @{
     Layout = null;
+    var dataEntryModules = (Model.SubModules ?? new List<Module>())
+        .Where(s => s.ModuleTypeID!.Equals("D", StringComparison.OrdinalIgnoreCase))
+        .OrderBy(f => f.MenuItemOrder)
+        .ToList();
+    var viewModules = (Model.SubModules ?? new List<Module>())
+        .Where(s => s.ModuleTypeID!.Equals("V", StringComparison.OrdinalIgnoreCase))
+        .OrderBy(f => f.MenuItemOrder)
+        .ToList();
+    var recentActivities = (Model.RecentActivities ?? new List<kairo_ui.Models.Shared.RecentActivityItem>())
+        .Where(a => !string.IsNullOrWhiteSpace(a.AccessedFields))
+        .ToList();
 }
 <!-- Left Sidebar -->
 <div class="sidebar" id="main-sidebar" data-sidebar-moduleid="@Model.ModuleID">
     <!-- SUBMODULES Header -->
     <div class="sidebar-header">
         <span class="sidebar-header__title"><i class="bi bi-grid-3x3-gap-fill"></i>SUBMODULES</span>
-        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="true">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"
+                aria-expanded="true">
             <i class="bi bi-list"></i>
         </button>
     </div>
 
     <!-- Search Bar -->
     <div class="sidebar-search">
-        <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..." aria-label="Search submodules" aria-describedby="submoduleSearchClear">
+        <input type="text" class="sidebar-search__input" id="submoduleSearch" placeholder="Search submodules..."
+               aria-label="Search submodules" aria-describedby="submoduleSearchClear">
         <i class="bi bi-search sidebar-search__icon"></i>
         <button type="button" class="sidebar-search__clear" id="submoduleSearchClear" aria-label="Clear search">
             <i class="bi bi-x-circle"></i>
@@ -25,7 +38,7 @@
     <!-- Scrollable Content -->
     <div class="sidebar-content">
 
-        @if (Model.SubModules != null)
+        @if (dataEntryModules.Count > 0)
         {
             <!-- Data Entry Section -->
             <div class="nav-section nav-section--card is-open expanded" data-nav-section data-section-name="Data Entry">
@@ -35,50 +48,23 @@
                         <span class="nav-label nav-label--card">Data Entry</span>
                     </div>
                     <div class="nav-header__badge">
-                        <span class="nav-badge">22</span>
-                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry" aria-expanded="true" aria-controls="nav-dataentry">
+                        <span class="nav-badge">@dataEntryModules.Count</span>
+                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Data Entry"
+                                aria-expanded="true" aria-controls="nav-dataentry">
                             <i class="bi bi-chevron-down"></i>
                         </button>
                     </div>
                 </div>
                 <div class="nav-items nav-items--card" id="nav-dataentry">
-                    @foreach (Module smodule in Model.SubModules.Where(s => s.ModuleTypeID!.Equals("D", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.MenuItemOrder))
+                    @foreach (Module smodule in dataEntryModules)
                     {
-                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.MenuURL" data-tooltip="@smodule.MenuDescription">
+                        var itemTarget = Model.UseSubmoduleNavigation ? smodule.CustomMenuURL : smodule.MenuURL;
+                        var itemAttributeName = Model.UseSubmoduleNavigation ? "data-submodule" : "data-child-form";
+                        <div class="sidebar-item sidebar-item--enhanced" @itemAttributeName="@itemTarget"
+                            data-tooltip="@smodule.MenuDescription" role="button" tabindex="0">
                             <div class="sidebar-item__content">
                                 @* <i class="bi bi-file-earmark-text-fill sidebar-item__icon"></i> *@
-                                @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill sidebar-item__icon'></i>")
-                                <div class="sidebar-item__text">
-                                    <div class="sidebar-item__title">@smodule.MenuDescription</div>
-                                    <div class="sidebar-item__description">@smodule.ModuleName</div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- View Section -->
-            <div class="nav-section nav-section--card" data-nav-section data-section-name="View">
-                <div class="nav-header nav-header--card" data-tooltip="View">
-                    <div class="nav-header__content">
-                        <i class="bi bi-eye-fill nav-header__icon"></i>
-                        <span class="nav-label nav-label--card">View</span>
-                    </div>
-                    <div class="nav-header__badge">
-                        <span class="nav-badge">6</span>
-                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle View" aria-expanded="false" aria-controls="nav-view">
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="nav-items nav-items--card" id="nav-view">
-                    @foreach (Module smodule in Model.SubModules.Where(s => s.ModuleTypeID!.Equals("V", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.MenuItemOrder))
-                    {
-                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.MenuURL" data-tooltip="@smodule.MenuDescription">
-                            <div class="sidebar-item__content">
-                                @* <i class="bi bi-receipt sidebar-item__icon"></i> *@
-                                @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill sidebar-item__icon'></i>")
+                                @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill          sidebar-item__icon'></i>")
                                 <div class="sidebar-item__text">
                                     <div class="sidebar-item__title">@smodule.MenuDescription</div>
                                     <div class="sidebar-item__description">@smodule.ModuleName</div>
@@ -89,8 +75,47 @@
                 </div>
             </div>
         }
+
+        @if (viewModules.Count > 0)
+        {
+            <!-- View Section -->
+            <div class="nav-section nav-section--card" data-nav-section data-section-name="View">
+                <div class="nav-header nav-header--card" data-tooltip="View">
+                    <div class="nav-header__content">
+                        <i class="bi bi-eye-fill nav-header__icon"></i>
+                        <span class="nav-label nav-label--card">View</span>
+                    </div>
+                    <div class="nav-header__badge">
+                        <span class="nav-badge">@viewModules.Count</span>
+                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle View"
+                                aria-expanded="false" aria-controls="nav-view">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="nav-items nav-items--card" id="nav-view">
+                    @foreach (Module smodule in viewModules)
+                    {
+                        var itemTarget = Model.UseSubmoduleNavigation ? smodule.CustomMenuURL : smodule.MenuURL;
+                        var itemAttributeName = Model.UseSubmoduleNavigation ? "data-submodule" : "data-child-form";
+                        <div class="sidebar-item sidebar-item--enhanced" @itemAttributeName="@itemTarget"
+                            data-tooltip="@smodule.MenuDescription" role="button" tabindex="0">
+                            <div class="sidebar-item__content">
+                                @* <i class="bi bi-receipt sidebar-item__icon"></i> *@
+                                @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill                   sidebar-item__icon'></i>")
+                                <div class="sidebar-item__text">
+                                    <div class="sidebar-item__title">@smodule.MenuDescription</div>
+                                    <div class="sidebar-item__description">@smodule.ModuleName</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Recent Activities Section -->
-        @if (Model.RecentActivities != null)
+        @if (recentActivities.Count > 0)
         {
             <div class="nav-section nav-section--card" data-nav-section data-section-name="Recent Activities">
                 <div class="nav-header nav-header--card" data-tooltip="Recent Activities">
@@ -99,14 +124,15 @@
                         <span class="nav-label nav-label--card">Recent Activities</span>
                     </div>
                     <div class="nav-header__badge">
-                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Recent Activities" aria-expanded="false" aria-controls="nav-recent">
+                        <button type="button" class="nav-arrow nav-arrow--card" aria-label="Toggle Recent Activities"
+                                aria-expanded="false" aria-controls="nav-recent">
                             <i class="bi bi-chevron-down"></i>
                         </button>
                     </div>
                 </div>
                 <div class="nav-items nav-items--card" id="nav-recent" hidden data-recent-activities-container>
                     <!-- Recent activities populated from API (same pattern as Client Maintenance) -->
-                    @foreach (var ractivities in Model.RecentActivities)
+                    @foreach (var ractivities in recentActivities)
                     {
                         if (!string.IsNullOrEmpty(ractivities.AccessedFields))
                         {
@@ -115,8 +141,8 @@
                             {
                                 continue; // Skip if format is unexpected
                             }
-                            <div class="sidebar-item sidebar-item--static sidebar-item--enhanced" style="cursor:pointer;" data-accessedfields="@ractivities.AccessedFields"
-                                 data-activity-key="@parts[0]"
+                            <div class="sidebar-item sidebar-item--static sidebar-item--enhanced" style="cursor:pointer;"
+                                 data-accessedfields="@ractivities.AccessedFields" data-activity-key="@parts[0]"
                                  data-activity-value="@parts[1]">
                                 <div class="sidebar-item__content">
                                     <i class="bi bi-file-earmark-text sidebar-item__icon"></i>

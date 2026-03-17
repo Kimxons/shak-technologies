@@ -1,0 +1,425 @@
+@using kairo_ui.Models.Shared
+@{
+    ViewData["Title"] = "Maintain Banks";
+    Layout = "_ApplicationLayout";
+    var initialSection = (ViewData["InitialSection"]?.ToString() ?? "banks").ToLowerInvariant();
+    var sideBarModel = ViewData["SideBarModel"] as SideBarViewDModel;
+}
+
+<div class="window" id="bankMasterModule" data-initial-section="@initialSection" data-page="bank-master">
+    <div class="main-container">
+        @if (sideBarModel != null)
+        {
+            @await Html.PartialAsync("_SideBarPartial", sideBarModel)
+        }
+
+        <div class="form-content" role="region" aria-label="Maintain banks details">
+            <div class="form-card" data-main-form>
+                <form id="bank-master-form" autocomplete="off" novalidate>
+                    <div class="form-section" data-section="banks" @(string.Equals(initialSection, "banks",
+                                                                                                                   StringComparison.OrdinalIgnoreCase) ? null : "hidden")>
+                        <div class="form-section">
+                            <div class="section-header" data-section-toggle>
+                                <span class="section-header__title"><i class="bi bi-bank"></i> Bank Details</span>
+                                <button type="button" class="section-toggle-btn" aria-expanded="true"><i
+                                    class="bi bi-chevron-up"></i></button>
+                                </div>
+                                <div class="section-content" data-section-content>
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="bm_bankId">Bank ID</label>
+                                            <div class="kairo-control" data-kairo-control>
+                                                <input type="text" id="bm_bankId" class="kairo-control__id"
+                                                       data-always-enabled aria-label="Bank ID">
+                                                <input type="text" id="bm_bankNameSummary" class="kairo-control__name"
+                                                       placeholder="Loaded bank" readonly>
+                                                <button type="button" class="btn-lookup kairo-control__lookup"
+                                                        id="bm_searchBank" data-always-enabled aria-label="Search bank"><i
+                                                    class="bi bi-search"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <label class="label-blue" for="bm_shortName">Short Name</label>
+                                                <input type="text" id="bm_shortName" class="bs-input-text">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row two-col">
+                                            <div class="col">
+                                                <label class="label-blue" for="bm_bankName">Bank Name</label>
+                                                <input type="text" id="bm_bankName" class="bs-input-text">
+                                            </div>
+                                            <div class="col">
+                                                <label class="label-blue" for="bm_institutionTypeId">Type</label>
+                                                <input type="text" id="bm_institutionTypeId" class="bs-input-text">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row two-col">
+                                            <div class="col">
+                                                <label class="label-blue" for="bm_clientId">Client ID</label>
+                                                <div class="kairo-control" data-kairo-control>
+                                                    <input type="text" id="bm_clientId" class="kairo-control__id"
+                                                           aria-label="Client ID">
+                                                    <input type="text" id="bm_clientName" class="kairo-control__name"
+                                                           placeholder="Client name" readonly>
+                                                    <button type="button" class="btn-lookup kairo-control__lookup"
+                                                            id="bm_searchClient" aria-label="Search client"><i
+                                                        class="bi bi-search"></i></button>
+                                                    </div>
+                                                </div>
+                                                <div class="col">
+                                                    <label class="label-blue" for="bm_creditRating">Credit Rating</label>
+                                                    <input type="number" id="bm_creditRating" class="bs-input-text" step="0.01">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-section">
+                                        <div class="section-header" data-section-toggle>
+                                            <span class="section-header__title"><i class="bi bi-check2-square"></i> Is Clearing
+                                                Bank</span>
+                                                <button type="button" class="section-toggle-btn" aria-expanded="true"><i
+                                                    class="bi bi-chevron-up"></i></button>
+                                                </div>
+                                                <div class="section-content" data-section-content>
+                                                    <div class="form-row two-col">
+                                                        <div class="col">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" id="bm_isLocalClearing">
+                                                                <label class="form-check-label label-blue" for="bm_isLocalClearing">Is Local
+                                                                    Clearing</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" id="bm_isForeignClearing">
+                                                                    <label class="form-check-label label-blue" for="bm_isForeignClearing">Is
+                                                                        Foreign Clearing</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="form-row two-col">
+                                                                <div class="col">
+                                                                    <label class="label-blue" for="bm_clearingThrough">Clearing Through</label>
+                                                                    <div class="kairo-control" data-kairo-control>
+                                                                        <input type="text" id="bm_clearingThrough" class="kairo-control__id"
+                                                                               aria-label="Clearing through bank">
+                                                                        <input type="text" id="bm_clearingThroughName" class="kairo-control__name"
+                                                                               placeholder="Clearing bank" readonly>
+                                                                        <button type="button" class="btn-lookup kairo-control__lookup"
+                                                                                id="bm_searchClearingThrough" aria-label="Search clearing bank"><i
+                                                                            class="bi bi-search"></i></button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col">
+                                                                        <label class="label-blue" for="bm_clearingAccountId">Clearing Account ID</label>
+                                                                        <input type="text" id="bm_clearingAccountId" class="bs-input-text">
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="form-row one-col">
+                                                                    <div class="col">
+                                                                        <label class="label-blue" for="bm_bankAccountId">Bank Account ID</label>
+                                                                        <input type="text" id="bm_bankAccountId" class="bs-input-text">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="form-section form-section--bts">
+                                                            <div class="section-header" data-section-toggle>
+                                                                <span class="section-header__title"><i class="bi bi-clock-history"></i> Behind The
+                                                                    Scene</span>
+                                                                    <button type="button" class="section-toggle-btn" aria-expanded="false"><i
+                                                                        class="bi bi-chevron-down"></i></button>
+                                                                    </div>
+                                                                    <div class="section-content" data-section-content hidden>
+                                                                        <div class="audit-section audit-section--summary">
+                                                                            <div class="audit-cell"><span class="audit-label">Created By</span><span
+                                                                                class="audit-value" id="bm_createdBy">-</span></div>
+                                                                                <div class="audit-cell"><span class="audit-label">Created On</span><span
+                                                                                    class="audit-value" id="bm_createdOn">-</span></div>
+                                                                                    <div class="audit-cell"><span class="audit-label">Supervised By</span><span
+                                                                                        class="audit-value" id="bm_supervisedBy">-</span></div>
+                                                                                        <div class="audit-cell"><span class="audit-label">Supervised On</span><span
+                                                                                            class="audit-value" id="bm_supervisedOn">-</span></div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div class="form-section" data-section="limits" @(string.Equals(initialSection, "limits",
+                                                                                                                                                                            StringComparison.OrdinalIgnoreCase) ? null : "hidden")>
+                                                                                <div class="section-header" data-section-toggle>
+                                                                                    <span class="section-header__title"><i class="bi bi-cash-stack"></i> Bank Limit
+                                                                                        Maintenance</span>
+                                                                                        <button type="button" class="section-toggle-btn" aria-expanded="true"><i
+                                                                                            class="bi bi-chevron-up"></i></button>
+                                                                                        </div>
+                                                                                        <div class="section-content" data-section-content>
+                                                                                            <input type="hidden" id="bm_limitClientId">
+                                                                                            <input type="hidden" id="bm_limitClientName">
+                                                                                            <input type="hidden" id="bm_clientBranchId">
+                                                                                            <div class="form-row three-col">
+                                                                                                <div class="col">
+                                                                                                    <label class="label-blue" for="bm_limitType">Limit Type</label>
+                                                                                                    <select id="bm_limitType" class="bs-input-text">
+                                                                                                        <option value="">Select limit type</option>
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                                <div class="col">
+                                                                                                    <label class="label-blue" for="bm_limitCurrencyId">Currency ID</label>
+                                                                                                    <div class="kairo-control" data-kairo-control>
+                                                                                                        <input type="text" id="bm_limitCurrencyId" class="kairo-control__id"
+                                                                                                               aria-label="Limit currency">
+                                                                                                        <input type="text" id="bm_limitCurrencyName" class="kairo-control__name"
+                                                                                                               placeholder="Currency name" readonly>
+                                                                                                        <button type="button" class="btn-lookup kairo-control__lookup"
+                                                                                                                id="bm_searchLimitCurrency" aria-label="Search limit currency"><i
+                                                                                                            class="bi bi-search"></i></button>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div class="col">
+                                                                                                        <label class="label-blue" for="bm_limitAmount">Limit</label>
+                                                                                                        <input type="number" id="bm_limitAmount" class="bs-input-text" step="0.01">
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="form-row two-col">
+                                                                                                    <div class="col">
+                                                                                                        <label class="label-blue" for="bm_limitExpiryDate">Expiry Date</label>
+                                                                                                        <input type="date" id="bm_limitExpiryDate" class="bs-input-text">
+                                                                                                    </div>
+                                                                                                    <div class="col">
+                                                                                                        <label class="label-blue" for="bm_limitRemarks">Remarks</label>
+                                                                                                        <input type="text" id="bm_limitRemarks" class="bs-input-text">
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="card mt-3 form-section-table">
+                                                                                                    <div class="card-header d-flex align-items-center justify-content-between gap-2">
+                                                                                                        <h3 class="h6 mb-0">Loaded Limit Records</h3>
+                                                                                                        <span class="text-muted small" id="bm_limitCount">0 rows</span>
+                                                                                                    </div>
+                                                                                                    <div class="table-responsive">
+                                                                                                        <table class="table table-sm table-hover align-middle mb-0 data-table">
+                                                                                                            <thead class="table-light">
+                                                                                                                <tr>
+                                                                                                                    <th>Limit Type Name</th>
+                                                                                                                    <th>CurrencyName</th>
+                                                                                                                    <th>Limit</th>
+                                                                                                                    <th>Expiry Date</th>
+                                                                                                                </tr>
+                                                                                                            </thead>
+                                                                                                            <tbody id="bm_limitRows">
+                                                                                                                <tr>
+                                                                                                                    <td colspan="4" class="text-center text-muted py-3">Load a bank to view
+                                                                                                                        limit rows.</td>
+                                                                                                                    </tr>
+                                                                                                                </tbody>
+                                                                                                            </table>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+
+                                                                                            <div class="form-section" data-section="signatories" @(string.Equals(initialSection, "signatories",
+                                                                                                                                                                                                 StringComparison.OrdinalIgnoreCase) ? null : "hidden")>
+                                                                                                <div class="section-header" data-section-toggle>
+                                                                                                    <span class="section-header__title"><i class="bi bi-person-badge"></i> Clearing Bank
+                                                                                                        Signatories</span>
+                                                                                                        <button type="button" class="section-toggle-btn" aria-expanded="true"><i
+                                                                                                            class="bi bi-chevron-up"></i></button>
+                                                                                                        </div>
+                                                                                                        <div class="section-content" data-section-content>
+                                                                                                            <div class="form-row three-col">
+                                                                                                                <div class="col">
+                                                                                                                    <label class="label-blue" for="bm_signatoryId">Signatory ID</label>
+                                                                                                                    <input type="text" id="bm_signatoryId" class="bs-input-text">
+                                                                                                                </div>
+                                                                                                                <div class="col">
+                                                                                                                    <label class="label-blue" for="bm_signatoryName">Signatory Name</label>
+                                                                                                                    <input type="text" id="bm_signatoryName" class="bs-input-text">
+                                                                                                                </div>
+                                                                                                                <div class="col">
+                                                                                                                    <label class="label-blue" for="bm_imageId">Image ID</label>
+                                                                                                                    <input type="text" id="bm_imageId" class="bs-input-text">
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                            <div class="form-row two-col">
+                                                                                                                <div class="col">
+                                                                                                                    <div class="card h-100">
+                                                                                                                        <div class="card-header fw-semibold">Photo Preview</div>
+                                                                                                                        <div
+                                                                                                                            class="card-body d-flex align-items-center justify-content-center bg-light-subtle">
+                                                                                                                            <img id="bm_photoPreview" alt="Signatory photo preview"
+                                                                                                                                 class="img-fluid rounded border bg-white p-2">
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                                <div class="col">
+                                                                                                                    <div class="card h-100">
+                                                                                                                        <div class="card-header fw-semibold">Signature Preview</div>
+                                                                                                                        <div
+                                                                                                                            class="card-body d-flex align-items-center justify-content-center bg-light-subtle">
+                                                                                                                            <img id="bm_signaturePreview" alt="Signatory signature preview"
+                                                                                                                                 class="img-fluid rounded border bg-white p-2">
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                            <div class="card mt-3 form-section-table">
+                                                                                                                <div class="card-header d-flex align-items-center justify-content-between gap-2">
+                                                                                                                    <h3 class="h6 mb-0">Loaded Signatories</h3>
+                                                                                                                    <span class="text-muted small" id="bm_signatoryCount">0 rows</span>
+                                                                                                                </div>
+                                                                                                                <div class="table-responsive">
+                                                                                                                    <table class="table table-sm table-hover align-middle mb-0 data-table">
+                                                                                                                        <thead class="table-light">
+                                                                                                                            <tr>
+                                                                                                                                <th>Signatory ID</th>
+                                                                                                                                <th>Name</th>
+                                                                                                                                <th>Image ID</th>
+                                                                                                                            </tr>
+                                                                                                                        </thead>
+                                                                                                                        <tbody id="bm_signatoryRows">
+                                                                                                                            <tr>
+                                                                                                                                <td colspan="3" class="text-center text-muted py-3">Load a bank to view
+                                                                                                                                    signatory rows.</td>
+                                                                                                                                </tr>
+                                                                                                                            </tbody>
+                                                                                                                        </table>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+
+                                                                                                        <div class="form-section" data-section="branches" @(string.Equals(initialSection, "branches",
+                                                                                                                                                                                                          StringComparison.OrdinalIgnoreCase) ? null : "hidden")>
+                                                                                                            <div class="section-header" data-section-toggle>
+                                                                                                                <span class="section-header__title"><i class="bi bi-diagram-3"></i> Clearing Branches</span>
+                                                                                                                <button type="button" class="section-toggle-btn" aria-expanded="true"><i
+                                                                                                                    class="bi bi-chevron-up"></i></button>
+                                                                                                                </div>
+                                                                                                                <div class="section-content" data-section-content>
+                                                                                                                    <div class="form-row three-col">
+                                                                                                                        <div class="col">
+                                                                                                                            <label class="label-blue" for="bm_branchId">Branch ID</label>
+                                                                                                                            <div class="kairo-control" data-kairo-control>
+                                                                                                                                <input type="text" id="bm_branchId" class="kairo-control__id"
+                                                                                                                                       aria-label="Branch ID">
+                                                                                                                                <input type="text" id="bm_branchNameSummary" class="kairo-control__name"
+                                                                                                                                       placeholder="Loaded branch" readonly>
+                                                                                                                                <button type="button" class="btn-lookup kairo-control__lookup"
+                                                                                                                                        id="bm_searchBranch" aria-label="Search branch"><i
+                                                                                                                                    class="bi bi-search"></i></button>
+                                                                                                                                </div>
+                                                                                                                            </div>
+                                                                                                                            <div class="col"><label class="label-blue" for="bm_branchTypeId">Branch Type
+                                                                                                                                ID</label><input type="text" id="bm_branchTypeId" class="bs-input-text"></div>
+                                                                                                                                <div class="col"><label class="label-blue" for="bm_branchName">Branch Name</label><input
+                                                                                                                                    type="text" id="bm_branchName" class="bs-input-text"></div>
+                                                                                                                                </div>
+                                                                                                                                <div class="form-row three-col">
+                                                                                                                                    <div class="col"><label class="label-blue" for="bm_branchAddress1">Address
+                                                                                                                                        1</label><input type="text" id="bm_branchAddress1" class="bs-input-text"></div>
+                                                                                                                                        <div class="col"><label class="label-blue" for="bm_branchAddress2">Address
+                                                                                                                                            2</label><input type="text" id="bm_branchAddress2" class="bs-input-text"></div>
+                                                                                                                                            <div class="col"><label class="label-blue" for="bm_branchCityId">City ID</label><input
+                                                                                                                                                type="text" id="bm_branchCityId" class="bs-input-text"></div>
+                                                                                                                                            </div>
+                                                                                                                                            <div class="form-row three-col">
+                                                                                                                                                <div class="col"><label class="label-blue" for="bm_branchCountryId">Country
+                                                                                                                                                    ID</label><input type="text" id="bm_branchCountryId" class="bs-input-text">
+                                                                                                                                                </div>
+                                                                                                                                                <div class="col"><label class="label-blue" for="bm_branchZipCode">Zip Code</label><input
+                                                                                                                                                    type="text" id="bm_branchZipCode" class="bs-input-text"></div>
+                                                                                                                                                    <div class="col"><label class="label-blue" for="bm_clearingCenter">Clearing
+                                                                                                                                                        Days</label><input type="text" id="bm_clearingCenter" class="bs-input-text">
+                                                                                                                                                    </div>
+                                                                                                                                                </div>
+                                                                                                                                                <div class="form-row three-col">
+                                                                                                                                                    <div class="col"><label class="label-blue" for="bm_branchPhone1">Phone 1</label><input
+                                                                                                                                                        type="text" id="bm_branchPhone1" class="bs-input-text"></div>
+                                                                                                                                                        <div class="col"><label class="label-blue" for="bm_branchPhone2">Phone 2</label><input
+                                                                                                                                                            type="text" id="bm_branchPhone2" class="bs-input-text"></div>
+                                                                                                                                                            <div class="col"><label class="label-blue" for="bm_branchMobile">Mobile</label><input
+                                                                                                                                                                type="text" id="bm_branchMobile" class="bs-input-text"></div>
+                                                                                                                                                            </div>
+                                                                                                                                                            <div class="form-row three-col">
+                                                                                                                                                                <div class="col"><label class="label-blue" for="bm_branchEmail">Email ID</label><input
+                                                                                                                                                                    type="text" id="bm_branchEmail" class="bs-input-text"></div>
+                                                                                                                                                                    <div class="col"><label class="label-blue" for="bm_branchFax">Fax No</label><input
+                                                                                                                                                                        type="text" id="bm_branchFax" class="bs-input-text"></div>
+                                                                                                                                                                        <div class="col"><label class="label-blue" for="bm_branchSwiftCode">SWIFT
+                                                                                                                                                                            Code</label><input type="text" id="bm_branchSwiftCode" class="bs-input-text">
+                                                                                                                                                                        </div>
+                                                                                                                                                                    </div>
+                                                                                                                                                                    <div class="form-row two-col">
+                                                                                                                                                                        <div class="col"><label class="label-blue"
+                                                                                                                                                                                                    for="bm_branchRemarks">Remarks</label><textarea id="bm_branchRemarks"
+                                                                                                                                                                                                                            class="bs-input-text" rows="3"></textarea></div>
+                                                                                                                                                                            <div class="col">
+                                                                                                                                                                                <div class="form-check"><input class="form-check-input" type="checkbox"
+                                                                                                                                                                                                                   id="bm_isUpcountry"><label class="form-check-label label-blue"
+                                                                                                                                                                                                               for="bm_isUpcountry">Is Upcountry Branch</label></div>
+                                                                                                                                                                                </div>
+                                                                                                                                                                            </div>
+                                                                                                                                                                            <div class="card mt-3 form-section-table">
+                                                                                                                                                                                <div class="card-header d-flex align-items-center justify-content-between gap-2">
+                                                                                                                                                                                    <h3 class="h6 mb-0">Loaded Branches</h3><span class="text-muted small"
+                                                                                                                                                                                                                                  id="bm_branchCount">0 rows</span>
+                                                                                                                                                                                </div>
+                                                                                                                                                                                <div class="table-responsive">
+                                                                                                                                                                                    <table class="table table-sm table-hover align-middle mb-0 data-table">
+                                                                                                                                                                                        <thead class="table-light">
+                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                <th>Branch ID</th>
+                                                                                                                                                                                                <th>Name</th>
+                                                                                                                                                                                                <th>SWIFT</th>
+                                                                                                                                                                                            </tr>
+                                                                                                                                                                                        </thead>
+                                                                                                                                                                                        <tbody id="bm_branchRows">
+                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                <td colspan="3" class="text-center text-muted py-3">Load a bank to view
+                                                                                                                                                                                                    branch rows.</td>
+                                                                                                                                                                                                </tr>
+                                                                                                                                                                                            </tbody>
+                                                                                                                                                                                        </table>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                </div>
+                                                                                                                                                                            </div>
+                                                                                                                                                                        </div>
+                                                                                                                                                                    </form>
+                                                                                                                                                                </div>
+
+                                                                                                                                                            </div>
+
+                                                                                                                                                            <aside class="action-panel" aria-label="Maintain banks actions">
+                                                                                                                                                                <div class="mb-3 small text-muted" id="bm_actionContext">@(string.Equals(initialSection, "signatories",
+                                                                                                                                                                                    StringComparison.OrdinalIgnoreCase) ? "Clearing Bank Signatories" : string.Equals(initialSection,
+                                                                                                                                                                                    "branches", StringComparison.OrdinalIgnoreCase) ? "Clearing Branches" : string.Equals(initialSection,
+                                                                                                                                                                                    "limits", StringComparison.OrdinalIgnoreCase) ? "Bank Limit Maintenance" : "Bank Details")</div>
+                                                                                                                                                                    <div class="action-buttons" id="bm_actionButtons"></div>
+                                                                                                                                                                </aside>
+                                                                                                                                                            </div>
+
+                                                                                                                                                            <div class="am-message-panel" role="alert" aria-live="polite">
+                                                                                                                                                                <i class="bi bi-info-circle"></i>
+                                                                                                                                                                <span class="message-text"></span>
+                                                                                                                                                            </div>
+                                                                                                                                                        </div>
+
+                                                                                                                                                        @section Scripts {
+                                                                                                                                                            <script src="~/js/environment.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/config.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/auth/auth.config.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/auth/auth.service.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/services/shared/coreApi.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/services/shared/lookupService.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/services/static-data/staticDataCore.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/services/static-data/otherStaticDataService.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/modules/shared/searchModal.js" asp-append-version="true"></script>
+                                                                                                                                                            <script src="~/js/modules/static-data/bank-master.js" asp-append-version="true"></script>
+                                                                                                                                                        }

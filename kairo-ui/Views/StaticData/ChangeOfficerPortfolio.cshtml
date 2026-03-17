@@ -1,0 +1,231 @@
+@{
+    ViewData["Title"] = "Change Officer Portfolio";
+    Layout = "_ApplicationLayout";
+}
+
+<div class="kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <div class="main-container">
+        <div class="form-content form-content-without-leftbar">
+            <div class="form-card" data-cop-form>
+                <input type="hidden" id="cop_defaultBranchId" value="@ViewBag.BranchCode" />
+                <input type="hidden" id="cop_defaultOperatorId" value="@ViewBag.UserName" />
+
+                <div class="form-section" data-section="portfolio-setup">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-diagram-3"></i>Change Officer
+                            Portfolio</span>
+                            <button type="button" class="section-toggle-btn" aria-label="Toggle Change Officer Portfolio"
+                                    aria-expanded="true">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="col">
+                                    <label class="label-blue" for="cop_branchId">Branch ID</label>
+                                    <div class="kairo-control" data-kairo-control>
+                                        <input type="text" id="cop_branchId" class="kairo-control__id"
+                                               aria-label="Branch ID" placeholder="Branch ID" />
+                                        <input type="text" id="cop_branchName" class="kairo-control__name"
+                                               aria-label="Branch Name" placeholder="Branch Name" readonly />
+                                        <button type="button" class="btn-lookup kairo-control__lookup"
+                                                data-cop-lookup="branch" aria-label="Search Branch"><i
+                                            class="bi bi-search"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label class="label-blue" for="cop_designation">Designation</label>
+                                        <select id="cop_designation" class="bs-select" data-placeholder="Select designation">
+                                            <option value="" selected>Select designation</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-row two-col">
+                                    <div class="col">
+                                        <label class="label-blue" for="cop_officerId">Officer ID</label>
+                                        <div class="kairo-control" data-kairo-control>
+                                            <input type="text" id="cop_officerId" class="kairo-control__id"
+                                                   aria-label="Officer ID" placeholder="Officer ID" />
+                                            <input type="text" id="cop_officerName" class="kairo-control__name"
+                                                   aria-label="Officer Name" placeholder="Officer Name" readonly />
+                                            <button type="button" class="btn-lookup kairo-control__lookup"
+                                                    data-cop-lookup="officer" aria-label="Search Officer"><i
+                                                class="bi bi-search"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <label class="label-blue" for="cop_portfolioType">Portfolio Type</label>
+                                            <select id="cop_portfolioType" class="bs-select">
+                                                <option value="G" selected>Group</option>
+                                                <option value="P">Product</option>
+                                                <option value="A">Account</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row two-col">
+                                        <div class="col">
+                                            <label class="label-blue" for="cop_fromGroupId">From Group ID</label>
+                                            <div class="kairo-control" data-kairo-control>
+                                                <input type="text" id="cop_fromGroupId" class="kairo-control__id"
+                                                       aria-label="From Group ID" placeholder="From Group ID" />
+                                                <input type="text" id="cop_fromGroupName" class="kairo-control__name"
+                                                       aria-label="From Group Name" placeholder="From Group Name" readonly />
+                                                <button type="button" class="btn-lookup kairo-control__lookup"
+                                                        data-cop-lookup="from-group" aria-label="Search From Group"><i
+                                                    class="bi bi-search"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <label class="label-blue" for="cop_toGroupId">To Group ID</label>
+                                                <div class="kairo-control" data-kairo-control>
+                                                    <input type="text" id="cop_toGroupId" class="kairo-control__id"
+                                                           aria-label="To Group ID" placeholder="To Group ID" />
+                                                    <input type="text" id="cop_toGroupName" class="kairo-control__name"
+                                                           aria-label="To Group Name" placeholder="To Group Name" readonly />
+                                                    <button type="button" class="btn-lookup kairo-control__lookup"
+                                                            data-cop-lookup="to-group" aria-label="Search To Group"><i
+                                                        class="bi bi-search"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-row two-col">
+                                                <div class="col">
+                                                    <label class="label-blue" for="cop_signInOfficerId">Sign-In Officer ID</label>
+                                                    <div class="kairo-control" data-kairo-control>
+                                                        <input type="text" id="cop_signInOfficerId" class="kairo-control__id"
+                                                               aria-label="Sign-In Officer ID" placeholder="Sign-In Officer ID" />
+                                                        <input type="text" id="cop_signInOfficerName" class="kairo-control__name"
+                                                               aria-label="Sign-In Officer Name" placeholder="Sign-In Officer Name" readonly />
+                                                        <button type="button" class="btn-lookup kairo-control__lookup"
+                                                                data-cop-lookup="sign-in-officer" aria-label="Search Sign-In Officer"><i
+                                                            class="bi bi-search"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <label class="label-blue" for="cop_effectiveDate">Effective Date</label>
+                                                        <input type="date" id="cop_effectiveDate" class="bs-input-text" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-section" data-section="portfolio-grid">
+                                            <div class="section-header" data-section-toggle>
+                                                <span class="section-header__title"><i class="bi bi-table"></i>Centers</span>
+                                                <button type="button" class="section-toggle-btn" aria-label="Toggle Centers"
+                                                        aria-expanded="true">
+                                                    <i class="bi bi-chevron-up"></i>
+                                                </button>
+                                            </div>
+                                            <div class="section-content" data-section-content>
+                                                <div class="cop-summary-bar">
+                                                    <span id="cop_summaryText">No portfolio loaded.</span>
+                                                </div>
+                                                <div class="cop-debug-panel" id="cop_debugPanel" hidden>
+                                                    <div class="cop-debug-panel__header">
+                                                        <span>Captured Search Diagnostics</span>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="cop_copyDiagnostics">Copy JSON</button>
+                                                    </div>
+                                                    <textarea id="cop_debugOutput" class="form-control cop-debug-panel__output" rows="14" readonly></textarea>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-striped table-hover" id="cop_centersTable">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="width: 40px;">
+                                                                    <input type="checkbox" id="cop_selectAll" class="form-check-input"
+                                                                           aria-label="Select all centers" disabled />
+                                                                </th>
+                                                                <th>Center ID</th>
+                                                                <th>Center Name</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="cop_centersTableBody">
+                                                            <tr>
+                                                                <td colspan="3" class="text-center text-muted">No records to display.</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="action-panel">
+                                    <div class="action-buttons">
+                                        <button class="btn-action btn-view" type="button" id="cop_btnView"><i
+                                            class="bi bi-eye me-1"></i>View</button>
+                                            <button class="btn-action" type="button" id="cop_btnChange"><i
+                                                class="bi bi-pencil-square me-1"></i>Change</button>
+                                                <button class="btn-action btn-save" type="button" id="cop_btnSave"><i
+                                                    class="bi bi-check-lg me-1"></i>Save</button>
+                                                    <button class="btn-action btn-cancel" type="button" id="cop_btnCancel"><i
+                                                        class="bi bi-x-circle me-1"></i>Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @section Styles {
+                                            <style>
+                                                    .form-card[data-cop-form] {
+                                                        flex: 0 0 auto !important;
+                                                    }
+
+                                                    .cop-summary-bar {
+                                                        margin-bottom: 0.75rem;
+                                                        padding: 0.65rem 0.85rem;
+                                                        border: 1px solid #d7e0e8;
+                                                        border-radius: 0.375rem;
+                                                        background: #f8fbfd;
+                                                        color: #35556b;
+                                                        font-size: 0.92rem;
+                                                    }
+
+                                                    .cop-debug-panel {
+                                                        margin-bottom: 0.75rem;
+                                                        padding: 0.75rem;
+                                                        border: 1px solid #d7e0e8;
+                                                        border-radius: 0.375rem;
+                                                        background: #ffffff;
+                                                    }
+
+                                                    .cop-debug-panel__header {
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: space-between;
+                                                        gap: 0.75rem;
+                                                        margin-bottom: 0.5rem;
+                                                        font-size: 0.92rem;
+                                                        font-weight: 600;
+                                                        color: #35556b;
+                                                    }
+
+                                                    .cop-debug-panel__output {
+                                                        font-family: Consolas, "Courier New", monospace;
+                                                        font-size: 0.8rem;
+                                                        white-space: pre;
+                                                    }
+
+                                                    [data-section="portfolio-grid"] .section-content {
+                                                        overflow: visible !important;
+                                                        max-height: none !important;
+                                                    }
+
+                                                    #cop_centersTableBody tr.is-selected {
+                                                        background-color: #eef7ff;
+                                                    }
+                                            </style>
+                                        }
+
+                                        @section Scripts {
+                                            <script type="text/javascript" src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
+                                            <script type="text/javascript" src="@Url.Content("~/js/modules/static-data/change-officer-portfolio.js")"
+                                                    asp-append-version="true"></script>
+                                        }

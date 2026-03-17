@@ -189,6 +189,7 @@ namespace kairo_ui.Services
         // Main Group Operations
         public const string GET_GROUP_DETAILS = "p_GetGroupDetails";
         public const string ADD_EDIT_GROUP_DETAILS = "p_AddEditGroupDetails";
+        public const string CHANGE_PORTFOLIO = "p_ChangePortfolio";
         public const string UPDATE_GROUP = "p_UpdateGroup";
         public const string DELETE_GROUP = "p_DeleteGroup";
         public const string DELETE_GROUP_DETAILS = "p_DeleteGroupDetails";
@@ -238,6 +239,10 @@ namespace kairo_ui.Services
         public const string GET_ACCOUNT_INTEREST_RATE = "p_GetAccountInterestRate";
         public const string ADD_EDIT_ACCOUNT_INTEREST_RATE = "p_AddEditAccountInterestRate";
         public const string DELETE_ACCOUNT_INTEREST_RATE = "p_DeleteAccountInterestRate";
+        public const string GET_BANK_USER_CODE = "dbo.p_GetBankUserCode";
+        public const string ADD_EDIT_BANK_USER_CODES = "dbo.p_AddEditBankUserCodes";
+        public const string GET_BRANCH_USER_CODE = "dbo.p_GetBranchUserCode";
+        public const string ADD_EDIT_BRANCH_USER_CODES = "dbo.p_AddEditBranchUserCodes";
         public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";
@@ -275,11 +280,11 @@ namespace kairo_ui.Services
         public const string DELETE_ACCOUNT_CARD = "p_DeleteElectronicCard";
 
 
-    
 
 
 
-    
+
+
         // ═══════════════════════════════════════════════════════════════════
         // EXIT TYPES MODULE
         // ═══════════════════════════════════════════════════════════════════

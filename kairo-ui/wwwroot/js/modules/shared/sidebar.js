@@ -57,19 +57,19 @@
      */
     function getParentModuleContext() {
         // Try to get context from ClientMaintenanceCore if it exists
- if (window.ClientMaintenanceCore && typeof window.ClientMaintenanceCore.getParentContext === 'function') {
+        if (window.ClientMaintenanceCore && typeof window.ClientMaintenanceCore.getParentContext === 'function') {
             return window.ClientMaintenanceCore.getParentContext();
         }
-        
-  // Fallback to mainModuleState
-return {
-       moduleName: mainModuleState.moduleName,
-       primaryRecordId: mainModuleState.primaryRecordId,
-      isMainRecordLoaded: mainModuleState.isMainRecordLoaded,
+
+        // Fallback to mainModuleState
+        return {
+            moduleName: mainModuleState.moduleName,
+            primaryRecordId: mainModuleState.primaryRecordId,
+            isMainRecordLoaded: mainModuleState.isMainRecordLoaded,
             // Add commonly used aliases
             clientId: mainModuleState.primaryRecordId,
-       selectedId: mainModuleState.primaryRecordId
- };
+            selectedId: mainModuleState.primaryRecordId
+        };
     }
 
     // ============================================================================
@@ -265,7 +265,7 @@ return {
         iframe.onload = function () {
             applyThemeVarsToChildIframe();
             showPageLoader(false);
-            
+
             // Send parent context to the child iframe after it loads
             try {
                 const parentContext = getParentModuleContext();
@@ -520,7 +520,7 @@ return {
     // ============================================================================
 
     function wireSidebarItems() {
-        document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form]').forEach(item => {
+        document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form], .sidebar-item[data-submodule], .sidebar-item--enhanced[data-submodule]').forEach(item => {
             item.addEventListener('click', function (e) {
                 e.stopPropagation();
 
@@ -542,7 +542,7 @@ return {
                     }
                 }
 
-                document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form]')
+                document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form], .sidebar-item[data-submodule], .sidebar-item--enhanced[data-submodule]')
                     .forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
 
@@ -576,7 +576,7 @@ return {
 
         const applySubmoduleFilter = () => {
             const searchTerm = searchInput.value.toLowerCase().trim();
-            const allItems = document.querySelectorAll('.sidebar-item--enhanced[data-child-form]');
+            const allItems = document.querySelectorAll('.sidebar-item--enhanced[data-child-form], .sidebar-item--enhanced[data-submodule]');
             const sections = document.querySelectorAll('.nav-section--card');
 
             allItems.forEach(item => {
@@ -588,7 +588,7 @@ return {
             });
 
             sections.forEach(section => {
-                const items = section.querySelectorAll('.sidebar-item--enhanced[data-child-form]');
+                const items = section.querySelectorAll('.sidebar-item--enhanced[data-child-form], .sidebar-item--enhanced[data-submodule]');
                 const visibleItems = Array.from(items).filter(item => item.style.display !== 'none');
                 const navItems = section.querySelector('.nav-items--card');
 
@@ -633,7 +633,7 @@ return {
         const sections = document.querySelectorAll('.nav-section--card');
 
         sections.forEach(section => {
-            const items = section.querySelectorAll('.sidebar-item--enhanced[data-child-form]');
+            const items = section.querySelectorAll('.sidebar-item--enhanced[data-child-form], .sidebar-item--enhanced[data-submodule]');
             const badge = section.querySelector('.nav-badge');
 
             if (badge && items.length > 0) {
@@ -728,23 +728,23 @@ return {
             mainModuleState.isMainRecordLoaded = isLoaded;
             mainModuleState.primaryRecordId = primaryRecordId;
 
-     // Log state change for debugging
-      console.log('[Sidebar] Main record state updated:', { isLoaded, primaryRecordId });
-     },
+            // Log state change for debugging
+            console.log('[Sidebar] Main record state updated:', { isLoaded, primaryRecordId });
+        },
 
         getState: () => ({ ...mainModuleState, activeSubmodule }),
-        
+
         /**
          * Get parent module context for use by submodules
        */
- getParentContext: getParentModuleContext,
+        getParentContext: getParentModuleContext,
 
         // Section management
         setSectionOpen,
 
-      // Theme management
+        // Theme management
         applyThemeVarsToChildIframe
-  };
+    };
 
     // Expose to global scope
     global.SidebarManager = SidebarManager;

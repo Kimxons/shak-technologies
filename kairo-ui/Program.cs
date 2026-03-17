@@ -2,6 +2,7 @@ using kairo_ui.Handlers;
 using kairo_ui.Middleware;
 using kairo_ui.Services;
 using kairo_ui.Services.Caching;
+using kairo_ui.Services.StaticData;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Serilog;
@@ -137,6 +138,8 @@ builder.Services.AddTransient<AuthenticationHandler>();
 builder.Services.AddScoped<IApiService, ApiService>();
 
 builder.Services.AddScoped<IOldApiService, OldApiService>();
+builder.Services.AddScoped<IBankUserCodeService, BankUserCodeService>();
+builder.Services.AddScoped<IBranchUserCodeService, BranchUserCodeService>();
 
 // Register Common Utilities Service for shared utility methods
 builder.Services.AddScoped<ICommonUtilitiesService, CommonUtilitiesService>();

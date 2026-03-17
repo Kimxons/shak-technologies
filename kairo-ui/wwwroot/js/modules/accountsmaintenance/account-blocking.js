@@ -271,11 +271,11 @@ window.AccountBlockingModule = (function () {
     }
 
     function getOptionValue(option) {
-        return option?.Value || option?.ID || option?.SubCodeID || option?.CodeID || '';
+        return option?.Value || option?.value || option?.ID || option?.id || option?.SubCodeID || option?.subCodeID || option?.CodeID || option?.codeID || '';
     }
 
     function getOptionLabel(option) {
-        return option?.Label || option?.Description || option?.CodeDescription || option?.Text || '';
+        return option?.Label || option?.label || option?.Description || option?.description || option?.CodeDescription || option?.codeDescription || option?.Text || option?.text || '';
     }
 
     function isHistoricalUnblockedRecord(record) {
@@ -297,12 +297,16 @@ window.AccountBlockingModule = (function () {
             const endpoint = state.isBlocked ? 'api/get-unblocked-reasons' : 'api/get-blocked-reasons';
             const result = await AppCore.invokeControllerAsync(`AccountsMaintenance/${endpoint}`, {});
 
-            const options = result?.Details || result?.data?.Details || result?.data || [];
+            const options = result?.Details || result?.details || result?.data?.Details || result?.data?.details || result?.data || [];
             reasonSelect.innerHTML = '<option value="">Select Reason...</option>';
             options.forEach(opt => {
+                const optionValue = getOptionValue(opt);
+                const optionLabel = getOptionLabel(opt);
+                if (!optionValue && !optionLabel) return;
+
                 const o = document.createElement('option');
-                o.value = getOptionValue(opt);
-                o.textContent = getOptionLabel(opt);
+                o.value = optionValue;
+                o.textContent = optionLabel || optionValue;
                 reasonSelect.appendChild(o);
             });
         } catch (e) {

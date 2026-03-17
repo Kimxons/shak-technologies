@@ -20,6 +20,7 @@
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
+
 <body>
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
@@ -28,7 +29,8 @@
     <div class="am-message-panel" id="amMessagePanel">
         <i class="bi bi-info-circle"></i>
         <span id="messagePanelText"></span>
-        <button type="button" class="am-message-panel__close" onclick="this.parentElement.classList.remove('show')" aria-label="Close">
+        <button type="button" class="am-message-panel__close" onclick="this.parentElement.classList.remove('show')"
+                aria-label="Close">
             <i class="bi bi-x"></i>
         </button>
     </div>
@@ -44,6 +46,10 @@
     <script type="text/javascript" src="/js/app/app-core.js"></script>
     <script type="text/javascript" src="/js/app/notificationService.js"></script>
 
+    <!-- System Utilities - used by static data modules (e.g., user code lookups) -->
+    <script type="text/javascript" src="~/js/services/system-utilities/systemUtilitiesService.js"
+            asp-append-version="true"></script>
+
     <!-- Session Expiry Monitor - Handles session re-authentication -->
     <script type="text/javascript" src="/js/session-monitor.js"></script>
 
@@ -54,8 +60,9 @@
     <script type="text/javascript" src="/js/modules/shared/searchModal.js"></script>
 
     <!-- Session Expiry Re-Authentication Modal -->
-    @Html.PartialAsync("_SessionExpiredModal")
+    @await Html.PartialAsync("_SessionExpiredModal")
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>
