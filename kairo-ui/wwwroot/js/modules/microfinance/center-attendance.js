@@ -674,6 +674,30 @@
             document.getElementById('txt_meetingPlace').value = (recordData.MeetingPlace ?? recordData.PlaceOfMeeting ?? recordData.MeetingVenue ?? '') || '';
             document.getElementById('txt_remarks').value = (recordData.Remarks ?? recordData.Remark ?? recordData.Comments ?? recordData.Comment ?? '') || '';
 
+            // If we have header data but no member rows, keep the grid empty and show feedback.
+            // (Example: Details01 has the meeting header, but Details02 is empty.)
+            if (!attendanceList.length) {
+                state.attendanceRows = [];
+                state.updateCount = pickUpdateCount(recordData, []);
+                document.getElementById('hdn_updateCount').value = state.updateCount;
+
+                renderAttendanceTable([]);
+
+                state.currentAttendance = recordData;
+                state.currentMode = 'VIEW';
+                state.editSnapshot = null;
+
+                // Revert to initial state: only View enabled.
+                // Keep the populated header visible, but do not allow edit/delete/save/cancel.
+                setCenterFieldsLocked(false);
+                setHeaderFieldsForEditMode(false);
+                setMeetingFieldsEditable(false);
+                setGridEditable(false);
+                setActionButtonsState({ canView: true, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                showWarning('There are no Members Defined for the Group');
+                return;
+            }
+
             // Normalize and store attendance rows
             for (const row of attendanceList) {
                 normalizeAttendanceRow(row);
@@ -1227,11 +1251,15 @@
                 if (status || payment) hasStatusOrPayment++;
             }
 
-            scored.push({ key, arr, score: hasClientId * 10 + hasStatusOrPayment * 5 });
+            // Only consider arrays that look like member rows.
+            // (Header/metadata arrays can be non-empty but have no ClientID.)
+            if (hasClientId > 0 || hasStatusOrPayment > 0) {
+                scored.push({ key, arr, score: hasClientId * 10 + hasStatusOrPayment * 5 });
+            }
         }
 
         scored.sort((a, b) => b.score - a.score);
-        return scored[0]?.arr || [];
+        return scored.length > 0 ? (scored[0]?.arr || []) : [];
     }
 
     function pickHeaderRecordFromResponse(data) {
