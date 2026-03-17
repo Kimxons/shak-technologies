@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
+    Layout = "_ApplicationLayout";
     // Migrated from: card-maintenance.html
     var cardProviderOptions = ViewData["CardProviderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var cardTypeOptions = ViewData["CardTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
@@ -8,6 +9,8 @@
 }
 
 <!-- CardMaintenance Submodule -->
+<main class="main-container main-container--with-panel">
+<div class="form-content">
 <div class="form-card" data-main-form>
   <!-- Card Search Section -->
   <div class="form-section" data-section="card-search">
@@ -231,5 +234,8 @@
     </div>
   </div>
 </div>
+</div>
+@await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+</main>
 
 <script type="text/javascript" src="~/js/modules/accountsmaintenance/card-maintenance.js" asp-append-version="true"></script>

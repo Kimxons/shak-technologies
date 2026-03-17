@@ -44,7 +44,8 @@
                 <div class="nav-items nav-items--card" id="nav-dataentry">
                     @foreach (Module smodule in Model.SubModules.Where(s => s.ModuleTypeID!.Equals("D", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.MenuItemOrder))
                     {
-                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.MenuURL" data-tooltip="@smodule.MenuDescription">
+                        var submoduleUrl = !string.IsNullOrEmpty(smodule.NewMenuUrl) ? smodule.NewMenuUrl : smodule.MenuURL;
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@submoduleUrl" data-tooltip="@smodule.MenuDescription">
                             <div class="sidebar-item__content">
                                 @* <i class="bi bi-file-earmark-text-fill sidebar-item__icon"></i> *@
                                 @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill sidebar-item__icon'></i>")
@@ -75,7 +76,8 @@
                 <div class="nav-items nav-items--card" id="nav-view">
                     @foreach (Module smodule in Model.SubModules.Where(s => s.ModuleTypeID!.Equals("V", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f.MenuItemOrder))
                     {
-                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@smodule.MenuURL" data-tooltip="@smodule.MenuDescription">
+                        var submoduleUrl = !string.IsNullOrEmpty(smodule.NewMenuUrl) ? smodule.NewMenuUrl : smodule.MenuURL;
+                        <div class="sidebar-item sidebar-item--enhanced" data-child-form="@submoduleUrl" data-tooltip="@smodule.MenuDescription">
                             <div class="sidebar-item__content">
                                 @* <i class="bi bi-receipt sidebar-item__icon"></i> *@
                                 @Html.Raw(smodule.ModuleIcon ?? "<i class='bi bi-file-earmark-text-fill sidebar-item__icon'></i>")

@@ -1,5 +1,6 @@
 ﻿@{
-    // No layout - this is a partial view loaded dynamically as a submodule
+    Layout = "_ApplicationLayout";
+    // Loaded as submodule in iframe
     // Migrated from: public/modules/account-maintenance/View/statement-view.html
     // Uses shared statement-view.js for consistent functionality with _StatementView.cshtml
 }
@@ -18,7 +19,7 @@
         </div>
     </div>
     
-    <main class="main-container">
+    <main class="main-container main-container--with-panel">
       <div class="form-content" role="region" aria-label="Statement View">
         <div class="form-card" data-main-form>
           <!-- Filters Section -->

@@ -1,0 +1,138 @@
+@*
+    Shared Action Panel for Account Maintenance submodules loaded in iframe.
+    Usage: @await Html.PartialAsync("_SubmoduleActionPanel", new ViewDataDictionary(ViewData) { { "PanelType", "standard" } })
+    
+    PanelTypes: standard, signatories, documents, freezerelease, chequebook, activatedormant,
+                notification, closing, blocking, transfer, viewonly, worksheet, statementview
+*@
+@{
+    var panelType = ViewData["PanelType"]?.ToString() ?? "standard";
+}
+
+<aside class="action-panel">
+    <div class="d-flex flex-column gap-2">
+        @if (panelType == "signatories")
+        {
+            <button class="btn-action" type="button" id="submoduleBtnSignature" data-action="signature"><i class="bi bi-pen me-1"></i><span>Signature</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnPhoto" data-action="photo"><i class="bi bi-camera me-1"></i><span>Photo</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnBoth" data-action="both"><i class="bi bi-collection me-1"></i><span>Both</span></button>
+            <div class="action-separator p-1"></div>
+            <button class="btn-action" type="button" id="submoduleBtnAdd" data-action="add"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnEdit" data-action="edit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave" data-action="save"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel" data-action="cancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+        else if (panelType == "documents")
+        {
+            <div class="nav-group">
+                <button class="btn-nav green" type="button" id="submoduleBtnPrev" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
+                <span>NAVIGATION</span>
+                <button class="btn-nav green" type="button" id="submoduleBtnNext" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <button class="btn-action" type="button" id="submoduleBtnShowImage"><i class="bi bi-image me-1"></i><span>Show Image</span></button>
+            <div class="action-separator p-1"></div>
+            <button class="btn-action" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnDelete"><i class="bi bi-trash3 me-1"></i><span>Delete</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnClear" style="display:none;"><i class="bi bi-eraser me-1"></i><span>Clear</span></button>
+        }
+        else if (panelType == "freezerelease")
+        {
+            <button class="btn-action" type="button" id="submoduleBtnHistory"><i class="bi bi-clock-history me-1"></i><span>History</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnRelease"><i class="bi bi-unlock me-1"></i><span>Release</span></button>
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+        else if (panelType == "chequebook")
+        {
+            <button class="btn-action" type="button" id="submoduleBtnApprove"><i class="bi bi-check-circle me-1"></i><span>Approve</span></button>
+            <button class="btn-action" type="button" id="submoduleBtnDispatch"><i class="bi bi-truck me-1"></i><span>Dispatch</span></button>
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-delete" type="button" id="submoduleBtnDelete"><i class="bi bi-trash3 me-1"></i><span>Delete</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+        else if (panelType == "activatedormant")
+        {
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+            <div class="action-separator p-1"></div>
+            <button class="btn-action" type="button" id="submoduleBtnActivate"><i class="bi bi-lightning-charge me-1"></i><span>Activate</span></button>
+        }
+        else if (panelType == "notification")
+        {
+            <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+        else if (panelType == "closing")
+        {
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+        else if (panelType == "blocking")
+        {
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+            <button class="btn-action btn-history" type="button" id="submoduleBtnHistory"><i class="bi bi-clock-history me-1"></i><span>History</span></button>
+        }
+        else if (panelType == "transfer")
+        {
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+        else if (panelType == "viewonly")
+        {
+            <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i><span>Print</span></button>
+            <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i><span>Export</span></button>
+            <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i><span>Refresh</span></button>
+        }
+        else if (panelType == "worksheet")
+        {
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i><span>Print</span></button>
+            <button class="btn-action btn-export" type="button" id="submoduleBtnExport" data-action="export"><i class="bi bi-download me-1"></i><span>Export</span></button>
+            <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i><span>Refresh</span></button>
+        }
+        else if (panelType == "statementview")
+        {
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView" data-action="view"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-print" type="button" id="submoduleBtnPrint" data-action="print"><i class="bi bi-printer me-1"></i><span>Print</span></button>
+            <button class="btn-action btn-export-excel" type="button" id="submoduleBtnExportExcel" data-action="exportExcel"><i class="bi bi-file-earmark-excel me-1"></i><span>Excel</span></button>
+            <button class="btn-action btn-export-pdf" type="button" id="submoduleBtnExportPdf" data-action="exportPdf"><i class="bi bi-file-earmark-pdf me-1"></i><span>PDF</span></button>
+            <button class="btn-action btn-reverse" type="button" id="submoduleBtnReverse" data-action="reverse"><i class="bi bi-arrow-counterclockwise me-1"></i><span>Reverse</span></button>
+            <button class="btn-action btn-refresh" type="button" id="submoduleBtnRefresh" data-action="refresh"><i class="bi bi-arrow-clockwise me-1"></i><span>Refresh</span></button>
+        }
+        else
+        {
+            @* Standard: View/Add/Edit/Delete/Save/Cancel *@
+            <button class="btn-action btn-view" type="button" id="submoduleBtnView"><i class="bi bi-eye me-1"></i><span>View</span></button>
+            <button class="btn-action btn-add" type="button" id="submoduleBtnAdd"><i class="bi bi-plus-circle me-1"></i><span>Add</span></button>
+            <button class="btn-action btn-edit" type="button" id="submoduleBtnEdit"><i class="bi bi-pencil-square me-1"></i><span>Edit</span></button>
+            <button class="btn-action btn-delete" type="button" id="submoduleBtnDelete"><i class="bi bi-trash3 me-1"></i><span>Delete</span></button>
+            <button class="btn-action btn-save" type="button" id="submoduleBtnSave"><i class="bi bi-check-lg me-1"></i><span>Save</span></button>
+            <button class="btn-action btn-cancel" type="button" id="submoduleBtnCancel"><i class="bi bi-x-circle me-1"></i><span>Cancel</span></button>
+        }
+    </div>
+    <div class="d-flex flex-column gap-2 mt-auto">
+        <button class="btn-action btn-close-submodule" type="button" id="submoduleBtnClose" data-action="close-submodule"><i class="bi bi-box-arrow-right me-1"></i><span>Close</span></button>
+    </div>
+</aside>
+
+<script type="text/javascript" src="/js/modules/shared/submodule-action-wiring.js"></script>
