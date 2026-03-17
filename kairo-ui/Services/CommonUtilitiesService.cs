@@ -5,6 +5,7 @@ using System;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace kairo_ui.Services
 {
@@ -119,6 +120,43 @@ namespace kairo_ui.Services
 
                 if (requestData.ContainsKey("AccountID") && !requestData.ContainsKey("RelevantID"))
                     requestData["RelevantID"] = requestData["AccountID"];
+
+                if (!string.IsNullOrWhiteSpace(moduleId))
+                    SetIfEmpty("ModuleID", moduleId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error ensuring defaults for Dictionary");
+            }
+        }
+
+        public void EnsureDefaults(MultipartFormDataContent requestData, string? moduleId = null)
+        {
+            if (requestData == null) return;
+
+            try
+            {
+                var userValue = ResolveSessionValue("user_name", "user_id") ?? "web_portal";
+                var branchValue = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                var bankValue = ResolveSessionValue("bank_id", "bank_code") ?? "00";
+                var createdonValue = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+
+                void SetIfEmpty(string key, object value)
+                {
+                    if (requestData.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition.Name!.Trim('"').Equals(key)))
+                    {
+                        requestData.Add(new StringContent(Convert.ToString(value)!), key);
+                    }
+                }
+
+                SetIfEmpty("OperatorID", userValue);
+                SetIfEmpty("CreatedBy", userValue);
+                SetIfEmpty("CreatedOn", createdonValue);
+                SetIfEmpty("ModifiedBy", userValue);
+                SetIfEmpty("ModifiedOn", createdonValue);
+                SetIfEmpty("OurBranchID", branchValue);
+                SetIfEmpty("BankID", bankValue);
+
 
                 if (!string.IsNullOrWhiteSpace(moduleId))
                     SetIfEmpty("ModuleID", moduleId);
