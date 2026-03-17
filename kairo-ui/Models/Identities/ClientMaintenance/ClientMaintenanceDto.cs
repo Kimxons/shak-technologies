@@ -8,8 +8,20 @@ namespace kairo_ui.Models.Identities.ClientMaintenance
         public string? ModuleID { get; set; }
         public string? ClientID { get; set; }
         public string? RequestID { get; set; }
+        public string? ClientTypeID { get; set; }
         public string? ApplicationID { get; set; }
         public int? Direction { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// Simple request for p_GetClientIdentityType stored procedure
+    /// Only sends: ClientID, OperatorID, IdentityTypeID
+    /// </summary>
+    public class GetClientIdentityTypeRequest
+    {
+        public string? ClientID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? IdentityTypeID { get; set; }
     }
 
     public class ClientMaintenanceValidateRequest : ClientMaintenanceBaseRequest

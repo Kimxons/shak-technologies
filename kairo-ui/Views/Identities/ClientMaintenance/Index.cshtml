@@ -15,10 +15,14 @@
 
         <!-- Main Form Content -->
         <div class="form-content">
-            <!-- Inline Child Form (hidden by default) -->
+
+            <!-- Inline child form overlay host for sidebar submodules -->
             <div class="child-inline" data-child-inline hidden>
                 <iframe class="child-iframe-inline" data-child-iframe title="DataEntry Submodule"></iframe>
             </div>
+
+            <!-- Persistent Alert Container (Common Notifications) -->
+            <div id="dv_AlertContainer_@moduleId" class="px-2 alert-container"></div>
 
             <div class="form-card" data-main-form>
                 <div class="section-header">
@@ -183,6 +187,7 @@
             </div>
         </div>
     </div>
+    <div class="de-loading-overlay" id="cmShellLoadingOverlay" data-cm-shell-loading-overlay hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span data-cm-shell-loading-text>Loading...</span></div></div>
 </div>
 
 <script type="text/javascript" src="~/js/modules/identities/client-maintenance/validation-utils.js?v=20260313"></script>

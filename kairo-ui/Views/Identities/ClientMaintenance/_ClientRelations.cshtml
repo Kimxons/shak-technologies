@@ -6,6 +6,7 @@
     var relationTypeOptions = ViewData["RelationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationTitleOptions = ViewData["RelationTitleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationGenderOptions = ViewData["RelationGenderOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var relationIdentificationTypeOptions = ViewData["RelationIdentificationTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
     var relationOptions = ViewData["RelationOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
 
@@ -22,34 +23,42 @@
 
         <form id="frm_clientRelations" data-relations-form autocomplete="off" novalidate>
             <h5 class="mb-4">Client Relations &amp; Beneficiaries</h5>
-
-            <div class="form-row four-col">
-                <div class="col col-span-2">
-                    <label class="label-blue" for="txt_relationClientId" id="lbl_relationClientId">Client Relation</label>
+            <input type="hidden" id="hdn_RelationRefNo" name="RelationRefNo" data-relation-field="RelationRefNo
+            " />
+            <div class="form-row">
+                <div class="form-group mx-3  col-8">
+                    <label for="txt_relationClientId" id="lbl_relationClientId">Client Relation</label>
                     <div class="kairo-control" data-kairo-control>
-                        <input id="txt_relationClientId" name="relationClientId" data-relation-field="RelatedClientID" class="bs-input-text" />
+                        <input id="txt_relationClientId" name="RelatedClientID" data-relation-field="RelatedClientID" class="bs-input-text" />
                         <input id="txt_relationClientName" class="bs-input-text" placeholder="Search Client..." readonly />
                         <button type="button" class="btn-lookup" data-relation-action="lookup" aria-label="Find client"><i class="bi bi-search"></i></button>
                     </div>
                 </div>
                 <div class="col col-span-2">
-                    <label for="ddl_relationType" id="lbl_relationType">Relation Type</label>
-                    <select id="ddl_relationType" name="relationType" data-relation-field="RelationTypeID" class="bs-select" asp-items="@(relationTypeOptions.Skip(1))"><option value="">Select type...</option></select>
+                    <label class="label-blue" for="ddl_relationType" id="lbl_relationType">Relation Type</label>
+                    <select id="ddl_relationType" name="RelationTypeID" data-relation-field="RelationTypeID" class="bs-select" asp-items="@(relationTypeOptions.Skip(1))"><option value="">Select type...</option></select>
                 </div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label for="ddl_relationTitle" id="lbl_relationTitle">Title</label><select id="ddl_relationTitle" name="relationTitle" data-relation-field="TitleID" class="bs-select" asp-items="@(relationTitleOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label for="txt_relationFirstName" id="lbl_relationFirstName">First Name</label><input id="txt_relationFirstName" name="relationFirstName" data-relation-field="FirstName" class="bs-input-text" /></div>
-                <div class="col"><label for="txt_relationMiddleName" id="lbl_relationMiddleName">Middle Name</label><input id="txt_relationMiddleName" name="relationMiddleName" data-relation-field="MiddleName" class="bs-input-text" /></div>
-                <div class="col"><label for="txt_relationLastName" id="lbl_relationLastName">Last Name</label><input id="txt_relationLastName" name="relationLastName" data-relation-field="LastName" class="bs-input-text" /></div>
+                <div class="col"><label for="ddl_relationTitle" id="lbl_relationTitle">Title</label><select id="ddl_relationTitle" name="TitleID" data-relation-field="TitleID" class="bs-select" asp-items="@(relationTitleOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="txt_relationFirstName" id="lbl_relationFirstName">First Name</label><input id="txt_relationFirstName" name="FirstName" data-relation-field="FirstName" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_relationMiddleName" id="lbl_relationMiddleName">Middle Name</label><input id="txt_relationMiddleName" name="MiddleName" data-relation-field="MiddleName" class="bs-input-text" /></div>
+                <div class="col"><label class="label-blue" for="txt_relationLastName" id="lbl_relationLastName">Last Name</label><input id="txt_relationLastName" name="LastName" data-relation-field="LastName" class="bs-input-text" /></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label for="ddl_relationGender" id="lbl_relationGender">Gender</label><select id="ddl_relationGender" name="relationGender" data-relation-field="GenderID" class="bs-select" asp-items="@(relationGenderOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_relationGender" id="lbl_relationGender">Gender</label><select id="ddl_relationGender" name="GenderID" data-relation-field="GenderID" class="bs-select" asp-items="@(relationGenderOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="ddl_relationIdentificationType" id="lbl_relationIdentificationType">Identification Type</label><select id="ddl_relationIdentificationType" name="IdentificationTypeID" data-relation-field="IdentificationTypeID" class="bs-select" asp-items="@(relationIdentificationTypeOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="txt_relationIdentificationNumber" id="lbl_relationIdentificationNumber">Identification Number</label><input id="txt_relationIdentificationNumber" name="IdentificationNo" data-relation-field="IdentificationNo" class="bs-input-text" maxlength="50" /></div>
+                <div class="col"><label class="label-blue" for="dt_relationDob" id="lbl_relationDob">Date Of Birth</label><input id="dt_relationDob" name="DateOfBirth" data-relation-field="DateOfBirth" class="bs-input-text" type="text" placeholder="dd-MMM-yyyy" /></div>
+            </div>
+
+            <div class="form-row four-col">
                 <div class="col"><label class="label-blue" for="ddl_relation" id="lbl_relation">Relation</label><select id="ddl_relation" name="relation" data-relation-field="RelationID" class="bs-select" asp-items="@(relationOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label for="txt_relationShare" id="lbl_relationShare">Share %</label><input id="txt_relationShare" name="relationShare" data-relation-field="SharePercent" class="bs-input-text" type="number" min="0" max="100" step="0.01" /></div>
-                <div class="col"><label for="txt_relationMobile" id="lbl_relationMobile">Mobile</label><input id="txt_relationMobile" name="relationMobile" data-relation-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+                <div class="col"><label class="label-blue" for="txt_relationShare" id="lbl_relationShare">Share %</label><input id="txt_relationShare" name="SharePercent" data-relation-field="SharePercent" class="bs-input-text" type="number" min="0" max="100" step="0.01" /></div>
+                <div class="col"><label for="txt_relationMobile" id="lbl_relationMobile">Mobile</label><input id="txt_relationMobile" name="Mobile" data-relation-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+                <div class="col"></div>
             </div>
         </form>
 
@@ -73,12 +82,14 @@
                         <th>ID Type/No</th>
                         <th>Share (%)</th>
                         <th>Mobile</th>
+                        <th>Date Of Birth</th>
                     </tr>
                 </thead>
                 <tbody id="tbl_clientRelationsBody"></tbody>
             </table>
         </div>
     </div>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 </div>
 
 <script type="text/javascript" src="~/js/modules/identities/client-maintenance/_clientRelations.js"></script>

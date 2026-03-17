@@ -94,7 +94,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientBasicDetails")]
-        public async Task<IActionResult> CreateClientBasicDetails([FromBody] InDataRequest<ClientBasicDetails?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientBasicDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -147,7 +147,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientBasicDetails")]
-        public async Task<IActionResult> UpdateClientBasicDetails([FromBody] InDataRequest<ClientBasicDetails?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientBasicDetails([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -263,7 +263,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientAddress")]
-        public async Task<IActionResult> CreateClientAddress([FromBody] InDataRequest<ClientMultipleAddress?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientAddress([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -316,7 +316,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientAddress")]
-        public async Task<IActionResult> UpdateClientAddress([FromBody] InDataRequest<ClientMultipleAddress?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientAddress([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -432,7 +432,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientDocuments")]
-        public async Task<IActionResult> CreateClientDocuments([FromBody] InDataRequest<ClientDocuments?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientDocuments([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -485,7 +485,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientDocuments")]
-        public async Task<IActionResult> UpdateClientDocuments([FromBody] InDataRequest<ClientDocuments?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientDocuments([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -601,7 +601,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientRelations")]
-        public async Task<IActionResult> CreateClientRelations([FromBody] InDataRequest<ClientRelations?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientRelations([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -654,7 +654,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientRelations")]
-        public async Task<IActionResult> UpdateClientRelations([FromBody] InDataRequest<ClientRelations?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientRelations([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -770,7 +770,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientEmployment")]
-        public async Task<IActionResult> CreateClientEmployment([FromBody] InDataRequest<ClientEmployment?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientEmployment([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -823,7 +823,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientEmployment")]
-        public async Task<IActionResult> UpdateClientEmployment([FromBody] InDataRequest<ClientEmployment?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientEmployment([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -939,7 +939,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientIndividual")]
-        public async Task<IActionResult> CreateClientIndividual([FromBody] InDataRequest<ClientIndividual?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientIndividual([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -992,7 +992,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientIndividual")]
-        public async Task<IActionResult> UpdateClientIndividual([FromBody] InDataRequest<ClientIndividual?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientIndividual([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -1109,7 +1109,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("CreateClientCorporate")]
-        public async Task<IActionResult> CreateClientCorporate([FromBody] InDataRequest<ClientCorporate?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> CreateClientCorporate([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -1162,7 +1162,7 @@ namespace ClientManagement.Modules.ClientMaintenance
 
         }
         [HttpPost("EditClientCorporate")]
-        public async Task<IActionResult> UpdateClientCorporate([FromBody] InDataRequest<ClientCorporate?> reqDat, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateClientCorporate([FromBody] InDataRequest<object?> reqDat, CancellationToken cancellationToken = default)
         {
             LogLevel logLevel = LogLevel.None;
             int httpStatusCode = 200;
@@ -1727,5 +1727,3 @@ namespace ClientManagement.Modules.ClientMaintenance
         }
     }
 }
-
-

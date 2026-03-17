@@ -127,6 +127,79 @@ function getRelationsViewState() {
     return window.ClientRelationsState || {};
 }
 
+function parseRelationsCandidate(candidate) {
+    if (candidate === null || candidate === undefined || candidate === '') {
+        return null;
+    }
+
+    if (typeof candidate === 'string') {
+        try {
+            return JSON.parse(candidate);
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    return candidate;
+}
+
+function extractRelationsList(response) {
+    if (!response) return [];
+
+    const candidates = [
+        response?.Details,
+        response?.data?.Details,
+        response?.data?.[0]?.Details,
+        response?.Details?.[0]?.Details,
+        response?.Data,
+        response?.data,
+        response
+    ];
+
+    for (const candidate of candidates) {
+        const parsed = parseRelationsCandidate(candidate);
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+    }
+
+    return [];
+}
+
+function getRelationsResponseCode(response) {
+    return toRelationsString(response?.ResponseCode ?? response?.responseCode);
+}
+
+function getRelationsResponseMessage(response, fallbackMessage) {
+    return response?.ResponseMessage ??
+        response?.responseMessage ??
+        response?.Message ??
+        response?.message ??
+        response?.ErrorMessage ??
+        response?.errorMessage ??
+        fallbackMessage;
+}
+
+function isRelationsResponseSuccess(response) {
+    const successFlag = response?.Success ?? response?.success;
+    if (typeof successFlag === 'boolean') {
+        return successFlag;
+    }
+
+    const responseCode = getRelationsResponseCode(response).toUpperCase();
+    if (responseCode) {
+        return responseCode === '000' || responseCode === '00' || responseCode === 'SUCCESS';
+    }
+
+    return true;
+}
+
+function isRelationsNoDataResponse(response) {
+    const responseCode = getRelationsResponseCode(response).toUpperCase();
+    const responseMessage = toRelationsString(getRelationsResponseMessage(response, ''));
+    return responseCode === 'DBEX000020' || /do not exist/i.test(responseMessage);
+}
+
 function closeRelationsView() {
     const parentWindowRef = window.parent && window.parent !== window ? window.parent : null;
     let handled = false;
@@ -202,7 +275,7 @@ function bindRelationsActionPanel(tabRoot) {
     });
 }
 
-window.initClientMaintenanceRelations = function (tabRoot, moduleId) {
+window.initClientMaintenanceRelationsTab = window.initClientMaintenanceRelations = function (tabRoot, moduleId) {
     if (!tabRoot || tabRoot.dataset.cmRelationsInitialized === 'true') return;
     tabRoot.dataset.cmRelationsInitialized = 'true';
 
@@ -221,6 +294,46 @@ window.initClientMaintenanceRelations = function (tabRoot, moduleId) {
     bindRelationsCrudStandalone(tabRoot, moduleId);
     initRelationsSearchModal(tabRoot, moduleId);
 
+    // Initialize DOB date picker
+    const dobInput = tabRoot.querySelector('#dt_relationDob');
+    if (dobInput && window.flatpickr) {
+        const monthMap = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+        const parseDOBDate = (dateStr) => {
+            if (!dateStr) return null;
+            const textMonthRegex = /^(\d{1,2})[-\/\s.,]+([a-z]{3,}?)[-\/\s.,]+(\d{4})$/i;
+            let match = dateStr.match(textMonthRegex);
+            if (match) {
+                const day = parseInt(match[1], 10);
+                const monthStr = match[2].toLowerCase().substring(0, 3);
+                const month = monthMap[monthStr];
+                const year = parseInt(match[3], 10);
+                if (!isNaN(day) && month !== undefined && !isNaN(year)) return new Date(year, month, day);
+            }
+            try {
+                const nativeDate = new Date(dateStr);
+                if (!isNaN(nativeDate.getTime())) return nativeDate;
+            } catch (_) { }
+            return null;
+        };
+        const formatDOBDate = (date) => {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${day}-${months[date.getMonth()]}-${date.getFullYear()}`;
+        };
+        window.flatpickr(dobInput, {
+            dateFormat: 'd-M-Y',
+            mode: 'single',
+            clickOpens: true,
+            allowInput: true,
+            parseDate: parseDOBDate,
+            formatDate: formatDOBDate,
+            maxDate: new Date(),
+            onReady: function (selectedDates, dateStr, instance) {
+                if (dobInput.disabled || dobInput.readOnly) instance.close();
+            }
+        });
+    }
+
     tabRoot._cmRefreshData = async () => {
         await refreshRelationsTableStandalone(tabRoot, state);
     };
@@ -232,7 +345,8 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     const state = {
         enabled: false,
         editing: null,
-        mode: 'view'
+        mode: 'view',
+        rows: []
     };
 
     const form = tabRoot.querySelector('[data-relations-form]') || tabRoot;
@@ -280,7 +394,9 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         RelationID: row.RelationID ?? '',
         RelationTypeID: row.RelationTypeID ?? row.RelationType ?? '',
         IdentificationTypeID: row.IdentificationTypeID ?? '',
+        IdentificationNumber: row.IdentificationNumber ?? row.IdentificationNo ?? '',
         IdentificationNo: row.IdentificationNo ?? row.IdentificationNumber ?? '',
+        DateOfBirth: row.DateOfBirth ?? row.DOB ?? '',
         RelationRefNo: row.RelationRefNo ?? 1,
         SharePercent: row.SharePercent ?? '',
         Name: row.Name ?? '',
@@ -300,18 +416,19 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     };
 
     const renderRelationsTable = (rows) => {
+        state.rows = Array.isArray(rows) ? rows : [];
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        (rows || []).forEach((entry, index) => {
+        state.rows.forEach((entry, index) => {
             const tr = document.createElement('tr');
             tr.dataset.index = String(index);
             tr.dataset.payload = JSON.stringify(entry);
 
             const relationLabel = getSelectLabel('[data-relation-field="RelationID"]', entry.RelationID) || entry.RelationID || '';
             const name = entry.Name || [entry.FirstName, entry.MiddleName, entry.LastName].filter(Boolean).join(' ') || '';
-            const idLabel = entry.IdentificationNo || '';
+            const idLabel = entry.IdentificationNumber || entry.IdentificationNo || '';
 
             tr.innerHTML = `
                 <td class="ps-2">${name}</td>
@@ -319,6 +436,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
                 <td>${idLabel}</td>
                 <td>${entry.SharePercent ?? ''}</td>
                 <td>${entry.Mobile ?? ''}</td>
+                <td>${entry.DateOfBirth ?? ''}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -327,7 +445,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     const refreshRelationsTable = async (requestData) => {
         const clientId = requestData?.ClientID || getRelationsClientMaintenanceCore()?.clientId || '';
         const requestIdVal = requestData?.RequestID || getRelationsClientMaintenanceCore()?.requestId || '';
-        
+
         if (!clientId && !requestIdVal) {
             renderRelationsTable([]);
             return;
@@ -340,7 +458,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             });
             const rows = normalizeRelationRows(extractList(response));
             renderRelationsTable(rows);
-            setMode(rows.length > 0 ? 'edit' : 'view');
+            setMode('view');
         } catch (error) {
             showRelationsToast(`Relations load failed - ${error.message}`, 'error');
         }
@@ -350,6 +468,8 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             if (field.type === 'checkbox') {
                 field.checked = false;
+            } else if (field._flatpickr) {
+                field._flatpickr.clear();
             } else {
                 field.value = '';
             }
@@ -375,18 +495,28 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             payload[key] = readFieldValue(field);
         });
 
+        const identificationNumber = toRelationsString(payload.IdentificationNumber ?? payload.IdentificationNo);
+        if (identificationNumber) {
+            payload.IdentificationNumber = identificationNumber;
+            payload.IdentificationNo = identificationNumber;
+        }
+
         if (state.editing) {
             payload.ID = state.editing.ID || state.editing.ClientToRelationID || null;
             payload.ClientToRelationID = state.editing.ClientToRelationID || state.editing.ID || null;
         }
 
         const context = resolveRelationsContext({}, moduleId);
-        return {
-            ModuleID: context.ModuleID,
-            ClientID: context.ClientID,
-            RequestID: context.RequestID,
-            Payload: payload
-        };
+        payload.ModuleID = context.ModuleID;
+        payload.ClientID = context.ClientID;
+        payload.RequestID = context.RequestID;
+        return payload;
+        //return {
+        //    ModuleID: context.ModuleID,
+        //    ClientID: context.ClientID,
+        //    RequestID: context.RequestID,
+        //    Payload: payload
+        //};
     };
 
     const applyRowPayload = (payload) => {
@@ -394,9 +524,19 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         form.querySelectorAll('[data-relation-field]').forEach((field) => {
             const key = field.dataset.relationField;
             if (!key) return;
-            const value = payload[key];
+            const fallbackKey = key === 'IdentificationNumber'
+                ? 'IdentificationNo'
+                : (key === 'IdentificationNo' ? 'IdentificationNumber' : '');
+            const value = payload[key] ?? (fallbackKey ? payload[fallbackKey] : undefined);
             if (field.type === 'checkbox') {
                 field.checked = Boolean(value);
+            } else if (key === 'DateOfBirth') {
+                // Use flatpickr API if available, otherwise fall back to raw value
+                if (field._flatpickr) {
+                    field._flatpickr.setDate(value || '', false);
+                } else {
+                    field.value = value ?? '';
+                }
             } else {
                 field.value = value ?? '';
             }
@@ -407,7 +547,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
         if (!relatedClientId) return false;
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
         if (!tbody) return false;
-        
+
         const rows = tbody.querySelectorAll('tr[data-payload]');
         for (const row of rows) {
             const existingPayload = JSON.parse(row.dataset.payload || '{}');
@@ -422,7 +562,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
     const calculateTotalShare = (excludeCurrentEdit = false) => {
         const tbody = table?.querySelector('tbody') || tabRoot.querySelector('#tbl_clientRelationsBody');
         if (!tbody) return 0;
-        
+
         const rows = tbody.querySelectorAll('tr[data-payload]');
         let total = 0;
         for (const row of rows) {
@@ -436,6 +576,27 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
 
     setFieldsEnabled(false);
     tabRoot._cmLoadData = (requestData) => refreshRelationsTable(requestData);
+
+    const hasRelationsRows = () => Array.isArray(state.rows) && state.rows.length > 0;
+
+    tabRoot._cmHasWorkflowData = () => hasRelationsRows();
+    tabRoot._cmHandleWorkflowStep = () => {
+        if (state.mode === 'add' || state.mode === 'edit') {
+            showRelationsToast('Relations: click Update to save the current relation before proceeding.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        if (!hasRelationsRows()) {
+            showRelationsToast('Relations: add and save at least one relation before clicking Next.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        return {
+            handled: true,
+            canNavigate: true,
+            markPersisted: true
+        };
+    };
 
     const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
     if (newBtn) newBtn.disabled = false;
@@ -451,7 +612,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             applyRowPayload(payload);
         }
         state.editing = payload || { index: row.dataset.index };
-        setMode('edit');
+        setMode('view');
         setFieldsEnabled(false);
         enableRelationsGridRowActions(tabRoot, true);
     });
@@ -512,7 +673,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
                     showRelationsToast('Select a relation to remove.', 'warning');
                     return;
                 }
-                
+
                 const confirmed = await requestRelationsConfirmation(
                     'Confirm Remove',
                     'Are you sure you want to remove this relation?'
@@ -547,7 +708,7 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
             if (mode === 'add' || mode === 'edit') {
                 const currentTotal = calculateTotalShare(mode === 'edit');
                 const newTotal = currentTotal + sharePercent;
-                
+
                 if (newTotal > 100) {
                     showRelationsToast(
                         `Total share percentage cannot exceed 100%. Current total: ${currentTotal.toFixed(2)}%, Attempting to add: ${sharePercent.toFixed(2)}%`,
@@ -579,7 +740,11 @@ function bindRelationsCrudStandalone(tabRoot, moduleId) {
                 setMode('view');
                 const newBtn = tabRoot.querySelector('[data-relation-action="new"]');
                 if (newBtn) newBtn.disabled = false;
-                await refreshRelationsTable({ ClientID: context.ClientID, RequestID: context.RequestID });
+                await refreshRelationsTable({
+                    ModuleID: request.ModuleID,
+                    ClientID: request.ClientID,
+                    RequestID: request.RequestID
+                });
             } catch (error) {
                 showRelationsToast(`Relations ${actionLabel} failed - ${error.message}`, 'error');
             }
@@ -599,41 +764,83 @@ function enableRelationsGridRowActions(tabRoot, hasSelection) {
 
 async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) {
     if (!relatedClientId) return;
-    
+
     try {
         const maintenanceCore = getRelationsClientMaintenanceCore();
         if (typeof maintenanceCore?.invokeControllerMethod !== 'function') return;
 
         const response = await maintenanceCore.invokeControllerMethod(
-            'Identities/ClientMaintenance/ClientIndividual',
+            'Identities/ClientMaintenance/Personal',
             'get',
             'POST',
             {
                 ModuleID: maintenanceCore.moduleId || '',
-                ClientID: relatedClientId
+                ClientID: relatedClientId,
+                RequestID: maintenanceCore.requestId || ''
             }
         );
-        
-        if (!response?.Success && !response?.success) return;
-        
-        const clientData = response?.Data || response?.data || response?.Payload || {};
-        
+
+        if (!isRelationsResponseSuccess(response) && !isRelationsNoDataResponse(response)) return;
+
+        const personalRows = extractRelationsList(response);
+        const clientData = (Array.isArray(personalRows) && personalRows.length > 0)
+            ? (personalRows[0] || {})
+            : (response?.Data || response?.data || response?.Payload || response || {});
+
+        if (!clientData || typeof clientData !== 'object') return;
+
+        const formatDate = window.GlobalUtils?.formatDate;
+
+        const titleField = tabRoot.querySelector('[data-relation-field="TitleID"]');
         const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
         const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
         const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
         const genderField = tabRoot.querySelector('[data-relation-field="GenderID"]');
         const clientNameField = tabRoot.querySelector('#txt_relationClientName');
-        
+
+
+        const identificationTypeField = tabRoot.querySelector('[data-relation-field="IdentificationTypeID"]');
+        const identificationNoField = tabRoot.querySelector('[data-relation-field="IdentificationNo"]');
+        const dobField = tabRoot.querySelector('[data-relation-field="DateOfBirth"]');
+        const mobileField = tabRoot.querySelector('[data-relation-field="Mobile"]');
+
         if (firstNameField && clientData.FirstName) firstNameField.value = clientData.FirstName;
         if (middleNameField && clientData.MiddleName) middleNameField.value = clientData.MiddleName;
         if (lastNameField && clientData.LastName) lastNameField.value = clientData.LastName;
         if (genderField && clientData.GenderID) genderField.value = clientData.GenderID;
-        
+
+        const title = clientData.TitleID ?? '';
+        const identificationType = clientData.IdentificationTypeID ?? clientData.IdentificationTypeiD ?? '';
+        const identificationNo = clientData.IdentificationNo ?? clientData.PassportNo ?? '';
+        const dateOfBirth = clientData.DateOfBirth ?? clientData.DOB ?? '';
+        const mobile = clientData.Mobile ?? clientData.Phone1 ?? '';
+
+        if (titleField && title) titleField.value = title;
+        if (identificationTypeField && identificationType) identificationTypeField.value = identificationType;
+        if (identificationNoField) identificationNoField.value = identificationNo || '';
+        if (dobField) {
+            if (dateOfBirth && typeof formatDate === 'function') {
+                dobField.value = formatDate(dateOfBirth);
+            } else {
+                dobField.value = dateOfBirth || '';
+            }
+        }
+        if (mobileField) mobileField.value = mobile || '';
+
         if (clientNameField) {
             const name = [clientData.FirstName, clientData.MiddleName, clientData.LastName]
-                .filter(Boolean).join(' ') || clientData.Name || '';
+                .filter(Boolean).join(' ') || clientData.Name || clientData.ClientName || '';
             clientNameField.value = name;
         }
+
+        // Lock fetched personal fields so user cannot change them
+        const fieldsToDisbale = [titleField, firstNameField, middleNameField, lastNameField, genderField, identificationTypeField, identificationNoField, dobField];
+        fieldsToDisbale.forEach((field) => {
+            if (field) {
+                field.disabled = true;
+                field.readOnly = true;
+            }
+        });
     } catch (error) {
         console.warn('[Relations] Failed to hydrate from related client ID:', error);
     }
@@ -641,7 +848,7 @@ async function hydrateRelationFormFromRelatedClientId(tabRoot, relatedClientId) 
 
 function initRelationsSearchModal(tabRoot, moduleId) {
     if (!tabRoot) return;
-    
+
     const searchBtn = tabRoot.querySelector('[data-relation-action="lookup"]');
     if (!searchBtn) return;
 
@@ -650,21 +857,58 @@ function initRelationsSearchModal(tabRoot, moduleId) {
         console.warn('[Relations] AppCore not available for SearchModal');
         return;
     }
-    
+
     let searchModal = window._relationsSearchModal;
     if (!searchModal && window.SearchModal) {
         searchModal = new window.SearchModal(appCore);
         window._relationsSearchModal = searchModal;
     }
-    
+
     if (!searchModal) {
         console.warn('[Relations] SearchModal not available');
         return;
     }
-    
+
+    const clientNameField = tabRoot.querySelector('#txt_relationClientName');
+    const lookupIdDescription = window.ClientMaintenanceCore?.lookupIdDescription;
+    let relationLookupInFlight = false;
+
+    const autoLoadRelatedClientNameFromId = async (relatedClientId) => {
+        const typedClientId = String(relatedClientId || '').trim();
+        if (!typedClientId) {
+            if (clientNameField) clientNameField.value = '';
+            return;
+        }
+
+        if (relationLookupInFlight || typeof lookupIdDescription !== 'function') {
+            return;
+        }
+
+        relationLookupInFlight = true;
+        try {
+            const result = await lookupIdDescription({
+                controlTypeId: 'ClientID',
+                id: typedClientId,
+                bankId: '00',
+                typeId: '',
+                advanceFilter: '',
+                moduleId: String(moduleId || window.ClientMaintenanceCore?.moduleId || ''),
+                descriptionFieldCandidates: ['Name', 'ClientName', 'FullName']
+            });
+
+            if (clientNameField) {
+                clientNameField.value = result?.description || '';
+            }
+        } catch (error) {
+            console.warn('[Relations] Failed to auto-load related client name from ID:', error);
+        } finally {
+            relationLookupInFlight = false;
+        }
+    };
+
     const openSearchModal = () => {
         const currentValue = tabRoot.querySelector('[data-relation-field="RelatedClientID"]')?.value || '';
-        
+
         searchModal.open({
             title: 'Find Related Client',
             tableID: 'ClientID',
@@ -684,39 +928,49 @@ function initRelationsSearchModal(tabRoot, moduleId) {
                 if (clientNameField) {
                     clientNameField.value = record.Name || '';
                 }
-                
+
                 const firstNameField = tabRoot.querySelector('[data-relation-field="FirstName"]');
                 const middleNameField = tabRoot.querySelector('[data-relation-field="MiddleName"]');
                 const lastNameField = tabRoot.querySelector('[data-relation-field="LastName"]');
                 const genderField = tabRoot.querySelector('[data-relation-field="GenderID"]');
-                
+
                 if (firstNameField) firstNameField.value = record.FirstName || '';
                 if (middleNameField) middleNameField.value = record.MiddleName || '';
                 if (lastNameField) lastNameField.value = record.LastName || '';
                 if (genderField) genderField.value = record.GenderID || '';
 
                 const selectedId = record.ClientID || '';
+                console.log(selectedId);
                 if (selectedId) {
                     await hydrateRelationFormFromRelatedClientId(tabRoot, selectedId);
                 }
             }
         });
     };
-    
+
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
         openSearchModal();
     });
-    
+
     const clientIdField = tabRoot.querySelector('[data-relation-field="RelatedClientID"]');
     if (clientIdField) {
         clientIdField.addEventListener('blur', async (e) => {
-            const value = e.target.value?.trim();
-            if (value) {
-                await hydrateRelationFormFromRelatedClientId(tabRoot, value);
+            const relatedTarget = e.relatedTarget;
+            if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-relation-action="lookup"]')) {
+                return;
             }
+
+            const value = e.target.value?.trim();
+            if (!value) {
+                if (clientNameField) clientNameField.value = '';
+                return;
+            }
+
+            await autoLoadRelatedClientNameFromId(value);
+            await hydrateRelationFormFromRelatedClientId(tabRoot, value);
         });
-        
+
         clientIdField.addEventListener('keydown', (e) => {
             if (e.key === 'F2') {
                 e.preventDefault();
@@ -729,7 +983,7 @@ function initRelationsSearchModal(tabRoot, moduleId) {
 async function refreshRelationsTableStandalone(tabRoot, state) {
     if (!tabRoot) return;
     const context = resolveRelationsContext({}, state.ModuleID);
-    
+
     const requestData = {
         ModuleID: context.ModuleID,
         ClientID: context.ClientID,
@@ -752,10 +1006,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (viewState.AutoLoad && viewState.ClientID) {
             setTimeout(() => {
                 if (moduleRoot._cmLoadData) {
-                    moduleRoot._cmLoadData({ 
-                        ClientID: viewState.ClientID, 
+                    moduleRoot._cmLoadData({
+                        ClientID: viewState.ClientID,
                         RequestID: viewState.RequestID,
-                        ModuleID: moduleId 
+                        ModuleID: moduleId
                     });
                 }
             }, 100);

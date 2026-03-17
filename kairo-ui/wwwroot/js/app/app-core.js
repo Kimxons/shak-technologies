@@ -809,6 +809,100 @@
         }
     }
 
+
+    function showInlineAlert(message, variant) {
+        // Target the persistent container at the top of form-content
+        const container = document.getElementsByClassName('alert-container');
+
+        if (!container) {
+            // Fallback for submodules or cases where the main container is missing
+            if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+                window.AppCore.showNotification(message, variant);
+            } else {
+                console.log(`[${variant.toUpperCase()}] ${message}`);
+            }
+            return;
+        }
+
+        // Remove existing alerts to prevent stacking multiple banners
+        container.innerHTML = '';
+
+        const alertDiv = document.createElement('div');
+        const alertClass = variant === 'success' ? 'alert-success' :
+            variant === 'error' ? 'alert-danger' :
+                variant === 'warning' ? 'alert-warning' : 'alert-info';
+
+        const iconClass = variant === 'success' ? 'bi-check-circle' :
+            variant === 'error' ? 'bi-exclamation-octagon' :
+                variant === 'warning' ? 'bi-exclamation-triangle' : 'bi-info-circle';
+
+        alertDiv.className = `alert ${alertClass} fade show kairo-inline-alert`;
+        alertDiv.role = 'alert';
+        alertDiv.style.marginTop = '8px';
+        alertDiv.style.marginBottom = '8px';
+        alertDiv.style.padding = '0.35rem 0.75rem'; // Narrow strip style
+        alertDiv.style.display = 'flex';
+        alertDiv.style.alignItems = 'center';
+        alertDiv.style.borderWidth = '1px';
+        alertDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+        alertDiv.style.minHeight = 'auto';
+
+        alertDiv.innerHTML = `
+            <i class="bi ${iconClass} me-2" style="font-size: 1.1rem;"></i>
+            <div style="font-weight: 600; font-size: 13px; line-height: 1.2; flex: 1;">${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.5rem; font-size: 0.65rem; margin: 0;"></button>
+        `;
+
+        // Insert into container
+        container.appendChild(alertDiv);
+
+        // AUTO-DISMISS REMOVED: Banner stays until user clicks 'X'.
+    }
+
+    // Helper notification functions to resolve ReferenceErrors
+    function showSystemToast(message, options = {}) {
+        const variant = options && options.variant ? options.variant : 'info';
+
+        if (options.useInlineAlert) {
+            // Check if we already have this same message displayed to avoid duplicate banners
+            const container = document.getElementsByClassName('alert-container');
+            if (container && container.innerText.includes(message)) {
+                console.log(`[Notification] Skipping duplicate alert: ${message}`);
+                return;
+            }
+            showInlineAlert(message, variant);
+            return; // Explicitly return to prevent the bubble from also appearing
+        }
+
+        if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
+            window.AppCore.showNotification(message, variant);
+            return;
+        }
+
+        // 3. Fallback: Try global toastr if available
+        if (window.toastr && typeof window.toastr[variant] === 'function') {
+            window.toastr[variant](message);
+            return;
+        }
+
+        // 4. Last resort - Centralized NotificationService (Client 360 style)
+        if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
+            window.NotificationService.showToast(message, variant);
+            return;
+        }
+
+        // 4. Final Fallback to console
+        console.log(`[${variant.toUpperCase()}] ${message}`);
+
+        // rudimentary fallback
+        if (variant === 'error') {
+            alert(`Error: ${message}`);
+        }
+    }
+
+    function showErrorMessage(message, options = {}) {
+        showSystemToast(message, { ...options, variant: 'error' });
+    }
     /**
      * Check if user is authenticated
      * @returns {boolean} True if user appears to be authenticated
@@ -865,7 +959,8 @@
      * @param {string} [options.input.value] - Initial input value
      * @param {boolean} [options.input.required] - Whether input is required
      * @param {number} [options.input.maxLength] - Maximum input length
-     * @param {Object} [options.config] - Additional configuration
+    * @param {string} [options.contentHtml] - Optional trusted HTML content for the dialog body
+    * @param {Object} [options.config] - Additional configuration
      * @param {boolean} [options.config.backdrop] - Show backdrop (default: true)
      * @param {boolean} [options.config.keyboard] - Allow keyboard dismiss (default: false)
      * @param {boolean} [options.config.focus] - Auto-focus input (default: true)
@@ -914,6 +1009,7 @@
                 dialogId = `appcore-dialog-${Date.now()}`,
                 buttons = null,
                 input = null,
+                contentHtml = '',
                 config = {}
             } = options;
 
@@ -926,8 +1022,8 @@
             // Build dialog HTML based on type
             const modalSize = config.size || 'md';
             const modalSizeClass = modalSize !== 'md' ? `modal-${modalSize}` : '';
-            
-            let dialogContent = buildDialogContent(type, message, input);
+
+            let dialogContent = buildDialogContent(type, message, input, contentHtml);
             let dialogButtons = buildDialogButtons(type, buttons);
 
             // Create modal HTML
@@ -988,15 +1084,19 @@
     /**
      * Build dialog content based on type
      */
-    function buildDialogContent(type, message, input) {
-        let content = `<p>${escapeHtml(message)}</p>`;
+    function buildDialogContent(type, message, input, contentHtml) {
+        let content = contentHtml || `<p>${escapeHtml(message)}</p>`;
+
+        if (contentHtml) {
+            return content;
+        }
 
         if (type === 'prompt' && input) {
             const placeholder = input.placeholder || '';
             const value = input.value || '';
             const maxLength = input.maxLength ? `maxlength="${input.maxLength}"` : '';
             const required = input.required ? 'required' : '';
-            
+
             content += `
                 <div class="mt-3">
                     <input type="text" class="form-control" id="dialog-input" 
@@ -1010,7 +1110,7 @@
             const value = input.value || '';
             const maxLength = input.maxLength ? `maxlength="${input.maxLength}"` : '';
             const required = input.required ? 'required' : '';
-            
+
             content += `
                 <div class="mt-3">
                     <textarea class="form-control" id="dialog-input" rows="4" 
@@ -1041,20 +1141,20 @@
         switch (type) {
             case 'alert':
                 return '<button type="button" class="btn btn-primary" data-dialog-action="ok">OK</button>';
-            
+
             case 'confirmation':
                 return `
                     <button type="button" class="btn btn-outline-secondary" data-dialog-action="cancel">Cancel</button>
                     <button type="button" class="btn btn-primary" data-dialog-action="confirm">Confirm</button>
                 `;
-            
+
             case 'prompt':
             case 'remarks':
                 return `
                     <button type="button" class="btn btn-outline-secondary" data-dialog-action="cancel">Cancel</button>
                     <button type="button" class="btn btn-primary" data-dialog-action="submit">Submit</button>
                 `;
-            
+
             default:
                 return '<button type="button" class="btn btn-primary" data-dialog-action="ok">OK</button>';
         }
@@ -1086,16 +1186,16 @@
                     // Custom button handler
                     const btnIndex = parseInt(action);
                     const btnConfig = customButtons.list[btnIndex];
-                    
+
                     let result = btnConfig.value !== undefined ? btnConfig.value : null;
-                    
+
                     // If button has a custom handler, call it
                     if (typeof btnConfig.handler === 'function') {
                         const handlerResult = await btnConfig.handler(inputField?.value);
                         if (handlerResult === false) return; // Don't close if handler returns false
                         result = handlerResult !== undefined ? handlerResult : result;
                     }
-                    
+
                     bsModal.hide();
                     resolve(result);
                 } else {
@@ -1106,7 +1206,7 @@
                             bsModal.hide();
                             resolve(true);
                             break;
-                        
+
                         case 'submit':
                             if (inputField) {
                                 if (inputField.hasAttribute('required') && !inputField.value.trim()) {
@@ -1120,7 +1220,7 @@
                                 resolve(true);
                             }
                             break;
-                        
+
                         case 'cancel':
                         default:
                             bsModal.hide();

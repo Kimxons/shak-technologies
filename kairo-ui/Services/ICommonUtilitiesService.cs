@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Nodes;
 
 namespace kairo_ui.Services
 {
@@ -23,6 +24,13 @@ namespace kairo_ui.Services
         /// <param name="moduleId">Optional module ID to set as default if available</param>
         /// <returns>The request data object with defaults applied</returns>
         void EnsureDefaults<T>(T requestData, string? moduleId = null) where T : class;
-        void EnsureDefaults(System.Collections.Generic.Dictionary<string, object> requestData, string? moduleId = null);
+        void EnsureDefaults(Dictionary<string, object> requestData, string? moduleId = null);
+        string? ResolveSessionValue(params string[] keys);
+        Dictionary<string, object> EnrichDefaults(Dictionary<string, object> requestData, params KeyValuePair<string, object>[] defaultValues);
+        long? ResolveRequestDataLong(JsonNode? requestData, params string[] keys);
+        short? ResolveRequestDataShort(JsonNode? requestData, params string[] keys);
+        string? ResolveRequestDataString(JsonNode? requestData, params string[] keys);
+        DateTime? ResolveRequestDataDateTime(JsonNode? requestData, params string[] keys);
+        bool? ResolveRequestDataBool(JsonNode? requestData, params string[] keys);
     }
 }

@@ -30,45 +30,45 @@
             <div class="form-row four-col">
                 <div class="col">
                     <label class="label-blue" for="ddl_addressType" id="lbl_addressType">Address Type</label>
-                    <select id="ddl_addressType" name="addressType" data-address-field="AddressTypeID" class="bs-select" asp-items="@(addressTypeOptions.Skip(1))">
+                    <select id="ddl_addressType" name="AddressTypeID" data-address-field="AddressTypeID" class="bs-select" asp-items="@(addressTypeOptions.Skip(1))">
                         <option value="">Select...</option>
                     </select>
                 </div>
                 <div class="col">
                     <label class="label-blue" for="chk_addressIsMailing" id="lbl_addressIsMailing">Mailing Address?</label>
                     <div class="bs-field bs-inline pt-1">
-                        <input type="checkbox" class="bs-checkbox" id="chk_addressIsMailing" name="addressIsMailing" data-address-field="IsMailingAddress" />
+                        <input type="checkbox" class="bs-checkbox" id="chk_addressIsMailing" name="IsMailingAddress" data-address-field="IsMailingAddress" />
                         <label class="bs-label" for="chk_addressIsMailing">Use for Mailing</label>
                     </div>
                 </div>
-                <div class="col"><label class="label-blue" for="txt_addressLine1" id="lbl_addressLine1">Address 1</label><input id="txt_addressLine1" name="addressLine1" data-address-field="Address1" class="bs-input-text" /></div>
-                <div class="col"><label for="txt_addressLine2" id="lbl_addressLine2">Address 2</label><input id="txt_addressLine2" name="addressLine2" data-address-field="Address2" class="bs-input-text" /></div>
+                <div class="col"><label class="label-blue" for="txt_addressLine1" id="lbl_addressLine1">Address 1</label><input id="txt_addressLine1" name="Address1" data-address-field="Address1" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_addressLine2" id="lbl_addressLine2">Address 2</label><input id="txt_addressLine2" name="Address2" data-address-field="Address2" class="bs-input-text" /></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label class="label-blue" for="ddl_addressCountry" id="lbl_addressCountry">Country</label><select id="ddl_addressCountry" name="addressCountry" data-address-field="CountryID" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="addressCity" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label class="label-blue" for="ddl_addressRegion" id="lbl_addressRegion">Region</label><select id="ddl_addressRegion" name="addressRegion" data-address-field="Region" class="bs-select" asp-items="@(regionOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label class="label-blue" for="ddl_addressSubCity" id="lbl_addressSubCity">Sub-City / Zone</label><select id="ddl_addressSubCity" name="addressSubCity" data-address-field="SubCityZone" class="bs-select" asp-items="@(subCityOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_addressCountry" id="lbl_addressCountry">Country</label><select id="ddl_addressCountry" name="CountryID" data-address-field="CountryID" class="bs-select" asp-items="@(countryOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_addressCity" id="lbl_addressCity">City</label><select id="ddl_addressCity" name="CityID" data-address-field="CityID" class="bs-select" asp-items="@(cityOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_addressRegion" id="lbl_addressRegion">Region</label><select id="ddl_addressRegion" name="RegionID" data-address-field="RegionID" class="bs-select" asp-items="@(regionOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label class="label-blue" for="ddl_addressSubCity" id="lbl_addressSubCity">Sub-City / Zone</label><select id="ddl_addressSubCity" name="SubCityID" data-address-field="SubCityID" class="bs-select" asp-items="@(subCityOptions.Skip(1))"><option value="">Select...</option></select></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label class="label-blue" for="txt_addressWereda" id="lbl_addressWereda">Wereda</label><input id="txt_addressWereda" name="addressWereda" data-address-field="Wereda" class="bs-input-text" /></div>
-                <div class="col"><label class="label-blue" for="txt_addressKebele" id="lbl_addressKebele">Kebele</label><input id="txt_addressKebele" name="addressKebele" data-address-field="Kebele" class="bs-input-text" /></div>
-                <div class="col"><label class="label-blue" for="txt_addressHouseNo" id="lbl_addressHouseNo">House Number</label><input id="txt_addressHouseNo" name="addressHouseNo" data-address-field="HouseNumber" class="bs-input-text" /></div>
-                <div class="col"><label for="txt_addressZipCode" id="lbl_addressZipCode">Zip Code</label><input id="txt_addressZipCode" name="addressZipCode" data-address-field="ZipCode" class="bs-input-text" /></div>
+                <div class="col"><label class="label-blue" for="txt_addressWereda" id="lbl_addressWereda">Wereda</label><input id="txt_addressWereda" name="Wereda" data-address-field="Wereda" class="bs-input-text" /></div>
+                <div class="col"><label class="label-blue" for="txt_addressKebele" id="lbl_addressKebele">Kebele</label><input id="txt_addressKebele" name="Kebele" data-address-field="Kebele" class="bs-input-text" /></div>
+                <div class="col"><label class="label-blue" for="txt_addressHouseNo" id="lbl_addressHouseNo">House Number</label><input id="txt_addressHouseNo" name="HouseNo" data-address-field="HouseNo" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_addressZipCode" id="lbl_addressZipCode">Zip Code</label><input id="txt_addressZipCode" name="ZipCode" data-address-field="ZipCode" class="bs-input-text" /></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label for="ddl_addressLanguage" id="lbl_addressLanguage">Language</label><select id="ddl_addressLanguage" name="addressLanguage" data-address-field="Language" class="bs-select" asp-items="@(languageOptions.Skip(1))"><option value="">Select...</option></select></div>
-                <div class="col"><label for="txt_addressLandMark" id="lbl_addressLandMark">Landmark</label><input id="txt_addressLandMark" name="addressLandMark" data-address-field="LandMark" class="bs-input-text" /></div>
-                <div class="col"><label for="txt_addressPhoneWork" id="lbl_addressPhoneWork">Phone (Work)</label><input id="txt_addressPhoneWork" name="addressPhoneWork" data-address-field="PhoneWork" class="bs-input-text" maxlength="15" /></div>
-                <div class="col"><label for="txt_addressPhoneHome" id="lbl_addressPhoneHome">Phone (Home)</label><input id="txt_addressPhoneHome" name="addressPhoneHome" data-address-field="PhoneHome" class="bs-input-text" maxlength="15" /></div>
+                <div class="col"><label for="ddl_addressLanguage" id="lbl_addressLanguage">Language</label><select id="ddl_addressLanguage" name="Language" data-address-field="Language" class="bs-select" asp-items="@(languageOptions.Skip(1))"><option value="">Select...</option></select></div>
+                <div class="col"><label for="txt_addressLandMark" id="lbl_addressLandMark">Landmark</label><input id="txt_addressLandMark" name="LandMark" data-address-field="LandMark" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_addressPhoneWork" id="lbl_addressPhoneWork">Phone (Work)</label><input id="txt_addressPhoneWork" name="Phone1" data-address-field="Phone1" class="bs-input-text" maxlength="15" /></div>
+                <div class="col"><label for="txt_addressPhoneHome" id="lbl_addressPhoneHome">Phone (Home)</label><input id="txt_addressPhoneHome" name="Phone2" data-address-field="Phone2" class="bs-input-text" maxlength="15" /></div>
             </div>
 
             <div class="form-row four-col">
-                <div class="col"><label for="txt_addressMobile" id="lbl_addressMobile">Mobile</label><input id="txt_addressMobile" name="addressMobile" data-address-field="Mobile" class="bs-input-text" maxlength="15" /></div>
-                <div class="col"><label for="txt_addressEmail" id="lbl_addressEmail">Email</label><input id="txt_addressEmail" name="addressEmail" data-address-field="Email" class="bs-input-text" /></div>
+                <div class="col"><label for="txt_addressMobile" id="lbl_addressMobile">Mobile</label><input id="txt_addressMobile" name="Mobile" data-address-field="Mobile" class="bs-input-text" maxlength="15" /></div>
+                <div class="col"><label for="txt_addressEmail" id="lbl_addressEmail">Email</label><input id="txt_addressEmail" name="Email" data-address-field="Email" class="bs-input-text" /></div>
                 <div class="col"></div>
                 <div class="col"></div>
             </div>
@@ -102,6 +102,7 @@
             </table>
         </div>
     </div>
+    <div class="de-loading-overlay" id="loadingOverlay" hidden><div class="de-loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading...</span></div></div>
 </div>
 
 <script>
@@ -115,4 +116,4 @@
     };
 </script>
 
-<script type="text/javascript" src="~/js/modules/identities/client-maintenance/_clientAddress.js"></script>
+<script type="text/javascript" src="~/js/modules/identities/client-maintenance/_clientAddress.js" asp-append-version="true"></script>

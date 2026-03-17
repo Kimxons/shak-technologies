@@ -133,8 +133,10 @@ window.initClientMaintenanceCorporateTab = function (tabRoot, moduleId) {
 function initCorporateGlLookup(tabRoot, moduleId) {
     if (!tabRoot) return;
 
+    const idField = tabRoot.querySelector('#txt_corporateReportingGL');
+    const nameField = tabRoot.querySelector('#txt_corporateReportingGLName');
     const searchBtn = tabRoot.querySelector('[data-corporate-action="lookup-gl"]');
-    if (!searchBtn) return;
+    if (!searchBtn || !idField || !nameField) return;
 
     const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
     if (!appCore || !window.SearchModal) {
@@ -148,9 +150,65 @@ function initCorporateGlLookup(tabRoot, moduleId) {
         window._corporateGlSearchModal = searchModal;
     }
 
+    const setGlFields = (record) => {
+        const accountId = record?.AccountID || record?.GLAccountID || record?.ID || '';
+        const accountName = record?.Description || record?.AccountName || record?.ShortName || record?.Name || '';
+
+        idField.value = accountId;
+        nameField.value = accountName;
+    };
+
+    let glLookupInFlight = false;
+
+    const autoLoadGlNameFromId = async () => {
+        const typedAccountId = String(idField.value || '').trim();
+        if (!typedAccountId) {
+            nameField.value = '';
+            return;
+        }
+
+        if (idField.readOnly || idField.disabled || glLookupInFlight) {
+            return;
+        }
+
+        const lookupIdDescription = window.ClientMaintenanceCore?.lookupIdDescription;
+        if (typeof lookupIdDescription !== 'function') {
+            return;
+        }
+
+        glLookupInFlight = true;
+        try {
+            const result = await lookupIdDescription({
+                controlTypeId: 'GeneralLedgerID',
+                id: typedAccountId,
+                bankId: '00',
+                typeId: '',
+                advanceFilter: '',
+                moduleId: String(moduleId || window.ClientMaintenanceCore?.moduleId || ''),
+                descriptionFieldCandidates: ['Description', 'AccountName', 'ShortName', 'Name']
+            });
+
+            const record = result?.record;
+            if (!record) {
+                nameField.value = '';
+                return;
+            }
+
+            setGlFields(record);
+
+            if (!String(idField.value || '').trim()) {
+                idField.value = typedAccountId;
+            }
+        } catch (error) {
+            console.warn('[Corporate] Failed to auto-load GL description from ID:', error);
+        } finally {
+            glLookupInFlight = false;
+        }
+    };
+
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const currentValue = tabRoot.querySelector('#txt_corporateReportingGL')?.value || '';
+        const currentValue = idField.value || '';
 
         searchModal.open({
             title: 'Find GL Account',
@@ -162,23 +220,35 @@ function initCorporateGlLookup(tabRoot, moduleId) {
             ],
             autoSearch: false,
             onSelect: (record) => {
-                const accountId = record?.AccountID || record?.GLAccountID || '';
-                const accountName = record?.Description || record?.AccountName || record?.ShortName || '';
-
-                const idField = tabRoot.querySelector('#txt_corporateReportingGL');
-                const nameField = tabRoot.querySelector('#txt_corporateReportingGLName');
-                if (idField) idField.value = accountId;
-                if (nameField) nameField.value = accountName;
+                setGlFields(record);
             }
         });
+    });
+
+    idField.addEventListener('blur', (e) => {
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-corporate-action="lookup-gl"]')) {
+            return;
+        }
+
+        void autoLoadGlNameFromId();
+    });
+
+    idField.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+            e.preventDefault();
+            searchBtn.click();
+        }
     });
 }
 
 function initCorporateUserLookup(tabRoot, moduleId) {
     if (!tabRoot) return;
 
+    const idField = tabRoot.querySelector('#txt_corporateOpenedBy');
+    const nameField = tabRoot.querySelector('#txt_corporateOpenedByName');
     const searchBtn = tabRoot.querySelector('[data-corporate-action="lookup-opened-by"]');
-    if (!searchBtn) return;
+    if (!searchBtn || !idField || !nameField) return;
 
     const appCore = window.ClientMaintenanceCore?.getAppCore?.() || window.AppCore;
     if (!appCore || !window.SearchModal) {
@@ -192,9 +262,65 @@ function initCorporateUserLookup(tabRoot, moduleId) {
         window._corporateOpenedBySearchModal = searchModal;
     }
 
+    const setOpenedByFields = (record) => {
+        const userId = record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || '';
+        const userName = record?.ClientName || record?.Name || record?.UserName || record?.FullName || '';
+
+        idField.value = userId;
+        nameField.value = userName;
+    };
+
+    let openedByLookupInFlight = false;
+
+    const autoLoadOpenedByNameFromId = async () => {
+        const typedOperatorId = String(idField.value || '').trim();
+        if (!typedOperatorId) {
+            nameField.value = '';
+            return;
+        }
+
+        if (idField.readOnly || idField.disabled || openedByLookupInFlight) {
+            return;
+        }
+
+        const lookupIdDescription = window.ClientMaintenanceCore?.lookupIdDescription;
+        if (typeof lookupIdDescription !== 'function') {
+            return;
+        }
+
+        openedByLookupInFlight = true;
+        try {
+            const result = await lookupIdDescription({
+                controlTypeId: 'OperatorID',
+                id: typedOperatorId,
+                bankId: '00',
+                typeId: '',
+                advanceFilter: '',
+                moduleId: String(moduleId || window.ClientMaintenanceCore?.moduleId || ''),
+                descriptionFieldCandidates: ['ClientName', 'Name', 'UserName', 'FullName']
+            });
+
+            const record = result?.record;
+            if (!record) {
+                nameField.value = '';
+                return;
+            }
+
+            setOpenedByFields(record);
+
+            if (!String(idField.value || '').trim()) {
+                idField.value = typedOperatorId;
+            }
+        } catch (error) {
+            console.warn('[Corporate] Failed to auto-load Opened By name from ID:', error);
+        } finally {
+            openedByLookupInFlight = false;
+        }
+    };
+
     searchBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const currentValue = tabRoot.querySelector('#txt_corporateOpenedBy')?.value || '';
+        const currentValue = idField.value || '';
 
         searchModal.open({
             title: 'Find User',
@@ -206,14 +332,24 @@ function initCorporateUserLookup(tabRoot, moduleId) {
             ],
             autoSearch: false,
             onSelect: (record) => {
-                const userId = record?.OperatorID || record?.LoginID || record?.UserID || record?.UserId || '';
-                const userName = record?.ClientName || record?.Name || record?.UserName || record?.FullName || '';
-
-                const idField = tabRoot.querySelector('#txt_corporateOpenedBy');
-                const nameField = tabRoot.querySelector('#txt_corporateOpenedByName');
-                if (idField) idField.value = userId;
-                if (nameField) nameField.value = userName;
+                setOpenedByFields(record);
             }
         });
+    });
+
+    idField.addEventListener('blur', (e) => {
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget instanceof HTMLElement && relatedTarget.matches('[data-corporate-action="lookup-opened-by"]')) {
+            return;
+        }
+
+        void autoLoadOpenedByNameFromId();
+    });
+
+    idField.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') {
+            e.preventDefault();
+            searchBtn.click();
+        }
     });
 }

@@ -45,25 +45,17 @@ namespace kairo_ui.Controllers.AccountUtilities
                 {
                     var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                     {
-                        "CityID",
-                        "SITransferTypeID",
-                        "ChargeRecoveryID"
+                        "CityID"
                     });
 
                     dropdownOptions.TryGetValue("CityID", out var cityOptions);
-                    dropdownOptions.TryGetValue("SITransferTypeID", out var siTransferTypeOptions);
-                    dropdownOptions.TryGetValue("ChargeRecoveryID", out var chargeRecoveryOptions);
 
                     ViewData["CityOptions"] = cityOptions ?? Enumerable.Empty<SelectListItem>();
-                    ViewData["SITransferTypeOptions"] = siTransferTypeOptions ?? Enumerable.Empty<SelectListItem>();
-                    ViewData["ChargeRecoveryOptions"] = chargeRecoveryOptions ?? Enumerable.Empty<SelectListItem>();
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error loading StandingInstructionDemandDraft dropdown options");
                     ViewData["CityOptions"] = Enumerable.Empty<SelectListItem>();
-                    ViewData["SITransferTypeOptions"] = Enumerable.Empty<SelectListItem>();
-                    ViewData["ChargeRecoveryOptions"] = Enumerable.Empty<SelectListItem>();
                 }
 
                 return PartialView("StandingInstructionDemandDraft");
@@ -72,6 +64,34 @@ namespace kairo_ui.Controllers.AccountUtilities
             {
                 _logger.LogError(ex, "Error loading Standing Instruction Demand Draft");
                 return RedirectToAction("Index", "Dashboard");
+            }
+        }
+
+        [HttpGet]
+        [Route("StandingInstructionDemandDraft/get-dropdown-options")]
+        public async Task<IActionResult> GetSIDemandDraftDropdownOptions([FromQuery] string codeId, [FromQuery] string? valueField = null)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codeId))
+                    return BadRequest(new { success = false, message = "codeId is required" });
+
+                var options = await _apiCachedService.GetSystemCodeOptionsAsync(codeId);
+
+                var result = options.Select(o => new
+                {
+                    value = string.Equals(valueField, "ChargingCurrencyID", StringComparison.OrdinalIgnoreCase)
+                        ? (o.ChargingCurrencyID ?? o.SubCodeID)
+                        : o.SubCodeID,
+                    label = o.CodeDescription ?? o.SubCodeID
+                });
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading Standing Instruction Demand Draft dropdown options for {CodeId}", codeId);
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 
@@ -153,14 +173,14 @@ namespace kairo_ui.Controllers.AccountUtilities
 
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "DirectDebitTypeID",
-                    "TransferFrequencyID",
-                    "ChargeRecoveryID"
+                    "DIDebitMain",
+                    "TrfFrequencyID",
+                    "SIChargeTypeID"
                 });
 
-                dropdownOptions.TryGetValue("DirectDebitTypeID", out var directDebitTypeOptions);
-                dropdownOptions.TryGetValue("TransferFrequencyID", out var transferFrequencyOptions);
-                dropdownOptions.TryGetValue("ChargeRecoveryID", out var chargeRecoveryOptions);
+                dropdownOptions.TryGetValue("DIDebitMain", out var directDebitTypeOptions);
+                dropdownOptions.TryGetValue("TrfFrequencyID", out var transferFrequencyOptions);
+                dropdownOptions.TryGetValue("SIChargeTypeID", out var chargeRecoveryOptions);
 
                 ViewData["DirectDebitTypeOptions"] = directDebitTypeOptions ?? Enumerable.Empty<SelectListItem>();
                 ViewData["TransferFrequencyOptions"] = transferFrequencyOptions ?? Enumerable.Empty<SelectListItem>();
@@ -188,11 +208,11 @@ namespace kairo_ui.Controllers.AccountUtilities
 
                 var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
                 {
-                    "SITransferTypeID",
+                    "SITypeID",
                     "FailedChargeTypeID"
                 });
 
-                dropdownOptions.TryGetValue("SITransferTypeID", out var siTransferTypeOptions);
+                dropdownOptions.TryGetValue("SITypeID", out var siTransferTypeOptions);
                 dropdownOptions.TryGetValue("FailedChargeTypeID", out var failedChargeTypeOptions);
 
                 ViewData["SITransferTypeOptions"] = siTransferTypeOptions ?? Enumerable.Empty<SelectListItem>();
@@ -220,8 +240,21 @@ namespace kairo_ui.Controllers.AccountUtilities
                 if (!_authService.IsAuthenticated())
                     return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
 
-                if (string.IsNullOrEmpty(request.SearchID) && !string.IsNullOrEmpty(request.SearchKey))
+                if (string.IsNullOrWhiteSpace(request.StandingInstructionID) &&
+                    !string.IsNullOrWhiteSpace(request.SearchID) &&
+                    !request.SearchID.StartsWith("[", StringComparison.Ordinal))
+                {
+                    request.StandingInstructionID = request.SearchID;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.StandingInstructionID) &&
+                    string.IsNullOrWhiteSpace(request.SearchID) &&
+                    !string.IsNullOrWhiteSpace(request.SearchKey) &&
+                    !request.SearchKey.StartsWith("[", StringComparison.Ordinal))
+                {
                     request.SearchID = request.SearchKey;
+                    request.StandingInstructionID = request.SearchKey;
+                }
 
                 request.OperatorID = HttpContext.Session.GetString("user_name");
                 if (string.IsNullOrEmpty(request.OurBranchID))
@@ -639,6 +672,7 @@ namespace kairo_ui.Controllers.AccountUtilities
         public string? OurBranchID { get; set; }
         public string? OperatorID { get; set; }
         public string? StandingInstructionID { get; set; }
+        public string? ReferenceNo { get; set; }
         public int Direction { get; set; }
         public string? DirectionType { get; set; }
     }

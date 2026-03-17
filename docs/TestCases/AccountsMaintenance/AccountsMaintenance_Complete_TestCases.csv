@@ -1,0 +1,576 @@
+Test Case ID,Test Case Description,Category,Priority,Preconditions,Test Steps,Expected Result,Actual Result,Status,Tested By,Test Date,Remarks
+,,,,,,,,,,
+=== MAIN INDEX PAGE ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_IDX_001,Verify Account Maintenance main page loads correctly,Functional,P1,User is logged in with access to Account Maintenance,"1. Navigate to Account Maintenance from menu","Account Maintenance page loads with account search and submodule navigation",,,,,
+TC_AM_IDX_002,Verify account search functionality,Functional,P1,Account Maintenance main page is loaded,"1. Enter account number in search field
+2. Click Search or press Enter","Account details are loaded and displayed",,,,,
+TC_AM_IDX_003,Verify account search by account name,Functional,P2,Account Maintenance main page is loaded,"1. Enter partial account name in search
+2. Click Search","Matching accounts are displayed for selection",,,,,
+TC_AM_IDX_004,Verify submodule navigation menu,UI,P1,Account is selected in Account Maintenance,"1. Click on submodule menu/navigation
+2. Observe available submodules","All submodules (Notes, Blocking, Activation, etc.) are displayed",,,,,
+TC_AM_IDX_005,Verify submodule loading on click,Functional,P1,Account is selected in Account Maintenance,"1. Click on any submodule link/button","Selected submodule loads in the submodule container area",,,,,
+TC_AM_IDX_006,Verify account details display in header,UI,P2,Account is selected in Account Maintenance,"1. Observe account details section","Account number, name, balance, status are displayed in header area",,,,,
+TC_AM_IDX_007,Verify reminder modal on account load,Functional,P2,Account has active reminders configured,"1. Search and select an account with reminders","Reminder modal popup appears showing active reminders",,,,,
+TC_AM_IDX_008,Verify reminder modal close functionality,Functional,P3,Reminder modal is displayed,"1. Click Close button on reminder modal","Modal closes and main page is accessible",,,,,
+TC_AM_IDX_009,Verify City dropdown filter,Functional,P3,Account Maintenance main page is loaded,"1. Select a city from City dropdown filter","Accounts filtered by selected city",,,,,
+TC_AM_IDX_010,Verify Country dropdown filter,Functional,P3,Account Maintenance main page is loaded,"1. Select a country from Country dropdown filter","Accounts filtered by selected country",,,,,
+TC_AM_IDX_011,Verify Operating Mode dropdown,UI,P3,Account Maintenance main page is loaded,"1. Click on Operating Mode dropdown","Operating modes are displayed for selection",,,,,
+TC_AM_IDX_012,Verify Account Class dropdown,UI,P3,Account Maintenance main page is loaded,"1. Click on Account Class dropdown","Account classes are displayed for selection",,,,,
+TC_AM_IDX_013,Verify Account Officer dropdown,UI,P3,Account Maintenance main page is loaded,"1. Click on Account Officer dropdown","Account officers are displayed for selection",,,,,
+TC_AM_IDX_014,Verify no account selected error,Validation,P2,Account Maintenance main page without account selected,"1. Click on any submodule without selecting account","Error message indicating account must be selected first",,,,,
+TC_AM_IDX_015,Verify blocking confirmation modal,UI,P2,Blocking submodule is active,"1. Attempt to block/unblock an account
+2. Observe confirmation modal","Confirmation modal appears with confirm/cancel options",,,,,
+TC_AM_IDX_016,Verify page responsive design,UI,P3,Account Maintenance page is loaded,"1. Resize browser window to various widths
+2. Observe layout changes","Page layout adjusts appropriately for different screen sizes",,,,,
+TC_AM_IDX_017,Verify anti-forgery token presence,Validation,P1,Account Maintenance page is loaded,"1. Inspect page source
+2. Look for anti-forgery token","Anti-forgery token is present in the form",,,,,
+TC_AM_IDX_018,Verify submodule container loading state,UI,P3,Submodule is being loaded,"1. Click on a submodule
+2. Observe loading indicator","Loading overlay/spinner is displayed during load",,,,,
+TC_AM_IDX_019,Verify action panel buttons display,UI,P2,Submodule is loaded in Account Maintenance,"1. Observe action panel area","Appropriate action buttons (View, Edit, Save, Cancel) are displayed",,,,,
+TC_AM_IDX_020,Verify refresh button reloads current submodule,Functional,P2,Submodule is loaded with data,"1. Click Refresh button in header","Current submodule data is reloaded from server",,,,,
+,,,,,,,,,,
+=== ACCOUNT NOTES ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_AN_001,Verify Account Notes page loads correctly,Functional,P1,User is logged in and has access to Account Maintenance module,"1. Navigate to Account Maintenance
+2. Select an active account
+3. Click on 'Account Notes' submodule","Account Notes submodule loads with Note Details section and Behind the Scene section visible",,,,,
+TC_AM_AN_002,Verify notes textarea is disabled in VIEW mode,UI,P2,Account Notes submodule is loaded,"1. Load Account Notes for a selected account
+2. Observe the notes textarea field","Notes textarea should be disabled/readonly in VIEW mode",,,,,
+TC_AM_AN_003,Verify Edit button enables notes textarea,Functional,P1,Account Notes submodule is loaded in VIEW mode,"1. Click on Edit button in action panel
+2. Observe the notes textarea field","Notes textarea becomes enabled and editable",,,,,
+TC_AM_AN_004,Verify Save button saves notes successfully,Functional,P1,Account Notes is in EDIT mode with new text entered,"1. Enter new notes text
+2. Click Save button
+3. Observe success message","Notes are saved successfully and success toast message is displayed",,,,,
+TC_AM_AN_005,Verify Cancel button discards unsaved changes,Functional,P2,Account Notes is in EDIT mode with new text entered,"1. Modify the notes text
+2. Click Cancel button
+3. Observe the notes textarea","Original notes text is restored and form returns to VIEW mode",,,,,
+TC_AM_AN_006,Verify Behind the Scene section displays audit information,UI,P2,Account Notes has been saved at least once,"1. Load Account Notes for an account with existing notes
+2. Expand Behind the Scene section","Created By, Created On, Modified By, Modified On, Supervised By, Supervised On fields are displayed",,,,,
+TC_AM_AN_007,Verify section toggle functionality,UI,P3,Account Notes submodule is loaded,"1. Click the toggle button on Note Details section header
+2. Click again to expand","Section collapses and expands correctly with chevron icon changing direction",,,,,
+TC_AM_AN_008,Verify notes load from API correctly,Integration,P1,Valid account is selected,"1. Select an account with existing notes
+2. Navigate to Account Notes submodule","Existing notes are loaded and displayed in the textarea",,,,,
+TC_AM_AN_009,Verify error handling when no account selected,Validation,P2,No account is selected in Account Maintenance,"1. Navigate to Account Notes without selecting an account","Error message displayed: 'No account selected. Please select an account first.'",,,,,
+TC_AM_AN_010,Verify Refresh button reloads notes,Functional,P2,Account Notes submodule is loaded with data,"1. Make changes to notes (without saving)
+2. Click Refresh button","Notes are reloaded from server, unsaved changes are discarded",,,,,
+TC_AM_AN_011,Verify special characters in notes,Validation,P3,Account Notes is in EDIT mode,"1. Enter special characters (!@#$%^&*) in notes
+2. Save the notes
+3. Reload the submodule","Special characters are saved and displayed correctly",,,,,
+TC_AM_AN_012,Verify long text handling in notes,Validation,P3,Account Notes is in EDIT mode,"1. Enter very long text (1000+ characters) in notes
+2. Save the notes","Long text is saved and displayed correctly without truncation",,,,,
+,,,,,,,,,,
+=== BLOCKING / UNBLOCKING ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_BL_001,Verify Blocking submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an active account
+3. Click on 'Blocking' submodule","Blocking submodule loads with Blocking/Unblocking Details and Behind The Scene sections",,,,,
+TC_AM_BL_002,Verify Reason dropdown populated with block reasons,UI,P1,Blocking submodule is loaded for an unblocked account,"1. Load Blocking submodule
+2. Click on Reason dropdown","Dropdown displays list of blocking reasons from API",,,,,
+TC_AM_BL_003,Verify Reason dropdown shows unblock reasons for blocked account,UI,P1,Account is currently blocked,"1. Select a blocked account
+2. Load Blocking submodule
+3. Click on Reason dropdown","Dropdown displays list of unblocking reasons",,,,,
+TC_AM_BL_004,Verify Block operation with valid data,Functional,P1,Unblocked account is selected and Blocking submodule loaded,"1. Select a Reason from dropdown
+2. Enter Description/Narration
+3. Enter Instruction Given By
+4. Click Save/Block button","Account is blocked successfully with confirmation message",,,,,
+TC_AM_BL_005,Verify Unblock operation with valid data,Functional,P1,Blocked account is selected and Blocking submodule loaded,"1. Select an Unblock Reason from dropdown
+2. Enter Description/Narration
+3. Enter Instruction Given By
+4. Click Save/Unblock button","Account is unblocked successfully with confirmation message",,,,,
+TC_AM_BL_006,Verify validation - Reason is required,Validation,P1,Blocking submodule is in EDIT mode,"1. Leave Reason dropdown empty
+2. Enter other fields
+3. Click Save button","Validation error displayed indicating Reason is required",,,,,
+TC_AM_BL_007,Verify Behind The Scene shows current status,UI,P2,Account has blocking history,"1. Select an account with blocking history
+2. Load Blocking submodule
+3. View Behind The Scene section","Current Status, Date Blocked, Prior Reason/Instruction are displayed correctly",,,,,
+TC_AM_BL_008,Verify audit trail in Behind The Scene,UI,P2,Account has been blocked/unblocked previously,"1. Load Blocking submodule for account with blocking history
+2. View Behind The Scene section","Created By, Created On, Checked By, Checked On, Modified By fields are populated",,,,,
+TC_AM_BL_009,Verify confirmation modal before blocking,Functional,P2,Valid blocking data entered,"1. Fill in all blocking details
+2. Click Block button","Confirmation modal appears asking to confirm the blocking operation",,,,,
+TC_AM_BL_010,Verify confirmation modal before unblocking,Functional,P2,Valid unblocking data entered for blocked account,"1. Fill in all unblocking details
+2. Click Unblock button","Confirmation modal appears asking to confirm the unblocking operation",,,,,
+TC_AM_BL_011,Verify cancel confirmation modal returns to form,Functional,P3,Confirmation modal is displayed,"1. Click Cancel on confirmation modal","Modal closes and user returns to the form with data intact",,,,,
+TC_AM_BL_012,Verify Description field accepts alphanumeric text,Validation,P3,Blocking submodule is in EDIT mode,"1. Enter alphanumeric characters with spaces in Description field
+2. Save the form","Description is saved and displayed correctly",,,,,
+TC_AM_BL_013,Verify error handling when API fails,Integration,P2,Blocking submodule is loaded,"1. Simulate API failure (network disconnect)
+2. Attempt to save blocking details","Appropriate error message is displayed to user",,,,,
+TC_AM_BL_014,Verify VIEW mode fields are readonly,UI,P2,Blocking submodule is loaded in VIEW mode,"1. Check all input fields in VIEW mode","All fields should be readonly/disabled in VIEW mode",,,,,
+,,,,,,,,,,
+=== ACCOUNT ACTIVATION ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_AA_001,Verify Account Activation submodule loads correctly,Functional,P1,User is logged in with access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an inactive account
+3. Click on 'Account Activation' submodule","Account Activation form loads with Account Identification, Activation Details, and Behind The Scene sections",,,,,
+TC_AM_AA_002,Verify Branch lookup functionality,Functional,P2,Account Activation submodule is loaded,"1. Click on Branch lookup button
+2. Search for a branch
+3. Select a branch from results","Selected branch ID and Name are populated in the fields",,,,,
+TC_AM_AA_003,Verify Account lookup functionality,Functional,P2,Account Activation submodule is loaded,"1. Click on Account lookup button
+2. Search for an inactive account
+3. Select an account from results","Selected account ID and Name are populated in the fields",,,,,
+TC_AM_AA_004,Verify Instructed By field is required,Validation,P1,Account Activation submodule is in EDIT mode,"1. Leave Instructed By field empty
+2. Fill other fields
+3. Click Save/Activate button","Validation error displayed indicating Instructed By is required",,,,,
+TC_AM_AA_005,Verify successful account activation,Functional,P1,Inactive account selected with all required fields filled,"1. Select inactive account
+2. Enter Instructed By
+3. Enter Comments (optional)
+4. Click Activate button","Account is activated successfully with confirmation message",,,,,
+TC_AM_AA_006,Verify Behind The Scene displays account info,UI,P2,Account Activation submodule loaded with account selected,"1. View Behind The Scene section","Created On, Product ID, Product Name, Available Balance, Last Credit Date, Fixed Amount are displayed",,,,,
+TC_AM_AA_007,Verify Branch and Account fields are readonly,UI,P2,Account Activation submodule is loaded,"1. Observe Branch ID, Branch Name, Account ID, Account Name fields","All identification fields should be readonly (populated via lookup only)",,,,,
+TC_AM_AA_008,Verify Comments field accepts multi-line text,Validation,P3,Account Activation submodule is in EDIT mode,"1. Enter multi-line text in Comments textarea
+2. Save the activation","Multi-line comments are saved correctly",,,,,
+TC_AM_AA_009,Verify activation of already active account,Validation,P2,Active account is selected,"1. Select an already active account
+2. Navigate to Account Activation","Appropriate message displayed indicating account is already active",,,,,
+TC_AM_AA_010,Verify section toggle for Account Identification,UI,P3,Account Activation submodule is loaded,"1. Click toggle button on Account Identification section
+2. Click again to expand","Section collapses and expands correctly",,,,,
+TC_AM_AA_011,Verify section toggle for Activation Details,UI,P3,Account Activation submodule is loaded,"1. Click toggle button on Activation Details section
+2. Click again to expand","Section collapses and expands correctly",,,,,
+TC_AM_AA_012,Verify section toggle for Behind The Scene,UI,P3,Account Activation submodule is loaded,"1. Click toggle button on Behind The Scene section
+2. Click again to expand","Section collapses and expands correctly",,,,,
+,,,,,,,,,,
+=== CHEQUE BOOK ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CB_001,Verify Cheque Book submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Cheque Book' submodule","Cheque Book form loads with Account Identification and Cheque Request sections",,,,,
+TC_AM_CB_002,Verify Branch and Account display from parent context,UI,P2,Account is selected in Account Maintenance,"1. Load Cheque Book submodule
+2. Observe Account Identification section","Branch ID, Branch Name, Account ID, Account Name are pre-populated from parent context",,,,,
+TC_AM_CB_003,Verify Book Type dropdown is populated,UI,P1,Cheque Book submodule is loaded,"1. Click on Book Type dropdown","Dropdown displays list of cheque book types from API",,,,,
+TC_AM_CB_004,Verify cheque book request submission,Functional,P1,Cheque Book submodule is in EDIT mode,"1. Select Book Type
+2. Fill required fields
+3. Click Submit/Save button","Cheque book request is submitted successfully with confirmation",,,,,
+TC_AM_CB_005,Verify cheque book history table displays,UI,P2,Account has existing cheque book history,"1. Load Cheque Book submodule
+2. View history table","Cheque book history is displayed in the table with all columns",,,,,
+TC_AM_CB_006,Verify tab navigation between panels,UI,P2,Cheque Book submodule is loaded,"1. Click on different tabs in the cheque tab strip
+2. Observe panel content","Panels switch correctly when tabs are clicked",,,,,
+TC_AM_CB_007,Verify table scrolling for many records,UI,P3,Account has many cheque book records,"1. Load account with 20+ cheque book records
+2. Scroll the table","Table scrolls smoothly with sticky header",,,,,
+TC_AM_CB_008,Verify validation for required Book Type,Validation,P1,Cheque Book submodule is in EDIT mode,"1. Leave Book Type unselected
+2. Click Submit button","Validation error indicating Book Type is required",,,,,
+TC_AM_CB_009,Verify section toggle for Account Identification,UI,P3,Cheque Book submodule is loaded,"1. Click toggle on Account Identification section","Section collapses and expands correctly",,,,,
+TC_AM_CB_010,Verify section toggle for Cheque Request,UI,P3,Cheque Book submodule is loaded,"1. Click toggle on Cheque Request section","Section collapses and expands correctly",,,,,
+,,,,,,,,,,
+=== ACCOUNT CLOSING ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CL_001,Verify Account Closing submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an active account
+3. Click on 'Closing' submodule","Account Closing form loads with Close Details and Transaction Details tabs",,,,,
+TC_AM_CL_002,Verify tab navigation between Close Details and Transaction Details,UI,P2,Account Closing submodule is loaded,"1. Click on 'Close Details' tab
+2. Click on 'Transaction Details' tab
+3. Observe panel content","Panels switch correctly showing respective content",,,,,
+TC_AM_CL_003,Verify Reason dropdown is populated,UI,P1,Account Closing submodule is loaded,"1. Click on Reason dropdown in Close Details tab","Dropdown displays list of account close reasons from API",,,,,
+TC_AM_CL_004,Verify financial fields display account balances,UI,P2,Account with balances is selected,"1. Load Account Closing submodule
+2. View Close Details section","Balance, Penal Int. Rec., Credit Int. Pay., Tax Amount, Debit Int. Rec., Closing Charges, Net Payable are displayed",,,,,
+TC_AM_CL_005,Verify Balance field is readonly,UI,P2,Account Closing submodule is loaded,"1. Observe Balance field","Balance field should be readonly and display current account balance",,,,,
+TC_AM_CL_006,Verify successful account closing,Functional,P1,Active account selected with zero balance,"1. Select close Reason
+2. Enter Remarks
+3. Verify financial fields
+4. Click Close/Save button","Account is closed successfully with confirmation message",,,,,
+TC_AM_CL_007,Verify validation - Reason is required,Validation,P1,Account Closing is in EDIT mode,"1. Leave Reason dropdown empty
+2. Click Close button","Validation error displayed indicating Reason is required",,,,,
+TC_AM_CL_008,Verify closing account with positive balance,Validation,P2,Account with positive balance is selected,"1. Attempt to close account with positive balance","System displays appropriate message about balance transfer requirements",,,,,
+TC_AM_CL_009,Verify closing account with negative balance,Validation,P2,Account with negative balance is selected,"1. Attempt to close account with negative balance","System displays appropriate message about outstanding balance",,,,,
+TC_AM_CL_010,Verify Transaction Details tab content,UI,P2,Account Closing submodule is loaded,"1. Navigate to Transaction Details tab","Transaction details section displays relevant transaction information",,,,,
+TC_AM_CL_011,Verify Remarks field accepts text,Validation,P3,Account Closing is in EDIT mode,"1. Enter text in Remarks field
+2. Save the closing","Remarks are saved correctly",,,,,
+TC_AM_CL_012,Verify section toggle for Account Details,UI,P3,Account Closing submodule is loaded,"1. Click toggle on Account Details section","Section collapses and expands correctly",,,,,
+,,,,,,,,,,
+=== SIGNATORIES ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_SG_001,Verify Signatories submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Signatories' submodule","Signatories form loads with Signatory Details section and grid",,,,,
+TC_AM_SG_002,Verify Signatory ID lookup functionality,Functional,P1,Signatories submodule is loaded,"1. Click on Signatory ID lookup button
+2. Search for a client
+3. Select from results","Signatory ID and Name are populated in the fields",,,,,
+TC_AM_SG_003,Verify Group ID lookup functionality,Functional,P2,Signatories submodule is loaded,"1. Click on Group ID lookup button
+2. Search for a group
+3. Select from results","Group ID is populated in the field",,,,,
+TC_AM_SG_004,Verify Signatory Type dropdown is populated,UI,P1,Signatories submodule is loaded,"1. Click on Signatory Type dropdown","Dropdown displays list of signatory types from API (excluding blank 'Select...')",,,,,
+TC_AM_SG_005,Verify Mandates dropdown is populated,UI,P2,Signatories submodule is loaded,"1. Click on Mandates dropdown","Dropdown displays list of mandates from API",,,,,
+TC_AM_SG_006,Verify Add signatory operation,Functional,P1,Signatories submodule is in ADD mode,"1. Enter/Lookup Signatory ID
+2. Select Signatory Type
+3. Enter Sequence No
+4. Enter Limit (optional)
+5. Select Mandates (optional)
+6. Click Add/Save button","Signatory is added successfully and appears in the grid",,,,,
+TC_AM_SG_007,Verify Edit signatory operation,Functional,P1,At least one signatory exists for the account,"1. Select a signatory from the grid
+2. Click Edit button
+3. Modify signatory details
+4. Click Save button","Signatory details are updated successfully",,,,,
+TC_AM_SG_008,Verify Delete signatory operation,Functional,P1,At least one signatory exists for the account,"1. Select a signatory from the grid
+2. Click Delete button
+3. Confirm deletion","Signatory is removed from the grid",,,,,
+TC_AM_SG_009,Verify Signature button functionality,Functional,P2,Signatory with signature exists,"1. Select a signatory from the grid
+2. Click Signature button","Signature image/modal is displayed",,,,,
+TC_AM_SG_010,Verify Photo button functionality,Functional,P2,Signatory with photo exists,"1. Select a signatory from the grid
+2. Click Photo button","Photo image/modal is displayed",,,,,
+TC_AM_SG_011,Verify Both button shows Signature and Photo,Functional,P2,Signatory with both signature and photo exists,"1. Select a signatory from the grid
+2. Click Both button","Both signature and photo are displayed",,,,,
+TC_AM_SG_012,Verify validation - Signatory ID is required,Validation,P1,Signatories submodule is in ADD mode,"1. Leave Signatory ID empty
+2. Click Add/Save button","Validation error indicating Signatory ID is required",,,,,
+TC_AM_SG_013,Verify validation - Signatory Type is required,Validation,P1,Signatories submodule is in ADD mode,"1. Enter Signatory ID
+2. Leave Signatory Type empty
+3. Click Add/Save button","Validation error indicating Signatory Type is required",,,,,
+TC_AM_SG_014,Verify grid displays signatory list,UI,P2,Account has multiple signatories,"1. Load Signatories submodule
+2. Observe grid/table","All signatories for the account are displayed in the grid",,,,,
+TC_AM_SG_015,Verify Limit field accepts numeric values,Validation,P3,Signatories submodule is in ADD/EDIT mode,"1. Enter numeric value in Limit field
+2. Save the signatory","Limit value is saved correctly",,,,,
+TC_AM_SG_016,Verify Sequence No field accepts numeric values,Validation,P3,Signatories submodule is in ADD/EDIT mode,"1. Enter numeric value in Sequence No field
+2. Save the signatory","Sequence No value is saved correctly",,,,,
+,,,,,,,,,,
+=== FREEZE / RELEASE ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_FR_001,Verify Freeze/Release submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Freeze Release' submodule","Freeze/Release form loads with relevant sections",,,,,
+TC_AM_FR_002,Verify Freeze operation on unfrozen account,Functional,P1,Unfrozen account is selected,"1. Load Freeze/Release submodule
+2. Enter freeze details
+3. Click Freeze button","Account is frozen successfully with confirmation",,,,,
+TC_AM_FR_003,Verify Release operation on frozen account,Functional,P1,Frozen account is selected,"1. Load Freeze/Release submodule
+2. Enter release details
+3. Click Release button","Account is released/unfrozen successfully with confirmation",,,,,
+TC_AM_FR_004,Verify current freeze status is displayed,UI,P2,Account has freeze history,"1. Load Freeze/Release submodule
+2. View status section","Current freeze status (Frozen/Unfrozen) is displayed",,,,,
+TC_AM_FR_005,Verify freeze reason is required,Validation,P1,Freeze/Release is in Freeze mode,"1. Leave reason empty
+2. Click Freeze button","Validation error indicating reason is required",,,,,
+,,,,,,,,,,
+=== INTEREST RATES ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_IR_001,Verify Interest Rates submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Interest Rates' submodule","Interest Rates form loads with rate configuration sections",,,,,
+TC_AM_IR_002,Verify current interest rates are displayed,UI,P2,Account has interest rates configured,"1. Load Interest Rates submodule
+2. Observe rate fields","Current debit and credit interest rates are displayed",,,,,
+TC_AM_IR_003,Verify Edit mode enables rate fields,Functional,P1,Interest Rates submodule is loaded,"1. Click Edit button
+2. Observe rate input fields","Rate fields become editable",,,,,
+TC_AM_IR_004,Verify Save updates interest rates,Functional,P1,Interest Rates is in EDIT mode with new values,"1. Modify interest rate values
+2. Click Save button","Interest rates are updated successfully with confirmation",,,,,
+TC_AM_IR_005,Verify validation for numeric rate values,Validation,P2,Interest Rates is in EDIT mode,"1. Enter non-numeric value in rate field
+2. Click Save button","Validation error indicating numeric value required",,,,,
+TC_AM_IR_006,Verify rate value range validation,Validation,P2,Interest Rates is in EDIT mode,"1. Enter rate value outside valid range (e.g., -5 or 200)
+2. Click Save button","Validation error indicating valid range",,,,,
+,,,,,,,,,,
+=== REMINDERS ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_RM_001,Verify Reminders submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Reminders' submodule","Reminders form loads with reminder list/grid",,,,,
+TC_AM_RM_002,Verify Add reminder functionality,Functional,P1,Reminders submodule is in ADD mode,"1. Click Add button
+2. Enter reminder message
+3. Select priority
+4. Set reminder date
+5. Click Save button","Reminder is added successfully and appears in the list",,,,,
+TC_AM_RM_003,Verify Edit reminder functionality,Functional,P1,At least one reminder exists,"1. Select a reminder
+2. Click Edit button
+3. Modify reminder details
+4. Click Save button","Reminder is updated successfully",,,,,
+TC_AM_RM_004,Verify Delete reminder functionality,Functional,P2,At least one reminder exists,"1. Select a reminder
+2. Click Delete button
+3. Confirm deletion","Reminder is removed from the list",,,,,
+TC_AM_RM_005,Verify reminder popup on account load,Functional,P2,Account has active reminders,"1. Select account with active reminders
+2. Load Account Maintenance","Reminder modal/popup appears showing active reminders",,,,,
+TC_AM_RM_006,Verify reminder priority display,UI,P2,Reminders with different priorities exist,"1. Load Reminders submodule
+2. Observe reminder list","Reminders display with appropriate priority indicators/colors",,,,,
+TC_AM_RM_007,Verify validation - Message is required,Validation,P1,Reminders is in ADD mode,"1. Leave message empty
+2. Click Save button","Validation error indicating message is required",,,,,
+,,,,,,,,,,
+=== STOP PAYMENT ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_SPV_001,Verify Stop Payment submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Stop Payment' submodule","Stop Payment form loads correctly",,,,,
+TC_AM_SPV_002,Verify Add stop payment on cheque,Functional,P1,Account has cheque book facility,"1. Enter cheque number/range
+2. Enter stop payment reason
+3. Click Save/Submit button","Stop payment is placed successfully",,,,,
+TC_AM_SPV_003,Verify stop payment list displays,UI,P2,Account has existing stop payments,"1. Load Stop Payment submodule
+2. Observe stop payment list/grid","All stop payments for the account are displayed",,,,,
+TC_AM_SPV_004,Verify validation - Cheque number required,Validation,P1,Stop Payment is in ADD mode,"1. Leave cheque number empty
+2. Click Save button","Validation error indicating cheque number is required",,,,,
+,,,,,,,,,,
+=== CANCEL STOP PAYMENT ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CSP_001,Verify Cancel Stop Payment submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Cancel Stop Payment' submodule","Cancel Stop Payment form loads correctly",,,,,
+TC_AM_CSP_002,Verify list of active stop payments displays,UI,P2,Account has active stop payments,"1. Load Cancel Stop Payment submodule
+2. Observe list","Active stop payments are displayed for selection",,,,,
+TC_AM_CSP_003,Verify cancel stop payment operation,Functional,P1,Account has active stop payment,"1. Select an active stop payment
+2. Enter cancellation reason
+3. Click Cancel/Submit button","Stop payment is cancelled successfully",,,,,
+TC_AM_CSP_004,Verify validation - Selection required,Validation,P1,Cancel Stop Payment is active,"1. Do not select any stop payment
+2. Click Cancel button","Validation error indicating selection is required",,,,,
+,,,,,,,,,,
+=== ACCOUNT NOTIFICATION ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_NF_001,Verify Account Notification submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Account Notification' submodule","Account Notification form loads with notification settings",,,,,
+TC_AM_NF_002,Verify SMS notification toggle,Functional,P2,Account Notification is loaded,"1. Toggle SMS notification on/off
+2. Click Save button","SMS notification preference is saved",,,,,
+TC_AM_NF_003,Verify Email notification toggle,Functional,P2,Account Notification is loaded,"1. Toggle Email notification on/off
+2. Click Save button","Email notification preference is saved",,,,,
+TC_AM_NF_004,Verify mobile number field for SMS,Validation,P2,SMS notification is enabled,"1. Enable SMS notification
+2. Verify mobile number field","Mobile number is required/displayed for SMS notifications",,,,,
+TC_AM_NF_005,Verify email address field,Validation,P2,Email notification is enabled,"1. Enable Email notification
+2. Verify email address field","Email address is required/displayed for email notifications",,,,,
+,,,,,,,,,,
+=== DOCUMENTS ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_DC_001,Verify Documents submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Documents' submodule","Documents form loads with document list/upload functionality",,,,,
+TC_AM_DC_002,Verify document list displays,UI,P2,Account has documents attached,"1. Load Documents submodule
+2. Observe document list","All documents for the account are displayed",,,,,
+TC_AM_DC_003,Verify document upload functionality,Functional,P1,Documents submodule is loaded,"1. Click Upload/Add button
+2. Select a file
+3. Enter document description
+4. Click Save/Upload","Document is uploaded and appears in the list",,,,,
+TC_AM_DC_004,Verify document download functionality,Functional,P1,Document exists for the account,"1. Select a document
+2. Click Download button","Document is downloaded successfully",,,,,
+TC_AM_DC_005,Verify document view functionality,Functional,P2,Document exists for the account,"1. Select a document
+2. Click View button","Document is displayed/opened in viewer",,,,,
+TC_AM_DC_006,Verify document delete functionality,Functional,P2,Document exists for the account,"1. Select a document
+2. Click Delete button
+3. Confirm deletion","Document is removed from the list",,,,,
+TC_AM_DC_007,Verify file type validation,Validation,P2,Documents upload is active,"1. Try to upload unsupported file type
+2. Observe error","Error message indicating unsupported file type",,,,,
+TC_AM_DC_008,Verify file size validation,Validation,P2,Documents upload is active,"1. Try to upload file exceeding size limit
+2. Observe error","Error message indicating file size exceeds limit",,,,,
+,,,,,,,,,,
+=== SPECIAL CONDITIONS ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_SC_001,Verify Special Conditions submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Special Conditions' submodule","Special Conditions form loads correctly",,,,,
+TC_AM_SC_002,Verify Add special condition functionality,Functional,P1,Special Conditions submodule is in ADD mode,"1. Click Add button
+2. Enter condition details
+3. Click Save button","Special condition is added successfully",,,,,
+TC_AM_SC_003,Verify Edit special condition functionality,Functional,P1,At least one special condition exists,"1. Select a condition
+2. Click Edit button
+3. Modify details
+4. Click Save button","Special condition is updated successfully",,,,,
+TC_AM_SC_004,Verify Delete special condition functionality,Functional,P2,At least one special condition exists,"1. Select a condition
+2. Click Delete button
+3. Confirm deletion","Special condition is removed",,,,,
+TC_AM_SC_005,Verify special conditions list displays,UI,P2,Account has special conditions,"1. Load Special Conditions submodule
+2. Observe list/grid","All special conditions are displayed",,,,,
+,,,,,,,,,,
+=== NOMINATION ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_NM_001,Verify Nomination submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Nomination' submodule","Nomination form loads with nominee details section",,,,,
+TC_AM_NM_002,Verify Add nominee functionality,Functional,P1,Nomination submodule is in ADD mode,"1. Click Add button
+2. Enter nominee name
+3. Enter relationship
+4. Enter percentage share
+5. Click Save button","Nominee is added successfully",,,,,
+TC_AM_NM_003,Verify Edit nominee functionality,Functional,P1,At least one nominee exists,"1. Select a nominee
+2. Click Edit button
+3. Modify nominee details
+4. Click Save button","Nominee details are updated successfully",,,,,
+TC_AM_NM_004,Verify Delete nominee functionality,Functional,P2,At least one nominee exists,"1. Select a nominee
+2. Click Delete button
+3. Confirm deletion","Nominee is removed from the list",,,,,
+TC_AM_NM_005,Verify total share percentage validation,Validation,P1,Nomination is in ADD/EDIT mode,"1. Add nominees with total percentage > 100%
+2. Click Save button","Validation error indicating total share cannot exceed 100%",,,,,
+TC_AM_NM_006,Verify nominee list displays,UI,P2,Account has nominees,"1. Load Nomination submodule
+2. Observe nominee list","All nominees are displayed with their details",,,,,
+,,,,,,,,,,
+=== ACTIVATE DORMANT ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_AD_001,Verify Activate Dormant submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select a dormant account
+3. Click on 'Activate Dormant' submodule","Activate Dormant form loads correctly",,,,,
+TC_AM_AD_002,Verify dormant account activation,Functional,P1,Dormant account is selected,"1. Load Activate Dormant submodule
+2. Enter activation details
+3. Click Activate button","Dormant account is activated successfully",,,,,
+TC_AM_AD_003,Verify non-dormant account handling,Validation,P2,Non-dormant account is selected,"1. Select an active (non-dormant) account
+2. Navigate to Activate Dormant","Appropriate message indicating account is not dormant",,,,,
+TC_AM_AD_004,Verify Instructed By field is required,Validation,P1,Activate Dormant is in EDIT mode,"1. Leave Instructed By field empty
+2. Click Activate button","Validation error indicating Instructed By is required",,,,,
+,,,,,,,,,,
+=== ACCOUNT SWEEPING ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_AS_001,Verify Account Sweeping submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Account Sweeping' submodule","Account Sweeping form loads with sweep configuration",,,,,
+TC_AM_AS_002,Verify Add sweep rule functionality,Functional,P1,Account Sweeping submodule is loaded,"1. Click Add button
+2. Enter sweep from/to accounts
+3. Set sweep amount/percentage
+4. Set sweep frequency
+5. Click Save button","Sweep rule is added successfully",,,,,
+TC_AM_AS_003,Verify Edit sweep rule functionality,Functional,P1,At least one sweep rule exists,"1. Select a sweep rule
+2. Click Edit button
+3. Modify rule details
+4. Click Save button","Sweep rule is updated successfully",,,,,
+TC_AM_AS_004,Verify Delete sweep rule functionality,Functional,P2,At least one sweep rule exists,"1. Select a sweep rule
+2. Click Delete button
+3. Confirm deletion","Sweep rule is removed",,,,,
+TC_AM_AS_005,Verify sweep rules list displays,UI,P2,Account has sweep rules configured,"1. Load Account Sweeping submodule
+2. Observe rules list","All sweep rules are displayed",,,,,
+,,,,,,,,,,
+=== ACCOUNT TRANSFER ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_AT_001,Verify Account Transfer submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Account Transfer' submodule","Account Transfer form loads with transfer details section",,,,,
+TC_AM_AT_002,Verify transfer to another branch,Functional,P1,Account Transfer submodule is loaded,"1. Select destination branch
+2. Enter transfer reason
+3. Click Transfer button","Account transfer is initiated/completed successfully",,,,,
+TC_AM_AT_003,Verify destination branch lookup,Functional,P2,Account Transfer submodule is loaded,"1. Click on destination branch lookup
+2. Search for a branch
+3. Select from results","Branch is populated in destination field",,,,,
+TC_AM_AT_004,Verify transfer reason is required,Validation,P1,Account Transfer is in EDIT mode,"1. Leave transfer reason empty
+2. Click Transfer button","Validation error indicating reason is required",,,,,
+,,,,,,,,,,
+=== ACCOUNT CLASSIFICATION ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_AC_001,Verify Account Classification submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Account Classification' submodule","Account Classification form loads with classification options",,,,,
+TC_AM_AC_002,Verify current classification is displayed,UI,P2,Account has classification assigned,"1. Load Account Classification submodule
+2. Observe current classification field","Current account classification is displayed",,,,,
+TC_AM_AC_003,Verify classification change operation,Functional,P1,Account Classification is in EDIT mode,"1. Select new classification from dropdown
+2. Enter change reason
+3. Click Save button","Account classification is updated successfully",,,,,
+TC_AM_AC_004,Verify classification dropdown is populated,UI,P1,Account Classification submodule is loaded,"1. Click on classification dropdown","Dropdown displays available account classifications",,,,,
+TC_AM_AC_005,Verify change reason is required,Validation,P2,Account Classification change attempted,"1. Select new classification
+2. Leave reason empty
+3. Click Save button","Validation error indicating reason is required",,,,,
+,,,,,,,,,,
+=== CHARGE RATES ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CR_001,Verify Charge Rates submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Charge Rates' submodule","Charge Rates form loads with rate configuration",,,,,
+TC_AM_CR_002,Verify current charges are displayed,UI,P2,Account has charge rates configured,"1. Load Charge Rates submodule
+2. Observe charge rate fields","Current charge rates are displayed",,,,,
+TC_AM_CR_003,Verify Edit mode enables rate fields,Functional,P1,Charge Rates submodule is loaded,"1. Click Edit button
+2. Observe rate input fields","Rate fields become editable",,,,,
+TC_AM_CR_004,Verify Save updates charge rates,Functional,P1,Charge Rates is in EDIT mode with new values,"1. Modify charge rate values
+2. Click Save button","Charge rates are updated successfully",,,,,
+TC_AM_CR_005,Verify validation for numeric values,Validation,P2,Charge Rates is in EDIT mode,"1. Enter non-numeric value in charge field
+2. Click Save button","Validation error indicating numeric value required",,,,,
+,,,,,,,,,,
+=== STATEMENT VIEW ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_SV_001,Verify Statement View submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Statement View' submodule","Statement View loads with date range and transaction list",,,,,
+TC_AM_SV_002,Verify statement displays transactions,UI,P2,Account has transactions,"1. Load Statement View submodule
+2. Observe transaction list","Transactions are displayed with date, description, debit, credit, balance",,,,,
+TC_AM_SV_003,Verify date range filter functionality,Functional,P1,Statement View submodule is loaded,"1. Select From date
+2. Select To date
+3. Click Search/Filter button","Transactions within date range are displayed",,,,,
+TC_AM_SV_004,Verify statement export functionality,Functional,P2,Statement with transactions is displayed,"1. Click Export/Download button
+2. Select export format (PDF/Excel)","Statement is downloaded in selected format",,,,,
+TC_AM_SV_005,Verify statement print functionality,Functional,P2,Statement with transactions is displayed,"1. Click Print button","Print dialog opens with statement",,,,,
+TC_AM_SV_006,Verify empty state for no transactions,UI,P3,Account has no transactions in selected period,"1. Select date range with no transactions
+2. Click Search","Appropriate message indicating no transactions found",,,,,
+,,,,,,,,,,
+=== CARD MAINTENANCE ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CM_001,Verify Card Maintenance submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Card Maintenance' submodule","Card Maintenance form loads with card list",,,,,
+TC_AM_CM_002,Verify card list displays,UI,P2,Account has linked cards,"1. Load Card Maintenance submodule
+2. Observe card list","All cards linked to the account are displayed",,,,,
+TC_AM_CM_003,Verify card activation functionality,Functional,P1,Inactive card exists for the account,"1. Select an inactive card
+2. Click Activate button
+3. Confirm activation","Card is activated successfully",,,,,
+TC_AM_CM_004,Verify card deactivation functionality,Functional,P1,Active card exists for the account,"1. Select an active card
+2. Click Deactivate button
+3. Confirm deactivation","Card is deactivated successfully",,,,,
+TC_AM_CM_005,Verify card block functionality,Functional,P1,Active card exists for the account,"1. Select an active card
+2. Click Block button
+3. Enter block reason
+4. Confirm","Card is blocked successfully",,,,,
+TC_AM_CM_006,Verify card details display,UI,P2,Card is selected in the list,"1. Select a card
+2. Observe card details section","Card number (masked), expiry, status, type are displayed",,,,,
+,,,,,,,,,,
+=== SIGNATURE / PHOTO ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_SP_001,Verify Signature/Photo submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Signature Photo' submodule","Signature/Photo form loads with image upload/view functionality",,,,,
+TC_AM_SP_002,Verify signature image display,UI,P2,Account has signature on file,"1. Load Signature Photo submodule
+2. Observe signature section","Signature image is displayed",,,,,
+TC_AM_SP_003,Verify photo image display,UI,P2,Account has photo on file,"1. Load Signature Photo submodule
+2. Observe photo section","Photo image is displayed",,,,,
+TC_AM_SP_004,Verify signature upload functionality,Functional,P1,Signature Photo submodule is in EDIT mode,"1. Click Upload Signature button
+2. Select an image file
+3. Click Save","Signature is uploaded and displayed",,,,,
+TC_AM_SP_005,Verify photo upload functionality,Functional,P1,Signature Photo submodule is in EDIT mode,"1. Click Upload Photo button
+2. Select an image file
+3. Click Save","Photo is uploaded and displayed",,,,,
+TC_AM_SP_006,Verify image file type validation,Validation,P2,Image upload is active,"1. Try to upload non-image file
+2. Observe error","Error message indicating only image files accepted",,,,,
+TC_AM_SP_007,Verify image size validation,Validation,P2,Image upload is active,"1. Try to upload image exceeding size limit
+2. Observe error","Error message indicating file size exceeds limit",,,,,
+,,,,,,,,,,
+=== USER DEFINED FIELDS ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_UDF_001,Verify User Defined Fields submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'User Defined Fields' submodule","User Defined Fields form loads with custom fields",,,,,
+TC_AM_UDF_002,Verify custom fields display,UI,P2,Account type has user defined fields configured,"1. Load User Defined Fields submodule
+2. Observe custom field list","All defined custom fields are displayed",,,,,
+TC_AM_UDF_003,Verify Edit mode enables custom fields,Functional,P1,User Defined Fields submodule is loaded,"1. Click Edit button
+2. Observe custom field inputs","Custom fields become editable",,,,,
+TC_AM_UDF_004,Verify Save updates custom field values,Functional,P1,User Defined Fields is in EDIT mode,"1. Modify custom field values
+2. Click Save button","Custom field values are saved successfully",,,,,
+TC_AM_UDF_005,Verify mandatory field validation,Validation,P2,Mandatory custom field exists,"1. Clear mandatory custom field value
+2. Click Save button","Validation error for mandatory field",,,,,
+,,,,,,,,,,
+=== CLIENT PORTFOLIO ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CP_001,Verify Client Portfolio submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Client Portfolio' submodule","Client Portfolio form loads with portfolio details",,,,,
+TC_AM_CP_002,Verify portfolio summary displays,UI,P2,Client has multiple accounts,"1. Load Client Portfolio submodule
+2. Observe portfolio summary","All accounts for the client are displayed with balances",,,,,
+TC_AM_CP_003,Verify total portfolio value calculation,UI,P2,Client has multiple accounts with balances,"1. Load Client Portfolio submodule
+2. Check total portfolio value","Total portfolio value equals sum of all account balances",,,,,
+TC_AM_CP_004,Verify account selection from portfolio,Functional,P2,Client Portfolio is loaded with multiple accounts,"1. Click on an account in the portfolio list","Selected account is loaded in Account Maintenance",,,,,
+TC_AM_CP_005,Verify portfolio by account type grouping,UI,P3,Client has different account types,"1. Load Client Portfolio submodule
+2. Observe account grouping","Accounts are grouped by type (Savings, Current, etc.)",,,,,
+,,,,,,,,,,
+=== CREDIT INTEREST WORKSHEET ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_CIW_001,Verify Credit Interest Worksheet submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Credit Interest Worksheet' submodule","Credit Interest Worksheet form loads",,,,,
+TC_AM_CIW_002,Verify interest calculation display,UI,P2,Account has credit interest accrued,"1. Load Credit Interest Worksheet submodule
+2. Observe interest details","Accrued credit interest is displayed with calculation details",,,,,
+TC_AM_CIW_003,Verify date range filter for interest,Functional,P2,Credit Interest Worksheet is loaded,"1. Select date range
+2. Click Calculate/Apply","Interest calculation for selected period is displayed",,,,,
+TC_AM_CIW_004,Verify interest rate display,UI,P2,Account has credit interest rate,"1. Load Credit Interest Worksheet
+2. Observe interest rate field","Current credit interest rate is displayed",,,,,
+,,,,,,,,,,
+=== DEBIT INTEREST WORKSHEET ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_DIW_001,Verify Debit Interest Worksheet submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select an account
+3. Click on 'Debit Interest Worksheet' submodule","Debit Interest Worksheet form loads",,,,,
+TC_AM_DIW_002,Verify interest calculation display,UI,P2,Account has debit interest accrued,"1. Load Debit Interest Worksheet submodule
+2. Observe interest details","Accrued debit interest is displayed with calculation details",,,,,
+TC_AM_DIW_003,Verify date range filter for interest,Functional,P2,Debit Interest Worksheet is loaded,"1. Select date range
+2. Click Calculate/Apply","Interest calculation for selected period is displayed",,,,,
+TC_AM_DIW_004,Verify debit interest rate display,UI,P2,Account has debit interest rate,"1. Load Debit Interest Worksheet
+2. Observe interest rate field","Current debit interest rate is displayed",,,,,
+,,,,,,,,,,
+=== LOAN REPAYMENT DETAILS ===,,,,,,,,,,
+,,,,,,,,,,
+TC_AM_LRD_001,Verify Loan Repayment Details submodule loads correctly,Functional,P1,User is logged in and has access to Account Maintenance,"1. Navigate to Account Maintenance
+2. Select a loan account
+3. Click on 'Loan Repayment Details' submodule","Loan Repayment Details form loads",,,,,
+TC_AM_LRD_002,Verify repayment schedule display,UI,P2,Loan account has repayment schedule,"1. Load Loan Repayment Details submodule
+2. Observe repayment schedule","Repayment schedule is displayed with dates and amounts",,,,,
+TC_AM_LRD_003,Verify paid vs pending installments,UI,P2,Loan has some paid installments,"1. Load Loan Repayment Details
+2. Observe installment status","Paid installments are marked differently from pending",,,,,
+TC_AM_LRD_004,Verify total outstanding calculation,UI,P2,Loan account has outstanding balance,"1. Load Loan Repayment Details
+2. Check total outstanding field","Total outstanding equals sum of unpaid installments",,,,,
+TC_AM_LRD_005,Verify non-loan account handling,Validation,P2,Non-loan account is selected,"1. Select a non-loan account
+2. Navigate to Loan Repayment Details","Appropriate message indicating not a loan account",,,,,

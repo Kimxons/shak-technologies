@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +33,7 @@ namespace ClientDocumentApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UploadAccountDocument(
-            [FromForm] InData<AccountDocumentUploadRequest> request,
+            [FromForm] InDataRequest<AccountDocumentUploadRequest> request,
             CancellationToken cancellationToken)
         {
             try
@@ -149,7 +150,7 @@ namespace ClientDocumentApi.Controllers
                     CreatedOn = DateTime.UtcNow
                 };
 
-                var request = new InData<AccountDocumentUploadRequest> { RequestData = requestData };
+                var request = new InDataRequest<AccountDocumentUploadRequest> { RequestData = requestData };
 
                 var (success, imageId, message) = await _accountDocumentRepository.UploadAccountDocumentAsync(request, cancellationToken);
 

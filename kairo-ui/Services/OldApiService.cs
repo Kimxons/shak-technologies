@@ -271,7 +271,10 @@ namespace kairo_ui.Services
             {
                 _httpClient = _httpClientFactory.CreateClient(apiName);
 
-                EnsureDefaults(data);
+                if (!ShouldSkipDefaultInjection(formId))
+                {
+                    EnsureDefaults(data);
+                }
                 OldDataRequest<object> apiReq = new()
                 {
                     AppName = _httpContext.HttpContext!.Session.GetString("appname")!,
@@ -317,7 +320,10 @@ namespace kairo_ui.Services
             try
             {
                 _httpClient = _httpClientFactory.CreateClient(apiName);
-                EnsureDefaults(data);
+                if (!ShouldSkipDefaultInjection(formId))
+                {
+                    EnsureDefaults(data);
+                }
                 OldDataRequest<object> apiReq = new()
                 {
                     AppName = _httpContext.HttpContext!.Session.GetString("appname")!,
@@ -439,6 +445,12 @@ namespace kairo_ui.Services
             {
                 property.SetValue(requestData, value);
             }
+        }
+
+        private static bool ShouldSkipDefaultInjection(string formId)
+        {
+            return string.Equals(formId, OldApiDBConstants.GET_ACCOUNT_CLOSING_DETAILS, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(formId, OldApiDBConstants.ADD_ACCOUNT_CLOSING_DETAILS, StringComparison.OrdinalIgnoreCase);
         }
 
         private string? ResolveSessionValue(params string[] keys)

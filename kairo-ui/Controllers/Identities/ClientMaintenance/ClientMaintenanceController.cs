@@ -3,6 +3,7 @@ using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace kairo_ui.Controllers.Identities.ClientMaintenance
 {
@@ -87,7 +88,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
                 _logger.LogInformation("client-maintenance.validate-client request: {Request}", JsonSerializer.Serialize(requestData));
 
-                var response = await _apiService.CreateAsync<JsonElement>("SystemCoreApi", ApiEndpoints.GET_ID_DESCRIPTION, requestData);
+                var response = await _apiService.CreateAsync<JsonElement>("SystemCoreApi", ApiEndpoints.GET_ID_DESCRIPTION, requestData!);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -99,7 +100,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("get-basic")]
-        public async Task<IActionResult> GetBasic([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> GetBasic([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -113,7 +114,8 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                //_commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]!.ToString());
                 _logger.LogInformation("client-maintenance.get-basic request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_BASIC_DETAILS, requestData);
@@ -128,7 +130,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("create-basic")]
-        public async Task<IActionResult> CreateBasic([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> CreateBasic([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -142,7 +144,40 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                //_commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
+                {
+                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OpenedDate"]?.ToString()))
+                {
+                    requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (requestData["OurBranchID"] == null)
+                {
+                    requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                }
+
+                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
+                {
+                    requestData["RequestID"] = HttpContext!.Connection.Id;
+                }
+
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.create-basic request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_BASIC_DETAILS, requestData);
@@ -157,7 +192,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("update-basic")]
-        public async Task<IActionResult> UpdateBasic([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> UpdateBasic([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -171,7 +206,32 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
+                {
+                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                }
+                if (string.IsNullOrEmpty(requestData["OpenedDate"]?.ToString()))
+                {
+                    requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
+                {
+                    requestData["ModifiedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["ModifiedOn"]?.ToString()))
+                {
+                    requestData["ModifiedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.update-basic request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_BASIC_DETAILS, requestData);
@@ -186,7 +246,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("delete-basic")]
-        public async Task<IActionResult> DeleteBasic([FromBody] ClientMaintenanceCrudRequest requestData)
+        public async Task<IActionResult> DeleteBasic([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
             {
@@ -200,7 +260,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.delete-basic request: {Request}", JsonSerializer.Serialize(requestData));
 
                 var response = await _apiService.CreateAsync<JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_BASIC_DETAILS, requestData);
@@ -215,7 +275,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
 
         [HttpPost]
         [Route("get-workflow-stage")]
-        public async Task<IActionResult> GetWorkflowStage([FromBody] JsonDocument requestData)
+        public async Task<IActionResult> GetWorkflowStage([FromBody] JsonNode requestData)
         {
             if (!_authService.IsAuthenticated())
             {

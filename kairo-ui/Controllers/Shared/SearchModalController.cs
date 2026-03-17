@@ -11,28 +11,19 @@ namespace kairo_ui.Controllers.Shared
     {
         private readonly IAuthService _authService;
         private readonly IApiService _apiService;
-        private readonly IOldApiService _oldApiService;
         private readonly IApiCachedService _apiCachedService;
         private readonly IConfiguration _config;
         private readonly ILogger<SearchModalController> _logger;
 
-        // Table IDs that are not configured in SystemCoreApi and need OldApi fallback
-        // NOTE: InstructionID is handled by SystemCoreApi (GetSystemSearch returns 00) - do not add here
-        private static readonly HashSet<string> _fallbackTableIds = new(StringComparer.OrdinalIgnoreCase)
-        {
-        };
-
         public SearchModalController(
             IAuthService authService,
             IApiService apiService,
-            IOldApiService oldApiService,
             IApiCachedService apiCachedService,
             IConfiguration configuration,
             ILogger<SearchModalController> logger)
         {
             _authService = authService;
             _apiService = apiService;
-            _oldApiService = oldApiService;
             _apiCachedService = apiCachedService;
             _config = configuration;
             _logger = logger;
@@ -154,12 +145,6 @@ namespace kairo_ui.Controllers.Shared
                     LanguageID = "en"
                 };
 
-                // Route through OldApi for table IDs not configured in SystemCoreApi
-                if (_fallbackTableIds.Contains(request.TableID))
-                {
-                    return await SearchViaOldApi(request, searchRequestData);
-                }
-
                 _logger.LogInformation($"[SearchModal] Calling SystemCoreApi endpoint: {ApiEndpoints.GET_SYSTEM_SEARCH_RESULT}");
 
                 // Call SystemCoreApi GetSystemSearchResult endpoint using IApiService
@@ -216,138 +201,13 @@ namespace kairo_ui.Controllers.Shared
                     return searchConfig;
                 }
 
-                // Fallback for table IDs not yet configured in SystemCoreApi
-                var fallback = GetFallbackSearchConfig(tableID);
-                if (fallback != null)
-                {
-                    _logger.LogInformation($"[SearchModal] Using fallback config for TableID: {tableID}");
-                    return fallback;
-                }
-
                 _logger.LogWarning($"[SearchModal] No valid search configuration found for TableID: {tableID}");
                 return null;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[SearchModal] Error fetching search configuration for TableID: {tableID}");
-                return GetFallbackSearchConfig(tableID);
-            }
-        }
-
-        /// <summary>
-        /// Hardcoded search configurations for table IDs not yet in SystemCoreApi.
-        /// These mirror the legacy system's search metadata.
-        /// </summary>
-        private static SearchConfigDto? GetFallbackSearchConfig(string tableID)
-        {
-            return tableID switch
-            {
-                "InstructionID" => new SearchConfigDto
-                {
-                    SearchID = "InstructionID",
-                    SearchName = "Standing Instruction",
-                    KeyForNavigation = "SIID",
-                    SearchFields = new List<SearchFieldDto>
-                    {
-                        new() { FieldName = "SIID", DisplayName = "SI ID", FieldOrder = 1 },
-                        new() { FieldName = "DebitAccountID", DisplayName = "Debit Account", FieldOrder = 2 },
-                        new() { FieldName = "AccountName", DisplayName = "Account Name", FieldOrder = 3 }
-                    }
-                },
-                _ => null
-            };
-        }
-
-        /// <summary>
-        /// Execute search via OldApi (p_GetSearchResult) for table IDs not in SystemCoreApi.
-        /// </summary>
-        private async Task<IActionResult> SearchViaOldApi(SearchResultRequestDto request, object searchRequestData)
-        {
-            try
-            {
-                _logger.LogInformation($"[SearchModal] Routing search for {request.TableID} through OldApi");
-
-                var oldApiRequest = new
-                {
-                    TableID = request.TableID,
-                    SearchID = request.TableID,
-                    WhereStmt = request.WhereStmt ?? string.Empty,
-                    AdvFilterString = request.AdvFilterString ?? string.Empty,
-                    SearchKey = request.SearchKey ?? string.Empty,
-                    PrevOrNext = request.PrevOrNext ?? 0,
-                    Reference = request.RefID ?? string.Empty,
-                    PageSize = request.PageSize ?? 20,
-                    OurBranchID = request.OurBranchID ?? string.Empty,
-                    OperatorID = request.OperatorID ?? string.Empty,
-                    ModuleID = request.ModuleID ?? "100",
-                    LanguageID = "en"
-                };
-
-                var response = await _oldApiService.CreateAsync<JsonElement>(
-                    "OldApi",
-                    OldApiDBConstants.GET_SEARCHRESULT,
-                    oldApiRequest
-                );
-
-                // Extract results from the OldApi response
-                var results = new List<object>();
-                var responseCode = "99";
-                var responseMessage = "No results found";
-
-                if (response.ValueKind != JsonValueKind.Undefined && response.ValueKind != JsonValueKind.Null)
-                {
-                    // Try to extract ResponseCode
-                    if (response.TryGetProperty("ResponseCode", out var codeEl))
-                        responseCode = codeEl.GetString() ?? "99";
-
-                    if (response.TryGetProperty("ResponseMessage", out var msgEl))
-                        responseMessage = msgEl.GetString() ?? string.Empty;
-
-                    // Try multiple possible result locations
-                    JsonElement? detailsArray = null;
-                    if (response.TryGetProperty("Details", out var details))
-                        detailsArray = details;
-                    else if (response.TryGetProperty("Details01", out var details01))
-                        detailsArray = details01;
-
-                    if (detailsArray.HasValue)
-                    {
-                        if (detailsArray.Value.ValueKind == JsonValueKind.Array)
-                        {
-                            foreach (var item in detailsArray.Value.EnumerateArray())
-                                results.Add(item);
-                        }
-                        else if (detailsArray.Value.ValueKind == JsonValueKind.String)
-                        {
-                            // Details might be a JSON string that needs parsing
-                            var parsed = JsonDocument.Parse(detailsArray.Value.GetString()!);
-                            if (parsed.RootElement.ValueKind == JsonValueKind.Array)
-                            {
-                                foreach (var item in parsed.RootElement.EnumerateArray())
-                                    results.Add(item);
-                            }
-                        }
-                    }
-                }
-
-                _logger.LogInformation($"[SearchModal] OldApi search returned {results.Count} results");
-
-                if (responseCode == "00" && results.Count > 0)
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        data = new { ResponseCode = responseCode, ResponseMessage = responseMessage, Details = results },
-                        message = responseMessage
-                    });
-                }
-
-                return Ok(new { success = false, message = responseMessage });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[SearchModal] OldApi search error for {request.TableID}");
-                return StatusCode(500, new { success = false, message = "Search failed: " + ex.Message });
+                return null;
             }
         }
     }

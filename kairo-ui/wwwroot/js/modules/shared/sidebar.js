@@ -234,7 +234,17 @@ return {
         }
         //console.log(getOverlayElements());
         const { iframe } = getOverlayElements();
-        if (!submoduleUrl || !iframe) return;
+        if (!submoduleUrl) return;
+
+        if (!iframe) {
+            console.error('[Sidebar] Cannot open child form: missing overlay host ([data-child-inline] / [data-child-iframe])');
+            showSystemToast('Unable to open submodule view: overlay host is missing on this page.', {
+                title: 'Sidebar Overlay',
+                variant: 'warning',
+                timeoutMs: 5000
+            });
+            return;
+        }
 
         // Check if main record is required and loaded
         if (requireMainRecord && !mainModuleState.isMainRecordLoaded) {

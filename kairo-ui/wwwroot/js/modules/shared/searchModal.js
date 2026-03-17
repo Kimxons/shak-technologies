@@ -18,9 +18,12 @@
     'use strict';
 
     class SearchModal {
-        constructor(appCore) {
-            // Support both direct injection and global fallback
-            this.appCore = appCore || global.AppCore || window.AppCore;
+        constructor(appCoreOrOptions) {
+            const looksLikeAppCore = !!appCoreOrOptions && typeof appCoreOrOptions.invokeControllerAsync === 'function';
+            this.options = looksLikeAppCore ? {} : (appCoreOrOptions || {});
+            this.appCore = looksLikeAppCore
+                ? appCoreOrOptions
+                : (this.options.appCore || global.AppCore || window.AppCore);
 
             if (!this.appCore) {
                 console.error('[SearchModal] AppCore is required but not found in arguments or globally');
@@ -176,6 +179,27 @@
             this.attachRowClickHandlers();
         }
 
+        resetSearchForm(pageSize) {
+            const form = document.getElementById('search-modal-form');
+            form?.querySelectorAll('input[data-field]').forEach((input) => {
+                input.value = '';
+            });
+
+            form?.querySelectorAll('select[data-field]').forEach((select) => {
+                select.value = 'like';
+            });
+
+            const pageSizeDropdown = document.getElementById('search-page-size');
+            if (pageSizeDropdown) {
+                const normalizedPageSize = String(pageSize || 20);
+                pageSizeDropdown.value = normalizedPageSize;
+
+                if (pageSizeDropdown.value !== normalizedPageSize) {
+                    pageSizeDropdown.value = '20';
+                }
+            }
+        }
+
         /**
          * Open the search modal
          */
@@ -232,7 +256,12 @@
 
                     const advInput = document.getElementById('search-adv-filter');
                     if (advInput) advInput.value = config.advFilterString || '';
+
+                    const moduleInput = document.getElementById('search-module-id');
+                    if (moduleInput) moduleInput.value = config.moduleID || '100';
                 }
+
+                this.resetSearchForm(config.pageSize);
 
                 // Show modal
                 if (this.modalElement) {
@@ -242,8 +271,8 @@
 
                 // Auto-search if searchKey OR whereStmt provided (ensures filtered lookups show results immediately)
                 //if (config.searchKey || config.whereStmt) {
-                    //console.log('[SearchModal] Auto-triggering search...');
-                    setTimeout(() => this.executeSearch(), 300);
+                //console.log('[SearchModal] Auto-triggering search...');
+                setTimeout(() => this.executeSearch(), 300);
                 //}
 
             } catch (error) {
@@ -298,19 +327,7 @@
 
                 console.log('[SearchModal] Search response:', response);
 
-                // Extract results
-                let results = [];
-                if (response?.success && response?.data) {
-                    if (Array.isArray(response.data)) {
-                        results = response.data;
-                    } else if (response.data.Details) {
-                        results = Array.isArray(response.data.Details) ? response.data.Details : [response.data.Details];
-                    } else if (response.data.details) {
-                        results = Array.isArray(response.data.details.SearchResults) ? response.data.details.SearchResults : [response.data.details.SearchResults];
-                    } else if (response.data.Records) {
-                        results = Array.isArray(response.data.Records) ? response.data.Records : [];
-                    }
-                }
+                const results = this.extractResults(response);
 
                 if (results && results.length > 0) {
                     this.currentResults = results;
@@ -362,6 +379,48 @@
 
             /*return JSON.stringify(filters);*/
             return filters;
+        }
+
+        extractResults(response) {
+            if (!response?.success || !response?.data) {
+                return [];
+            }
+
+            const data = response.data;
+
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (Array.isArray(data.Details)) {
+                return data.Details;
+            }
+
+            if (data.Details && typeof data.Details === 'object') {
+                return [data.Details];
+            }
+
+            if (Array.isArray(data.details)) {
+                return data.details;
+            }
+
+            if (Array.isArray(data.details?.SearchResults)) {
+                return data.details.SearchResults;
+            }
+
+            if (data.details?.SearchResults && typeof data.details.SearchResults === 'object') {
+                return [data.details.SearchResults];
+            }
+
+            if (Array.isArray(data.Records)) {
+                return data.Records;
+            }
+
+            if (Array.isArray(data.records)) {
+                return data.records;
+            }
+
+            return [];
         }
 
         /**

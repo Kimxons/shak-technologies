@@ -1,0 +1,438 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Linq
+@{
+    ViewData["Title"] = "Exit Types";
+    Layout = "_ApplicationLayout";
+
+    var reinCycleOptions = ViewData["ReinCycleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var graceReinCycleOptions = ViewData["GraceReinCycleOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var chargeOffTypeOptions = ViewData["ChargeOffTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+}
+
+<!-- Toast Container -->
+<div class="toast-container kairo-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="window">
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Form Content -->
+        <div class="form-content">
+            <form id="frm_exitTypes" autocomplete="off" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="moduleId_exitTypes" value="@ViewData["ModuleId"]" />
+                <input type="hidden" id="exitTypeId_exitTypes" value="@ViewData["ExitTypeId"]" />
+                <input type="hidden" id="autoLoad_exitTypes" value="@ViewData["AutoLoad"]" />
+                <input type="hidden" id="hdn_updateCount" name="UpdateCount" value="0" />
+
+            <div class="form-card" data-main-form>
+                <!-- On-top Feedback (Account Maintenance style) -->
+                <div id="exitTypesValidationSummary" class="validation-summary" role="alert" aria-live="polite" aria-atomic="true">
+                    <i id="exitTypesValidationIcon" class="bi bi-exclamation-circle validation-summary__icon" aria-hidden="true"></i>
+                    <span id="exitTypesValidationText" class="validation-summary__text" style="white-space: pre-line;"></span>
+                    <button id="exitTypesValidationClose" class="validation-summary__close" type="button" aria-label="Close notification">
+                        <i class="bi bi-x" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <!-- Exit Type Identifiers Section -->
+                <div class="form-section" data-section="exit-type-identifiers">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-info-square"></i>Exit Type Identifiers</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Exit Type Identifiers" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_exitTypeId">Exit Type ID</label>
+                                    <div class="kairo-control kairo-control--single" data-kairo-control>
+                                        <input type="text" id="txt_exitTypeId" name="ExitTypeID" class="kairo-control__id" aria-label="Exit Type ID" placeholder="Enter Exit Type ID" maxlength="50" />
+                                        <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="ExitTypeID" aria-label="Search Exit Type">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-blue" for="txt_description">Description</label>
+                                    <input type="text" class="bs-input-text" id="txt_description" name="Description" placeholder="Exit Type Name" aria-label="Exit Type Description" maxlength="100" />
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <!-- Allow Reinstatement Section -->
+                <div class="form-section" data-section="allow-reinstatement">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-arrow-clockwise"></i>Allow Reinstatement</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Allow Reinstatement" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_allowReinstate" name="AllowRein" />
+                                    Allow Reinstatement
+                                </label>
+                            </div>
+                            <div class="form-group"></div>
+                        </div>
+                        <div id="reinstateNested" class="ps-4 mt-2" hidden>
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="chk_reopenAccounts" name="ReopenAccounts" disabled />
+                                        Reopen Accounts
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="chk_moveOtherGroup" name="AllowToMoveOtherGroup" disabled />
+                                        Allow Moving To Other Group
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-row two-col">
+                                <div class="form-group">
+                                    <label class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="chk_chargeOffNotRecovered" name="AllowWithOSWriteoff" disabled />
+                                        Even If Charge-Off Not Recovered
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="d-flex align-items-center gap-2">
+                                        <input class="bs-checkbox" type="checkbox" id="chk_forfeitNotRecovered" name="AllowWithOSForfeit" disabled />
+                                        Even If Forfeit Is Not Recovered
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exit Restrictions Section -->
+                <div class="form-section" data-section="exit-restrictions">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-shield-x"></i>Exit Restrictions</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Exit Restrictions" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="label-blue" for="txt_notAllowedAfter">Not Allowed After (Days)</label>
+                                <input type="number" id="txt_notAllowedAfter" name="MaxReinDays" class="bs-input-number" placeholder="0" aria-label="Not Allowed After (Days)" min="0" />
+                            </div>
+                            <div class="form-group">
+                                <label class="label-blue" for="txt_withinDays">Within (Days)</label>
+                                <input type="number" id="txt_withinDays" name="ReinDays" class="bs-input-number" placeholder="0" aria-label="Within (Days)" min="0" />
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="label-blue" for="ddl_withinLevel">Within Level</label>
+                                <select id="ddl_withinLevel" name="ReinCycleID" class="bs-select" aria-label="Within Level" asp-items="@(reinCycleOptions.Skip(1))">
+                                    <option value="">~Select~</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="label-blue" for="txt_afterDays">After (Days)</label>
+                                <input type="number" id="txt_afterDays" name="AfterDays" class="bs-input-number" placeholder="0" aria-label="After (Days)" min="0" readonly />
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="label-blue" for="ddl_afterLevel">After Level</label>
+                                <select id="ddl_afterLevel" name="GraceReinCycleID" class="bs-select" aria-label="After Level" asp-items="@(graceReinCycleOptions.Skip(1))">
+                                    <option value="">~Select~</option>
+                                </select>
+                            </div>
+                            <div class="form-group"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- On Exit Behavior Section -->
+                <div class="form-section" data-section="on-exit-behavior">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-gear"></i>On Exit Behavior</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle On Exit Behavior" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_forgoInterest" name="ForgoInterestDue" />
+                                    Forgo Interest Due
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_forgoCharges" name="ForgoChargesDue" />
+                                    Forgo Charges Due
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_forgoFutureInterest" name="ForgoFutureInterest" />
+                                    Forgo Future Interest
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_paySavingInterest" name="PaySavingsInterest" />
+                                    Pay Saving Interest
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_forfeitSavings" name="ForfeitSavings" />
+                                    Forfeit Savings
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_closeClient" name="CloseClient" />
+                                    Close Client
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- On Loan Outstanding Section -->
+                <div class="form-section" data-section="on-loan-outstanding">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-cash"></i>On Loan Outstanding</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle On Loan Outstanding" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_forfeitCollateral" name="ForfeitCollaterals" />
+                                    Forfeit Collateral
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_chargeOffLoan" name="IsChargeOff" />
+                                    Charge-Off
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="d-flex align-items-center gap-2">
+                                    <input class="bs-checkbox" type="checkbox" id="chk_writeOffSavings" name="AllowWriteOff" />
+                                    Allow Write Off
+                                </label>
+                            </div>
+                            <div class="form-group"></div>
+                        </div>
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label class="label-blue" for="ddl_exitChargeOffType">Exit Charge-Off Type</label>
+                                <select class="bs-select" id="ddl_exitChargeOffType" name="ExitChargeoffTypeID" aria-label="Exit Charge-Off Type" asp-items="@(chargeOffTypeOptions.Skip(1))">
+                                    <option value="">~Select~</option>
+                                </select>
+                            </div>
+                            <div class="form-group"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behind The Scene Section -->
+                <div class="form-section behind-scene" data-section="behind-scene">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-info-circle"></i>Behind The Scene</span>
+                        <button type="button" class="section-toggle-btn" aria-label="Toggle Behind The Scene" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="behind-scene">
+                            <!-- Year Statistics -->
+                            <div class="bts-group mini-collapsible-card">
+                                <div class="mini-card-header" data-toggle-mini-card tabindex="0">
+                                    <span class="mini-card-title"><i class="bi bi-bar-chart-line"></i> Year Statistics</span>
+                                </div>
+                                <div class="mini-card-content" data-mini-content>
+                                    <div class="bts-group-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="behind-scene-item">
+                                                <label>Current Year &mdash; Exit for this Type</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_currentYearExitForType">-</span></div>
+                                            </div>
+                                            <div class="behind-scene-item">
+                                                <label>Current Year &mdash; Total Exits</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_currentYearTotalExits">-</span></div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="behind-scene-item">
+                                                <label>Previous Year &mdash; Exit for this Type</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_previousYearExitForType">-</span></div>
+                                            </div>
+                                            <div class="behind-scene-item">
+                                                <label>Previous Year &mdash; Total Exits</label>
+                                                <div class="value-row"><span class="behind-scene-value" id="txt_previousYearTotalExits">-</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Audit Trail -->
+                            <div class="audit-section">
+                                <div class="audit-item">
+                                    <label>Created By</label>
+                                    <span class="audit-value" id="txt_createdBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Created On</label>
+                                    <span class="audit-value" id="txt_createdOn">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Modified By</label>
+                                    <span class="audit-value" id="txt_modifiedBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Modified On</label>
+                                    <span class="audit-value" id="txt_modifiedOn">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Supervised By</label>
+                                    <span class="audit-value" id="txt_supervisedBy">-</span>
+                                </div>
+                                <div class="audit-item">
+                                    <label>Supervised On</label>
+                                    <span class="audit-value" id="txt_supervisedOn">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+
+        <!-- Right Action Panel -->
+        <div class="action-panel">
+            <div class="nav-group">
+                <button class="btn-nav green" id="btn_prevExitType" aria-label="Previous Exit Type"><i class="bi bi-chevron-left"></i></button>
+                <span>Exit Type</span>
+                <button class="btn-nav green" id="btn_nextExitType" aria-label="Next Exit Type"><i class="bi bi-chevron-right"></i></button>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="btn-action action-button view underline" data-action="view" title="View"><i class="bi bi-eye me-1"></i>View</button>
+                <button type="button" class="btn-action action-button add" data-action="add" title="Add"><i class="bi bi-plus-circle me-1"></i>Add</button>
+                <button type="button" class="btn-action action-button edit" data-action="edit" title="Edit"><i class="bi bi-pencil me-1"></i>Edit</button>
+                <button type="button" class="btn-action action-button delete" data-action="delete" title="Delete"><i class="bi bi-trash me-1"></i>Delete</button>
+                <button type="button" class="btn-action action-button save" data-action="save" title="Save"><i class="bi bi-floppy me-1"></i>Save</button>
+                <button type="button" class="btn-action action-button cancel" data-action="cancel" title="Cancel"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal (Account Maintenance style) -->
+<div class="confirm-modal" id="exitTypesDeleteConfirmModal" hidden>
+    <div class="confirm-modal__backdrop" data-confirm-backdrop></div>
+    <div class="confirm-modal__content" role="dialog" aria-modal="true" aria-labelledby="exitTypesDeleteConfirmTitle" aria-describedby="exitTypesDeleteConfirmMessage">
+        <div class="confirm-modal__header">
+            <div class="confirm-modal__header-left">
+                <div class="confirm-modal__icon-circle">
+                    <i class="bi bi-exclamation-triangle confirm-modal__icon" aria-hidden="true"></i>
+                </div>
+                <h3 class="confirm-modal__title" id="exitTypesDeleteConfirmTitle">Confirm Delete</h3>
+            </div>
+            <button type="button" class="confirm-modal__close" id="exitTypesDeleteConfirmClose" aria-label="Close">
+                <i class="bi bi-x" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="confirm-modal__body">
+            <p class="confirm-modal__message" id="exitTypesDeleteConfirmMessage">Do you want to Delete Exit Type <span id="exitTypesDeleteConfirmId">''</span>? This cannot be undone.</p>
+        </div>
+        <div class="confirm-modal__footer">
+            <button type="button" class="confirm-modal__btn confirm-modal__btn--yes" id="exitTypesDeleteConfirmYes">Yes</button>
+            <button type="button" class="confirm-modal__btn confirm-modal__btn--no" id="exitTypesDeleteConfirmNo">No</button>
+        </div>
+    </div>
+</div>
+
+<!-- Load Exit Types JavaScript Module -->
+<script src="~/js/modules/microfinance/exit-types.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mini-card collapsible toggles (behind-the-scene pattern)
+        document.querySelectorAll('[data-toggle-mini-card]').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                if (content) content.hidden = !content.hidden;
+            });
+            header.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+            });
+        });
+
+        // Sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('main-sidebar');
+        
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                const isExpanded = !sidebar.classList.contains('collapsed');
+                sidebarToggle.setAttribute('aria-expanded', isExpanded);
+            });
+        }
+
+        // Nav section toggles
+        document.querySelectorAll('.nav-arrow--card').forEach(arrow => {
+            arrow.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const section = this.closest('.nav-section');
+                const items = section.querySelector('.nav-items--card');
+                const isOpen = section.classList.toggle('is-open');
+                
+                this.setAttribute('aria-expanded', isOpen);
+                items.hidden = !isOpen;
+                
+                const icon = this.querySelector('i');
+                icon.className = isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+            });
+        });
+
+        // Sidebar item click handlers
+        document.querySelectorAll('.sidebar-item[data-child-form]').forEach(item => {
+            item.addEventListener('click', async function() {
+                const formName = this.getAttribute('data-child-form');
+                
+                // Update active state
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Load appropriate content
+                if (formName === 'exit-types') {
+                    // Already loaded, just ensure visibility
+                    return;
+                } else if (formName === 'group-loan-scheme') {
+                    window.location.href = '/MicroFinance/GroupLoanScheme/Index';
+                }
+            });
+        });
+    });
+</script>

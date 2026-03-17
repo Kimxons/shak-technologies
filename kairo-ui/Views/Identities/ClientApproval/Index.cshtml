@@ -4,410 +4,173 @@
     Layout = "_ApplicationLayout";
     var clientTypeOptions = ViewData["ClientTypeOptions"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
 }
-
-@section Styles {
-    <style>
-        /* Client Approval Specific Styles */
-        .ca-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .ca-filters {
-            padding: 15px;
-            border-bottom: 1px solid #e5e7eb;
-            background: #f9fafb;
-        }
-
-        .ca-filter-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            align-items: flex-end;
-        }
-
-        .ca-content {
-            flex: 1;
-            overflow: auto;
-            padding: 15px;
-        }
-
-        .ca-section {
-            margin-bottom: 20px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            background: #fff;
-        }
-
-        .ca-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: linear-gradient(120deg, #1b6ca8, #2b81c4);
-            color: #fff;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .ca-section-header:hover {
-            background: linear-gradient(120deg, #154d7e, #1b6ca8);
-        }
-
-        .ca-section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .ca-section-badge {
-            background: rgba(255, 255, 255, 0.25);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .ca-section-toggle {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: #fff;
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .ca-section-toggle:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .ca-section.collapsed .ca-section-content {
-            display: none;
-        }
-
-        .ca-section.collapsed .ca-section-toggle i {
-            transform: rotate(180deg);
-        }
-
-        .ca-section-content {
-            padding: 15px;
-            transition: max-height 0.3s ease;
-        }
-
-        .ca-table-container {
-            overflow-x: auto;
-        }
-
-        .ca-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .ca-table thead {
-            background: #f3f4f6;
-            border-bottom: 2px solid #d1d5db;
-        }
-
-        .ca-table th {
-            padding: 10px;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .ca-table td {
-            padding: 10px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .ca-table tbody tr {
-            transition: background-color 0.2s;
-        }
-
-        .ca-table tbody tr:hover {
-            background-color: #f9fafb;
-        }
-
-        .ca-table tbody tr.selected {
-            background-color: #dbeafe;
-        }
-
-        .ca-action-panel {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 110px;
-            height: 100vh;
-            background: linear-gradient(180deg, #1e293b, #334155);
-            border-left: 1px solid #475569;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px 0;
-            gap: 15px;
-            z-index: 100;
-        }
-
-        .ca-action-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            border: 1px solid #475569;
-            background: #1e293b;
-            color: #e2e8f0;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 11px;
-            font-weight: 500;
-            text-align: center;
-            padding: 5px;
-        }
-
-        .ca-action-btn i {
-            font-size: 24px;
-        }
-
-        .ca-action-btn:hover:not(:disabled) {
-            background: #334155;
-            color: #f1f5f9;
-            border-color: #64748b;
-        }
-
-        .ca-action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .ca-action-btn.success {
-            color: #10b981;
-            border-color: #10b981;
-        }
-
-        .ca-action-btn.success:hover:not(:disabled) {
-            background: rgba(16, 185, 129, 0.15);
-        }
-
-        .ca-action-btn.danger {
-            color: #ef4444;
-            border-color: #ef4444;
-        }
-
-        .ca-action-btn.danger:hover:not(:disabled) {
-            background: rgba(239, 68, 68, 0.15);
-        }
-
-        .ca-message {
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .ca-message.info {
-            border-left-color: #3b82f6;
-            background: #eff6ff;
-            color: #1e40af;
-        }
-
-        .ca-message.success {
-            border-left-color: #10b981;
-            background: #f0fdf4;
-            color: #15803d;
-        }
-
-        .ca-message.warning {
-            border-left-color: #f59e0b;
-            background: #fffbeb;
-            color: #92400e;
-        }
-
-        .ca-message.danger {
-            border-left-color: #ef4444;
-            background: #fef2f2;
-            color: #991b1b;
-        }
-
-        /* Modal Styles */
-        .ca-modal-header {
-            background: linear-gradient(120deg, #1b6ca8, #2b81c4);
-            color: #fff;
-        }
-
-        .ca-modal-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-    </style>
-}
-
-<main id="dv_clientApprovalMain" class="ca-container" role="region" aria-label="Client Approval">
-    <!-- Message Area -->
-    <div id="dv_messagePanel" class="ca-message" style="display: none;"></div>
-
-    <!-- Filters Section -->
-    <div class="ca-filters" id="dv_filterSection">
-        <form id="frm_clientApprovalFilters" autocomplete="off">
-        <div class="ca-filter-row">
-            <!-- Branch ID -->
-            <div class="form-group">
-                <label class="form-label small fw-600" id="lbl_branchId" for="txt_branchId">Branch ID <span class="text-danger">*</span></label>
-                <div class="input-group input-group-sm">
-                    <input type="text" id="txt_branchId" class="form-control" placeholder="Select..." readonly>
-                    <button class="btn btn-outline-secondary" type="button" id="btn_searchBranch" title="Search Branch" aria-label="Search Branch">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-                <input type="hidden" id="txt_branchIdValue" />
-            </div>
-
-            <!-- Client Type -->
-            <div class="form-group">
-                <label class="form-label small fw-600" id="lbl_clientType" for="ddl_clientType">Client Type <span class="text-danger">*</span></label>
-                <select id="ddl_clientType" class="form-select form-select-sm" asp-items="@(clientTypeOptions.Skip(1))">
-                    <option value="">Select Type...</option>
-                </select>
-            </div>
-
-            <!-- Application ID -->
-            <div class="form-group">
-                <label class="form-label small fw-600" id="lbl_applicationId" for="txt_applicationId">Application ID <span class="text-danger">*</span></label>
-                <div class="input-group input-group-sm">
-                    <input type="text" id="txt_applicationId" class="form-control" placeholder="Select..." readonly>
-                    <button class="btn btn-outline-secondary" type="button" id="btn_searchApplication" title="Search Application" aria-label="Search Application">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-                <input type="hidden" id="txt_applicationIdValue" />
-            </div>
-
-            <!-- Load Button -->
-            <div class="form-group">
-                <button id="btn_loadApprovals" type="button" class="btn btn-primary btn-sm w-100">
-                    <i class="bi bi-search"></i> Load Approvals
-                </button>
-            </div>
+<div class="window">
+    <div class="am-header" role="banner">
+        <div class="am-header__left">
+            <i class="bi bi-check2-square am-header__icon"></i>
+            <span class="am-header__title">Client Approval</span>
         </div>
-        </form>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="ca-content">
-        <!-- Pending Approvals Section -->
-        <div class="ca-section" id="dv_pendingApprovalsSection">
-            <div class="ca-section-header">
-                <div class="ca-section-title">
-                    <i class="bi bi-clock-history"></i>
-                    <span>Pending Approvals</span>
-                    <span class="ca-section-badge" id="spn_recordCount">0 records</span>
-                </div>
-                <button type="button" id="btn_togglePendingApprovals" class="ca-section-toggle" data-section="approvals" aria-label="Toggle Pending Approvals" aria-expanded="true">
-                    <i class="bi bi-chevron-up"></i>
-                </button>
-            </div>
-            <div class="ca-section-content">
-                <div class="ca-table-container">
-                    <table class="ca-table" id="tbl_approval">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;">
-                                    <input type="checkbox" id="chk_selectAll" class="form-check-input">
-                                </th>
-                                <th>Gender</th>
-                                <th>Date of Birth</th>
-                                <th>Nationality</th>
-                                <th>Identification</th>
-                                <th>Marital Status</th>
-                                <th>Address</th>
-                                <th>Mobile</th>
-                                <th>Center ID</th>
-                                <th>Group ID</th>
-                                <th>Created By</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbl_approvalBody">
-                            <tr>
-                                <td colspan="11" class="text-center text-muted py-3">
-                                    No records to display. Apply filters and click "Load Approvals".
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Status Reasons Section -->
-        <div class="ca-section" id="dv_statusReasonsSection" style="display: none;">
-            <div class="ca-section-header">
-                <div class="ca-section-title">
-                    <i class="bi bi-list-check"></i>
-                    <span>Status Reasons / Checklist</span>
-                </div>
-                <button type="button" id="btn_toggleStatusReasons" class="ca-section-toggle" data-section="reasons" aria-label="Toggle Status Reasons" aria-expanded="true">
-                    <i class="bi bi-chevron-up"></i>
-                </button>
-            </div>
-            <div class="ca-section-content">
-                <div class="ca-table-container">
-                    <table class="ca-table" id="tbl_statusReasons">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;">
-                                    <input type="checkbox" id="chk_selectAllReasons" class="form-check-input">
-                                </th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbl_statusReasonsBody">
-                            <tr>
-                                <td colspan="2" class="text-center text-muted py-3">
-                                    No records to display.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="am-header__right" role="toolbar" aria-label="Window controls">
+            <button class="am-btn" type="button" data-action="refresh" title="Refresh" aria-label="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="am-btn" type="button" data-action="minimize" title="Minimize" aria-label="Minimize"><i class="bi bi-dash-lg"></i></button>
+            <button class="am-btn" type="button" data-action="maximize" title="Maximize" aria-label="Maximize"><i class="bi bi-square"></i></button>
+            <button class="am-btn am-btn--close" type="button" data-action="close" title="Close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
         </div>
     </div>
-    <!-- Action Panel (Right Rail) -->
-    <aside id="dv_actionPanel" class="ca-action-panel" role="complementary" aria-label="Client Approval Actions">
-    <button type="button" id="btn_view" class="ca-action-btn" disabled title="View Details" aria-label="View selected client" data-action="view">
-        <i class="bi bi-eye"></i>
-        <span>View</span>
-    </button>
-    <button type="button" id="btn_approve" class="ca-action-btn success" disabled title="Approve Clients" aria-label="Approve selected clients" data-action="approve">
-        <i class="bi bi-check-circle-fill"></i>
-        <span>Approve</span>
-    </button>
-    <button type="button" id="btn_reject" class="ca-action-btn danger" disabled title="Reject Clients" aria-label="Reject selected clients" data-action="reject">
-        <i class="bi bi-x-circle-fill"></i>
-        <span>Reject</span>
-    </button>
-    <button type="button" id="btn_cancel" class="ca-action-btn" title="Close" aria-label="Close client approval" data-action="cancel">
-        <i class="bi bi-arrow-left"></i>
-        <span>Close</span>
-    </button>
-    </aside>
+
+    <div class="main-container main-container--with-panel">
+        <main id="dv_clientApprovalMain" class="form-content" role="region" aria-label="Client Approval">
+            <input type="hidden" id="moduleId" value="@ViewData["ModuleId"]" />
+            <input type="hidden" id="hdn_defaultBranchId" value="@ViewData["DefaultBranchId"]" />
+            <input type="hidden" id="hdn_defaultBranchName" value="@ViewData["DefaultBranchName"]" />
+
+            <div class="am-message-panel d-none" id="dv_messagePanel" role="alert" aria-live="polite">
+                <div class="am-message-panel__content">
+                    <i class="bi bi-info-circle" id="icn_messageIcon"></i>
+                    <span id="spn_messageText"></span>
+                </div>
+            </div>
+
+            <div class="form-card" data-main-form>
+                <div class="form-section" id="dv_filterSection" data-section="filter-criteria">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-funnel me-1"></i>Filter Criteria</span>
+                        <button type="button" id="btn_toggleFilters" class="section-toggle-btn" aria-label="Toggle Filter Criteria" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <form id="frm_clientApprovalFilters" autocomplete="off">
+                            <div class="form-row four-col">
+                                <div class="form-group">
+                                    <label class="label-blue" id="lbl_branchId" for="txt_branchId">Branch ID <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" id="txt_branchId" class="bs-input-text form-control" placeholder="Select..." readonly>
+                                        <button class="btn btn-outline-secondary" type="button" id="btn_searchBranch" title="Search Branch" aria-label="Search Branch">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="txt_branchIdValue" />
+                                    <small id="spn_branchName" class="text-muted d-block mt-1"></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="label-blue" id="lbl_clientType" for="ddl_clientType">Client Type <span class="text-danger">*</span></label>
+                                    <select id="ddl_clientType" class="bs-select" asp-items="@(clientTypeOptions.Skip(1))">
+                                        <option value="">Select Type</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="label-blue" id="lbl_applicationId" for="txt_applicationId">Application ID <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" id="txt_applicationId" class="bs-input-text form-control" placeholder="Select..." readonly>
+                                        <button class="btn btn-outline-secondary" type="button" id="btn_searchApplication" title="Search Application" aria-label="Search Application">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="txt_applicationIdValue" />
+                                    <small id="spn_applicationName" class="text-muted d-block mt-1"></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="label-blue invisible" aria-hidden="true">Load</label>
+                                    <button id="btn_loadApprovals" type="button" class="btn btn-primary w-100">
+                                        <i class="bi bi-search"></i><span>Load Approvals</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="form-section" id="dv_pendingApprovalsSection" data-section="pending-approvals">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-clock-history me-1"></i>Pending Approvals</span>
+                        <span class="badge bg-primary ms-2" id="spn_recordCount">0 records</span>
+                        <button type="button" id="btn_togglePendingApprovals" class="section-toggle-btn" aria-label="Toggle Pending Approvals" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered table-hover" id="tbl_approval">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:40px;"><input type="checkbox" id="chk_selectAll" class="form-check-input"></th>
+                                        <th>Gender</th>
+                                        <th>Date of Birth</th>
+                                        <th>Nationality</th>
+                                        <th>Identification No</th>
+                                        <th>Marital Status</th>
+                                        <th>Address</th>
+                                        <th>Mobile</th>
+                                        <th>Center ID</th>
+                                        <th>Group ID</th>
+                                        <th>Created By</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl_approvalBody">
+                                    <tr>
+                                        <td colspan="11" class="text-muted">No records to display.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" id="dv_statusReasonsSection" data-section="status-reasons">
+                    <div class="section-header" data-section-toggle>
+                        <span class="section-header__title"><i class="bi bi-list-check me-1"></i>Status Reasons</span>
+                        <button type="button" id="btn_toggleStatusReasons" class="section-toggle-btn" aria-label="Toggle Status Reasons" aria-expanded="true">
+                            <i class="bi bi-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="section-content" data-section-content>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered table-hover" id="tbl_statusReasons">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:40px;"><input type="checkbox" id="chk_selectAllReasons" class="form-check-input"></th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl_statusReasonsBody">
+                                    <tr>
+                                        <td colspan="2" class="text-muted">No records to display.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside id="dv_actionPanel" class="action-panel" role="complementary" aria-label="Client Approval Actions">
+            <div class="action-buttons">
+                <button type="button" id="btn_view" class="btn-action" disabled title="View Details" aria-label="View selected client" data-action="view">
+                    <i class="bi bi-eye"></i><span>View</span>
+                </button>
+                <button type="button" id="btn_approve" class="btn-action btn-action--success" disabled title="Approve Clients" aria-label="Approve selected clients" data-action="approve">
+                    <i class="bi bi-check-circle-fill"></i><span>Approve</span>
+                </button>
+                <button type="button" id="btn_reject" class="btn-action btn-delete" disabled title="Reject Clients" aria-label="Reject selected clients" data-action="reject">
+                    <i class="bi bi-x-circle-fill"></i><span>Reject</span>
+                </button>
+                <button type="button" id="btn_cancel" class="btn-action" title="Close" aria-label="Close client approval" data-action="cancel">
+                    <i class="bi bi-arrow-left"></i><span>Cancel</span>
+                </button>
+            </div>
+        </aside>
+    </div>
 
     <!-- Rejection Modal -->
     <div class="modal fade" id="mdl_rejection" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header ca-modal-header">
+                <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-exclamation-triangle"></i> Reject Clients
                     </h5>
@@ -416,9 +179,6 @@
                 <div class="modal-body">
                     <div class="alert alert-warning mb-3">
                         <i class="bi bi-info-circle"></i>
-                            <!-- Hidden fields for page context -->
-                            <input type="hidden" id="moduleId" value="@ViewData["ModuleId"]" />
-
                         You are about to reject <strong id="spn_rejectionCount">0</strong> client(s). Please provide a reason.
                     </div>
                     <form id="frm_rejection">
@@ -444,7 +204,7 @@
             </div>
         </div>
     </div>
-</main>
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
