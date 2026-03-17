@@ -147,10 +147,13 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 var form = await Request.ReadFormAsync();
                 using var multipart = BuildMultipartContent(form, "UploadTempImage");
 
-                var client = _httpClientFactory.CreateClient("ClientDocumentApi");
-                var response = await client.PostAsync(ApiEndpoints.UPLOAD_TEMP_IMAGE, multipart);
-                var payload = await ReadClientDocumentApiResponseAsync(response);
-                return StatusCode((int)response.StatusCode, payload);
+                //var client = _httpClientFactory.CreateClient("ClientDocumentApi");
+                //var response = await client.PostAsync(ApiEndpoints.UPLOAD_TEMP_IMAGE, multipart);
+
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>("ClientDocumentApi",ApiEndpoints.UPLOAD_CLIENT_DOCUMENT, multipart);
+                //var payload = await ReadClientDocumentApiResponseAsync(response);
+                //return StatusCode((int)response.StatusCode, response);
+                return StatusCode(200, response);
             }
             catch (Exception ex)
             {
