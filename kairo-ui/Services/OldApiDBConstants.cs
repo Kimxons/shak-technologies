@@ -255,6 +255,13 @@ namespace kairo_ui.Services
         public const string RELEASE_RECORD_LOCK = "p_ReleaseRecordLock";
 
         // ═══════════════════════════════════════════════════════════════════
+        // STATIC DATA - DEVICE MANAGER
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_DEVICE_MANAGER = "p_GetDevice";
+        public const string ADD_EDIT_DEVICE_MANAGER = "p_AddEditATMDevices";
+        public const string DELETE_DEVICE_MANAGER = "p_DeleteDevice";
+
+        // ═══════════════════════════════════════════════════════════════════
         // STANDING INSTRUCTION TYPE
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_SI_TYPES = "dbo.p_GetSITypes";
@@ -268,6 +275,7 @@ namespace kairo_ui.Services
         public const string GET_MERGE_CLIENT_ACCOUNTS = "p_GetCustomerQuery_MergeClientAccount";
         public const string GET_SEARCHRESULT_DBO = "p_GetSearchResult";
         public const string SEARCH_SYSTEM_BRANCHES = "pc_SearchSystemBranches";
+        public const string GET_BREFT_BINS = "dbo.p_GetBreftBins";
         public const string MERGE_ACCOUNTS = "p_MergeAccounts";
         public const string ADD_ACCOUNT_CARD = "p_AddEditElectronicCard";
         public const string UPDATE_ACCOUNT_CARD = "p_AddEditElectronicCard";
