@@ -187,94 +187,109 @@
 
     <!-- Loan Analysis Search Modal -->
     <div class="modal fade" id="loanAnalysisSearchModal" tabindex="-1" aria-labelledby="loanAnalysisSearchModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="mb-0 small">Loan Analysis</p>
-                        <h5 class="modal-title" id="loanAnalysisSearchModalLabel">Find Loan Analysis</h5>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-sm btn-outline-light" id="btnSearchRefreshLoanAnalysis" aria-label="Refresh">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="loanAnalysisSearchModalLabel">
+                        <i class="bi bi-search me-2"></i>Loan Analysis ID
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form class="row g-3 align-items-end mb-3" id="loanAnalysisSearchForm">
-                        <div class="col-md-4">
-                            <label class="form-label">Loan Analysis ID</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="searchLoanAnalysisIdMode">
-                                    <option value="Like">Contains</option>
-                                    <option value="Equal">Exact</option>
+                    <!-- Search Filters -->
+                    <div class="search-filters mb-3">
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label mb-0">Loan Analysis ID</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="searchLoanAnalysisIdMode">
+                                    <option value="Like" selected>Like</option>
+                                    <option value="Equal">Equal</option>
                                     <option value="StartsWith">Starts With</option>
                                 </select>
-                                <input type="text" class="form-control" id="searchLoanAnalysisId" placeholder="e.g. 01" />
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="searchLoanAnalysisId" placeholder="" />
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Description</label>
-                            <div class="input-group input-group-sm">
-                                <select class="form-select" id="searchDescriptionMode">
-                                    <option value="Like">Contains</option>
-                                    <option value="Equal">Exact</option>
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label mb-0">Description</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="searchDescriptionMode">
+                                    <option value="Like" selected>Like</option>
+                                    <option value="Equal">Equal</option>
+                                    <option value="StartsWith">Starts With</option>
                                 </select>
-                                <input type="text" class="form-control" id="searchDescription" placeholder="Description" />
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="searchDescription" placeholder="" />
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Analysis Type</label>
-                            <select class="form-select form-select-sm" id="searchAnalysisTypeId">
-                                <option value="">--All--</option>
-                                @foreach (var item in analysisTypeOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value)))
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
-                            </select>
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label mb-0">Analysis Type</label>
+                            </div>
+                            <div class="col-md-3"></div>
+                            <div class="col-md-6">
+                                <select class="form-select form-select-sm" id="searchAnalysisTypeId">
+                                    <option value="">--All--</option>
+                                    @foreach (var item in analysisTypeOptions.Where(x => !string.IsNullOrWhiteSpace(x.Value)))
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-12 text-end">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSearchResetLoanAnalysis">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                            </button>
-                            <button type="submit" class="btn btn-primary btn-sm" id="btnSearchLoanAnalysis">
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-primary btn-sm" id="btnSearchLoanAnalysis">
                                 <i class="bi bi-search me-1"></i>Search
                             </button>
                         </div>
-                    </form>
+                    </div>
 
-                    <div class="position-relative">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle mb-0" id="loanAnalysisSearchTable">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Loan Analysis ID</th>
-                                        <th scope="col">Description</th>
-                                        <th scope="col">Analysis Type</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="loanAnalysisSearchResults"></tbody>
-                            </table>
-                        </div>
-                        <div id="loanAnalysisSearchEmpty" class="text-center py-5 text-muted d-none">
-                            Enter at least one filter above and click Search.
-                        </div>
-                        <div id="loanAnalysisSearchLoader" class="d-none position-absolute top-50 start-50 translate-middle">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                    <!-- Search Results Tab -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="searchResultsTab" data-bs-toggle="tab" data-bs-target="#searchResultsPane" type="button" role="tab">
+                                Search Results
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="searchResultsPane" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover table-bordered mb-0" id="loanAnalysisSearchTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>LoanAnalysisID</th>
+                                            <th>Description</th>
+                                            <th>AnalysisTypeID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="loanAnalysisSearchResults"></tbody>
+                                </table>
+                            </div>
+                            <div id="loanAnalysisSearchEmpty" class="text-center text-muted py-3 d-none">No results found.</div>
+                            <div id="loanAnalysisSearchLoader" class="text-center py-3 d-none">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span class="ms-2">Searching...</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <small class="text-muted me-auto">Double-click a row to select record.</small>
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg me-1"></i>Close
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSearchPrev" disabled>
+                        <i class="bi bi-arrow-left"></i>
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm" id="btnSearchOk">
-                        <i class="bi bi-check-lg me-1"></i>OK
+                    <button type="button" class="btn btn-primary btn-sm px-4" id="btnSearchOk">OK</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSearchNext" disabled>
+                        <i class="bi bi-arrow-right"></i>
                     </button>
                 </div>
             </div>

@@ -872,9 +872,6 @@
             openSearchModal();
         });
 
-        const searchForm = qs('#loanAnalysisSearchForm');
-        if (searchForm) searchForm.addEventListener('submit', e => { e.preventDefault(); performSearch(); });
-
         const searchBtn = qs('#btnSearchLoanAnalysis');
         if (searchBtn) searchBtn.addEventListener('click', () => performSearch());
 
@@ -896,15 +893,9 @@
             });
         }
 
-        const okBtn     = qs('#btnSearchOk');             if (okBtn)     okBtn.addEventListener('click', selectAndClose);
-        const refreshBtn = qs('#btnSearchRefreshLoanAnalysis'); if (refreshBtn) refreshBtn.addEventListener('click', () => performSearch());
-        const resetBtn  = qs('#btnSearchResetLoanAnalysis');
-        if (resetBtn) resetBtn.addEventListener('click', () => {
-            setVal('searchLoanAnalysisId', '');
-            setVal('searchDescription', '');
-            const typeEl = qs('#searchAnalysisTypeId'); if (typeEl) typeEl.value = '';
-            clearSearchResults();
-        });
+        const okBtn   = qs('#btnSearchOk');   if (okBtn)   okBtn.addEventListener('click', selectAndClose);
+        const prevBtn = qs('#btnSearchPrev'); if (prevBtn) prevBtn.addEventListener('click', () => navigateSearchResults(-1));
+        const nextBtn = qs('#btnSearchNext'); if (nextBtn) nextBtn.addEventListener('click', () => navigateSearchResults(1));
     }
 
     // ─── Mode Buttons ────────────────────────────────────────────────────
