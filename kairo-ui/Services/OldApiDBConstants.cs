@@ -306,6 +306,11 @@ namespace kairo_ui.Services
         public const string DELETE_LOAN_ANALYSIS = "dbo.p_DeleteLoanAnalysis";
 
         // ═══════════════════════════════════════════════════════════════════
+        // CARD MAINTENANCE
+        // ═══════════════════════════════════════════════════════════════════
+        public const string GET_NEXT_TRACKING_CARD_ID = "p_GetNextTrackingCardID";
+
+        // ═══════════════════════════════════════════════════════════════════
         // NGO MAINTENANCE (StaticData/NgoMaintenance)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_NGO = "dbo.p_GetNGO";

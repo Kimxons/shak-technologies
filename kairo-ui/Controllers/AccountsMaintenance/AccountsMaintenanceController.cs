@@ -2683,6 +2683,37 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         // ============================================================================
 
         [HttpPost]
+        [Route("api/get-next-tracking-card-id")]
+        public async Task<IActionResult> GetNextTrackingCardId([FromBody] GenericAccountRequest request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                _commonUtilities.EnsureDefaults(request);
+
+                var response = await _oldApiService.CreateAsync<JsonElement>(
+                    "OldApi",
+                    OldApiDBConstants.GET_NEXT_TRACKING_CARD_ID,
+                    new
+                    {
+                        BankID      = HttpContext.Session.GetString("bank_id") ?? "00",
+                        OurBranchID = request.OurBranchID,
+                        AccountID   = request.AccountID
+                    }
+                );
+
+                return Ok(new { Success = true, data = response });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting next tracking card ID");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/get-account-card")]
         public async Task<IActionResult> GetAccountCard([FromBody] GenericAccountRequest request)
         {
