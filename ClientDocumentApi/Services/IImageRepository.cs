@@ -8,7 +8,7 @@ namespace ClientDocumentApi.Services
         /// <summary>
         /// Save an image to database and file system
         /// </summary>
-        Task<Image> SaveAsync(IFormFile file, string? imageTypeID, string? description, 
+        Task<Image> SaveAsync(IFormFile file, string? imageTypeID, string? description,
             string? imageStatusID, string? createdBy, DateTime? createdOn, CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -44,8 +44,16 @@ namespace ClientDocumentApi.Services
         /// <summary>
         /// Update image metadata only (without replacing file)
         /// </summary>
-        Task<Image> UpdateMetadataAsync(long imageID, string? imageTypeID, string? description, 
-            string? imageStatusID, string? closedBy, DateTime? closedDate, string? supervisedBy, 
+        Task<Image> UpdateMetadataAsync(long imageID, string? imageTypeID, string? description,
+            string? imageStatusID,string? closedBy, DateTime? closedDate, string? supervisedBy,
+            DateTime? supervisedOn, string? modifiedBy, CancellationToken cancellationToken = default);
+
+
+        /// <summary>
+        /// Update image metadata and replace file
+        /// </summary>
+        Task<Image> UpdateAsync(IFormFile file, long imageID, string? imageTypeID, string? description,
+            string? imageStatusID, string? closedBy, DateTime? closedDate, string? supervisedBy,
             DateTime? supervisedOn, string? modifiedBy, CancellationToken cancellationToken = default);
     }
 }

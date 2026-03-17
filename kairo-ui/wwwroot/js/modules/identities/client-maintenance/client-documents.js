@@ -295,15 +295,15 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             form.querySelectorAll('[data-document-field]').forEach((field) => {
                 const key = field.dataset.documentField;
                 if (!key) return;
-                
+
                 if (field.type === 'file') {
                     if (field.files && field.files[0]) {
-                        formData.append(key, field.files[0]);
+                        formData.append("RequestData." + key, field.files[0]);
                     }
                 } else if (field.type === 'checkbox') {
-                    formData.append(key, field.checked ? '1' : '0');
+                    formData.append("RequestData." + key, field.checked ? '1' : '0');
                 } else {
-                    formData.append(key, field.value ?? '');
+                    formData.append("RequestData." + key, field.value ?? '');
                 }
             });
 
@@ -311,28 +311,28 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             const selectedTempImageId = state.editing?.TempImageID ?? null;
 
             if (selectedImageId !== null && selectedImageId !== undefined && selectedImageId !== '') {
-                formData.append('ImageID', selectedImageId);
+                formData.append("RequestData." + 'ImageID', selectedImageId);
             }
 
             if (selectedTempImageId !== null && selectedTempImageId !== undefined && selectedTempImageId !== '') {
-                formData.append('TempImageID', selectedTempImageId);
+                formData.append("RequestData." + 'TempImageID', selectedTempImageId);
             }
 
             const requestId = window.ClientMaintenanceCore.requestId || '';
-            formData.append('ModuleID', moduleId || window.ClientMaintenanceCore.moduleId || '');
-            formData.append('ClientID', window.ClientMaintenanceCore.clientId || '');
-            formData.append('RequestID', requestId);
-            formData.append('ApplicationID', requestId);
-            
+            formData.append("RequestData."+'ModuleID', moduleId || window.ClientMaintenanceCore.moduleId || '');
+            formData.append("RequestData."+'ClientID', window.ClientMaintenanceCore.clientId || '');
+            formData.append("RequestData."+'RequestID', requestId);
+            formData.append("RequestData." + 'ApplicationID', requestId);
+
             return formData;
         }
-        
+
         // Regular object payload for non-file operations
         const payload = {};
         form.querySelectorAll('[data-document-field]').forEach((field) => {
             const key = field.dataset.documentField;
             if (!key) return;
-            payload[key] = readFieldValue(field);
+            payload["RequestData." + key] = readFieldValue(field);
         });
 
         const selectedImageId = state.editing?.ImageID ?? state.editing?.ID ?? null;
@@ -373,10 +373,9 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             ClientID: window.ClientMaintenanceCore.clientId || '',
             RequestID: requestId,
             ApplicationID: requestId,
-            Payload: {
-                ImageID: requestedId,
-                TempImageID: tempImageId
-            }
+            ImageID: requestedId,
+            TempImageID: tempImageId
+
         });
 
         const details = response?.Details ?? response?.data?.Details ?? response?.data ?? null;
@@ -553,12 +552,11 @@ function bindDocumentsCrud(tabRoot, moduleId) {
             }
 
             const request = buildPayload();
-
             const handler = mode === 'delete'
                 ? service.delete
                 : (mode === 'edit' ? service.update : service.create);
             const actionLabel = mode === 'delete' ? 'remove' : (mode === 'edit' ? 'update' : 'create');
-
+            console.log(request);
             try {
                 const response = await handler(request);
                 const success = response?.Success ?? response?.success ?? true;

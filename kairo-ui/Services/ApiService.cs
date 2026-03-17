@@ -49,6 +49,12 @@ namespace kairo_ui.Services
         /// </summary>
         Task<T> CreateMultipartAsync<T>(string apiName, string endpoint, MultipartFormDataContent data);
 
+
+        /// <summary>
+        /// Updates an existing item id at the specified endpoint using multipart/form-data
+        /// </summary>
+        Task<T> UpdateMultipartAsync<T>(string apiName, string endpoint, object? id, MultipartFormDataContent data);
+
         /// <summary>
         /// Updates an existing item at the specified endpoint
         /// </summary>
@@ -383,19 +389,94 @@ namespace kairo_ui.Services
                 var appName = _httpContext.HttpContext.Session.GetString("appname") ?? "KAIRO-UI";
                 var requestTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
 
-                if (!data.Any(c => c.Headers.ContentDisposition != null && c.Headers.ContentDisposition.Name!.Trim('"').Equals("RequestId")))
+                if (data.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition.Name!.Trim('"').Equals("RequestId")))
                 {
                     data.Add(new StringContent(requestId), "RequestId");
                 }
-                if (!data.Any(c => c.Headers.ContentDisposition != null && c.Headers.ContentDisposition.Name!.Trim('"').Equals("AppName")))
+                if (data.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition.Name!.Trim('"').Equals("AppName")))
                 {
                     data.Add(new StringContent(appName), "AppName");
                 }
-                if (!data.Any(c => c.Headers.ContentDisposition != null && c.Headers.ContentDisposition.Name!.Trim('"').Equals("RequestTime")))
+                if (data.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition.Name!.Trim('"').Equals("RequestTime")))
                 {
                     data.Add(new StringContent(requestTime), "RequestTime");
                 }
-                if (!data.Any(c => c.Headers.ContentDisposition != null && c.Headers.ContentDisposition.Name!.Trim('"').Equals("CheckSum")))
+                if (data.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition.Name!.Trim('"').Equals("CheckSum")))
+                {
+                    data.Add(new StringContent(string.Empty), "CheckSum");
+                }
+
+                _logger.LogInformation("API MULTIPART POST Request: {Endpoint} | URL: {FullUrl} | ContentType: {ContentType}",
+                    endpoint, fullUrl, data.Headers.ContentType?.ToString());
+
+                var startTime = DateTime.UtcNow;
+                var response = await _httpClient.PostAsync(fullUrl, data);
+                var duration = DateTime.UtcNow - startTime;
+
+                _logger.LogInformation("API MULTIPART POST Response: {Endpoint} | Status: {StatusCode} | Duration: {DurationMs}ms",
+                    endpoint, (int)response.StatusCode, duration.TotalMilliseconds);
+                var responseJson = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("API MULTIPART POST Error: {Endpoint} | Status: {StatusCode} | Body: {ResponseBody}",
+                        endpoint, (int)response.StatusCode, responseJson);
+                    throw new HttpRequestException($"API returned {(int)response.StatusCode}: {responseJson}");
+                }
+
+                if (typeof(T) == typeof(string))
+                {
+                    _logger.LogInformation("API MULTIPART POST Success: {Endpoint} | Response Size: {ResponseSize} bytes",
+                        endpoint, responseJson.Length);
+                    return (T)(object)responseJson;
+                }
+
+                var result = JsonSerializer.Deserialize<T>(responseJson, _jsonSerializerOptions);
+
+                _logger.LogInformation("API MULTIPART POST Success: {Endpoint} | Response Size: {ResponseSize} bytes",
+                    endpoint, responseJson.Length);
+                return result!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "API MULTIPART POST Exception: {Endpoint} | Error: {ErrorMessage} | URL: {FullUrl}",
+                    endpoint, ex.Message, fullUrl);
+                throw new Exception($"Failed to create multipart {endpoint}: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new item at the specified endpoint using multipart/form-data
+        /// </summary>
+        public async Task<T> UpdateMultipartAsync<T>(string apiName, string endpoint, object? id, MultipartFormDataContent data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            //var fullUrl = $"{endpoint}";
+            var fullUrl = string.Format(endpoint, id);
+            try
+            {
+                _httpClient = _httpClientFactory.CreateClient(apiName);
+                var requestId = _httpContext.HttpContext!.Connection.Id;
+                var appName = _httpContext.HttpContext.Session.GetString("appname") ?? "KAIRO-UI";
+                var requestTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+                if (!data.Any(c => c.Headers.ContentDisposition != null && !c.Headers.ContentDisposition.Name!.Trim('"').Equals("RequestId")))
+                {
+                    data.Add(new StringContent(requestId), "RequestId");
+                }
+                if (!data.Any(c => c.Headers.ContentDisposition != null && !c.Headers.ContentDisposition.Name!.Trim('"').Equals("AppName")))
+                {
+                    data.Add(new StringContent(appName), "AppName");
+                }
+                if (!data.Any(c => c.Headers.ContentDisposition != null && !c.Headers.ContentDisposition.Name!.Trim('"').Equals("RequestTime")))
+                {
+                    data.Add(new StringContent(requestTime), "RequestTime");
+                }
+                if (!data.Any(c => c.Headers.ContentDisposition != null && !c.Headers.ContentDisposition.Name!.Trim('"').Equals("CheckSum")))
                 {
                     data.Add(new StringContent(string.Empty), "CheckSum");
                 }
