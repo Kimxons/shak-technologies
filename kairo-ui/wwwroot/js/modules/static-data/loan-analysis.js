@@ -12,6 +12,7 @@
     const MODES = { VIEW: 'View', ADD: 'Add', UPDATE: 'Update' };
 
     const endpoints = {
+        getAnalysisTypes:   '/StaticData/LoanAnalysis/GetLoanAnalysisTypes',
         getLoanAnalysis:    'StaticData/LoanAnalysis/GetLoanAnalysis',
         searchLoanAnalysis: 'StaticData/LoanAnalysis/SearchLoanAnalysis',
         saveLoanAnalysis:   'StaticData/LoanAnalysis/SaveLoanAnalysis',
@@ -28,7 +29,9 @@
         updateCount: 0,
         selectedSlabIndex: -1,
         gridAction: null,
-        context: { bankId: '', branchId: '', operatorId: '' }
+        context: { bankId: '', branchId: '', operatorId: '' },
+        analysisTypes: [],   // [{ value, text, isSlabRequired }]
+        typesLoaded: false
     };
 
     let searchModal = null;
@@ -45,7 +48,7 @@
     function loadContext() {
         state.context.operatorId = getValue('OperatorID') || sessionStorage.getItem('user_name') || '';
         state.context.branchId   = getValue('hdn_BranchCode') || sessionStorage.getItem('branch_code') || sessionStorage.getItem('OurBranchID') || '';
-        state.context.bankId     = getValue('hdn_BankId') || sessionStorage.getItem('bank_id') || sessionStorage.getItem('BankID') || '';
+        state.context.bankId     = getValue('hdn_BankId') || sessionStorage.getItem('bank_id') || sessionStorage.getItem('BankID') || '00';
     }
 
     function apiInvoke(endpoint, payload) {
@@ -397,7 +400,10 @@
         setVal('NoOfSlabs',      pickValue(data, ['NoOfSlabs', 'NoOfSlab'], ['noofslabs']) ?? '');
 
         const typeId = pickValue(data, ['AnalysisTypeID', 'AnalysisTypeId'], ['analysistypeid']);
-        if (typeId != null) setSelectValue(qs('#AnalysisTypeId'), String(typeId).trim());
+        if (typeId != null) {
+            setSelectValue(qs('#AnalysisTypeId'), String(typeId).trim());
+            _applySlabVisibility(String(typeId).trim());
+        }
 
         const uc = pickValue(data, ['UpdateCount'], ['updatecount']);
         if (uc != null) state.updateCount = parseInt(uc, 10) || 0;
@@ -519,6 +525,11 @@
         const id = getValue('LoanAnalysisId');
         if (!id) { showMessage('Loan Analysis ID is required.', 'warning'); return; }
 
+        const isAdd = state.mode === MODES.ADD;
+
+        // SP branching: @UpdateCount = 1 → INSERT, anything > 1 → UPDATE
+        const updateCount = isAdd ? 1 : (state.updateCount || 2);
+
         state.isBusy = true;
         showMessage('Saving...', 'info');
 
@@ -530,11 +541,11 @@
                 NoOfSlabs:      parseInt(getValue('NoOfSlabs') || '0', 10),
                 CreatedBy:      state.context.operatorId,
                 CreatedOn:      null,
-                ModifiedBy:     state.hasLoaded ? state.context.operatorId : null,
+                ModifiedBy:     isAdd ? null : state.context.operatorId,
                 ModifiedOn:     null,
                 SupervisedBy:   null,
-                UpdateCount:    state.updateCount || 1,
-                DetailRecords:  buildDetailRecordsXml(),
+                UpdateCount:    updateCount,
+                DetailRecords:  buildDetailRecordsXml() || null,
                 BankID:         state.context.bankId,
                 OurBranchID:    state.context.branchId,
                 OperatorID:     state.context.operatorId
@@ -542,9 +553,9 @@
 
             if (resp?.success) {
                 showMessage('Saved successfully.', 'success');
-                clearFormData();
-                state.slabs = [];
                 setMode(MODES.VIEW);
+                // Reload the record so UpdateCount is refreshed for subsequent edits
+                await handleSearch();
             } else {
                 showMessage(resp?.message || 'Failed to save.', 'danger');
             }
@@ -612,6 +623,81 @@
         showMessage('Cancelled.', 'info');
     }
 
+    // ─── Analysis Types Loader ────────────────────────────────────────────
+    async function loadAnalysisTypes() {
+        if (state.typesLoaded) return;
+        try {
+            const response = await fetch(endpoints.getAnalysisTypes, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const resp = await response.json();
+            if (!resp?.success) return;
+
+            const data = resp.data || resp;
+            let rows =
+                (data?.Details01 && Array.isArray(data.Details01)) ? data.Details01 :
+                (data?.Details   && Array.isArray(data.Details))   ? data.Details   :
+                Array.isArray(data)                                 ? data           : [];
+
+            if (!rows.length && typeof data?.Details === 'string') {
+                try { rows = JSON.parse(data.Details); } catch { rows = []; }
+            }
+
+            state.analysisTypes = rows.map(r => ({
+                value:          String(r.AnalysisTypeID ?? r.SubCodeID ?? '').trim(),
+                text:           String(r.Description ?? '').trim(),
+                isSlabRequired: r.IsSlabRequired === 1 || r.IsSlabRequired === true || r.IsSlabRequired === '1'
+            })).filter(t => t.value);
+
+            _populateTypeSelect(qs('#AnalysisTypeId'),      false);
+            _populateTypeSelect(qs('#searchAnalysisTypeId'), true);
+
+            state.typesLoaded = true;
+        } catch (ex) {
+            console.error('[LoanAnalysis] Failed to load analysis types:', ex);
+        }
+    }
+
+    function _populateTypeSelect(sel, includeAll) {
+        if (!sel) return;
+        // Preserve current value
+        const prev = sel.value;
+        // Remove all but first option
+        while (sel.options.length > 1) sel.remove(1);
+        sel.options[0].value       = '';
+        sel.options[0].textContent = includeAll ? '--All--' : '--Select--';
+
+        state.analysisTypes.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value       = t.value;
+            opt.textContent = t.text;
+            sel.appendChild(opt);
+        });
+
+        // Restore prior selection if still valid
+        if (prev && Array.from(sel.options).some(o => o.value === prev)) sel.value = prev;
+
+        if (typeof $ !== 'undefined' && typeof $.fn?.selectpicker !== 'undefined') {
+            $(sel).selectpicker('refresh');
+        }
+    }
+
+    function _applySlabVisibility(typeValue) {
+        const typeData = state.analysisTypes.find(t => t.value === typeValue);
+        const section  = qs('[data-section="analysis-details"]');
+        if (!section) return;
+        const content = section.querySelector('[data-section-content]');
+        const header  = section.querySelector('.section-header');
+        // Show slabs section only when IsSlabRequired (LoanAnalysisTypeID group)
+        const show = !typeValue || typeData?.isSlabRequired !== false;
+        if (content) content.style.display = show ? '' : 'none';
+        if (header)  header.style.display  = show ? '' : 'none';
+    }
+
     // ─── Search Modal ────────────────────────────────────────────────────
     function openSearchModal() {
         const modalEl  = qs('#loanAnalysisSearchModal');
@@ -639,6 +725,8 @@
         if (tbody)    tbody.innerHTML = '';
 
         try {
+            // t_SystemSearchItem SearchID="LoanAnalysisID" → p_GetSearchResult
+            // returns LoanAnalysisID, Description, AnalysisTypeID from t_LoanAnalysis.
             const resp = await apiInvoke(endpoints.searchLoanAnalysis, {
                 LoanAnalysisID: getValue('searchLoanAnalysisId'),
                 Description:    getValue('searchDescription'),
@@ -648,31 +736,21 @@
                 OperatorID:     state.context.operatorId
             });
 
-            const payload  = resp?.data ?? resp;
-            let   results  = [];
+            if (!resp?.success) throw new Error(resp?.message || 'Search failed');
 
-            for (const key of ['Details01', 'Details', 'details01', 'details']) {
-                const arr = payload?.[key];
-                if (Array.isArray(arr) && arr.length) {
-                    results = arr.filter(r => r && !isMetaOnlyObject(r) && pickValue(r, ['LoanAnalysisID', 'LoanAnalysisId'], ['loananalysisid']));
-                    if (results.length) break;
-                }
-            }
+            const data = resp.data || resp;
+            const rows =
+                (data?.Details01 && Array.isArray(data.Details01) && data.Details01.length) ? data.Details01 :
+                (data?.Details   && Array.isArray(data.Details)   && data.Details.length)   ? data.Details   :
+                Array.isArray(data)                                                          ? data           : [];
 
-            // Deduplicate
-            const seen = new Set();
-            results = results.filter(r => {
-                const id = String(pickValue(r, ['LoanAnalysisID', 'LoanAnalysisId'], ['loananalysisid']) || '');
-                if (seen.has(id)) return false;
-                seen.add(id);
-                return true;
-            });
-
-            // Client-side filter on description
-            const descFilter = getValue('searchDescription').toLowerCase();
-            const typeFilter = getValue('searchAnalysisTypeId').toLowerCase();
-            if (descFilter) results = results.filter(r => String(pickValue(r, ['Description'], ['description']) || '').toLowerCase().includes(descFilter));
-            if (typeFilter) results = results.filter(r => String(pickValue(r, ['AnalysisTypeID', 'AnalysisTypeId'], ['analysistypeid']) || '').toLowerCase() === typeFilter);
+            const results = rows
+                .map(r => ({
+                    LoanAnalysisID: String(r.LoanAnalysisID ?? '').trim(),
+                    Description:    String(r.Description    ?? '').trim(),
+                    AnalysisTypeID: String(r.AnalysisTypeID ?? '').trim()
+                }))
+                .filter(r => r.LoanAnalysisID);
 
             searchState.results       = results;
             searchState.selectedIndex = -1;
@@ -728,7 +806,7 @@
             showMessage('Please select a record first.', 'warning'); return;
         }
         const selected = searchState.results[searchState.selectedIndex];
-        const id = String(pickValue(selected, ['LoanAnalysisID', 'LoanAnalysisId'], ['loananalysisid']) || '');
+        const id = String(selected.LoanAnalysisID || '');
         setVal('LoanAnalysisId', id);
         if (searchModal) searchModal.hide();
         handleSearch();
@@ -749,10 +827,16 @@
 
     function bindSearchModal() {
         const lookupBtn = qs('#btnLoanAnalysisLookup');
-        if (lookupBtn) lookupBtn.addEventListener('click', openSearchModal);
+        if (lookupBtn) lookupBtn.addEventListener('click', async () => {
+            await loadAnalysisTypes();
+            openSearchModal();
+        });
 
         const searchForm = qs('#loanAnalysisSearchForm');
         if (searchForm) searchForm.addEventListener('submit', e => { e.preventDefault(); performSearch(); });
+
+        const searchBtn = qs('#btnSearchLoanAnalysis');
+        if (searchBtn) searchBtn.addEventListener('click', () => performSearch());
 
         const tbody = qs('#loanAnalysisSearchResults');
         if (tbody) {
@@ -805,6 +889,11 @@
             if (e.key === 'Enter') { e.preventDefault(); handleSearch(); }
         });
 
+        // Toggle slabs section based on selected analysis type
+        qs('#AnalysisTypeId')?.addEventListener('change', function () {
+            _applySlabVisibility(this.value);
+        });
+
         // Grid buttons
         qsa('[data-la-grid-action]').forEach(btn => btn.addEventListener('click', handleGridButton));
     }
@@ -818,6 +907,7 @@
         bindSearchModal();
         clearFormData();
         setMode(MODES.VIEW);
+        void loadAnalysisTypes();
         console.log('[LoanAnalysis] Initialized');
     }
 

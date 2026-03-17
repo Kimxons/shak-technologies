@@ -73,6 +73,34 @@ namespace kairo_ui.Controllers.StaticData
         }
 
         // -----------------------------------------------------------------------
+        // GET LOAN ANALYSIS TYPES – called by JS on lookup click to populate dropdown
+        // -----------------------------------------------------------------------
+
+        [HttpGet("GetLoanAnalysisTypes")]
+        public async Task<IActionResult> GetLoanAnalysisTypes()
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, message = "Not authenticated" });
+
+                // p_GetLoanAnalysisTypeID takes no parameters
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    OldApiName,
+                    OldApiDBConstants.GET_LOAN_ANALYSIS_TYPE_ID,
+                    new { }
+                );
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading loan analysis types");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // -----------------------------------------------------------------------
         // GET LOAN ANALYSIS
         // -----------------------------------------------------------------------
 
@@ -114,6 +142,10 @@ namespace kairo_ui.Controllers.StaticData
 
         // -----------------------------------------------------------------------
         // SEARCH LOAN ANALYSIS
+        //
+        // t_SystemSearchItem has SearchID = "LoanAnalysisID" pointing to:
+        //   SELECT LoanAnalysisID,Description,AnalysisTypeID FROM t_LoanAnalysis
+        // BankID goes inside @WhereStmt (p_GetSearchResult has no @BankID param).
         // -----------------------------------------------------------------------
 
         [HttpPost("SearchLoanAnalysis")]
@@ -129,18 +161,44 @@ namespace kairo_ui.Controllers.StaticData
 
                 EnsureDefaults(request);
 
-                var getRequest = new LoanAnalysisGetRequest
+                // BankID must be part of WhereStmt — t_LoanAnalysis is bank-partitioned
+                // and p_GetSearchResult has no @BankID parameter.
+                var clauses = new List<string>();
+                var bankSafe = (request.BankID ?? "00").Replace("'", "''");
+                clauses.Add($"BankID = '{bankSafe}'");
+
+                if (!string.IsNullOrWhiteSpace(request.LoanAnalysisID))
                 {
-                    BankID = request.BankID,
-                    OurBranchID = request.OurBranchID,
-                    OperatorID = request.OperatorID,
-                    LoanAnalysisID = request.LoanAnalysisID ?? string.Empty
+                    var safe = request.LoanAnalysisID.Replace("'", "''");
+                    clauses.Add($"LoanAnalysisID LIKE '%{safe}%'");
+                }
+                if (!string.IsNullOrWhiteSpace(request.Description))
+                {
+                    var safe = request.Description.Replace("'", "''");
+                    clauses.Add($"Description LIKE '%{safe}%'");
+                }
+                if (!string.IsNullOrWhiteSpace(request.AnalysisTypeID))
+                {
+                    var safe = request.AnalysisTypeID.Replace("'", "''");
+                    clauses.Add($"AnalysisTypeID = '{safe}'");
+                }
+
+                var searchPayload = new
+                {
+                    TableID         = "LoanAnalysisID",
+                    WhereStmt       = string.Join(" AND ", clauses),
+                    AdvFilterString = "",
+                    PrevOrNext      = "1",
+                    RefID           = "",
+                    OperatorID      = request.OperatorID,
+                    ModuleID        = 7100,
+                    OurBranchID     = request.OurBranchID
                 };
 
                 var result = await _oldApiService.CreateAsync<JsonElement>(
                     OldApiName,
-                    OldApiDBConstants.GET_LOAN_ANALYSIS,
-                    getRequest
+                    OldApiDBConstants.GET_SEARCHRESULT_DBO,
+                    searchPayload
                 );
 
                 return Ok(new { success = true, data = result });
@@ -169,10 +227,33 @@ namespace kairo_ui.Controllers.StaticData
 
                 EnsureDefaults(request);
 
+                // Build exact SP parameter set — p_AddEditLoanAnalysis does NOT accept
+                // @OurBranchID or @OperatorID, so we must not pass them.
+                // @UpdateCount = 1  → INSERT (new record stored with UpdateCount = 2)
+                // @UpdateCount > 1  → UPDATE
+                // @DetailRecords accepts NULL when there are no slab rows.
+                var savePayload = new
+                {
+                    BankID         = request.BankID,
+                    LoanAnalysisID = request.LoanAnalysisID,
+                    Description    = request.Description    ?? string.Empty,
+                    AnalysisTypeID = request.AnalysisTypeID ?? string.Empty,
+                    NoOfSlabs      = request.NoOfSlabs,
+                    CreatedBy      = request.CreatedBy  ?? request.OperatorID,
+                    CreatedOn      = request.CreatedOn,
+                    ModifiedBy     = request.ModifiedBy ?? request.OperatorID,
+                    ModifiedOn     = request.ModifiedOn,
+                    SupervisedBy   = request.SupervisedBy,
+                    UpdateCount    = request.UpdateCount,
+                    DetailRecords  = string.IsNullOrWhiteSpace(request.DetailRecords)
+                                        ? "<r/>"   // empty XML — SP's .nodes() returns 0 rows, no error
+                                        : request.DetailRecords
+                };
+
                 var result = await _oldApiService.CreateAsync<JsonElement>(
                     OldApiName,
                     OldApiDBConstants.ADD_EDIT_LOAN_ANALYSIS,
-                    request
+                    savePayload
                 );
 
                 if (IsSuccess(result))
@@ -209,10 +290,18 @@ namespace kairo_ui.Controllers.StaticData
 
                 EnsureDefaults(request);
 
+                // p_DeleteLoanAnalysis only accepts @BankID, @LoanAnalysisID, @UpdateCount
+                var deletePayload = new
+                {
+                    BankID         = request.BankID,
+                    LoanAnalysisID = request.LoanAnalysisID,
+                    UpdateCount    = request.UpdateCount
+                };
+
                 var result = await _oldApiService.CreateAsync<JsonElement>(
                     OldApiName,
                     OldApiDBConstants.DELETE_LOAN_ANALYSIS,
-                    request
+                    deletePayload
                 );
 
                 if (IsSuccess(result))
@@ -243,7 +332,9 @@ namespace kairo_ui.Controllers.StaticData
             if (string.IsNullOrWhiteSpace(request.OurBranchID))
                 request.OurBranchID = HttpContext.Session.GetString("branch_code") ?? string.Empty;
             if (string.IsNullOrWhiteSpace(request.BankID))
-                request.BankID = HttpContext.Session.GetString("bank_id") ?? string.Empty;
+                request.BankID = HttpContext.Session.GetString("bank_id")
+                              ?? HttpContext.Session.GetString("bank_code")
+                              ?? "00";
         }
 
         private static bool IsSuccess(JsonElement result)
@@ -307,6 +398,7 @@ namespace kairo_ui.Controllers.StaticData
         public string? LoanAnalysisID { get; set; }
         public string? Description { get; set; }
         public string? AnalysisTypeID { get; set; }
+        public int? ModuleID { get; set; }
     }
 
     public class LoanAnalysisSaveRequest : LoanAnalysisBaseRequest

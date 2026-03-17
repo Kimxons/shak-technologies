@@ -284,6 +284,7 @@ namespace kairo_ui.Services
         // LOAN ANALYSIS (StaticData/LoanAnalysis)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_LOAN_ANALYSIS = "dbo.p_GetLoanAnalysis";
+        public const string GET_LOAN_ANALYSIS_TYPE_ID = "dbo.p_GetLoanAnalysisTypeID";
         public const string ADD_EDIT_LOAN_ANALYSIS = "dbo.p_AddEditLoanAnalysis";
         public const string DELETE_LOAN_ANALYSIS = "dbo.p_DeleteLoanAnalysis";
 
