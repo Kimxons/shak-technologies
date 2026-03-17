@@ -148,7 +148,7 @@
                             <div class="col">
                                 <label class="label-blue">Center ID</label>
                                 <div class="kairo-control" data-kairo-control>
-                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID" readonly>
+                                    <input type="text" id="centerId" class="kairo-control__id" aria-label="Center ID">
                                     <input type="text" id="centerName" class="kairo-control__name" aria-label="Center Name" placeholder="Center Name" readonly>
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-lookup="Center" onclick="window.handleCenterSearch?.()" aria-label="Search Center"><i class="bi bi-search"></i></button>
                                 </div>
@@ -426,13 +426,6 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="@Url.Content("~/js/app/global-utils.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/serviceLoader.js")"></script>
-
-    <script type="text/javascript" src="@Url.Content("~/js/environment.js")"></script>
-    <script type="text/javascript" src="@Url.Content("~/js/services/shared/coreApi.js")"></script>
-
-    <script type="text/javascript" src="@Url.Content("~/js/modules/shared/searchModal.js")"></script>
     <script type="text/javascript" src="@Url.Content("~/js/modules/microfinance/group-maintenance.js")"></script>
 
     <script>

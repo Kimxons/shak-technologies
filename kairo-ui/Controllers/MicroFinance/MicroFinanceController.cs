@@ -428,7 +428,11 @@ namespace kairo_ui.Controllers.MicroFinance
                 normalizedFormId.Equals("dbo.p_GetSpConditionCalssCombo", StringComparison.OrdinalIgnoreCase)
                 || normalizedFormId.Equals("p_GetSpConditionCalssCombo", StringComparison.OrdinalIgnoreCase)
                 || normalizedFormId.Equals("dbo.p_GetSpConditionClassCombo", StringComparison.OrdinalIgnoreCase)
-                || normalizedFormId.Equals("p_GetSpConditionClassCombo", StringComparison.OrdinalIgnoreCase);
+                || normalizedFormId.Equals("p_GetSpConditionClassCombo", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("dbo.pc_SearchSystemBranches", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("pc_SearchSystemBranches", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("dbo.p_AddEditGroupLoanMenu", StringComparison.OrdinalIgnoreCase)
+                || normalizedFormId.Equals("p_AddEditGroupLoanMenu", StringComparison.OrdinalIgnoreCase);
 
             if (!skipBranchAndOperator)
             {

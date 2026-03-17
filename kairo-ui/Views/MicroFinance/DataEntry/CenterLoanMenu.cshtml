@@ -31,14 +31,14 @@
                             <div class="col-4">
                                 <label class="label-blue" for="LoanCycleNo">Loan Cycle No.</label>
                                 <div class="kairo-control" data-kairo-control>
-                                    <input type="text" id="LoanCycleNo" class="kairo-control__id bs-input-text" aria-label="Loan Cycle No" placeholder="Cycle No">
+                                    <input type="text" id="LoanCycleNo" class="kairo-control__id bs-input-text" aria-label="Loan Cycle No" placeholder="Cycle No" inputmode="numeric">
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="loan-cycle" aria-label="Lookup loan cycle"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <label class="label-blue" for="LoanLevelNo">Loan Level No</label>
                                 <div class="kairo-control" data-kairo-control>
-                                    <input type="text" id="LoanLevelNo" class="kairo-control__id bs-input-text" aria-label="Loan Level No" placeholder="Level No">
+                                    <input type="text" id="LoanLevelNo" class="kairo-control__id bs-input-text" aria-label="Loan Level No" placeholder="Level No" inputmode="numeric">
                                     <button type="button" class="btn-lookup kairo-control__lookup" data-mcs-lookup="loan-level" aria-label="Lookup loan level"><i class="bi bi-search"></i></button>
                                 </div>
                             </div>
@@ -62,21 +62,21 @@
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="label-blue" for="MinimumLoanAmount">Minimum Loan Amount</label>
-                                <input id="MinimumLoanAmount" type="text" class="bs-input-text form-control" />
+                                <input id="MinimumLoanAmount" type="text" class="bs-input-text form-control" inputmode="decimal" placeholder="0.00" />
                             </div>
                             <div class="col-6">
                                 <label class="label-blue" for="MaximumLoanAmount">Maximum Loan Amount</label>
-                                <input id="MaximumLoanAmount" type="text" class="bs-input-text form-control" />
+                                <input id="MaximumLoanAmount" type="text" class="bs-input-text form-control" inputmode="decimal" placeholder="0.00" />
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="label-blue" for="DefaultLoanAmount">Default Loan Amount</label>
-                                <input id="DefaultLoanAmount" type="text" class="bs-input-text form-control" />
+                                <input id="DefaultLoanAmount" type="text" class="bs-input-text form-control" inputmode="decimal" placeholder="0.00" />
                             </div>
                             <div class="col-6">
                                 <label class="label-blue" for="Term">Term</label>
-                                <input id="Term" type="text" class="bs-input-text form-control" />
+                                <input id="Term" type="text" class="bs-input-text form-control" inputmode="numeric" />
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
@@ -88,13 +88,13 @@
                             </div>
                             <div class="col-6">
                                 <label for="InstallmentGracePeriod">Installment Grace Period</label>
-                                <input id="InstallmentGracePeriod" type="text" class="bs-input-text form-control" />
+                                <input id="InstallmentGracePeriod" type="text" class="bs-input-text form-control" inputmode="numeric" />
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label for="MaxAdjustmentDays">Max Adjustment Days</label>
-                                <input id="MaxAdjustmentDays" type="text" class="bs-input-text form-control" />
+                                <input id="MaxAdjustmentDays" type="text" class="bs-input-text form-control" inputmode="numeric" />
                             </div>
                             <div class="col-6"></div>
                         </div>
@@ -113,7 +113,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label for="MenuSavingToLoanRatio">Saving To Loan Ratio</label>
-                                <input id="MenuSavingToLoanRatio" type="text" class="bs-input-text form-control" />
+                                <input id="MenuSavingToLoanRatio" type="text" class="bs-input-text form-control" inputmode="decimal" />
                             </div>
                             <div class="col-6">
                                 <label for="MenuSLRecoveryType">S/L Recovery Type</label>
@@ -147,7 +147,7 @@
                             </div>
                             <div class="col-6">
                                 <label for="MenuSavingsValue">Savings Value</label>
-                                <input id="MenuSavingsValue" type="text" class="bs-input-text form-control" />
+                                <input id="MenuSavingsValue" type="text" class="bs-input-text form-control" inputmode="decimal" placeholder="0.00" />
                             </div>
                         </div>
                     </div>
