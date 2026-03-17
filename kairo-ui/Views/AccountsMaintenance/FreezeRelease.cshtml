@@ -2,6 +2,9 @@
     Layout = "_ApplicationLayout";
 }
 <!-- FreezeRelease Submodule -->
+<form id="freezeReleaseFormToken" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
 <main class="main-container main-container--with-panel">
 <div class="form-content">
 <div class="form-card" data-main-form>
